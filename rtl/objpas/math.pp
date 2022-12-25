@@ -318,9 +318,61 @@ function GradToRad(grad : float) : float;inline;
 function RadToGrad(rad : float) : float;inline;
 function DegToGrad(deg : float) : float;inline;
 function GradToDeg(grad : float) : float;inline;
-{ one cycle are 2*Pi rad }
-function CycleToRad(cycle : float) : float;inline;
-function RadToCycle(rad : float) : float;inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToDeg(const Cycles: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToDeg(const Cycles: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToDeg(const Cycles: Extended): Extended;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function DegToCycle(const Degrees: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function DegToCycle(const Degrees: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function DegToCycle(const Degrees: Extended): Extended;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToGrad(const Cycles: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToGrad(const Cycles: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToGrad(const Cycles: Extended): Extended;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function GradToCycle(const Grads: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function GradToCycle(const Grads: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function GradToCycle(const Grads: Extended): Extended;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToRad(const Cycles: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToRad(const Cycles: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToRad(const Cycles: Extended): Extended;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RadToCycle(const Rads: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function RadToCycle(const Rads: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RadToCycle(const Rads: Extended): Extended;
+{$ENDIF}
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 Function DegNormalize(deg : single) : single; inline;
 {$ENDIF}
@@ -780,16 +832,119 @@ function gradtodeg(grad : float) : float;inline;
      gradtodeg:=grad*(180.0/200.0);
   end;
 
-function cycletorad(cycle : float) : float;inline;
-  begin
-     cycletorad:=(2*pi)*cycle;
-  end;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToDeg(const Cycles: Single): Single;
+begin
+  CycleToDeg:=Cycles*360.0;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToDeg(const Cycles: Double): Double;
+begin
+  CycleToDeg:=Cycles*360.0;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToDeg(const Cycles: Extended): Extended;
+begin
+  CycleToDeg:=Cycles*360.0;
+end;
+{$ENDIF}
 
-function radtocycle(rad : float) : float;inline;
-  begin
-     { avoid division }
-     radtocycle:=rad*(1/(2*pi));
-  end;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function DegToCycle(const Degrees: Single): Single;
+begin
+  DegToCycle:=Degrees*(1/360.0);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function DegToCycle(const Degrees: Double): Double;
+begin
+  DegToCycle:=Degrees*(1/360.0);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function DegToCycle(const Degrees: Extended): Extended;
+begin
+  DegToCycle:=Degrees*(1/360.0);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToGrad(const Cycles: Single): Single;
+begin
+  CycleToGrad:=Cycles*400.0;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToGrad(const Cycles: Double): Double;
+begin
+  CycleToGrad:=Cycles*400.0;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToGrad(const Cycles: Extended): Extended;
+begin
+  CycleToGrad:=Cycles*400.0;
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function GradToCycle(const Grads: Single): Single;
+begin
+  GradToCycle:=Grads*(1/400.0);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function GradToCycle(const Grads: Double): Double;
+begin
+  GradToCycle:=Grads*(1/400.0);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function GradToCycle(const Grads: Extended): Extended;
+begin
+  GradToCycle:=Grads*(1/400.0);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CycleToRad(const Cycles: Single): Single;
+begin
+  CycleToRad:=Cycles*2*pi;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CycleToRad(const Cycles: Double): Double;
+begin
+  CycleToRad:=Cycles*2*pi;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CycleToRad(const Cycles: Extended): Extended;
+begin
+  CycleToRad:=Cycles*2*pi;
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RadToCycle(const Rads: Single): Single;
+begin
+  RadToCycle:=Rads*(1/(2*pi));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function RadToCycle(const Rads: Double): Double;
+begin
+  RadToCycle:=Rads*(1/(2*pi));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RadToCycle(const Rads: Extended): Extended;
+begin
+  RadToCycle:=Rads*(1/(2*pi));
+end;
+{$ENDIF}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 Function DegNormalize(deg : single) : single;
