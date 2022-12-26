@@ -296,7 +296,7 @@ type
 {$if defined(unix) or defined(windows)}
 {$DEFINE HAVENONBLOCKING}
 {$endif}
-  TInetSocket = Class(TServerSocketStream)
+  TInetSocket = Class(TSocketStream)
   Private
     FHost : String;
     FPort : Word;
@@ -315,7 +315,7 @@ type
 
 {$ifdef Unix}
 
-  TUnixSocket = Class(TServerSocketStream)
+  TUnixSocket = Class(TSocketStream)
   Private
     FFileName : String;
   Protected
