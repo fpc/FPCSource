@@ -96,7 +96,7 @@ begin
     FSrv.MessageWaitTime:=StrToIntDef(GetOptionValue('w','wait'),DefaultWaitTime);
   if HasOption('i','idle') then
     FSrv.AcceptIdleTimeout:=StrToIntDef(GetOptionValue('i','idle'),DefaultAcceptTimeout);
-  FSrv.Port:=6060;
+  FSrv.Port:=StrToIntDef(GetOptionValue('p','port'),6060);
   FSrv.Active:=True;
   FSrv.OutgoingFrameMask:=StrToIntDef(GetOptionValue('m','mask'),0);
   if Not FSrv.ThreadedAccept then
