@@ -417,6 +417,35 @@ function ArcTan2(y,x : float) : float;
 function CosH(x : float) : float;
 function SinH(x : float) : float;
 function TanH(x : float) : float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SecH(const X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function SecH(const X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function SecH(const X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CscH(const X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CscH(const X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CscH(const X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CotH(const X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CotH(const X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CotH(const X: Extended): Extended;
+{$ENDIF}
 
 { area functions }
 
@@ -1123,6 +1152,97 @@ function tanh(x : float) : float;
       result:=(1-tmp)/(1+tmp)
     end;
   end;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SecH(const X: Single): Single;
+var
+  Ex: ValReal;
+begin
+  //https://en.wikipedia.org/wiki/Hyperbolic_functions#Definitions
+  //SecH = 2 / (e^X + e^-X)
+  Ex:=Exp(X);
+  SecH:=2/(Ex+1/Ex);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function SecH(const X: Double): Double;
+var
+  Ex: ValReal;
+begin
+  Ex:=Exp(X);
+  SecH:=2/(Ex+1/Ex);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function SecH(const X: Extended): Extended;
+var
+  Ex: Extended;
+begin
+  Ex:=Exp(X);
+  SecH:=2/(Ex+1/Ex);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CscH(const X: Single): Single;
+var
+  Ex: ValReal;
+begin
+  //CscH = 2 / (e^X - e^-X)
+  Ex:=Exp(X);
+  CscH:=2/(Ex-1/Ex);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CscH(const X: Double): Double;
+var
+  Ex: ValReal;
+begin
+  Ex:=Exp(X);
+  CscH:=2/(Ex-1/Ex);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CscH(const X: Extended): Extended;
+var
+  Ex: Extended;
+begin
+  Ex:=Exp(X);
+  CscH:=2/(Ex-1/Ex);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CotH(const X: Single): Single;
+var
+  Ex, Emx: ValReal;
+begin
+  //CotH = (e^X + e^-X) / (e^X - e^-X)
+  Ex:=Exp(X);
+  Emx:=1/Ex;
+  CotH:=(Ex+Emx)/(Ex-Emx);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CotH(const X: Double): Double;
+var
+  Ex, Emx: ValReal;
+begin
+  Ex:=Exp(X);
+  Emx:=1/Ex;
+  CotH:=(Ex+Emx)/(Ex-Emx);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CotH(const X: Extended): Extended;
+var
+  Ex, Emx: Extended;
+begin
+  Ex:=Exp(X);
+  Emx:=1/Ex;
+  CotH:=(Ex+Emx)/(Ex-Emx);
+end;
+{$ENDIF}
 
 function arccosh(x : float) : float; inline;
   begin
