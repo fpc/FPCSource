@@ -1020,6 +1020,12 @@ begin
     ConnectionName:=R.ConnectionName;
     Enabled:=R.Enabled;
     InMetadata:=R.InMetadata;
+    FAllowedOperations:=R.AllowedOperations;
+    OnResourceAllowed:=R.OnResourceAllowed;
+    OnAllowedOperations:=R.OnAllowedOperations;
+    OnGetDataset:=R.OnGetDataset
+    OnCheckParams:=R.OnCheckParams;
+    OnAllowRecord:=R.OnAllowRecord;
     end
   else
     inherited Assign(Source);
