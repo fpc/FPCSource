@@ -287,7 +287,8 @@ type
                woCloseExplicit,     // SeDo Close explicitly, not implicitly.
                woIndividualFrames,  // Send frames one by one, do not concatenate.
                woSkipUpgradeCheck,  // Skip handshake "Upgrade:" HTTP header cheack.
-               woSkipVersionCheck   // Skip handshake "Sec-WebSocket-Version' HTTP header check.
+               woSkipVersionCheck,  // Skip handshake "Sec-WebSocket-Version' HTTP header check.
+               woSendErrClosesConn  // Don't raise an exception when writing to a broken connection
               );
   TWSOptions = set of TWSOption;
 
@@ -482,6 +483,7 @@ Resourcestring
   SErrServerActive = 'Operation cannot be performed while the websocket connection is active';
   SErrInvalidSizeFlag = 'Invalid size flag: %d';
   SErrInvalidFrameType = 'Invalid frame type flag: %d';
+  SErrWriteReturnedError = 'Write operation returned error: (%d) %s';
 
 function DecodeBytesBase64(const s: string; Strict: boolean = false) : TBytes;
 function EncodeBytesBase64(const aBytes : TBytes) : String;
@@ -1175,7 +1177,7 @@ Var
 begin
   if not (aFrameType in [ftClose,ftPing,ftPong]) then
     Raise EWebSocket.CreateFmt(SErrNotSimpleOperation,[Ord(aFrameType)]);
-  aFrame:=FrameClass.Create(aFrameType,True,aData);
+  aFrame:=FrameClass.Create(aFrameType,True,aData, OutgoingFrameMask);
   try
     Send(aFrame);
   finally
@@ -1532,7 +1534,7 @@ var
   aFrame: TWSFrame;
 
 begin
-  aFrame:=FrameClass.Create(aMessage);
+  aFrame:=FrameClass.Create(aMessage, OutgoingFrameMask);
   try
     Send(aFrame);
   finally
@@ -1544,7 +1546,7 @@ procedure TWSConnection.Send(const ABytes: TBytes);
 var
   aFrame: TWSFrame;
 begin
-  aFrame:=FrameClass.Create(ftBinary,True,ABytes);
+  aFrame:=FrameClass.Create(ftBinary,True,ABytes, OutgoingFrameMask);
   try
     Send(aFrame);
   finally
@@ -1590,12 +1592,27 @@ procedure TWSConnection.Send(aFrame: TWSFrame);
 
 Var
   Data : TBytes;
+  Res: Integer;
+  ErrMsg: UTF8String;
 
 begin
   if FCloseState=csClosed then
     Raise EWebSocket.Create(SErrCloseAlreadySent);
   Data:=aFrame.AsBytes;
-  Transport.WriteBytes(Data,Length(Data));
+  Res := Transport.WriteBytes(Data,Length(Data));
+  if Res < 0 then
+  begin
+    FCloseState:=csClosed;
+    ErrMsg := Format(SErrWriteReturnedError, [GetLastOSError, SysErrorMessage(GetLastOSError)]);
+    if woSendErrClosesConn in Options then
+    begin
+      SetLength(Data, 0);
+      Data.Append(TEncoding.UTF8.GetBytes(UnicodeString(ErrMsg)));
+      DispatchEvent(ftClose, nil, Data);
+    end
+    else
+      Raise EWebSocket.Create(ErrMsg);
+  end;
   if (aFrame.FrameType=ftClose) then
     begin
     if FCloseState=csNone then
