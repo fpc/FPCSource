@@ -1023,7 +1023,7 @@ begin
     FAllowedOperations:=R.AllowedOperations;
     OnResourceAllowed:=R.OnResourceAllowed;
     OnAllowedOperations:=R.OnAllowedOperations;
-    OnGetDataset:=R.OnGetDataset
+    OnGetDataset:=R.OnGetDataset;
     OnCheckParams:=R.OnCheckParams;
     OnAllowRecord:=R.OnAllowRecord;
     end
