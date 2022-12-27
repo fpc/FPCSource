@@ -475,7 +475,7 @@ procedure TCustomWebsocketClient.Disconnect(SendClose : boolean = true);
 begin
   if Not Active then
     Exit;
-  if SendClose then
+  if SendClose and (Connection.CloseState <> csClosed) then
     Connection.Close('');
   if Assigned(MessagePump) then
     MessagePump.RemoveClient(Connection);
