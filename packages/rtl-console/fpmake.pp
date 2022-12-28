@@ -97,7 +97,6 @@ begin
        AddInclude('videoh.inc');
        AddInclude('video.inc');
        AddInclude('videodata.inc',AllAmigaLikeOSes);
-       AddInclude('convert.inc',AllUnixOSes);
        AddInclude('nwsys.inc',[netware]);
        AddUnit   ('mouse',[go32v2,msdos]);
        AddUnit   ('unixkvmbase',AllUnixOSes);
