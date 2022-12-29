@@ -1644,6 +1644,9 @@ parser_w_ignoring_published_property=03365_W_This property will not be published
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
+parser_w_widechar_set_reduced=03366_W_Reducing Widechar set to single-byte AnsiChar set.
+% The base type of a set can only have 255 elements. Sets of wide characters
+% are reduced to sets of 1-byte characters.
 %
 % \end{description}
 %
