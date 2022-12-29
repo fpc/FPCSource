@@ -132,6 +132,15 @@ type
           function  Floor   : TPoint;
           function  Round   : TPoint;
           function  Length  : Single;
+
+          function Rotate(angle: single): TPointF;
+          function Reflect(const normal: TPointF): TPointF;
+          function MidPoint(const b: TPointF): TPointF;
+          class function PointInCircle(const pt, center: TPointF; radius: single): Boolean; static;
+          class function PointInCircle(const pt, center: TPointF; radius: integer): Boolean; static;
+          function Angle(const b: TPointF): Single;
+          function AngleCosine(const b: TPointF): single;
+
           class function Create(const ax, ay: Single): TPointF; overload; static; inline;
           class function Create(const apt: TPoint): TPointF; overload; static; inline;
           class operator = (const apt1, apt2 : TPointF) : Boolean;
@@ -711,8 +720,48 @@ begin
 end;
 
 function TPointF.Length: Single;
-begin     //distance(self) ?
+begin
   result:=sqrt(sqr(x)+sqr(y));
+end;
+
+function TPointF.Rotate(angle: single): TPointF;
+var
+  sina, cosa: single;
+begin
+  sincos(angle, sina, cosa);
+  result.x := x * cosa - y * sina;
+  result.y := x * sina + y * cosa;
+end;
+
+function TPointF.Reflect(const normal: TPointF): TPointF;
+begin
+  result := self + (-2 * normal ** self) * normal;
+end;
+
+function TPointF.MidPoint(const b: TPointF): TPointF;
+begin
+  result.x := 0.5 * (x + b.x);
+  result.y := 0.5 * (y + b.y);
+end;
+
+class function TPointF.PointInCircle(const pt, center: TPointF; radius: single): Boolean;
+begin
+  result := sqr(center.x - pt.x) + sqr(center.y - pt.y) < sqr(radius);
+end;
+
+class function TPointF.PointInCircle(const pt, center: TPointF; radius: integer): Boolean;
+begin
+  result := sqr(center.x - pt.x) + sqr(center.y - pt.y) < sqr(single(radius));
+end;
+
+function TPointF.Angle(const b: TPointF): Single;
+begin
+  result := ArcTan2(y - b.y, x - b.x);
+end;
+
+function TPointF.AngleCosine(const b: TPointF): single;
+begin
+  result := EnsureRange((self ** b) / sqrt((sqr(x) + sqr(y)) * (sqr(b.x) + sqr(b.y))), -1, 1);
 end;
 
 class operator TPointF.= (const apt1, apt2 : TPointF) : Boolean;
