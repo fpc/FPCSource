@@ -1651,6 +1651,9 @@ parser_e_promising_exports_not_supported_on_current_platform=03367_E_Declaring e
 % Promising exports are WebAssembly-specific. They are not allowed on other platforms.
 parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declaring externals as 'suspending' is WebAssembly-specific and is not supported on the current platform
 % Suspending externals are WebAssembly-specific. They are not allowed on other platforms.
+parser_w_widechar_set_reduced=03369_W_Reducing Widechar set to single-byte AnsiChar set.
+% The base type of a set can only have 255 elements. Sets of wide characters
+% are reduced to sets of 1-byte characters.
 %
 % \end{description}
 %
