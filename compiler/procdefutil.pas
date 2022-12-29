@@ -574,6 +574,7 @@ implementation
       sym : tsym;
       fieldsym : tfieldvarsym;
       fieldname : tsymstr;
+      fielddef : tdef;
     begin
       if not pd.was_anonymous or not assigned(pd.capturedsyms) or (pd.capturedsyms.count=0) then
         exit;
@@ -611,9 +612,14 @@ implementation
                   if not assigned(fieldsym) then
                     begin
                       {$ifdef DEBUG_CAPTURER}writeln('Adding field ',fieldname,' to ',subcapturer.typesym.name);{$endif}
+                      fielddef:=tabstractvarsym(sym).vardef;
                       if vo_is_self in tabstractnormalvarsym(sym).varoptions then
-                        fieldname:='$'+fieldname;
-                      fieldsym:=cfieldvarsym.create(fieldname,vs_value,tabstractvarsym(sym).vardef,[]);
+                        begin
+                          fieldname:='$'+fieldname;
+                          if not is_implicit_pointer_object_type(fielddef) then
+                            fielddef:=cpointerdef.getreusable(fielddef);
+                        end;
+                      fieldsym:=cfieldvarsym.create(fieldname,vs_value,fielddef,[]);
                       fieldsym.fileinfo:=sym.fileinfo;
                       subcapturer.symtable.insertsym(fieldsym);
                       tabstractrecordsymtable(subcapturer.symtable).addfield(fieldsym,vis_public);
@@ -1314,6 +1320,8 @@ implementation
           n:=cloadnode.create(psym,psym.owner);
           if psym.capture_sym.owner.defowner<>capturer.vardef then
             internalerror(2022010903);
+          if (vo_is_self in psym.varoptions) and not is_implicit_pointer_object_type(psym.vardef) then
+            n:=caddrnode.create(n);
           n:=cassignmentnode.create(
                csubscriptnode.create(psym.capture_sym,cloadnode.create(capturer,capturer.owner)),
                n
@@ -1455,6 +1463,10 @@ implementation
           n:=csubscriptnode.create(mapping^.newsym,mapping^.selfnode.getcopy);
           if loadprocvar then
             include(n.flags,nf_load_procvar);
+          if (mapping^.oldsym.typ=paravarsym) and
+              (vo_is_self in tparavarsym(mapping^.oldsym).varoptions) and
+              not is_implicit_pointer_object_type(tparavarsym(mapping^.oldsym).vardef) then
+            n:=cderefnode.create(n);
           typecheckpass(n);
           current_filepos:=old_filepos;
           break;
