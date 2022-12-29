@@ -161,7 +161,7 @@ const
   );
 
 const
-  ParamTypes: array [0..63] of TParamType = (
+  ParamTypes: array [0..64] of TParamType = (
     (id: 'void';     modes: []; flags: []),
     (id: '#imm';     modes: [OT_IMMEDIATE]; flags: []),
     (id: '#immq';    modes: [OT_IMMEDIATE]; flags: [OF_NOSIZE,OF_IMM_QUICK]),
@@ -256,6 +256,11 @@ const
      modes: [OT_DATA,OT_ADDR_INDIR,OT_ADDR_INDIR_POSTINC,OT_ADDR_INDIR_PREDEC,
              OT_ADDR_DISP16,OT_ADDR_IDX_DISP8,OT_ABS_SHORT,OT_ABS_LONG,
              OT_PC_DISP16,OT_PC_IDX_DISP8];
+     flags: []),
+    (id: '<ea-data-imm>';
+     modes: [OT_DATA,OT_ADDR_INDIR,OT_ADDR_INDIR_POSTINC,OT_ADDR_INDIR_PREDEC,
+             OT_ADDR_DISP16,OT_ADDR_IDX_DISP8,OT_ABS_SHORT,OT_ABS_LONG,
+             OT_PC_DISP16,OT_PC_IDX_DISP8,OT_IMMEDIATE];
      flags: []),
     (id: '<ea-data-alter>';
      modes: [OT_DATA,OT_ADDR_INDIR,OT_ADDR_INDIR_POSTINC,OT_ADDR_INDIR_PREDEC,
