@@ -2837,9 +2837,11 @@ implementation
                   st_unicodestring :
                     begin
                       if not(is_unicodestring(rd)) then
-                        inserttypeconv(right,cunicodestringtype);
+                        if not ((ld.size=0) and (nodetype in [equaln,unequaln])) then
+                          inserttypeconv(right,cunicodestringtype);
                       if not(is_unicodestring(ld)) then
-                        inserttypeconv(left,cunicodestringtype);
+                        if not ((rd.size=0) and (nodetype in [equaln,unequaln])) then
+                          inserttypeconv(left,cunicodestringtype);
                     end;
                   st_ansistring :
                     begin
