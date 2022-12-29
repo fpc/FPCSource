@@ -7767,7 +7767,7 @@
     opflags : ([OF_SPECREG, OF_SPECREG_CCR],[],[],[],[],[]);
     codelen : 1;
     code    : ($42c0,$0000);
-    support : [OS_GNU_AS, OS_M68010UP, OS_CF];
+    support : [OS_GNU_AS, OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7787,7 +7787,7 @@
     opflags : ([OF_SPECREG, OF_SPECREG_SR],[],[],[],[],[]);
     codelen : 1;
     code    : ($40c0,$0000);
-    support : [OS_GNU_AS, OS_M68000UP, OS_CF];
+    support : [OS_GNU_AS, OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7803,21 +7803,11 @@
   (
     opcode  : A_MOV;
     ops     : 2;
-    optypes : ([OT_DATA],[OT_SPECIALREG],[],[],[],[]);
+    optypes : ([OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
     opflags : ([],[OF_SPECREG, OF_SPECREG_CCR],[],[],[],[]);
     codelen : 1;
     code    : ($44c0,$0000);
-    support : [OS_GNU_AS, OS_M68000UP, OS_CF];
-    sizes   : [OPS_WORD];
-  ),
-  (
-    opcode  : A_MOV;
-    ops     : 2;
-    optypes : ([OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
-    opflags : ([],[OF_SPECREG, OF_SPECREG_CCR],[],[],[],[]);
-    codelen : 1;
-    code    : ($44c0,$0000);
-    support : [OS_GNU_AS, OS_M68000UP, OS_CF];
+    support : [OS_GNU_AS, OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7833,21 +7823,11 @@
   (
     opcode  : A_MOV;
     ops     : 2;
-    optypes : ([OT_DATA],[OT_SPECIALREG],[],[],[],[]);
+    optypes : ([OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
     opflags : ([],[OF_SPECREG, OF_SPECREG_SR],[],[],[],[]);
     codelen : 1;
     code    : ($46c0,$0000);
-    support : [OS_GNU_AS, OS_M68000UP, OS_CF];
-    sizes   : [OPS_WORD];
-  ),
-  (
-    opcode  : A_MOV;
-    ops     : 2;
-    optypes : ([OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
-    opflags : ([],[OF_SPECREG, OF_SPECREG_SR],[],[],[],[]);
-    codelen : 1;
-    code    : ($46c0,$0000);
-    support : [OS_GNU_AS, OS_M68000UP, OS_CF];
+    support : [OS_GNU_AS, OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7927,7 +7907,7 @@
     opflags : ([OF_SPECREG, OF_SPECREG_CCR],[],[],[],[],[]);
     codelen : 1;
     code    : ($42c0,$0000);
-    support : [OS_M68010UP, OS_CF];
+    support : [OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7947,7 +7927,7 @@
     opflags : ([OF_SPECREG, OF_SPECREG_SR],[],[],[],[],[]);
     codelen : 1;
     code    : ($40c0,$0000);
-    support : [OS_M68000UP, OS_CF];
+    support : [OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7963,21 +7943,11 @@
   (
     opcode  : A_MOVE;
     ops     : 2;
-    optypes : ([OT_DATA],[OT_SPECIALREG],[],[],[],[]);
+    optypes : ([OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
     opflags : ([],[OF_SPECREG, OF_SPECREG_CCR],[],[],[],[]);
     codelen : 1;
     code    : ($44c0,$0000);
-    support : [OS_M68000UP, OS_CF];
-    sizes   : [OPS_WORD];
-  ),
-  (
-    opcode  : A_MOVE;
-    ops     : 2;
-    optypes : ([OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
-    opflags : ([],[OF_SPECREG, OF_SPECREG_CCR],[],[],[],[]);
-    codelen : 1;
-    code    : ($44c0,$0000);
-    support : [OS_M68000UP, OS_CF];
+    support : [OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -7993,21 +7963,11 @@
   (
     opcode  : A_MOVE;
     ops     : 2;
-    optypes : ([OT_DATA],[OT_SPECIALREG],[],[],[],[]);
+    optypes : ([OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
     opflags : ([],[OF_SPECREG, OF_SPECREG_SR],[],[],[],[]);
     codelen : 1;
     code    : ($46c0,$0000);
-    support : [OS_M68000UP, OS_CF];
-    sizes   : [OPS_WORD];
-  ),
-  (
-    opcode  : A_MOVE;
-    ops     : 2;
-    optypes : ([OT_IMMEDIATE],[OT_SPECIALREG],[],[],[],[]);
-    opflags : ([],[OF_SPECREG, OF_SPECREG_SR],[],[],[],[]);
-    codelen : 1;
-    code    : ($46c0,$0000);
-    support : [OS_M68000UP, OS_CF];
+    support : [OS_CF];
     sizes   : [OPS_WORD];
   ),
   (
@@ -8303,16 +8263,6 @@
   (
     opcode  : A_MOVM;
     ops     : 2;
-    optypes : ([OT_REG_LIST],[OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8],[],[],[],[]);
-    opflags : ([],[],[],[],[],[]);
-    codelen : 2;
-    code    : ($4880,$0000);
-    support : [OS_GNU_AS];
-    sizes   : [OPS_WORD, OPS_LONG];
-  ),
-  (
-    opcode  : A_MOVM;
-    ops     : 2;
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16],[OT_REG_LIST],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
@@ -8328,16 +8278,6 @@
     codelen : 2;
     code    : ($4c80,$0000);
     support : [OS_GNU_AS, OS_M68000UP];
-    sizes   : [OPS_WORD, OPS_LONG];
-  ),
-  (
-    opcode  : A_MOVM;
-    ops     : 2;
-    optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_REG_LIST],[],[],[],[]);
-    opflags : ([],[],[],[],[],[]);
-    codelen : 2;
-    code    : ($4c80,$0000);
-    support : [OS_GNU_AS];
     sizes   : [OPS_WORD, OPS_LONG];
   ),
   (
@@ -8373,16 +8313,6 @@
   (
     opcode  : A_MOVM;
     ops     : 2;
-    optypes : ([OT_IMMEDIATE],[OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8],[],[],[],[]);
-    opflags : ([OF_NOSIZE],[],[],[],[],[]);
-    codelen : 2;
-    code    : ($4880,$0000);
-    support : [OS_GNU_AS];
-    sizes   : [OPS_WORD, OPS_LONG];
-  ),
-  (
-    opcode  : A_MOVM;
-    ops     : 2;
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16],[OT_IMMEDIATE],[],[],[],[]);
     opflags : ([],[OF_NOSIZE],[],[],[],[]);
     codelen : 2;
@@ -8398,16 +8328,6 @@
     codelen : 2;
     code    : ($4c80,$0000);
     support : [OS_GNU_AS, OS_M68000UP];
-    sizes   : [OPS_WORD, OPS_LONG];
-  ),
-  (
-    opcode  : A_MOVM;
-    ops     : 2;
-    optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_IMMEDIATE],[],[],[],[]);
-    opflags : ([],[OF_NOSIZE],[],[],[],[]);
-    codelen : 2;
-    code    : ($4c80,$0000);
-    support : [OS_GNU_AS];
     sizes   : [OPS_WORD, OPS_LONG];
   ),
   (

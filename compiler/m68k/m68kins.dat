@@ -1502,15 +1502,13 @@ Dx                                                                    $e208,$000
 Ax,<ea-alter>                                                         $0008,$0000    1 WL                 gnu_as,m68000up,cf
 <ea-any>,Ax                                                           $0040,$0000    1 WL                 gnu_as,m68000up,cf
 <ea-data>,<ea-data-alter>                                             $0000,$0000    1 BWL                gnu_as,m68000up,cf
-CCR,Dx                                                                $42c0,$0000    1 W                  gnu_as,m68010up,cf
+CCR,Dx                                                                $42c0,$0000    1 W                  gnu_as,cf
 CCR,<ea-data-alter>                                                   $42c0,$0000    1 W                  gnu_as,m68010up
-SR,Dx                                                                 $40c0,$0000    1 W                  gnu_as,m68000up,cf
+SR,Dx                                                                 $40c0,$0000    1 W                  gnu_as,cf
 SR,<ea-data-alter>                                                    $40c0,$0000    1 W                  gnu_as,m68000up
-Dx,CCR                                                                $44c0,$0000    1 W                  gnu_as,m68000up,cf
-#imm,CCR                                                              $44c0,$0000    1 W                  gnu_as,m68000up,cf
+<ea-data-imm>,CCR                                                     $44c0,$0000    1 W                  gnu_as,cf
 <ea-data>,CCR                                                         $44c0,$0000    1 W                  gnu_as,m68000up
-Dx,SR                                                                 $46c0,$0000    1 W                  gnu_as,m68000up,cf
-#imm,SR                                                               $46c0,$0000    1 W                  gnu_as,m68000up,cf
+<ea-data-imm>,SR                                                      $46c0,$0000    1 W                  gnu_as,cf
 <ea-data>,SR                                                          $46c0,$0000    1 W                  gnu_as,m68000up
 USP,Ax                                                                $4e68,$0000    1 L                  gnu_as,m68000up,cf_usp
 Ax,USP                                                                $4e60,$0000    1 L                  gnu_as,m68000up,cf_usp
@@ -1522,15 +1520,13 @@ Ax,USP                                                                $4e60,$000
 Ax,<ea-alter>                                                         $0008,$0000    1 WL                 m68000up,cf
 <ea-any>,Ax                                                           $0040,$0000    1 WL                 m68000up,cf
 <ea-data>,<ea-data-alter>                                             $0000,$0000    1 BWL                m68000up,cf
-CCR,Dx                                                                $42c0,$0000    1 W                  m68010up,cf
+CCR,Dx                                                                $42c0,$0000    1 W                  cf
 CCR,<ea-data-alter>                                                   $42c0,$0000    1 W                  m68010up
-SR,Dx                                                                 $40c0,$0000    1 W                  m68000up,cf
+SR,Dx                                                                 $40c0,$0000    1 W                  cf
 SR,<ea-data-alter>                                                    $40c0,$0000    1 W                  m68000up
-Dx,CCR                                                                $44c0,$0000    1 W                  m68000up,cf
-#imm,CCR                                                              $44c0,$0000    1 W                  m68000up,cf
+<ea-data-imm>,CCR                                                     $44c0,$0000    1 W                  cf
 <ea-data>,CCR                                                         $44c0,$0000    1 W                  m68000up
-Dx,SR                                                                 $46c0,$0000    1 W                  m68000up,cf
-#imm,SR                                                               $46c0,$0000    1 W                  m68000up,cf
+<ea-data-imm>,SR                                                      $46c0,$0000    1 W                  cf
 <ea-data>,SR                                                          $46c0,$0000    1 W                  m68000up
 USP,Ax                                                                $4e68,$0000    1 L                  m68000up,cf_usp
 Ax,USP                                                                $4e60,$0000    1 L                  m68000up,cf_usp
@@ -1576,17 +1572,13 @@ Rx,<ea-mem-alter>                                                     $0e00,$080
 Dx-Ax,-(Ax)                                                           $4880,$0000    2 WL                 gnu_as,m68000up
 Dx-Ax,<cf-ea-movem>                                                   $4880,$0000    2 CFWL               gnu_as,m68000up,cf
 Dx-Ax,<ea-control-alter>                                              $4880,$0000    2 WL                 gnu_as,m68000up
-Dx-Ax,<ea-control>                                                    $4880,$0000    2 WL                 gnu_as
 <cf-ea-movem>,Dx-Ax                                                   $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
 <ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 gnu_as,m68000up
-<ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 gnu_as
 #immregs,-(Ax)                                                        $4880,$0000    2 WL                 gnu_as,m68000up
 #immregs,<cf-ea-movem>                                                $4880,$0000    2 CFWL               gnu_as,m68000up,cf
 #immregs,<ea-control-alter>                                           $4880,$0000    2 WL                 gnu_as,m68000up
-#immregs,<ea-control>                                                 $4880,$0000    2 WL                 gnu_as
 <cf-ea-movem>,#immregs                                                $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
 <ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 gnu_as,m68000up
-<ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 gnu_as
 
 [MULS]
 <cf-ea-data-alter>,Dx                                                 $c1c0,$0000    1 W                  m68000up,cf
