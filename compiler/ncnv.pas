@@ -557,8 +557,10 @@ implementation
                       { widechars are not yet supported }
                       if is_widechar(p2.resultdef) then
                         begin
-                          inserttypeconv(p2,cansichartype);
-                          if (p2.nodetype<>ordconstn) then
+
+                          if block_type<>bt_const then
+                            inserttypeconv(p2,cansichartype);
+                          if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                             incompatibletypes(cwidechartype,cansichartype);
                         end;
 
@@ -567,8 +569,9 @@ implementation
                        begin
                          if is_widechar(p3.resultdef) then
                            begin
-                             inserttypeconv(p3,cansichartype);
-                             if (p3.nodetype<>ordconstn) then
+                             if block_type<>bt_const then
+                               inserttypeconv(p3,cansichartype);
+                             if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                                begin
                                  current_filepos:=p3.fileinfo;
                                  incompatibletypes(cwidechartype,cansichartype);
@@ -741,7 +744,7 @@ implementation
                         begin
                           if p1.nodetype<>ordconstn then
                             exit
-                          else if tordconstnode(p1).value.uvalue>high(byte) then
+                          else if (tordconstnode(p1).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
                             exit;
                         end;
 
@@ -751,7 +754,7 @@ implementation
                             begin
                               if p2.nodetype<>ordconstn then
                                 exit
-                              else if tordconstnode(p2).value.uvalue>high(byte) then
+                              else if (tordconstnode(p2).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
                                 exit;
                             end;
 
