@@ -1196,6 +1196,8 @@ implementation
           pd.struct:=capturedef;
           exclude(pd.procoptions,po_anonymous);
           exclude(pd.procoptions,po_delphi_nested_cc);
+          exclude(pd.procoptions,po_staticmethod);
+          exclude(pd.procoptions,po_classmethod);
           pd.was_anonymous:=true;
           pd.procsym.ChangeOwnerAndName(capturedef.symtable,upcase(invokename));
           pd.procsym.realname:=invokename;

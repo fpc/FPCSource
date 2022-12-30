@@ -1130,7 +1130,15 @@ implementation
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
         if ppf_anonymous in flags then
-          include(pd.procoptions,po_anonymous);
+          begin
+            include(pd.procoptions,po_anonymous);
+            { inherit the "static" and "class" flag from the method the anonymous function
+              is contained in }
+            if (st.symtabletype=localsymtable) and
+                (st.defowner.typ=procdef) and
+                ([po_staticmethod,po_classmethod]*tprocdef(st.defowner).procoptions<>[]) then
+              pd.procoptions:=pd.procoptions+([po_staticmethod,po_classmethod]*tprocdef(st.defowner).procoptions);
+          end;
 
         if assigned(genericparams) then
           begin
