@@ -1613,8 +1613,6 @@ implementation
             parse_generic:=(df_generic in pd.defoptions);
             if parse_generic and not assigned(current_genericdef) then
               current_genericdef:=old_current_genericdef;
-            { don't allow to add defs to the symtable - use it for type param search only }
-            tparasymtable(pd.parast).readonly:=true;
 
             if token=_LKLAMMER then
               parse_parameter_dec(pd);
@@ -1639,7 +1637,6 @@ implementation
                 pd.check_mark_as_nested;
               end;
             symtablestack.pop(pd.parast);
-            tparasymtable(pd.parast).readonly:=false;
             { possible proc directives }
             if parseprocvardir then
               begin
