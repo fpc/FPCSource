@@ -59,6 +59,8 @@
      end;
   PSize =^TSize;
 
+  { TPoint }
+
   TPoint  =
   {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
    packed
@@ -79,6 +81,7 @@
        procedure SetLocation(ax,ay : Longint);
        procedure Offset(const apt :TPoint);
        procedure Offset(dx,dy : Longint);
+       function Angle(const pt : TPoint):Single;
        class function PointInCircle(const apt, acenter: TPoint; const aradius: Integer): Boolean; static; inline;
        class operator = (const apt1, apt2 : TPoint) : Boolean;
        class operator <> (const apt1, apt2 : TPoint): Boolean;
