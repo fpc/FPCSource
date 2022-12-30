@@ -245,7 +245,7 @@ implementation
                 assigned(tprocdef(pd).struct) and
                 (
                   (pd.parast.symtablelevel=normal_function_level) or
-                  (po_anonymous in pd.procoptions)
+                  ([po_anonymous,po_methodpointer]<=pd.procoptions)
                 ) then
               begin
                 { static class methods have no hidden self/vmt pointer }

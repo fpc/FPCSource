@@ -340,7 +340,8 @@ type
     po_finalmethod,       { Procedure is a final method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
-    po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
+    po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do'
+                            and anonymous functions assigned to method pointers }
     po_interrupt,         { Procedure is an interrupt handler }
     po_iocheck,           { IO checking should be done after a call to the procedure }
     po_assembler,         { Procedure is written in assembler }
