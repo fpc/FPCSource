@@ -1155,6 +1155,10 @@ implementation
                end
              else
                p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext);
+             { in case of calling an anonynmous function we already know the concrete
+               procdef that is going to be called }
+             if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
+               tcallnode(p1).procdefinition:=tprocdef(tprocsym(sym).procdeflist[0]);
            end;
          afterassignment:=prevafterassn;
       end;
