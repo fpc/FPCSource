@@ -2501,6 +2501,9 @@ implementation
                         ) then
                       internalerror(2021060801);
 
+                    { so that insert_self_and_vmt_para correctly inserts the
+                      Self, cause it otherwise skips that for anonymous functions }
+                    include(pd.procoptions,po_methodpointer);
                     { we know this only captures Self, so we can move the
                       anonymous function to normal function level }
                     pd.parast.symtablelevel:=normal_function_level;
