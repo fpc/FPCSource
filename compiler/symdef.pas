@@ -5911,7 +5911,7 @@ implementation
                       { in case of bare proc, don't copy self, vmt or framepointer
                         parameters }
                       if (copytyp in [pc_bareproc,pc_normal_no_hidden]) and
-                         (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
+                         (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret,vo_is_high_para]*pvs.varoptions)<>[]) then
                         continue;
                       if paraprefix='' then
                         npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
