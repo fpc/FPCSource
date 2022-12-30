@@ -141,6 +141,11 @@ begin
   y:=y+dy;
 end;
 
+function TPoint.Angle(const pt: TPoint): Single;
+begin
+  result:=ArcTan2(y-pt.y,x-pt.x);
+end;
+
 class operator TPoint.= (const apt1, apt2 : TPoint) : Boolean;
 begin
   result:=(apt1.x=apt2.x) and (apt1.y=apt2.y);
