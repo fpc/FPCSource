@@ -229,10 +229,8 @@ interface
 
        tparasymtable = class(tabstractlocalsymtable)
        public
-          readonly: boolean;
           constructor create(adefowner:tdef;level:byte);
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
-          procedure insertdef(def:TDefEntry);override;
        end;
 
        tabstractuniTSymtable = class(tstoredsymtable)
@@ -2504,7 +2502,6 @@ implementation
     constructor tparasymtable.create(adefowner:tdef;level:byte);
       begin
         inherited create('');
-        readonly:=false;
         defowner:=adefowner;
         symtabletype:=parasymtable;
         symtablelevel:=level;
@@ -2526,14 +2523,6 @@ implementation
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
-      end;
-
-    procedure tparasymtable.insertdef(def: TDefEntry);
-      begin
-        if readonly then
-          defowner.owner.insertdef(def)
-        else
-          inherited insertdef(def);
       end;
 
 
