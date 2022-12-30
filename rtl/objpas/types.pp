@@ -171,6 +171,7 @@ type
           function IsZero : Boolean;
           function Subtract(const asz : TSizeF): TSizeF;
           function Subtract(const asz : TSize): TSizeF;
+          function SwapDimensions:TSizeF;
 
           function  Scale (afactor:Single)  : TSizeF;
           function  Ceiling : TSize;
@@ -869,6 +870,12 @@ function TSizeF.Subtract(const asz : TSizeF): TSizeF;
 begin
   result.cx:=cx-asz.cx;
   result.cy:=cy-asz.cy;
+end;
+
+function TSizeF.SwapDimensions:TSizeF;
+begin
+  result.cx:=cy;
+  result.cy:=cx;
 end;
 
 function TSizeF.Subtract(const asz: TSize): TSizeF;
