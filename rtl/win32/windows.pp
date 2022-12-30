@@ -53,8 +53,6 @@ interface
 
 implementation
 
-uses math;
-
 {$undef read_interface}
 {$define read_implementation}
 
