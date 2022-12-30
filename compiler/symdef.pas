@@ -2041,7 +2041,7 @@ implementation
          if doregister then
            begin
              { immediately register interface defs, as they will always be
-               written to the ppu, their defid inlfuences the interface crc and
+               written to the ppu, their defid influences the interface crc and
                if we wait, depending on e.g. compiler defines they may get a
                different defid (e.g. when a function is called, its procdef is
                registered, so depending on whether or not, or when, an interface
