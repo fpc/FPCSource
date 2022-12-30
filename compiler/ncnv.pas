@@ -2501,6 +2501,11 @@ implementation
                         ) then
                       internalerror(2021060801);
 
+                    { we know this only captures Self, so we can move the
+                      anonymous function to normal function level }
+                    pd.parast.symtablelevel:=normal_function_level;
+                    tprocdef(pd).localst.symtablelevel:=normal_function_level;
+
                     selfsym:=nil;
                     fpsym:=nil;
                     { find the framepointer parameter and an eventual self }
