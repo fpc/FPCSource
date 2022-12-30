@@ -1804,7 +1804,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            ) then
           Message1(parser_w_skipped_fields_after,sorg);
 
-        if not error then
+        if ErrorCount=0 then
           begin
             if not(is_packed) then
               fillbytes:=0
@@ -1816,9 +1816,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               end;
             for i:=1 to fillbytes do
               ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
+
+            ftcb.maybe_end_aggregate(def);
           end;
 
-        ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
       end;
 
