@@ -2574,8 +2574,6 @@ implementation
                             { replace all uses of the captured Self by the new Self
                               parameter }
                             foreachnodestatic(pm_preprocess,tcgprocinfo(pi).code,@replace_self_sym,@mapping);
-
-                            mapping.oldsym.free;
                           end
                         else
                           begin
