@@ -35,11 +35,12 @@
 
 {$asmmode att}
 
-procedure __libc_csu_init; cdecl; external;
-procedure __libc_csu_fini; cdecl; external;
+procedure ini_dummy;
+  begin
+  end;
+
 procedure libc_start_main; external name '__libc_start_main';
 procedure libc_exit(code: longint); cdecl; external name 'exit';
-
 
 {******************************************************************************
                        glibc 2.1 lib + profiling start/halt
@@ -93,8 +94,8 @@ asm
         pushl %esp   			{ stack_end }
         pushl %edx   			{ function to be registered with
                       			  atexit(), passed by loader }
-        pushl $__libc_csu_fini
-        pushl $__libc_csu_init
+        pushl $ini_dummy
+        pushl $ini_dummy
         pushl %esi                      { Push second argument: argv.  }
         pushl %ecx                      { Push first argument: argc.  }
 

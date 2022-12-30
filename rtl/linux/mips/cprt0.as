@@ -64,32 +64,70 @@
 		      void (*rtld_fini) (void), void *stack_end)
 */
  .text
- .globl main
- .globl __start
- .type __start,@function
+ 	.align	2
+	.globl	__libc_csu_init
+	.type	__libc_csu_init, @function
+__libc_csu_init:
+	.set	nomips16
+        .weak __libc_csu_init
+	.ent	__libc_csu_init
+	.frame	$sp,0,$ra
+	.mask	0x00000000,0
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	jr	$31
+	nop
+	.set	macro
+	.set	reorder
+	.end	__libc_csu_init
+	.size	__libc_csu_init, .-__libc_csu_init
+
+	.align	2
+	.globl	__libc_csu_fini
+	.type	__libc_csu_fini, @function
+__libc_csu_fini:
+	.set	nomips16
+        .weak __libc_csu_fini
+	.ent	__libc_csu_fini
+	.frame	$sp,0,$ra
+	.mask	0x00000000,0
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	jr	$31
+	nop
+	.set	macro
+	.set	reorder
+	.end	__libc_csu_fini
+	.size	__libc_csu_fini, .-__libc_csu_fini
+
+ 	.align	2
+        .globl main
+        .globl __start
+        .type __start,@function
 __start:
-.globl _start
- .type _start,@function
+        .globl _start
+        .type _start,@function
 _start:
-  .ent _start
+        .ent _start
 
+        .set noreorder
+        move $0, $31
+        bal 10f
+        nop
+        10: 
+        .cpload $31
+        move $31, $0
+        .set reorder
+                /* Setup GP correctly if we're non-PIC.  */
+        la $28,_gp
 
- .set noreorder
- move $0, $31
- bal 10f
- nop
- 10: 
- .cpload $31
- move $31, $0
- .set reorder
-	/* Setup GP correctly if we're non-PIC.  */
- la $28,_gp
+        lui $4, %hi(main_stub)		/* main */
+        addiu $4,$4,%lo(main_stub)
 
- lui $4, %hi(main_stub)		/* main */
- addiu $4,$4,%lo(main_stub)
-
- lw $5, 0($29)		/* argc */
- addiu $6, $29, 4	/* argv */
+        lw $5, 0($29)		/* argc */
+        addiu $6, $29, 4	/* argv */
         /* store argc */
         lw      $t0,0($29)
         lui     $t1,%hi(operatingsystem_parameter_argc)
@@ -110,20 +148,20 @@ _start:
 	/* Allocate space on the stack for seven arguments (o32 only)
 	   and make sure the stack is aligned to double words (8 bytes) 
 	   on o32 and quad words (16 bytes) on n32 and n64.  */
- and $29, -2 * 4
- subu $29, 32
+        and $29, -2 * 4
+        subu $29, 32
 
- lw $7,%got(__libc_csu_init)($gp) /* init */
- lw $8,%got(__libc_csu_fini)($gp) /* fini */
+        lw $7,%got(__libc_csu_init)($gp) /* init */
+        lw $8,%got(__libc_csu_fini)($gp) /* fini */
 
- sw $8, 16($29)				/* fini */
- sw $2, 20($29)				/* rtld_fini */
- sw $29, 24($29)			/* stack_end */
+        sw $8, 16($29)				/* fini */
+        sw $2, 20($29)				/* rtld_fini */
+        sw $29, 24($29)			/* stack_end */
 
- lw $t9,%got(__libc_start_main)($gp)
- jalr $t9
- .end _start
- .size _start, . - _start
+        lw $t9,%got(__libc_start_main)($gp)
+        jalr $t9
+        .end _start
+        .size _start, . - _start
 
         .globl  main_stub
         .type   main_stub,@function
