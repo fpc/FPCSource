@@ -14,6 +14,7 @@
 
 program pmdemo1;
 
+{$APPTYPE GUI}
   uses
      os2def,pmwin;
 
