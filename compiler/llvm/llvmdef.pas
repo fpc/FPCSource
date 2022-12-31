@@ -666,7 +666,10 @@ implementation
                 begin
                   { opaque for now }
                   if not(lef_removeouterpointer in flags) then
-                    encodedstr:=encodedstr+'i8*'
+                    if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                      encodedstr:=encodedstr+'ptr'
+                    else
+                      encodedstr:=encodedstr+'i8*'
                   else
                     encodedstr:=encodedstr+'i8'
                 end;
