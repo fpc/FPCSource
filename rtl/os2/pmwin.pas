@@ -224,8 +224,8 @@ const
        end;
        PCMDMSG = ^CMDMSG;
        MSEMSG = record
-        x : integer;
-        y : integer;
+        x : System.integer;
+        y : System.integer;
         codeHitTest : word;
         fsInp : word;
        end;
@@ -249,10 +249,10 @@ const
         cchText : word;
         offText : word;
         flStyle : cardinal;
-        x : integer;
-        y : integer;
-        cx : integer;
-        cy : integer;
+        x : System.integer;
+        y : System.integer;
+        cx : System.integer;
+        cy : System.integer;
         id : word;
         offPresParams : word;
         offCtlData : word;
@@ -284,7 +284,7 @@ const
        end;
        PENTRYFDATA = ^ENTRYFDATA;
        MENUITEM = record
-        iPosition : integer;
+        iPosition : System.integer;
         afStyle : word;
         afAttribute : word;
         id : word;
@@ -295,11 +295,11 @@ const
        SBCDATA = record
         cb : word;
         sHilite : word;
-        posFirst : integer;
-        posLast : integer;
-        posThumb : integer;
-        cVisible : integer;
-        cTotal : integer;
+        posFirst : System.integer;
+        posLast : System.integer;
+        posThumb : System.integer;
+        cVisible : System.integer;
+        cTotal : System.integer;
        end;
        PSBCDATA = ^SBCDATA;
        FRAMECDATA = record
@@ -384,9 +384,9 @@ type
 type
   FONTCHARDEF=record          // fcd
     ulGlyphOffset: Cardinal;
-    sAspace: Integer;
+    sAspace: System.integer;
     sBspace: Word;
-    sCspace: integer;
+    sCspace: System.integer;
   end;
   PFONTCHARDEF=^FONTCHARDEF;
 
@@ -411,52 +411,52 @@ type
     ulSize: Cardinal;
     szFamilyname: Array[1..32] of Char;
     szFacename: Array[1..32] of Char;
-    usRegistryId: Integer;
-    usCodePage: Integer;
-    yEmHeight: Integer;
-    yXHeight: Integer;
-    yMaxAscender: Integer;
-    yMaxDescender: Integer;
-    yLowerCaseAscent: Integer;
-    yLowerCaseDescent: Integer;
-    yInternalLeading: Integer;
-    yExternalLeading: Integer;
-    xAveCharWidth: Integer;
-    xMaxCharInc: Integer;
-    xEmInc: Integer;
-    yMaxBaselineExt: Integer;
-    sCharSlope: Integer;
-    sInlineDir: Integer;
-    sCharRot: Integer;
+    usRegistryId: System.integer;
+    usCodePage: System.integer;
+    yEmHeight: System.integer;
+    yXHeight: System.integer;
+    yMaxAscender: System.integer;
+    yMaxDescender: System.integer;
+    yLowerCaseAscent: System.integer;
+    yLowerCaseDescent: System.integer;
+    yInternalLeading: System.integer;
+    yExternalLeading: System.integer;
+    xAveCharWidth: System.integer;
+    xMaxCharInc: System.integer;
+    xEmInc: System.integer;
+    yMaxBaselineExt: System.integer;
+    sCharSlope: System.integer;
+    sInlineDir: System.integer;
+    sCharRot: System.integer;
     usWeightClass: Word;
     usWidthClass: Word;
-    xDeviceRes: Integer;
-    yDeviceRes: Integer;
-    usFirstChar: Integer;
-    usLastChar: Integer;
-    usDefaultChar: Integer;
-    usBreakChar: Integer;
-    usNominalPointSize: Integer;
-    usMinimumPointSize: Integer;
-    usMaximumPointSize: Integer;
-    fsTypeFlags: Integer;
-    fsDefn: Integer;
-    fsSelectionFlags: Integer;
-    fsCapabilities: Integer;
-    ySubscriptXSize: Integer;
-    ySubscriptYSize: Integer;
-    ySubscriptXOffset: Integer;
-    ySubscriptYOffset: Integer;
-    ySuperscriptXSize: Integer;
-    ySuperscriptYSize: Integer;
-    ySuperscriptXOffset: Integer;
-    ySuperscriptYOffset: Integer;
-    yUnderscoreSize: Integer;
-    yUnderscorePosition: Integer;
-    yStrikeoutSize: Integer;
-    yStrikeoutPosition: Integer;
-    usKerningPairs: Integer;
-    sFamilyClass: Integer;
+    xDeviceRes: System.integer;
+    yDeviceRes: System.integer;
+    usFirstChar: System.integer;
+    usLastChar: System.integer;
+    usDefaultChar: System.integer;
+    usBreakChar: System.integer;
+    usNominalPointSize: System.integer;
+    usMinimumPointSize: System.integer;
+    usMaximumPointSize: System.integer;
+    fsTypeFlags: System.integer;
+    fsDefn: System.integer;
+    fsSelectionFlags: System.integer;
+    fsCapabilities: System.integer;
+    ySubscriptXSize: System.integer;
+    ySubscriptYSize: System.integer;
+    ySubscriptXOffset: System.integer;
+    ySubscriptYOffset: System.integer;
+    ySuperscriptXSize: System.integer;
+    ySuperscriptYSize: System.integer;
+    ySuperscriptXOffset: System.integer;
+    ySuperscriptYOffset: System.integer;
+    yUnderscoreSize: System.integer;
+    yUnderscorePosition: System.integer;
+    yStrikeoutSize: System.integer;
+    yStrikeoutPosition: System.integer;
+    usKerningPairs: System.integer;
+    sFamilyClass: System.integer;
     pszDeviceNameOffset: PChar;
   end;
   PFOCAMETRICS=^FOCAMETRICS;
@@ -470,52 +470,52 @@ type
     ulSize: Cardinal;
     szFamilyname: Array[0..32-1] of Char;
     szFacename: Array[0..32-1] of Char;
-    usRegistryId: Integer;
-    usCodePage: Integer;
-    yEmHeight: Integer;
-    yXHeight: Integer;
-    yMaxAscender: Integer;
-    yMaxDescender: Integer;
-    yLowerCaseAscent: Integer;
-    yLowerCaseDescent: Integer;
-    yInternalLeading: Integer;
-    yExternalLeading: Integer;
-    xAveCharWidth: Integer;
-    xMaxCharInc: Integer;
-    xEmInc: Integer;
-    yMaxBaselineExt: Integer;
-    sCharSlope: Integer;
-    sInlineDir: Integer;
-    sCharRot: Integer;
+    usRegistryId: System.integer;
+    usCodePage: System.integer;
+    yEmHeight: System.integer;
+    yXHeight: System.integer;
+    yMaxAscender: System.integer;
+    yMaxDescender: System.integer;
+    yLowerCaseAscent: System.integer;
+    yLowerCaseDescent: System.integer;
+    yInternalLeading: System.integer;
+    yExternalLeading: System.integer;
+    xAveCharWidth: System.integer;
+    xMaxCharInc: System.integer;
+    xEmInc: System.integer;
+    yMaxBaselineExt: System.integer;
+    sCharSlope: System.integer;
+    sInlineDir: System.integer;
+    sCharRot: System.integer;
     usWeightClass: Word;
     usWidthClass: Word;
-    xDeviceRes: Integer;
-    yDeviceRes: Integer;
-    usFirstChar: Integer;
-    usLastChar: Integer;
-    usDefaultChar: Integer;
-    usBreakChar: Integer;
-    usNominalPointSize: Integer;
-    usMinimumPointSize: Integer;
-    usMaximumPointSize: Integer;
-    fsTypeFlags: Integer;
-    fsDefn: Integer;
-    fsSelectionFlags: Integer;
-    fsCapabilities: Integer;
-    ySubscriptXSize: Integer;
-    ySubscriptYSize: Integer;
-    ySubscriptXOffset: Integer;
-    ySubscriptYOffset: Integer;
-    ySuperscriptXSize: Integer;
-    ySuperscriptYSize: Integer;
-    ySuperscriptXOffset: Integer;
-    ySuperscriptYOffset: Integer;
-    yUnderscoreSize: Integer;
-    yUnderscorePosition: Integer;
-    yStrikeoutSize: Integer;
-    yStrikeoutPosition: Integer;
-    usKerningPairs: Integer;
-    sFamilyClass: Integer;
+    xDeviceRes: System.integer;
+    yDeviceRes: System.integer;
+    usFirstChar: System.integer;
+    usLastChar: System.integer;
+    usDefaultChar: System.integer;
+    usBreakChar: System.integer;
+    usNominalPointSize: System.integer;
+    usMinimumPointSize: System.integer;
+    usMaximumPointSize: System.integer;
+    fsTypeFlags: System.integer;
+    fsDefn: System.integer;
+    fsSelectionFlags: System.integer;
+    fsCapabilities: System.integer;
+    ySubscriptXSize: System.integer;
+    ySubscriptYSize: System.integer;
+    ySubscriptXOffset: System.integer;
+    ySubscriptYOffset: System.integer;
+    ySuperscriptXSize: System.integer;
+    ySuperscriptYSize: System.integer;
+    ySuperscriptXOffset: System.integer;
+    ySuperscriptYOffset: System.integer;
+    yUnderscoreSize: System.integer;
+    yUnderscorePosition: System.integer;
+    yStrikeoutSize: System.integer;
+    yStrikeoutPosition: System.integer;
+    usKerningPairs: System.integer;
+    sFamilyClass: System.integer;
     ulReserved: Cardinal;
     anose: PANOSE;
   end;
@@ -524,16 +524,16 @@ type
   FONTDEFINITIONHEADER=record    // fdh
     ulIdentity: Cardinal;
     ulSize: Cardinal;
-    fsFontdef: Integer;
-    fsChardef: Integer;
-    usCellSize: Integer;
-    xCellWidth: Integer;
-    yCellHeight: Integer;
-    xCellIncrement: Integer;
-    xCellA: Integer;
-    xCellB: Integer;
-    xCellC: Integer;
-    pCellBaseOffset: Integer;
+    fsFontdef: System.integer;
+    fsChardef: System.integer;
+    usCellSize: System.integer;
+    xCellWidth: System.integer;
+    yCellHeight: System.integer;
+    xCellIncrement: System.integer;
+    xCellA: System.integer;
+    xCellB: System.integer;
+    xCellC: System.integer;
+    pCellBaseOffset: System.integer;
   end;
   PFONTDEFINITIONHEADER=^FONTDEFINITIONHEADER;
 
@@ -720,18 +720,18 @@ const
   //* MLM_SEARCH structure
   //*************************************************************************/
 type
-  MLE_SEARCHDATA=record // search
-    cb: Word;             // size of search spec structure
-    pchFind: PChar;       // string to search for
-    pchReplace: PChar;    // string to replace with
-    cchFind: Integer;     // length of pchFindString
-    cchReplace: Integer;  // length of replace string
-    iptStart: IPT;        // point at which to start search
-      // (negative indicates cursor pt)
-      // becomes pt where string found
-    iptStop: IPT;         // point at which to stop search
-      // (negative indicates EOT)
-    cchFound: Word;       // Length of found string at iptStart
+  MLE_SEARCHDATA=record         // search
+    cb: Word;                   // size of search spec structure
+    pchFind: PChar;             // string to search for
+    pchReplace: PChar;          // string to replace with
+    cchFind: System.integer;    // length of pchFindString
+    cchReplace: System.integer; // length of replace string
+    iptStart: IPT;              // point at which to start search
+                                // (negative indicates cursor pt)
+                                // becomes pt where string found
+    iptStop: IPT;               // point at which to stop search
+                                // (negative indicates EOT)
+    cchFound: Word;             // Length of found string at iptStart
   end;
   PMLE_SEARCHDATA=^MLE_SEARCHDATA;
 
@@ -3240,8 +3240,8 @@ const
     function WinLoadDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;hmod,idDlg : cardinal;pCreateParams : pointer) : cardinal; cdecl;
     function WinDlgBox(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;hmod,idDlg : cardinal;pCreateParams : pointer) : cardinal; cdecl;
     function WinDismissDlg(hwndDlg,usResult : cardinal) : longbool; cdecl;
-    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : integer;fSigned : longbool) : longbool; cdecl;
-    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;PResult : PInteger;fSigned : longbool) : longbool; cdecl;
+    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : System.integer;fSigned : longbool) : longbool; cdecl;
+    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;PResult : System.PInteger;fSigned : longbool) : longbool; cdecl;
     function WinSetDlgItemShort(hwndDlg,idItem : cardinal;usValue : word;fSigned : longbool) : longbool; cdecl;
     function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : pchar) : longbool; cdecl;
     function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : pchar) : cardinal; cdecl;
@@ -3592,8 +3592,8 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinLoadDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;hmod,idDlg : cardinal;pCreateParams : pointer) : cardinal; cdecl;external 'pmwin' index 924;
     function WinDlgBox(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;hmod,idDlg : cardinal;pCreateParams : pointer) : cardinal; cdecl;external 'pmwin' index 923;
     function WinDismissDlg(hwndDlg,usResult : cardinal) : longbool; cdecl;external 'pmwin' index 729;
-    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : integer;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
-    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;pResult : PInteger;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
+    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : System.integer;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
+    function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;pResult : System.PInteger;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
     function WinSetDlgItemShort(hwndDlg,idItem : cardinal;usValue : word;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 858;
     function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : pchar) : longbool; cdecl;external 'pmwin' index 859;
     function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : pchar) : cardinal; cdecl;external 'pmwin' index 815;
