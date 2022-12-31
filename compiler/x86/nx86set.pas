@@ -722,9 +722,13 @@ implementation
 {$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u32inttype,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,left.location,setbase);
+
                   if (tcgsize2size[right.location.size] < 4) or
-                     (right.location.loc = LOC_CONSTANT) then
+                    (right.location.loc = LOC_CONSTANT) or
+                    { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
+                    ((right.resultdef.size<=sizeof(aint)) and not(cs_opt_size in current_settings.optimizerswitches)) then
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
+
                   hreg:=left.location.register;
 
                   cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
@@ -964,8 +968,12 @@ implementation
 {$else i8086}
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
-                  if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+
+                  if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
+                    { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
+                    ((right.resultdef.size<=sizeof(aint)) and not(cs_opt_size in current_settings.optimizerswitches)) then
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
@@ -975,39 +983,37 @@ implementation
                      ((left.resultdef.typ=enumdef) and
                       ((tenumdef(left.resultdef).min < aint(tsetdef(right.resultdef).setbase)) or
                        (tenumdef(left.resultdef).max > aint(tsetdef(right.resultdef).setmax)))) then
-                   begin
+                    begin
+                      { we have to check if the value is < 0 or > setmax }
 
-                    { we have to check if the value is < 0 or > setmax }
+                      current_asmdata.getjumplabel(l);
+                      current_asmdata.getjumplabel(l2);
 
-                    current_asmdata.getjumplabel(l);
-                    current_asmdata.getjumplabel(l2);
+                      { BE will be false for negative values }
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
+                      cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                      { reset carry flag }
+                      current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                      cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
 
-                    { BE will be false for negative values }
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
-                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
-                    { reset carry flag }
-                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                      cg.a_label(current_asmdata.CurrAsmList,l);
 
-                    cg.a_label(current_asmdata.CurrAsmList,l);
+                      pleftreg:=left.location.register;
+                      case right.location.loc of
+                        LOC_REGISTER, LOC_CREGISTER :
+                          emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
+                        LOC_CREFERENCE, LOC_REFERENCE :
+                          emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
+                      else
+                        internalerror(2007020301);
+                      end;
 
-                    pleftreg:=left.location.register;
-                    case right.location.loc of
-                      LOC_REGISTER, LOC_CREGISTER :
-                        emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
-                      LOC_CREFERENCE, LOC_REFERENCE :
-                        emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                    else
-                      internalerror(2007020301);
-                    end;
+                      cg.a_label(current_asmdata.CurrAsmList,l2);
 
-                    cg.a_label(current_asmdata.CurrAsmList,l2);
-
-                    location.resflags:=F_C;
-
-                   end
+                      location.resflags:=F_C;
+                    end
                   else
-                   begin
+                    begin
                       cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                       case right.location.loc of
                         LOC_REGISTER, LOC_CREGISTER :
@@ -1018,7 +1024,7 @@ implementation
                         internalerror(2007020302);
                       end;
                       location.resflags:=F_C;
-                   end;
+                    end;
 {$endif i8086}
                 end;
              end;
