@@ -1168,6 +1168,8 @@ implementation
       result.setmangledname(newmangledname);
       { finish creating the copy }
       finish_copied_procdef(result,newrealname,newparentst,newstruct);
+      { insert hidden high parameters }
+      result.parast.SymList.ForEachCall(@insert_hidden_para,result);
       { now insert self/vmt }
       insert_self_and_vmt_para(result);
       { and the function result }
