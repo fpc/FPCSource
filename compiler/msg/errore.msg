@@ -407,9 +407,9 @@ scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
 scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
 % Not all compiler directives are supported on all targets.
 scan_w_invalid_stacksize=02096_W_The specified stack size is not within the valid range for the platform. Setting the stack size ignored.
-% The valid range for the stack size is 1024 - 67107839 on 32-bit and 64-bit
-% platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
-% compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
+% The valid range for the stack size is 1024 - 67107839 on 32 bit and 64 bit
+% platforms and 1024 - 65520 on 16 bit platforms. Additionally, for Turbo Pascal 7
+% compatibility reasons, specifying a stack size of 65521 on 16 bit platforms
 % actually sets the stack size to 65520.
 scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
 % The HeapMax value (if specified) must be greater than or equal to the HeapMin
@@ -1612,10 +1612,10 @@ parser_e_unbound_attribute=03351_E_Unbound custom attribute: "$1".
 % A custom attribute is defined, but there is no identifier to bind it to.
 parser_e_enumeration_out_of_range=03352_E_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
 % The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
-% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
 parser_w_enumeration_out_of_range=03353_W_Enumeration symbols can only have values in the range of -2^31 to 2^31-1
 % The size of enumeration values is limited to 4 bytes. As the value can be signed, the range
-% of valid values is limited to a signed 32 Bit value (i.e. \var{longint}).
+% of valid values is limited to a signed 32 bit value (i.e. \var{longint}).
 parser_e_method_for_type_in_other_unit=03354_E_Implementing a method for type "$1" declared in another unit
 % This error occurs if one tries to define a method for a type that is originally declared
 % in a different unit.
@@ -1625,11 +1625,11 @@ parser_e_generic_constraints_not_allowed_here=03355_E_Generic constraint not all
 parser_e_location_size_too_small=03356_E_Explicit location is too small for parameter
 % AmigaOS/MorphOS syscall specific: for int64/qword parameter only a single register location is specified
 parser_e_location_size_too_large=03357_E_Explicit location size is larger than required by parameter
-% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64bit, a register pair is specified
+% AmigaOS/MorphOS syscall specific: for a parameter which is smaller than 64 bits, a register pair is specified
 parser_e_location_regpair_only_data=03358_E_Only data registers are supported for explicit location register pairs
-% AmigaOS/MorphOS syscall specific: for 64bit register pairs, only data registers are supported
+% AmigaOS/MorphOS syscall specific: for 64 bit register pairs, only data registers are supported
 parser_e_location_regpair_only_consecutive=03359_E_Only consecutive registers are supported for explicit location register pairs
-% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
+% MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64 bit register pairs
 parser_e_constructurs_cannot_take_type_parameters=03360_E_Constructors cannot take type parameters
 % The use of type parameters in constructors is not allowed.
 parser_e_raise_with_noreturn_not_allowed=03361_E_Raise in subroutines declared as noreturn is not allowed
@@ -1798,12 +1798,12 @@ type_e_interface_type_expected=04034_E_Interface type expected, but got "$1"
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and longwords gives a 64bit result
+type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and longwords gives a 64 bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
-% then everything has to be evaluated in 64-bit arithmetic which is slower than normal
-% 32-bit arithmetic. You can avoid this by typecasting one operand so it
+% then everything has to be evaluated in 64 bit arithmetic which is slower than normal
+% 32 bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals here may cause a range check error
 % If you use a binary operator (and, or, xor) and one of
@@ -1879,7 +1879,7 @@ type_h_pointer_to_longint_conv_not_portable=04055_H_Conversion between ordinals 
 % on a machine using 64 bits addressing.
 type_w_pointer_to_longint_conv_not_portable=04056_W_Conversion between ordinals and pointers is not portable
 % If you typecast a pointer to an ordinal type of a different size (or vice-versa), this can
-% cause problems. This is a warning to help in finding the 32-bit specific code where cardinal/longint is used
+% cause problems. This is a warning to help in finding the 32 bit specific code where cardinal/longint is used
 % to typecast pointers to ordinals. A solution is to use the ptrint/ptruint types instead.
 type_e_cant_choose_overload_function=04057_E_Can't determine which overloaded function to call
 % You're calling overloaded functions with a parameter that doesn't correspond
@@ -1927,7 +1927,7 @@ type_h_convert_mul_operands_to_prevent_overflow=04081_H_Converting the operands 
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
 type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may result in wrong comparison results and range errors, use an unsigned type instead.
-% The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff.
+% The virtual address space on 32 bit machines runs from \$00000000 to \$ffffffff.
 % Many operating systems allow you to allocate memory above \$80000000.
 % For example both \windows and \linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors,
@@ -2772,7 +2772,7 @@ asmr_w_using_defined_as_local=07077_E_Using a defined name as a local label
 asmr_e_dollar_without_identifier=07078_E_Dollar token is used without an identifier
 % A constant expression has an identifier which does not start with
 % the $ symbol.
-asmr_w_32bit_const_for_address=07079_W_32bit constant created for address
+asmr_w_32bit_const_for_address=07079_W_32 bit constant created for address
 % A constant was used as an address. This is probably an error,
 % since using absolute addresses will probably not work.
 asmr_n_align_is_target_specific=07080_N_.align is target specific, use .balign or .p2align
@@ -2871,7 +2871,7 @@ asmr_e_bad_seh_directive_offset=07112_E_Invalid offset value for $1
 % Win64 SEH directives have certain restrictions on possible offset values, e.g. they should
 % be positive and have 3 or 4 low bits clear.
 asmr_e_bad_seh_directive_register=07113_E_Invalid register for $1
-% Win64 SEH directives accept only 64-bit integer registers or XMM registers.
+% Win64 SEH directives accept only 64 bit integer registers or XMM registers.
 asmr_e_seh_in_pure_asm_only=07114_E_SEH directives are allowed only in pure assembler procedures
 % Win64 SEH directives are allowed only in pure assembler procedures, not in assembler
 % blocks of regular procedures.
@@ -2947,7 +2947,7 @@ asmr_e_public_must_be_used_before_label_definition=07137_E_Label $1 can only be 
 asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be declared public
 asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
 asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
-asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
+asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64 bit mode
 asmr_e_mismatch_broadcasting_elements=07142_E_Mismatch broadcasting elements (expected: {$1} found: {$2})
 asmr_e_invalid_arrangement=07143_E_Invalid arrangement specifier "$1"
 asmr_e_a64_invalid_regset=07144_E_Registers in a register set must be consecutive.
@@ -2971,7 +2971,7 @@ asmw_e_alloc_data_only_in_bss=08004_E_Allocating of data is only allowed in bss 
 asmw_f_no_binary_writer_selected=08005_F_No binary writer selected
 asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 not in table
 asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 invalid combination of opcode and operands
-asmw_e_16bit_not_supported=08008_E_Asm: 16 Bit references not supported
+asmw_e_16bit_not_supported=08008_E_Asm: 16 bit references not supported
 asmw_e_invalid_effective_address=08009_E_Asm: Invalid effective address
 asmw_e_immediate_or_reference_expected=08010_E_Asm: Immediate or reference expected
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 value exceeds bounds $2
@@ -2983,8 +2983,8 @@ asmw_e_duplicate_label=08016_E_Asm: Duplicate label $1
 asmw_e_redefined_label=08017_E_Asm: Redefined label $1
 asmw_e_first_defined_label=08018_E_Asm: First defined here
 asmw_e_invalid_register=08019_E_Asm: Invalid register $1
-asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 Bit references not supported
-asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
+asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 bit references not supported
+asmw_e_64bit_not_supported=08021_E_Asm: 64 bit operands not supported
 asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH or DH cannot be used in an instruction requiring REX prefix
 % x86_64 only: instruction encoding of this platform does not allow using
 % 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
@@ -3008,7 +3008,7 @@ asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3
 % First version is reserved for changig to local label, which is the most probable cause
 % of wrong code generation, but currently set to Note level as it appears inside
 % the compiler compilation.
-asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
+asmw_e_32bit_not_supported=08029_E_Asm: 32 bit references not supported
 asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
@@ -3166,20 +3166,20 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % \begin{description}
 link_f_executable_too_big=09200_F_Executable image size is too big for $1 target.
 % Fatal error when resulting executable is too big.
-link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute relocation to symbol "$2".
-% Warning when 64-bit object file contains 32-bit absolute relocations.
+link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32 bit absolute relocation to symbol "$2".
+% Warning when 64 bit object file contains 32 bit absolute relocations.
 % In such case an executable image can be loaded into lower 4Gb of
 % address space only.
 link_e_program_segment_too_large=09202_E_Program segment too large (exceeds 64k by $1 bytes)
-% Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
+% Error when a 16 bit program is compiled in the tiny memory model, but its size exceeds 64k
 link_e_code_segment_too_large=09203_E_Code segment "$1" too large (exceeds 64k by $2 bytes)
-% Error when a 16-bit program's code segment exceeds 64k bytes
+% Error when a 16 bit program's code segment exceeds 64k bytes
 link_e_data_segment_too_large=09204_E_Data segment "$1" too large (exceeds 64k by $2 bytes)
-% Error when a 16-bit program's data segment exceeds 64k bytes
+% Error when a 16 bit program's data segment exceeds 64k bytes
 link_e_segment_too_large=09205_E_Segment "$1" too large (exceeds 64k by $2 bytes)
-% Error when a 16-bit program contains a segment that exceeds 64k bytes
+% Error when a 16 bit program contains a segment that exceeds 64k bytes
 link_e_group_too_large=09206_E_Group "$1" too large (exceeds 64k by $2 bytes)
-% Error when a 16-bit program's object modules define a segment group that
+% Error when a 16 bit program's object modules define a segment group that
 % exceeds 64k bytes
 link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, because the program contains segment relocations
 % Error occurs, when creating a tiny model DOS .COM file, but at least one of
@@ -3875,7 +3875,7 @@ new features, etc.):
 #    3 = 80x86 targets
 #    4 = x86_64
 #    6 = 680x0 targets
-#    8 = 8086 (16-bit) targets
+#    8 = 8086 (16 bit) targets
 #    a = AArch64
 #    A = ARM
 #    e = in extended debug mode only
@@ -3938,12 +3938,12 @@ F*0*_Only options valid for the default or selected platform are listed.
 3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Aas-darwin_Assemble Darwin Mach-O using GNU GAS
-4*2Aelf_ELF (Linux-64bit) using internal writer
+4*2Aelf_ELF (Linux 64 bit) using internal writer
 4*2Agas_Assemble using GNU GAS
 4*2Amasm_Win64 object file using ml64 (Microsoft)
 4*2Anasm_Assemble using Nasm (experimental)
 4*2Anasmdarwin_Assemble darwin macho64 object file using Nasm (experimental)
-4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
+4*2Anasmelf_Assemble Linux 64 bit object file using Nasm (experimental)
 4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
 4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Ayasm_Assemble using Yasm (experimental)
@@ -4211,7 +4211,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Tsymbian_Symbian OS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
-3*2Twin32_Windows 32 Bit
+3*2Twin32_Windows 32 bit
 3*2Twince_Windows CE
 # x86_64 targets
 4*2Tandroid_Android
@@ -4239,7 +4239,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 # i8086 targets
 8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (and compatible)
-8*2Twin16_Windows 16 Bit
+8*2Twin16_Windows 16 bit
 # arm targets
 A*2Tandroid_Android
 A*2Taros_AROS
@@ -4417,7 +4417,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2WX_Enable executable stack (Linux)
 **1X_Executable options:
 **2X9_Generate linkerscript for GNU Binutils ld older than version 2.19.1 (Linux)
-**2Xa_Generate code which allows to use more than 2 GB static data on 64 Bit targets (Linux)
+**2Xa_Generate code which allows to use more than 2 GB static data on 64 bit targets (Linux)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
