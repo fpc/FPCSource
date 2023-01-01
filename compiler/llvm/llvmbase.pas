@@ -66,6 +66,7 @@ interface
       la_phi, la_select, la_call,
       la_va_arg, la_landingpad,
       la_blockaddress,
+      la_freeze,
       { fpc pseudo opcodes }
       la_type, { type definition }
       la_catch, { catch clause of a landingpad }

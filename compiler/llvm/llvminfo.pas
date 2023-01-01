@@ -72,7 +72,8 @@ type
      llvmflag_para_attr_type,               { parameter attributes such as noalias and byval need to repeat the type }
      llvmflag_opaque_ptr_transition,        { initial opaque pointer introduction, needs to some elementtype attributes }
      llvmflag_opaque_ptr,                   { only opaque pointers }
-     llvmflag_sanitizer_attributes          { can use attributes to exclude symbols from sanitizers }
+     llvmflag_sanitizer_attributes,         { can use attributes to exclude symbols from sanitizers }
+     llvmflag_no_freeze                     { lacks the freeze opcode to clear undefined/poison values }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -124,12 +125,12 @@ Const
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
      (
        { invalid         } [],
-       { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
-       { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
-       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
-       { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
-       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
-       { llvmver_xc_11_4 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
+       { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags,llvmflag_no_freeze],
+       { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags,llvmflag_no_freeze],
+       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram,llvmflag_no_freeze],
+       { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram,llvmflag_no_freeze],
+       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_no_freeze],
+       { llvmver_xc_11_4 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_no_freeze],
        { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
        { llvmver_xc_12_0 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
        { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
