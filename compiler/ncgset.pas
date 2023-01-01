@@ -51,6 +51,7 @@ interface
        protected
          function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean; virtual;
          function analizeset(const Aset:Tconstset;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
+         procedure in_reg_const(uopdef: tdef; opsize: tcgsize);virtual;
        end;
 
        tcgcasenode = class(tcasenode)
@@ -181,6 +182,45 @@ implementation
           end;
       analizeset:=true;
     end;
+
+
+    procedure tcginnode.in_reg_const(uopdef: tdef; opsize: tcgsize);
+      var
+        hr: tregister;
+      begin
+        { emit bit test operation -- warning: do not use
+          location_force_reg() to force a set into a register, except
+          to a register of the same size as the set. The reason is
+          that on big endian systems, this would require moving the
+          set to the most significant part of the new register,
+          and location_force_register can't do that (it does not
+          know the type).
+
+         a_bit_test_reg_loc_reg() properly takes into account the
+         size of the set to adjust the register index to test }
+        hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
+          uopdef, right.resultdef, uopdef,
+          left.location.register, right.location, location.register);
+
+        { this may have resulted in an undefined value if left.location.register
+          was >= size of right.location, but we'll mask the value to zero below
+          in that case -> okay }
+        hlcg.g_undefined_ok(current_asmdata.CurrAsmList,uopdef,location.register);
+
+        { now zero the result if left > nr_of_bits_in_right_register }
+        hr := hlcg.getintregister(current_asmdata.CurrAsmList, uopdef);
+        { if left > tcgsize2size[opsize]*8 then hr := 0 else hr := $ffffffff }
+        { (left.location.size = location.size at this point) }
+        hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, uopdef,
+          tcgsize2size[opsize]*8, left.location.register, hr);
+        hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, uopdef, (tcgsize2size
+          [opsize]*8)-1, hr);
+
+
+          { if left > tcgsize2size[opsize]*8-1, then result := 0 else result := result of bit test }
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopdef, hr,
+          location.register);
+      end;
 
 
     procedure tcginnode.in_smallset(opdef: tdef; setbase: aint);
@@ -445,29 +485,7 @@ implementation
                      { load left in register }
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,uopdef,true);
                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,uopdef,left.location,setbase);
-                     { emit bit test operation -- warning: do not use
-                       location_force_reg() to force a set into a register, except
-                       to a register of the same size as the set. The reason is
-                       that on big endian systems, this would require moving the
-                       set to the most significant part of the new register,
-                       and location_force_register can't do that (it does not
-                       know the type).
-
-                      a_bit_test_reg_loc_reg() properly takes into account the
-                      size of the set to adjust the register index to test }
-                     hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
-                       uopdef,right.resultdef,uopdef,
-                       left.location.register,right.location,location.register);
-
-                     { now zero the result if left > nr_of_bits_in_right_register }
-                     hr := hlcg.getintregister(current_asmdata.CurrAsmList,uopdef);
-                     { if left > tcgsize2size[opsize]*8 then hr := 0 else hr := $ffffffff }
-                     { (left.location.size = location.size at this point) }
-                     hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, uopdef, tcgsize2size[opsize]*8, left.location.register, hr);
-                     hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, uopdef, (tcgsize2size[opsize]*8)-1, hr);
-
-                     { if left > tcgsize2size[opsize]*8-1, then result := 0 else result := result of bit test }
-                     hlcg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopdef, hr, location.register);
+                     in_reg_const(uopdef, opsize);
                    end { of right.location.loc=LOC_CONSTANT }
                  { do search in a normal set which could have >32 elements
                    but also used if the left side contains higher values > 32 }
