@@ -574,8 +574,16 @@ unit hlcgobj;
           { update a reference pointing to the start address of a record/object/
             class (contents) so it refers to the indicated field }
           procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); virtual;
-          { load a register/constant into a record field by name }
+
+          { tell the code generator that while this register's contents may be
+            undefined, it will be masked/cleaned up afterwards before its
+            contents are used if that is the case.
+
+            Needed for LLVM in case of e.g. a potential shift of more bits
+            than the width of the register }
+          procedure g_undefined_ok(list: TAsmList; size: tdef; reg: tregister); virtual;
          protected
+          { load a register/constant into a record field by name }
           procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
          public
           procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
@@ -4127,6 +4135,12 @@ implementation
     begin
       inc(recref.offset,field.fieldoffset);
       recref.alignment:=newalignment(recref.alignment,field.fieldoffset);
+    end;
+
+
+  procedure thlcgobj.g_undefined_ok(list: TAsmList; size: tdef; reg: tregister);
+    begin
+      { nothing by default }
     end;
 
 
