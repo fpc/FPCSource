@@ -58,6 +58,7 @@ interface
         'phi', 'select', 'call',
         'va_arg', 'landingpad',
         'blockaddress',
+        'freeze',
         { fpc pseudo opcodes }
         'type', { type definition }
         'catch', { catch exception }

@@ -98,6 +98,8 @@ uses
 
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
 
+      procedure g_undefined_ok(list: TAsmList; size: tdef; reg: tregister); override;
+
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
       procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
@@ -1316,6 +1318,17 @@ implementation
       sizepara.done;
       alignpara.done;
       volatilepara.done;
+    end;
+
+
+  procedure thlcgllvm.g_undefined_ok(list: TAsmList; size: tdef; reg: tregister);
+    begin
+      if not(llvmflag_no_freeze in llvmversion_properties[current_settings.llvmversion]) then
+        begin
+          list.concat(taillvm.op_reg_size_reg(la_freeze,reg,size,reg));
+          exit;
+        end;
+      internalerror(2023010110);
     end;
 
 

@@ -57,6 +57,8 @@ interface
         { e.g. dst = alloca size }
         constructor op_ref_size(op:tllvmop;const dst:treference;size:tdef);
 
+        { e.g. dst = freeze size src }
+        constructor op_reg_size_reg(op:tllvmop;dst:tregister;size:tdef;src:tregister);
         { e.g. dst = add size src1, src2 }
         constructor op_reg_size_reg_reg(op:tllvmop;dst:tregister;size:tdef;src1,src2:tregister);
         { e.g. dst = shl size src1, 1 ( = src1 shl 1) }
@@ -637,7 +639,8 @@ implementation
           la_load,
           la_icmp, la_fcmp,
           la_phi, la_select,
-          la_va_arg, la_landingpad:
+          la_va_arg, la_landingpad,
+          la_freeze:
             begin
               if opnr=0 then
                 result:=operand_write
@@ -852,6 +855,17 @@ implementation
         ops:=2;
         loadref(0,dst);
         loaddef(1,size);
+      end;
+
+
+    { %dst = freeze i32 %src }
+    constructor taillvm.op_reg_size_reg(op: tllvmop; dst: tregister; size: tdef; src: tregister);
+      begin
+        create_llvm(op);
+        ops:=3;
+        loadreg(0,dst);
+        loaddef(1,size);
+        loadreg(2,src);
       end;
 
 
