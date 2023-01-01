@@ -406,8 +406,25 @@ function Csc(x : float) : float; inline;
 
 { inverse functions }
 
-function ArcCos(x : float) : float;
-function ArcSin(x : float) : float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCos(x : Single) : Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCos(x : Double) : Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCos(x : Extended) : Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcSin(x : Single) : Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcSin(x : Double) : Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcSin(x : Extended) : Extended;
+{$ENDIF}
 
 { calculates arctan(y/x) and returns an angle in the correct quadrant }
 function ArcTan2(y,x : float) : float;
@@ -457,6 +474,66 @@ function ArcTanH(x : float) : float;inline;
 function ArCosH(x : float) : float;
 function ArSinH(x : float) : float;
 function ArTanH(x : float) : float;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcSec(X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcSec(X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcSec(X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCsc(X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCsc(X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCsc(X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCot(X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCot(X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCot(X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcSecH(X : Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcSecH(X : Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcSecH(X : Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCscH(X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCscH(X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCscH(X: Extended): Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCotH(X: Single): Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCotH(X: Double): Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCotH(X: Extended): Extended;
+{$ENDIF}
 
 { triangle functions }
 
@@ -1080,12 +1157,27 @@ begin
 end;
 
 { arcsin and arccos functions from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
-function arcsin(x : float) : float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function arcsin(x : Single) : Single;
 begin
   arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function arcsin(x : Double) : Double;
+begin
+  arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function arcsin(x : Extended) : Extended;
+begin
+  arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
+end;
+{$ENDIF}
 
-function Arccos(x : Float) : Float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function Arccos(x : Single) : Single;
 begin
   if abs(x)=1.0 then
     if x<0.0 then
@@ -1095,6 +1187,31 @@ begin
   else
     arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function Arccos(x : Double) : Double;
+begin
+  if abs(x)=1.0 then
+    if x<0.0 then
+      arccos:=Pi
+    else
+      arccos:=0
+  else
+    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function Arccos(x : Extended) : Extended;
+begin
+  if abs(x)=1.0 then
+    if x<0.0 then
+      arccos:=Pi
+    else
+      arccos:=0
+  else
+    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
+end;
+{$ENDIF}
 
 
 {$ifndef FPC_MATH_HAS_ARCTAN2}
@@ -1279,6 +1396,133 @@ function artanh(x : float) : float;
   begin
     artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcSec(X: Single): Single;
+begin
+  ArcSec:=ArcCos(1/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcSec(X: Double): Double;
+begin
+  ArcSec:=ArcCos(1/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcSec(X: Extended): Extended;
+begin
+  ArcSec:=ArcCos(1/X);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCsc(X: Single): Single;
+begin
+  ArcCsc:=ArcSin(1/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCsc(X: Double): Double;
+begin
+  ArcCsc:=ArcSin(1/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCsc(X: Extended): Extended;
+begin
+  ArcCsc:=ArcSin(1/X);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCot(X: Single): Single;
+begin
+  if x=0 then
+    ArcCot:=0.5*pi
+  else
+    ArcCot:=ArcTan(1/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCot(X: Double): Double;
+begin
+  begin
+    if x=0 then
+      ArcCot:=0.5*pi
+    else
+      ArcCot:=ArcTan(1/X);
+  end;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCot(X: Extended): Extended;
+begin
+  begin
+    if x=0 then
+      ArcCot:=0.5*pi
+    else
+      ArcCot:=ArcTan(1/X);
+  end;
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcSecH(X : Single): Single;
+begin
+  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);  //replacing division inside ln() by subtracting 2 ln()'s seems to be slower
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcSecH(X : Double): Double;
+begin
+  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcSecH(X : Extended): Extended;
+begin
+  ArcSecH:=ln((1+(sqrt(1.0-sqr(X))))/X);
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCscH(X: Single): Single;
+begin
+  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCscH(X: Double): Double;
+begin
+  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCscH(X: Extended): Extended;
+begin
+  ArcCscH:=ln((1.0/X)+sqrt(1.0/(sqr(x))+1.0));
+end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function ArcCotH(X: Single): Single;
+begin
+  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ArcCotH(X: Double): Double;
+begin
+  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ArcCotH(X: Extended): Extended;
+begin
+  ArcCotH:=0.5*ln((x + 1.0)/(x - 1.0));
+end;
+{$ENDIF}
 
 { hypot function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function hypot(x,y : float) : float;
