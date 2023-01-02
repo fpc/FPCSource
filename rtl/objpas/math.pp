@@ -1179,37 +1179,19 @@ end;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Arccos(x : Single) : Single;
 begin
-  if abs(x)=1.0 then
-    if x<0.0 then
-      arccos:=Pi
-    else
-      arccos:=0
-  else
-    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
+  arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function Arccos(x : Double) : Double;
 begin
-  if abs(x)=1.0 then
-    if x<0.0 then
-      arccos:=Pi
-    else
-      arccos:=0
-  else
-    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
+  arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function Arccos(x : Extended) : Extended;
 begin
-  if abs(x)=1.0 then
-    if x<0.0 then
-      arccos:=Pi
-    else
-      arccos:=0
-  else
-    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
+  arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 {$ENDIF}
 
