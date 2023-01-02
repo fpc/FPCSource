@@ -2572,6 +2572,9 @@ procedure SetABPenDrMd(Rp: PRastPort; APen, BPen, Drawmode: LongWord); inline;
 function AllocBitMap(SizeX, SizeY, Depth, Flags: LongWord; friend_bitmap: PBitMap): PBitMap;
 procedure FreeBitMap(Bm: PBitMap);
 function GetBitMapAttr(Bm: PBitMap; AttrNum: LongWord): LongWord;
+procedure SetRGB32(Vp: PViewPort; n: LongWord; r, g, b: LongWord); inline;
+procedure SetRGB32CM(Cm: PColorMap; n, r, g, b: LongWord); inline;
+procedure LoadRGB32(Vp: PViewPort ;const table: PLongWord);
 {$endif}
 
 
@@ -2638,6 +2641,39 @@ begin
     BMA_FLAGS: GetBitMapAttr := bm^.Flags and (BMF_DISPLAYABLE or BMF_INTERLEAVED or BMF_STANDARD);
   else
     GetBitMapAttr := 0;
+  end;
+end;
+
+procedure SetRGB32(Vp: PViewPort; n: LongWord; r, g, b: LongWord); inline;
+begin
+  SetRGB4(Vp, n, r shr 28, g shr 28, b shr 28);
+end;
+
+procedure SetRGB32CM(Cm: PColorMap; n, r, g, b: LongWord); inline;
+begin
+  SetRGB4CM(Cm, n, r shr 28, g shr 28, b shr 28);
+end;
+
+procedure LoadRGB32(Vp: PViewPort; const Table: PLongWord);
+var
+  Num: LongWord;
+  R: PLongWord;
+  Red, Green, Blue: LongWord;
+  i: Integer;
+begin
+  R := Table;
+  Num := (R^) shr 16;
+  Inc(R);
+  //
+  for i := 0 to Num - 1 do
+  begin
+    Red := R^;
+    Inc(R);
+    Green := R^;
+    Inc(R);
+    Blue := R^;
+    Inc(R);
+    SetRGB32(Vp, i, Red, Green, Blue);
   end;
 end;
 {$endif}
