@@ -36,7 +36,7 @@ Type
   THTTPRouterClass = Class of THTTPRouter;
   // Some common HTTP methods.
 
-  TRouteMethod = (rmUnknown,rmAll,rmGet,rmPost,rmPut,rmDelete,rmOptions,rmHead, rmTrace);
+  TRouteMethod = (rmUnknown,rmAll,rmGet,rmPost,rmPut,rmDelete,rmOptions,rmHead,rmTrace,rmPatch);
   TRouteOption = (roCaseSensitive,roEmptyMatchesAll);
   TRouteOptions = Set of TRouteOption;
 
@@ -286,7 +286,7 @@ Function RouteMethodToString (R : TRouteMethod)  : String;
 Function HTTPRouter : THTTPRouter;
 
 Const
-  RouteMethodNames : Array[TRouteMethod] of String = ('','','GET','POST','PUT','DELETE','OPTIONS','HEAD','TRACE');
+  RouteMethodNames : Array[TRouteMethod] of String = ('','','GET','POST','PUT','DELETE','OPTIONS','HEAD','TRACE','PATCH');
 
 implementation
 
