@@ -996,6 +996,7 @@ Implementation
          cb(n)z reg0,label
       }
       if MatchOpType(taicpu(p),top_reg,top_const) and
+        (taicpu(p).oper[0]^.reg<>NR_SP) and
         (taicpu(p).oper[1]^.val=0) and
         GetNextInstruction(p,hp1) and
         MatchInstruction(hp1,A_B,[PF_None]) and
