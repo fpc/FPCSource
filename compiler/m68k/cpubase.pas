@@ -300,6 +300,7 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
+    function isfpuregister(reg : tregister) : boolean;
     function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function needs_unaligned(const refalignment: aint; const size: tcgsize): boolean;
@@ -515,6 +516,11 @@ implementation
     function isintregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_INTREGISTER;
+      end;
+
+    function isfpuregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result:=getregtype(reg)=R_FPUREGISTER;
       end;
 
     function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
