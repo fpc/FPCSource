@@ -37,6 +37,26 @@ begin
     halt(11);
   if not(SameValue(e2,-1)) then
     halt(12);
+
+  { ArcCos relies on ArcTan2 edge cases. }
+  s1:=arccos(single(1));
+  if s1<>0 then
+    halt(13);
+  s1:=arccos(single(-1));
+  if not SameValue(s1,single(pi)) then
+    halt(14);
+  d1:=arccos(double(1));
+  if d1<>0 then
+    halt(15);
+  d1:=arccos(double(-1));
+  if not SameValue(d1,double(pi)) then
+    halt(16);
+  e1:=arccos(extended(1));
+  if e1<>0 then
+    halt(17);
+  e1:=arccos(extended(-1));
+  if not SameValue(e1,extended(pi),1e-12) then
+    halt(18);
   writeln('ok');
 end.
 
