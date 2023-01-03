@@ -65,6 +65,7 @@ begin
     P.IncludePath.Add('src/common',CommonSrcOSes);
 
     T:=P.Targets.AddUnit('system.uitypes.pp',uitypesOses);
+    T:=P.Targets.AddUnit('system.timespan.pp',uitypesOses);
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
       T.ResourceStrings:=true;
