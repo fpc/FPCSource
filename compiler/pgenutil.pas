@@ -763,6 +763,13 @@ uses
             newtype:=tstringdef(def).get_default_string_type.typesym
           else
             begin
+              if is_array_constructor(def) then
+                begin
+                  { array constructor is not a valid parameter type; getreusable
+                    avoids creating multiple implementations for calls with the
+                    same number of array elements of a particular type }
+                  def:=carraydef.getreusable(tarraydef(def).elementdef,tarraydef(def).highrange-tarraydef(def).lowrange+1);
+                end;
               newtype:=ctypesym.create(def.fullownerhierarchyname(false)+typName[def.typ]+'$'+def.unique_id_str,def);
               include(newtype.symoptions,sp_generic_unnamed_type);
               newtype.owner:=def.owner;
