@@ -1314,32 +1314,58 @@ end;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CotH(const X: Single): Single;
 var
-  Ex, Emx: ValReal;
+  e2: ValReal;
 begin
-  //CotH = (e^X + e^-X) / (e^X - e^-X)
-  Ex:=Exp(X);
-  Emx:=1/Ex;
-  CotH:=(Ex+Emx)/(Ex-Emx);
+  if x < 0 then begin
+    e2:=exp(2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(e2-1)
+  end
+  else begin
+    e2:=exp(-2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(1-e2)
+  end;
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 function CotH(const X: Double): Double;
 var
-  Ex, Emx: ValReal;
+  e2: ValReal;
 begin
-  Ex:=Exp(X);
-  Emx:=1/Ex;
-  CotH:=(Ex+Emx)/(Ex-Emx);
+  if x < 0 then begin
+    e2:=exp(2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(e2-1)
+  end
+  else begin
+    e2:=exp(-2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(1-e2)
+  end;
 end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CotH(const X: Extended): Extended;
 var
-  Ex, Emx: Extended;
+  e2: Extended;
 begin
-  Ex:=Exp(X);
-  Emx:=1/Ex;
-  CotH:=(Ex+Emx)/(Ex-Emx);
+  if x < 0 then begin
+    e2:=exp(2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(e2-1)
+  end
+  else begin
+    e2:=exp(-2*x);
+    if e2=1 then
+      exit(1/x);
+    result:=(1+e2)/(1-e2)
+  end;
 end;
 {$ENDIF}
 
