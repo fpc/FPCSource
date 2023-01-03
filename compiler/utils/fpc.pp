@@ -179,6 +179,8 @@ begin
 end;
 
 var
+  warn : Boolean;
+  ShowErrno : Boolean;
   extrapath: ansistring;
 
 function findexe(var ppcbin: string) : boolean;
@@ -322,6 +324,36 @@ begin
   Result:=FileSearch(aFile,aSearchPath);
 end;
 
+Procedure CheckWarn(aOpt : String);
+
+Var
+  Len,I : integer;
+
+begin
+  Len:=Length(aOpt);
+  For I:=1 to Len do
+    begin
+    if (aOpt[i]='w') then
+      Warn:=(I=Len) or (aOpt[i+1]<>'-');
+    if (aOpt[i]='q') then
+      ShowErrNo:=(I=Len) or (aOpt[i+1]<>'-');
+    end;
+end;
+
+procedure SetExeSuffix(var ExeSuffix : string; aValue : string);
+
+begin
+  if ExeSuffix='' then
+    exesuffix :=aValue
+  else if Warn then
+    begin
+    Write('Warning: ');
+    if ShowErrNo then
+      Write('(99999) ');
+    Writeln('Compiler version already set to: ',ExeSuffix);
+    end;
+end;
+
 Procedure ProcessConfigFile(aFileName : String; var ExeSuffix : String);
 
   Function Stripline(aLine : String) : string;
@@ -356,14 +388,12 @@ begin
     if aLine='' then
       continue;
     if Copy(aLine,1,2)='-V' then
-      if ExeSuffix='' then
-        ExeSuffix:=Copy(aLine,3,Length(aLine)-2)
-      else
-        Error('Option -V already specified on command-line: '+ExeSuffix);
+      SetExeSuffix(ExeSuffix,Copy(aLine,3,Length(aLine)-2));
     end;
   {$i+}
   Close(aFile);
 end;
+
 
 var
   s,CfgFile: ansistring;
@@ -404,7 +434,7 @@ begin
         AddToCommandLine(S);
       end
       else if pos('-V', s) = 1 then
-        exesuffix := copy(s, 3, length(s)-2)
+        SetExeSuffix(ExeSuffix,copy(s, 3, length(s)-2))
       else
       begin
         if pos('-P', s) = 1 then
@@ -426,7 +456,11 @@ begin
           else if pos('-?', s) = 1 then
             AddToCommandLine('-?F'+ParamStr(0))
           else
+            begin
             AddToCommandLine(S);
+            if pos('-v', s) = 1 then
+              CheckWarn(Copy(S,3,length(S)-2));
+            end;
         end;
       end;
     end;
