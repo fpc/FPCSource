@@ -1635,7 +1635,7 @@ type
                     case current_scanner.preproc_token of
                       _ID:
                         { system.char? (char=widechar comes from the implicit
-                          uuchar unit -> override) }
+                          uachar/uuchar unit -> override) }
                         if (current_scanner.preproc_pattern='CHAR') and
                            (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
                           begin
