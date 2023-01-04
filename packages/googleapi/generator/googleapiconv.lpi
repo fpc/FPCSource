@@ -40,19 +40,19 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="../../src/googleadexchangebuyer.pp"/>
+        <Filename Value="../src/bindings/googleadexchangebuyer.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../src/googlebase.pp"/>
+        <Filename Value="../src/base/googlebase.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="../../src/googleclient.pp"/>
+        <Filename Value="../src/base/googleclient.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../../src/googlediscoverytopas.pp"/>
+        <Filename Value="googlediscoverytopas.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
     </Units>
@@ -64,7 +64,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../src"/>
+      <OtherUnitFiles Value="../src/base"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
