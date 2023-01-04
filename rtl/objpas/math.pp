@@ -431,9 +431,36 @@ function ArcTan2(y,x : float) : float;
 
 { hyperbolic functions }
 
-function CosH(x : float) : float;
-function SinH(x : float) : float;
-function TanH(x : float) : float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function cosh(x : Single) : Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function cosh(x : Double) : Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function cosh(x : Extended) : Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function sinh(x : Single) : Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function sinh(x : Double) : Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function sinh(x : Extended) : Extended;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function tanh(x : Single) : Single;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function tanh(x : Double) : Double;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function tanh(x : Extended) : Extended;
+{$ENDIF}
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function SecH(const X: Single): Single;
 {$ENDIF}
@@ -1220,30 +1247,72 @@ function arctan2(y,x : float) : float;
   end;
 {$endif FPC_MATH_HAS_ARCTAN2}
 
-
-function cosh(x : float) : float;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function cosh(x : Single) : Single;
   var
-     temp : float;
+     temp : ValReal;
   begin
      temp:=exp(x);
      cosh:=0.5*(temp+1.0/temp);
   end;
-
-function sinh(x : float) : float;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function cosh(x : Double) : Double;
   var
-     temp : float;
+     temp : ValReal;
+  begin
+     temp:=exp(x);
+     cosh:=0.5*(temp+1.0/temp);
+  end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function cosh(x : Extended) : Extended;
+  var
+     temp : Extended;
+  begin
+     temp:=exp(x);
+     cosh:=0.5*(temp+1.0/temp);
+  end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function sinh(x : Single) : Single;
+  var
+     temp : ValReal;
   begin
      temp:=exp(x);
      { copysign ensures that sinh(-0.0)=-0.0 }
      sinh:=copysign(0.5*(temp-1.0/temp),x);
   end;
-
-function tanh(x : float) : float;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function sinh(x : Double) : Double;
   var
-    tmp:float;
+     temp : ValReal;
+  begin
+     temp:=exp(x);
+     { copysign ensures that sinh(-0.0)=-0.0 }
+     sinh:=copysign(0.5*(temp-1.0/temp),x);
+  end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function sinh(x : Extended) : Extended;
+  var
+     temp : Extended;
+  begin
+     temp:=exp(x);
+     { copysign ensures that sinh(-0.0)=-0.0 }
+     sinh:=copysign(0.5*(temp-1.0/temp),x);
+  end;
+{$ENDIF}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function tanh(x : Single) : Single;
+  var
+    tmp:ValReal;
   begin
     if x < 0 then begin
-      tmp:=exp(2*x); 
+      tmp:=exp(2*x);
       result:=(tmp-1)/(1+tmp)
     end
     else begin
@@ -1251,6 +1320,38 @@ function tanh(x : float) : float;
       result:=(1-tmp)/(1+tmp)
     end;
   end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function tanh(x : Double) : Double;
+  var
+    tmp:ValReal;
+  begin
+    if x < 0 then begin
+      tmp:=exp(2*x);
+      result:=(tmp-1)/(1+tmp)
+    end
+    else begin
+      tmp:=exp(-2*x);
+      result:=(1-tmp)/(1+tmp)
+    end;
+  end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function tanh(x : Extended) : Extended;
+  var
+    tmp:Extended;
+  begin
+    if x < 0 then begin
+      tmp:=exp(2*x);
+      result:=(tmp-1)/(1+tmp)
+    end
+    else begin
+      tmp:=exp(-2*x);
+      result:=(1-tmp)/(1+tmp)
+    end;
+  end;
+{$ENDIF}
+
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function SecH(const X: Single): Single;
