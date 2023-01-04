@@ -1523,7 +1523,7 @@ type
     FCanHandleExcepts: Boolean;
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
-    function FindComponentClass(const AClassName: string): TComponentClass;
+    function FindComponentClass(const AName, AClassName: string): TComponentClass;
     procedure Lock;
     procedure Unlock;
   protected

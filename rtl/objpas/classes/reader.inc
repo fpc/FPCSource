@@ -538,39 +538,40 @@ end;
 {****************************************************************************}
 
 type
-  TFieldInfo = packed record
-    FieldOffset: LongWord;
-    ClassTypeIndex: Word;
+  TFieldInfo =
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
+    FieldOffset: SizeUInt;
+    ClassTypeIndex: Word; // start at 1
     Name: ShortString;
   end;
+  PFieldInfo = ^TFieldInfo;
 
-{$ifdef VER3_0}
-  PersistentClassRef = TPersistentClass;
-{$else VER3_0}
   PPersistentClass = ^TPersistentClass;
   PersistentClassRef = PPersistentClass;
-{$endif VER3_0}
 
-  PFieldClassTable = ^TFieldClassTable;
   TFieldClassTable =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
     Count: Word;
     Entries: array[{$ifdef cpu16}0..16384 div sizeof(PersistentClassRef){$else}Word{$endif}] of PersistentClassRef;
   end;
+  PFieldClassTable = ^TFieldClassTable;
 
-  PFieldTable = ^TFieldTable;
   TFieldTable =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
     FieldCount: Word;
     ClassTable: PFieldClassTable;
-    // Fields: array[Word] of TFieldInfo;  Elements have variant size!
+    Fields: array[0..0] of TFieldInfo;
   end;
+  PFieldTable = ^TFieldTable;
 
 function GetFieldClass(Instance: TObject; const ClassName: string): TPersistentClass;
 var
@@ -929,7 +930,7 @@ begin
           begin
             if Assigned(FOnAncestorNotFound) then
               FOnAncestorNotFound(Self, Name,
-                FindComponentClass(CompClassName), Result);
+                FindComponentClass(Name,CompClassName), Result);
             if not Assigned(Result) then
               raise EReadError.CreateFmt(SAncestorNotFound, [Name]);
           end;
@@ -940,7 +941,7 @@ begin
         end else
         begin
           Result := nil;
-          ComponentClass := FindComponentClass(CompClassName);
+          ComponentClass := FindComponentClass(Name,CompClassName);
           if Assigned(FOnCreateComponent) then
             FOnCreateComponent(Self, ComponentClass, Result);
           if not Assigned(Result) then
@@ -1724,52 +1725,78 @@ begin
   end;
 end;
 
-function TReader.FindComponentClass(const AClassName: String): TComponentClass;
+function TReader.FindComponentClass(const AName, AClassName: String): TComponentClass;
 
 var
   PersistentClass: TPersistentClass;
-  ShortClassName: shortstring;
+  ShortName, ShortClassName: shortstring;
 
-  procedure FindInFieldTable(RootComponent: TComponent);
+  function FindInFieldTable(Instance: TComponent): TComponentClass;
   var
+    aClassType: TClass;
     FieldTable: PFieldTable;
-    FieldClassTable: PFieldClassTable;
-    Entry: TPersistentClass;
+    ClassTable: PFieldClassTable;
     i: Integer;
-    ComponentClassType: TClass;
+    FieldInfo: PFieldInfo;
+    PersistenClass: TPersistentClass;
   begin
-    ComponentClassType := RootComponent.ClassType;
-    // it is not necessary to look in the FieldTable of TComponent,
-    // because TComponent doesn't have published properties that are
-    // descendants of TComponent
-    while ComponentClassType<>TComponent do
+    //writeln('FindInFieldTable Instance=',Instance.Name,':',Instance.UnitName,'>',Instance.ClassName,' ShortName="',ShortName,'" ShortClassName="',ShortClassName,'"');
+    Result:=nil;
+
+    // search field by name
+    aClassType := Instance.ClassType;
+    while aClassType <> TPersistent do
     begin
-      FieldTable:=PVmt(ComponentClassType)^.vFieldTable;
-      if assigned(FieldTable) then
+      FieldTable := PFieldTable(PVmt(aClassType)^.vFieldTable);
+      if Assigned(FieldTable) then
       begin
-        FieldClassTable := FieldTable^.ClassTable;
-        for i := 0 to FieldClassTable^.Count -1 do
+        ClassTable := FieldTable^.ClassTable;
+        FieldInfo := @FieldTable^.Fields[0];
+        for i := 0 to FieldTable^.FieldCount - 1 do
         begin
-          Entry := FieldClassTable^.Entries[i]{$ifndef VER3_0}^{$endif};
-          //writeln(format('Looking for %s in field table of class %s. Found %s',
-            //[AClassName, ComponentClassType.ClassName, Entry.ClassName]));
-          if Entry.ClassNameIs(ShortClassName) and
-            (Entry.InheritsFrom(TComponent)) then
+          //writeln('FindInFieldTable Instance=',Instance.ClassName,' FieldInfo ',i,'/',FieldTable^.FieldCount,' ',FieldInfo^.Name);
+          if ShortCompareText(FieldInfo^.Name,ShortName)=0 then
           begin
-            Result := TComponentClass(Entry);
-            Exit;
+            PersistenClass := ClassTable^.Entries[FieldInfo^.ClassTypeIndex-1]^;
+            //writeln('FindInFieldTable Found Field "',FieldInfo^.Name,'" Class="',PersistenClass.UnitName,'>',PersistenClass.ClassName,'"');
+            if PersistenClass.ClassNameIs(ShortClassName)
+                and PersistenClass.InheritsFrom(TComponent) then
+              exit(TComponentClass(PersistenClass));
           end;
+          FieldInfo := PFieldInfo(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name));
         end;
       end;
-      // look in parent class
-      ComponentClassType := ComponentClassType.ClassParent;
+      // Try again with the parent class type
+      aClassType := aClassType.ClassParent;
     end;
+
+    // search class
+    aClassType := Instance.ClassType;
+    while aClassType <> TPersistent do
+    begin
+      FieldTable := PFieldTable(PVmt(aClassType)^.vFieldTable);
+      if Assigned(FieldTable) then
+      begin
+        ClassTable := FieldTable^.ClassTable;
+        for i := 0 to ClassTable^.Count - 1 do
+        begin
+          PersistenClass := ClassTable^.Entries[i]^;
+          if PersistenClass.ClassNameIs(ShortClassName)
+              and PersistenClass.InheritsFrom(TComponent) then
+            exit(TComponentClass(PersistenClass));
+        end;
+      end;
+      // Try again with the parent class type
+      aClassType := aClassType.ClassParent;
+    end;
+
+    Result:=nil;
   end;
-  
+
 begin
-  Result := nil;
+  ShortName:=AName;
   ShortClassName:=AClassName;
-  FindInFieldTable(Root);
+  Result:=FindInFieldTable(Root);
   
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
     FindInFieldTable(LookupRoot);
