@@ -1281,8 +1281,10 @@ function sinh(x : Single) : Single;
      temp : ValReal;
   begin
      temp:=exp(x);
-     { copysign ensures that sinh(-0.0)=-0.0 }
-     sinh:=copysign(0.5*(temp-1.0/temp),x);
+     { gives better behavior around zero, and in particular ensures that sinh(-0.0)=-0.0 }
+     if temp=1 then
+       exit(x);
+     sinh:=0.5*(temp-1.0/temp);
   end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
@@ -1291,8 +1293,9 @@ function sinh(x : Double) : Double;
      temp : ValReal;
   begin
      temp:=exp(x);
-     { copysign ensures that sinh(-0.0)=-0.0 }
-     sinh:=copysign(0.5*(temp-1.0/temp),x);
+     if temp=1 then
+       exit(x);
+     sinh:=0.5*(temp-1.0/temp);
   end;
 {$ENDIF}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1301,8 +1304,9 @@ function sinh(x : Extended) : Extended;
      temp : Extended;
   begin
      temp:=exp(x);
-     { copysign ensures that sinh(-0.0)=-0.0 }
-     sinh:=copysign(0.5*(temp-1.0/temp),x);
+     if temp=1 then
+       exit(x);
+     sinh:=0.5*(temp-1.0/temp);
   end;
 {$ENDIF}
 
@@ -1313,10 +1317,14 @@ function tanh(x : Single) : Single;
   begin
     if x < 0 then begin
       tmp:=exp(2*x);
+      if tmp=1 then
+        exit(x);
       result:=(tmp-1)/(1+tmp)
     end
     else begin
       tmp:=exp(-2*x);
+      if tmp=1 then
+        exit(x);
       result:=(1-tmp)/(1+tmp)
     end;
   end;
@@ -1328,10 +1336,14 @@ function tanh(x : Double) : Double;
   begin
     if x < 0 then begin
       tmp:=exp(2*x);
+      if tmp=1 then
+        exit(x);
       result:=(tmp-1)/(1+tmp)
     end
     else begin
       tmp:=exp(-2*x);
+      if tmp=1 then
+        exit(x);
       result:=(1-tmp)/(1+tmp)
     end;
   end;
@@ -1343,10 +1355,14 @@ function tanh(x : Extended) : Extended;
   begin
     if x < 0 then begin
       tmp:=exp(2*x);
+      if tmp=1 then
+        exit(x);
       result:=(tmp-1)/(1+tmp)
     end
     else begin
       tmp:=exp(-2*x);
+      if tmp=1 then
+        exit(x);
       result:=(1-tmp)/(1+tmp)
     end;
   end;
