@@ -38,14 +38,18 @@ begin
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-web');
-    P.SourcePath.Add('src');
+    P.SourcePath.Add('src/base');
+    P.SourcePath.Add('src/bindings');
     T:=P.Targets.AddUnit('googlebase.pp');
     T:=P.Targets.AddUnit('googleclient.pp');
     T:=P.Targets.AddUnit('googleservice.pp');
     T.Dependencies.AddUnit('googleclient');
     T.Dependencies.AddUnit('googlebase');
-    T:=StdDep(P.Targets.AddUnit('googlediscoverytopas.pp'));
-    T:=StdDep(P.Targets.AddUnit('src/googleadexchangebuyer.pp'));
+
+//  add this back later if we setup the generator to be included in the build
+//    T:=StdDep(P.Targets.AddUnit('googlediscoverytopas.pp'));
+
+    T:=StdDep(P.Targets.AddUnit('googleadexchangebuyer.pp'));
     T:=StdDep(P.Targets.AddUnit('googleadexchangeseller.pp'));
     T:=StdDep(P.Targets.AddUnit('googleadmin.pp'));
     T:=StdDep(P.Targets.AddUnit('googleadsense.pp'));
