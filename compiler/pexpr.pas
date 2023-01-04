@@ -141,6 +141,9 @@ implementation
            end
           else
             begin
+             // string[x] is allowed in system unit since it is a shortstring.
+             if cs_compilesystem in current_settings.moduleswitches then
+               Message(parser_e_nostringaliasinsystem);
               if cs_refcountedstrings in current_settings.localswitches then
                 begin
                   if m_default_unicodestring in current_settings.modeswitches then
@@ -4032,6 +4035,8 @@ implementation
 
              _STRING :
                begin
+                 if cs_compilesystem in current_settings.moduleswitches then
+                   Message(parser_e_nostringaliasinsystem);
                  string_dec(hdef,true);
                  { STRING can be also a type cast }
                  if try_to_consume(_LKLAMMER) then

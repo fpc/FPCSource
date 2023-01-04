@@ -1647,6 +1647,9 @@ parser_w_ignoring_published_property=03365_W_This property will not be published
 parser_w_widechar_set_reduced=03366_W_Reducing Widechar set to single-byte AnsiChar set.
 % The base type of a set can only have 255 elements. Sets of wide characters
 % are reduced to sets of 1-byte characters.
+parser_e_nostringaliasinsystem=03367_e_Using 'string' alias is not allowed in the system unit. Use short-,ansi- or unicodestring.
+% As a safeguard, the system unit may only use basic string types, not the
+% string alias which is dependent on the mode in which a unit is compiled.
 %
 % \end{description}
 %

@@ -494,8 +494,9 @@ implementation
            again:=false;
              case token of
                _STRING:
+                 begin
                  string_dec(def,stoAllowTypeDef in options);
-
+                 end;
                _FILE:
                  begin
                     consume(_FILE);
