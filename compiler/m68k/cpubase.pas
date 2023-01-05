@@ -166,7 +166,7 @@ unit cpubase;
 
     const
       {# maximum number of operands in assembler instruction }
-      max_operands = 4;
+      max_operands = 6;
 
 {*****************************************************************************
                           Default generic sizes
