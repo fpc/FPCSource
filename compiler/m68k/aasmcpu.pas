@@ -28,7 +28,8 @@ interface
 uses
   cclasses,aasmtai,aasmdata,aasmsym,
   aasmbase,globals,verbose,symtype,
-  cpubase,cpuinfo,cgbase,cgutils;
+  cpubase,cpuinfo,cgbase,cgutils,
+  ogbase;
 
 
 const
@@ -36,63 +37,206 @@ const
   O_MOV_SOURCE = 0;
   { "mov reg,reg" source operand number }
   O_MOV_DEST = 1;
+
+  instabentries = {$i m68knop.inc}
+
+type
+  TOperandType = (
+    OT_DATA,
+    OT_ADDR,
+    OT_ADDR_INDIR,
+    OT_ADDR_INDIR_POSTINC,
+    OT_ADDR_INDIR_PREDEC,
+    OT_ADDR_DISP16,
+    OT_ADDR_IDX_DISP8,
+    OT_ABS_SHORT,
+    OT_ABS_LONG,
+    OT_PC_DISP16,
+    OT_PC_IDX_DISP8,
+    OT_IMMEDIATE,
+    OT_REG_LIST,
+    OT_FPUREG_LIST,
+    OT_FPUREG,
+    OT_SPECIALREG
+  );
+
+  TOperandFlags = (
+    OF_IMM_QUICK,
+    OF_IMM_FLOAT,
+    OF_IMM_64BIT,
+    OF_SPECREG,
+    OF_SPECREG_CCR,
+    OF_SPECREG_SR,
+    OF_SPECREG_USP,
+    OF_SPECREG_FPIAR,
+    OF_SPECREG_FPU,
+    OF_BITFIELD,
+    OF_BRANCH,
+    OF_DOUBLE_REG,
+    OF_KFACTOR,
+    OF_NOSIZE
+  );
+
+  TOpSizeFlag = (
+    OPS_UNSIZED,
+    OPS_SHORT,
+    OPS_BYTE,
+    OPS_WORD,
+    OPS_LONG,
+    OPS_QUAD,
+    OPS_SINGLE,
+    OPS_DOUBLE,
+    OPS_EXTENDED,
+    OPS_PACKED,
+    OPS_COLDFIRE
+  );
+
+  TOpSupported = (
+    OS_M68000,
+    OS_M68000UP,
+    OS_M68010UP,
+    OS_M68020,
+    OS_M68020UP,
+    OS_M68030,
+    OS_M68040,
+    OS_M68040UP,
+    OS_M68060,
+    OS_M68881,
+    OS_M68851,
+    OS_CPU32,
+    OS_CF,
+    OS_CF_ISA_A,
+    OS_CF_ISA_APL,
+    OS_CF_ISA_B,
+    OS_CF_ISA_C,
+    OS_CF_HWDIV,
+    OS_CF_FPU,
+    OS_CF_USP,
+    OS_GNU_AS
+  );
+
+const
+  AM_Dn          = 0;
+  AM_An          = 1;
+  AM_An_Indir    = 2;
+  AM_An_PostInc  = 3;
+  AM_An_PreDec   = 4;
+  AM_An_Disp16   = 5;
+  AM_An_Format8  = 6;
+  AM_Extended    = 7;
+  AM_FPn         = 8;
+  AM_SpecReg     = 9;
+
+  REG_AbsShort   = 0;
+  REG_AbsLong    = 1;
+  REG_PC_Disp16  = 2;
+  REG_PC_Format8 = 3;
+  REG_Immediate  = 4;
+  REG_RegList    = 5;
+  REG_FPURegList = 6;
+
+type
+  toperandtypeset = set of toperandtype;
+  toperandflagset = set of toperandflags;
+
+type
+  tinsentry = record
+    opcode   : tasmop;
+    ops      : byte;
+    optypes  : array[0..max_operands-1] of toperandtypeset;
+    opflags  : array[0..max_operands-1] of toperandflagset;
+    codelen  : byte;
+    code     : array[0..1] of word;
+    support  : set of topsupported;
+    sizes    : set of topsizeflag;
+  end;
+  pinsentry = ^tinsentry;
+
+
+type
+  TInsTabCache=array[TasmOp] of longint;
+  PInsTabCache=^TInsTabCache;
+
+var
+  InsTabCache: PInsTabCache;
+
+const
+  InsTab:array[0..instabentries-1] of TInsEntry = {$i m68ktab.inc}
+
 type
 
   taicpu = class(tai_cpu_abstract_sym)
-     opsize : topsize;
+    private
+      { next fields are filled in pass1, so pass2 is faster }
+      insentry  : PInsEntry;
+      inssize   : shortint;
+      insoffset : longint;
+      LastInsOffset : longint;
 
-     procedure loadregset(opidx:longint; const dataregs,addrregs,fpuregs:tcpuregisterset);
-     procedure loadregpair(opidx:longint; const _reghi,_reglo: tregister);
-     procedure loadrealconst(opidx:longint; const value_real: bestreal);
+      function CalcSize(p: PInsEntry):shortint;
+      function Matches(p: PInsEntry; objdata: TObjData):boolean;
+      function FindInsEntry(objdata: TObjData):boolean;
+      procedure GenCode(objdata: TObjData);
 
-     constructor op_none(op : tasmop);
-     constructor op_none(op : tasmop;_size : topsize);
+      procedure init(_size : topsize); { this need to be called by all constructor }
+    public
+      opsize : topsize;
 
-     constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
-     constructor op_const(op : tasmop;_size : topsize;_op1 : longint);
-     constructor op_ref(op : tasmop;_size : topsize;_op1 : treference);
+      procedure loadregset(opidx:longint; const dataregs,addrregs,fpuregs:tcpuregisterset);
+      procedure loadregpair(opidx:longint; const _reghi,_reglo: tregister);
+      procedure loadrealconst(opidx:longint; const value_real: bestreal);
 
-     constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
-     constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : treference);
-     constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+      constructor op_none(op : tasmop);
+      constructor op_none(op : tasmop;_size : topsize);
 
-     constructor op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
-     constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
-     constructor op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference);
-     constructor op_realconst_reg(op : tasmop;_size : topsize;_op1: bestreal;_op2: tregister);
+      constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
+      constructor op_const(op : tasmop;_size : topsize;_op1 : longint);
+      constructor op_ref(op : tasmop;_size : topsize;_op1 : treference);
 
-     constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
-     { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
-     constructor op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : treference);
+      constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
+      constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : treference);
+      constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
 
-     { this is used for mulx/divx/remx regpair generation }
-     constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
-     constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint; _op2,_op3 : tregister);
-     constructor op_ref_reg_reg(op : tasmop;_size : topsize;_op1 : treference; _op2,_op3 : tregister);
+      constructor op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
+      constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
+      constructor op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference);
+      constructor op_realconst_reg(op : tasmop;_size : topsize;_op1: bestreal;_op2: tregister);
 
-     constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
-     constructor op_regset_reg(op: tasmop; _size : topsize;const _op1data,_op1addr,_op1fpu: tcpuregisterset; _op2: tregister);
+      constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
+      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
+      constructor op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : treference);
 
-     constructor op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
-     constructor op_regset_ref(op: tasmop; _size : topsize;const _op1data,_op1addr,_op1fpu: tcpuregisterset; _op2: treference);
+      { this is used for mulx/divx/remx regpair generation }
+      constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
+      constructor op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint; _op2,_op3 : tregister);
+      constructor op_ref_reg_reg(op : tasmop;_size : topsize;_op1 : treference; _op2,_op3 : tregister);
 
-     { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
+      constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
+      constructor op_regset_reg(op: tasmop; _size : topsize;const _op1data,_op1addr,_op1fpu: tcpuregisterset; _op2: tregister);
 
-     constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
-     { for DBxx opcodes }
-     constructor op_reg_sym(op: tasmop; _size : topsize; _op1: tregister; _op2 :tasmsymbol);
-     constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
+      constructor op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2data,_op2addr,_op2fpu: tcpuregisterset);
+      constructor op_regset_ref(op: tasmop; _size : topsize;const _op1data,_op1addr,_op1fpu: tcpuregisterset; _op2: treference);
 
-     constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+      { this is for Jmp instructions }
+      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
 
-     function is_same_reg_move(regtype: Tregistertype):boolean;override;
-     function spilling_get_operation_type(opnr: longint): topertype;override;
-     function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
+      constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
+      { for DBxx opcodes }
+      constructor op_reg_sym(op: tasmop; _size : topsize; _op1: tregister; _op2 :tasmsymbol);
+      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
 
-  private
-     procedure init(_size : topsize); { this need to be called by all constructor }
+      constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
+      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+
+      function is_same_reg_move(regtype: Tregistertype):boolean;override;
+      function spilling_get_operation_type(opnr: longint): topertype;override;
+      function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
+
+      procedure ResetPass1;override;
+      procedure ResetPass2;override;
+      function  Pass1(objdata:TObjData):longint;override;
+      procedure Pass2(objdata:TObjData);override;
+
   end;
 
 
@@ -109,7 +253,7 @@ type
   implementation
 
     uses
-      globtype;
+      globtype, itcpugas;
 
 
 {*****************************************************************************
@@ -549,6 +693,241 @@ type
            result := operand_readwrite;
       end;
 
+
+    function taicpu.CalcSize(p: PInsEntry): shortint;
+      begin
+        result:=p^.codelen * 2;
+      end;
+
+    function taicpu.Matches(p: PInsEntry; objdata:TObjData): boolean;
+
+      function OperandsMatch(const oper: toper; const ots: toperandtypeset): boolean;
+        var
+          ot: toperandtype;
+        begin
+          // fix me: this function could use some improvements, in particular checking
+          // agains for example CF or 68000 limitations, etc
+          result:=false;
+
+          for ot in ots do
+            begin
+              case ot of
+                OT_DATA:
+                  result:=(oper.typ=top_reg) and isintregister(oper.reg);
+                OT_ADDR:
+                  result:=(oper.typ=top_reg) and isaddressregister(oper.reg);
+                OT_ADDR_INDIR:
+                  result:=(oper.typ=top_ref) and isaddressregister(oper.ref^.base)
+                    and (oper.ref^.direction=dir_none) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.offset=0) and (oper.ref^.symbol=nil);
+                OT_ADDR_INDIR_POSTINC:
+                  result:=(oper.typ=top_ref) and isaddressregister(oper.ref^.base)
+                    and (oper.ref^.direction=dir_inc) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.offset=0) and (oper.ref^.symbol=nil);
+                OT_ADDR_INDIR_PREDEC:
+                  result:=(oper.typ=top_ref) and isaddressregister(oper.ref^.base)
+                    and (oper.ref^.direction=dir_dec) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.offset=0) and (oper.ref^.symbol=nil);
+                OT_ADDR_DISP16:
+                  // fix me: also needs checking offset sizes, incl. 020+ base displacements!
+                  result:=(oper.typ=top_ref) and isaddressregister(oper.ref^.base)
+                    and (oper.ref^.direction=dir_none) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.symbol=nil);
+                OT_ADDR_IDX_DISP8:
+                  // fix me: also needs checking offset sizes, incl. 020+ base displacements!
+                  result:=(oper.typ=top_ref) and isaddressregister(oper.ref^.base)
+                    and (isaddressregister(oper.ref^.index) or isintregister(oper.ref^.index))
+                    and (oper.ref^.direction=dir_none)
+                    and (oper.ref^.symbol=nil);
+                OT_ABS_SHORT,
+                  // fix me: also needs checking sizes!
+                OT_ABS_LONG:
+                  result:=((oper.typ=top_ref) and assigned(oper.ref^.symbol)
+                    and (oper.ref^.base=NR_NO) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.direction=dir_none)) or
+                    (oper.typ=top_const);
+                OT_PC_DISP16:
+                  // fix me: also needs checking offset sizes, incl. 020+ base displacements!
+                  result:=(oper.typ=top_ref) and (oper.ref^.base=NR_PC)
+                    and (oper.ref^.direction=dir_none) and (oper.ref^.index=NR_NO)
+                    and (oper.ref^.symbol=nil);
+                OT_PC_IDX_DISP8:
+                  // fix me: also needs checking offset sizes, incl. 020+ base displacements!
+                  result:=(oper.typ=top_ref) and (oper.ref^.base=NR_PC)
+                    and (isaddressregister(oper.ref^.index) or isintregister(oper.ref^.index))
+                    and (oper.ref^.direction=dir_none)
+                    and (oper.ref^.symbol=nil);
+                OT_IMMEDIATE:
+                  // fix me: needs checking against OF_IMM_QUICK and others
+                  result:=(oper.typ=top_const);
+                OT_REG_LIST:
+                  result:=(oper.typ=top_regset) and (oper.fpuregset=[]) and
+                    ((oper.dataregset<>[]) or (oper.addrregset<>[]));
+                OT_FPUREG_LIST:
+                  result:=(oper.typ=top_regset) and (oper.fpuregset<>[]) and
+                    ((oper.dataregset=[]) or (oper.addrregset=[]));
+                OT_FPUREG:
+                  result:=(oper.typ=top_reg) and isfpuregister(oper.reg);
+                {OT_SPECIALREG}
+              else
+                internalerror(2023010101);
+            end;
+            if result then
+              break;
+          end;
+        end;
+
+      var
+        i: Integer;
+      begin
+        result:=false;
+
+        { Check the opcode and number of operands }
+        if (p^.opcode<>opcode) or (p^.ops<>ops) then
+          exit;
+
+        { Check the operands }
+        for i:=0 to p^.ops-1 do
+          if not OperandsMatch(oper[i]^,p^.optypes[i]) then
+            exit;
+
+        result:=true;
+      end;
+
+    function taicpu.FindInsEntry(objdata: TObjData): boolean;
+      var
+        i : longint;
+      begin
+        result:=false;
+        { Things which may only be done once, not when a second pass is done to
+          optimize }
+
+        if (InsEntry=nil) then
+          begin
+            { set the file postion }
+            current_filepos:=fileinfo;
+          end
+        else
+          begin
+            { we've already an insentry so it's valid }
+            result:=true;
+            exit;
+          end;
+        { Lookup opcode in the table }
+        InsSize:=-1;
+        i:=InsTabCache^[opcode];
+        if i=-1 then
+          begin
+            Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+            exit;
+          end;
+        InsEntry:=@instab[i];
+        while (InsEntry^.opcode=opcode) do
+          begin
+            if Matches(insentry,objdata) then
+              begin
+                result:=true;
+                exit;
+              end;
+            inc(insentry);
+          end;
+        Message1(asmw_e_invalid_opcode_and_operands,gas_op2str[opcode]{,GetString});
+        { No instruction found, set insentry to nil and inssize to -1 }
+        InsEntry:=nil;
+        InsSize:=-1;
+      end;
+
+    procedure taicpu.GenCode(objdata: TObjData);
+
+      procedure WriteWord(w: word);
+        var
+          bytes: array [0..1] of Byte;
+        begin
+          Word(bytes):=NToBE(w);
+          objdata.writebytes(bytes,2);
+        end;
+
+      procedure OpcodeSetReg(opcode: word; regnum: byte);
+        begin
+          opcode:=(opcode and $fff8) or (regnum and $7);
+        end;
+
+      procedure OpcodeSetMode(opcode: word; mode: byte);
+        begin
+          opcode:=(opcode and $ffc7) or ((mode and $7) shl 3);
+        end;
+
+      procedure OpcodeSetEA(opcode: word; mode: byte; regnum: byte);
+        begin
+          opcode:=(opcode and $ffc0) or ((mode and $7) shl 3) or (regnum and $7);
+        end;
+
+
+      var
+        i: longint;
+      begin
+//        writeln('GenCode: ',insentry^.opcode);
+        for i:=0 to insentry^.codelen do
+          WriteWord(insentry^.code[i]);
+      end;
+
+    procedure taicpu.ResetPass1;
+      begin
+        { we need to reset everything here, because the choosen insentry
+          can be invalid for a new situation where the previously optimized
+          insentry is not correct }
+        InsEntry:=nil;
+        InsSize:=0;
+        LastInsOffset:=-1;
+      end;
+
+
+    procedure taicpu.ResetPass2;
+      begin
+        { we are here in a second pass, check if the instruction can be optimized }
+        if assigned(InsEntry) then
+          begin
+            InsEntry:=nil;
+            InsSize:=0;
+          end;
+        LastInsOffset:=-1;
+      end;
+
+
+   function taicpu.Pass1(objdata:TObjData):longint;
+      begin
+        Pass1:=0;
+        { Save the old offset and set the new offset }
+        InsOffset:=ObjData.CurrObjSec.Size;
+        { Error? }
+        if (InsEntry=nil) and (InsSize=-1) then
+          exit;
+        { set the file postion }
+        current_filepos:=fileinfo;
+        { Get InsEntry }
+        if FindInsEntry(ObjData) then
+          begin
+            { Calculate instruction size }
+            InsSize:=CalcSize(InsEntry);
+            LastInsOffset:=InsOffset;
+            Pass1:=InsSize;
+            exit;
+          end;
+        LastInsOffset:=-1;
+      end;
+
+    procedure taicpu.Pass2(objdata: TObjData);
+      begin
+        { error in pass1 ? }
+        if InsEntry=nil then
+          exit;
+        current_filepos:=fileinfo;
+
+        { Generate the instruction }
+        GenCode(ObjData);
+      end;
+
+
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
         case getregtype(r) of
@@ -579,15 +958,41 @@ type
       end;
 
 
+{****************************************************************************
+                                Instruction table
+*****************************************************************************}
+
+    procedure BuildInsTabCache;
+      var
+        i : longint;
+      begin
+        new(InsTabCache);
+        FillChar(InsTabCache^,sizeof(TInsTabCache),$ff);
+        i:=0;
+        while (i<InsTabEntries) do
+         begin
+           if InsTabCache^[InsTab[i].OPcode]=-1 then
+            InsTabCache^[InsTab[i].OPcode]:=i;
+           inc(i);
+         end;
+      end;
+
+
     procedure InitAsm;
       begin
+        if not assigned(InsTabCache) then
+          BuildInsTabCache;
       end;
 
 
     procedure DoneAsm;
       begin
+        if assigned(InsTabCache) then
+          begin
+            dispose(InsTabCache);
+            InsTabCache:=nil;
+          end;
       end;
-
 
 begin
   cai_align:=tai_align;
