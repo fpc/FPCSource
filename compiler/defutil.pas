@@ -313,6 +313,9 @@ interface
     { true, if def is a signed int type, equal in size to the processor's native int size }
     function is_nativesint(def : tdef) : boolean;
 
+    { true, if the char type is a widechar in the system unit }
+    function is_systemunit_unicode : boolean;
+
   type
     tperformrangecheck = (
       rc_internal,  { nothing, internal conversion }
@@ -417,6 +420,7 @@ implementation
 
     uses
        verbose,cutils,
+       symtable, // search_system_type
        symsym,
        cpuinfo;
 
@@ -1249,6 +1253,24 @@ implementation
       begin
          result:=is_nativeint(def) and (def.typ=orddef) and (torddef(def).ordtype in [s64bit,s32bit,s16bit,s8bit]);
       end;
+
+    function is_systemunit_unicode: boolean;
+
+    var
+      t : ttypesym;
+
+    begin
+      if cchartype=nil then
+        begin
+          t:=search_system_type('CHAR');
+          if t<>nil then
+            cchartype:=t.typedef;
+        end;
+      if cchartype=nil then
+        is_systemunit_unicode:=(sizeof(char)=2)
+      else
+        is_systemunit_unicode:=(cchartype.size=2);
+    end;
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
