@@ -3071,11 +3071,17 @@ implementation
           end;
       end;
 
+    procedure check_systemunit_loaded; inline;
+    begin
+      if systemunit=nil then
+       Message(sym_f_systemunitnotloaded);
+    end;
 
     procedure write_system_parameter_lists(const name:string);
       var
         srsym:tprocsym;
       begin
+        check_systemunit_loaded;
         srsym:=tprocsym(systemunit.find(name));
         if not assigned(srsym) or not (srsym.typ=procsym) then
           internalerror(2016060302);
@@ -4218,6 +4224,7 @@ implementation
       var
         sym : tsym;
       begin
+        check_systemunit_loaded;
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
@@ -4230,6 +4237,7 @@ implementation
       var
         sym : tsym;
       begin
+        check_systemunit_loaded;
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) then
           result:=nil
@@ -4267,6 +4275,7 @@ implementation
       var
         srsym: tsym;
       begin
+        check_systemunit_loaded;
         srsym:=tsym(systemunit.find(s));
         if not assigned(srsym) and
            (cs_compilesystem in current_settings.moduleswitches) then
