@@ -15,7 +15,7 @@ uses
   ssl_openssl,
   synapsewebclient,
 {$ELSE}
-  fphttpwebclient,
+  fphttpwebclient, opensslsockets,
 {$ENDIF}
   googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
