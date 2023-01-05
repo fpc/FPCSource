@@ -30,6 +30,7 @@
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #   package_  package handling
+#   sym_      symbol handling 
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -2442,6 +2443,10 @@ sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 sym_e_symbol_no_capture=05099_E_Symbol "$1" can not be captured
 % The specified symbol can not be captured to be used in a function reference.
 % For example \var{var} or \var{out} parameters can not be captured in that way.
+sym_f_systemunitnotloaded=05100_F_System unit not loaded.
+% The compiler used a function that requires the system unit to be loaded,
+% but it was not yet loaded. This is an internal compiler error and must be reported.
+%
 % \end{description}
 #
 # Codegenerator
