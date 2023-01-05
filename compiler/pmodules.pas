@@ -36,7 +36,7 @@ implementation
        globtype,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,globstat,fpcp,fpkg,
-       symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
+       symconst,symbase,symtype,symdef,symsym,symtable,defutil,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmbase,aasmcpu,
        cgbase,ngenutil,
@@ -316,6 +316,12 @@ implementation
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
         generrordef.owner:=systemunit;
+        // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
+        { TODO: Check if we should also do this for mode macpas }
+        if not (cs_compilesystem in current_settings.moduleswitches) then
+          if ([m_objfpc,m_delphi] * current_settings.modeswitches)<>[] then
+            if is_systemunit_unicode then
+              Include(current_settings.modeswitches,m_default_unicodestring)
       end;
 
 
@@ -382,9 +388,21 @@ implementation
         if m_blocks in current_settings.modeswitches then
           AddUnit('blockrtl');
 
-        { default char=widechar? }
-        if m_default_unicodestring in current_settings.modeswitches then
-          AddUnit('uuchar');
+        { Determine char size. }
+
+        // Ansi RTL ?
+        if not is_systemunit_unicode then
+          begin
+          if m_default_unicodestring in current_settings.modeswitches then
+            AddUnit('uuchar'); // redefines char as widechar
+          end
+        else
+          begin
+          // Unicode RTL
+          if not (m_default_ansistring in current_settings.modeswitches) then
+            if not (current_module.modulename^<>'UACHAR') then
+              AddUnit('uachar'); // redefines char as ansichar
+          end;
 
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
