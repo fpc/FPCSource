@@ -1177,6 +1177,7 @@ interface
        voidtype,                  { Void (procedure) }
        cansichartype,             { Char }
        cwidechartype,             { WideChar }
+       cchartype,                 { either cansichartype or cwidechartype. Do not free }
        pasbool1type,              { boolean type }
        pasbool8type,
        pasbool16type,
