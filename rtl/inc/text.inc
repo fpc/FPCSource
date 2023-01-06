@@ -591,7 +591,7 @@ Begin
   TextRec(f).BufEnd:=0;
 End;
 
-Procedure SetTextLineEnding(Var f:Text; Ending: string);
+Procedure SetTextLineEnding(Var f:Text; Ending: shortstring);
 Begin
   TextRec(F).LineEnd:=Ending;
 End;
@@ -678,7 +678,7 @@ end;
 Procedure fpc_textinit_filename_iso(var t : Text;nr : DWord;const filename : shortstring);compilerproc;
 begin
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-  if paramstr(nr)='' then
+  if Length(paramstr(nr))=0 then
     assign(t,filename+'.txt')
   else
     assign(t,paramstr(nr));
@@ -1051,7 +1051,7 @@ End;
 
 Procedure fpc_Write_Text_UInt_Iso(Len : Longint;var t : Text;l : ValUInt); iocheck; compilerproc;
 var
-  s : String;
+  s : shortString;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1067,7 +1067,7 @@ End;
 {$ifndef CPU64}
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
-  s : string;
+  s : shortstring;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1078,7 +1078,7 @@ end;
 
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
-  s : string;
+  s : shortstring;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1089,7 +1089,7 @@ end;
 
 procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
-  s : string;
+  s : shortstring;
 begin
   if (InOutRes<>0) then
     exit;
@@ -1105,7 +1105,7 @@ end;
 
 procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
-  s : string;
+  s : shortstring;
 begin
   if (InOutRes<>0) then
    exit;
@@ -2003,7 +2003,7 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-   if (hs = '') then
+   if (Length(hs)=0) then
     L := 0
    else
     begin
@@ -2048,7 +2048,7 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-   if (hs = '') then
+   if (Length(hs)=0) then
     u := 0
    else
     begin
@@ -2687,7 +2687,7 @@ procedure fpc_SetupReadStr_Ansistr_Intern(var ReadWriteStrText: text; const s: r
 
 procedure fpc_SetupReadStr_Shortstr(var ReadWriteStrText: text; const s: shortstring); compilerproc;
 begin
-  { the reason we convert the short string to ansistring, is because the semantics of
+  { the reason we convert the shortstring to ansistring, is because the semantics of
     readstr are defined as:
 
     *********************
