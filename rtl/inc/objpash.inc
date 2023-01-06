@@ -200,6 +200,21 @@
          Data : Pointer;
        end;
 
+       // "Maximum" available stringtype : Shortstring, AnsiString or WideString
+       {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
+       {$IFNDEF UNICODERTL}
+       RTLString = ansistring;
+       {$ELSE UNICODERTL}
+       RTLString = widestring;
+       {$ENDIF UNICODERTL}
+
+       {$else FPC_HAS_FEATURE_ANSISTRINGS}
+
+       RTLString = shortstring;
+
+       {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
        TObject = class
        public
           { please don't change the order of virtual methods, because
@@ -220,7 +235,7 @@
           class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;
           class function ClassName : shortstring;
-          class function ClassNameIs(const name : string) : boolean;
+          class function ClassNameIs(const name : RTLString) : boolean;
           class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
@@ -251,11 +266,11 @@
           class function GetInterfaceTable : pinterfacetable;
 
           { new since Delphi 2009 }
-          class function UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
-          class function QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+          class function UnitName : RTLString;
+          class function QualifiedClassName: RTLString;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
-          function ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};virtual;
+          function ToString: RTLString; virtual;
        end;
 
        IUnknown = interface
@@ -478,13 +493,13 @@
        StoredAttribute = Class(TCustomAttribute)
        Private
           FFlag : Boolean;
-          FName : String;
+          FName : ShortString;
        Public
          Constructor Create;
          Constructor Create(Const aFlag : Boolean);
-         Constructor Create(Const aName : String);
+         Constructor Create(Const aName : ShortString);
          Property Flag : Boolean Read FFlag;
-         Property Name : String Read FName;
+         Property Name : ShortString Read FName;
        end;
 
 
