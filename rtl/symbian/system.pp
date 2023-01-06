@@ -144,7 +144,7 @@ begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l<argc) then
     paramstr:=strpas(argv[l])
