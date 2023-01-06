@@ -44,9 +44,9 @@ type
   end;
   PFileIO = ^TFileIO;
 
-  TDoMkdir  = procedure (const s: string);
-  TDoRmdir  = procedure (const s: string);
-  TDoChdir  = procedure (const s: string);
+  TDoMkdir  = procedure (const s: shortstring);
+  TDoRmdir  = procedure (const s: shortstring);
+  TDoChdir  = procedure (const s: shortstring);
   TDoGetdir = procedure (DriveNr: byte; var Dir: ShortString);
 
   TDirIO = packed record
