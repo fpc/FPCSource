@@ -272,7 +272,7 @@ begin
 end;
 {$endif}
 
-function TBinaryObjectReader.ReadIdent(ValueType: TValueType): String;
+function TBinaryObjectReader.ReadIdent(ValueType: TValueType): RawByteString;
 var
   i: Byte;
 begin
@@ -354,7 +354,7 @@ begin
     raise EReadError.Create(SInvalidImage);
 end;
 
-function TBinaryObjectReader.ReadStr: String;
+function TBinaryObjectReader.ReadStr: RawByteString;
 var
   i: Byte;
 begin
@@ -364,7 +364,7 @@ begin
     Read(Pointer(@Result[1])^, i);
 end;
 
-function TBinaryObjectReader.ReadString(StringType: TValueType): String;
+function TBinaryObjectReader.ReadString(StringType: TValueType): RawByteString;
 var
   b: Byte;
   i: Integer;
@@ -755,7 +755,7 @@ begin
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: string
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: RawBytestring
   ): CodePointer;
 var
   ErrorResult: Boolean;
@@ -1151,7 +1151,7 @@ begin
 end;
 {$endif}
 
-function TReader.ReadIdent: string;
+function TReader.ReadIdent: rawbytestring;
 var
   ValueType: TValueType;
 begin
@@ -1285,7 +1285,7 @@ end;
 
 procedure TReader.ReadProperty(AInstance: TPersistent);
 var
-  Path: String;
+  Path: RawByteString;
   Instance: TPersistent;
   DotPos, NextPos: PAnsiChar;
   PropInfo: PPropInfo;
@@ -1296,17 +1296,25 @@ var
   OldPropName: String;
 
   function HandleMissingProperty(IsPath: Boolean): boolean;
+
+  Var
+    lPropName : String;
+
   begin
     Result:=true;
     if Assigned(OnPropertyNotFound) then begin
       // user defined property error handling
       OldPropName:=FPropName;
+      lPropName:=FPropName;
       Handled:=false;
       Skip:=false;
-      OnPropertyNotFound(Self,Instance,FPropName,IsPath,Handled,Skip);
-      if Handled and (not Skip) and (OldPropName<>FPropName) then
+      OnPropertyNotFound(Self,Instance,lPropName,IsPath,Handled,Skip);
+      if Handled and (not Skip) and (OldPropName<>lPropName) then
         // try alias property
+        begin
+        FPropName:=lPropName;
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
+        end;
       if Skip then begin
         FDriver.SkipValue;
         Result:=false;
@@ -1397,10 +1405,12 @@ var
   PropType: PTypeInfo;
   Value: LongInt;
 {  IdentToIntFn: TIdentToInt; }
-  Ident: String;
+  Ident: RawByteString;
   Method: TMethod;
   Handled: Boolean;
   TmpStr: String;
+  uTmpStr : UnicodeString;
+
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1467,7 +1477,14 @@ begin
         SetStrProp(Instance, PropInfo, TmpStr);
       end;
     tkUstring:
-      SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
+      begin
+        uTmpStr:=ReadUnicodeString;
+{$IFDEF UNICODERTL}
+        if Assigned(FOnReadStringProperty) then
+          FOnReadStringProperty(Self,Instance,PropInfo,uTmpStr);
+{$ENDIF}
+        SetUnicodeStrProp(Instance,PropInfo,uTmpStr);
+      end;
     tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
     tkVariant:
@@ -1611,7 +1628,8 @@ begin
 end;
 
 
-function TReader.ReadString: string;
+function TReader.ReadString: rawbytestring;
+
 var
   StringType: TValueType;
 begin
@@ -1620,12 +1638,12 @@ begin
     begin
       Result := FDriver.ReadString(StringType);
       if (StringType=vaUTF8String) then
-        Result:=string(utf8Decode(Result));
+        Result:=rawbytestring(utf8Decode(Result));
     end
   else if StringType in [vaWString] then
-    Result:= string(FDriver.ReadWidestring)
+    Result:= rawbytestring(FDriver.ReadWidestring)
   else if StringType in [vaUString] then
-    Result:= string(FDriver.ReadUnicodeString)
+    Result:= rawbytestring(FDriver.ReadUnicodeString)
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
@@ -1633,7 +1651,7 @@ end;
 
 function TReader.ReadWideString: WideString;
 var
- s: String;
+ s: RawByteString;
  i: Integer;
  vt:TValueType;
 begin
@@ -1660,7 +1678,7 @@ end;
 
 function TReader.ReadUnicodeString: UnicodeString;
 var
- s: String;
+ s: RawByteString;
  i: Integer;
  vt:TValueType;
 begin
@@ -1764,7 +1782,7 @@ begin
   end;
 end;
 
-function TReader.FindComponentClass(const AName, anUnitName, AClassName: string
+function TReader.FindComponentClass(const AName, anUnitName, AClassName: rawbytestring
   ): TComponentClass;
 
 var

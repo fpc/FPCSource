@@ -1646,10 +1646,15 @@ begin
   Result:=FEncoding.GetString(Bytes, 0, Size);
 end;
 
-constructor TStringStream.Create(const AString: string = '');
+constructor TStringStream.Create(const AString: AnsiString);
 
 begin
   Create(AString,TEncoding.Default, False);
+end;
+
+constructor TStringStream.Create();
+begin
+  Create([]);
 end;
 
 constructor TStringStream.Create(const ABytes: TBytes);
@@ -1875,10 +1880,16 @@ procedure TResourceStream.Initialize(Instance: TFPResourceHMODULE; Name, ResType
   end;
 
 constructor TResourceStream.Create(Instance: TFPResourceHMODULE; const ResName: string; ResType: PAnsiChar);
-  begin
-    inherited create;
-    Initialize(Instance,PAnsiChar(ResName),ResType,False);
-  end;
+
+Var
+  S : AnsiString {$IF SIZEOF(CHAR)=1} absolute Resname {$endif} ;
+
+begin
+  inherited create;
+  // fpcres seems to use default translations...
+  {$IF SIZEOF(CHAR)=2}S:=ResName;{$endif}
+  Initialize(Instance,PAnsiChar(S),ResType,False);
+end;
 constructor TResourceStream.CreateFromID(Instance: TFPResourceHMODULE; ResID: Integer; ResType: PAnsiChar);
   begin
     inherited create;
