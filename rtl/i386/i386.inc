@@ -1688,7 +1688,7 @@ end;
 label str_int_shortcut;
 
 
-procedure int_str(l:longword;out s:string);assembler;nostackframe;
+procedure int_str(l:longword;out s:shortstring);assembler;nostackframe;
 
 asm
   pushl %esi
@@ -1699,7 +1699,7 @@ asm
   jmp str_int_shortcut
 end;
 
-procedure int_str(l:longint;out s:string);assembler;nostackframe;
+procedure int_str(l:longint;out s:shortstring);assembler;nostackframe;
 
 {Optimized for speed, but balanced with size.}
 
