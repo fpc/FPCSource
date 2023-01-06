@@ -182,7 +182,7 @@ Var
   dta    : TDTA;
   i,j    : longint;
   p      : PAnsiChar;
-  tmpPath: String;
+  tmpPath: RawByteString;
 Begin
 
 {Check for WildCards}
@@ -245,9 +245,9 @@ end;
 function fpGetEnvAtari(const envvar : ShortString): RawByteString; external name '_fpc_atari_getenv';
 
 { argument number l }
-function ParamStr(l: LongInt): string;
+function ParamStr(l: LongInt): shortstring;
 var
-  s1: string;
+  s1: shortstring;
 begin
   if l=0 then
     begin
