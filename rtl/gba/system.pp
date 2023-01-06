@@ -128,7 +128,7 @@ begin
 end;
 
 { argument number l }
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   paramstr:='';
 end;
