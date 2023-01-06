@@ -96,7 +96,7 @@ begin
         begin
          PWideRec(P)^.Len:=Len*2;     { Initial length }
          PWideRec(P)^.First:=#0;      { Terminating #0 }
-         inc(p,WideFirstOff);         { Points to string now }
+         inc(p,WideFirstOff);         { Points to widestring now }
         end
       else
         WideStringError;
@@ -108,7 +108,7 @@ end;
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
-  If the reference count is zero, deallocate the string;
+  If the reference count is zero, deallocate the widestring;
 }
 Begin
   If S=Nil then
@@ -268,12 +268,12 @@ Var
   same : boolean;
 begin
   { only assign if s1 or s2 is empty }
-  if (S1='') then
+  if Length(S1)=0 then
     begin
       DestS:=s2;
       exit;
     end;
-  if (S2='') then
+  if Length(S2)=0 then
     begin
       DestS:=s1;
       exit;
@@ -491,7 +491,7 @@ end;
 
 Procedure fpc_WideStr_SetLength(Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; compilerproc;
 {
-  Sets The length of string S to L.
+  Sets The length of WideString S to L.
   Makes sure S is unique, and contains enough room.
 }
 Var
@@ -502,7 +502,7 @@ begin
     begin
       if Pointer(S)=nil then
        begin
-         { Need a complete new string...}
+         { Need a complete new widestring...}
          Pointer(s):=NewWideString(l);
        end
       { windows doesn't support reallocing widestrings, this code
@@ -544,7 +544,7 @@ begin
 {$endif MSWINDOWS}
         PWideRec(Pointer(S)-WideFirstOff)^.Len:=l*sizeof(WideChar);
     end
-  else  // length=0, deallocate the string
+  else  // length=0, deallocate the widestring
     fpc_widestr_decr_ref (Pointer(S));
 end;
 
@@ -948,7 +948,7 @@ function UTF8Encode(const s : WideString) : RawByteString;
     hs : UTF8String;
   begin
     result:='';
-    if s='' then
+    if Length(s)=0 then
       exit;
     SetLength(hs,length(s)*3);
     i:=UnicodeToUtf8(pansichar(hs),length(hs)+1,PWideChar(s),length(s));
