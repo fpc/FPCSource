@@ -679,7 +679,7 @@ Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
-Procedure SetTextLineEnding(var f:Text; Ending:string);
+Procedure SetTextLineEnding(var f:Text; Ending:Shortstring);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$endif FPC_HAS_FEATURE_TEXTIO}
@@ -817,7 +817,7 @@ Const
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
-Function  ParamStr(l:Longint):string;
+Function  ParamStr(l:Longint):Shortstring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifndef JVM}

@@ -447,8 +447,8 @@ Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
 Procedure fpc_textclose_iso(var t : Text);compilerproc;
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;
-Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
-Procedure fpc_Write_Text_ShortStr_Iso(Len : Longint;var f : Text;const s : String); compilerproc;
+Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : ShortString); compilerproc;
+Procedure fpc_Write_Text_ShortStr_Iso(Len : Longint;var f : Text;const s : ShortString); compilerproc;
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of AnsiChar; zerobased: boolean = true); compilerproc;
 Procedure fpc_Write_Text_Pchar_as_Array_Iso(Len : Longint;var f : Text;const s : array of AnsiChar; zerobased: boolean = true); compilerproc;
 Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PAnsiChar); compilerproc;
@@ -545,7 +545,7 @@ procedure fpc_dispinvoke_variant(dest : pvardata;var source : tvardata;  calldes
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
 Procedure fpc_ReadLn_End_Iso(var f : Text); compilerproc;
-Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : ShortString); compilerproc;
 Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PAnsiChar); compilerproc;
 Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of AnsiChar; zerobased: boolean = false); compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
