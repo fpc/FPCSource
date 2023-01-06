@@ -1413,6 +1413,69 @@ Begin
   Result:=(E=0);
 End;
 
+{$IF SIZEOF(CHAR)=2}
+
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue): Boolean;
+
+begin
+  Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
+end;
+
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+
+Var
+  E,P : Integer;
+  S : AnsiString;
+
+Begin
+  S:=StrPas(Buffer);
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  if (FormatSettings.DecimalSeparator <> '.') and
+     (Pos('.', S) <>0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+  P:=Pos(FormatSettings.DecimalSeparator,S);
+  If (P<>0) Then
+    S[P] := '.';
+  s:=Trim(s);
+  try
+    case ValueType of
+      fvCurrency:
+        Val(S,Currency(Value),E);
+      fvExtended:
+        Val(S,Extended(Value),E);
+      fvDouble:
+        Val(S,Double(Value),E);
+      fvSingle:
+        Val(S,Single(Value),E);
+      fvComp:
+        Val(S,Comp(Value),E);
+      fvReal:
+        Val(S,Real(Value),E);
+    end;
+  { on x87, a floating point exception may be pending in case of an invalid
+    input value -> trigger it now }
+{$if defined(cpui386) or (defined(cpux86_64) and not(defined(win64))) or defined(cpui8086)}
+    asm
+      fwait
+    end;
+{$endif}
+  except
+    E:=1;
+  end;
+  Result:=(E=0);
+End;
+{$ENDIF}
+
 
 Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
 

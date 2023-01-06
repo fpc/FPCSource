@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2002-2005 by Florian Klaempfl
@@ -139,6 +140,7 @@ function UnicodeSameText(const s1, s2 : UnicodeString) : Boolean;{$ifdef SYSUTIL
 Function UnicodeFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString;
 {$i sysformt.inc}
 
+
 {$undef TFormatString}
 {$undef TFormatChar}
 {$undef INWIDEFORMAT}
@@ -149,12 +151,26 @@ begin
   Result:=UnicodeFormat(Fmt,Args,DefaultFormatSettings);
 end;
 
+Function Format (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString;
+
+begin
+  Result:=UnicodeFormat(Fmt,Args,FormatSettings);
+end;
+
+
+Function Format (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString;
+begin
+  Result:=UnicodeFormat(Fmt,Args,DefaultFormatSettings);
+end;
+
+
 
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal;
-                     Const Fmt; fmtLen : Cardinal;
+                     Const Fmt ; fmtLen : Cardinal;
                      Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Var 
   S,F : UnicodeString;
+
 begin
   Setlength(F,fmtlen);
   if fmtlen > 0 then
@@ -164,7 +180,7 @@ begin
     Result:=Length(S)
   else
     Result:=Buflen;
-  Move(S[1],Buffer,Result);
+  Move(S[1],Buffer,Result*SizeOf(UnicodeChar));
 end;
 
 Function UnicodeFormatBuf (Var Buffer; BufLen : Cardinal;
@@ -549,6 +565,15 @@ begin
   Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+Function StringReplace(const S : UnicodeString; OldPattern, NewPattern: WideChar;  Flags: TReplaceFlags): Unicodestring;
+
+Var
+  C : Integer;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 {$i syssr.inc}
 
@@ -557,3 +582,15 @@ function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  F
 {$undef SRUpperCase}
 {$undef SRPCHAR}
 {$undef SRCHAR}
+
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags);
+end;
+
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,aCount);
+end;

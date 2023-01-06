@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2012 Paul Ishenin,
@@ -52,7 +53,7 @@ type
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; virtual; abstract;
     function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; virtual; abstract;
     function GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer): TBytes; virtual; abstract;
-    function GetAnsiString(Bytes: PByte; ByteCount: Integer): string; virtual; abstract;
+    function GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring; virtual; abstract;
     function GetCodePage: Cardinal; virtual; abstract;
     function GetEncodingName: UnicodeString; virtual; abstract;
   public
@@ -87,10 +88,10 @@ type
     function GetPreamble: TBytes; virtual; abstract;
     function GetString(const Bytes: TBytes): UnicodeString; overload;
     function GetString(const Bytes: TBytes; ByteIndex, ByteCount: Integer): UnicodeString; overload;
-    function GetAnsiBytes(const S: string): TBytes; overload;
-    function GetAnsiBytes(const S: string; CharIndex, CharCount: Integer): TBytes; overload;
-    function GetAnsiString(const Bytes: TBytes): string; overload;
-    function GetAnsiString(const Bytes: TBytes; ByteIndex, ByteCount: Integer): string; overload;
+    function GetAnsiBytes(const S: Ansistring): TBytes; overload;
+    function GetAnsiBytes(const S: Ansistring; CharIndex, CharCount: Integer): TBytes; overload;
+    function GetAnsiString(const Bytes: TBytes): ansistring; overload;
+    function GetAnsiString(const Bytes: TBytes; ByteIndex, ByteCount:  Integer):ansistring; overload;
 
     property CodePage: Cardinal read GetCodePage;
     property EncodingName: UnicodeString read GetEncodingName;
@@ -119,7 +120,7 @@ type
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; override;
     function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
     function GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer): TBytes; override;
-    function GetAnsiString(Bytes: PByte; ByteCount: Integer): string; override;
+    function GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring; override;
     function GetCodePage: Cardinal; override;
     function GetEncodingName: UnicodeString; override;
   public
@@ -162,7 +163,7 @@ type
     function GetCharCount(Bytes: PByte; ByteCount: Integer): Integer; overload; override;
     function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
     function GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer): TBytes; override;
-    function GetAnsiString(Bytes: PByte; ByteCount: Integer): string; override;
+    function GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring; override;
     function GetCodePage: Cardinal; override;
     function GetEncodingName: UnicodeString; override;
   public
@@ -181,7 +182,7 @@ type
     function GetBytes(Chars: PUnicodeChar; CharCount: Integer; Bytes: PByte; ByteCount: Integer): Integer; overload; override;
     function GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicodeChar; CharCount: Integer): Integer; overload; override;
     function GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer): TBytes; override;
-    function GetAnsiString(Bytes: PByte; ByteCount: Integer): string; override;
+    function GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring; override;
     function GetCodePage: Cardinal; override;
     function GetEncodingName: UnicodeString; override;
   public

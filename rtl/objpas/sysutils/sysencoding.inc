@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2012 Paul Ishenin,
@@ -35,7 +36,7 @@ begin
   Result := FStandardEncodings[seAnsi];
 end;
 
-function TEncoding.GetAnsiBytes(const S: string): TBytes;
+function TEncoding.GetAnsiBytes(const S: ansistring): TBytes;
 begin
   if S='' then
     Result := nil
@@ -43,13 +44,13 @@ begin
     Result := GetAnsiBytes(S, 1, Length(S));
 end;
 
-function TEncoding.GetAnsiBytes(const S: string; CharIndex, CharCount: Integer
+function TEncoding.GetAnsiBytes(const S: ansistring; CharIndex, CharCount: Integer
   ): TBytes;
 begin
   Result := GetAnsiBytes(Pointer(@S[CharIndex]), CharCount);
 end;
 
-function TEncoding.GetAnsiString(const Bytes: TBytes): string;
+function TEncoding.GetAnsiString(const Bytes: TBytes): ansistring;
 begin
   if Length(Bytes)=0 then
     Result := ''
@@ -58,7 +59,7 @@ begin
 end;
 
 function TEncoding.GetAnsiString(const Bytes: TBytes; ByteIndex,
-  ByteCount: Integer): string;
+  ByteCount: Integer): ansistring;
 begin
   Result := GetAnsiString(Pointer(@Bytes[ByteIndex]), ByteCount);
   SetCodePage(RawByteString(Result), DefaultSystemCodePage, False);
@@ -572,7 +573,7 @@ begin
     Move(S[1], Result[0], Length(S));
 end;
 
-function TMBCSEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer): string;
+function TMBCSEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring;
 begin
   SetString(Result, Pointer(Bytes), ByteCount);
   SetCodePage(RawByteString(Result), GetCodePage, False);
@@ -735,7 +736,7 @@ begin
 end;
 
 function TUnicodeEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer
-  ): string;
+  ): ansistring;
 begin
   widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Bytes), RawByteString(Result), DefaultSystemCodePage, ByteCount div SizeOf(UnicodeChar));
 end;
@@ -819,7 +820,7 @@ begin
 end;
 
 function TBigEndianUnicodeEncoding.GetAnsiString(Bytes: PByte;
-  ByteCount: Integer): string;
+  ByteCount: Integer): ansistring;
 var
   B: TBytes;
 begin

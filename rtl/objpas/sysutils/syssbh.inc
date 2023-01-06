@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 
   { TGenericStringBuilder }
 
@@ -55,6 +56,10 @@
 {$IFDEF SBUNICODE}
     // Do not use SBRawstring, we need 2 versions in case of unicode
     Function Append(const AValue: SBString): TGenericStringBuilder;
+    Function Append(const AValue: AnsiChar): TGenericStringBuilder;
+{$ELSE}
+    Function Append(const AValue: UnicodeString): TGenericStringBuilder;
+    Function Append(const AValue: UnicodeChar): TGenericStringBuilder;
 {$ENDIF}
     Function Append(const AValue: RawByteString): TGenericStringBuilder;
     Function Append(const AValue: SBChar; RepeatCount: Integer): TGenericStringBuilder;
@@ -96,10 +101,10 @@
     Function Replace(const OldChar, NewChar: SBChar; StartIndex: Integer; Count: Integer): TGenericStringBuilder;
     Function Replace(const OldValue, NewValue: SBRawString): TGenericStringBuilder;
     Function Replace(const OldValue, NewValue: SBRawString; StartIndex: Integer; Count: Integer): TGenericStringBuilder;
-{$IFDEF SBUNICODE}
-    Function ToString: SBString;
-{$ELSE}
-    Function ToString: SBString; override;
+{$IFDEF UNICODERTL}
+    Function ToString: RTLString; override;
+{$ELSE}    
+    Function ToString: SBString; {$IFNDEF SBUNICODE} override; {$ELSE}  reintroduce; {$ENDIF}
 {$ENDIF}
     Function ToString(aStartIndex: Integer; aLength: Integer): SBString; reintroduce;
 

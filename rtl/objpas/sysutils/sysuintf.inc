@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2002 Peter Vreman,
@@ -88,7 +89,7 @@ end;
 function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
 var
   e: Boolean;
-  p: PAnsiChar;
+  p: PChar;
 
   function rb: Byte;
   begin
@@ -101,7 +102,7 @@ var
     Inc(p);
   end;
 
-  procedure nextChar(c: AnsiChar); inline;
+  procedure nextChar(c: Char); inline;
   begin
     if p^ <> c then
       e := False;
@@ -111,7 +112,7 @@ var
 begin
   if Length(S)<>38 then Exit(False);
   e := True;
-  p := PAnsiChar(S);
+  p := PChar(S);
   nextChar('{');
   Guid.D1 := rb shl 28 or rb shl 24 or rb shl 20 or rb shl 16 or rb shl 12 or rb shl 8 or rb shl 4 or rb;
   nextChar('-');
@@ -155,7 +156,7 @@ end;
 function GUIDToString(const GUID: TGUID): string;
 begin
   SetLength(Result, 38);
-  StrLFmt(PAnsiChar(Result), 38,'{%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}',
+  StrLFmt(PChar(Result), 38,'{%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}',
     [
      Longint(GUID.D1), GUID.D2, GUID.D3,
      GUID.D4[0], GUID.D4[1], GUID.D4[2], GUID.D4[3],
