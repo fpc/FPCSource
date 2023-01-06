@@ -103,10 +103,10 @@ end;
 var
  execpathstr : shortstring;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  var
-  s: string;
-  s1: string;
+  s: shortstring;
+  s1: shortstring;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
