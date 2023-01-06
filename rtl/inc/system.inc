@@ -1716,7 +1716,7 @@ end;
 Procedure SysAssert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);
 begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-  If msg='' then
+  If Length(msg)=0 then
     write(stderr,'Assertion failed')
   else
     write(stderr,msg);
@@ -2014,7 +2014,7 @@ end;
 
 Procedure MkDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_mkdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2026,7 +2026,7 @@ end;
 
 Procedure RmDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_rmdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2038,7 +2038,7 @@ End;
 
 Procedure ChDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_chdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2075,7 +2075,7 @@ end;
 
 Procedure MkDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_mkdir(GetDirStrFromShortstring(S));
 End;
@@ -2083,7 +2083,7 @@ End;
 
 Procedure RmDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_rmdir(GetDirStrFromShortstring(S));
 End;
@@ -2091,7 +2091,7 @@ End;
 
 Procedure ChDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(S)=0) or (InOutRes <> 0) then
    exit;
   Do_chdir(GetDirStrFromShortstring(S));
 End;
@@ -2144,7 +2144,7 @@ end;
 
 Procedure MkDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_mkdir(S);
 End;
@@ -2152,7 +2152,7 @@ End;
 
 Procedure RmDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_rmdir(S);
 End;
@@ -2160,7 +2160,7 @@ End;
 
 Procedure ChDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_chdir(S);
 End;
