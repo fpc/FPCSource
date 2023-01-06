@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-function CreateShellArgV(const prog:string):PPAnsiChar; deprecated;
+function CreateShellArgV(const prog:ShortString):PPAnsiChar; deprecated;
 
 function CreateShellArgV(const prog:RawByteString):PPAnsiChar; deprecated;
 

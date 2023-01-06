@@ -37,7 +37,7 @@ begin
   InternalCreateShellArgV:=pp;
 end;
 
-function CreateShellArgV(const prog:string):PPAnsiChar;
+function CreateShellArgV(const prog:Shortstring):PPAnsiChar;
 begin
   CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
 end;
@@ -60,7 +60,7 @@ begin
    end;
 end;
 
-Function fpgetenv(name:string):PAnsiChar; [public, alias : 'FPC_SYSC_FPGETENV'];
+Function fpgetenv(name:Shortstring):PAnsiChar; [public, alias : 'FPC_SYSC_FPGETENV'];
 {
   Searches the environment for a string with name p and
   returns a PAnsiChar to it's value.

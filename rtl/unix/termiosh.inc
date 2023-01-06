@@ -30,6 +30,6 @@ Function  TCDrain     (fd:cint)     :cint;inline;
 Function  TCFlow      (fd,act:cint) :cint;inline;
 Function  IsATTY      (Handle:cint) :cint;
 Function  IsATTY      (var f:text)  :cint; inline;
-function  TTYname     (Handle:cint):string;
-function  TTYname     (var F:Text) :string;
+function  TTYname     (Handle:cint):Shortstring;
+function  TTYname     (var F:Text) :Shortstring;
 
