@@ -55,7 +55,7 @@ Const
 
 Var
   fd: Longint;
-  S : String;
+  S : AnsiString;
   
 begin
   fd:=FileOpen(KernelUUID,fmOpenRead or fmShareDenyNone);

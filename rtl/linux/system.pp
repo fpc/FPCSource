@@ -457,7 +457,7 @@ begin
      execpathstr[0]:=AnsiChar(i);
 end;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  begin
    { stricly conforming POSIX applications  }
    { have the executing filename as argv[0] }
