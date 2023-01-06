@@ -115,7 +115,7 @@ var
  cookie: longint;
  image : image_info;
  index : byte;
- s : string;
+ s : shortstring;
 begin
   cookie:=0;
   fillchar(image, sizeof(image_info), 0);
@@ -135,10 +135,10 @@ begin
     end;
 end;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
 var
-  s: string;
-  s1: string;
+  s: shortstring;
+  s1: shortstring;
 begin
   { stricly conforming POSIX applications  }
   { have the executing filename as argv[0] }
