@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 var
   OldPat,Srch: SRstring; // Srch and Oldp can contain uppercase versions of S,OldPattern
   PatLength,NewPatLength,P,Cnt,PrevP: Integer;
