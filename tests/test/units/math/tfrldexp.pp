@@ -1,4 +1,5 @@
 {$mode objfpc} {$longstrings on} {$coperators on} {$modeswitch advancedrecords} {$typedaddress on}
+{$EXCESSPRECISION OFF}
 uses
 	Math, SysUtils;
 
