@@ -815,11 +815,11 @@ End;
 
 
 { provide local access to write_str }
-procedure Write_Str(Len : Longint;var f : Text;const s : ShortString); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
+procedure Write_Str(Len : Longint;var f : Text;const s : shortString); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
 
 { provide local access to write_str_iso }
-procedure Write_Str_Iso(Len : Longint;var f : Text;const s : ShortString); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR_ISO'];
-
+procedure Write_Str_Iso(Len : Longint;var f : Text;const s : shortString); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR_ISO'];
+ 
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of ansichar; zerobased: boolean = true); iocheck; compilerproc;
 var
   ArrayLen : longint;
@@ -1123,7 +1123,7 @@ end;
 {$if defined(CPU16) or defined(CPU8)}
 procedure fpc_write_text_longword(len : longint;var t : text;q : longword); iocheck; compilerproc;
 var
-  s : shortstring;
+  s : Shortstring;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1134,7 +1134,7 @@ end;
 
 procedure fpc_write_text_longint(len : longint;var t : text;i : longint); iocheck; compilerproc;
 var
-  s : shortstring;
+  s : Shortstring;
 begin
   if (InOutRes<>0) then
    exit;
@@ -1243,7 +1243,7 @@ End;
 
 Procedure fpc_Write_Text_Float_iso(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; compilerproc;
 var
-  s : shortString;
+  s : ShortString;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1283,7 +1283,7 @@ Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Curren
       end;
 {$else EXCLUDE_COMPLEX_PROCS}
 var
-  s : shortstring;
+  s : ShortString;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -1778,7 +1778,8 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_ShortStr(var f : Text;out s : ShortString); iocheck; compilerproc;
+
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : shortString); iocheck; compilerproc;
 
 var
   Len : Longint;
@@ -1986,7 +1987,7 @@ end;
 
 Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : ValSInt;
 Begin
   l:=0;
@@ -2016,7 +2017,7 @@ End;
 
 Procedure fpc_Read_Text_SInt_Iso(var f : Text; out l : ValSInt); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : ValSInt;
 Begin
   l:=0;
@@ -2033,7 +2034,7 @@ End;
 
 Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : ValSInt;
 Begin
   u:=0;
@@ -2060,7 +2061,7 @@ End;
 
 Procedure fpc_Read_Text_UInt_Iso(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : ValSInt;
 Begin
   u:=0;
@@ -2230,7 +2231,7 @@ end;
 
 procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : longint;
 Begin
   q:=0;
@@ -2252,7 +2253,7 @@ End;
 
 procedure fpc_Read_Text_QWord_Iso(var f : text; out q : qword); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : longint;
 Begin
   q:=0;
@@ -2267,7 +2268,7 @@ End;
 
 procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : Longint;
 Begin
   i:=0;
@@ -2289,7 +2290,7 @@ End;
 
 procedure fpc_Read_Text_Int64_Iso(var f : text; out i : int64); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : Longint;
 Begin
   i:=0;
@@ -2308,7 +2309,7 @@ End;
 {$if defined(CPU16) or defined(CPU8)}
 procedure fpc_Read_Text_LongWord(var f : text; out q : longword); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : longint;
 Begin
   q:=0;
@@ -2330,7 +2331,7 @@ End;
 
 procedure fpc_Read_Text_LongInt(var f : text; out i : longint); iocheck; compilerproc;
 var
-  hs   : shortstring;
+  hs   : ShortString;
   code : Longint;
 Begin
   i:=0;
