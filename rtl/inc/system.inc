@@ -390,6 +390,13 @@ begin
 end;
 
 
+function IndexChar(const buf; len: SizeInt; b: widechar): SizeInt;
+
+begin
+  IndexChar:=IndexWord(buf,len,Word(b));
+end;
+
+
 function CompareChar(Const buf1,buf2;len:SizeInt):SizeInt;
 begin
   CompareChar:=CompareByte(buf1,buf2,len);
