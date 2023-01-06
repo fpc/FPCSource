@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 
 Class Function TORDINALHELPER.Parse(const AString: string): TORDINALTYPE; inline; static;
 
