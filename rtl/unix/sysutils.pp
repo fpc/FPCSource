@@ -18,8 +18,8 @@ interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
-{$H+}
+{$H+} // will result in unicode string in unicode RTL
+
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
@@ -1527,11 +1527,8 @@ end;
                               OS utility functions
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
-
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 begin
-  { no need to adjust the code page of EnvVar to DefaultSystemCodePage, as only
-    ASCII identifiers are supported }
   Result:=BaseUnix.FPGetenv(PAnsiChar(pointer(EnvVar)));
 end;
 
@@ -1541,7 +1538,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
