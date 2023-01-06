@@ -14,16 +14,15 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$h+}
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
 {$endif}
-
 { determine the type of the resource/form file }
 {$define Win16Res}
 
 unit Classes;
-
 {$INLINE ON}
 
 interface
