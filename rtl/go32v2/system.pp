@@ -572,7 +572,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l+1<=argc) then
    paramstr:=strpas(argv[l])
