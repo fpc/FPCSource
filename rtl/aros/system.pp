@@ -79,8 +79,8 @@ var
   killed : Boolean = False;
 
 function GetLibAdress(Base: Pointer; Offset: LongInt): Pointer;
-procedure Debug(s: string);
-procedure Debugln(s: string);
+procedure Debug(s: shortstring);
+procedure Debugln(s: shortstring);
 procedure EnableBackTraceStr;
 
 implementation
