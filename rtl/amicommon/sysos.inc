@@ -127,7 +127,7 @@ end;
 
 
 { Converts an Unix-like path to Amiga-like path }
-function PathConv(path: string): string; alias: 'PATHCONV'; [public];
+function PathConv(path: shortstring): shortstring; alias: 'PATHCONV'; [public];
 var tmppos: longint;
 begin
   { check for short paths }
