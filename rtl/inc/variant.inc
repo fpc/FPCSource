@@ -445,7 +445,7 @@ end;
 
 operator :=(const source : variant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
 Var
-  S : String;
+  S : ShortString;
 begin
   VariantManager.VarToPStr(S,Source);
   If Length(S)>0 then
@@ -797,7 +797,7 @@ operator :=(const source : olevariant) dest : longbool;{$ifdef SYSTEMINLINE}inli
 { Chars }
 operator :=(const source : olevariant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
-    S : String;
+    S : ShortString;
   begin
     VariantManager.VarToPStr(S,Source);
     If Length(S)>0 then
