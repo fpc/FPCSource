@@ -123,7 +123,7 @@ Begin
 End;
 
 
-Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED_NAME_ISO']; compilerproc;
+Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : ShortString;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED_NAME_ISO']; compilerproc;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -140,7 +140,7 @@ Begin
 End;
 
 
-Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED_NAME_ISO']; compilerproc;
+Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : ShortString;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED_NAME_ISO']; compilerproc;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -213,10 +213,10 @@ begin
 end;
 
 
-Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : string);compilerproc;
+Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : shortstring);compilerproc;
 begin
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-  if paramstr(nr)='' then
+  if Length(paramstr(nr))=0 then
     assign(t,filename)
   else
     assign(t,paramstr(nr));
