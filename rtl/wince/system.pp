@@ -746,7 +746,7 @@ begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   setup_arguments;
   if (l>=0) and (l<Fargc) then
