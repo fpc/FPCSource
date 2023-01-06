@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -111,15 +112,15 @@ type
     public
       constructor Create(const msg : string);
       constructor CreateFmt(const msg : string; const args : array of const);
-      constructor CreateRes(ResString: PString);
-      constructor CreateResFmt(ResString: PString; const Args: array of const);
+      constructor CreateRes(ResString: PAnsiString);
+      constructor CreateResFmt(ResString: PAnsiString; const Args: array of const);
       constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
         AHelpContext: Longint);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
-      constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
+      constructor CreateResHelp(ResString: PAnsiString; AHelpContext: Longint);
+      constructor CreateResFmtHelp(ResString: PAnsiString; const Args: array of const;
         AHelpContext: Longint);
-      Function ToString : String; override;
+      Function ToString : RTLString; override;
 
       function GetBaseException : Exception;virtual;
 
