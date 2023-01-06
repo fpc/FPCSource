@@ -380,7 +380,7 @@ Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc
 {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 {*****************************************************************************
-                        Unicode string support
+                        UnicodeString support
 *****************************************************************************}
 
 
@@ -821,15 +821,15 @@ Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
-Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint); compilerproc;
-Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : String;Size : Longint); compilerproc;
+Procedure fpc_reset_typed_name_iso(var f : TypedFile;const FileName : ShortString;Size : Longint); compilerproc;
+Procedure fpc_rewrite_typed_name_iso(var f : TypedFile;const FileName : ShortString;Size : Longint); compilerproc;
 
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 
 Procedure fpc_typedfile_init_iso(var t : TypedFile;nr : DWord);compilerproc;
-Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : string); compilerproc;
+Procedure fpc_typedfile_init_filename_iso(var t : TypedFile;nr : DWord;const filename : shortstring); compilerproc;
 Procedure fpc_typedfile_close_iso(var t : TypedFile); compilerproc;
 
 {$endif FPC_HAS_FEATURE_FILEIO}
