@@ -315,7 +315,7 @@ begin
   WriteStr('');
 end;
 
-procedure TBinaryObjectWriter.WriteString(const Value: String);
+procedure TBinaryObjectWriter.WriteString(const Value: RawByteString);
 var
   i: Integer;
   b: byte;
@@ -469,7 +469,7 @@ begin
   Write(b, 1);
 end;
 
-procedure TBinaryObjectWriter.WriteStr(const Value: String);
+procedure TBinaryObjectWriter.WriteStr(const Value: RawByteString);
 var
   i: integer;
   b: byte;

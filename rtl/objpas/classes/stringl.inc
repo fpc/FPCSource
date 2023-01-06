@@ -105,7 +105,7 @@ begin
   FLBS:=AValue;
 end;
 
-procedure TStrings.SetDelimiter(c:AnsiChar);
+procedure TStrings.SetDelimiter(c:Char);
 begin
   CheckSpecialChars;
   FDelimiter:=c;
@@ -124,7 +124,7 @@ begin
     FEncoding:=nil;
 end;
 
-Function TStrings.GetDelimiter : AnsiChar;
+Function TStrings.GetDelimiter : Char;
 begin
   CheckSpecialChars;
   Result:=FDelimiter;
@@ -143,19 +143,19 @@ begin
 end;
 
 
-procedure TStrings.SetQuoteChar(c:AnsiChar);
+procedure TStrings.SetQuoteChar(c:Char);
 begin
   CheckSpecialChars;
   FQuoteChar:=c;
 end;
 
-Function TStrings.GetQuoteChar :AnsiChar;
+Function TStrings.GetQuoteChar : Char;
 begin
   CheckSpecialChars;
   Result:=FQuoteChar;
 end;
 
-procedure TStrings.SetNameValueSeparator(c:AnsiChar);
+procedure TStrings.SetNameValueSeparator(c:Char);
 begin
   CheckSpecialChars;
   FNameValueSeparator:=c;
@@ -163,7 +163,7 @@ end;
 
 
 
-Function TStrings.GetNameValueSeparator :AnsiChar;
+Function TStrings.GetNameValueSeparator : Char;
 begin
   CheckSpecialChars;
   Result:=FNameValueSeparator;
@@ -173,7 +173,7 @@ end;
 function TStrings.GetCommaText: string;
 
 Var
-  C1,C2 : AnsiChar;
+  C1,C2 : Char;
   FSD : Boolean;
 
 begin
@@ -217,30 +217,34 @@ Function TStrings.GetDelimitedText: string;
 
 Var
   I : integer;
-  p : PAnsiChar;
-  BreakChars : set of AnsiChar;
+  Pend,P : PChar;
   S : String;
   doQuote : Boolean;
-    
+
+  Function IsBreakChar(C : Char) : Boolean;
+
+  begin
+    Result:=(C=QuoteChar) or (C=Delimiter) or (C=#0);
+    if Not StrictDelimiter then
+      Result:=Result or (Ord(C)<=Ord(' '));
+  end;
+
 begin
   CheckSpecialChars;
   result:='';
-  if StrictDelimiter then
-    BreakChars:=[#0,QuoteChar,Delimiter]
-  else  
-    BreakChars:=[#0..' ',QuoteChar,Delimiter];
   // Check for break characters and quote if required.
   For i:=0 to count-1 do
     begin
     S:=Strings[i];
+    PEnd:=PChar(S)+length(S)*SizeOf(Char);
     doQuote:=FAlwaysQuote;
     If not DoQuote then
       begin
-      p:=PAnsiChar(S);
+      p:=PChar(S);
       //Quote strings that include BreakChars:
-      while not(p^ in BreakChars) do
+      while not IsBreakChar(p^) do
         inc(p);
-      DoQuote:=(p<>PAnsiChar(S)+length(S));  
+      DoQuote:=(p^<>#0);
       end;
     if DoQuote and (QuoteChar<>#0) then
       Result:=Result+QuoteString(S,QuoteChar)
@@ -535,7 +539,7 @@ begin
   DoSetDelimitedText(aValue,True,StrictDelimiter,FQuoteChar,FDelimiter);
 end;
 
-Procedure TStrings.DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : AnsiChar);
+Procedure TStrings.DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : Char);
 
 var
   len,i,j: SizeInt;
@@ -967,7 +971,7 @@ begin
   DoSetDelimitedText(S,False,StrictDelimiter,'"',',');
 end;
 
-procedure TStrings.AddDelimitedText(const S: String; ADelimiter: AnsiChar; AStrictDelimiter: Boolean);
+procedure TStrings.AddDelimitedText(const S: String; ADelimiter: Char; AStrictDelimiter: Boolean);
 
 begin
   CheckSpecialChars;
@@ -1253,9 +1257,9 @@ begin
 end;
 
 
-Function TStrings.GetText: PAnsiChar;
+Function TStrings.GetText: PChar;
 begin
-  Result:=StrNew(PAnsiChar(Self.Text));
+  Result:=StrNew(PChar(Self.Text));
 end;
 
 
@@ -1581,13 +1585,13 @@ begin
     Exit;
     end;
   NL:=GetLineBreakCharLBS;
-  NLS:=Length(NL)*SizeOf(AnsiChar);
+  NLS:=Length(NL)*SizeOf(Char);
   For i:=0 To count-1 do
     begin
     S:=Strings[I];
     L:=Length(S);
     if L<>0 then
-      Stream.WriteBuffer(S[1], L*SizeOf(AnsiChar));
+      Stream.WriteBuffer(S[1], L*SizeOf(Char));
     if (I<Count-1) or Not SkipLastLineBreak then
       Stream.WriteBuffer(NL[1], NLS);
     end;
@@ -1631,7 +1635,7 @@ end;
 
 
 
-Procedure TStrings.SetText(TheText: PAnsiChar);
+Procedure TStrings.SetText(TheText: PChar);
 
 Var S : String;
 

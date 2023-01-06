@@ -1218,7 +1218,7 @@ end;
 
     end;
 
-    function TStream.ReadAnsiString: String;
+  Function TStream.ReadAnsiString : AnsiString;
 
   Var
     TheSize : Longint;
@@ -1236,7 +1236,7 @@ end;
      end;
    end;
 
-    procedure TStream.WriteAnsiString(const S: String);
+  Procedure TStream.WriteAnsiString (const S : AnsiString);
 
   Var L : Longint;
 
@@ -1611,10 +1611,15 @@ begin
   Result:=FEncoding.GetString(Bytes, 0, Size);
 end;
 
-constructor TStringStream.Create(const AString: string = '');
+constructor TStringStream.Create(const AString: AnsiString);
 
 begin
   Create(AString,TEncoding.Default, False);
+end;
+
+constructor TStringStream.Create();
+begin
+  Create([]);
 end;
 
 constructor TStringStream.Create(const ABytes: TBytes);
@@ -1644,14 +1649,14 @@ begin
   inherited Create(BytesOf(AString));
 end;
 
-constructor TStringStream.Create(const AString: string; AEncoding: TEncoding; AOwnsEncoding: Boolean);
+constructor TStringStream.Create(const AString: AnsiString; AEncoding: TEncoding; AOwnsEncoding: Boolean);
 begin
   FOwnsEncoding:=AOwnsEncoding and not TEncoding.IsStandardEncoding(AEncoding);
   FEncoding:=AEncoding;
   Inherited Create(AEncoding.GetAnsiBytes(AString));
 end;
 
-constructor TStringStream.Create(const AString: string; ACodePage: Integer);
+constructor TStringStream.Create(const AString: AnsiString; ACodePage: Integer);
 begin
   Create(AString,TEncoding.GetEncoding(ACodePage),true);
 end;

@@ -37,7 +37,7 @@ const
     'WideString'
   );
 
-function TParser.GetTokenName(aTok: AnsiChar): string;
+function TParser.GetTokenName(aTok: Char): string;
 begin
   if ord(aTok) <= LastSpecialToken then
     Result:=TokNames[ord(aTok)]
@@ -375,7 +375,7 @@ begin
   FreeMem(fBuf);
 end;
 
-procedure TParser.CheckToken(T: AnsiChar);
+procedure TParser.CheckToken(T: Char);
 begin
   if fToken<>T then
     ErrorFmt(SParWrongTokenType,[GetTokenName(T),GetTokenName(fToken)]);
@@ -434,7 +434,7 @@ begin
   NextToken;
 end;
 
-function TParser.NextToken: AnsiChar;
+function TParser.NextToken: Char;
 
 begin
   SkipWhiteSpace;

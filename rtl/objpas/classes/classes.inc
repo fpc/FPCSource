@@ -1737,13 +1737,13 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
 var
   Version: TBinaryObjectReader.TBOVersion;
 
-  procedure OutStr(s: String);
+  procedure OutStr(s: RawByteString);
   begin
     if Length(s) > 0 then
       Output.Write(s[1], Length(s));
   end;
 
-  procedure OutLn(s: String);
+  procedure OutLn(s: RawByteString);
   begin
     OutStr(s + LineEnding);
   end;
@@ -1752,7 +1752,7 @@ var
     UseBytes: boolean = false);
 
   var
-    res, NewStr: String;
+    res, NewStr: RawByteString;
     w: Cardinal;
     InString, NewInString: Boolean;
   begin
@@ -1798,7 +1798,7 @@ var
    OutStr(res);
   end;
 
-  procedure OutString(s: String);
+  procedure OutString(s: RawByteString);
   begin
     OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
   end;
@@ -1813,7 +1813,7 @@ var
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
 
-  procedure OutUtf8Str(s: String);
+  procedure OutUtf8Str(s: RawByteString);
   begin
     if Encoding=oteLFM then
       OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd)
@@ -1916,7 +1916,7 @@ var
   end;
 {$endif}
 
-  function ReadSStr: String;
+  function ReadSStr: RawByteString;
   var
     len: Byte;
   begin
@@ -1926,7 +1926,7 @@ var
       Input.ReadBuffer(Result[1], len);
   end;
 
-  function ReadLStr: String;
+  function ReadLStr: RawByteString;
   var
     len: DWord;
   begin
@@ -1974,15 +1974,15 @@ var
     end;
   end;
 
-  procedure ReadPropList(indent: String);
+  procedure ReadPropList(indent: RawByteString);
 
-    procedure ProcessValue(ValueType: TValueType; Indent: String);
+    procedure ProcessValue(ValueType: TValueType; Indent: RawByteString);
 
       procedure ProcessBinary;
       var
         ToDo, DoNow, i: LongInt;
         lbuf: array[0..31] of Byte;
-        s: String;
+        s: RawByteString;
       begin
         ToDo := ReadDWord;
         OutLn('{');
@@ -2000,7 +2000,7 @@ var
       end;
 
     var
-      s: String;
+      s: RawByteString;
 {      len: LongInt; }
       IsFirst: Boolean;
 {$ifndef FPUNONE}
@@ -2107,10 +2107,10 @@ var
     end;
   end;
 
-  procedure ReadObject(indent: String);
+  procedure ReadObject(indent: RawByteString);
   var
     b: Byte;
-    ObjUnitName, ObjClassName, ObjName: String;
+    ObjUnitName, ObjClassName, ObjName: RawByteString;
     ChildPos: LongInt;
     ValueType: TValueType;
     p: SizeInt;
@@ -2266,7 +2266,8 @@ var
   end;
 {$endif}
 
-  procedure WriteSString(const s: String);
+  procedure WriteSString(const s: RawByteString);
+
   var size : byte;
   begin
     if length(s)>255 then size:=255
@@ -2276,7 +2277,7 @@ var
       Output.WriteBuffer(s[1], size);
   end;
 
-  procedure WriteLString(Const s: String);
+  procedure WriteLString(Const s: RawByteString);
   begin
     WriteDWord(Length(s));
     if Length(s) > 0 then
@@ -2356,7 +2357,7 @@ var
 {$ifndef FPUNONE}
     flt: Extended;
 {$endif}
-    s: String;
+    s: RawByteString;
     stream: TMemoryStream;
   begin
     case parser.Token of
@@ -2486,7 +2487,7 @@ var
 
   procedure ProcessProperty;
   var
-    name: String;
+    name: RawByteString;
   begin
     // Get name of property
     parser.CheckToken(toSymbol);
@@ -2507,7 +2508,7 @@ var
   procedure ProcessObject(Root: boolean);
   var
     Flags: Byte;
-    ObjectName, ObjUnitName, ObjClassName: String;
+    ObjectName, ObjUnitName, ObjClassName: RawByteString;
     ChildPos: Integer;
   begin
     if parser.TokenSymbolIs('OBJECT') then
