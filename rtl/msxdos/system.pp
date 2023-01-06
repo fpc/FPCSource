@@ -99,8 +99,8 @@ const
 implementation
 
 procedure DebugWrite(s: PAnsiChar); forward;
-procedure DebugWrite(const S: string); forward;
-procedure DebugWriteLn(const S: string); forward;
+procedure DebugWrite(const S: Shortstring); forward;
+procedure DebugWriteLn(const S: ShortString); forward;
 
 {$ifdef todo}
 const
@@ -270,7 +270,7 @@ begin
   end;
 end;
 
-procedure DebugWrite(const S: string);
+procedure DebugWrite(const S: shortstring);
 var
   regs: Registers;
   i: Byte;
@@ -282,7 +282,7 @@ begin
   end;
 end;
 
-procedure DebugWriteLn(const S: string);
+procedure DebugWriteLn(const S: shortstring);
 begin
   DebugWrite(S);
   DebugWrite(#13#10);
@@ -345,7 +345,7 @@ begin
   envp:=internal_envp;
 end;
 
-function GetEnvVar(aName: PAnsiChar): String;
+function GetEnvVar(aName: PAnsiChar): ShortString;
 var
   regs: Registers;
   i: SizeInt;
@@ -382,7 +382,7 @@ var
   argblock: PAnsiChar;
   arg: PAnsiChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
-  tmp: String;
+  tmp: ShortString;
   regs: Registers;
 begin
   tmp := GetEnvVar('PROGRAM');
@@ -580,7 +580,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : ShortString;
 begin
   if argv=nil then
     setup_arguments;
