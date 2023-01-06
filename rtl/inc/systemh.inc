@@ -545,7 +545,7 @@ Type
 
 { Zero - terminated strings }
 
-{$IFDEF FPC_HAS_ANSICHAR_CHAR}
+{$IF DECLARED(AnsiChar)}
 // Compiler defines AnsiChar and WideChar, not AnsiChar
 {$IFDEF UNICODERTL}
   Char = WideChar;
@@ -915,6 +915,7 @@ Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);
 function  IndexChar(const buf;len:SizeInt;b:ansichar):SizeInt;
+function  IndexChar(const buf;len:SizeInt;b:widechar):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386)} inline; {$endif}
@@ -1273,7 +1274,7 @@ Function  DSeg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  SSeg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {****************************************************************************
-                      PAnsiChar and String Handling
+                      Characters and String Handling
 ****************************************************************************}
 
 function StrPas(p:PAnsiChar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1482,7 +1483,7 @@ Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
-Procedure SetTextLineEnding(var f:Text; Ending:string);
+Procedure SetTextLineEnding(var f:Text; Ending:shortstring);
 function GetTextCodePage(var T: Text): TSystemCodePage;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
@@ -1715,7 +1716,7 @@ Const
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  ParamCount:Longint;
-Function  ParamStr(l:Longint):string;
+Function  ParamStr(l:Longint):shortstring;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
