@@ -131,7 +131,7 @@ begin
   end;
 end;
 
-function SysGetLoadErrorStr: string;
+function SysGetLoadErrorStr: AnsiString;
 begin
  SysGetLoadErrorStr := SysGetDynLibsErrorStr;
 end;
