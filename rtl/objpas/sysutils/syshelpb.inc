@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 
 Class Function TBOOLHELPER.Parse(const S: string): Boolean; inline; static;
 
