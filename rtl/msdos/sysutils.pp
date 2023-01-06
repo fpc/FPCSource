@@ -20,9 +20,12 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
-{$MODESWITCH out}
-{ force ansistrings }
+{$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 {$hugecode on}

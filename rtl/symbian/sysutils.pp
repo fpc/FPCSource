@@ -15,7 +15,12 @@
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
 {$H+}
+{$ENDIF}
+
 unit sysutils;
 
 interface

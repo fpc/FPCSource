@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -33,12 +34,12 @@ type
   TFormatSettings = record
     CurrencyFormat: Byte;
     NegCurrFormat: Byte;
-    ThousandSeparator: AnsiChar;
-    DecimalSeparator: AnsiChar;
+    ThousandSeparator: Char;
+    DecimalSeparator: Char;
     CurrencyDecimals: Byte;
-    DateSeparator: AnsiChar;
-    TimeSeparator: AnsiChar;
-    ListSeparator: AnsiChar;
+    DateSeparator: Char;
+    TimeSeparator: Char;
+    ListSeparator: Char;
     CurrencyString: string;
     ShortDateFormat: string;
     LongDateFormat: string;
