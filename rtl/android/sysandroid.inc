@@ -178,7 +178,7 @@ var
 
 function SystemApiLevel: shortint;
 var
-  s: string;
+  s: shortstring;
   c: integer;
 begin
   if _ApiLevel < 0 then
@@ -307,7 +307,7 @@ begin
   RedirectFile(StdErr);
 end;
 
-procedure SetDefaultSysLogTag(const Tag: string);
+procedure SetDefaultSysLogTag(const Tag: shortstring);
 var
   len: longint;
 begin
@@ -330,7 +330,7 @@ end;
 procedure InitAndroid;
 var
   i: integer;
-  s: string;
+  s: shortstring;
 begin
   if IsJniLibrary then
     begin

@@ -26,7 +26,7 @@ const
 var DefaultSysLogPriority: longint = ANDROID_LOG_DEBUG;
 
 // Set default tag for syslog messages. Initially the tag is set to the current module name.
-procedure SetDefaultSysLogTag(const Tag: string);
+procedure SetDefaultSysLogTag(const Tag: Shortstring);
 
 // Write a message to the Android system log.
 procedure SysLogWrite(Priority: longint; Tag, Msg: PAnsiChar); overload;
