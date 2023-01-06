@@ -17,7 +17,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
-function strpcopy(d : PAnsiChar;const s : string) : PAnsiChar;assembler;
+function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;assembler;
 asm
         { get length  }
         lbz     r0,0(r4)
