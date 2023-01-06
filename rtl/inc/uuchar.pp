@@ -18,8 +18,8 @@ unit uuchar;
 interface
 
   type
-    AnsiChar = widechar;
-    PAnsiChar = pwidechar;
+    Char = widechar;
+    PChar = pwidechar;
 
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
