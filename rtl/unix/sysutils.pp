@@ -18,7 +18,11 @@ interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{$H+} // will result in unicode string in unicode RTL
+{$IFDEF UNICODERTL}
+{$MODESWITCH UNICODESTRINGS}
+{$ELSE}
+{$H+}
+{$ENDIF}
 
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
