@@ -32,9 +32,9 @@ begin
 end;
 
 { argument number l }
-function ParamStr(l: LongInt): string;
+function ParamStr(l: LongInt): Shortstring;
 var
-  s1: string;
+  s1: shortstring;
 begin
   ParamStr := '';
   if (l > 0) and (l + 1 <= argc) then
