@@ -458,12 +458,12 @@ Var
   same : boolean;
 begin
   { only assign if s1 or s2 is empty }
-  if (S1='') then
+  if Length(S1)=0 then
     begin
       DestS:=s2;
       exit;
     end;
-  if (S2='') then
+  if Length(S2)=0 then
     begin
       DestS:=s1;
       exit;
@@ -2064,7 +2064,7 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
     hs : UTF8String;
   begin
     result:='';
-    if s='' then
+    if Length(s)=0 then
       exit;
     SetLength(hs,length(s)*3);
     i:=UnicodeToUtf8(pansichar(hs),length(hs)+1,PUnicodeChar(s),length(s));
@@ -2085,7 +2085,7 @@ function UTF8Decode(const s : RawByteString): UnicodeString;
     hs : UnicodeString;
   begin
     result:='';
-    if s='' then
+    if Length(s)=0 then
       exit;
     SetLength(hs,length(s));
     i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pansichar(s),length(s));
