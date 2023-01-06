@@ -376,7 +376,7 @@ begin
   Result:=AnsiString(ParamStrU(l));
 end;
 
-Function ParamStr(l:Longint): string;
+Function ParamStr(l:Longint): shortstring;
 begin
   if (l >= 0) and (l < argc) then
     Result:=argv[l]
