@@ -202,7 +202,7 @@ end {['EAX']};
 end {['EAX']};
 
 
-function paramstr(l:longint):string;
+function paramstr(l:longint):shortstring;
 
 var p:^PAnsiChar;
 

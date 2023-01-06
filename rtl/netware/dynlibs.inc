@@ -42,7 +42,7 @@ begin
 end;
 
 
-Function SysGetLoadErrorStr: ansistring;
+Function SysGetLoadErrorStr: AnsiString;
 
 begin  
   Result:='';

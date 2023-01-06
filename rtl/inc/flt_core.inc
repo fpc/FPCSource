@@ -1906,8 +1906,7 @@ end;
 (****************************************************************************)
 
 {$ifndef fpc_softfpu_implementation}
-procedure str_real_iso( len, f: longint; d: ValReal; real_type: treal_type; out s:
-shortstring );
+procedure str_real_iso( len, f: longint; d: ValReal; real_type: treal_type; out s: shortstring );
 var
     i: integer;
 begin
