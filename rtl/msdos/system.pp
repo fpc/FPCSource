@@ -100,8 +100,8 @@ const
 
 implementation
 
-procedure DebugWrite(const S: string); forward;
-procedure DebugWriteLn(const S: string); forward;
+procedure DebugWrite(const S: shortstring); forward;
+procedure DebugWriteLn(const S: shortstring); forward;
 
 const
   fCarry = 1;
@@ -266,7 +266,7 @@ Procedure SysInitFPU;
 
 {$I ports.inc}
 
-procedure DebugWrite(const S: string);
+procedure DebugWrite(const S: shortstring);
 begin
   asm
 {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
@@ -296,7 +296,7 @@ begin
   end ['ax','bx','cx','dx','si','di'];
 end;
 
-procedure DebugWriteLn(const S: string);
+procedure DebugWriteLn(const S: shortstring);
 begin
   DebugWrite(S);
   DebugWrite(#13#10);
@@ -567,7 +567,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if argv=nil then
     setup_arguments;
