@@ -229,7 +229,7 @@ Begin
 End;
 
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
  begin
    paramstr := '';
  end;
