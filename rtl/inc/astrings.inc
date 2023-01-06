@@ -232,12 +232,12 @@ begin
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
     DefaultSystemCodePage in that case, which may differ from other addend/dest) }
-  if S1='' then
+  if Length(S1)=0 then
     S1CP:=DestCP
   else
     S1CP:=StringCodePage(S1);
   S1CP:=TranslatePlaceholderCP(S1CP);
-  if S2='' then
+  if Length(S2)=0 then
     S2CP:=DestCP
   else
     S2CP:=StringCodePage(S2);
@@ -247,24 +247,24 @@ begin
     keep that code page or keep the code page if the other string is empty }
   if cp=CP_NONE then
     begin
-     if (S1CP=S2CP) or (S2='') then
+     if (S1CP=S2CP) or (Length(S2)=0) then
        DestCP:=S1CP
-     else if S1='' then
+     else if Length(S1)=0 then
        DestCP:=S2CP;
     end;
 {$endif FPC_HAS_CPSTRING}
-  if ((S1CP<>DestCP) and (s1<>'')) or ((S2CP<>DestCP) and (s2<>'')) then
+  if ((S1CP<>DestCP) and (Length(s1)>0)) or ((S2CP<>DestCP) and (Length(s2)>0)) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
       exit;
     end;
   { only assign if s1 or s2 is empty }
-  if (S1='') then
+  if (Length(S1)=0) then
     begin
       DestS:=s2;
       exit;
     end;
-  if (S2='') then
+  if (Length(S2)=0) then
     begin
       DestS:=s1;
       exit;
@@ -329,7 +329,7 @@ begin
   lowstart:=low(sarr);
   { skip empty strings }
   while (lowstart<=high(sarr)) and
-        (sarr[lowstart]='') do
+        (Length(sarr[lowstart])=0) do
     inc(lowstart);
   if lowstart>high(sarr) then
     begin
@@ -343,7 +343,7 @@ begin
     begin
       { ignore the code page of empty strings, it will always be
         DefaultSystemCodePage but it doesn't matter for the outcome }
-      if (sarr[i]<>'') and
+      if (length(sarr[i])<>0) and
          (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
         begin
           sameCP:=false;
@@ -354,7 +354,7 @@ begin
     begin
       U:='';
       for i:=lowstart to high(sarr) do
-        if sarr[i]<>'' then
+        if (Length(sarr[i])<>0) then
           U:=U+UnicodeString(sarr[i]);
 
       DestS:='';
@@ -371,7 +371,7 @@ begin
   nonemptystart:=lowstart;
   { Check for another reuse, then we can't use
     the append optimization }
-  if DestS<>'' then
+  if Length(DestS)<>0 then
     begin
       if Pointer(DestS)=Pointer(sarr[lowstart]) then
         inc(lowstart);
@@ -486,7 +486,7 @@ procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteStrin
 Var
   Size : SizeInt;
 begin
-  if S2='' then
+  if Length(S2)=0 then
    res:=''
   else
    begin
@@ -1024,7 +1024,7 @@ end;
 {$ifndef FPUNONE}
 Function fpc_Val_Real_AnsiStr(Const S : RawByteString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
 Var
-  SS : String;
+  SS : ShortString;
 begin
   fpc_Val_Real_AnsiStr := 0;
   if length(S) > 255 then
@@ -1040,7 +1040,7 @@ end;
 
 Function fpc_Val_Currency_AnsiStr(Const S : RawByteString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
 Var
-  SS : String;
+  SS : ShortString;
 begin
   if length(S) > 255 then
     begin
@@ -1557,7 +1557,7 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
     TranslatedCodePage,
     TranslatedCurrentCodePage: TSystemCodePage;
   begin
-    if (S='') then
+    if Length(S)=0 then
       exit;
     { if the codepage are identical, we don't have to do anything (even if the
       string has multiple references) }
