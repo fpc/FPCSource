@@ -108,16 +108,16 @@ Procedure FindClose(Var f: SearchRec);
 {File}
 Procedure GetFAttr(var f; var attr: word);
 Procedure GetFTime(var f; var time: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
+Function  FSearch(path: pathstr; dirlist: shortstring): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-function  GetShortName(var p : String) : boolean;
-function  GetLongName(var p : String) : boolean;
+function  GetShortName(var p : ShortString) : boolean;
+function  GetLongName(var p : ShortString) : boolean;
 
 {Environment}
 Function  EnvCount: longint;
-Function  EnvStr (Index: longint): string;
-Function  GetEnv(envvar: string): string;
+Function  EnvStr (Index: longint): shortstring;
+Function  GetEnv(envvar: shortstring): shortstring;
 
 {Misc}
 Procedure SetFAttr(var f; attr: word);
