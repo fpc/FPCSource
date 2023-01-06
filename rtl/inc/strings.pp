@@ -23,7 +23,7 @@ interface
     function strlen(p:PAnsiChar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
     { Converts a Pascal string to a null-terminated string }
-    function strpcopy(d : PAnsiChar;const s : string) : PAnsiChar;
+    function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;
 
     { Copies source to dest, returns a pointer to dest }
     function strcopy(dest,source : PAnsiChar) : PAnsiChar; overload;
