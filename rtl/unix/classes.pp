@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$mode objfpc}
-{$mode h+}
+{$h+}
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
