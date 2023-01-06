@@ -54,7 +54,7 @@ Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
-Function GetLoadErrorStr: string;
+Function GetLoadErrorStr: AnsiString;
 
 // Kylix/Delphi compability
 

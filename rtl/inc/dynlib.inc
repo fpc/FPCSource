@@ -101,7 +101,7 @@ begin
 end;
 
 
-function GetLoadErrorStr: String;
+function GetLoadErrorStr: AnsiString;
 begin
   Result:=CurrentDLM.GetLoadErrorStr();
 end;
