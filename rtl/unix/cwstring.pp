@@ -14,6 +14,8 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$modeswitch unicodestrings-}
+{$h-}
 {$inline on}
 {$implicitexceptions off}
 
@@ -232,6 +234,9 @@ var
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
+Const
+  UTF8Name : ShortString = 'UTF-8';
+  TransLitname : ShortString ='//TRANSLIT';
 
 threadvar
   iconv_ansi2wide,
@@ -251,7 +256,7 @@ var
 {$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvindex: longint;
 {$endif}
-  iconvname, toencoding: rawbytestring;
+  iconvname, toencoding: shortstring;
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if declared(iconvindex)}
@@ -260,16 +265,16 @@ begin
     iconvname:=UnixCpMap[iconvindex].name
   else
     { default to UTF-8 on Unix platforms }
-    iconvname:='UTF-8';
+    iconvname:=UTF8Name;
 {$else}
   { Unix locale settings are ignored on iPhoneOS/iPhoneSimulator }
   iconvname:='UTF-8';
 {$endif}
   toencoding:=iconvname;
   if not assigned(iconvctl) then
-    toencoding:=toencoding+'//TRANSLIT';
-  iconv_wide2ansi:=iconv_open(PAnsiChar(toencoding),unicode_encoding2);
-  iconv_ansi2wide:=iconv_open(unicode_encoding2,PAnsiChar(iconvname));
+    toencoding:=toencoding+TransLitName;
+  iconv_wide2ansi:=iconv_open(PAnsiChar(@toencoding[1]),unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,PAnsiChar(@iconvname[1]));
   if assigned(iconvctl) and
      (iconv_wide2ansi<>iconv_t(-1)) then
   begin
@@ -494,6 +499,12 @@ procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestrin
           end;
         use_iconv:=iconv_ansi2wide;
         free_iconv:=false;
+        // Using Unicode RTL, we can end up here when iconv_ansi2wide is not yet initialized
+        if (use_iconv=Nil) then
+          begin
+          DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+          exit;
+          end;
       end
     else
       begin
