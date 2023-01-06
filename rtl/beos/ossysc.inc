@@ -250,7 +250,7 @@ const
   myheaprealsize=$20000;
 var
   myheapstart:pointer;
-  s : string;
+  s : shortstring;
 begin
   WriteLn('fpmmap');
   Str(len, s);
