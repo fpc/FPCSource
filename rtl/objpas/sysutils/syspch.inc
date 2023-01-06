@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -34,6 +35,8 @@ function StrPas(Str: PAnsiChar): string;
 begin
   Result:=Str;
 end ;
+
+
 
 {  StrAlloc allocates a buffer of Size + 4
    the size of the allocated buffer is stored at result - 4
