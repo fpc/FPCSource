@@ -252,7 +252,7 @@ begin
     TimeZoneDir:=TimeZoneDir+'/';
 end;
 
-function ReadTimezoneFile(fn:string) : Boolean;
+function ReadTimezoneFile(fn:shortstring) : Boolean;
 
   function decode(const l:longint):longint;
   begin

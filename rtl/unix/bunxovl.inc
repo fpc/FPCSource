@@ -268,14 +268,14 @@ Begin
   FpOpen:=FpOpen(PAnsiChar(SystemPath),flags,MODE_FPOPEN);
 end;
 
-Function  FpOpen    (path : String; flags : cInt):cInt;
+Function  FpOpen    (path : ShortString; flags : cInt):cInt;
 
 begin
  path:=path+#0;
  FpOpen:=FpOpen(@path[1],flags,MODE_FPOPEN);
 end;
 
-Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt;
+Function  FpOpen    (path : ShortString; flags : cInt; Mode: TMode):cInt;
 
 begin
  path:=path+#0;
@@ -298,7 +298,7 @@ Begin
 End;
 
 
-Function  FpStat (path: String; var buf : stat): cInt;
+Function  FpStat (path: ShortString; var buf : stat): cInt;
 
 begin
  path:=path+#0;
