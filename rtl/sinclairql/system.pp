@@ -80,8 +80,8 @@ type
 
 
 
-function SetQLJobName(const s: string): longint;
-function GetQLJobName: string;
+function SetQLJobName(const s: shortstring): longint;
+function GetQLJobName: shortstring;
 function GetQLJobNamePtr: pointer;
 
 procedure SetQLDefaultConExitMessage(const msg: PAnsiChar);
@@ -138,7 +138,7 @@ begin
 end;
 
 { argument number l }
-function ParamStr(l: LongInt): string;
+function ParamStr(l: LongInt): shortstring;
 begin
   if (l >= 0) and (l <= argc) then
     ParamStr:=argv[l]
@@ -235,7 +235,7 @@ var
 const
   JOB_NAME_MAX_LEN = 48;
 
-function SetQLJobName(const s: string): longint;
+function SetQLJobName(const s: shortstring): longint;
 var
   len: longint;
 begin
@@ -251,7 +251,7 @@ begin
     end;
 end;
 
-function GetQLJobName: string;
+function GetQLJobName: shortstring;
 var
   len: longint;
 begin
