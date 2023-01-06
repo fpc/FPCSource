@@ -39,7 +39,7 @@ begin
   Result:=dlClose(Lib)=0;
 end;
 
-Function SysGetLoadErrorStr: string;
+Function SysGetLoadErrorStr: AnsiString;
 
 begin  
   Result:='';
