@@ -85,6 +85,7 @@ const
 
 Const
   FilerSignature : Array[1..4] of char = 'TPF0';
+  FilerSignature1 : Array[1..4] of char = 'TPF1';
 
 type
 { Text alignment types }
@@ -1487,12 +1488,21 @@ type
   { TBinaryObjectWriter }
 
   TBinaryObjectWriter = class(TAbstractObjectWriter)
+  public
+    type
+      TBOWVersion = (
+        bowVersion0,
+        bowVersion1
+        );
+    const
+      UnitnameSeparator = '/';
   protected
     FStream: TStream;
     FBuffer: Pointer;
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
+    FVersion: TBOWVersion;
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1528,11 +1538,13 @@ type
     procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
-    procedure WriteStr(const Value: String);
+    procedure WriteStr(const Value: String); // write shortstring
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
     procedure WriteVariant(const VarValue: Variant);override;
+
+    property Version: TBOWVersion read FVersion write FVersion;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
@@ -1598,12 +1610,12 @@ type
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint); overload;
     procedure WriteInteger(Value: Int64); overload;
-    procedure WriteSet(Value: LongInt; SetType: Pointer);
+    procedure WriteSet(Value: Longint; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
     Procedure WriteSignature;
     procedure WriteRootComponent(ARoot: TComponent);
-    procedure WriteString(const Value: string);
+    procedure WriteString(const Value: String);
     procedure WriteWideString(const Value: WideString);
     procedure WriteUnicodeString(const Value: UnicodeString);
     procedure WriteVariant(const VarValue: Variant);
