@@ -98,7 +98,7 @@ uses
 {$else}
     TST: array[0..Max_Path] of AnsiChar;
 {$endif FPC_OS_UNICODE}
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: shortstring);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       baseaddr:=nil;
       if VirtualQuery(addr, @Tmm, SizeOf(Tmm))<>sizeof(Tmm) then
@@ -123,7 +123,7 @@ uses
 
   procedure startsymbol; external name '_start';
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       baseaddr:= @startsymbol;
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -135,7 +135,7 @@ uses
 
 {$elseif defined(msdos)}
 
-  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
     begin
       baseaddr:=Ptr(PrefixSeg+16,0);
       filename:=ParamStr(0);
@@ -148,7 +148,7 @@ uses
 
   function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: shortstring);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     const
       B_OK = 0;
     var
@@ -175,9 +175,9 @@ uses
 {$else}
 
 {$ifdef CPUI8086}
-  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: Ansistring);
 {$else CPUI8086}
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: Ansistring);
 {$endif CPUI8086}
     begin
       baseaddr:= nil;
@@ -288,7 +288,7 @@ function getByte(var f:file):byte;
     for i := 1 to bytes do getbyte(f);
   end;
 
-  function get0String (var f:file) : string;
+  function get0String (var f:file) : shortstring;
   var c : AnsiChar;
   begin
     get0String := '';
@@ -312,14 +312,14 @@ const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
 
 function openNetwareNLM(var e:TExeFile):boolean;
 var valid : boolean;
-    name  : string;
+    name  : shortstring;
     hdrLength,
     dataOffset,
     dataLength : longint;
 
 
-  function getLString : String;
-  var Res:string;
+  function getLString : ShortString;
+  var Res:Shortstring;
   begin
     blockread (e.F, res, 1);
     if length (res) > 0 THEN
@@ -328,7 +328,7 @@ var valid : boolean;
     getLString := res;
   end;
 
-  function getFixString (Len : byte) : string;
+  function getFixString (Len : byte) : shortstring;
   var i : byte;
   begin
     getFixString := '';
@@ -393,7 +393,7 @@ begin
   openNetwareNLM := (e.sechdrofs > 0);
 end;
 
-function FindSectionNetwareNLM(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+function FindSectionNetwareNLM(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 var name : shortstring;
     alignAmount : longint;
 begin
