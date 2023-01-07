@@ -329,7 +329,7 @@ begin
     Move(p^, Result^, BufLen);
 end;
 
-function StrBufNew(p: PChar; BufLen: Cardinal): PChar;
+function StrBufNew(p: PAnsiChar; BufLen: Cardinal): PAnsiChar;
 begin
   Result := nil;
   if (p = nil) or (p^ = #0) then
