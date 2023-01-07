@@ -24,7 +24,7 @@
         unique : Boolean;
       begin
         InternalChangeCase := S;
-        if Length(InternalChangeCase) then
+        if Length(InternalChangeCase)=0 then
           exit;
         unique := false;
         p := PWideChar(InternalChangeCase);
