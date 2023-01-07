@@ -85,7 +85,7 @@ function CheckWin32Version(Major,Minor : Integer ): Boolean;
 function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
-function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: Ansistring): Cardinal;
 function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
@@ -134,7 +134,7 @@ function CheckWin32Version(Major,Minor: Integer): Boolean;
   end;
 
 
-function GetFileVersion(const AFileName:string):Cardinal;
+function GetFileVersion(const AFileName:Ansistring):Cardinal;
   var
     { useful only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
@@ -1454,7 +1454,7 @@ end;
 { GetEnvironmentStrings cannot be checked by CheckPointer function }
 {$checkpointer off}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 
 var
    oemenvvar, oemstr : RawByteString;
@@ -1528,11 +1528,11 @@ begin
   FreeEnvironmentStringsA(p);
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 
 var
   hp,p : PAnsiChar;
-{$ifdef FPC_RTL_UNICODE}
+{$if SIZEOF(CHAR)=2}
   tmpstr : RawByteString;
 {$endif}
 begin
@@ -1548,7 +1548,7 @@ begin
         end;
     If (hp^<>#0) then
       begin
-{$ifdef FPC_RTL_UNICODE}
+{$if SIZEOF(CHAR)=2}
         tmpstr:=hp;
         SetCodePage(tmpstr,CP_OEMCP,false);
         Result:=tmpstr;
@@ -1795,7 +1795,7 @@ function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   end;
 
 
-function Win32AnsiUpperCase(const s: string): string;
+function Win32AnsiUpperCase(const s: AnsiString): AnsiString;
   begin
     if length(s)>0 then
       begin
@@ -1808,7 +1808,7 @@ function Win32AnsiUpperCase(const s: string): string;
   end;
 
 
-function Win32AnsiLowerCase(const s: string): string;
+function Win32AnsiLowerCase(const s: AnsiString): AnsiString;
   begin
     if length(s)>0 then
       begin
@@ -1821,14 +1821,14 @@ function Win32AnsiLowerCase(const s: string): string;
   end;
 
 
-function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
+function Win32AnsiCompareStr(const S1, S2: AnsiString): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,0,PAnsiChar(s1),length(s1),
       PAnsiChar(s2),length(s2))-2;
   end;
 
 
-function Win32AnsiCompareText(const S1, S2: string): PtrInt;
+function Win32AnsiCompareText(const S1, S2: AnsiString): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,PAnsiChar(s1),length(s1),
       PAnsiChar(s2),length(s2))-2;

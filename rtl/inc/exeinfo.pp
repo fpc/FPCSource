@@ -304,7 +304,7 @@ function getByte(var f:file):byte;
     for i := 1 to bytes do getbyte(f);
   end;
 
-  function get0String (var f:file) : string;
+  function get0String (var f:file) : shortstring;
   var c : AnsiChar;
   begin
     get0String := '';
@@ -328,14 +328,14 @@ const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
 
 function openNetwareNLM(var e:TExeFile):boolean;
 var valid : boolean;
-    name  : string;
+    name  : shortstring;
     hdrLength,
     dataOffset,
     dataLength : longint;
 
 
-  function getLString : String;
-  var Res:string;
+  function getLString : ShortString;
+  var Res:Shortstring;
   begin
     blockread (e.F, res, 1);
     if length (res) > 0 THEN
@@ -344,7 +344,7 @@ var valid : boolean;
     getLString := res;
   end;
 
-  function getFixString (Len : byte) : string;
+  function getFixString (Len : byte) : shortstring;
   var i : byte;
   begin
     getFixString := '';
@@ -409,7 +409,7 @@ begin
   openNetwareNLM := (e.sechdrofs > 0);
 end;
 
-function FindSectionNetwareNLM(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+function FindSectionNetwareNLM(var e:TExeFile;const asecname:shortstring;var secofs,seclen:longint):boolean;
 var name : shortstring;
     alignAmount : longint;
 begin
