@@ -64,8 +64,9 @@ type
     procedure WriteInteger(Value: Int64); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
-    procedure WriteString(const Value: String); override;
+    procedure WriteString(const Value: RawByteString); override;
     procedure WriteWideString(const Value: WideString); override;
+    procedure WriteUnicodeString(const Value: UnicodeString); override;
   end;
 
 
@@ -239,7 +240,7 @@ begin
   WriteLn('WriteSet: ', Value);
 end;
 
-procedure TXMLObjectWriter.WriteString(const Value: String);
+procedure TXMLObjectWriter.WriteString(const Value: RawByteString);
 begin
   GetPropertyElement('string')['value'] := Value;
 end;
@@ -247,6 +248,11 @@ end;
 procedure TXMLObjectWriter.WriteWideString(const Value: WideString);
 begin
   GetPropertyElement('widestring')['value'] := Value;
+end;
+
+procedure TXMLObjectWriter.WriteUnicodeString(const Value: UnicodeString);
+begin
+  GetPropertyElement('unicodestring')['value'] := Value;
 end;
 
 
