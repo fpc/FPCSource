@@ -252,7 +252,7 @@ begin
     TimeZoneDir:=TimeZoneDir+'/';
 end;
 
-function ReadTimezoneFile(fn:shortstring) : Boolean;
+function ReadTimezoneFile(fn:string) : Boolean;
 
   function decode(const l:longint):longint;
   begin
@@ -489,7 +489,7 @@ Const
 
 {$ifndef FPC_HAS_GETTIMEZONEFILE}
 
-function GetTimezoneFile:shortstring;
+function GetTimezoneFile:string;
 var
   f,len : longint;
   fn,s : shortstring;

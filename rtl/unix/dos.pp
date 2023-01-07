@@ -685,7 +685,7 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path : pathstr;dirlist : string) : pathstr;
+Function FSearch(path : pathstr;dirlist : shortstring) : pathstr;
 Var
   info : BaseUnix.stat;
 Begin
@@ -806,7 +806,7 @@ Begin
 End;
 
 
-Function EnvStr (Index: longint): String;
+Function EnvStr (Index: longint): ShortString;
 Var
   i : longint;
   p : PPAnsiChar;
@@ -830,7 +830,7 @@ Begin
 end;
 
 
-Function GetEnv(EnvVar: String): String;
+Function GetEnv(EnvVar: ShortString): ShortString;
 var
   p     : PAnsiChar;
 Begin

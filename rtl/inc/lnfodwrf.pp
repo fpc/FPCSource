@@ -32,7 +32,7 @@ type
 {$ENDIF}
 
 function GetLineInfo(addr:codeptruint;var func,source:string;var line:longint) : boolean;
-function DwarfBackTraceStr(addr: CodePointer): string;
+function DwarfBackTraceStr(addr: CodePointer): shortstring;
 procedure CloseDwarf;
 
 var
@@ -1415,7 +1415,7 @@ begin
 end;
 
 
-function DwarfBackTraceStr(addr: CodePointer): string;
+function DwarfBackTraceStr(addr: CodePointer): shortstring;
 var
   func,
   source : string;
