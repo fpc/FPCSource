@@ -55,8 +55,12 @@ Type
     FObjectOptions : TObjectOptions;
     fadditionalProperties : TJSONObject;
     FBits : TBits;
+
+{ #todo -oWayneSherman : can the next two private methods be removed and instead
+  use the rtl provided GetDynArrayProp / SetDynArrayProp in TypInfo.pp unit }
     Function GetDynArrayProp(P: PPropInfo) : Pointer; virtual;
     procedure SetDynArrayProp(P: PPropInfo; AValue : Pointer); virtual;
+
     procedure SetObjectOptions(AValue: TObjectOptions);
     Function GetAdditionalProperties : TJSONObject;
   protected
@@ -237,7 +241,6 @@ begin
   Result:=FormatDateTime('hh":"nn":"ss"."zzz',ADate);
 end;
 
-
 Function TryRFC3339ToDateTime(const Avalue: String; out ADateTime: TDateTime): Boolean;
 
 //          1         2
@@ -286,6 +289,14 @@ begin
       ADateTime:=EncodeDate(lY, lM, lD) + EncodeTime(lH, lMi, lS, 0);
 end;
 
+Function RFC3339ToDateTime(const Avalue: String): TDateTime;
+
+begin
+  if Not TryRFC3339ToDateTime(AValue,Result) then
+    Result:=0;
+end;
+
+
 Function CountProperties(TypeInfo : PTypeInfo; Recurse : Boolean): Integer;
 
    function aligntoptr(p : pointer) : pointer;inline;
@@ -316,14 +327,6 @@ begin
     else
       TypeInfo:=Nil;
     end;
-end;
-
-
-Function RFC3339ToDateTime(const Avalue: String): TDateTime;
-
-begin
-  if Not TryRFC3339ToDateTime(AValue,Result) then
-    Result:=0;
 end;
 
 Function RESTFactory : TObjectFactory;
@@ -626,6 +629,7 @@ begin
       GetObjectProp(Self,P).Free;
       SetObjectProp(Self,P,Nil);
       end
+    { #todo -oWayneSherman : is the tkDynArray type missing here?  }
   else
     // Do nothing
   end;
@@ -802,7 +806,8 @@ begin
     if T^.ClassType.InheritsFrom(TBaseObjectList) then
       begin
       L:=TBaseObjectList(TBaseObjectClass(T^.ClassType).Create);
-      SetObjectProp(Self,P,L);   //what if there is an existing object, are we clobbering it?
+      { #todo -oWayneSherman : what if there is an existing object, are we clobbering it? }
+      SetObjectProp(Self,P,L);
       For D in AValue do
         L.AddObject('').LoadFromJSON(D.Value as TJSONObject);
       end
@@ -810,7 +815,8 @@ begin
       begin
       S:=TJSONSchema.Create;
       S.SetArrayProperty(P,AValue);
-      SetObjectProp(Self,P,S);   //what if there is an existing object, are we clobbering it?
+      { #todo -oWayneSherman : what if there is an existing object, are we clobbering it? }
+      SetObjectProp(Self,P,S);
       end
     else
       Raise ERESTAPI.CreateFmt('Unsupported class %s for property %s',[T^.ClassType.ClassName,P^.Name]);

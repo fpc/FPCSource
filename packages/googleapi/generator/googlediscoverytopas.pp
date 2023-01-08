@@ -900,7 +900,7 @@ end;
 
 Function TDiscoveryJSONToPas.BaseUnits: String;
 begin
-  Result:='googleservice, restbase, googlebase'
+  Result:='sysutils, classes, googleservice, restbase, googlebase';
 end;
 
 Class function TSchema.BaseType(ATypeName: String): Boolean;
@@ -2056,7 +2056,7 @@ Procedure TDiscoveryJSONToPas.Execute;
 
 begin
   Source.Clear;
-  Addln('unit '+outputunitname+';');
+  CreateUnitClause;
   CreateHeader;
   FTypes:=TTypeDefs.Create(TTypeDef);
   try

@@ -20,6 +20,7 @@ uses
   googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
 Const
+  ProgramVersionNumber = '0.6';
 //  BaseDiscoveryURL = 'https://www.googleapis.com/discovery/v1/apis/';
   BaseDiscoveryURL = 'https://discovery.googleapis.com/discovery/v1/apis/';
 
@@ -167,6 +168,7 @@ begin
   Writeln('-u --url=URL               URL to download the REST description from.');
   Writeln('-v --serviceversion=v      Service version to download the REST description for.');
   Writeln('-V --verbose               Write some diagnostic messages');
+  Writeln('   --version               Show version number and exit');
   Writeln('If the outputfilename is empty and cannot be determined, an error is returned');
   Halt(Ord(Msg<>''));
 end;
@@ -378,7 +380,6 @@ begin
         try
           if not HttpGetJSON(RU,RS) then
             Raise Exception.Create('Could not download rest description from URL: '+RU);
-          ConversionLog(Self,cltInfo,Format('Converting service "%s" to unit: %s',[O.get('name'),LFN]));
           if KeepJSON then
             With TFIleStream.Create(ChangeFileExt(LFN,'.json'),fmCreate) do
               try
@@ -386,6 +387,7 @@ begin
               finally
                 Free;
               end;
+          ConversionLog(Self,cltInfo,'Saving file: '+ChangeFileExt(LFN,'.json'));
           RS.Position:=0;
           U:=UL.AddEntry;
           U.FileName:=LFN;
@@ -405,7 +407,9 @@ begin
       end;
     if HasOption('I','icon') then
       For I:=0 to UL.Count-1 do
-        DownloadIcon(UL[i]);
+        DownloadIcon(UL[i]); //this isn't working with --onlydownload and --all
+                             //the icon URL is not known until after DoConversion
+                             { #todo : fix download icon}
   finally
     UL.Free;
     D.Free;
@@ -429,6 +433,13 @@ Var
   APIEntry : TAPIEntry;
 
 begin
+  if (ParamCount=1) and HasOption('version') then
+  begin
+    WriteLn(ExtractFileName(Self.ExeName),' ', ProgramVersionNumber);
+    Terminate;
+    EXIT;
+  end;
+
   JS:=Nil;
   O:=Nil;
   NonOpts:=TStringList.Create;
@@ -495,6 +506,7 @@ begin
           finally
             Free;
           end;
+      ConversionLog(Self,cltInfo,'Saving file: '+ChangeFileExt(OFN,'.json'));
       JS.POsition:=0;
       end
     else
@@ -573,6 +585,8 @@ begin
     O:=DiscoveryJSONToPas.Description.icons;
     if Assigned(O) then
       AEntry.APIIcon:=O.x16;
+    DiscoveryJSONToPas.OutputUnitName := AEntry.APIUnitName;
+    ConversionLog(Self,cltInfo,Format('Converting service "%s" to unit: %s',[AEntry.APIUnitName,AEntry.FileName]));
     DiscoveryJSONToPas.Execute;
     DiscoveryJSONToPas.SaveToFile(AEntry.FileName);
   finally
