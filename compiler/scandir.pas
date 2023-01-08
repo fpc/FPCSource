@@ -549,6 +549,16 @@ unit scandir;
         do_message(scan_f_user_defined);
       end;
 
+    procedure dir_floatingpointemulation;
+      begin
+        do_delphiswitch('E');
+      end;
+
+    procedure dir_stackchecking;
+      begin
+        do_delphiswitch('T');
+      end;
+
     procedure dir_fputype;
       begin
         current_scanner.skipspace;
@@ -1975,7 +1985,9 @@ unit scandir;
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('F',directive_all, @dir_forcefarcalls);
+        AddDirective('FARCALLS',directive_all, @dir_forcefarcalls);
         AddDirective('FATAL',directive_all, @dir_fatal);
+        AddDirective('FLOATINGPOINTEMULATION',directive_all,@dir_floatingpointemulation);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
         AddDirective('FRAMEWORKPATH',directive_all, @dir_frameworkpath);
         AddDirective('GOTO',directive_all, @dir_goto);
@@ -2050,6 +2062,7 @@ unit scandir;
         AddDirective('SETPESUBSYSVERSION', directive_all, @dir_setpesubsysversion);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
+        AddDirective('STACKCHECKING',directive_all,@dir_stackchecking);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
         AddDirective('STOP',directive_all, @dir_stop);
         AddDirective('STRINGCHECKS', directive_all, @dir_stringchecks);
