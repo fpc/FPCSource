@@ -20,7 +20,8 @@ uses
   googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
 Const
-  BaseDiscoveryURL = 'https://www.googleapis.com/discovery/v1/apis/';
+//  BaseDiscoveryURL = 'https://www.googleapis.com/discovery/v1/apis/';
+  BaseDiscoveryURL = 'https://discovery.googleapis.com/discovery/v1/apis/';
 
 
 Type
@@ -145,27 +146,27 @@ begin
   Writeln('   a) The service name will be appended to the output filename.');
   Writeln('   b) The --input will be used as a json which lists the services.');
   Writeln('-b --baseclass=classname   Class name to use as parent class for all classes.');
-  Writeln('-b --baseclass=classname   Class name to use as parent class for all classes.');
-  Writeln('-m --fpmake=filename       Generate fpmake program.');
+  Writeln('-d --onlydownload          Just download the files, do not actually convert.');
+  Writeln('                           Only effective if -k or --keepjson is also specified.');
   Writeln('-e --extraunits=units      comma separated list of units to add to uses clause.');
+  Writeln('-f --unitprefix            Prefix for generated unit names. Default is "google"');
   Writeln('-h --help                  this message');
   Writeln('-i --input=file            input filename (overrides non-option inputfile)');
-  Writeln('-I --icons                 Download service icon (size 16)');
+  Writeln('-I --icon                  Download service icon (size 16)');
+  Writeln('-k --keepjson              Keep the downloaded JSON files');
   Writeln('-L --license=licensetext   Set license text to be added to the top of the unit.');
   Writeln('                           Use @filename to load license text from filename');
+  Writeln('-m --fpmake=filename       Generate fpmake program.');
   Writeln('-o --output=file           output filename (overrides non-option outputfile)');
   Writeln('                           Default is to use input filename with extension .pp');
   Writeln('-p --classprefix=prefix    Prefix to use in class names for all classes.');
   Writeln('-r --resourcesuffix=suffix Suffix to use for resource names. Default is Resource.');
   Writeln('-R --register=unit         Register unit for Lazarus.');
+  Writeln('-s --service=servicename   Service name to download the REST description for.');
   Writeln('-t --timestamp             Add timestamp to generated unit.');
   Writeln('-u --url=URL               URL to download the REST description from.');
   Writeln('-v --serviceversion=v      Service version to download the REST description for.');
   Writeln('-V --verbose               Write some diagnostic messages');
-  Writeln('-k --keepjson              Keep the downloaded JSON files');
-  Writeln('-d --onlydownload          Just download the files, do not actually convert.');
-  Writeln('                           Only effective if -k or --keepjson is also specified.');
-  Writeln('-f --unitprefix            Prefix for generated unit names. Default is "google"');
   Writeln('If the outputfilename is empty and cannot be determined, an error is returned');
   Halt(Ord(Msg<>''));
 end;
@@ -542,40 +543,41 @@ Procedure TGoogleAPIConverter.DoConversion(JS: TStream; AEntry: TAPIEntry);
 Var
   L: String;
   O : TGoogleIcons;
-
+  DiscoveryJSONToPas: TDiscoveryJSONToPas;
 begin
-  With TDiscoveryJSONToPas.Create(Nil) do
-    try
-      L:=GetOptionValue('L','license');
-      if (L<>'') then
+  DiscoveryJSONToPas := TDiscoveryJSONToPas.Create(Nil);
+  try
+    L:=GetOptionValue('L','license');
+    if (L<>'') then
+      begin
+      if (L[1]<>'@') then
+        DiscoveryJSONToPas.LicenseText.Text:=L
+      else
         begin
-        if (L[1]<>'@') then
-          LicenseText.Text:=L
-        else
-          begin
-          Delete(L,1,1);
-          LicenseText.LoadFromFile(L);
-          end;
+        Delete(L,1,1);
+        DiscoveryJSONToPas.LicenseText.LoadFromFile(L);
         end;
-      OnLog:=@ConversionLog;
-      ExtraUnits:=GetOptionValue('e','extraunits');
-      if HasOption('b','baseclass') then
-        BaseClassName:=GetOptionValue('b','baseclass');
-      if HasOption('p','classprefix') then
-        ClassPrefix:=GetOptionValue('p','classprefix');
-      if HasOption('r','resourcesuffix') then
-        ResourceSuffix:=GetOptionValue('r','resourcesuffix');
-      AddTimeStamp:=HasOption('t','timestamp');
-      LoadFromStream(JS);
-      AEntry.APIUnitName:=ChangeFileExt(ExtractFileName(AEntry.FileName),'');
-      AEntry.APIName:=APIClassName;
-      O:=Description.icons;
-      if Assigned(O) then
-        AEntry.APIIcon:=O.x16;
-      SaveToFile(AEntry.FileName);
-    finally
-      Free;
-    end;
+      end;
+    DiscoveryJSONToPas.OnLog := @ConversionLog;
+    DiscoveryJSONToPas.ExtraUnits:=GetOptionValue('e','extraunits');
+    if HasOption('b','baseclass') then
+      DiscoveryJSONToPas.BaseClassName:=GetOptionValue('b','baseclass');
+    if HasOption('p','classprefix') then
+      DiscoveryJSONToPas.ClassPrefix:=GetOptionValue('p','classprefix');
+    if HasOption('r','resourcesuffix') then
+      DiscoveryJSONToPas.ResourceSuffix:=GetOptionValue('r','resourcesuffix');
+    DiscoveryJSONToPas.AddTimeStamp:=HasOption('t','timestamp');
+    DiscoveryJSONToPas.LoadFromStream(JS);
+    AEntry.APIUnitName:=ChangeFileExt(ExtractFileName(AEntry.FileName),'');
+    AEntry.APIName:=DiscoveryJSONToPas.APIClassName;
+    O:=DiscoveryJSONToPas.Description.icons;
+    if Assigned(O) then
+      AEntry.APIIcon:=O.x16;
+    DiscoveryJSONToPas.Execute;
+    DiscoveryJSONToPas.SaveToFile(AEntry.FileName);
+  finally
+    DiscoveryJSONToPas.Free;
+  end;
 end;
 
 Var
@@ -590,5 +592,6 @@ begin
   Application:=TGoogleAPIConverter.Create(Nil);
   Application.Initialize;
   Application.Run;
+  FreeAndNil(Application);  //gets rid of memory leak and makes Heaptrc happy
 end.
 

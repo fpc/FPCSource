@@ -34,7 +34,7 @@
         <CommandLineParams Value="-i apis/googleblogger.json -o gb.pp"/>
       </local>
     </RunParams>
-    <Units Count="5">
+    <Units Count="4">
       <Unit0>
         <Filename Value="googleapiconv.pp"/>
         <IsPartOfProject Value="True"/>
@@ -51,10 +51,6 @@
         <Filename Value="../src/base/googleclient.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
-      <Unit4>
-        <Filename Value="googlediscoverytopas.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
