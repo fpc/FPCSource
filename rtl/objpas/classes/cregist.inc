@@ -16,27 +16,24 @@
 { Class registration routines }
 
 procedure RegisterClass(AClass: TPersistentClass);
-var
-aClassname : String;
 begin
   //Classlist is created during initialization.
   with Classlist.Locklist do
-     try
+    try
       while Indexof(AClass) = -1 do
-         begin
-           aClassname := AClass.ClassName;
-           if GetClass(aClassName) <> nil then  //class alread registered!
-                 Begin
-                 //raise an error
-                 exit;
-                 end;
+        begin
+          if GetClass(AClass.Unitname,AClass.ClassName) <> nil then  //class alread registered!
+            Begin
+            //raise an error
+            exit;
+            end;
           Add(AClass);
           if AClass = TPersistent then break;
           AClass := TPersistentClass(AClass.ClassParent);
-         end;
-     finally
-       ClassList.UnlockList;
-     end;
+        end;
+    finally
+      ClassList.UnlockList;
+    end;
 end;
 
 
@@ -61,22 +58,38 @@ procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
 
 procedure RegisterClasses(AClasses: array of TPersistentClass);
 var
-I : Integer;
+  I : Integer;
 begin
-for I := low(aClasses) to high(aClasses) do
-       RegisterClass(aClasses[I]);
+  for I := low(aClasses) to high(aClasses) do
+    RegisterClass(aClasses[I]);
 end;
 
 
 procedure UnRegisterClass(AClass: TPersistentClass);
 
+var
+  i: Integer;
 begin
+  with ClassList.LockList do
+    try
+      Remove(AClass);
+      if Assigned(ClassAliasList) then
+        for i:=ClassAliasList.Count-1 downto 0 do
+          if TPersistentClass(ClassAliasList.Objects[i])=AClass then
+            ClassAliasList.Delete(i);
+    finally
+      ClassList.UnlockList;
+    end;
 end;
 
 
-procedure UnRegisterClasses(AClasses: array of TPersistentClass);
+procedure UnRegisterClasses(const AClasses: array of TPersistentClass);
 
+var
+  i: Integer;
 begin
+  for i:=Low(AClasses) to high(AClasses) do
+    UnRegisterClass(AClasses[i]);
 end;
 
 
@@ -84,42 +97,59 @@ procedure UnRegisterModuleClasses(Module: HMODULE);
 begin
 end;
 
-
 function FindClass(const AClassName: string): TPersistentClass;
 
 begin
-  Result := GetClass(AClassName);
-  if not Assigned(Result) then
-    raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
+  Result := FindClass('',AClassName);
 end;
 
+function FindClass(const anUnitname, aClassName: string): TPersistentClass;
+begin
+  Result := GetClass(anUnitname,aClassName);
+  if not Assigned(Result) then
+    if anUnitname<>'' then
+      raise EClassNotFound.CreateFmt(SClassNotFound, [anUnitname+'/'+AClassName])
+    else
+      raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
+end;
 
 function GetClass(const AClassName: string): TPersistentClass;
+begin
+  Result:=GetClass('',AClassName);
+end;
+
+function GetClass(const anUnitname, aClassName: string): TPersistentClass;
 var
-I : Integer;
+  I : Integer;
 begin
   with ClassList.LockList do
    try
-    for I := 0 to Count-1 do
+     for I := 0 to Count-1 do
        begin
-        Result := TPersistentClass(Items[I]);
-        if Result.ClassNameIs(AClassName) then Exit;
+         Result := TPersistentClass(Items[I]);
+         if not Result.ClassNameIs(AClassName) then
+           continue;
+         if (anUnitname='') or SameText(anUnitname,Result.UnitName) then
+           exit;
        end;
-    if Assigned(ClassAliasList) then
+     if Assigned(ClassAliasList) then
        begin
-       I := ClassAliasList.Indexof(AClassName);
+       I:=-1;
+       if anUnitname<>'' then
+         I := ClassAliasList.Indexof(anUnitname+'/'+AClassName);
+       if I<0 then
+         I := ClassAliasList.Indexof(AClassName);
        if I >= 0 then  //found
-          Begin
-          Result := TPersistentClass(ClassAliasList.Objects[i]);
-          exit;
-          end;
+         Begin
+         Result := TPersistentClass(ClassAliasList.Objects[i]);
+         exit;
+         end;
        end;
-       Result := nil;
+     Result := nil;
    finally
      ClassList.Unlocklist;
    end;
 end;
-
 
 procedure StartClassGroup(AClass: TPersistentClass);
 begin

@@ -219,7 +219,7 @@ end;
       Discard(Offset);
    end;
 
- function TStream.Seek(const Offset: Int64; Origin: TSeekorigin): Int64;
+  function TStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
     begin
       // Backwards compatibility that calls the longint Seek
@@ -244,7 +244,8 @@ end;
    Result:=Read(Buffer,sizeOf(Buffer));
  end;
 
-function TStream.ReadMaxSizeData(Var Buffer; aSize,aCount : NativeInt) : NativeInt;
+function TStream.ReadMaxSizeData(var Buffer; aSize, aCount: NativeInt
+  ): NativeInt;
 
 Var
   CP : Int64;
@@ -260,7 +261,8 @@ begin
     end
 end;
 
-function TStream.WriteMaxSizeData(Const Buffer; aSize,aCount : NativeInt) : NativeInt;
+function TStream.WriteMaxSizeData(const Buffer; aSize, aCount: NativeInt
+  ): NativeInt;
 Var
   CP : Int64;
 
@@ -1031,6 +1033,12 @@ end;
 
     end;
 
+  procedure TStream.WriteComponent(Instance: TComponent; aWriteUnitname: boolean
+    );
+    begin
+      WriteDescendent(Instance, nil, aWriteUnitname);
+    end;
+
   procedure TStream.WriteComponentRes(const ResName: string; Instance: TComponent);
 
     begin
@@ -1039,16 +1047,33 @@ end;
 
     end;
 
+  procedure TStream.WriteComponentRes(const ResName: string;
+    Instance: TComponent; aWriteUnitname: boolean);
+
+  begin
+    WriteDescendentRes(ResName, Instance, nil, aWriteUnitname);
+  end;
+
   procedure TStream.WriteDescendent(Instance, Ancestor: TComponent);
 
+    begin
+      WriteDescendent(Instance,Ancestor,DefaultWriteUnitname);
+    end;
+
+  procedure TStream.WriteDescendent(Instance, Ancestor: TComponent;
+    aWriteUnitname: boolean);
+
     var
-       Driver : TAbstractObjectWriter;
+       Driver : TBinaryObjectWriter;
        Writer : TWriter;
 
     begin
-
        Driver := TBinaryObjectWriter.Create(Self, 4096);
        Try
+         if aWriteUnitname then
+           Driver.Version:=TBinaryObjectReader.TBOVersion.boVersion1
+         else
+           Driver.Version:=TBinaryObjectReader.TBOVersion.boVersion0;
          Writer := TWriter.Create(Driver);
          Try
            Writer.WriteDescendent(Instance, Ancestor);
@@ -1058,10 +1083,16 @@ end;
        Finally
          Driver.Free;
        end;
-
     end;
 
   procedure TStream.WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+
+    begin
+      WriteDescendentRes(ResName,Instance,Ancestor,DefaultWriteUnitname);
+    end;
+
+  procedure TStream.WriteDescendentRes(const ResName: string; Instance,
+    Ancestor: TComponent; aWriteUnitname: boolean);
 
     var
       FixupInfo: Longint;
@@ -1071,7 +1102,7 @@ end;
       { Write a resource header }
       WriteResourceHeader(ResName, FixupInfo);
       { Write the instance itself }
-      WriteDescendent(Instance, Ancestor);
+      WriteDescendent(Instance, Ancestor,aWriteUnitname);
       { Insert the correct resource size into the resource header }
       FixupResourceHeader(FixupInfo);
 
@@ -1187,7 +1218,7 @@ end;
 
     end;
 
-  Function TStream.ReadAnsiString : String;
+    function TStream.ReadAnsiString: String;
 
   Var
     TheSize : Longint;
@@ -1205,7 +1236,7 @@ end;
      end;
    end;
 
-  Procedure TStream.WriteAnsiString (const S : String);
+    procedure TStream.WriteAnsiString(const S: String);
 
   Var L : Longint;
 

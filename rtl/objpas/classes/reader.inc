@@ -61,6 +61,13 @@ end;
 {$ENDIF}
 {$endif}
 
+procedure TAbstractObjectReader.BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+  var CompUnitName, CompClassName, CompName: String);
+begin
+  CompUnitName:='';
+  BeginComponent(Flags,AChildPos,CompClassName, CompName);
+end;
+
 function TBinaryObjectReader.ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
 begin
   Read(Result,2);
@@ -151,10 +158,11 @@ begin
 end;
 
 procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
-  var AChildPos: Integer; var CompClassName, CompName: String);
+  var AChildPos: Integer; var CompUnitName, CompClassName, CompName: String);
 var
   Prefix: Byte;
   ValueType: TValueType;
+  p: SizeInt;
 begin
   { Every component can start with a special prefix: }
   Flags := [];
@@ -178,7 +186,20 @@ begin
     end;
   end;
 
-  CompClassName := ReadStr;
+  CompUnitName:='';
+  if Version = TBOVersion.boVersion1 then
+  begin
+    ValueType := ReadValue;
+    CompClassName := ReadString(ValueType);
+    p:=Pos(UnitnameSeparator,CompClassName);
+    if p>0 then
+    begin
+      CompUnitName:=copy(CompClassName,1,p-1);
+      System.Delete(CompClassName,1,p);
+    end;
+  end
+  else
+    CompClassName := ReadStr;
   CompName := ReadStr;
 end;
 
@@ -315,7 +336,11 @@ var
   Signature: LongInt;
 begin
   Read(Signature, 4);
-  if Signature <> LongInt(unaligned(FilerSignature)) then
+  if Signature = LongInt(unaligned(FilerSignature1)) then
+    FVersion:=TBOVersion.boVersion1
+  else if Signature = LongInt(unaligned(FilerSignature)) then
+    FVersion:=TBOVersion.boVersion0
+  else
     raise EReadError.Create(SInvalidImage);
 end;
 
@@ -392,11 +417,14 @@ procedure TBinaryObjectReader.SkipComponent(SkipComponentInfos: Boolean);
 var
   Flags: TFilerFlags;
   Dummy: Integer;
-  CompClassName, CompName: String;
+  CompUnitName, CompClassName, CompName: String;
 begin
   if SkipComponentInfos then
+  begin
     { Skip prefix, component class name and component object name }
-    BeginComponent(Flags, Dummy, CompClassName, CompName);
+    BeginComponent(Flags, Dummy, CompUnitName, CompClassName, CompName);
+    if (CompUnitName='') or (CompClassName='') or (CompName='') then ;
+  end;
 
   { Skip properties }
   while NextValue <> vaNull do
@@ -661,7 +689,7 @@ begin
     FDriver.ReadValue;
 end;
 
-procedure TReader.DefineProperty(const Name: String; AReadData: TReaderProc;
+procedure TReader.DefineProperty(const Name: string; AReadData: TReaderProc;
   WriteData: TWriterProc; HasData: Boolean);
 begin
   if Assigned(AReadData) and (UpperCase(Name) = UpperCase(FPropName)) then
@@ -671,8 +699,8 @@ begin
   end;
 end;
 
-procedure TReader.DefineBinaryProperty(const Name: String;
-  AReadData, WriteData: TStreamProc; HasData: Boolean);
+procedure TReader.DefineBinaryProperty(const Name: string; AReadData,
+  WriteData: TStreamProc; HasData: Boolean);
 var
   MemBuffer: TMemoryStream;
 begin
@@ -710,14 +738,15 @@ begin
   FLoaded := nil;
 end;
 
-function TReader.Error(const Message: String): Boolean;
+function TReader.Error(const Message: string): Boolean;
 begin
   Result := False;
   if Assigned(FOnError) then
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: String): CodePointer;
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: string
+  ): CodePointer;
 var
   ErrorResult: Boolean;
 begin
@@ -902,14 +931,14 @@ var
   end;
 
 var
-  CompClassName, Name: String;
+  CompUnitName, CompClassName, Name: String;
   n, ChildPos: Integer;
   SavedParent, SavedLookupRoot: TComponent;
   ComponentClass: TComponentClass;
   C, NewComponent: TComponent;
   SubComponents: TList;
 begin
-  FDriver.BeginComponent(Flags, ChildPos, CompClassName, Name);
+  FDriver.BeginComponent(Flags, ChildPos, CompUnitName, CompClassName, Name);
   SavedParent := Parent;
   SavedLookupRoot := FLookupRoot;
   SubComponents := nil;
@@ -930,7 +959,7 @@ begin
           begin
             if Assigned(FOnAncestorNotFound) then
               FOnAncestorNotFound(Self, Name,
-                FindComponentClass(Name,CompClassName), Result);
+                FindComponentClass(Name,CompUnitName,CompClassName), Result);
             if not Assigned(Result) then
               raise EReadError.CreateFmt(SAncestorNotFound, [Name]);
           end;
@@ -941,7 +970,7 @@ begin
         end else
         begin
           Result := nil;
-          ComponentClass := FindComponentClass(Name,CompClassName);
+          ComponentClass := FindComponentClass(Name,CompUnitName,CompClassName);
           if Assigned(FOnCreateComponent) then
             FOnCreateComponent(Self, ComponentClass, Result);
           if not Assigned(Result) then
@@ -1112,7 +1141,7 @@ begin
 end;
 {$endif}
 
-function TReader.ReadIdent: String;
+function TReader.ReadIdent: string;
 var
   ValueType: TValueType;
 begin
@@ -1124,7 +1153,7 @@ begin
 end;
 
 
-function TReader.ReadInteger: LongInt;
+function TReader.ReadInteger: Longint;
 begin
   case FDriver.ReadValue of
     vaInt8:
@@ -1169,7 +1198,7 @@ begin
   CheckValue(vaNull);
 end;
 
-function TReader.ReadVariant: variant;
+function TReader.ReadVariant: Variant;
 var
   nv: TValueType;
 begin
@@ -1177,7 +1206,7 @@ begin
   if not Assigned(VarClearProc) then
     raise EReadError.Create(SErrNoVariantSupport);
 
-  FillChar(Result,sizeof(Result),0);
+  Result:=default(variant);
 
   nv:=NextValue;
   case nv of
@@ -1470,18 +1499,18 @@ function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
 var
   Dummy, i: Integer;
   Flags: TFilerFlags;
-  CompClassName, CompName, ResultName: String;
+  CompUnitName, CompClassName, CompName, ResultName: String;
 begin
   FDriver.BeginRootComponent;
   Result := nil;
   {!!!: GlobalNameSpace.BeginWrite;  // Loading from stream adds to name space
   try}
     try
-      FDriver.BeginComponent(Flags, Dummy, CompClassName, CompName);
+      FDriver.BeginComponent(Flags, Dummy, CompUnitName, CompClassName, CompName);
       if not Assigned(ARoot) then
       begin
         { Read the class name and the object name and create a new object: }
-        Result := TComponentClass(FindClass(CompClassName)).Create(nil);
+        Result := TComponentClass(FindClass(CompUnitName,CompClassName)).Create(nil);
         Result.Name := CompName;
       end else
       begin
@@ -1572,7 +1601,7 @@ begin
 end;
 
 
-function TReader.ReadString: String;
+function TReader.ReadString: string;
 var
   StringType: TValueType;
 begin
@@ -1725,7 +1754,8 @@ begin
   end;
 end;
 
-function TReader.FindComponentClass(const AName, AClassName: String): TComponentClass;
+function TReader.FindComponentClass(const AName, anUnitName, AClassName: string
+  ): TComponentClass;
 
 var
   PersistentClass: TPersistentClass;
@@ -1783,7 +1813,10 @@ var
           PersistenClass := ClassTable^.Entries[i]^;
           if PersistenClass.ClassNameIs(ShortClassName)
               and PersistenClass.InheritsFrom(TComponent) then
-            exit(TComponentClass(PersistenClass));
+            begin
+            if (anUnitName='') or SameText(PersistenClass.UnitName,anUnitName) then
+              exit(TComponentClass(PersistenClass));
+            end;
         end;
       end;
       // Try again with the parent class type
@@ -1801,8 +1834,14 @@ begin
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
     FindInFieldTable(LookupRoot);
 
+  if (Result=nil) and assigned(OnFindComponentClassEx) then
+    OnFindComponentClassEx(Self, anUnitName, AClassName, Result);
+
   if (Result=nil) then begin
-    PersistentClass := GetClass(AClassName);
+    if anUnitName<>'' then
+      PersistentClass := GetClass(anUnitName,AClassName)
+    else
+      PersistentClass := GetClass(AClassName);
     if PersistentClass.InheritsFrom(TComponent) then
       Result := TComponentClass(PersistentClass);
   end;
@@ -1811,7 +1850,10 @@ begin
     OnFindComponentClass(Self, AClassName, Result);
 
   if (Result=nil) or (not Result.InheritsFrom(TComponent)) then
-    raise EClassNotFound.CreateFmt(SNoFieldOfClassIn, [AClassName, Root.ClassName]);
+    if anUnitName<>'' then
+      raise EClassNotFound.CreateFmt(SNoFieldOfClassIn, [anUnitName+'/'+AClassName, Root.ClassName])
+    else
+      raise EClassNotFound.CreateFmt(SNoFieldOfClassIn, [AClassName, Root.ClassName]);
 end;
 
 
