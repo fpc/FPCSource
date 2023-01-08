@@ -17,6 +17,10 @@ rm -r "$DEST_DIR" &> /dev/null
 mkdir "$DEST_DIR" &> /dev/null
 
 {
+  echo "Run Timestamp:  $TIMESTAMP"
+  echo "Using Google API Converter: " $("$SCRIPT_DIR/googleapiconv" --version)
+  echo
+
   # Use option --verbose for more messages
   echo "googleapiconv --all --icon --keepjson --timestamp --output=$DEST_DIR/"
   "$SCRIPT_DIR/googleapiconv" --all --icon --keepjson --timestamp --output="$DEST_DIR/"

@@ -32,6 +32,9 @@ rm -r "$ICONS_DIR" &> /dev/null
 mkdir "$ICONS_DIR" &> /dev/null
 
 {
+  echo "Run Timestamp:  $TIMESTAMP"
+  echo "Using Google API Converter: " $("$SCRIPT_DIR/googleapiconv" --version)
+  echo
 
 #  Test convert a single JSON file
 #  echo "googleapiconv --verbose --input=$JSON_DIR/googlegmail.json --output=$BINDINGS_DIR/googlegmail.pp"
@@ -44,8 +47,8 @@ mkdir "$ICONS_DIR" &> /dev/null
     "$SCRIPT_DIR/googleapiconv" --icon --input="$FILE" --output="$BINDINGS_DIR/$OUT_NAME"
   done
 
-  mv "$BINDINGS_DIR/"*.png "$ICONS_DIR"
-  mv "$BINDINGS_DIR/"*.gif "$ICONS_DIR"
+  mv "$BINDINGS_DIR/"*.png "$ICONS_DIR" &> /dev/null
+  mv "$BINDINGS_DIR/"*.gif "$ICONS_DIR" &> /dev/null
 
   # Check to see if we have any missing generated .pp files
   echo ""

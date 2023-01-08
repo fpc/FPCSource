@@ -13,9 +13,12 @@ rm -r "$JSON_DIR" &> /dev/null
 mkdir "$JSON_DIR" &> /dev/null
 
 {
+  echo "Run Timestamp:  $TIMESTAMP"
+  echo "Using Google API Converter: " $("$SCRIPT_DIR/googleapiconv" --version)
+  echo
 
   echo "# googleapiconv --verbose --all --onlydownload --keepjson --output=$JSON_DIR/"
-  echo ""
+  echo
   "$SCRIPT_DIR/googleapiconv" --verbose --all --onlydownload --keepjson --output="$JSON_DIR/"
 
 } |& tee "$LOG_FILE"  #output both stdout and stderr to logfile and terminal
