@@ -121,7 +121,7 @@ end;
 procedure TBinaryObjectWriter.WriteSignature;
 
 begin
-  if Version=bowVersion1 then
+  if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
     Write(FilerSignature1, SizeOf(FilerSignature1))
   else
     Write(FilerSignature, SizeOf(FilerSignature));
@@ -142,10 +142,10 @@ begin
       WriteInteger(ChildPos);
   end;
 
-  if Version=bowVersion0 then
-    WriteStr(Component.ClassName)
+  if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+    WriteString(Component.UnitName+TBinaryObjectReader.UnitnameSeparator+Component.ClassName)
   else
-    WriteString(Component.UnitName+UnitnameSeparator+Component.ClassName);
+    WriteStr(Component.ClassName);
   WriteStr(Component.Name);
 end;
 

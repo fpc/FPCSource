@@ -958,6 +958,7 @@ type
     function WriteMaxSizeData(Const Buffer; aSize,aCount : NativeInt) : NativeInt;
     Procedure WriteExactSizeData(Const Buffer; aSize,aCount : NativeInt);
   public
+    const DefaultWriteUnitname : Boolean = false;
     function Read(var Buffer; Count: Longint): Longint; virtual; overload;
     function Read(var Buffer: TBytes; Count: Longint): Longint; overload;
     function Read( Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
@@ -1114,10 +1115,14 @@ type
     function CopyFrom(Source: TStream; Count: Int64): Int64;
     function ReadComponent(Instance: TComponent): TComponent;
     function ReadComponentRes(Instance: TComponent): TComponent;
-    procedure WriteComponent(Instance: TComponent);
-    procedure WriteComponentRes(const ResName: string; Instance: TComponent);
-    procedure WriteDescendent(Instance, Ancestor: TComponent);
-    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+    procedure WriteComponent(Instance: TComponent); overload;
+    procedure WriteComponent(Instance: TComponent; aWriteUnitname: boolean); overload;
+    procedure WriteComponentRes(const ResName: string; Instance: TComponent); overload;
+    procedure WriteComponentRes(const ResName: string; Instance: TComponent; aWriteUnitname: boolean); overload;
+    procedure WriteDescendent(Instance, Ancestor: TComponent); overload;
+    procedure WriteDescendent(Instance, Ancestor: TComponent; aWriteUnitname: boolean); overload;
+    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent); overload;
+    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent; aWriteUnitname: boolean); overload;
     procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Longint);
     procedure FixupResourceHeader(FixupInfo: Longint);
     procedure ReadResHeader;
@@ -1396,6 +1401,8 @@ type
     procedure BeginRootComponent; virtual; abstract;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
       var CompClassName, CompName: String); virtual; abstract;
+    procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+      var CompUnitName, CompClassName, CompName: String); virtual;
     function BeginProperty: String; virtual; abstract;
 
     //Please don't use read, better use ReadBinary whenever possible
@@ -1426,12 +1433,23 @@ type
   { TBinaryObjectReader }
 
   TBinaryObjectReader = class(TAbstractObjectReader)
+  public
+    {$ScopedEnums on}
+    type
+      TBOVersion = (
+        boVersion0,
+        boVersion1
+        );
+    {$ScopedEnums off}
+    const
+      UnitnameSeparator = '/';
   protected
     FStream: TStream;
     FBuffer: Pointer;
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
+    FVersion: TBOVersion;
 
     function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     function ReadDWord : longword; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1448,7 +1466,7 @@ type
     function ReadValue: TValueType; override;
     procedure BeginRootComponent; override;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
-      var CompClassName, CompName: String); override;
+      var CompUnitName, CompClassName, CompName: String); override;
     function BeginProperty: String; override;
 
     //Please don't use read, better use ReadBinary whenever possible
@@ -1473,6 +1491,7 @@ type
     function ReadUnicodeString: UnicodeString;override;
     procedure SkipComponent(SkipComponentInfos: Boolean); override;
     procedure SkipValue; override;
+    property Version: TBOVersion read FVersion;
   end;
 
 
@@ -1493,6 +1512,8 @@ type
     var PropName: string; IsPath: boolean; var Handled, Skip: Boolean) of object;
   TFindComponentClassEvent = procedure(Reader: TReader; const ClassName: string;
     var ComponentClass: TComponentClass) of object;
+  TFindComponentClassExEvent = procedure(Reader: TReader; const anUnitname, ClassName: string;
+    var ComponentClass: TComponentClass) of object;
   TCreateComponentEvent = procedure(Reader: TReader;
     ComponentClass: TComponentClass; var Component: TComponent) of object;
 
@@ -1506,6 +1527,7 @@ type
   TReader = class(TFiler)
   private
     FDriver: TAbstractObjectReader;
+    FOnFindComponentClassEx: TFindComponentClassExEvent;
     FOwner: TComponent;
     FParent: TComponent;
     FFixups: TObject;
@@ -1524,7 +1546,7 @@ type
     FCanHandleExcepts: Boolean;
     FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
-    function FindComponentClass(const AName, AClassName: string): TComponentClass;
+    function FindComponentClass(const AName, anUnitName, AClassName: string): TComponentClass;
     procedure Lock;
     procedure Unlock;
   protected
@@ -1597,6 +1619,7 @@ type
     property OnAncestorNotFound: TAncestorNotFoundEvent read FOnAncestorNotFound write FOnAncestorNotFound;
     property OnCreateComponent: TCreateComponentEvent read FOnCreateComponent write FOnCreateComponent;
     property OnFindComponentClass: TFindComponentClassEvent read FOnFindComponentClass write FOnFindComponentClass;
+    property OnFindComponentClassEx: TFindComponentClassExEvent read FOnFindComponentClassEx write FOnFindComponentClassEx;
     property OnReadStringProperty: TReadWriteStringPropertyEvent read FOnReadStringProperty write FOnReadStringProperty;
   end;
 
@@ -1646,21 +1669,13 @@ type
   { TBinaryObjectWriter }
 
   TBinaryObjectWriter = class(TAbstractObjectWriter)
-  public
-    type
-      TBOWVersion = (
-        bowVersion0,
-        bowVersion1
-        );
-    const
-      UnitnameSeparator = '/';
   protected
     FStream: TStream;
     FBuffer: Pointer;
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
-    FVersion: TBOWVersion;
+    FVersion: TBinaryObjectReader.TBOVersion;
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1702,7 +1717,7 @@ type
     procedure WriteUnicodeString(const Value: UnicodeString); override;
     procedure WriteVariant(const VarValue: Variant);override;
 
-    property Version: TBOWVersion read FVersion write FVersion;
+    property Version: TBinaryObjectReader.TBOVersion read FVersion write FVersion;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
@@ -2412,10 +2427,12 @@ procedure RegisterClass(AClass: TPersistentClass);
 procedure RegisterClasses(AClasses: array of TPersistentClass);
 procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
 procedure UnRegisterClass(AClass: TPersistentClass);
-procedure UnRegisterClasses(AClasses: array of TPersistentClass);
+procedure UnRegisterClasses(const AClasses: array of TPersistentClass);
 procedure UnRegisterModuleClasses(Module: HMODULE);
-function FindClass(const AClassName: string): TPersistentClass;
-function GetClass(const AClassName: string): TPersistentClass;
+function FindClass(const AClassName: string): TPersistentClass; overload;
+function FindClass(const anUnitname, aClassName: string): TPersistentClass; overload;
+function GetClass(const aClassName: string): TPersistentClass; overload;
+function GetClass(const anUnitname, aClassName: string): TPersistentClass; overload;
 procedure StartClassGroup(AClass: TPersistentClass);
 procedure GroupDescendentsWith(AClass, AClassGroup: TPersistentClass);
 function ActivateClassGroup(AClass: TPersistentClass): TPersistentClass;
