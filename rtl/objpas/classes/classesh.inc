@@ -1805,6 +1805,8 @@ type
   TFindComponentClassExEvent = procedure(Reader: TReader;
     const aName, anUnitname, aClassName: string;
     var ComponentClass: TComponentClass) of object;
+  TFindComponentClassExEvent = procedure(Reader: TReader; const anUnitname, ClassName: string;
+    var ComponentClass: TComponentClass) of object;
   TCreateComponentEvent = procedure(Reader: TReader;
     ComponentClass: TComponentClass; var Component: TComponent) of object;
 

@@ -159,7 +159,7 @@ begin
 end;
 
 procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
-  var AChildPos: Integer; var CompClassName, CompName: String);
+  var AChildPos: Integer; var CompUnitName, CompClassName, CompName: String);
 var
   CompUnitName: String;
 begin
