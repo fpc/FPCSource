@@ -156,7 +156,7 @@ unit cpubase;
        { S_FS  = single type (32 bit) }
        { S_FD  = double/64bit integer }
        { S_FX  = Extended type      }
-       topsize = (S_NO,S_B,S_W,S_L,S_FS,S_FD,S_FX,S_IQ);
+       topsize = (S_NO,S_B,S_W,S_L,S_FS,S_FD,S_FX);
 
        TOpSizes = set of topsize;
 
