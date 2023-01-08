@@ -1718,6 +1718,8 @@ begin
 end;
 
 procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
+var
+  Version: TBinaryObjectReader.TBOVersion;
 
   procedure OutStr(s: String);
   begin
@@ -2092,8 +2094,10 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
   procedure ReadObject(indent: String);
   var
     b: Byte;
-    ObjClassName, ObjName: String;
+    ObjUnitName, ObjClassName, ObjName: String;
     ChildPos: LongInt;
+    ValueType: TValueType;
+    p: SizeInt;
   begin
     // Check for FilerFlags
     b := Input.ReadByte;
@@ -2104,19 +2108,42 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
       Input.Seek(-1, soFromCurrent);
     end;
 
-    ObjClassName := ReadSStr;
+    ObjUnitName:='';
+    if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+    begin
+      ValueType := TValueType(Input.ReadByte);
+      if ValueType=vaString then
+        ObjClassName := ReadSStr
+      else
+        ObjClassName := ReadLStr;
+      p:=Pos(TBinaryObjectReader.UnitnameSeparator,ObjClassName);
+      if p>0 then
+      begin
+        ObjUnitName:=copy(ObjClassName,1,p-1);
+        System.Delete(ObjClassName,1,p);
+      end;
+    end else
+      ObjClassName := ReadSStr;
     ObjName := ReadSStr;
 
     OutStr(Indent);
-    if (b and 1) <> 0 then OutStr('inherited')
+    if (b and 1) <> 0 then
+      OutStr('inherited')
+    else if (b and 4) <> 0 then
+      OutStr('inline')
     else
-     if (b and 4) <> 0 then OutStr('inline')
-     else OutStr('object');
+      OutStr('object');
     OutStr(' ');
     if ObjName <> '' then
       OutStr(ObjName + ': ');
+    if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+    begin
+      OutStr(ObjUnitName);
+      OutStr('/');
+    end;
     OutStr(ObjClassName);
-    if (b and 2) <> 0 then OutStr('[' + IntToStr(ChildPos) + ']');
+    if (b and 2) <> 0 then
+      OutStr('[' + IntToStr(ChildPos) + ']');
     OutLn('');
 
     ReadPropList(indent + '  ');
@@ -2128,13 +2155,16 @@ procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncodi
     OutLn(indent + 'end');
   end;
 
-type
-  PLongWord = ^LongWord;
-const
-  signature: PChar = 'TPF0';
+var
+  Signature: DWord;
 
 begin
-  if Input.ReadDWord <> PLongWord(Pointer(signature))^ then
+  Signature:=Input.ReadDWord;
+  if Signature = DWord(unaligned(FilerSignature1)) then
+    Version:=TBinaryObjectReader.TBOVersion.boVersion1
+  else if Signature = DWord(unaligned(FilerSignature)) then
+    Version:=TBinaryObjectReader.TBOVersion.boVersion0
+  else
     raise EReadError.Create('Illegal stream image' {###SInvalidImage});
   ReadObject('');
 end;
@@ -2147,6 +2177,8 @@ end;
 procedure ObjectTextToBinary(Input, Output: TStream);
 var
   parser: TParser;
+  Version: TBinaryObjectReader.TBOVersion;
+  StartPos: Int64;
 
   procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
   begin
@@ -2204,7 +2236,7 @@ var
   end;
   {$ENDIF}
 
-  procedure WriteExtended(e : extended);
+  procedure WriteExtended(const e : extended);
   {$IFNDEF FPC_HAS_TYPE_EXTENDED}
   var ext : array[0..9] of byte;
   {$ENDIF}
@@ -2218,7 +2250,7 @@ var
   end;
 {$endif}
 
-  procedure WriteString(s: String);
+  procedure WriteSString(const s: String);
   var size : byte;
   begin
     if length(s)>255 then size:=255
@@ -2233,6 +2265,18 @@ var
     WriteDWord(Length(s));
     if Length(s) > 0 then
       Output.WriteBuffer(s[1], Length(s));
+  end;
+
+  procedure WriteSorLString(Const s: String);
+  begin
+    if length(s)<256 then
+    begin
+      Output.WriteByte(Ord(vaString));
+      WriteSString(s);
+    end else begin
+      Output.WriteByte(Ord(vaLString));
+      WriteSString(s);
+    end;
   end;
 
   procedure WriteWString(Const s: WideString);
@@ -2337,7 +2381,7 @@ var
           else
           begin
             Output.WriteByte(Ord(vaString));
-            WriteString(s);
+            WriteSString(s);
           end;
         end;
       toWString:
@@ -2353,7 +2397,7 @@ var
           else
           begin
             Output.WriteByte(Ord(vaIdent));
-            WriteString(parser.TokenComponentIdent);
+            WriteSString(parser.TokenComponentIdent);
           end;
           Parser.NextToken;
         end;
@@ -2366,7 +2410,7 @@ var
             while True do
             begin
               parser.CheckToken(toSymbol);
-              WriteString(parser.TokenString);
+              WriteSString(parser.TokenString);
               parser.NextToken;
               if parser.Token = ']' then
                 break;
@@ -2438,16 +2482,16 @@ var
       parser.CheckToken(toSymbol);
       name := name + '.' + parser.TokenString;
     end;
-    WriteString(name);
+    WriteSString(name);
     parser.CheckToken('=');
     parser.NextToken;
     ProcessValue;
   end;
 
-  procedure ProcessObject;
+  procedure ProcessObject(Root: boolean);
   var
     Flags: Byte;
-    ObjectName, ObjectType: String;
+    ObjectName, ObjUnitName, ObjClassName: String;
     ChildPos: Integer;
   begin
     if parser.TokenSymbolIs('OBJECT') then
@@ -2463,14 +2507,28 @@ var
     parser.NextToken;
     parser.CheckToken(toSymbol);
     ObjectName := '';
-    ObjectType := parser.TokenString;
+    ObjUnitName := '';
+    ObjClassName := parser.TokenString;
     parser.NextToken;
-    if parser.Token = ':' then begin
+    if parser.Token = '/' then begin
+      ObjUnitName := ObjClassName;
       parser.NextToken;
       parser.CheckToken(toSymbol);
-      ObjectName := ObjectType;
-      ObjectType := parser.TokenString;
+      ObjClassName := parser.TokenString;
       parser.NextToken;
+    end else if parser.Token = ':' then begin
+      parser.NextToken;
+      parser.CheckToken(toSymbol);
+      ObjectName := ObjClassName;
+      ObjClassName := parser.TokenString;
+      parser.NextToken;
+      if parser.Token = '/' then begin
+        ObjUnitName := ObjClassName;
+        parser.NextToken;
+        parser.CheckToken(toSymbol);
+        ObjClassName := parser.TokenString;
+        parser.NextToken;
+      end;
       if parser.Token = '[' then begin
         parser.NextToken;
         ChildPos := parser.TokenInt;
@@ -2480,13 +2538,27 @@ var
         Flags := Flags or 2;
       end;
     end;
+
+    if Root then
+    begin
+      if (ObjUnitName<>'') then
+        Version:=TBinaryObjectReader.TBOVersion.boVersion1;
+      if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+        Output.WriteBuffer(FilerSignature1[1], length(FilerSignature1))
+      else
+        Output.WriteBuffer(FilerSignature[1], length(FilerSignature));
+    end;
+
     if Flags <> 0 then begin
       Output.WriteByte($f0 or Flags);
       if (Flags and 2) <> 0 then
         WriteInteger(ChildPos);
     end;
-    WriteString(ObjectType);
-    WriteString(ObjectName);
+    if Version=TBinaryObjectReader.TBOVersion.boVersion1 then
+      WriteSorLString(ObjUnitName+TBinaryObjectReader.UnitnameSeparator+ObjClassName)
+    else
+      WriteSString(ObjClassName);
+    WriteSString(ObjectName);
 
     // Convert property list
     while not (parser.TokenSymbolIs('END') or
@@ -2497,18 +2569,17 @@ var
     Output.WriteByte(0);        // Terminate property list
 
     // Convert child objects
-    while not parser.TokenSymbolIs('END') do ProcessObject;
+    while not parser.TokenSymbolIs('END') do ProcessObject(false);
     parser.NextToken;           // Skip end token
     Output.WriteByte(0);        // Terminate property list
   end;
 
-const
-  signature: PChar = 'TPF0';
 begin
+  Version:=TBinaryObjectReader.TBOVersion.boVersion0;
   parser := TParser.Create(Input);
   try
-    Output.WriteBuffer(signature[0], 4);
-    ProcessObject;
+    StartPos:=Output.Position;
+    ProcessObject(true);
   finally
     parser.Free;
   end;
