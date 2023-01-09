@@ -99,15 +99,10 @@ type
   PPCharW = ^PWideChar;
   {$NODEFINE PPCharW}
 
-  {$IFNDEF JWA_INCLUDEMODE}
-  PPChar = PPCharA;
-  {$ENDIF JWA_INCLUDEMODE}
-
   PPPCharA = ^PPCharA;
   {$NODEFINE PPPCharA}
   PPPCharW = ^PPCharW;
   {$NODEFINE PPPCharW}
-  PPPChar = PPPCharA;
 
 //
 //  The #define LDAP_UNICODE controls if we map the undecorated calls to

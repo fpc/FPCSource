@@ -248,8 +248,6 @@ type
   PPWCHAR = ^PWCHAR;
 
   PPTSTR = ^PTSTR;
-  PPChar = ^PChar;
-  PPWideChar = ^PWideChar;
   PPointer = ^Pointer;
 
   GUID = TGUID;

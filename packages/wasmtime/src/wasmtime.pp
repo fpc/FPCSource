@@ -189,7 +189,6 @@ Type
   PPwasm_trap_t= ^Pwasm_trap_t;
   PPwasmtime_module_t = ^Pwasmtime_module_t;
   
-  Ppchar = ^pchar;
   Tcint = cint;
   Tbyte_t = byte;
   Tfloat32_t = single;

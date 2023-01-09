@@ -971,7 +971,6 @@ const
   CUPS_PRINTER_OPTIONS   = $FFFC;	// ~(CLASS | REMOTE | IMPLICIT)
 
 type
-  PPPChar = ^PPChar;
   cups_ptype_t = dword; //See bit flags consts
   TFunctionWithParam1 = function (_para1:Pchar):Pchar;
 
