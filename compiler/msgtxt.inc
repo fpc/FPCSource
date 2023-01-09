@@ -1423,7 +1423,7 @@ const msgtxt : array[0..000377,1..240] of char=(
   '13029_U_PPL filename $1'#000+
   '11023_','Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $F'+
   'PCCPU'#010+
-  'Copyright (c) 1993-2022 by Florian Klaempfl and others'#000+
+  'Copyright (c) 1993-2023 by Florian Klaempfl and others'#000+
   '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compiler date      : $FPCDATE'#010+
