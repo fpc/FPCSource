@@ -750,3 +750,13 @@ begin
 end;
 
 
+function NetAddrIsPrivate(const IP: in_addr): Boolean;
+begin
+  NetAddrIsPrivate:=
+     // 10.0.0.0 – 10.255.255.255
+     (IP.s_bytes[1]=10)
+     // 172.16.0.0 – 172.31.255.255
+     or ((IP.s_bytes[1]=172) and (IP.s_bytes[2]>=16) and (IP.s_bytes[2]<=31))
+     // 192.168.0.0 – 192.168.255.255
+     or ((IP.s_bytes[1]=192) and (IP.s_bytes[2]=168));
+end;

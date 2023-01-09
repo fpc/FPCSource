@@ -203,6 +203,9 @@ Function NetToHost     (Net  : Longint) : Longint; deprecated;
 Function ShortHostToNet(Host : Word) : Word; deprecated;
 Function ShortNetToHost(Net  : Word) : Word; deprecated;
 
+function NetAddrIsPrivate(const IP: in_addr): Boolean;
+
+
 // ipv6
 function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;
 function StrToHostAddr6(IP   : AnsiString) : Tin6_addr;     // not implemented?!?
