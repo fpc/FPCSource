@@ -138,6 +138,8 @@ const
 type
   toperandtypeset = set of toperandtype;
   toperandflagset = set of toperandflags;
+  topsupportedset = set of topsupported;
+  topsizeflagset  = set of topsizeflag;
 
 type
   tinsentry = record
@@ -147,8 +149,8 @@ type
     opflags  : array[0..max_operands-1] of toperandflagset;
     codelen  : byte;
     code     : array[0..1] of word;
-    support  : set of topsupported;
-    sizes    : set of topsizeflag;
+    support  : topsupportedset;
+    sizes    : topsizeflagset;
   end;
   pinsentry = ^tinsentry;
 
@@ -701,6 +703,63 @@ type
 
     function taicpu.Matches(p: PInsEntry; objdata:TObjData): boolean;
 
+      function TargetMatch: boolean;
+        const
+          CPUTypeToOpSupported: array[TCPUtype] of topsupportedset = (
+              {* cpu_none *}     [],
+              {* cpu_MC68000 *}  [OS_M68000,OS_M68000UP],
+              {* cpu_MC68020 *}  [OS_M68020,OS_M68000UP,OS_M68010UP,OS_M68020UP,OS_M68851],
+              {* cpu_MC68040 *}  [OS_M68040,OS_M68000UP,OS_M68010UP,OS_M68020UP,OS_M68040UP],
+              {* cpu_MC68060 *}  [OS_M68060,OS_M68000UP,OS_M68010UP,OS_M68020UP,OS_M68040UP],
+              {* cpu_isa_a *}    [OS_CF,OS_CF_ISA_A],
+              {* cpu_isa_a_p *}  [OS_CF,OS_CF_ISA_APL],
+              {* cpu_isa_b *}    [OS_CF,OS_CF_ISA_B],
+              {* cpu_isa_c *}    [OS_CF,OS_CF_ISA_C],
+              {* cpu_cfv4e *}    [OS_CF,OS_CF_ISA_B]
+          );
+          FPUTypeToOpSupported: array[TFPUtype] of topsupportedset = (
+              {* fpu_none *}     [],
+              {* fpu_soft *}     [],
+              {* fpu_libgcc *}   [],
+              {* fpu_68881 *}    [OS_M68881],
+              {* fpu_68040 *}    [OS_M68881,OS_M68040,OS_M68040UP],
+              {* fpu_68060 *}    [OS_M68881,OS_M68040,OS_M68040UP,OS_M68060],
+              {* fpu_coldfire *} [OS_CF_FPU]
+          );
+        begin
+          result:=((CPUTypeToOpSupported[current_settings.cputype] * p^.support) <> []) or
+                  ((FPUTypeToOpSupported[current_settings.fputype] * p^.support) <> []);
+        end;
+
+      function OpsizeMatch: boolean;
+        const
+          TOpSizeToOpSizeFlag: array[TOpSize] of TOpSizeFlagSet = (
+              { S_NO } [ OPS_UNSIZED],
+              { S_B  } [ OPS_SHORT, OPS_BYTE ],
+              { S_W  } [ OPS_WORD ],
+              { S_L  } [ OPS_LONG ],
+              { S_FS } [ OPS_SINGLE ],
+              { S_FD } [ OPS_DOUBLE ],
+              { S_FX } [ OPS_EXTENDED ]
+          );
+        begin
+          result:=(TOpSizeToOpSizeFlag[opsize] * p^.sizes) <> [];
+
+          { Special handling for instructions where the size can be
+            implicitly determined, because only one size is possible. }
+          if not result and (opsize in [S_NO]) then
+            begin
+              result:=(p^.sizes <> []) and (
+                 { if OPS_SHORT is in sizes, it means we have a branch
+                   instruction, so let unsized pass. }
+                 (OPS_SHORT in p^.sizes) or
+                 { Or only one size is possible. }
+                 ((p^.sizes - [ OPS_BYTE ]) = []) or
+                 ((p^.sizes - [ OPS_WORD ]) = []) or
+                 ((p^.sizes - [ OPS_LONG ]) = []));
+            end;
+        end;
+
       function OperandsMatch(const oper: toper; const ots: toperandtypeset): boolean;
         var
           ot: toperandtype;
@@ -784,6 +843,14 @@ type
 
         { Check the opcode and number of operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
+          exit;
+
+        { Check if opcode is valid for this target }
+        if not TargetMatch then
+          exit;
+
+        { Check if opcode size is valid }
+        if not OpsizeMatch then
           exit;
 
         { Check the operands }
