@@ -64,13 +64,6 @@ Type
     procedure SetObjectOptions(AValue: TObjectOptions);
     Function GetAdditionalProperties : TJSONObject;
   protected
-{$ifdef ver2_6}
-    // Version 2.6.4 has a bug for i386 where the array cannot be set through RTTI.
-    // This is a helper method that sets the length of the array to the desired length,
-    // After which the new array pointer is read again.
-    // AName is guaranteed to be lowercase
-    Procedure SetArrayLength(const AName : String; ALength : Longint); virtual;
-{$endif}
     Procedure MarkPropertyChanged(AIndex : Integer);
     Function IsDateTimeProp(Info : PTypeInfo) : Boolean;
     Function DateTimePropType(Info : PTypeInfo) : TDateTimeType;
@@ -79,9 +72,7 @@ Type
     Procedure SetBooleanProperty(P: PPropInfo; AValue: Boolean); virtual;
     Procedure SetFloatProperty(P: PPropInfo; AValue: Extended); virtual;
     Procedure SetInt64Property(P: PPropInfo; AValue: Int64); virtual;
-    {$ifndef ver2_6}
     Procedure SetQWordProperty(P: PPropInfo; AValue: QWord); virtual;
-    {$endif}
     Procedure SetIntegerProperty(P: PPropInfo; AValue: Integer); virtual;
     Procedure SetStringProperty(P: PPropInfo; AValue: String); virtual;
     Procedure SetArrayProperty(P: PPropInfo; AValue : TJSONArray); virtual;
@@ -658,13 +649,11 @@ begin
   SetInt64Prop(Self,P,AValue);
 end;
 
-{$ifndef ver2_6}
 procedure TBaseObject.SetQWordProperty(P: PPropInfo; AValue: QWord);
 
 begin
   SetInt64Prop(Self,P,Int64(AValue));
 end;
-{$endif}
 
 procedure TBaseObject.SetStringProperty(P: PPropInfo; AValue: String);
 Var
@@ -1216,13 +1205,6 @@ begin
   Result:=fAdditionalProperties
 end;
 
-{$IFDEF VER2_6}
-procedure TBaseObject.SetArrayLength(Const AName: String; ALength: Longint);
-begin
-  Raise ERestAPI.CreateFmt('Unknown Array %s',[AName]);
-end;
-{$ENDIF}
-
 class function TBaseObject.AllowAdditionalProperties: Boolean;
 begin
   Result:=False;
@@ -1331,9 +1313,7 @@ begin
           ntFloat   : SetFloatProperty(P,JSON.asFloat);
           ntInteger : SetIntegerProperty(P,JSON.asInteger);
           ntInt64   : SetInt64Property(P,JSON.asInt64);
-{$ifndef ver2_6}
           ntqword   : SetQWordProperty(P,JSON.asQWord);
-{$endif}
         end;
       jtNull    : ClearProperty(P);
       jtBoolean : SetBooleanProperty(P,json.AsBoolean);
@@ -1428,4 +1408,3 @@ finalization
 {$ENDIF}
   FreeAndNil(Fact);
 end.
-
