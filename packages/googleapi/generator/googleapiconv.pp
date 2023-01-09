@@ -3,20 +3,11 @@
 
 { $DEFINE USESYNAPSE}
 
-{$IFDEF VER2_6}
-{$DEFINE USESYNAPSE}
-{$ENDIF}
-
 program googleapiconv;
 
 uses
   custapp, classes, sysutils, fpjson, jsonparser, fpwebclient,
-{$IFDEF USESYNAPSE}
-  ssl_openssl,
-  synapsewebclient,
-{$ELSE}
   fphttpwebclient, opensslsockets,
-{$ENDIF}
   googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
 Const
@@ -116,11 +107,7 @@ begin
   Result:=True;
   Req:=Nil;
   Resp:=Nil;
-{$IFDEF USESYNAPSE}
-  WebClient:=TSynapseWebClient.Create(Self);
-{$ELSE}
   WebClient:=TFPHTTPWebClient.Create(Self);
-{$ENDIF}
   try
     Req:=WebClient.CreateRequest;
     Req.ResponseContent:=Response;
@@ -608,4 +595,3 @@ begin
   Application.Run;
   FreeAndNil(Application);  //gets rid of memory leak and makes Heaptrc happy
 end.
-

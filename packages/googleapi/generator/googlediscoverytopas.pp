@@ -63,10 +63,6 @@ Type
   TGoogleAuth2 = Class(TGoogleBaseObject)
   private
     FScopes: TSchemas;
-  Protected
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
   Published
     Property Scopes : TSchemas Read Fscopes Write Fscopes;
   end;
@@ -91,10 +87,6 @@ Type
   TAnnotations = Class(TGoogleBaseObject)
   private
     FRequired: TStringArray;
-  Protected
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
   Published
     Property required : TStringArray Read FRequired Write Frequired;
   end;
@@ -144,9 +136,6 @@ Type
   Public
     Class function BaseType(ATypeName: String): Boolean;
     Class function GetBaseTypeName(AType,AFormat : String) : string;
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
     Function DebugName : String;
     function GetBaseTypeName : string;
     Function BaseType : Boolean;
@@ -228,10 +217,6 @@ Type
     FAccept: TStringArray;
     FMaxSize: String;
     Fprotocols: TMediaUploadProtocols;
-  protected
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
   Published
     Property Accept : TStringArray Read FAccept Write FAccept;
     property MaxSize : String Read FMaxSize Write FMaxSize;
@@ -294,10 +279,6 @@ Type
     FsupportsMediaDownload: Boolean;
     FsupportsMediaUpload: Boolean;
     FsupportsSubscription: Boolean;
-  protected
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
   Published
     Property name : string read fname Write fname;
     Property description : String Read FDescription Write FDescription;
@@ -349,11 +330,6 @@ Type
     fservicePath: string;
     FTitle: string;
     Fversion: String;
-  Protected
-{$ifdef ver2_6}
-    Procedure SetArrayLength(const AName : String; ALength : Longint); override;
-{$endif}
-  Public
   Published
     property Auth : TGoogleAuth Read Fauth Write Fauth;
     property basePath : string read fbasePath write FbasePath;
@@ -509,71 +485,6 @@ Type
 
 
 implementation
-
-{ TGoogleRestDescription }
-
-{$IFDEF VER_2_6}
-Procedure TGoogleRestDescription.SetArrayLength(const AName: String;
-  ALength: Longint);
-begin
-  case aname of
-    'schemas' : setlength(FSchemas,ALength);
-    'features' : setlength(FFeatures,ALength);
-    'labels' : setlength(FLabels,ALength);
-    'methods' : setlength(Fmethods,ALength);
-    'resources' : setlength(FResources,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-{$ENDIF}
-
-{ TRestMethod }
-{$ifdef ver2_6}
-Procedure TRestMethod.SetArrayLength(const AName: String; ALength: Longint);
-begin
-  case AName of
-   'parameterorder' : SetLength(FParameterOrder,ALength);
-   'parameters' : SetLength(FParameters,ALength);
-   'scopes' : SetLength(FScopes,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-
-{ TMediaUpload }
-
-Procedure TMediaUpload.SetArrayLength(const AName: String; ALength: Longint);
-begin
-  Case AName of
-    'accept' : SetLength(FAccept,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-
-{ TGoogleAuth2 }
-
-Procedure TGoogleAuth2.SetArrayLength(const AName: String; ALength: Longint);
-begin
-  Case AName of
-    'scopes' : SetLength(FScopes,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-
-{ TAnnotations }
-
-Procedure TAnnotations.SetArrayLength(const AName: String; ALength: Longint);
-begin
-  Case AName of
-    'required' :SetLength(FRequired,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-{$endif}
 
 { TTypeDefEnumerator }
 
@@ -938,20 +849,6 @@ begin
       Result:='String';
 end;
 
-{$IFDEF VER2_6}
-Procedure TSchema.SetArrayLength(const AName: String; ALength: Longint);
-begin
-  Case AName of
-   'enumdescriptions' : SetLength(FenumDescriptions,ALength);
-   'properties' : SetLength(FProperties,ALength);
-   'methods' : SetLength(FMethods,ALength);
-   'resources' : SetLength(FResources,ALength);
-  else
-    inherited SetArrayLength(AName, ALength);
-  end;
-end;
-{$ENDIF}
-
 Function TSchema.DebugName: String;
 begin
   Result:=sysutils.Format('(Name: %s, Pascal Type : %s, type : %s, Ref: %s)',[Name,TypeName,_type,Ref]);
@@ -1067,13 +964,6 @@ begin
     tn:=GetPropertyType(AClassName,S);
     AddLn('Procedure Set%s(AIndex : Integer; const AValue : %s); virtual;',[N,tn]);
     end;
-  if NeedSetArrayLength and not UseListForArray then
-    begin
-    Comment('2.6.4. bug workaround');
-    Addln('{$IFDEF VER2_6}');
-    Addln('Procedure SetArrayLength(Const AName : String; ALength : Longint); override;');
-    Addln('{$ENDIF VER2_6}');
-    end;
   DecIndent;
   AddLn('Public');
   IncIndent;
@@ -1145,28 +1035,7 @@ Var
   N : String;
 
 begin
-  Comment('2.6.4. bug workaround');
-  Addln('{$IFDEF VER2_6}');
-  Addln('Procedure %s.SetArrayLength(Const AName : String; ALength : Longint); ',[AClassName]);
-  Addln('');
-  AddLn('begin');
-  IncIndent;
-  AddLn('Case AName of');
-  For S in ASchema.ClassProperties do
-    if (S._type='array') then
-      begin
-      N:=S.PropertyName;
-      AddLn('''%s'' : SetLength(F%s,ALength);',[Lowercase(N),N]);
-      end;
-  AddLn('else');
-  IncIndent;
-  AddLn('Inherited SetArrayLength(AName,ALength);');
-  DecIndent;
-  AddLn('end;');
-  DecIndent;
-  AddLn('end;');
-  Addln('{$ENDIF VER2_6}');
-  Addln('');
+  //not used
 end;
 
 procedure TDiscoveryJSONToPas.CreateExportPropertyName(AClassName: String; ASchema, AItemSchema: TSchema);
@@ -2097,4 +1966,3 @@ end;
 
 
 end.
-
