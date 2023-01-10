@@ -702,7 +702,9 @@ begin
         DoLog('Class type, adding properties first');
         CollectTypes(S.Properties,NamePrefix+S.Name+PropertyTypeSuffix);
         end;
-    end;
+  else
+    //no other cases to handle
+  end;
   if (NamePrefix='') then
     AddType(S,'',True)
   else if (Not S.BaseType) and (Not BaseArrayElement) and (S.Ref='') then
@@ -920,7 +922,7 @@ Var
 begin
   if ASchema=Nil then
     Raise Exception.Create(AClassName+' : no Schema');
-  ClassHeader(AClassName);
+  ClassComment(AClassName);
   AddLn('%s = Class(%s)',[AClassName,BaseClassName]);
   AddLn('Private');
   NeedGetWriteName:=False;
@@ -998,7 +1000,7 @@ begin
     Raise Exception.Create(AClassName+' : no item Schema');
   AItemName:=GetPropertyType('',AItemSchema);
   AEnumeratorName:=AClassName+'Enumerator';
-  ClassHeader(AEnumeratorName);
+  ClassComment(AEnumeratorName);
   AddLn('%s = Class(%s)',[AEnumeratorName,'TBaseListEnumerator']);
   AddLn('Public');
   IncIndent;
@@ -1008,7 +1010,7 @@ begin
   AddLn('end;');
   AddLn('');
   AddLn('');
-  ClassHeader(AClassName);
+  ClassComment(AClassName);
   AddLn('%s = Class(%s)',[AClassName,BaseListClassName]);
   AddLn('Private');
   IncINdent;
@@ -1029,10 +1031,6 @@ begin
 end;
 
 procedure TDiscoveryJSONToPas.CreateSetArrayLength(AClassName: String; ASchema, AItemSchema: TSchema);
-
-Var
-  S : TSchema;
-  N : String;
 
 begin
   //not used
@@ -1081,7 +1079,7 @@ Var
 begin
   NeedGetWriteName:=False;
   NeedSetArrayLength:=False;
-  ClassHeader(AClassName);
+  ClassComment(AClassName);
   For S in ASchema.ClassProperties do
     begin
     N:=S.PropertyName;
@@ -1120,7 +1118,7 @@ begin
   CreateArrayClassEnumeratorImplementation(ACLassName,ASchema,AItemSchema);
   AItemName:=GetPropertyType('',AItemSchema);
   AEnumeratorName:=AClassName+'Enumerator';
-  ClassHeader(AClassName);
+  ClassComment(AClassName);
   Addln('');
   Addln('Function %s.GetI (AIndex : Integer) : %s;',[AClassName,AItemName]);
   SimpleMethodBody([Format('Result:=%s(Objects[AIndex]);',[AItemName])]);
@@ -1147,7 +1145,7 @@ begin
     Raise Exception.Create(AClassName+' : no ItemSchema');
   AItemName:=GetPropertyType('',AItemSchema);
   AEnumeratorName:=AClassName+'Enumerator';
-  ClassHeader(AEnumeratorName);
+  ClassComment(AEnumeratorName);
   AddLn('Function %s.GetCurrent  : %s;',[AEnumeratorName,AItemName]);
   SimpleMethodBody([Format('Result:=%s(Inherited GetCurrent);',[AItemName])]);
 end;
@@ -1238,6 +1236,8 @@ begin
       dtClass: CreateClassImplementation(S.PascalName,S.Schema,S.ItemSchema);
       dtArray: if UseListForArray then
        CreateArrayClassImplementation(S.PascalName,S.Schema,S.ItemSchema);
+    else
+      //no other cases to handle
     end;
   CreateResourceClassImplementations('',Description.Resources);
   CreateAPIClassImplementation;
@@ -1464,7 +1464,7 @@ Var
 
 begin
   CN:=Res.TypeName;
-  ClassHeader(CN);
+  ClassComment(CN);
   For M in Res.methods do
     begin
     AssignParamNames(Res,M);
@@ -1667,7 +1667,7 @@ Var
 
 begin
   CN:=Res.TypeName;
-  ClassHeader(CN);
+  ClassComment(CN);
   CreateResourceClassMethodsImplementation(Res,CN);
   For M in Res.methods do
     begin
@@ -1753,7 +1753,7 @@ Var
 
 begin
   CN:=GetAPIClassName;
-  Classheader(CN);
+  ClassComment(CN);
   AddLn('%s = Class(TGoogleAPI)',[CN]);
   AddLn('Private');
   IncIndent;
@@ -1814,7 +1814,7 @@ Var
 
 begin
   CN:=GetAPIClassName;
-  ClassHeader(CN);
+  ClassComment(CN);
   AddLn('Class Function %s.APIName : String;',[CN]);
   StringRes(Description.name);
   AddLn('Class Function %s.APIVersion : String;',[CN]);

@@ -197,7 +197,7 @@ procedure TGoogleAPIConverter.RegisterUnit(FileName :String; L : TAPIEntries);
 
 Var
   I : Integer;
-  UN,N,V : String;
+  UN,N : String;
 
 begin
   UN:=ChangeFileext(ExtractFileName(FileName),'');
@@ -268,10 +268,9 @@ procedure TGoogleAPIConverter.CreateFPMake(FileName :String; L : TAPIEntries);
 
 Var
   I : Integer;
-  UN,N,V : String;
+  N : String;
 
 begin
-  UN:=ChangeFileext(ExtractFileName(FileName),'');
   With TStringList.Create do
     try
       Add('program fpmake;');
@@ -307,7 +306,7 @@ begin
       For I:=0 to L.Count-1 do
         begin
         N:=L[i].APIUnitName;
-        Add(Format('    T:=StdDep(P.Targets.AddUnit(''%s''));',[ExtractFileName(L[i].FAPIUnitName)]));
+        Add(Format('    T:=StdDep(P.Targets.AddUnit(''%s''));',[ExtractFileName(N)]));
         end;
       Add('    end;');
       Add('end;');
