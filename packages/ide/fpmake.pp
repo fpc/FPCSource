@@ -320,17 +320,21 @@ begin
         T.Directory:='compiler';
         T.Install:=false;
 
-        P.InstallFiles.Add('fp.ans','$(bininstalldir)');
-        P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
-        P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
-        P.InstallFiles.Add('program.pt','$(bininstalldir)');
-        P.InstallFiles.Add('unit.pt','$(bininstalldir)');
-        P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
-        P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
-        P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
-        P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
-        P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
-        P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
+        if (OSToString(defaults.OS)=lowercase({$I %FPCTARGETOS%})) and
+          (CPUToString(defaults.CPU)=lowercase({$I %FPCTARGETCPU%})) then
+        begin
+          P.InstallFiles.Add('fp.ans','$(bininstalldir)');
+          P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
+          P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
+          P.InstallFiles.Add('program.pt','$(bininstalldir)');
+          P.InstallFiles.Add('unit.pt','$(bininstalldir)');
+          P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
+          P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
+          P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
+          P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
+          P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
+          P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
+        end;
 
         with P.Sources do
         begin
