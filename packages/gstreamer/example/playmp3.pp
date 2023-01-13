@@ -11,7 +11,7 @@ Var
   bus : PGstBus = Nil;
   msgError : PGError = Nil;
   error : PGError = Nil;
-  dbg : PChar;
+  dbg : PAnsiChar;
   FN : String;
 
 
@@ -33,7 +33,7 @@ begin
 
   filesrc := gst_bin_get_by_name (GST_BIN (pipeline), 'my_filesrc');
   FN:=ParamStr(1);
-  g_object_set (filesrc, 'location', PChar(FN), NULL);
+  g_object_set (filesrc, 'location', PAnsiChar(FN), NULL);
   g_object_unref (filesrc);
 
   gst_element_set_state (pipeline, GST_STATE_PLAYING);

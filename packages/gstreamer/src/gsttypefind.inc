@@ -57,9 +57,9 @@
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure gst_type_find_suggest_simple(find:PGstTypeFind; probability:Tguint; media_type:Pchar; fieldname:Pchar; args:array of const);cdecl;external gstreamerlib name 'gst_type_find_suggest_simple';
+  procedure gst_type_find_suggest_simple(find:PGstTypeFind; probability:Tguint; media_type:PAnsiChar; fieldname:PAnsiChar; args:array of const);cdecl;external gstreamerlib name 'gst_type_find_suggest_simple';
 
-  procedure gst_type_find_suggest_simple(find:PGstTypeFind; probability:Tguint; media_type:Pchar; fieldname:Pchar);cdecl;external gstreamerlib name 'gst_type_find_suggest_simple';
+  procedure gst_type_find_suggest_simple(find:PGstTypeFind; probability:Tguint; media_type:PAnsiChar; fieldname:PAnsiChar);cdecl;external gstreamerlib name 'gst_type_find_suggest_simple';
 
   function gst_type_find_get_length(find:PGstTypeFind):Tguint64;cdecl;external gstreamerlib name 'gst_type_find_get_length';
 
