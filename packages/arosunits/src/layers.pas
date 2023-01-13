@@ -91,7 +91,7 @@ const
   LA_Behind  = TAG_USER + 99 + 103; // ABI_V0 compatibility
   LA_ChildOf = TAG_USER + 99 + 101; // ABI_V0 compatibility
 
-  LAYERSNAME : PChar = 'layers.library';
+  LAYERSNAME : PAnsiChar = 'layers.library';
 
 var
   LayersBase : PLibrary;

@@ -126,7 +126,7 @@ uses
 
 
 const
-  MUIMASTER_NAME: PChar = 'muimaster.library';
+  MUIMASTER_NAME: PAnsiChar = 'muimaster.library';
   MUIMASTER_VMIN = 11;
   MUIMASTER_VLATEST = 19;
 
@@ -151,12 +151,12 @@ const
 // Black box specification structures for images, pens, frames
 type
   TMUI_PenSpec = record
-    buf: array[0..31] of char;
+    buf: array[0..31] of AnsiChar;
   end;
   PMUI_PenSpec = ^TMUI_PenSpec;
 
   TMUI_FrameSpec = record
-    buf: array[0..31] of char;
+    buf: array[0..31] of AnsiChar;
   end;
   PMUI_FrameSpec = ^TMUI_FrameSpec;
 
@@ -164,13 +164,13 @@ type
 // NOTE: This stuff is only included to allow compilation of the supplied public screen manager for educational purposes. Everything
 //       here is subject to change without notice and I guarantee to do that just for fun! More info can be found in the screen manager source file.
 const
-  PSD_INITIAL_NAME: PChar = '(unnamed)';
-  PSD_INITIAL_TITLE: PChar = 'MUI Public Screen';
+  PSD_INITIAL_NAME: PAnsiChar = '(unnamed)';
+  PSD_INITIAL_TITLE: PAnsiChar = 'MUI Public Screen';
 
 const
-  PSD_NAME_FRONTMOST: PChar = '«Frontmost»';
-  PSD_FILENAME_SAVE: PChar = 'envarc:mui/PublicScreens.iff';
-  PSD_FILENAME_USE: PChar = 'env:mui/PublicScreens.iff';
+  PSD_NAME_FRONTMOST: PAnsiChar = '«Frontmost»';
+  PSD_FILENAME_SAVE: PAnsiChar = 'envarc:mui/PublicScreens.iff';
+  PSD_FILENAME_USE: PAnsiChar = 'env:mui/PublicScreens.iff';
   PSD_MAXLEN_NAME = 32;
   PSD_MAXLEN_TITLE = 128;
   PSD_MAXLEN_FONT = 48;
@@ -191,10 +191,10 @@ type
 
   TMUI_PubScreenDesc = record
     Version: LongInt;
-    Name: array[0..PSD_MAXLEN_NAME-1] of char;
-    Title: array[0..PSD_MAXLEN_TITLE-1] of char;
-    Font: array[0..PSD_MAXLEN_FONT-1] of char;
-    Background: array[0..PSD_MAXLEN_BACKGROUND-1] of char;
+    Name: array[0..PSD_MAXLEN_NAME-1] of AnsiChar;
+    Title: array[0..PSD_MAXLEN_TITLE-1] of AnsiChar;
+    Font: array[0..PSD_MAXLEN_FONT-1] of AnsiChar;
+    Background: array[0..PSD_MAXLEN_BACKGROUND-1] of AnsiChar;
 
     DisplayID: LongWord;
 
@@ -270,8 +270,8 @@ const
 // ARexx Interface
 type
   TMUI_Command = record
-    mc_Name: PChar;
-    mc_Template: PChar;
+    mc_Name: PAnsiChar;
+    mc_Template: PAnsiChar;
     mc_Parameters: LongInt;
     mc_Hook: PHook;
     mc_Reserved: array[0..4] of LongInt;
@@ -602,7 +602,7 @@ const
 // *********************************************************************
 // Notify
 const
-  MUIC_Notify: PChar = 'Notify.mui';
+  MUIC_Notify: PAnsiChar = 'Notify.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Notify = MUIB_ZUNE or $00001d00;
@@ -754,7 +754,7 @@ type
     {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_SetAsString
     attr: LongWord;
-    format: PChar;
+    format: PAnsiChar;
     val: IPTR;
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
@@ -796,8 +796,8 @@ type
   TMUIP_WriteString = record  // record with stacked fields
     {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_WriteString
-    str: PChar;
-    memory: PChar;
+    str: PAnsiChar;
+    memory: PAnsiChar;
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
   end;
@@ -836,7 +836,7 @@ const
 // *********************************************************************
 // Family
 const
-   MUIC_Family: PChar = 'Family.mui';
+   MUIC_Family: PAnsiChar = 'Family.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Family = MUIB_ZUNE or $00000c00;
@@ -929,7 +929,7 @@ const
 // *********************************************************************
 //  Application
 const
-  MUIC_Application: PChar = 'Application.mui';
+  MUIC_Application: PAnsiChar = 'Application.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Application = MUIB_ZUNE or $00000100;
@@ -1133,8 +1133,8 @@ type
     {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_ShowHelp
     window: PObject_;
-    name: PChar;
-    node: PChar;
+    name: PAnsiChar;
+    node: PAnsiChar;
     line: LongInt;
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
@@ -1230,7 +1230,7 @@ type
 // *********************************************************************
 //  Window
 const
-  MUIC_Window: PChar = 'Window.mui';
+  MUIC_Window: PAnsiChar = 'Window.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Window = MUIB_ZUNE or $00003600;
@@ -1551,7 +1551,7 @@ const
 // *********************************************************************
 //  Area
 const
-  MUIC_Area: PChar = 'Area.mui';
+  MUIC_Area: PAnsiChar = 'Area.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Area = MUIB_ZUNE or $00000200;
@@ -1644,7 +1644,7 @@ type
     MethodID: LongWord;  // MUIM_CreateBubble
     x: LongInt;
     y: LongInt;
-    txt : PChar;
+    txt : PAnsiChar;
     flags: LongWord;
     pad_align: record end; // properly pad previous field if applicable
     {$POP}
@@ -1917,7 +1917,7 @@ const
   MUIA_BottomEdge         = MUIB_MUI or $42e552; // V4  ..g LongInt
   MUIA_ContextMenu        = MUIB_MUI or $42b704; // V11 isg PObject
   MUIA_ContextMenuTrigger = MUIB_MUI or $42a2c1; // V11 ..g PObject
-  MUIA_ControlChar        = MUIB_MUI or $42120b; // V4  isg Char
+  MUIA_ControlChar        = MUIB_MUI or $42120b; // V4  isg AnsiChar
   MUIA_CycleChain         = MUIB_MUI or $421ce7; // V11 isg LongInt
   MUIA_Disabled           = MUIB_MUI or $423661; // V4  isg WordBool
   MUIA_DoubleBuffer       = MUIB_MUI or $42a9c7; // V20 isg WordBool
@@ -2014,7 +2014,7 @@ type
     // offset 95
     mad_InputMode: ShortInt;         // how to react to events
     // offset 96
-    mad_ControlChar: Char;           // key shortcut
+    mad_ControlChar: AnsiChar;           // key shortcut
     mad_TitleHeightAdd: ShortInt;    // frame title height = mad_TitleBelow + mad_TitleBaseline
     mad_TitleHeightBelow: ShortInt;  // height below frame
     mad_TitleHeightAbove: ShortInt;  // height above frame
@@ -2032,7 +2032,7 @@ type
     mad_ehn: TMUI_EventHandlerNode;
     mad_Timer: TMUI_InputHandlerNode;   // MUIA_Timer
     mad_Timeval: LongWord;              // just to trigger notifications
-    mad_ccn: TMUI_EventHandlerNode;     // gross hack for control char
+    mad_ccn: TMUI_EventHandlerNode;     // gross hack for control AnsiChar
     mad_ContextMenu: APTR;              // menu strip
     mad_ClickX: LongInt;                // x position of the initial SELECTDOWN click
     mad_ClickY: LongInt;                // y position of the intiial SELECTDOWN click
@@ -2075,7 +2075,7 @@ const
 // *********************************************************************
 //  Group
 const
-  MUIC_Group: PChar = 'Group.mui';
+  MUIC_Group: PAnsiChar = 'Group.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Group = MUIB_ZUNE or $00001000;
@@ -2207,7 +2207,7 @@ const
 // *********************************************************************
 //  Rectangle
 const
-  MUIC_Rectangle: PChar = 'Rectangle.mui';
+  MUIC_Rectangle: PAnsiChar = 'Rectangle.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Rectangle = MUIB_ZUNE or $00002b00;
@@ -2221,7 +2221,7 @@ const
 // *********************************************************************
 //  Text
 const
-  MUIC_Text: PChar = 'Text.mui';
+  MUIC_Text: PAnsiChar = 'Text.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Text = MUIB_ZUNE or $00003500;
@@ -2229,8 +2229,8 @@ const
 // Attributes
 const
   MUIA_Text_Contents  = MUIB_MUI or $42f8dc; // V4  isg STRPTR
-  MUIA_Text_HiChar    = MUIB_MUI or $4218ff; // V4  i.. Char
-  MUIA_Text_HiCharIdx = MUIB_MUI or $4214f5; //     i.. Char
+  MUIA_Text_HiChar    = MUIB_MUI or $4218ff; // V4  i.. AnsiChar
+  MUIA_Text_HiCharIdx = MUIB_MUI or $4214f5; //     i.. AnsiChar
   MUIA_Text_PreParse  = MUIB_MUI or $42566d; // V4  isg STRPTR
   MUIA_Text_SetMax    = MUIB_MUI or $424d0a; // V4  i.. WordBool
   MUIA_Text_SetMin    = MUIB_MUI or $424e10; // V4  i.. WordBool
@@ -2252,7 +2252,7 @@ const
 // *********************************************************************
 //  Numeric
 const
-  MUIC_Numeric: PChar = 'Numeric.mui';
+  MUIC_Numeric: PAnsiChar = 'Numeric.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Numeric = MUIB_ZUNE or $00001e00;
@@ -2351,7 +2351,7 @@ const
 // *********************************************************************
 //  Slider
 const
-  MUIC_Slider: PChar = 'Slider.mui';
+  MUIC_Slider: PAnsiChar = 'Slider.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Slider = MUIB_ZUNE or $00003300;
@@ -2371,7 +2371,7 @@ const
 // *********************************************************************
 //  String
 const
-  MUIC_String: PChar = 'String.mui';
+  MUIC_String: PAnsiChar = 'String.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_String = MUIB_ZUNE or $00003400;
@@ -2448,7 +2448,7 @@ type
 // *********************************************************************
 //  Boopsi
 const
-  MUIC_Boopsi: PChar = 'Boopsi.mui';
+  MUIC_Boopsi: PAnsiChar = 'Boopsi.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Boopsi = MUIB_ZUNE or $00000600;
@@ -2456,7 +2456,7 @@ const
 // Attributes
 const
   MUIA_Boopsi_Class       = MUIB_MUI or $426999; // V4  isg PIClass
-  MUIA_Boopsi_ClassID     = MUIB_MUI or $42bfa3; // V4  isg PChar
+  MUIA_Boopsi_ClassID     = MUIB_MUI or $42bfa3; // V4  isg PAnsiChar
   MUIA_Boopsi_MaxHeight   = MUIB_MUI or $42757f; // V4  isg LongWord
   MUIA_Boopsi_MaxWidth    = MUIB_MUI or $42bcb1; // V4  isg LongWord
   MUIA_Boopsi_MinHeight   = MUIB_MUI or $422c93; // V4  isg LongWord
@@ -2471,7 +2471,7 @@ const
 // *********************************************************************
 //  Prop
 const
-  MUIC_Prop: PChar = 'Prop.mui';
+  MUIC_Prop: PAnsiChar = 'Prop.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Prop = MUIB_ZUNE or $00002900;
@@ -2520,7 +2520,7 @@ const
 // *********************************************************************
 //  Scrollbar
 const
-  MUIC_Scrollbar: PChar = 'Scrollbar.mui';
+  MUIC_Scrollbar: PAnsiChar = 'Scrollbar.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Scrollbar = MUIB_ZUNE or $00002e00;
@@ -2537,7 +2537,7 @@ const
 // *********************************************************************
 //  Register
 const
-  MUIC_Register: PChar = 'Register.mui';
+  MUIC_Register: PAnsiChar = 'Register.mui';
 
 // Identifier base  (for Zune extensions)
   MUIB_Register = MUIB_ZUNE or $00002c00;
@@ -2552,7 +2552,7 @@ const
 // *********************************************************************
 //  Menustrip
 const
-  MUIC_Menustrip: PChar = 'Menustrip.mui';
+  MUIC_Menustrip: PAnsiChar = 'Menustrip.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Menustrip = MUIB_ZUNE or $00001a00;
@@ -2564,7 +2564,7 @@ const
 // *********************************************************************
 //  Menu
 const
-  MUIC_Menu: PChar = 'Menu.mui';
+  MUIC_Menu: PAnsiChar = 'Menu.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Menu = MUIB_ZUNE or $00001b00;
@@ -2577,7 +2577,7 @@ const
 // *********************************************************************
 //  Menuitem
 const
-  MUIC_Menuitem: PChar = 'Menuitem.mui';
+  MUIC_Menuitem: PAnsiChar = 'Menuitem.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Menuitem = MUIB_ZUNE or $00001c00;
@@ -2601,7 +2601,7 @@ const
 // *********************************************************************
 //  Dataspace
 const
-  MUIC_Dataspace: PChar = 'Dataspace.mui';
+  MUIC_Dataspace: PAnsiChar = 'Dataspace.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Dataspace = MUIB_ZUNE or $00000b00;
@@ -2690,7 +2690,7 @@ const
 // *********************************************************************
 //  Virtgroup
 const
-  MUIC_Virtgroup: PChar = 'Virtgroup.mui';
+  MUIC_Virtgroup: PAnsiChar = 'Virtgroup.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Virtgroup = MUIB_ZUNE or $00003700;
@@ -2706,7 +2706,7 @@ const
 // *********************************************************************
 //  Scrollgroup
 const
-  MUIC_Scrollgroup: PChar = 'Scrollgroup.mui';
+  MUIC_Scrollgroup: PAnsiChar = 'Scrollgroup.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Scrollgroup = MUIB_ZUNE or $00002f00;
@@ -2723,7 +2723,7 @@ const
 // *********************************************************************
 //  ScrollButton
 const
-  MUIC_Scrollbutton: PChar = 'Scrollbutton.mui';
+  MUIC_Scrollbutton: PAnsiChar = 'Scrollbutton.mui';
 
 // Identifier base
   MUIB_Scrollbutton = MUIB_ZUNE or $00004100;
@@ -2739,7 +2739,7 @@ const
 // *********************************************************************
 //  Semaphore
 const
-  MUIC_Semaphore: PChar = 'Semaphore.mui';
+  MUIC_Semaphore: PAnsiChar = 'Semaphore.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Semaphore = MUIB_ZUNE or $00003000;
@@ -2796,7 +2796,7 @@ type
 // *********************************************************************
 //  Bitmap
 const
-  MUIC_Bitmap: PChar = 'Bitmap.mui';
+  MUIC_Bitmap: PAnsiChar = 'Bitmap.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Bitmap = MUIB_ZUNE or $00000400;
@@ -2817,7 +2817,7 @@ const
 // *********************************************************************
 //  Bodychunk
 const
-   MUIC_Bodychunk : PChar = 'Bodychunk.mui';
+   MUIC_Bodychunk : PAnsiChar = 'Bodychunk.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Bodychunk = MUIB_ZUNE or $00000500;
@@ -2832,7 +2832,7 @@ const
 // *********************************************************************
 //  ChunkyImage
 const
-   MUIC_ChunkyImage : PChar = 'ChunkyImage.mui';
+   MUIC_ChunkyImage : PAnsiChar = 'ChunkyImage.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_ChunkyImage = MUIB_ZUNE or $00004000;
@@ -2847,7 +2847,7 @@ const
 // *********************************************************************
 //  Listview
 const
-  MUIC_Listview: PChar = 'Listview.mui';
+  MUIC_Listview: PAnsiChar = 'Listview.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Listview = MUIB_ZUNE or $00001900;
@@ -2880,7 +2880,7 @@ const
 // *********************************************************************
 //  List
 const
-  MUIC_List: PChar = 'List.mui';
+  MUIC_List: PAnsiChar = 'List.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_List = MUIB_ZUNE or $00001400;
@@ -3096,7 +3096,7 @@ const
   MUIA_List_Quiet          = MUIB_MUI or $42d8c7; // V4  .s. WordBool
   MUIA_List_ShowDropMarks  = MUIB_MUI or $42c6f3; // V11 isg WordBool
   MUIA_List_SourceArray    = MUIB_MUI or $42c0a0; // V4  i.. APTR
-  MUIA_List_Title          = MUIB_MUI or $423e66; // V6  isg PChar
+  MUIA_List_Title          = MUIB_MUI or $423e66; // V6  isg PAnsiChar
   MUIA_List_Visible        = MUIB_MUI or $42191f; // V4  ..g LongInt
 
   MUIV_List_Active_Off      = -1;
@@ -3164,7 +3164,7 @@ const
 // *********************************************************************
 //  Scrmodelist
 const
-  MUIC_Scrmodelist: PChar = 'Scrmodelist.mui';
+  MUIC_Scrmodelist: PAnsiChar = 'Scrmodelist.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Scrmodelist = MUIB_ZUNE or $00001700;
@@ -3172,7 +3172,7 @@ const
 // *********************************************************************
 //  Floattext
 const
-  MUIC_Floattext: PChar = 'Floattext.mui';
+  MUIC_Floattext: PAnsiChar = 'Floattext.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Floattext = MUIB_ZUNE or $00001500;
@@ -3200,7 +3200,7 @@ const
 // *********************************************************************
 //  Popstring
 const
-  MUIC_Popstring: PChar = 'Popstring.mui';
+  MUIC_Popstring: PAnsiChar = 'Popstring.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Popstring = MUIB_ZUNE or $00002800;
@@ -3239,7 +3239,7 @@ const
 // *********************************************************************
 //  Popobject
 const
-  MUIC_Popobject: PChar = 'Popobject.mui';
+  MUIC_Popobject: PAnsiChar = 'Popobject.mui';
 
 // Identifier base
   MUIB_Popobject = MUIB_ZUNE or $00002400;
@@ -3257,7 +3257,7 @@ const
 // *********************************************************************
 //  Cycle
 const
-  MUIC_Cycle: PChar = 'Cycle.mui';
+  MUIC_Cycle: PAnsiChar = 'Cycle.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Cycle = MUIB_ZUNE or $00000a00;
@@ -3273,7 +3273,7 @@ const
 // *********************************************************************
 //  Gauge
 const
-  MUIC_Gauge: PChar = 'Gauge.mui';
+  MUIC_Gauge: PAnsiChar = 'Gauge.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Gauge = MUIB_ZUNE or $00000f00;
@@ -3291,7 +3291,7 @@ const
 // *********************************************************************
 //  Image
 const
-  MUIC_Image: PChar = 'Image.mui';
+  MUIC_Image: PAnsiChar = 'Image.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Image = MUIB_ZUNE or $00001300;
@@ -3304,13 +3304,13 @@ const
   MUIA_Image_FreeHoriz       = MUIB_MUI or $42da84; // V4  i.. WordBool
   MUIA_Image_FreeVert        = MUIB_MUI or $42ea28; // V4  i.. WordBool
   MUIA_Image_OldImage        = MUIB_MUI or $424f3d; // V4  i.. PImage
-  MUIA_Image_Spec            = MUIB_MUI or $4233d5; // V4  i.. PChar
+  MUIA_Image_Spec            = MUIB_MUI or $4233d5; // V4  i.. PAnsiChar
   MUIA_Image_State           = MUIB_MUI or $42a3ad; // V4  is. LongInt
 
 // *********************************************************************
 //  Imagedisplay
 const
-  MUIC_Imagedisplay: PChar = 'Imagedisplay.mui';
+  MUIC_Imagedisplay: PAnsiChar = 'Imagedisplay.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Imagedisplay = MUIB_ZUNE or $00001200;
@@ -3325,7 +3325,7 @@ const
 // *********************************************************************
 //  Popasl
 const
-  MUIC_Popasl: PChar = 'Popasl.mui';
+  MUIC_Popasl: PAnsiChar = 'Popasl.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Popasl = MUIB_ZUNE or $00002100;
@@ -3340,7 +3340,7 @@ const
 // *********************************************************************
 //  Settingsgroup
 const
-  MUIC_Settingsgroup: PChar = 'Settingsgroup.mui';
+  MUIC_Settingsgroup: PAnsiChar = 'Settingsgroup.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Settingsgroup = MUIB_ZUNE or $00003100;
@@ -3372,7 +3372,7 @@ type
 // *********************************************************************
 //  Settings
 const
-  MUIC_Settings: PChar = 'Settings.mui';
+  MUIC_Settings: PAnsiChar = 'Settings.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Settings = MUIB_ZUNE or $00003200;
@@ -3380,7 +3380,7 @@ const
 // *********************************************************************
 //  Aboutmui
 const
-  MUIC_Aboutmui: PChar = 'Aboutmui.mui';
+  MUIC_Aboutmui: PAnsiChar = 'Aboutmui.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Aboutmui = MUIB_ZUNE or $0;
@@ -3392,7 +3392,7 @@ const
 // *********************************************************************
 //  Configdata
 const
-   MUIC_Configdata : PChar = 'Configdata.mui';
+   MUIC_Configdata : PAnsiChar = 'Configdata.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Configdata = MUIB_ZUNE or $00000900;
@@ -3679,7 +3679,7 @@ const
 // *********************************************************************
 //  Imageadjust
 const
-  MUIC_Imageadjust: PChar = 'Imageadjust.mui';
+  MUIC_Imageadjust: PAnsiChar = 'Imageadjust.mui';
 
 // Identifier base (for AROS extensions)
   MUIB_Imageadjust = MUIB_ZUNE or $00001100;
@@ -3687,7 +3687,7 @@ const
 // Attributes
 const
   MUIA_Imageadjust_Type = MUIB_MUI or $422f2b; // V11 i.. LongInt
-  MUIA_Imageadjust_Spec = MUIB_MUI or $4279e1; // ??? .g. PChar
+  MUIA_Imageadjust_Spec = MUIB_MUI or $4279e1; // ??? .g. PAnsiChar
   // AROS special
   MUIA_Imageadjust_Originator = MUIB_Imageadjust or $0; // Zune: i.. PObject_
 
@@ -3699,7 +3699,7 @@ const
 // *********************************************************************
 //  Popimage
 const
-  MUIC_Popimage: PChar = 'Popimage.mui';
+  MUIC_Popimage: PAnsiChar = 'Popimage.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Popimage = MUIB_ZUNE or $00002300;
@@ -3707,7 +3707,7 @@ const
 // *********************************************************************
 //  Scale
 const
-  MUIC_Scale: PChar = 'Scale.mui';
+  MUIC_Scale: PAnsiChar = 'Scale.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Scale = MUIB_ZUNE or $00002d00;
@@ -3719,7 +3719,7 @@ const
 // *********************************************************************
 //  Radio
 const
-  MUIC_Radio: PChar = 'Radio.mui';
+  MUIC_Radio: PAnsiChar = 'Radio.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Radio = MUIB_ZUNE or $00002a00;
@@ -3732,7 +3732,7 @@ const
 // *********************************************************************
 //  Balance
 const
-  MUIC_Balance: PChar = 'Balance.mui';
+  MUIC_Balance: PAnsiChar = 'Balance.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Balance = MUIB_ZUNE or $00000300;
@@ -3743,7 +3743,7 @@ const
 // *********************************************************************
 //  Pendisplay
 const
-  MUIC_Pendisplay: PChar = 'Pendisplay.mui';
+  MUIC_Pendisplay: PAnsiChar = 'Pendisplay.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Pendisplay = MUIB_ZUNE or $00002000;
@@ -3794,7 +3794,7 @@ const
 // *********************************************************************
 //  Penadjust
 const
-  MUIC_Penadjust: PChar= 'Penadjust.mui';
+  MUIC_Penadjust: PAnsiChar= 'Penadjust.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Penadjust = MUIB_ZUNE or $00001f00;
@@ -3806,7 +3806,7 @@ const
 // *********************************************************************
 //  Poppen
 const
-  MUIC_Poppen: PChar = 'Poppen.mui';
+  MUIC_Poppen: PAnsiChar = 'Poppen.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Poppen = MUIB_ZUNE or $00002700;
@@ -3814,7 +3814,7 @@ const
 // *********************************************************************
 //  Colorfield
 const
-  MUIC_Colorfield: PChar = 'Colorfield.mui';
+  MUIC_Colorfield: PAnsiChar = 'Colorfield.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Colorfield = MUIB_ZUNE or $00000800;
@@ -3830,7 +3830,7 @@ const
 // *********************************************************************
 //  Coloradjust
 const
-  MUIC_Coloradjust: PChar = 'Coloradjust.mui';
+  MUIC_Coloradjust: PAnsiChar = 'Coloradjust.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Coloradjust = MUIB_ZUNE or $00000700;
@@ -3846,12 +3846,12 @@ const
 // *********************************************************************
 //  Mccprefs
 const
-  MUIC_Mccprefs: PChar = 'Mccprefs.mui';
+  MUIC_Mccprefs: PAnsiChar = 'Mccprefs.mui';
 
 // *********************************************************************
 //  Frameadjust
 const
-  MUIC_Frameadjust: PChar = 'Frameadjust.mui';
+  MUIC_Frameadjust: PAnsiChar = 'Frameadjust.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Frameadjust = MUIB_ZUNE or $00000d00;
@@ -3862,7 +3862,7 @@ const
 // *********************************************************************
 //  Framedisplay
 const
-  MUIC_Framedisplay: PChar = 'Framedisplay.mui';
+  MUIC_Framedisplay: PAnsiChar = 'Framedisplay.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Framedisplay = MUIB_ZUNE or $00000e00;
@@ -3873,7 +3873,7 @@ const
 // *********************************************************************
 //  Popframe
 const
-  MUIC_Popframe: PChar = 'Popframe.mui';
+  MUIC_Popframe: PAnsiChar = 'Popframe.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Popframe = MUIB_ZUNE or $00002200;
@@ -3881,7 +3881,7 @@ const
 // *********************************************************************
 //  Volumelist
 const
-  MUIC_Volumelist: PChar = 'Volumelist.mui';
+  MUIC_Volumelist: PAnsiChar = 'Volumelist.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Volumelist = MUIB_ZUNE or $1600;
@@ -3889,7 +3889,7 @@ const
 // *********************************************************************
 //  Dirlist
 const
-  MUIC_Dirlist: PChar = 'Dirlist.mui';
+  MUIC_Dirlist: PAnsiChar = 'Dirlist.mui';
 
 // Identifer base (for Zune extensions)
   MUIB_Dirlist = MUIB_ZUNE or $00001800;
@@ -3941,24 +3941,24 @@ const
 // *********************************************************************
 //  Numericbutton
 const
-  MUIC_Numericbutton: PChar = 'Numericbutton.mui';
+  MUIC_Numericbutton: PAnsiChar = 'Numericbutton.mui';
 
 // *********************************************************************
 //  Poplist
 const
-  MUIC_Poplist: PChar = 'Poplist.mui';
+  MUIC_Poplist: PAnsiChar = 'Poplist.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Poplist = MUIB_ZUNE or $00002500;
 
 // Attributes
 const
-  MUIA_Poplist_Array = MUIB_MUI or $42084c; // V8  i.. PPChar
+  MUIA_Poplist_Array = MUIB_MUI or $42084c; // V8  i.. PPAnsiChar
 
 // *********************************************************************
 //  Popscreen
 const
-  MUIC_Popscreen: PChar = 'Popscreen.mui';
+  MUIC_Popscreen: PAnsiChar = 'Popscreen.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Popscreen = MUIB_ZUNE or $00002600;
@@ -3966,12 +3966,12 @@ const
 // *********************************************************************
 //  Crawling
 const
-  MUIC_Crawling: PChar = 'Crawling.mui';
+  MUIC_Crawling: PAnsiChar = 'Crawling.mui';
 
 // *********************************************************************
 //  Levelmeter
 const
-  MUIC_Levelmeter: PChar = 'Levelmeter.mui';
+  MUIC_Levelmeter: PAnsiChar = 'Levelmeter.mui';
 
 // Attributes
 const
@@ -3980,12 +3980,12 @@ const
 // *********************************************************************
 //  Knob
 const
-  MUIC_Knob: PChar = 'Knob.mui';
+  MUIC_Knob: PAnsiChar = 'Knob.mui';
 
 // *********************************************************************
 //  Dtpic
 const
-  MUIC_Dtpic: PChar = 'Dtpic.mui';
+  MUIC_Dtpic: PAnsiChar = 'Dtpic.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Palette = MUIB_ZUNE or $00008a00;
@@ -4001,23 +4001,23 @@ const
 // *********************************************************************
 //  Palette
 const
-  MUIC_Palette: PChar = 'Palette.mui';
+  MUIC_Palette: PAnsiChar = 'Palette.mui';
 
 // Attributes
 const
   MUIA_Palette_Entries   = $8042a3d8;{ V6  i.g struct MUI_Palette_Entry    }
   MUIA_Palette_Groupable = $80423e67;{ V6  isg BOOL               }
-  MUIA_Palette_Names     = $8042c3a2;{ V6  isg char               }
+  MUIA_Palette_Names     = $8042c3a2;{ V6  isg AnsiChar               }
 
 // *********************************************************************
 //  Title
 const
-  MUIC_Title: PChar = 'Title.mui';
+  MUIC_Title: PAnsiChar = 'Title.mui';
 
 // *********************************************************************
 //  Process
 const
-  MUIC_Process: PChar = 'Process.mui';
+  MUIC_Process: PAnsiChar = 'Process.mui';
 
 // Methods
   MUIM_Process_Kill    = MUIB_MUI or $4264cf; // V20
@@ -4071,7 +4071,7 @@ const
 // *********************************************************************
 //  Pixmap
 const
-  MUIC_Pixmap: PChar = 'Pixmap.mui';
+  MUIC_Pixmap: PAnsiChar = 'Pixmap.mui';
 
 // Identifier base (for Zune extensions)
   MUIB_Pixmap = MUIB_ZUNE or $00003600;
@@ -4117,7 +4117,7 @@ const
 // *********************************************************************
 //  Gadget
 const
-  MUIC_Gadget: PChar = 'Gadget.mui';
+  MUIC_Gadget: PAnsiChar = 'Gadget.mui';
 
 // Attributes
 const
@@ -4126,12 +4126,12 @@ const
 // *********************************************************************
 //  Applist
 const
-  MUIC_Applist: PChar = 'Applist.mui';
+  MUIC_Applist: PAnsiChar = 'Applist.mui';
 
 // *********************************************************************
 //  Cclist
 const
-  MUIC_Cclist: PChar = 'Cclist.mui';
+  MUIC_Cclist: PAnsiChar = 'Cclist.mui';
 
 type
 // Instance data of notify class
@@ -4232,20 +4232,20 @@ type
 var
   MUIMasterBase: PLibrary;
 
-function MUI_NewObjectA(ClassID: PChar; Tags: pTagItem): PObject_; syscall MUIMasterBase 5;
+function MUI_NewObjectA(ClassID: PAnsiChar; Tags: pTagItem): PObject_; syscall MUIMasterBase 5;
 procedure MUI_DisposeObject(Obj: PObject_); syscall MUIMasterBase 6;
-function MUI_RequestA(App: APTR; Win: APTR; Flags: LongBits; Title: PChar; Gadgets: PChar; Format: PChar; Params: APTR): LongInt; syscall MUIMasterBase 7;
+function MUI_RequestA(App: APTR; Win: APTR; Flags: LongBits; Title: PAnsiChar; Gadgets: PAnsiChar; Format: PAnsiChar; Params: APTR): LongInt; syscall MUIMasterBase 7;
 function MUI_AllocAslRequest(ReqTyp: LongWord; TagList: PTagItem): Pointer; syscall MUIMasterBase 8;
 function MUI_AslRequest(Requester: Pointer; TagList: PTagItem): LongBool; syscall MUIMasterBase 9;
 procedure MUI_FreeAslRequest(Requester: APTR); syscall MUIMasterBase 10;
 function MUI_Error: LongInt; syscall MUIMasterBase 11;
 function MUI_SetError(ErrNum: LongInt): LongInt; syscall MUIMasterBase 12;
-function MUI_GetClass(ClassID: PChar): PIClass; syscall MUIMasterBase 13;
+function MUI_GetClass(ClassID: PAnsiChar): PIClass; syscall MUIMasterBase 13;
 procedure MUI_FreeClass(Cl: PIClass); syscall MUIMasterBase 14;
 procedure MUI_RequestIDCMP(Obj: PObject_; Flags: LongWord); syscall MUIMasterBase 15;
 procedure MUI_RejectIDCMP(Obj: PObject_; Flags: LongWord); syscall MUIMasterBase 16;
 procedure MUI_Redraw(Obj: PObject_; Flags: LongWord); syscall MUIMasterBase 17;
-function MUI_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: Pointer): PMUI_CustomClass; syscall MUIMasterBase 18;
+function MUI_CreateCustomClass(Base: PLibrary; Supername: PAnsiChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: Pointer): PMUI_CustomClass; syscall MUIMasterBase 18;
 function MUI_DeleteCustomClass(Mcc: PMUI_CustomClass): LongBool; syscall MUIMasterBase 19;
 function MUI_MakeObjectA(Typ: LongInt; Params: PIPTR): PObject_; syscall MUIMasterBase 20;
 function MUI_Layout(Obj: PObject_; Left: LongInt; Top: LongInt; Width: LongInt; Height: LongInt; Flags: LongWord): LongBool; syscall MUIMasterBase 21;
@@ -4340,8 +4340,8 @@ function MUIV_Window_Width_Screen(p: LongInt): LongInt;
 function MUI_AllocAslRequestTags(ReqTyp: Longword; const Tags: array of PtrUInt): Pointer;
 function MUI_AslRequestTags(req: Pointer; const Tags : array of PtrUInt): LongBool;
 function MUI_MakeObject(_Type: LongInt; const Params : array of PtrUInt): PObject_;
-function MUI_NewObject(a0arg: PChar; const Tags: array of PtrUInt): PObject_;
-function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PChar; Gadgets: PChar; Format: PChar; const Params: Array Of PtrUInt): LongInt;
+function MUI_NewObject(a0arg: PAnsiChar; const Tags: array of PtrUInt): PObject_;
+function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PAnsiChar; Gadgets: PAnsiChar; Format: PAnsiChar; const Params: Array Of PtrUInt): LongInt;
 
 implementation
 
@@ -4629,12 +4629,12 @@ begin
   MUI_MakeObject := MUI_MakeObjectA(_Type, @Params);
 end;
 
-function MUI_NewObject(a0arg: PChar; const Tags: array of PtrUInt): PObject_; inline;
+function MUI_NewObject(a0arg: PAnsiChar; const Tags: array of PtrUInt): PObject_; inline;
 begin
   MUI_NewObject := MUI_NewObjectA(a0arg , @Tags);
 end;
 
-function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PChar; Gadgets: PChar; Format: PChar; const Params: Array Of PtrUInt): LongInt;
+function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PAnsiChar; Gadgets: PAnsiChar; Format: PAnsiChar; const Params: Array Of PtrUInt): LongInt;
 begin
   MUI_Request := MUI_RequestA(App, Win, Flags, Title, Gadgets, Format, @Params);
 end;

@@ -42,8 +42,8 @@ type
   IPTR         = NativeUInt;
   SIPTR        = NativeInt;
   PIPTR        = ^IPTR;
-  STRPTR       = PChar;
-  CONST_STRPTR = PChar;
+  STRPTR       = PAnsiChar;
+  CONST_STRPTR = PAnsiChar;
   BPTR         = Pointer;
   BSTR         = Pointer;
   BOOL         = SmallInt;
@@ -1287,7 +1287,7 @@ procedure InitCode(StartClass: ULONG; Version: ULONG); syscall AOS_ExecBase 12;
 procedure InitStruct(const InitTable: APTR; Memory: APTR; Size: ULONG); syscall AOS_ExecBase 13;
 function MakeLibrary(const FuncInit: APTR; const StructInit: APTR; LibInit: TProcedure; DataSize: ULONG; SegList: ULONG): PLibrary; syscall AOS_ExecBase 14;
 procedure MakeFunctions(const Target: APTR; const FunctionArray: CONST_APTR; const FuncDispBase: CONST_APTR); syscall AOS_ExecBase 15;
-function FindResident(const Name: PChar): PResident; syscall AOS_ExecBase 16;
+function FindResident(const Name: PAnsiChar): PResident; syscall AOS_ExecBase 16;
 function InitResident(const Resident_: PResident; SegList: ULONG): PResident; syscall AOS_ExecBase 17;
 procedure Alert(AlertNum: ULONG); syscall AOS_ExecBase 18;
 procedure Debug(Flags: ULONG); syscall AOS_ExecBase 19;
@@ -1317,7 +1317,7 @@ procedure Remove(Node: PNode); syscall AOS_ExecBase 42;
 function RemHead(List: PList): PNode; syscall AOS_ExecBase 43;
 function RemTail(List: PList): PNode; syscall AOS_ExecBase 44;
 procedure Enqueue(List: PList; Node: PNode); syscall AOS_ExecBase 45;
-function FindName(List: PList; const Name: PChar): PNode; syscall AOS_ExecBase 46;
+function FindName(List: PList; const Name: PAnsiChar): PNode; syscall AOS_ExecBase 46;
 function AddTask(Task: PTask; const InitialPC: APTR; const FinalPC: APTR): PTask; syscall AOS_ExecBase 47;  deprecated;
 procedure RemTask(Task: PTask); syscall AOS_ExecBase 48;
 function FindTask(const Name: STRPTR): PTask; syscall AOS_ExecBase 49;
@@ -1406,7 +1406,7 @@ function ObtainQuickVector(InterruptCode: APTR): ULONG; syscall AOS_ExecBase 131
 function NewStackSwap(NewStack: PStackSwapStruct; Function_: APTR; Args: PStackSwapArgs): IPTR; syscall AOS_ExecBase 134;
 function TaggedOpenLibrary(Tag: LongInt): APTR; syscall AOS_ExecBase 135;
 function ReadGayle: ULONG; syscall AOS_ExecBase 136;
-function VNewRawDoFmt(const FormatString: STRPTR; PutChProc: TProcedure; PutChData: APTR; VaListStream: PChar): STRPTR; syscall AOS_ExecBase 137;
+function VNewRawDoFmt(const FormatString: STRPTR; PutChProc: TProcedure; PutChData: APTR; VaListStream: PAnsiChar): STRPTR; syscall AOS_ExecBase 137;
 function NewCreateTaskA(TagList: PTagItem): APTR; syscall AOS_ExecBase 153;
 function AddResetCallback(ResetCallback: PInterrupt): LongBool; syscall AOS_ExecBase 167;
 procedure RemResetCallback(ResetCallback: PInterrupt); syscall AOS_ExecBase 168;
@@ -1461,8 +1461,8 @@ function GetParentTaskStorageSlot(Id: LongInt): IPTR; syscall AOS_ExecBase 186;
 
 function BitMask(no :ShortInt): LongInt;
 // C Macros
-procedure SetNodeName(Node: PNode; Name: PChar);
-function GetNodeName(Node: PNode): PChar;
+procedure SetNodeName(Node: PNode; Name: PAnsiChar);
+function GetNodeName(Node: PNode): PAnsiChar;
 
 procedure NewList(List: PList);
 function GetHead(List: PList): PNode; inline;
@@ -1501,13 +1501,13 @@ begin
 end;
 
 // C Macros
-procedure SetNodeName(Node: PNode; Name: PChar); inline;
+procedure SetNodeName(Node: PNode; Name: PAnsiChar); inline;
 begin
   if Assigned(Node) then
     Node^.ln_Name := Name;
 end;
 
-function GetNodeName(Node: PNode): PChar; inline;
+function GetNodeName(Node: PNode): PAnsiChar; inline;
 begin
   if Assigned(Node) then
     GetNodeName := Node^.ln_Name;
