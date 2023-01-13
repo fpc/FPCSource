@@ -183,7 +183,7 @@ begin
         c^.sub.lit := t^.base;
        {$IFDEF ZLIB_DEBUG}
         if (t^.base >= $20) and (t^.base < $7f) then
-          Tracevv('inflate:         literal '+char(t^.base))
+          Tracevv('inflate:         literal '+AnsiChar(t^.base))
         else
           Tracevv('inflate:         literal $'+IntToHex(t^.base, 2));
         {$ENDIF}          
