@@ -244,7 +244,7 @@ var
   buffer : string;
   bufferPos, bufferLen : Integer;
 
-  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : Char) : Boolean;
+  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : AnsiChar) : Boolean;
   var
     locStartPos : Integer;
   begin
@@ -482,7 +482,7 @@ var
   buffer : string;
   bufferPos, bufferLen : Integer;
 
-  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : Char) : Boolean;
+  function ReadInt(out AValue : Integer; const ASeparatorAtEnd : AnsiChar) : Boolean;
   var
     locStartPos : Integer;
   begin
@@ -650,7 +650,7 @@ function xsd_TryStrToDuration(
   out   AResult : TDurationRec
 ) : Boolean;
 var
-  pc : PChar;
+  pc : PAnsiChar;
   locIntBuffer : array[dpYear..dpFractionalSecond] of PtrUInt;
   i, bufferLength, lastPos : PtrInt;
   localBuffer : string;
@@ -662,7 +662,7 @@ begin
   bufferLength := Length(ABuffer);
   if ( bufferLength < 3 ) then
     Exit;
-  pc := PChar(ABuffer);
+  pc := PAnsiChar(ABuffer);
   i := 1;
   isNeg := False;
   if ( pc^ = '-' ) then begin

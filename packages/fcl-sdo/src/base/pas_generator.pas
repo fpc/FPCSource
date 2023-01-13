@@ -375,7 +375,7 @@ begin
   if (ALine<>'') then
     S:=StringOfChar(' ',FIndent)+ALine;
   S:=S+sLineBreak;
-  FStream.WriteBuffer(S[1],Length(s)*SizeOf(Char));
+  FStream.WriteBuffer(S[1],Length(s)*SizeOf(AnsiChar));
 end;
 
 procedure TCustomPasGenerator.Line(const Fmt: String; Args: array of const);

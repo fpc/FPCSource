@@ -734,7 +734,7 @@ end;
 constructor TSDOCharacterType.Create(const AOwner : ISDODataFactory);
 begin
   inherited Create(AOwner, 'Character',sdo_namespace);
-  setAlias('Char');
+  setAlias('AnsiChar');
   setAlias('WideChar');
   setAlias('AnsiChar');
 end;
