@@ -27,7 +27,7 @@ const
 {$PACKRECORDS C}
 
 
-function Xpermalloc(para1:dword):Pchar;cdecl;external libX11;
+function Xpermalloc(para1:dword):PAnsiChar;cdecl;external libX11;
 type
 
    PXrmQuark = ^TXrmQuark;
@@ -39,16 +39,16 @@ function NULLQUARK : TXrmQuark;
 type
 
    PXrmString = ^TXrmString;
-   TXrmString = ^char;
+   TXrmString = ^AnsiChar;
 
 function NULLSTRING : TXrmString;
 
-function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
-function XrmPermStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
+function XrmStringToQuark(para1:PAnsiChar):TXrmQuark;cdecl;external libX11;
+function XrmPermStringToQuark(para1:PAnsiChar):TXrmQuark;cdecl;external libX11;
 function XrmQuarkToString(para1:TXrmQuark):TXrmString;cdecl;external libX11;
 function XrmUniqueQuark:TXrmQuark;cdecl;external libX11;
 {$ifdef MACROS}
-function XrmStringsEqual(a1,a2 : pchar) : boolean;
+function XrmStringsEqual(a1,a2 : PAnsiChar) : boolean;
 {$endif MACROS}
 
 type
@@ -58,8 +58,8 @@ type
    TXrmBindingList = PXrmBinding;
    PXrmBindingList = ^TXrmBindingList;
 
-procedure XrmStringToQuarkList(para1:Pchar; para2:TXrmQuarkList);cdecl;external libX11;
-procedure XrmStringToBindingQuarkList(para1:Pchar; para2:TXrmBindingList; para3:TXrmQuarkList);cdecl;external libX11;
+procedure XrmStringToQuarkList(para1:PAnsiChar; para2:TXrmQuarkList);cdecl;external libX11;
+procedure XrmStringToBindingQuarkList(para1:PAnsiChar; para2:TXrmBindingList; para3:TXrmQuarkList);cdecl;external libX11;
 type
 
    PXrmName = ^TXrmName;
@@ -70,9 +70,9 @@ type
 {$ifdef MACROS}
 function XrmNameToString(name : longint) : TXrmString;
 
-function XrmStringToName(_string : Pchar) : longint;
+function XrmStringToName(_string : PAnsiChar) : longint;
 
-procedure XrmStringToNameList(str:Pchar; name : PXrmQuark);
+procedure XrmStringToNameList(str:PAnsiChar; name : PXrmQuark);
 {$endif MACROS}
 
 type
@@ -85,16 +85,16 @@ type
 {$ifdef MACROS}
 function XrmClassToString(c_class : longint) : TXrmString;
 
-function XrmStringToClass(c_class : Pchar) : longint;
+function XrmStringToClass(c_class : PAnsiChar) : longint;
 
-procedure XrmStringToClassList(str:Pchar; c_class : PXrmQuark);
+procedure XrmStringToClassList(str:PAnsiChar; c_class : PXrmQuark);
 {$endif MACROS}
 type
 
    PXrmRepresentation = ^TXrmRepresentation;
    TXrmRepresentation = TXrmQuark;
 {$ifdef MACROS}
-function XrmStringToRepresentation(_string : Pchar) : longint;
+function XrmStringToRepresentation(_string : PAnsiChar) : longint;
 
 function XrmRepresentationToString(_type : longint) : TXrmString;
 {$endif MACROS}
@@ -123,21 +123,21 @@ type
 
 procedure XrmDestroyDatabase(para1:TXrmDatabase);cdecl;external libX11;
 procedure XrmQPutResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:TXrmRepresentation; para5:PXrmValue);cdecl;external libX11;
-procedure XrmPutResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar; para4:PXrmValue);cdecl;external libX11;
-procedure XrmQPutStringResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:Pchar);cdecl;external libX11;
-procedure XrmPutStringResource(para1:PXrmDatabase; para2:Pchar; para3:Pchar);cdecl;external libX11;
-procedure XrmPutLineResource(para1:PXrmDatabase; para2:Pchar);cdecl;external libX11;
+procedure XrmPutResource(para1:PXrmDatabase; para2:PAnsiChar; para3:PAnsiChar; para4:PXrmValue);cdecl;external libX11;
+procedure XrmQPutStringResource(para1:PXrmDatabase; para2:TXrmBindingList; para3:TXrmQuarkList; para4:PAnsiChar);cdecl;external libX11;
+procedure XrmPutStringResource(para1:PXrmDatabase; para2:PAnsiChar; para3:PAnsiChar);cdecl;external libX11;
+procedure XrmPutLineResource(para1:PXrmDatabase; para2:PAnsiChar);cdecl;external libX11;
 function XrmQGetResource(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external libX11;
-function XrmGetResource(para1:TXrmDatabase; para2:Pchar; para3:Pchar; para4:PPchar; para5:PXrmValue):TBool;cdecl;external libX11;
+function XrmGetResource(para1:TXrmDatabase; para2:PAnsiChar; para3:PAnsiChar; para4:PPAnsiChar; para5:PXrmValue):TBool;cdecl;external libX11;
 { There is no definition of TXrmSearchList }
 {function XrmQGetSearchList(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:TXrmSearchList; para5:longint):TBool;cdecl;external libX11;
 function XrmQGetSearchResource(para1:TXrmSearchList; para2:TXrmName; para3:TXrmClass; para4:PXrmRepresentation; para5:PXrmValue):TBool;cdecl;external libX11;}
 procedure XrmSetDatabase(para1:PDisplay; para2:TXrmDatabase);cdecl;external libX11;
 function XrmGetDatabase(para1:PDisplay):TXrmDatabase;cdecl;external libX11;
-function XrmGetFileDatabase(para1:Pchar):TXrmDatabase;cdecl;external libX11;
-function XrmCombineFileDatabase(para1:Pchar; para2:PXrmDatabase; para3:TBool):TStatus;cdecl;external libX11;
-function XrmGetStringDatabase(para1:Pchar):TXrmDatabase;cdecl;external libX11;
-procedure XrmPutFileDatabase(para1:TXrmDatabase; para2:Pchar);cdecl;external libX11;
+function XrmGetFileDatabase(para1:PAnsiChar):TXrmDatabase;cdecl;external libX11;
+function XrmCombineFileDatabase(para1:PAnsiChar; para2:PXrmDatabase; para3:TBool):TStatus;cdecl;external libX11;
+function XrmGetStringDatabase(para1:PAnsiChar):TXrmDatabase;cdecl;external libX11;
+procedure XrmPutFileDatabase(para1:TXrmDatabase; para2:PAnsiChar);cdecl;external libX11;
 procedure XrmMergeDatabases(para1:TXrmDatabase; para2:PXrmDatabase);cdecl;external libX11;
 procedure XrmCombineDatabase(para1:TXrmDatabase; para2:PXrmDatabase; para3:TBool);cdecl;external libX11;
 
@@ -148,7 +148,7 @@ type
   funcbool=function :TBool;
 function XrmEnumerateDatabase(para1:TXrmDatabase; para2:TXrmNameList; para3:TXrmClassList; para4:longint; para5:funcbool;
            para6:TXPointer):TBool;cdecl;external libX11;
-function XrmLocaleOfDatabase(para1:TXrmDatabase):Pchar;cdecl;external libX11;
+function XrmLocaleOfDatabase(para1:TXrmDatabase):PAnsiChar;cdecl;external libX11;
 type
 
    PXrmOptionKind = ^TXrmOptionKind;
@@ -158,16 +158,16 @@ type
 
    PXrmOptionDescRec = ^TXrmOptionDescRec;
    TXrmOptionDescRec = record
-        option : Pchar;
-        specifier : Pchar;
+        option : PAnsiChar;
+        specifier : PAnsiChar;
         argKind : TXrmOptionKind;
         value : TXPointer;
      end;
    TXrmOptionDescList = PXrmOptionDescRec;
    PXrmOptionDescList = ^TXrmOptionDescList;
 
-procedure XrmParseCommand(para1:PXrmDatabase; para2:TXrmOptionDescList; para3:longint; para4:Pchar; para5:Plongint;
-            para6:PPchar);cdecl;external libX11;
+procedure XrmParseCommand(para1:PXrmDatabase; para2:TXrmOptionDescList; para3:longint; para4:PAnsiChar; para5:Plongint;
+            para6:PPAnsiChar);cdecl;external libX11;
 
 implementation
 
@@ -182,7 +182,7 @@ function NULLSTRING : TXrmString;
   end;
 
 {$ifdef MACROS}
-function XrmStringsEqual(a1,a2 : pchar) : boolean;
+function XrmStringsEqual(a1,a2 : PAnsiChar) : boolean;
 begin
    XrmStringsEqual:=(strcomp(a1,a2)) = 0;
 end;
@@ -192,12 +192,12 @@ begin
    XrmNameToString:=XrmQuarkToString(name);
 end;
 
-function XrmStringToName(_string : Pchar) : longint;
+function XrmStringToName(_string : PAnsiChar) : longint;
 begin
    XrmStringToName:=XrmStringToQuark(_string);
 end;
 
-procedure XrmStringToNameList(str:Pchar; name : PXrmQuark);
+procedure XrmStringToNameList(str:PAnsiChar; name : PXrmQuark);
 begin
    XrmStringToQuarkList(str,name);
 end;
@@ -207,17 +207,17 @@ begin
    XrmClassToString:=XrmQuarkToString(c_class);
 end;
 
-function XrmStringToClass(c_class : Pchar) : longint;
+function XrmStringToClass(c_class : PAnsiChar) : longint;
 begin
    XrmStringToClass:=XrmStringToQuark(c_class);
 end;
 
-procedure XrmStringToClassList(str:Pchar; c_class : PXrmQuark);
+procedure XrmStringToClassList(str:PAnsiChar; c_class : PXrmQuark);
 begin
    XrmStringToQuarkList(str,c_class);
 end;
 
-function XrmStringToRepresentation(_string : Pchar) : longint;
+function XrmStringToRepresentation(_string : PAnsiChar) : longint;
 begin
    XrmStringToRepresentation:=XrmStringToQuark(_string);
 end;
