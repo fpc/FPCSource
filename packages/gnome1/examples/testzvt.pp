@@ -44,22 +44,22 @@ Uses
 const
   (* what to execvp in terminal widget *)
   {$Ifdef exec_mc}
-    Command : PChar = 'mc';
-    Params : array[0..1] of PChar = ('TERM=xterm', nil);
+    Command : PAnsiChar = 'mc';
+    Params : array[0..1] of PAnsiChar = ('TERM=xterm', nil);
   {$else}
-    Command : PChar = 'sh';
-    Params : array[0..0] of PChar = (nil);
+    Command : PAnsiChar = 'sh';
+    Params : array[0..0] of PAnsiChar = (nil);
   {$EndIf}
   Terminals : Longint = 0;//# of terminals currently open
 
   (* Program Information for GNOME & About Box *)
-  ProgramName : PChar = 'TestZVT';
-  ProgramVersion : PChar = '1.0';
+  ProgramName : PAnsiChar = 'TestZVT';
+  ProgramVersion : PAnsiChar = '1.0';
 
   (* Information for About Box *)
-  Copyright : PChar = 'Copyright (C) 2002 Andrew Johnson';
-  Authors : array[0..1] of PChar = ('Andrew Johnson <aj_genius@hotmail.com>', nil);
-  Comments : PChar = 'An FPC Example Program demonstrating the most common use of ZVTTerm in a GNOME application.';
+  Copyright : PAnsiChar = 'Copyright (C) 2002 Andrew Johnson';
+  Authors : array[0..1] of PAnsiChar = ('Andrew Johnson <aj_genius@hotmail.com>', nil);
+  Comments : PAnsiChar = 'An FPC Example Program demonstrating the most common use of ZVTTerm in a GNOME application.';
 
 var
   app, mdichild : pointer;
@@ -136,7 +136,7 @@ begin
   (* Pack Box *)
   gtk_box_pack_start(hBox, term, TRUE, TRUE, 0);
   gtk_box_pack_start(hBox, sb, FALSE, TRUE, 0);
-  gtk_object_set_data(hbox, 'caption', Pchar('Terminal #' + IntToStr(Terminals)));
+  gtk_object_set_data(hbox, 'caption', PAnsiChar('Terminal #' + IntToStr(Terminals)));
   gtk_widget_show_all(hBox);
   NewTerminalView := hBox;
   Inc(Terminals);

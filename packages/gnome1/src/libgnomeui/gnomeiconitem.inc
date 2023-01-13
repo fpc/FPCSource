@@ -7,11 +7,11 @@ type
         x : longint;
         y : longint;
         width : longint;
-        fontname : pchar;
+        fontname : PAnsiChar;
         priv : gpointer;
         pad1 : gpointer;
         pad2 : gpointer;
-        thetext : pchar;
+        thetext : PAnsiChar;
         ti : PGnomeIconTextInfo;
         flag0 : word;
         pad3 : dword;
@@ -61,11 +61,11 @@ function GNOME_IS_ICON_TEXT_ITEM(obj : Pointer) : Boolean;
 function GNOME_IS_ICON_TEXT_ITEM_CLASS(klass : Pointer) : Boolean;
 
 function gnome_icon_text_item_get_type:TGtkType;cdecl;external libgnomeuidll name 'gnome_icon_text_item_get_type';
-procedure gnome_icon_text_item_configure(iti:PGnomeIconTextItem; x:longint; y:longint; width:longint; fontname:Pchar;
-            thetext:Pchar; is_editable:gboolean; is_static:gboolean);cdecl;external libgnomeuidll name 'gnome_icon_text_item_configure';
+procedure gnome_icon_text_item_configure(iti:PGnomeIconTextItem; x:longint; y:longint; width:longint; fontname:PAnsiChar;
+            thetext:PAnsiChar; is_editable:gboolean; is_static:gboolean);cdecl;external libgnomeuidll name 'gnome_icon_text_item_configure';
 procedure gnome_icon_text_item_setxy(iti:PGnomeIconTextItem; x:longint; y:longint);cdecl;external libgnomeuidll name 'gnome_icon_text_item_setxy';
 procedure gnome_icon_text_item_select(iti:PGnomeIconTextItem; sel:longint);cdecl;external libgnomeuidll name 'gnome_icon_text_item_select';
-function gnome_icon_text_item_get_text(iti:PGnomeIconTextItem):Pchar;cdecl;external libgnomeuidll name 'gnome_icon_text_item_get_text';
+function gnome_icon_text_item_get_text(iti:PGnomeIconTextItem):PAnsiChar;cdecl;external libgnomeuidll name 'gnome_icon_text_item_get_text';
 procedure gnome_icon_text_item_start_editing(iti:PGnomeIconTextItem);cdecl;external libgnomeuidll name 'gnome_icon_text_item_start_editing';
 procedure gnome_icon_text_item_stop_editing(iti:PGnomeIconTextItem; accept:gboolean);cdecl;external libgnomeuidll name 'gnome_icon_text_item_stop_editing';
 

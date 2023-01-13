@@ -3,7 +3,7 @@ Program gnometest;
 uses glib, gdk, gtk, libgnome, libgnomeui;
 
 const
-  Authors : Array[0..2] of Pchar = ('me', 'myself', 'I');
+  Authors : Array[0..2] of PAnsiChar = ('me', 'myself', 'I');
 var
   AboutBox : PGTKWidget;
   App : PGTKWidget;

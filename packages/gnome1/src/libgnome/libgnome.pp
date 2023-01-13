@@ -38,17 +38,17 @@ Type
     tm_wday : integer;
     tm_yday : integer;
     tm_isdst : integer;
-    tm_gmtoff : Pchar;
-    tm_zone : Pchar;
+    tm_gmtoff : PAnsiChar;
+    tm_zone : PAnsiChar;
   end;
 
 var
-  gnome_user_home_dir : Pchar;cvar;external;
-  gnome_user_dir : Pchar;cvar;external;
-  gnome_user_private_dir : Pchar;cvar;external;
-  gnome_user_accels_dir : Pchar;cvar;external;
-  gnome_app_id : Pchar;cvar;external;
-  gnome_do_not_create_directories : char;cvar;external;
+  gnome_user_home_dir : PAnsiChar;cvar;external;
+  gnome_user_dir : PAnsiChar;cvar;external;
+  gnome_user_private_dir : PAnsiChar;cvar;external;
+  gnome_user_accels_dir : PAnsiChar;cvar;external;
+  gnome_app_id : PAnsiChar;cvar;external;
+  gnome_do_not_create_directories : AnsiChar;cvar;external;
 
 {$define read_interface}
 {$undef read_implementation}
@@ -70,7 +70,7 @@ var
 {$include gnometriggers.inc}
 {$include gnomeurl.inc}
 
-procedure gnomelib_init(app_id:Pchar; app_version:Pchar);cdecl;external;
+procedure gnomelib_init(app_id:PAnsiChar; app_version:PAnsiChar);cdecl;external;
 
 implementation
 

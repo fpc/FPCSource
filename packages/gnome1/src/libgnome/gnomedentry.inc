@@ -2,17 +2,17 @@
 type
    PGnomeDesktopEntry = ^TGnomeDesktopEntry;
    TGnomeDesktopEntry = record
-        name : Pchar;
-        comment : Pchar;
+        name : PAnsiChar;
+        comment : PAnsiChar;
         exec_length : longint;
-        exec : PPchar;
-        tryexec : Pchar;
-        icon : Pchar;
-        docpath : Pchar;
+        exec : PPAnsiChar;
+        tryexec : PAnsiChar;
+        icon : PAnsiChar;
+        docpath : PAnsiChar;
         terminal : longint;
-        thetype : Pchar;
-        location : Pchar;
-        geometry : Pchar;
+        thetype : PAnsiChar;
+        location : PAnsiChar;
+        geometry : PAnsiChar;
         flag0 : word;
      end;
 
@@ -27,24 +27,24 @@ procedure set_multiple_args(var a : TGnomeDesktopEntry; __multiple_args : Boolea
 function is_kde(var a : TGnomeDesktopEntry) : Boolean;
 procedure set_is_kde(var a : TGnomeDesktopEntry; __is_kde : Boolean);
 
-function gnome_desktop_entry_load(afile:Pchar):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load';
-function gnome_desktop_entry_load_flags(afile:Pchar; clean_from_memory_after_load:longint):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_flags';
-function gnome_desktop_entry_load_flags_conditional(afile:Pchar; clean_from_memory_after_load:longint; unconditional:longint):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_flags_conditional';
-function gnome_desktop_entry_load_unconditional(afile:Pchar):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_unconditional';
+function gnome_desktop_entry_load(afile:PAnsiChar):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load';
+function gnome_desktop_entry_load_flags(afile:PAnsiChar; clean_from_memory_after_load:longint):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_flags';
+function gnome_desktop_entry_load_flags_conditional(afile:PAnsiChar; clean_from_memory_after_load:longint; unconditional:longint):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_flags_conditional';
+function gnome_desktop_entry_load_unconditional(afile:PAnsiChar):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_load_unconditional';
 
 procedure gnome_desktop_entry_save(dentry:PGnomeDesktopEntry);cdecl;external libgnomedll name 'gnome_desktop_entry_save';
 procedure gnome_desktop_entry_free(item:PGnomeDesktopEntry);cdecl;external libgnomedll name 'gnome_desktop_entry_free';
 procedure gnome_desktop_entry_destroy(item:PGnomeDesktopEntry);cdecl;external libgnomedll name 'gnome_desktop_entry_destroy';
 procedure gnome_desktop_entry_launch(item:PGnomeDesktopEntry);cdecl;external libgnomedll name 'gnome_desktop_entry_launch';
-procedure gnome_desktop_entry_launch_with_args(item:PGnomeDesktopEntry; the_argc:longint; the_argv:array of Pchar);cdecl;external libgnomedll name 'gnome_desktop_entry_launch_with_args';
+procedure gnome_desktop_entry_launch_with_args(item:PGnomeDesktopEntry; the_argc:longint; the_argv:array of PAnsiChar);cdecl;external libgnomedll name 'gnome_desktop_entry_launch_with_args';
 function gnome_desktop_entry_copy(source:PGnomeDesktopEntry):PGnomeDesktopEntry;cdecl;external libgnomedll name 'gnome_desktop_entry_copy';
 
 type
    PGnomeDesktopEntryI18N = ^TGnomeDesktopEntryI18N;
    TGnomeDesktopEntryI18N = record
-        lang : Pchar;
-        name : Pchar;
-        comment : Pchar;
+        lang : PAnsiChar;
+        name : PAnsiChar;
+        comment : PAnsiChar;
      end;
 
 function gnome_desktop_entry_get_i18n_list(item:PGnomeDesktopEntry):PGList;cdecl;external libgnomedll name 'gnome_desktop_entry_get_i18n_list';

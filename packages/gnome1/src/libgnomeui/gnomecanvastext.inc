@@ -23,7 +23,7 @@ type
    PGnomeCanvasText = ^TGnomeCanvasText;
    TGnomeCanvasText = record
         item : TGnomeCanvasItem;
-        thetext : Pchar;
+        thetext : PAnsiChar;
         lines : gpointer;
         num_lines : longint;
         x : double;

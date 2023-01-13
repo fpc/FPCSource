@@ -77,10 +77,10 @@ type
                 case longint of
                    0 : ( txt : record
                         args_dummy : array[0..(VTPARAM_MAXARGS)-1] of Pbyte;
-                        args_mem : array[0..(VTPARAM_MAXARGS * VTPARAM_ARGMAX)-1] of char;
+                        args_mem : array[0..(VTPARAM_MAXARGS * VTPARAM_ARGMAX)-1] of AnsiChar;
                         argptr_dummy : ^Pbyte;
-                        outptr : Pchar;
-                        outend_dummy : Pchar;
+                        outptr : PAnsiChar;
+                        outend_dummy : PAnsiChar;
                      end );
                    1 : ( num : record
                         intargs : array[0..(VTPARAM_INTARGS)-1] of dword;
@@ -99,7 +99,7 @@ type
             scrollbackold : longint;
             scrollbackmax : longint;
             ring_my_bell : procedure (user_data:pointer);cdecl;
-            change_my_name : procedure (user_data:pointer; _type:TVTTITLE_TYPE; name:Pchar);cdecl;
+            change_my_name : procedure (user_data:pointer; _type:TVTTITLE_TYPE; name:PAnsiChar);cdecl;
             dtterm_seq : procedure (user_data:pointer);cdecl;
             user_data : pointer;
             decode : record
@@ -135,11 +135,11 @@ type
 function vt_init(vt:Pvt_em; width:longint; height:longint):Pvt_em;cdecl;external libzvtdll name 'vt_init';
 procedure vt_destroy(vt:Pvt_em);cdecl;external libzvtdll name 'vt_destroy';
 procedure vt_resize(vt:Pvt_em; width:longint; height:longint; pixwidth:longint; pixheight:longint);cdecl;external libzvtdll name 'vt_resize';
-procedure vt_parse_vt(vt:Pvt_em; ptr:Pchar; length:longint);cdecl;external libzvtdll name 'vt_parse_vt';
+procedure vt_parse_vt(vt:Pvt_em; ptr:PAnsiChar; length:longint);cdecl;external libzvtdll name 'vt_parse_vt';
 procedure vt_swap_buffers(vt:Pvt_em);cdecl;external libzvtdll name 'vt_swap_buffers';
 function vt_forkpty(vt:Pvt_em; do_uwtmp_log:longint):pid_t;cdecl;external libzvtdll name 'vt_forkpty';
-function vt_readchild(vt:Pvt_em; buffer:Pchar; len:longint):longint;cdecl;external libzvtdll name 'vt_readchild';
-function vt_writechild(vt:Pvt_em; buffer:Pchar; len:longint):longint;cdecl;external libzvtdll name 'vt_writechild';
+function vt_readchild(vt:Pvt_em; buffer:PAnsiChar; len:longint):longint;cdecl;external libzvtdll name 'vt_readchild';
+function vt_writechild(vt:Pvt_em; buffer:PAnsiChar; len:longint):longint;cdecl;external libzvtdll name 'vt_writechild';
 function vt_report_button(vt:Pvt_em; down:longint; button:longint; qual:longint; x:longint;
                y:longint):longint;cdecl;external libzvtdll name 'vt_report_button';
 procedure vt_scrollback_set(vt:Pvt_em; lines:longint);cdecl;external libzvtdll name 'vt_scrollback_set';

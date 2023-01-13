@@ -24,7 +24,7 @@ type
   art_boolean = boolean;
 
   Taffine_array = array[0..5] of double;
-  Taffine_string = array[0..127] of char;
+  Taffine_string = array[0..127] of AnsiChar;
 
   TArtPathcode = (ART_MOVETO,ART_MOVETO_OPEN,ART_CURVETO,ART_LINETO,ART_END);
   TArtFilterLevel = (ART_FILTER_NEAREST,ART_FILTER_TILES,ART_FILTER_BILINEAR,ART_FILTER_HYPER);
@@ -151,8 +151,8 @@ const
    ART_UTILE_SHIFT = 5;
    ART_UTILE_SIZE = 1 shl ART_UTILE_SHIFT;
 
-procedure art_die(fmt:Pchar; args:array of const);cdecl;external libartdll name 'art_die';
-procedure art_warn(fmt:Pchar; args:array of const);cdecl;external libartdll name 'art_warn';
+procedure art_die(fmt:PAnsiChar; args:array of const);cdecl;external libartdll name 'art_die';
+procedure art_warn(fmt:PAnsiChar; args:array of const);cdecl;external libartdll name 'art_warn';
 
 (* ART longint Rect *)
 procedure art_irect_copy(dest:PArtIRect; src:PArtIRect);cdecl;external libartdll name 'art_irect_copy';

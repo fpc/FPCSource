@@ -52,8 +52,8 @@ type
      allocated : LongWord;
      sed : LongWord;
      syntax : LongWord;
-     fastmap : PChar;
-     translate : PChar;
+     fastmap : PAnsiChar;
+     translate : PAnsiChar;
      can_be_null : Word;
      regs_allocated : Word;
      fastmap_accurate : Word;
@@ -66,7 +66,7 @@ type
    Tvt_magic_match = record
         next : Pvt_magic_match;
         prev : Pvt_magic_match;
-        regex : Pchar;
+        regex : PAnsiChar;
         preg : Tregex_t;
         highlight_mask : uint32;
         user_data : pointer;
@@ -75,7 +75,7 @@ type
    Tvt_match = record
         next : Pvt_match;
         match : Pvt_magic_match;
-        matchstr : Pchar;
+        matchstr : PAnsiChar;
         blocks : Pvt_match_block;
      end;
 
@@ -94,7 +94,7 @@ const
 function back_match(var a : Tvtx) : dword;
 procedure set_back_match(var a : Tvtx; __back_match : dword);
 
-function vt_get_selection(vx:Pvtx; size:longint; len:Plongint):Pchar;cdecl;external libzvtdll name 'vt_get_selection';
+function vt_get_selection(vx:Pvtx; size:longint; len:Plongint):PAnsiChar;cdecl;external libzvtdll name 'vt_get_selection';
 procedure vt_clear_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_clear_selection';
 procedure vt_fix_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_fix_selection';
 procedure vt_draw_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_draw_selection';
@@ -106,7 +106,7 @@ procedure vt_set_wordclass(vx:Pvtx; s:Pbyte);cdecl;external libzvtdll name 'vt_s
 function vt_get_attr_at(vx:Pvtx; col:longint; row:longint):longint;cdecl;external libzvtdll name 'vt_get_attr_at';
 procedure vt_free_match_blocks(vx:Pvtx);cdecl;external libzvtdll name 'vt_free_match_blocks';
 procedure vt_getmatches(vx:Pvtx);cdecl;external libzvtdll name 'vt_getmatches';
-procedure vt_match_clear(vx:Pvtx; regex:Pchar);cdecl;external libzvtdll name 'vt_match_clear';
+procedure vt_match_clear(vx:Pvtx; regex:PAnsiChar);cdecl;external libzvtdll name 'vt_match_clear';
 function vt_match_check(vx:Pvtx; x:longint; y:longint):Pvt_match;cdecl;external libzvtdll name 'vt_match_check';
 procedure vt_match_highlight(vx:Pvtx; m:Pvt_match);cdecl;external libzvtdll name 'vt_match_highlight';
 function vtx_new(width:longint; height:longint; user_data:pointer):Pvtx;cdecl;external libzvtdll name 'vtx_new';

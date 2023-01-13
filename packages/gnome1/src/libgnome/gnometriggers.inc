@@ -4,7 +4,7 @@ type
   TGnomeTriggerType = (GTRIG_NONE,GTRIG_FUNCTION,GTRIG_COMMAND,
      GTRIG_MEDIAPLAY);
 
-  TGnomeTriggerActionFunction = procedure (msg:Pchar; level:Pchar; supinfo:PPchar);cdecl;
+  TGnomeTriggerActionFunction = procedure (msg:PAnsiChar; level:PAnsiChar; supinfo:PPAnsiChar);cdecl;
 
   PGnomeTrigger = ^TGnomeTrigger;
   TGnomeTrigger = Record
@@ -22,13 +22,13 @@ type
   end;
 
 procedure gnome_triggers_init;cdecl;external libgnomedll name 'gnome_triggers_init';
-function gnome_triggers_readfile(infilename:Pchar):gint;cdecl;external libgnomedll name 'gnome_triggers_readfile';
+function gnome_triggers_readfile(infilename:PAnsiChar):gint;cdecl;external libgnomedll name 'gnome_triggers_readfile';
 procedure gnome_triggers_add_trigger(nt:PGnomeTrigger; args:array of const);cdecl;external libgnomedll name 'gnome_triggers_add_trigger';
 procedure gnome_triggers_add_trigger(nt:PGnomeTrigger);cdecl;varargs;external libgnomedll name 'gnome_triggers_add_trigger';
-procedure gnome_triggers_vadd_trigger(nt:PGnomeTrigger; supinfo:PPchar);cdecl;external libgnomedll name 'gnome_triggers_vadd_trigger';
-procedure gnome_triggers_do(msg:Pchar; level:Pchar; args:array of const);cdecl;external libgnomedll name 'gnome_triggers_do';
-procedure gnome_triggers_do(msg:Pchar; level:Pchar);cdecl;varargs;external libgnomedll name 'gnome_triggers_do';
-procedure gnome_triggers_vdo(msg:Pchar; level:Pchar; supinfo:PPchar);cdecl;external libgnomedll name 'gnome_triggers_vdo';
+procedure gnome_triggers_vadd_trigger(nt:PGnomeTrigger; supinfo:PPAnsiChar);cdecl;external libgnomedll name 'gnome_triggers_vadd_trigger';
+procedure gnome_triggers_do(msg:PAnsiChar; level:PAnsiChar; args:array of const);cdecl;external libgnomedll name 'gnome_triggers_do';
+procedure gnome_triggers_do(msg:PAnsiChar; level:PAnsiChar);cdecl;varargs;external libgnomedll name 'gnome_triggers_do';
+procedure gnome_triggers_vdo(msg:PAnsiChar; level:PAnsiChar; supinfo:PPAnsiChar);cdecl;external libgnomedll name 'gnome_triggers_vdo';
 
 {$EndIf read_interface}
 
