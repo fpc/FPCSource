@@ -38,9 +38,9 @@ begin
 
     TranslateResourcestrings('%s/messages.mo');
     wattron(win,A_BLINK OR A_BOLD OR COLOR_PAIR(2));
-    mvwaddstr(win,3,3, PChar(hello_world));
+    mvwaddstr(win,3,3, PAnsiChar(hello_world));
     wattroff(win,A_BLINK OR A_BOLD OR COLOR_PAIR(2));
-    mvwaddstr(win,5,3, PChar(press_key));
+    mvwaddstr(win,5,3, PAnsiChar(press_key));
     wrefresh(win);
     getch();
   finally

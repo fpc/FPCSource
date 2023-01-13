@@ -108,7 +108,7 @@ type
 
 { line graphics  }
 type
-   tacs_map = array [char] of chtype;
+   tacs_map = array [AnsiChar] of chtype;
    pacs_map = ^tacs_map;
 
 var
@@ -230,14 +230,14 @@ type
      _flags : Smallint;           { window state flags  }
 { attribute tracking  }
      _attrs : attr_t;             { current attribute for non-space character }
-     _bkgd : chtype;              { current background char/attribute pair  }
+     _bkgd : chtype;              { current background AnsiChar/attribute pair  }
 { option values set by user  }
      _notimeout : Bool;           { no time out on function-key entry?  }
      _clear : Bool;               { consider all data in the window invalid?  }
      _leaveok : Bool;             { OK to not reset cursor on exit?  }
      _scroll : Bool;              { OK to scroll this window?  }
      _idlok : Bool;               { OK to use insert/delete line?  }
-     _idcok : Bool;               { OK to use insert/delete char?  }
+     _idcok : Bool;               { OK to use insert/delete AnsiChar?  }
      _immed : Bool;               { window in immed mode? (not yet used)  }
      _sync : Bool;                { window in sync mode?  }
      _use_keypad : Bool;          { process function keys into KEY_ symbols?  }
@@ -260,7 +260,7 @@ type
         _pad_right : Smallint;
      end;
         _yoffset : Smallint;     { real begy is _begy + _yoffset  }
-        _bkgrnd : cchar_t;       { current background char/attribute pair  }
+        _bkgrnd : cchar_t;       { current background AnsiChar/attribute pair  }
 {$IFDEF NCURSES_EXT_COLORS}
      _color : cint;              { current color-pair for non-space character }
 {$ENDIF NCURSES_EXT_COLORS}
@@ -294,11 +294,11 @@ type
  *)
 
 function is_term_resized(_para1:Longint; _para2:Longint):Bool;cdecl;external libncurses;
-function keybound(_para1:Longint; _para2:Longint):PChar;cdecl;external  libncurses;
-function curses_version:PChar;cdecl;external  libncurses;
+function keybound(_para1:Longint; _para2:Longint):PAnsiChar;cdecl;external  libncurses;
+function curses_version:PAnsiChar;cdecl;external  libncurses;
 function assume_default_colors(_para1:Longint; _para2:Longint):Longint; cdecl;external libncurses;
-function define_key(_para1:PChar; _para2:Longint):Longint; cdecl;external libncurses;
-function key_defined(_para1:PChar):Longint; cdecl;external libncurses;
+function define_key(_para1:PAnsiChar; _para2:Longint):Longint; cdecl;external libncurses;
+function key_defined(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 function keyok(_para1:Longint; _para2:Bool):Longint; cdecl;external libncurses;
 function resize_term(_para1:Longint; _para2:Longint):Longint; cdecl;external libncurses;
 function resizeterm(_para1:Longint; _para2:Longint):Longint; cdecl;external libncurses;
@@ -331,7 +331,7 @@ function doupdate:Longint; cdecl;external libncurses;
 function dupwin(_para1:PWINDOW):PWINDOW;cdecl;external libncurses;
 function echo:Longint; cdecl;external libncurses;
 function endwin:Longint; cdecl;external libncurses;
-function erasechar:PChar;cdecl;external libncurses;
+function erasechar:PAnsiChar;cdecl;external libncurses;
 procedure filter;cdecl;external libncurses;
 function flash:Longint; cdecl;external libncurses;
 function flushinp:Longint; cdecl;external libncurses;
@@ -352,18 +352,18 @@ function intrflush(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurs
 function isendwin:Bool;cdecl;external libncurses;
 function is_linetouched(_para1:PWINDOW; _para2:Longint):Bool;cdecl;external libncurses;
 function is_wintouched(_para1:PWINDOW):Bool;cdecl;external libncurses;
-function keyname(_para1:Longint):PChar;cdecl;external libncurses;
+function keyname(_para1:Longint):PAnsiChar;cdecl;external libncurses;
 function keypad(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurses;
-function killchar:PChar;cdecl;external libncurses;
+function killchar:PAnsiChar;cdecl;external libncurses;
 function leaveok(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurses;
-function longname:PChar;cdecl;external libncurses;
+function longname:PAnsiChar;cdecl;external libncurses;
 function meta(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurses;
 function mvcur(_para1:Longint; _para2:Longint; _para3:Longint; _para4:Longint):Longint; cdecl;external libncurses;
 function mvderwin(_para1:PWINDOW; _para2:Longint; _para3:Longint):Longint; cdecl;external libncurses;
 function mvwin(_para1:PWINDOW; _para2:Longint; _para3:Longint):Longint; cdecl;external libncurses;
 function napms(_para1:Longint):Longint; cdecl;external libncurses;
 function newpad(_para1:Longint; _para2:Longint):PWINDOW;cdecl;external libncurses;
-function newterm(_para1:PChar; _para2:PFILE; _para3:PFILE):PSCREEN;cdecl;external libncurses;
+function newterm(_para1:PAnsiChar; _para2:PFILE; _para3:PFILE):PSCREEN;cdecl;external libncurses;
 function newwin(_para1:Longint; _para2:Longint; _para3:Longint; _para4:Longint):PWINDOW;cdecl;external libncurses;
 function nl:Longint; cdecl;external libncurses;
 function nocbreak:Longint; cdecl;external libncurses;
@@ -394,11 +394,11 @@ type TWinInit = function (win: PWINDOW; ncols: Longint): Longint; cdecl;
 function ripoffline(line: Longint; init: TWinInit):Longint; cdecl;external libncurses;
 
 function savetty:Longint; cdecl;external libncurses;
-function scr_dump(_para1:PChar):Longint; cdecl;external libncurses;
-function scr_init(_para1:PChar):Longint; cdecl;external libncurses;
+function scr_dump(_para1:PAnsiChar):Longint; cdecl;external libncurses;
+function scr_init(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 function scrollok(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurses;
-function scr_restore(_para1:PChar):Longint; cdecl;external libncurses;
-function scr_set(_para1:PChar):Longint; cdecl;external libncurses;
+function scr_restore(_para1:PAnsiChar):Longint; cdecl;external libncurses;
+function scr_set(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 function set_term(_para1:PSCREEN):PSCREEN;cdecl;external libncurses;
 function slk_attroff(_para1:chtype):Longint; cdecl;external libncurses;
 
@@ -410,25 +410,25 @@ function slk_attr_set(_para1:attr_t; _para2:Smallint; _para3:Pointer):Longint; c
 function slk_clear:Longint; cdecl;external libncurses;
 function slk_color(_para1:Smallint):Longint; cdecl;external libncurses;
 function slk_init(_para1:Longint):Longint; cdecl;external libncurses;
-function slk_label(_para1:Longint):PChar;cdecl;external libncurses;
+function slk_label(_para1:Longint):PAnsiChar;cdecl;external libncurses;
 function slk_noutrefresh:Longint; cdecl;external libncurses;
 function slk_refresh:Longint; cdecl;external libncurses;
 function slk_restore:Longint; cdecl;external libncurses;
-function slk_set(_para1:Longint; _para2:PChar; _para3:Longint):Longint; cdecl;external libncurses;
+function slk_set(_para1:Longint; _para2:PAnsiChar; _para3:Longint):Longint; cdecl;external libncurses;
 function slk_touch:Longint; cdecl;external libncurses;
 function start_color:Longint; cdecl;external libncurses;
 function subpad(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:Longint; _para5:Longint):PWINDOW;cdecl;external libncurses;
 function subwin(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:Longint; _para5:Longint):PWINDOW;cdecl;external libncurses;
 function syncok(_para1:PWINDOW; _para2:Bool):Longint; cdecl;external libncurses;
 function termattrs:chtype;cdecl;external libncurses;
-function termname:PChar;cdecl;external libncurses;
+function termname:PAnsiChar;cdecl;external libncurses;
 function typeahead(_para1:Longint):Longint; cdecl;external libncurses;
 function ungetch(_para1:Longint):Longint; cdecl;external libncurses;
 procedure use_env(_para1:Bool);cdecl;external libncurses;
 function vidattr(_para1:chtype):Longint; cdecl;external libncurses;
 function waddch(_para1:PWINDOW; _para2:chtype):Longint; cdecl;external libncurses;
 function waddchnstr(_para1:PWINDOW; _para2:Pchtype; _para3:Longint):Longint; cdecl;external libncurses;
-function waddnstr(_para1:PWINDOW; _para2:PChar; _para3:Longint):Longint; cdecl;external libncurses;
+function waddnstr(_para1:PWINDOW; _para2:PAnsiChar; _para3:Longint):Longint; cdecl;external libncurses;
 function wattr_on(_para1:PWINDOW; _para2:attr_t; _para3:Pointer):Longint; cdecl;external libncurses;
 function wattr_off(_para1:PWINDOW; _para2:attr_t; _para3:Pointer):Longint; cdecl;external libncurses;
 function wbkgd(_para1:PWINDOW; _para2:chtype):Longint; cdecl;external libncurses;
@@ -445,14 +445,14 @@ function wdelch(_para1:PWINDOW):Longint; cdecl;external libncurses;
 function wechochar(_para1:PWINDOW; _para2:chtype):Longint; cdecl;external libncurses;
 function werase(_para1:PWINDOW):Longint; cdecl;external libncurses;
 function wgetch(_para1:PWINDOW):Longint; cdecl;external libncurses;
-function wgetnstr(_para1:PWINDOW; _para2:PChar; _para3:Longint):Longint; cdecl;external libncurses;
+function wgetnstr(_para1:PWINDOW; _para2:PAnsiChar; _para3:Longint):Longint; cdecl;external libncurses;
 function whline(_para1:PWINDOW; _para2:chtype; _para3:Longint):Longint; cdecl;external libncurses;
 function winch(_para1:PWINDOW):chtype;cdecl;external libncurses;
 function winchnstr(_para1:PWINDOW; _para2:Pchtype; _para3:Longint):Longint; cdecl;external libncurses;
-function winnstr(_para1:PWINDOW; _para2:PChar; _para3:Longint):Longint; cdecl;external libncurses;
+function winnstr(_para1:PWINDOW; _para2:PAnsiChar; _para3:Longint):Longint; cdecl;external libncurses;
 function winsch(_para1:PWINDOW; _para2:chtype):Longint; cdecl;external libncurses;
 function winsdelln(_para1:PWINDOW; _para2:Longint):Longint; cdecl;external libncurses;
-function winsnstr(_para1:PWINDOW; _para2:PChar; _para3:Longint):Longint; cdecl;external libncurses;
+function winsnstr(_para1:PWINDOW; _para2:PAnsiChar; _para3:Longint):Longint; cdecl;external libncurses;
 { realised as inline function }
 //function wmove(_para1:PWINDOW; _para2:Longint; _para3:Longint):Longint; cdecl;external libncurses;
 function wnoutrefresh(_para1:PWINDOW):Longint; cdecl;external libncurses;
@@ -470,16 +470,16 @@ function wvline(_para1:PWINDOW; _para2:chtype; _para3:Longint):Longint; cdecl;ex
  * These are also declared in <ncursesw/term.h>:
  *)
 
-function tigetflag(_para1:PChar):Longint; cdecl;external libncurses;
-function tigetnum(_para1:PChar):Longint; cdecl;external libncurses;
-function tigetstr(_para1:PChar):PChar;cdecl;external libncurses;
-function putp(_para1:PChar):Longint; cdecl;external libncurses;
+function tigetflag(_para1:PAnsiChar):Longint; cdecl;external libncurses;
+function tigetnum(_para1:PAnsiChar):Longint; cdecl;external libncurses;
+function tigetstr(_para1:PAnsiChar):PAnsiChar;cdecl;external libncurses;
+function putp(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 
 var
 {$IFNDEF darwin}
-   ttytype : array of PChar cvar; external;  { needed for backward compatibility  }
+   ttytype : array of PAnsiChar cvar; external;  { needed for backward compatibility  }
 {$ELSE darwin}
-   ttytype : array of PChar external libncurses  name 'ttytype';
+   ttytype : array of PAnsiChar external libncurses  name 'ttytype';
 {$ENDIF darwin}
 
 (*
@@ -493,7 +493,7 @@ function vidputs(attrs:chtype; _putc:TPutc):Longint; cdecl;external libncurses;
 
 function erasewchar(_para1:Pwchar_t):Longint; cdecl;external libncurses;
 function getcchar(_para1:Pcchar_t; _para2:Pwchar_t; _para3:Pattr_t; _para4:PSmallInt; _para5:Pointer):Longint; cdecl;external libncurses;
-function key_name(_para1:wchar_t):PChar;cdecl;external libncurses;
+function key_name(_para1:wchar_t):PAnsiChar;cdecl;external libncurses;
 function killwchar(_para1:Pwchar_t):Longint; cdecl;external libncurses;
 function pecho_wchar(_para1:PWINDOW; _para2:Pcchar_t):Longint; cdecl;external libncurses;
 function setcchar(_para1:Pcchar_t; _para2:Pwchar_t; _para3:attr_t; _para4:Smallint; _para5:Pointer):Longint; cdecl;external libncurses;
@@ -568,9 +568,9 @@ function color_set(color_pair_number: Smallint; opts: Pointer): longint; inline;
 
 (*  pseudo functions  *)
 
-function wgetstr(win: PWINDOW; s: PChar): Longint;
-function getnstr(s: PChar;n: Longint): Longint; inline;
-function setterm(term: PChar): Longint; inline;
+function wgetstr(win: PWINDOW; s: PAnsiChar): Longint;
+function getnstr(s: PAnsiChar;n: Longint): Longint; inline;
+function setterm(term: PAnsiChar): Longint; inline;
 function fixterm: Longint; inline;
 function resetterm: Longint; inline;
 function saveterm: Longint; inline;
@@ -616,11 +616,11 @@ function box(win:PWINDOW; v,h :chtype):Longint; inline;
 function border(ls,rs,ts,bs,tl,tr,bl,br: chtype): longint; inline;
 function hline(ch:chtype; n:longint): longint; inline;
 function vline(ch:chtype; n:longint): longint; inline;
-function winstr(win: PWINDOW;s: PChar): longint; inline;
+function winstr(win: PWINDOW;s: PAnsiChar): longint; inline;
 function winchstr(win: PWINDOW; chstr: pchtype): longint; inline;
-function winsstr(win: PWINDOW;s: PChar): longint; inline;
+function winsstr(win: PWINDOW;s: PAnsiChar): longint; inline;
 function redrawwin(win: PWINDOW): longint; inline;
-function waddstr(win: PWINDOW;st: PChar): longint; inline;
+function waddstr(win: PWINDOW;st: PAnsiChar): longint; inline;
 function waddchstr(win: PWINDOW; chstr: pchtype): longint; inline;
 {
    pseudo functions for standard screen
@@ -628,8 +628,8 @@ function waddchstr(win: PWINDOW; chstr: pchtype): longint; inline;
 function addch(ch: chtype): longint; inline;
 function addchnstr(chstr: pchtype; n: longint): longint; inline;
 function addchstr(chstr: pchtype): longint; inline;
-function addnstr(str: PChar;n: longint): longint; inline;
-function addstr(str: PChar): longint; inline;
+function addnstr(str: PAnsiChar;n: longint): longint; inline;
+function addstr(str: PAnsiChar): longint; inline;
 function attroff(attrs: attr_t): longint; inline;
 function attron(attrs: attr_t): longint; inline;
 function attrset(attrs: attr_t): longint; inline;
@@ -643,17 +643,17 @@ function deleteln: longint; inline;
 function echochar(ch: chtype): longint; inline;
 function erase: longint; inline;
 function getch: longint; inline;
-function getstr(str: PChar): longint; inline;
+function getstr(str: PAnsiChar): longint; inline;
 function inch: chtype; inline;
 function inchnstr(chstr: pchtype;n: longint): longint; inline;
 function inchstr(chstr: pchtype): longint; inline;
-function innstr(str: PChar;n: longint): longint; inline;
+function innstr(str: PAnsiChar;n: longint): longint; inline;
 function insch(ch: chtype): longint; inline;
 function insdelln(n: longint): longint; inline;
 function insertln: longint; inline;
-function insnstr(str: PChar;n: longint): longint; inline;
-function insstr(str: PChar): longint; inline;
-function instr(str: PChar): longint; inline;
+function insnstr(str: PAnsiChar;n: longint): longint; inline;
+function insstr(str: PAnsiChar): longint; inline;
+function instr(str: PAnsiChar): longint; inline;
 function move(y,x: Smallint): longint; inline;
 function refresh: longint; inline;
 function scrl(n: longint): longint; inline;
@@ -671,42 +671,42 @@ function winsertln(win: PWINDOW): longint; inline;
 function mvwaddch(win: PWINDOW;y,x: Smallint; ch: chtype): longint; inline;
 function mvwaddchnstr(win: PWINDOW;y,x: Smallint; chstr: pchtype; n: longint): longint; inline;
 function mvwaddchstr(win: PWINDOW;y,x: Smallint; chstr: pchtype): longint; inline;
-function mvwaddnstr(win: PWINDOW;y,x: Smallint; str: PChar; n: longint): longint; inline;
-function mvwaddstr(win: PWINDOW;y,x: Smallint; str: PChar): longint; inline;
+function mvwaddnstr(win: PWINDOW;y,x: Smallint; str: PAnsiChar; n: longint): longint; inline;
+function mvwaddstr(win: PWINDOW;y,x: Smallint; str: PAnsiChar): longint; inline;
 function mvwdelch(win: PWINDOW; y,x: Smallint): longint;
 function mvwchgat(win: PWINDOW;y, x: Smallint; n: Longint;attr: attr_t;
                             color: Smallint; opts: Pointer): longint; inline;
 function mvwgetch(win: PWINDOW; y,x: Smallint): longint; inline;
-function mvwgetnstr(win: PWINDOW; y,x: Smallint; str: PChar; n: longint): longint; inline;
-function mvwgetstr(win: PWINDOW; y,x: Smallint; str: PChar): longint; inline;
+function mvwgetnstr(win: PWINDOW; y,x: Smallint; str: PAnsiChar; n: longint): longint; inline;
+function mvwgetstr(win: PWINDOW; y,x: Smallint; str: PAnsiChar): longint; inline;
 function mvwhline(win: PWINDOW; y,x: Smallint; ch: chtype; n: longint): longint; inline;
 function mvwinch(win: PWINDOW;y,x: Smallint): chtype; inline;
 function mvwinchnstr(win: PWINDOW;y,x: Smallint;chstr: pchtype; n: longint): longint; inline;
 function mvwinchstr(win: PWINDOW;y,x: Smallint;chstr: pchtype): longint; inline;
-function mvwinnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint; inline;
+function mvwinnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint; inline;
 function mvwinsch(win: PWINDOW;y,x: Smallint;ch: chtype): longint; inline;
-function mvwinsnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint; inline;
-function mvwinsstr(win: PWINDOW;y,x: Smallint;str: PChar): longint; inline;
-function mvwinstr(win: PWINDOW;y,x: Smallint;str: PChar): longint; inline;
+function mvwinsnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint; inline;
+function mvwinsstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint; inline;
+function mvwinstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint; inline;
 function mvwvline(win: PWINDOW;y,x: Smallint;ch: chtype;n: longint): longint; inline;
 function mvaddch(y,x: Smallint; ch: chtype): longint; inline;
 function mvaddchnstr(y,x: Smallint; chstr: pchtype;n: longint): longint; inline;
 function mvaddchstr(y,x: Smallint; chstr: pchtype): longint; inline;
-function mvaddnstr(y,x: Smallint; str: PChar;n: longint): longint; inline;
-function mvaddstr(y,x: Smallint; str: PChar): longint; inline;
+function mvaddnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint; inline;
+function mvaddstr(y,x: Smallint; str: PAnsiChar): longint; inline;
 function mvdelch(y,x: Smallint): longint; inline;
 function mvgetch(y,x: Smallint): longint; inline;
-function mvgetnstr(y,x: Smallint; str: PChar;n: longint): longint; inline;
-function mvgetstr(y,x: Smallint; str: PChar): longint; inline;
+function mvgetnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint; inline;
+function mvgetstr(y,x: Smallint; str: PAnsiChar): longint; inline;
 function mvhline(y,x: Smallint;ch: chtype;n: longint): longint; inline;
 function mvinch(y,x: Smallint): chtype; inline;
 function mvinchnstr(y,x: Smallint; chstr: pchtype;n: longint): longint; inline;
 function mvinchstr(y,x: Smallint; chstr: pchtype): longint; inline;
-function mvinnstr(y,x: Smallint; str: PChar;n: longint): longint; inline;
+function mvinnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint; inline;
 function mvinsch(y,x: Smallint;ch: chtype): longint; inline;
-function mvinsnstr(y,x: Smallint; str: PChar;n: longint): longint; inline;
-function mvinsstr(y,x: Smallint; str: PChar): longint; inline;
-function mvinstr(y,x: Smallint; str: PChar): longint; inline;
+function mvinsnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint; inline;
+function mvinsstr(y,x: Smallint; str: PAnsiChar): longint; inline;
+function mvinstr(y,x: Smallint; str: PAnsiChar): longint; inline;
 function mvvline(y,x: Smallint; ch:chtype; n:longint): longint; inline;
 function attr_get(attrs:Pattr_t; pair:PSmallint; opts:Pointer): longint; inline;
 function attr_off(attrs:attr_t; opts:Pointer): longint; inline;
@@ -853,7 +853,7 @@ const
    KEY_MAX = 511;       { Maximum key value is 0633    &0777 }
 
 type
-   //tnc_wacs= array [char] of cchar_t;
+   //tnc_wacs= array [AnsiChar] of cchar_t;
    tnc_wacs= array of cchar_t;
    pnc_wacs = ^tacs_map;
 
@@ -1068,30 +1068,30 @@ function wmove(win: PWINDOW; y,x: Smallint): Longint; inline;
 
 (* C varargs  procedures*)
 
-function tparm(_para1:PChar):PChar;cdecl; varargs; external libncurses; overload;
-function mvprintw(_para1:Longint; _para2:Longint; _para3:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function mvscanw(_para1:Longint; _para2:Longint; _para3:PChar):Longint; cdecl; varargs;external libncurses; overload;
-function mvwprintw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function mvwscanw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function scanw(_para1:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function wprintw(_para1:PWINDOW; _para2:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function wscanw(_para1:PWINDOW; _para2:PChar):Longint; cdecl; varargs; external libncurses; overload;
-function printw(_para1:PChar):Longint; cdecl; varargs; external libncurses; overload;
-{function vwprintw(_para1:PWINDOW; _para2:PChar; _para3:va_list):Longint; cdecl;external libncurses;
-function vw_printw(_para1:PWINDOW; _para2:PChar; _para3:va_list):Longint; cdecl;external libncurses;
-function vwscanw(_para1:PWINDOW; _para2:PChar; _para3:va_list):Longint; cdecl;external libncurses;
-function vw_scanw(_para1:PWINDOW; _para2:PChar; _para3:va_list):Longint; cdecl;external libncurses;}
+function tparm(_para1:PAnsiChar):PAnsiChar;cdecl; varargs; external libncurses; overload;
+function mvprintw(_para1:Longint; _para2:Longint; _para3:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function mvscanw(_para1:Longint; _para2:Longint; _para3:PAnsiChar):Longint; cdecl; varargs;external libncurses; overload;
+function mvwprintw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function mvwscanw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function scanw(_para1:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function wprintw(_para1:PWINDOW; _para2:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function wscanw(_para1:PWINDOW; _para2:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+function printw(_para1:PAnsiChar):Longint; cdecl; varargs; external libncurses; overload;
+{function vwprintw(_para1:PWINDOW; _para2:PAnsiChar; _para3:va_list):Longint; cdecl;external libncurses;
+function vw_printw(_para1:PWINDOW; _para2:PAnsiChar; _para3:va_list):Longint; cdecl;external libncurses;
+function vwscanw(_para1:PWINDOW; _para2:PAnsiChar; _para3:va_list):Longint; cdecl;external libncurses;
+function vw_scanw(_para1:PWINDOW; _para2:PAnsiChar; _para3:va_list):Longint; cdecl;external libncurses;}
 
 {$IF DEFINED(FPC_OBJFPC) OR DEFINED(FPC_DELPHI)}
-{function tparm(_para1:PChar; args:array of const):PChar;cdecl;external libncurses; overload;
-function mvprintw(_para1:Longint; _para2:Longint; _para3:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function mvscanw(_para1:Longint; _para2:Longint; _para3:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function mvwprintw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function mvwscanw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function scanw(_para1:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function wprintw(_para1:PWINDOW; _para2:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function wscanw(_para1:PWINDOW; _para2:PChar; args:array of const):Longint; cdecl;external libncurses; overload;
-function printw(_para1:PChar; args:array of const):Longint; cdecl;external libncurses; overload;}
+{function tparm(_para1:PAnsiChar; args:array of const):PAnsiChar;cdecl;external libncurses; overload;
+function mvprintw(_para1:Longint; _para2:Longint; _para3:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function mvscanw(_para1:Longint; _para2:Longint; _para3:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function mvwprintw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function mvwscanw(_para1:PWINDOW; _para2:Longint; _para3:Longint; _para4:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function scanw(_para1:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function wprintw(_para1:PWINDOW; _para2:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function wscanw(_para1:PWINDOW; _para2:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;
+function printw(_para1:PAnsiChar; args:array of const):Longint; cdecl;external libncurses; overload;}
 
 {$ENDIF}
 
@@ -1273,23 +1273,23 @@ begin
   color_set:=wcolor_set(stdscr,color_pair_number,opts);
 end;
 
-function wgetstr(win: PWINDOW; s: PChar): Longint;
+function wgetstr(win: PWINDOW; s: PAnsiChar): Longint;
 begin
   wgetstr := wgetnstr(win, s, -1);
 end;
 
-function getnstr(s: PChar;n: Longint): Longint;
+function getnstr(s: PAnsiChar;n: Longint): Longint;
 begin
   getnstr := wgetnstr(stdscr,s,n);
 end;
 
 {
   setupterm are declared in <ncursesw/term.h>:
-  int setupterm(char *term, int fildes, int *errret);
+  int setupterm(AnsiChar *term, int fildes, int *errret);
 }
-function setupterm(term:PChar; fildes:Longint; errret:Plongint):Longint; cdecl;external libncurses;
+function setupterm(term:PAnsiChar; fildes:Longint; errret:Plongint):Longint; cdecl;external libncurses;
 
-function setterm(term: PChar): Longint;
+function setterm(term: PAnsiChar): Longint;
 begin
   setterm:=setupterm(term,1,plongint(0));
 end;
@@ -1633,7 +1633,7 @@ begin
 end;
 
 
-function winstr(win: PWINDOW;s: PChar): longint;
+function winstr(win: PWINDOW;s: PAnsiChar): longint;
 begin
   winstr:=winnstr(win,s,-(1));
 end;
@@ -1643,7 +1643,7 @@ begin
   winchstr:=winchnstr(win,chstr,-(1));
 end;
 
-function winsstr(win: PWINDOW;s: PChar): longint;
+function winsstr(win: PWINDOW;s: PAnsiChar): longint;
 begin
   winsstr:=winsnstr(win,s,-(1));
 end;
@@ -1653,7 +1653,7 @@ begin
   redrawwin:=wredrawln(win,0,(win^._maxy)+1);
 end;
 
-function waddstr(win: PWINDOW;st: PChar): longint;
+function waddstr(win: PWINDOW;st: PAnsiChar): longint;
 begin
   waddstr:=waddnstr(win,st,-(1));
 end;
@@ -1681,12 +1681,12 @@ begin
   addchstr:=waddchstr(stdscr,chstr);
 end;
 
-function addnstr(str: PChar;n: longint): longint;
+function addnstr(str: PAnsiChar;n: longint): longint;
 begin
   addnstr:=waddnstr(stdscr,str,n);
 end;
 
-function addstr(str: PChar): longint;
+function addstr(str: PAnsiChar): longint;
 begin
   addstr:=waddnstr(stdscr,str,-(1));
 end;
@@ -1758,7 +1758,7 @@ begin
   getch:=wgetch(stdscr);
 end;
 
-function getstr(str: PChar): longint;
+function getstr(str: PAnsiChar): longint;
 begin
   getstr:=wgetstr(stdscr,str);
 end;
@@ -1778,7 +1778,7 @@ begin
   inchstr:=winchstr(stdscr,chstr);
 end;
 
-function innstr(str: PChar;n: longint): longint;
+function innstr(str: PAnsiChar;n: longint): longint;
 begin
   innstr:=winnstr(stdscr,str,n);
 end;
@@ -1798,17 +1798,17 @@ begin
   insertln:=winsdelln(stdscr,1);
 end;
 
-function insnstr(str: PChar;n: longint): longint;
+function insnstr(str: PAnsiChar;n: longint): longint;
 begin
   insnstr:=winsnstr(stdscr,str,n);
 end;
 
-function insstr(str: PChar): longint;
+function insstr(str: PAnsiChar): longint;
 begin
   insstr:=winsstr(stdscr,str);
 end;
 
-function instr(str: PChar): longint;
+function instr(str: PAnsiChar): longint;
 begin
   instr:=winstr(stdscr,str);
 end;
@@ -1894,7 +1894,7 @@ begin
      mvwaddchstr := waddchnstr(win,chstr,-(1))
 end;
 
-function mvwaddnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint;
+function mvwaddnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint;
 begin
   if wmove(win,y,x) = ERR then
      mvwaddnstr := ERR
@@ -1902,7 +1902,7 @@ begin
      mvwaddnstr := waddnstr(win,str,n);
 end;
 
-function mvwaddstr(win: PWINDOW;y,x: Smallint;str: PChar): longint;
+function mvwaddstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint;
 begin
   if wmove(win,y,x) = ERR then
      mvwaddstr := ERR
@@ -1935,7 +1935,7 @@ begin
     mvwgetch := wgetch(win);
 end;
 
-function mvwgetnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint;
+function mvwgetnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwgetnstr := ERR
@@ -1943,7 +1943,7 @@ begin
     mvwgetnstr := wgetnstr(win,str,n);
 end;
 
-function mvwgetstr(win: PWINDOW;y,x: Smallint;str: PChar): longint;
+function mvwgetstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwgetstr := ERR
@@ -1983,7 +1983,7 @@ begin
     mvwinchstr := winchnstr(win,chstr,-(1));
 end;
 
-function mvwinnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint;
+function mvwinnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwinnstr := ERR
@@ -1999,7 +1999,7 @@ begin
     mvwinsch := winsch(win,ch);
 end;
 
-function mvwinsnstr(win: PWINDOW;y,x: Smallint;str: PChar;n: longint): longint;
+function mvwinsnstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar;n: longint): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwinsnstr := ERR
@@ -2007,7 +2007,7 @@ begin
     mvwinsnstr := winsnstr(win,str,n);
 end;
 
-function mvwinsstr(win: PWINDOW;y,x: Smallint;str: PChar): longint;
+function mvwinsstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwinsstr := ERR
@@ -2015,7 +2015,7 @@ begin
     mvwinsstr := winsnstr(win,str,-(1));
 end;
 
-function mvwinstr(win: PWINDOW;y,x: Smallint;str: PChar): longint;
+function mvwinstr(win: PWINDOW;y,x: Smallint;str: PAnsiChar): longint;
 begin
   if wmove(win,y,x) = ERR then
     mvwinstr := ERR
@@ -2055,7 +2055,7 @@ begin
     mvaddchstr := waddchnstr(stdscr,chstr,-(1));
 end;
 
-function mvaddnstr(y,x: Smallint; str: PChar;n: longint): longint;
+function mvaddnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint;
 begin
   if move(y,x) = ERR then
     mvaddnstr := ERR
@@ -2063,7 +2063,7 @@ begin
     mvaddnstr := waddnstr(stdscr,str,n);
 end;
 
-function mvaddstr(y,x: Smallint; str: PChar): longint;
+function mvaddstr(y,x: Smallint; str: PAnsiChar): longint;
 begin
   if move(y,x) = ERR then
     mvaddstr := ERR
@@ -2087,7 +2087,7 @@ begin
     mvgetch := wgetch(stdscr);
 end;
 
-function mvgetnstr(y,x: Smallint; str: PChar;n: longint): longint;
+function mvgetnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint;
 begin
   if move(y,x) = ERR then
     mvgetnstr := ERR
@@ -2095,7 +2095,7 @@ begin
     mvgetnstr := wgetnstr(stdscr,str,n);
 end;
 
-function mvgetstr(y,x: Smallint; str: PChar): longint;
+function mvgetstr(y,x: Smallint; str: PAnsiChar): longint;
 begin
   if move(y,x) = ERR then
     mvgetstr := ERR
@@ -2135,7 +2135,7 @@ begin
     mvinchstr := winchnstr(stdscr,chstr,-(1));
 end;
 
-function mvinnstr(y,x: Smallint; str: PChar;n: longint): longint;
+function mvinnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint;
 begin
   if move(y,x) = ERR then
     mvinnstr := ERR
@@ -2151,7 +2151,7 @@ begin
     mvinsch := winsch(stdscr,ch);
 end;
 
-function mvinsnstr(y,x: Smallint; str: PChar;n: longint): longint;
+function mvinsnstr(y,x: Smallint; str: PAnsiChar;n: longint): longint;
 begin
   if move(y,x) = ERR then
     mvinsnstr := ERR
@@ -2159,7 +2159,7 @@ begin
     mvinsnstr := winsnstr(stdscr,str,n);
 end;
 
-function mvinsstr(y,x: Smallint; str: PChar): longint;
+function mvinsstr(y,x: Smallint; str: PAnsiChar): longint;
 begin
   if move(y,x) = ERR then
     mvinsstr := ERR
@@ -2167,7 +2167,7 @@ begin
     mvinsstr := winsstr(stdscr,str);
 end;
 
-function mvinstr(y,x: Smallint; str: PChar): longint;
+function mvinstr(y,x: Smallint; str: PAnsiChar): longint;
 begin
   if move(y,x) = ERR then
     mvinstr := ERR

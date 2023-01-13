@@ -32,7 +32,7 @@ const
 
 type
    TTEXT = record
-        str : PChar;
+        str : PAnsiChar;
         length : Word;
      end;
 
@@ -79,7 +79,7 @@ type
         spc_desc : Smallint;    { Spacing for descriptor           }
         spc_cols : Smallint;    { Spacing for columns              }
         spc_rows : Smallint;    { Spacing for rows                 }
-        pattern : PChar;        { Buffer to store match chars      }
+        pattern : PAnsiChar;        { Buffer to store match chars      }
         pindex : Smallint;      { Index into pattern buffer        }
         win : PWINDOW;          { Window containing menu           }
         sub : PWINDOW;          { Subwindow for menu display       }
@@ -98,7 +98,7 @@ type
         iteminit : Menu_Hook;
         itemterm : Menu_Hook;
         userptr : Pointer;      { Pointer to menus user data       }
-        mark : PChar;           { Pointer to marker string         }
+        mark : PAnsiChar;           { Pointer to marker string         }
         opt : Menu_Options;     { Menu options                     }
         status : Word;          { Internal state of menu           }
      end;
@@ -139,7 +139,7 @@ const
 
 function menu_items(_para1:PMENU):ppITEM; cdecl;external libncurses;
 function current_item(_para1:PMENU):pITEM; cdecl;external libncurses;
-function new_item(_para1:PChar; _para2:PChar):pITEM; cdecl;external libncurses;
+function new_item(_para1:PAnsiChar; _para2:PAnsiChar):pITEM; cdecl;external libncurses;
 function new_menu(_para1:PPITEM):pMENU; cdecl;external libncurses;
 function item_opts(_para1:PITEM):Item_Options; cdecl;external libncurses;
 function menu_opts(_para1:PMENU):Menu_Options; cdecl;external libncurses;
@@ -149,11 +149,11 @@ function menu_init(_para1:PMENU):Menu_Hook; cdecl;external libncurses;
 function menu_term(_para1:PMENU):Menu_Hook; cdecl;external libncurses;
 function menu_sub(_para1:PMENU):PWINDOW; cdecl;external libncurses;
 function menu_win(_para1:PMENU):PWINDOW; cdecl;external libncurses;
-function item_description(_para1:PITEM):PChar; cdecl;external libncurses;
-function item_name(_para1:PITEM):PChar; cdecl;external libncurses;
-function menu_mark(_para1:PMENU):PChar; cdecl;external libncurses;
-function menu_request_name(_para1:Longint):PChar; cdecl;external libncurses;
-function menu_pattern(_para1:PMENU):PChar; cdecl;external libncurses;
+function item_description(_para1:PITEM):PAnsiChar; cdecl;external libncurses;
+function item_name(_para1:PITEM):PAnsiChar; cdecl;external libncurses;
+function menu_mark(_para1:PMENU):PAnsiChar; cdecl;external libncurses;
+function menu_request_name(_para1:Longint):PAnsiChar; cdecl;external libncurses;
+function menu_pattern(_para1:PMENU):PAnsiChar; cdecl;external libncurses;
 function menu_userptr(_para1:PMENU):Pointer; cdecl;external libncurses;
 function item_userptr(_para1:PITEM):Pointer; cdecl;external libncurses;
 function menu_back(_para1:PMENU):chtype; cdecl;external libncurses;
@@ -187,10 +187,10 @@ function set_menu_grey(_para1:PMENU; _para2:chtype):Longint; cdecl;external libn
 //function set_menu_init(_para1:PMENU; _para2:procedure (_para1:PMENU)):Longint; cdecl;external libncurses;
 function set_menu_init(_para1:PMENU; _para2:Menu_Hook):Longint; cdecl;external libncurses;
 function set_menu_items(_para1:PMENU; _para2:PPITEM):Longint; cdecl;external libncurses;
-function set_menu_mark(_para1:PMENU; _para2:PChar):Longint; cdecl;external libncurses;
+function set_menu_mark(_para1:PMENU; _para2:PAnsiChar):Longint; cdecl;external libncurses;
 function set_menu_opts(_para1:PMENU; _para2:Menu_Options):Longint; cdecl;external libncurses;
 function set_menu_pad(_para1:PMENU; _para2:Longint):Longint; cdecl;external libncurses;
-function set_menu_pattern(_para1:PMENU; _para2:PChar):Longint; cdecl;external libncurses;
+function set_menu_pattern(_para1:PMENU; _para2:PAnsiChar):Longint; cdecl;external libncurses;
 function set_menu_sub(_para1:PMENU; _para2:PWINDOW):Longint; cdecl;external libncurses;
 //function set_menu_term(_para1:PMENU; _para2:procedure (_para1:PMENU)):Longint; cdecl;external libncurses;
 function set_menu_term(_para1:PMENU; _para2:Menu_Hook):Longint; cdecl;external libncurses;
@@ -199,7 +199,7 @@ function set_menu_win(_para1:PMENU; _para2:PWINDOW):Longint; cdecl;external libn
 function set_top_row(_para1:PMENU; _para2:Longint):Longint; cdecl;external libncurses;
 function top_row(_para1:PMENU):Longint; cdecl;external libncurses;
 function unpost_menu(_para1:PMENU):Longint; cdecl;external libncurses;
-function menu_request_by_name(_para1:PChar):Longint; cdecl;external libncurses;
+function menu_request_by_name(_para1:PAnsiChar):Longint; cdecl;external libncurses;
 function set_menu_spacing(_para1:PMENU; _para2:Longint; _para3:Longint; _para4:Longint):Longint; cdecl;external libncurses;
 function menu_spacing(_para1:PMENU; _para2:PLongint; _para3:PLongint; _para4:PLongint):Longint; cdecl;external libncurses;
 function item_value(_para1:PITEM):Bool; cdecl;external libncurses;

@@ -29,7 +29,7 @@ begin
     width := mx;
 
   wattron(win,pair);
-  mvwaddnstr(win,starty,startx + st_middle(mx,width),PChar(tstr),width);
+  mvwaddnstr(win,starty,startx + st_middle(mx,width),PAnsiChar(tstr),width);
   wattroff(win,pair);
 end;
 
@@ -37,7 +37,7 @@ end;
 type
   PMinfo = ^TMinfo;
   TMinfo = record
-    n, d: PChar;
+    n, d: PAnsiChar;
   end;
 
 
