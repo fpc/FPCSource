@@ -15,14 +15,14 @@ uses
   qdos;
 
 type
-  Tver = array[0..3] of char;
+  Tver = array[0..3] of AnsiChar;
 
 var
   job_id: longint;
   ver_ascii: longint;
   system_vars: pSystemVariables;
 
-function get_id_str(const id: dword): string;
+function get_id_str(const id: dword): AnsiString;
 begin
   case id of
     SYSID_QL: get_id_str:='QDOS';

@@ -29,7 +29,7 @@ type
   Pqlstr = ^Tqlstr;
   Tqlstr = record
     qs_strlen: word;
-    qs_str: array[0..0] of char;
+    qs_str: array[0..0] of AnsiChar;
   end;
 
 const
@@ -154,10 +154,10 @@ type
   Pqdos_queue = ^Tqdos_queue;
   Tqdos_queue = record
     q_nextq: Pqdos_queue;
-    q_end: pchar;
-    q_nextin: pchar;
-    q_nxtout: pchar;
-    q_queue: array[0..1] of char;
+    q_end: PAnsiChar;
+    q_nextin: PAnsiChar;
+    q_nxtout: PAnsiChar;
+    q_queue: array[0..1] of AnsiChar;
   end;
 
 const
