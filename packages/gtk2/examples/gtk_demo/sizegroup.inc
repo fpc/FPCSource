@@ -18,23 +18,23 @@ var
 
 
 const
-  color_options : array [0..3] of pchar = ('Red', 'Green', 'Blue', NULL);
+  color_options : array [0..3] of PAnsiChar = ('Red', 'Green', 'Blue', NULL);
 
-  dash_options  : array [0..3] of pchar = ('Solid', 'Dashed', 'Dotted', NULL);
+  dash_options  : array [0..3] of PAnsiChar = ('Solid', 'Dashed', 'Dotted', NULL);
 
-  end_options   : array [0..3] of pchar = ('Square', 'Round', 'Arrow', NULL);
+  end_options   : array [0..3] of PAnsiChar = ('Square', 'Round', 'Arrow', NULL);
 
 
 (* Convenience function to create an option menu holding a number of strings
  *)
 
-function create_option_menu (strings : ppchar): PGtkWidget;
+function create_option_menu (strings : PPAnsiChar): PGtkWidget;
 var
   menu,
   menu_item,
   option_menu : PGtkWidget;
 
-  str         : ppchar;
+  str         : PPAnsiChar;
 
 begin
   menu := gtk_menu_new ();
@@ -58,8 +58,8 @@ end;
 procedure add_row (table      : PGtkTable;
                    row        : integer;
                    size_group : PGtkSizeGroup;
-                   label_text : pchar;
-                   options    : ppchar);
+                   label_text : PAnsiChar;
+                   options    : PPAnsiChar);
 var
   option_menu : PGtkWidget;
   thelabel    : PGtkWidget;

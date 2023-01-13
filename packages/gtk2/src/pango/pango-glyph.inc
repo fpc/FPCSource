@@ -69,10 +69,10 @@ procedure pango_glyph_string_free(_string:PPangoGlyphString); cdecl; external pa
 procedure pango_glyph_string_extents(glyphs:PPangoGlyphString; font:PPangoFont; ink_rect:PPangoRectangle; logical_rect:PPangoRectangle); cdecl; external pangolib;
 procedure pango_glyph_string_extents_range(glyphs:PPangoGlyphString; start:longint; theEnd:longint; font:PPangoFont; ink_rect:PPangoRectangle;
             logical_rect:PPangoRectangle); cdecl; external pangolib;
-procedure pango_glyph_string_get_logical_widths(glyphs:PPangoGlyphString; text:Pchar; length:longint; embedding_level:longint; logical_widths:Plongint); cdecl; external pangolib;
-procedure pango_glyph_string_index_to_x(glyphs:PPangoGlyphString; text:Pchar; length:longint; analysis:PPangoAnalysis; index:longint;
+procedure pango_glyph_string_get_logical_widths(glyphs:PPangoGlyphString; text:PAnsiChar; length:longint; embedding_level:longint; logical_widths:Plongint); cdecl; external pangolib;
+procedure pango_glyph_string_index_to_x(glyphs:PPangoGlyphString; text:PAnsiChar; length:longint; analysis:PPangoAnalysis; index:longint;
             trailing:gboolean; x_pos:Plongint); cdecl; external pangolib;
-procedure pango_glyph_string_x_to_index(glyphs:PPangoGlyphString; text:Pchar; length:longint; analysis:PPangoAnalysis; x_pos:longint;
+procedure pango_glyph_string_x_to_index(glyphs:PPangoGlyphString; text:PAnsiChar; length:longint; analysis:PPangoAnalysis; x_pos:longint;
             index:Plongint; trailing:Plongint); cdecl; external pangolib;
 { Turn a string of characters into a string of glyphs
   }

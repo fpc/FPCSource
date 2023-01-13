@@ -17,9 +17,9 @@
    {$IFNDEF KYLIX}
    Pgchar   = ^gchar;
    {$ELSE}
-   Pgchar   = PChar;
+   Pgchar   = PAnsiChar;
    {$ENDIF}
-   gchar    = char;
+   gchar    = AnsiChar;
 
    Pgshort = ^gshort;
    gshort = cshort;

@@ -114,8 +114,8 @@ procedure gdk_exit(error_code:gint); cdecl; external gdklib;
 { GDK_DISABLE_DEPRECATED  }
 
 function gdk_set_locale:Pgchar; cdecl; external gdklib;
-function gdk_get_program_class:Pchar; cdecl; external gdklib;
-procedure gdk_set_program_class(program_class:Pchar); cdecl; external gdklib;
+function gdk_get_program_class:PAnsiChar; cdecl; external gdklib;
+procedure gdk_set_program_class(program_class:PAnsiChar); cdecl; external gdklib;
 
 { Push and pop error handlers for X errors }
 procedure gdk_error_trap_push; cdecl; external gdklib;
@@ -165,7 +165,7 @@ procedure gdk_rectangle_union(src1:PGdkRectangle; src2:PGdkRectangle; dest:PGdkR
 function gdk_rectangle_get_type:GType; cdecl; external gdklib;
 function GDK_TYPE_RECTANGLE : GType;
 
-{ Conversion functions between wide char and multibyte strings. }
+{ Conversion functions between wide AnsiChar and multibyte strings. }
 function gdk_wcstombs(src:PGdkWChar):Pgchar; cdecl; external gdklib;
 function gdk_mbstowcs(dest:PGdkWChar; src:Pgchar; dest_max:gint):gint; cdecl; external gdklib;
 { Miscellaneous  }

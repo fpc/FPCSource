@@ -84,14 +84,14 @@ procedure set_icon_size_set(var a : TGtkToolbar; __icon_size_set : guint);
 function gtk_toolbar_get_type:TGtkType; cdecl; external gtklib;
 function gtk_toolbar_new:PGtkWidget; cdecl; external gtklib;
 { Simple button items  }
-function gtk_toolbar_append_item(toolbar:PGtkToolbar; text:Pchar; tooltip_text:Pchar; tooltip_private_text:Pchar; icon:PGtkWidget;
+function gtk_toolbar_append_item(toolbar:PGtkToolbar; text:PAnsiChar; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar; icon:PGtkWidget;
            callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
-function gtk_toolbar_prepend_item(toolbar:PGtkToolbar; text:Pchar; tooltip_text:Pchar; tooltip_private_text:Pchar; icon:PGtkWidget;
+function gtk_toolbar_prepend_item(toolbar:PGtkToolbar; text:PAnsiChar; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar; icon:PGtkWidget;
            callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
-function gtk_toolbar_insert_item(toolbar:PGtkToolbar; text:Pchar; tooltip_text:Pchar; tooltip_private_text:Pchar; icon:PGtkWidget;
+function gtk_toolbar_insert_item(toolbar:PGtkToolbar; text:PAnsiChar; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar; icon:PGtkWidget;
            callback:TGtkSignalFunc; user_data:gpointer; position:gint):PGtkWidget; cdecl; external gtklib;
 { Stock Items  }
-function gtk_toolbar_insert_stock(toolbar:PGtkToolbar; stock_id:Pgchar; tooltip_text:Pchar; tooltip_private_text:Pchar; callback:TGtkSignalFunc;
+function gtk_toolbar_insert_stock(toolbar:PGtkToolbar; stock_id:Pgchar; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar; callback:TGtkSignalFunc;
            user_data:gpointer; position:gint):PGtkWidget; cdecl; external gtklib;
 { Space Items  }
 procedure gtk_toolbar_append_space(toolbar:PGtkToolbar); cdecl; external gtklib;
@@ -99,16 +99,16 @@ procedure gtk_toolbar_prepend_space(toolbar:PGtkToolbar); cdecl; external gtklib
 procedure gtk_toolbar_insert_space(toolbar:PGtkToolbar; position:gint); cdecl; external gtklib;
 procedure gtk_toolbar_remove_space(toolbar:PGtkToolbar; position:gint); cdecl; external gtklib;
 { Any element type  }
-function gtk_toolbar_append_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:Pchar; tooltip_text:Pchar;
-           tooltip_private_text:Pchar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
-function gtk_toolbar_prepend_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:Pchar; tooltip_text:Pchar;
-           tooltip_private_text:Pchar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
-function gtk_toolbar_insert_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:Pchar; tooltip_text:Pchar;
-           tooltip_private_text:Pchar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer; position:gint):PGtkWidget; cdecl; external gtklib;
+function gtk_toolbar_append_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:PAnsiChar; tooltip_text:PAnsiChar;
+           tooltip_private_text:PAnsiChar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
+function gtk_toolbar_prepend_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:PAnsiChar; tooltip_text:PAnsiChar;
+           tooltip_private_text:PAnsiChar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer):PGtkWidget; cdecl; external gtklib;
+function gtk_toolbar_insert_element(toolbar:PGtkToolbar; _type:TGtkToolbarChildType; widget:PGtkWidget; text:PAnsiChar; tooltip_text:PAnsiChar;
+           tooltip_private_text:PAnsiChar; icon:PGtkWidget; callback:TGtkSignalFunc; user_data:gpointer; position:gint):PGtkWidget; cdecl; external gtklib;
 { Generic Widgets  }
-procedure gtk_toolbar_append_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:Pchar; tooltip_private_text:Pchar); cdecl; external gtklib;
-procedure gtk_toolbar_prepend_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:Pchar; tooltip_private_text:Pchar); cdecl; external gtklib;
-procedure gtk_toolbar_insert_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:Pchar; tooltip_private_text:Pchar; position:gint); cdecl; external gtklib;
+procedure gtk_toolbar_append_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar); cdecl; external gtklib;
+procedure gtk_toolbar_prepend_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar); cdecl; external gtklib;
+procedure gtk_toolbar_insert_widget(toolbar:PGtkToolbar; widget:PGtkWidget; tooltip_text:PAnsiChar; tooltip_private_text:PAnsiChar; position:gint); cdecl; external gtklib;
 { Style functions  }
 procedure gtk_toolbar_set_orientation(toolbar:PGtkToolbar; orientation:TGtkOrientation); cdecl; external gtklib;
 procedure gtk_toolbar_set_style(toolbar:PGtkToolbar; style:TGtkToolbarStyle); cdecl; external gtklib;

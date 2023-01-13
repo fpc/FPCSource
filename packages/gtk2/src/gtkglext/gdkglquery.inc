@@ -25,10 +25,10 @@ function gdk_gl_query_version_for_display(
   cdecl; external GdkGLExtLib;
 {$endif GDKGLEXT_MULTIHEAD_SUPPORT}
 
-function gdk_gl_query_gl_extension(extension: PChar): gboolean;
+function gdk_gl_query_gl_extension(extension: PAnsiChar): gboolean;
   cdecl; external GdkGLExtLib;
 
-function gdk_gl_get_proc_address(proc_name: PChar): TGdkGLProc;
+function gdk_gl_get_proc_address(proc_name: PAnsiChar): TGdkGLProc;
   cdecl; external GdkGLExtLib;
 
 {$endif read_interface_rest}

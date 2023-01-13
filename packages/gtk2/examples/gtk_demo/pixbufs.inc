@@ -18,7 +18,7 @@ const
 
   BACKGROUND_NAME = 'background.jpg';
 
-  image_names : array [1..8] of pchar = (
+  image_names : array [1..8] of PAnsiChar = (
     'apple-red.png',
     'gnome-applets.png',
     'gnome-calendar.png',

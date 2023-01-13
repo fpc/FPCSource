@@ -43,7 +43,7 @@ Type
 
 type
 
-   TGtkTextUtilCharChosenFunc = procedure (text:Pchar; data:gpointer); cdecl;
+   TGtkTextUtilCharChosenFunc = procedure (text:PAnsiChar; data:gpointer); cdecl;
 
 procedure _gtk_text_util_append_special_char_menuitems(menushell:PGtkMenuShell; func:TGtkTextUtilCharChosenFunc; data:gpointer); cdecl; external gtklib;
 { C++ end of extern C conditionnal removed }

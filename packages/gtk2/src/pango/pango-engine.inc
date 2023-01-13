@@ -27,7 +27,7 @@
      end;
 
    TPangoEngineLangScriptBreak =
-     procedure (text:Pchar; len:longint; analysis:PPangoAnalysis;
+     procedure (text:PAnsiChar; len:longint; analysis:PPangoAnalysis;
                 attrs:PPangoLogAttr; attrs_len:longint); cdecl;
 
    PPangoEngineLang = ^TPangoEngineLang;
@@ -37,7 +37,7 @@
      end;
 
    TPangoEngineShapeScript =
-     procedure (font:PPangoFont; text:Pchar; length:longint;
+     procedure (font:PPangoFont; text:PAnsiChar; length:longint;
                 analysis:PPangoAnalysis; glyphs:PPangoGlyphString); cdecl;
    TPangoEngineShapeGetCoverage =
      function (font:PPangoFont; language:PPangoLanguage):PPangoCoverage; cdecl;
@@ -65,7 +65,7 @@ const
 
 { A module should export the following functions  }
 procedure script_engine_list(var engines:PPangoEngineInfo; n_engines:Plongint); cdecl; external pangolib;
-function script_engine_load(id:Pchar):PPangoEngine; cdecl; external pangolib;
+function script_engine_load(id:PAnsiChar):PPangoEngine; cdecl; external pangolib;
 procedure script_engine_unload(engine:PPangoEngine); cdecl; external pangolib;
 {$endif}
 { PANGO_ENABLE_ENGINE  }

@@ -153,7 +153,7 @@ procedure gtk_text_buffer_get_bounds(buffer:PGtkTextBuffer; start:PGtkTextIter; 
 procedure gtk_text_buffer_get_iter_at_mark(buffer:PGtkTextBuffer; iter:PGtkTextIter; mark:PGtkTextMark); cdecl; external gtklib;
 procedure gtk_text_buffer_get_iter_at_child_anchor(buffer:PGtkTextBuffer; iter:PGtkTextIter; anchor:PGtkTextChildAnchor); cdecl; external gtklib;
 { There's no get_first_iter because you just get the iter for
-   line or char 0  }
+   line or AnsiChar 0  }
 { Used to keep track of whether the buffer needs saving; anytime the
    buffer contents change, the modified flag is turned on. Whenever
    you save, turn it off. Tags and marks do not affect the modified

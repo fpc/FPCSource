@@ -55,7 +55,7 @@
      procedure (family:PPangoFontFamily; faces:PPPPangoFontFace;
                                 n_faces:Plongint); cdecl;
    TPangoFontFamilyClassGetName =
-     function (family:PPangoFontFamily):Pchar; cdecl;
+     function (family:PPangoFontFamily):PAnsiChar; cdecl;
 
    PPangoFontFamilyClass = ^TPangoFontFamilyClass;
    TPangoFontFamilyClass = record
@@ -72,7 +72,7 @@
    PPangoFontFaceClass = ^TPangoFontFaceClass;
    TPangoFontFaceClass = record
         parent_class : TGObjectClass;
-        get_face_name : function (face:PPangoFontFace):Pchar; cdecl;
+        get_face_name : function (face:PPangoFontFace):PAnsiChar; cdecl;
         describe : function (face:PPangoFontFace):PPangoFontDescription; cdecl;
         _pango_reserved1 : procedure ; cdecl;
         _pango_reserved2 : procedure ; cdecl;
@@ -179,9 +179,9 @@ function pango_font_description_hash(desc:PPangoFontDescription):guint; cdecl; e
 function pango_font_description_equal(desc1:PPangoFontDescription; desc2:PPangoFontDescription):gboolean; cdecl; external pangolib;
 procedure pango_font_description_free(desc:PPangoFontDescription); cdecl; external pangolib;
 procedure pango_font_descriptions_free(var descs:PPangoFontDescription; n_descs:longint); cdecl; external pangolib;
-procedure pango_font_description_set_family(desc:PPangoFontDescription; family:Pchar); cdecl; external pangolib;
-procedure pango_font_description_set_family_static(desc:PPangoFontDescription; family:Pchar); cdecl; external pangolib;
-function pango_font_description_get_family(desc:PPangoFontDescription):Pchar; cdecl; external pangolib;
+procedure pango_font_description_set_family(desc:PPangoFontDescription; family:PAnsiChar); cdecl; external pangolib;
+procedure pango_font_description_set_family_static(desc:PPangoFontDescription; family:PAnsiChar); cdecl; external pangolib;
+function pango_font_description_get_family(desc:PPangoFontDescription):PAnsiChar; cdecl; external pangolib;
 procedure pango_font_description_set_style(desc:PPangoFontDescription; style:TPangoStyle); cdecl; external pangolib;
 function pango_font_description_get_style(desc:PPangoFontDescription):TPangoStyle; cdecl; external pangolib;
 procedure pango_font_description_set_variant(desc:PPangoFontDescription; variant:TPangoVariant); cdecl; external pangolib;
@@ -199,9 +199,9 @@ procedure pango_font_description_unset_fields(desc:PPangoFontDescription; to_uns
 procedure pango_font_description_merge(desc:PPangoFontDescription; desc_to_merge:PPangoFontDescription; replace_existing:gboolean); cdecl; external pangolib;
 procedure pango_font_description_merge_static(desc:PPangoFontDescription; desc_to_merge:PPangoFontDescription; replace_existing:gboolean); cdecl; external pangolib;
 function pango_font_description_better_match(desc:PPangoFontDescription; old_match:PPangoFontDescription; new_match:PPangoFontDescription):gboolean; cdecl; external pangolib;
-function pango_font_description_from_string(str:Pchar):PPangoFontDescription; cdecl; external pangolib;
-function pango_font_description_to_string(desc:PPangoFontDescription):Pchar; cdecl; external pangolib;
-function pango_font_description_to_filename(desc:PPangoFontDescription):Pchar; cdecl; external pangolib;
+function pango_font_description_from_string(str:PAnsiChar):PPangoFontDescription; cdecl; external pangolib;
+function pango_font_description_to_string(desc:PPangoFontDescription):PAnsiChar; cdecl; external pangolib;
+function pango_font_description_to_filename(desc:PPangoFontDescription):PAnsiChar; cdecl; external pangolib;
 {
    PangoFontMetrics
 }
@@ -232,7 +232,7 @@ function PANGO_IS_FONT_FAMILY(anObject : Pointer) : boolean;
 function pango_font_family_get_type:GType; cdecl; external pangolib;
 procedure pango_font_family_list_faces(family:PPangoFontFamily;
                      faces:PPPPangoFontFace; n_faces:Plongint); cdecl; external pangolib;
-function pango_font_family_get_name(family:PPangoFontFamily):Pchar; cdecl; external pangolib;
+function pango_font_family_get_name(family:PPangoFontFamily):PAnsiChar; cdecl; external pangolib;
 function pango_font_family_is_monospace(family:PPangoFontFamily):gboolean; cdecl; external pangolib;
 
 {$ifdef PANGO_ENABLE_BACKEND}
@@ -252,7 +252,7 @@ function PANGO_IS_FONT_FACE(anObject : pointer) : boolean;
 
 function pango_font_face_get_type:GType; cdecl; external pangolib;
 function pango_font_face_describe(face:PPangoFontFace):PPangoFontDescription; cdecl; external pangolib;
-function pango_font_face_get_face_name(face:PPangoFontFace):Pchar; cdecl; external pangolib;
+function pango_font_face_get_face_name(face:PPangoFontFace):PAnsiChar; cdecl; external pangolib;
 {$ifdef PANGO_ENABLE_BACKEND}
 function PANGO_FONT_FACE_CLASS(klass : pointer) : PPangoFontFaceClass;
 function PANGO_IS_FONT_FACE_CLASS(klass : pointer) : boolean;
