@@ -3805,7 +3805,7 @@ function GetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inGetVir
  *  Discussion:
  *    A menu item's keyboard equivalent may be either a character code
  *    or a virtual keycode. The character code is always used to draw
- *    the item's keyboard equivalent in the menu, but either a char
+ *    the item's keyboard equivalent in the menu, but either a AnsiChar
  *    code or a virtual key code may be used for keyboard equivalent
  *    matching by MenuEvent and IsMenuKeyEvent, depending on whether
  *    the kMenuItemAttrUseVirtualKey item attribute is set. If

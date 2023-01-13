@@ -269,7 +269,7 @@ const
 
 {!
     @enum           AudioBooleanControl Subclass IDs
-    @abstract       The four char codes that identify the various standard subclasses of
+    @abstract       The four AnsiChar codes that identify the various standard subclasses of
                     AudioBooleanControl.
     @constant       kAudioISubOwnerClassID
                         An AudioBooleanControl where true means that the AudioDevice that

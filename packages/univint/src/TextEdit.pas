@@ -290,7 +290,7 @@ type
         Out:
             none
 
-    typedef pascal Boolean (*EOLHookProcPtr)(char theChar, TEPtr pTE, TEHandle hTE);
+    typedef pascal Boolean (*EOLHookProcPtr)(AnsiChar theChar, TEPtr pTE, TEHandle hTE);
 
         In:
             =>  theChar                 D0.B
@@ -532,7 +532,7 @@ const
 
 
 type
-	Chars = packed array [0..32000] of char;
+	Chars = packed array [0..32000] of AnsiChar;
 	CharsPtr = ^Chars;
 	CharsHandle = ^CharsPtr;
 	StyleRunPtr = ^StyleRun;

@@ -370,7 +370,7 @@ const
 					When this value has become one, all properties that can be known about the stream are known.
 					
     @constant   kAudioFileStreamProperty_FileFormat 
-					An UInt32 four char code that identifies the format of the file
+					An UInt32 four AnsiChar code that identifies the format of the file
     @constant   kAudioFileStreamProperty_DataFormat 
 					An AudioStreamBasicDescription describing the format of the audio data
     @constant   kAudioFileStreamProperty_FormatList 

@@ -237,7 +237,7 @@ type
 type
 	ListBounds = Rect;
 	ListBoundsPtr = ^ListBounds;
-	DataArray = packed array [0..32000] of char;
+	DataArray = packed array [0..32000] of AnsiChar;
 type
 	DataPtr = ^DataArray;
 	DataHandle = ^DataPtr;

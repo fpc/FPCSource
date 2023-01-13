@@ -641,7 +641,7 @@ function AUParameterValueToLinear( inParameterValue: AudioUnitParameterValue; co
         3       1000-9990       -1
         4       10000-99900     -2</pre>
 }                              
-function AUParameterFormatValue( inParameterValue: Float64; const (*var*) inParameter: AudioUnitParameter; var inTextBuffer: char; inDigits: UInt32 ): CStringPtr; external name '_AUParameterFormatValue';
+function AUParameterFormatValue( inParameterValue: Float64; const (*var*) inParameter: AudioUnitParameter; var inTextBuffer: AnsiChar; inDigits: UInt32 ): CStringPtr; external name '_AUParameterFormatValue';
 (* API_AVAILABLE(macos(10.2), ios(6.0), watchos(2.0), tvos(9.0)) *)
 
 

@@ -2036,22 +2036,22 @@ end;
 
 {$R-}
 
-function CFCopyLocalizedString( key: CFStringRef; comment: PChar ): CFStringRef; inline;
+function CFCopyLocalizedString( key: CFStringRef; comment: PAnsiChar ): CFStringRef; inline;
 begin
 	CFCopyLocalizedString := CFBundleCopyLocalizedString( CFBundleGetMainBundle, key, key, nil );
 end;
 
-function CFCopyLocalizedStringFromTable( key: CFStringRef; tableName: CFStringRef; comment: PChar ): CFStringRef; inline;
+function CFCopyLocalizedStringFromTable( key: CFStringRef; tableName: CFStringRef; comment: PAnsiChar ): CFStringRef; inline;
 begin
 	CFCopyLocalizedStringFromTable := CFBundleCopyLocalizedString( CFBundleGetMainBundle, key, key, tableName );
 end;
 
-function CFCopyLocalizedStringFromTableInBundle( key: CFStringRef; tableName: CFStringRef; bundle: CFBundleRef; comment: PChar ): CFStringRef; inline;
+function CFCopyLocalizedStringFromTableInBundle( key: CFStringRef; tableName: CFStringRef; bundle: CFBundleRef; comment: PAnsiChar ): CFStringRef; inline;
 begin
 	CFCopyLocalizedStringFromTableInBundle := CFBundleCopyLocalizedString( bundle, key, key, tableName );
 end;
 
-function CFCopyLocalizedStringWithDefaultValue( key: CFStringRef; tableName: CFStringRef; bundle: CFBundleRef; value: CFStringRef; comment: PChar ): CFStringRef; inline;
+function CFCopyLocalizedStringWithDefaultValue( key: CFStringRef; tableName: CFStringRef; bundle: CFBundleRef; value: CFStringRef; comment: PAnsiChar ): CFStringRef; inline;
 begin
 	CFCopyLocalizedStringWithDefaultValue := CFBundleCopyLocalizedString( bundle, key, value, tableName );
 end;

@@ -342,7 +342,7 @@ procedure CGLGetVersion( majorvers: PGLint; minorvers: PGLint ); external name '
 {
 ** Convert an error code to a string
 }
-function CGLErrorString( error: CGLError ): PChar; external name '_CGLErrorString';
+function CGLErrorString( error: CGLError ): PAnsiChar; external name '_CGLErrorString';
 
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
