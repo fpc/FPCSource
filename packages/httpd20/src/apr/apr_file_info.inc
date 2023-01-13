@@ -191,9 +191,9 @@ type
     { The time the file was last changed }
     ctime: apr_time_t;
     { The pathname of the file (possibly unrooted) }
-    fname: PChar;
+    fname: PAnsiChar;
     { The file's name (no path) in filesystem case }
-    name: PChar;
+    name: PAnsiChar;
     { The file's handle, if accessed (can be submitted to apr_duphandle) }
     filehand: Papr_file_t;
   end;
@@ -214,7 +214,7 @@ type
  *       not be filled in, and you need to check the @c finfo->valid bitmask
  *       to verify that what you're looking for is there.
  }
-function apr_stat(finfo: Papr_finfo_t; const fname: PChar;
+function apr_stat(finfo: Papr_finfo_t; const fname: PAnsiChar;
  wanted: apr_int32_t; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_stat' + LibSuff16;
@@ -231,7 +231,7 @@ function apr_stat(finfo: Papr_finfo_t; const fname: PChar;
  * @deprecated This function is deprecated, it's equivalent to calling apr_stat with 
  * the wanted flag value APR_FINFO_LINK
  }
-function apr_lstat(finfo: Papr_finfo_t; const fname: PChar;
+function apr_lstat(finfo: Papr_finfo_t; const fname: PAnsiChar;
  wanted: apr_int32_t; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_lstat' + LibSuff16;
@@ -246,7 +246,7 @@ function apr_lstat(finfo: Papr_finfo_t; const fname: PChar;
  * @param dirname The full path to the directory (use / on all systems)
  * @param cont The pool to use.
  }
-function apr_dir_open(new_dir: PPapr_dir_t; const dirname: PChar;
+function apr_dir_open(new_dir: PPapr_dir_t; const dirname: PAnsiChar;
  cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dir_open' + LibSuff12;
@@ -339,7 +339,7 @@ const
  * the drive letter), or APR_EBADPATH if the root is simply invalid.
  * APR_SUCCESS is returned if filepath is an absolute path.
  }
-function apr_filepath_root(const rootpath, filepath: PPChar;
+function apr_filepath_root(const rootpath, filepath: PPAnsiChar;
  flags: apr_int32_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_root' + LibSuff16;
@@ -357,7 +357,7 @@ function apr_filepath_root(const rootpath, filepath: PPChar;
  * result code will be APR_EPATHWILD, and all further segments will not
  * reflect the true filenames including the wildcard and following segments.
  }
-function apr_filepath_merge(newpath: PPChar; const rootpath, addpath: PPChar;
+function apr_filepath_merge(newpath: PPAnsiChar; const rootpath, addpath: PPAnsiChar;
  flags: apr_int32_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_merge' + LibSuff20;
@@ -372,7 +372,7 @@ function apr_filepath_merge(newpath: PPChar; const rootpath, addpath: PPChar;
  * e.g., ':' on Unix, ';' on Windows, etc.
  }
 function apr_filepath_list_split(pathelts: PPapr_array_header_t;
- const liststr: PChar; p: Papr_pool_t): apr_status_t;
+ const liststr: PAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_list_split' + LibSuff12;
 
@@ -385,7 +385,7 @@ function apr_filepath_list_split(pathelts: PPapr_array_header_t;
  * @remark the path separator in @a liststr is system specific;
  * e.g., ':' on Unix, ';' on Windows, etc.
  }
-function apr_filepath_list_merge(liststr: PPChar;
+function apr_filepath_list_merge(liststr: PPAnsiChar;
  pathelts: Papr_array_header_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_list_merge' + LibSuff12;
@@ -397,7 +397,7 @@ function apr_filepath_list_merge(liststr: PPChar;
  *              default file path in os-native format.
  * @param p the pool to allocate the default path string from
  }
-function apr_filepath_get(path: PPChar; flags: apr_int32_t;
+function apr_filepath_get(path: PPAnsiChar; flags: apr_int32_t;
  p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_get' + LibSuff12;
@@ -407,7 +407,7 @@ function apr_filepath_get(path: PPChar; flags: apr_int32_t;
  * @param path the default path returned
  * @param p the pool to allocate any working storage
  }
-function apr_filepath_set(const path: PChar; p: Papr_pool_t): apr_status_t;
+function apr_filepath_set(const path: PAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_set' + LibSuff8;
 

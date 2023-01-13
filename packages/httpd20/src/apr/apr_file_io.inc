@@ -158,7 +158,7 @@ const
  *      default permissions will be used.  *arg1 must point to a valid file_t, 
  *      or NULL (in which case it will be allocated)
  }
-function apr_file_open(newf: PPapr_file_t; const fname: PChar;
+function apr_file_open(newf: PPapr_file_t; const fname: PAnsiChar;
  flag: apr_int32_t; perm: apr_fileperms_t;
  pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -178,7 +178,7 @@ function apr_file_close(file_: Papr_file_t): apr_status_t;
  * @param cont The pool to use.
  * @remark If the file is open, it won't be removed until all instances are closed.
  }
-function apr_file_remove(const path: PChar; cont: Papr_pool_t): apr_status_t;
+function apr_file_remove(const path: PAnsiChar; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_remove' + LibSuff8;
 
@@ -190,7 +190,7 @@ function apr_file_remove(const path: PChar; cont: Papr_pool_t): apr_status_t;
  * @warning If a file exists at the new location, then it will be overwritten.  
  *      Moving files or directories across devices may not be possible.
  }
-function apr_file_rename(const from_path, to_path: PChar; pool: Papr_pool_t): apr_status_t;
+function apr_file_rename(const from_path, to_path: PAnsiChar; pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_rename' + LibSuff12;
 
@@ -206,7 +206,7 @@ function apr_file_rename(const from_path, to_path: PChar; pool: Papr_pool_t): ap
  * @remark The new file does not need to exist, it will be created if required.
  * @warning If the new file already exists, its contents will be overwritten.
  }
-function apr_file_copy(const from_path, to_path: PChar;
+function apr_file_copy(const from_path, to_path: PAnsiChar;
  perms: apr_fileperms_t; pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_copy' + LibSuff16;
@@ -222,7 +222,7 @@ function apr_file_copy(const from_path, to_path: PChar;
  * @param pool The pool to use.
  * @remark The new file does not need to exist, it will be created if required.
  }
-function apr_file_append(const from_path, to_path: PChar;
+function apr_file_append(const from_path, to_path: PAnsiChar;
  perms: apr_fileperms_t; pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_append' + LibSuff16;
@@ -304,7 +304,7 @@ function apr_file_open_stdin(thefile: PPapr_file_t;
  * @remark apr_file_read will read up to the specified number of bytes, but 
  *         never more.  If there isn't enough data to fill that number of 
  *         bytes, all of the available data is read.  The third argument is 
- *         modified to reflect the number of bytes read.  If a char was put 
+ *         modified to reflect the number of bytes read.  If a AnsiChar was put 
  *         back into the stream via ungetc, it will be the first character 
  *         returned. 
  *
@@ -368,7 +368,7 @@ function apr_file_writev(thefile: Papr_file_t; const vec: Piovec;
  * @remark apr_file_read will read up to the specified number of bytes, but never 
  *      more.  If there isn't enough data to fill that number of bytes, 
  *      then the process/thread will block until it is available or EOF 
- *      is reached.  If a char was put back into the stream via ungetc, 
+ *      is reached.  If a AnsiChar was put back into the stream via ungetc, 
  *      it will be the first character returned. 
  *
  *      It is possible for both bytes to be read and an error to be 
@@ -410,7 +410,7 @@ function apr_file_write_full(thefile: Papr_file_t; buf: Pointer;
  * @param ch The character to write.
  * @param thefile The file descriptor to write to
  }
-function apr_file_putc(ch: Char; thefile: Papr_file_t): apr_status_t;
+function apr_file_putc(ch: AnsiChar; thefile: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_putc' + LibSuff8;
 
@@ -419,7 +419,7 @@ function apr_file_putc(ch: Char; thefile: Papr_file_t): apr_status_t;
  * @param ch The character to read into
  * @param thefile The file descriptor to read from
  }
-function apr_file_getc(ch: PChar; thefile: Papr_file_t): apr_status_t;
+function apr_file_getc(ch: PAnsiChar; thefile: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_getc' + LibSuff8;
 
@@ -428,7 +428,7 @@ function apr_file_getc(ch: PChar; thefile: Papr_file_t): apr_status_t;
  * @param ch The character to write.
  * @param thefile The file descriptor to write to
  }
-function apr_file_ungetc(ch: Char; thefile: PPapr_file_t): apr_status_t;
+function apr_file_ungetc(ch: AnsiChar; thefile: PPapr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_ungetc' + LibSuff8;
 
@@ -439,7 +439,7 @@ function apr_file_ungetc(ch: Char; thefile: PPapr_file_t): apr_status_t;
  * @param thefile The file descriptor to read from
  * @remark The buffer will be '\0'-terminated if any characters are stored.
  }
-function apr_file_gets(str: PChar; len: Integer;
+function apr_file_gets(str: PAnsiChar; len: Integer;
  thefile: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_gets' + LibSuff12;
@@ -449,7 +449,7 @@ function apr_file_gets(str: PChar; len: Integer;
  * @param str The string to write. 
  * @param thefile The file descriptor to write to
  }
-function apr_file_puts(const str: PChar; thefile: Papr_file_t): apr_status_t;
+function apr_file_puts(const str: PAnsiChar; thefile: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_puts' + LibSuff8;
 
@@ -537,7 +537,7 @@ function apr_file_pipe_create(in_: PPapr_file_t; out_: PPapr_file_t;
  * @param perm The permissions for the newly created pipe.
  * @param cont The pool to operate on.
  }
-function apr_file_namedpipe_create(const filename: PChar;
+function apr_file_namedpipe_create(const filename: PAnsiChar;
  perm: apr_fileperms_t; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_namedpipe_create' + LibSuff12;
@@ -593,7 +593,7 @@ function apr_file_unlock(thefile: Papr_file_t): apr_status_t;
  * @param new_path The path of the file.  
  * @param thefile The currently open file.
  }
-function apr_file_name_get(const newpath: PPChar; thefile: Papr_file_t): apr_status_t;
+function apr_file_name_get(const newpath: PPAnsiChar; thefile: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_name_get' + LibSuff8;
 
@@ -603,7 +603,7 @@ function apr_file_name_get(const newpath: PPChar; thefile: Papr_file_t): apr_sta
  * @param key The key to use for retreiving data associated with this file.
  * @param file The currently open file.
  }
-function apr_file_data_get(data: PPointer; const key: PChar;
+function apr_file_data_get(data: PPointer; const key: PAnsiChar;
  file_: Papr_file_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_data_get' + LibSuff12;
@@ -615,11 +615,11 @@ function apr_file_data_get(data: PPointer; const key: PChar;
  * @param key The key to use for assocaiteing data with the file.
  * @param cleanup The cleanup routine to use when the file is destroyed.
  }
-//function apr_file_data_set(ch: Char; thefile: PPapr_file_t): apr_status_t;
+//function apr_file_data_set(ch: AnsiChar; thefile: PPapr_file_t): apr_status_t;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
 // external LibAPR name LibNamePrefix + 'apr_file_data_set' + LibSuff4;
 //APR_DECLARE(apr_status_t) (apr_file_t *file, void *data,
-//                                           const char *key,
+//                                           const AnsiChar *key,
 //                                           apr_status_t (*cleanup)(void *));
 
 {
@@ -629,7 +629,7 @@ function apr_file_data_get(data: PPointer; const key: PChar;
  * @param ... The values to substitute in the format string
  * @return The number of bytes written
  }
-function apr_file_printf(fptr: Papr_file_t; const format: PChar;
+function apr_file_printf(fptr: Papr_file_t; const format: PAnsiChar;
  othres: array of const): Integer;
  cdecl; external LibAPR name 'apr_file_printf';
 
@@ -643,7 +643,7 @@ function apr_file_printf(fptr: Papr_file_t; const format: PChar;
  *
  *      Platforms which do not implement this feature will return APR_ENOTIMPL.
  }
-function apr_file_perms_set(const fname: PChar;
+function apr_file_perms_set(const fname: PAnsiChar;
  perms: apr_fileperms_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_perms_set' + LibSuff8;
@@ -666,7 +666,7 @@ function apr_file_perms_set(const fname: PChar;
  * @warning Platforms which do not implement this feature will return
  *      APR_ENOTIMPL.
  }
-function apr_file_attrs_set(const fname: PChar;
+function apr_file_attrs_set(const fname: PAnsiChar;
  attributes, attr_mask: apr_fileattrs_t;
  cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -680,7 +680,7 @@ function apr_file_attrs_set(const fname: PChar;
  * @warning Platforms which do not implement this feature will return
  *      APR_ENOTIMPL.
  }
-function apr_file_mtime_set(const fname: PChar;
+function apr_file_mtime_set(const fname: PAnsiChar;
  mtime: apr_time_t; pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_mtime_set' + LibSuff16;
@@ -691,7 +691,7 @@ function apr_file_mtime_set(const fname: PChar;
  * @param perm Permissions for the new direcoty.
  * @param cont the pool to use.
  }
-function apr_dir_make(const path: PChar; perm: apr_fileperms_t;
+function apr_dir_make(const path: PAnsiChar; perm: apr_fileperms_t;
  cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dir_make' + LibSuff12;
@@ -703,7 +703,7 @@ function apr_dir_make(const path: PChar; perm: apr_fileperms_t;
  * @param perm Permissions for the new direcoty.
  * @param pool the pool to use.
  }
-function apr_dir_make_recursive(const path: PChar;
+function apr_dir_make_recursive(const path: PAnsiChar;
  perm: apr_fileperms_t; pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dir_make_recursive' + LibSuff12;
@@ -713,7 +713,7 @@ function apr_dir_make_recursive(const path: PChar;
  * @param path the path for the directory to be removed.  (use / on all systems)
  * @param cont the pool to use.
  }
-function apr_dir_remove(const path: PChar; cont: Papr_pool_t): apr_status_t;
+function apr_dir_remove(const path: PAnsiChar; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dir_remove' + LibSuff8;
 
@@ -784,7 +784,7 @@ function apr_file_flags_get(f: Papr_file_t): apr_int32_t;
  * array.  
  *
  }
-function apr_file_mktemp(fp: PPapr_file_t; templ: PChar;
+function apr_file_mktemp(fp: PPapr_file_t; templ: PAnsiChar;
  flags: apr_int32_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_file_mktemp' + LibSuff16;
@@ -801,7 +801,7 @@ function apr_file_mktemp(fp: PPapr_file_t; templ: PChar;
  * is successful.
  *
  }
-function apr_temp_dir_get(const temp_dir: PPChar; p: Papr_pool_t): apr_status_t;
+function apr_temp_dir_get(const temp_dir: PPAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_temp_dir_get' + LibSuff8;
 
