@@ -10,7 +10,7 @@ uses xforms,strings;
 var
   choice : Longint;
   str1,str2 : string[100];
-  s : pchar;
+  s : PAnsiChar;
 
 begin
   fl_initialize(@argc, argv, 'FormDemo', nil, 0);

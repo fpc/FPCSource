@@ -160,7 +160,7 @@ Function BaseName(const s:ansistring;suf:ansistring):ansistring;
 begin
   BaseName:=extractfilename(s);
   if '.'+suf=extractfileext(s) then
-    BaseName:=changefileext(s,'');  
+    BaseName:=changefileext(s,ansistring(''));  
 end;
 
 Procedure EmitError (Const s : String);
