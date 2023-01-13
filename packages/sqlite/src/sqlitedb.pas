@@ -8,8 +8,8 @@ interface
 uses  Classes,strings,sqlite;
 
 type
-  TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: ppchar; ColumnNames: ppchar): integer of object; cdecl;
-  TSQLiteBusyCallback = function(Sender: TObject; ObjectName: PChar; BusyCount: integer): integer of object; cdecl;
+  TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): integer of object; cdecl;
+  TSQLiteBusyCallback = function(Sender: TObject; ObjectName: PAnsiChar; BusyCount: integer): integer of object; cdecl;
   TOnData = Procedure(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String)  of object;
   TOnBusy = Procedure(Sender: TObject; ObjectName: String; BusyCount: integer; var Cancel: Boolean) of object;
   TOnQueryComplete = Procedure(Sender: TObject) of object;
@@ -30,7 +30,7 @@ type
     fOnBusy: TOnBusy;
     fOnQueryComplete: TOnQueryComplete;
     fBusyTimeout: integer;
-    fPMsg: PChar;
+    fPMsg: PAnsiChar;
     fChangeCount: integer;
         fNb_Champ :  Integer;
         fList_FieldName : TStringList;
@@ -63,27 +63,27 @@ type
   end;
   function Pas2SQLStr(const PasString: string): string;
   function SQL2PasStr(const SQLString: string): string;
-  function QuoteStr(const s: string; QuoteChar: Char ): string;
-  function UnQuoteStr(const s: string; QuoteChar: Char ): string;
+  function QuoteStr(const s: string; QuoteChar: AnsiChar ): string;
+  function UnQuoteStr(const s: string; QuoteChar: AnsiChar ): string;
   procedure ValueList(const ColumnNames, ColumnValues: String; NameValuePairs: TStrings);
 
 implementation
 
 Const
-  DblQuote: Char    = '"';
-  SngQuote: Char    = #39;
+  DblQuote: AnsiChar    = '"';
+  SngQuote: AnsiChar    = #39;
   Crlf: String      = #13#10;
-  Tab: Char         = #9;
+  Tab: AnsiChar         = #9;
 
 var
   MsgNoError: String;
 
-function QuoteStr(const s: string; QuoteChar: Char ): string;
+function QuoteStr(const s: string; QuoteChar: AnsiChar ): string;
 begin
   Result := Concat(QuoteChar, s, QuoteChar);
 end;
 
-function UnQuoteStr(const s: string; QuoteChar: Char ): string;
+function UnQuoteStr(const s: string; QuoteChar: AnsiChar ): string;
 begin
   Result := s;
   if length(Result) > 1 then
@@ -151,7 +151,7 @@ end;
 
 function SystemErrorMsg(ErrNo: Integer ): String;
 var
-  buf: PChar;
+  buf: PAnsiChar;
   size: Integer;
   MsgLen: Integer;
 begin
@@ -166,7 +166,7 @@ begin
     Result := buf;}
 end;
 
-function BusyCallback(Sender: pointer; ObjectName: PChar; BusyCount: integer): integer; cdecl;
+function BusyCallback(Sender: pointer; ObjectName: PAnsiChar; BusyCount: integer): integer; cdecl;
 var
   sObjName: String;
   bCancel: Boolean;
@@ -185,9 +185,9 @@ begin
   end;
 end;
 
-function ExecCallback(Sender: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPchar): integer; cdecl;
+function ExecCallback(Sender: Pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): integer; cdecl;
 var
-  PVal, PName: ^PChar;
+  PVal, PName: ^PAnsiChar;
   n: integer;
   sVal, sName: String;
 begin
@@ -230,7 +230,7 @@ Var i : Integer;
           InterS,val : String;
           Field : TStringList;
 
-          function Pos1(a: String ; s : char) : integer;
+          function Pos1(a: String ; s : AnsiChar) : integer;
           var i,j : Integer;
 
           begin
@@ -273,8 +273,8 @@ end;
 
 constructor TSQLite.Create(DBFileName: String);
 var
-  fPMsg1: PChar;
-  name : pchar;
+  fPMsg1: PAnsiChar;
+  name : PAnsiChar;
 begin
   inherited Create;
   List_FieldName := TStringList.Create;
@@ -322,8 +322,8 @@ end;
 
 function TSQLite.Query(Sql: String; Table: TStrings ): boolean;
 //var
-//  fPMsg: PChar;
-//var Psql : pchar;
+//  fPMsg: PAnsiChar;
+//var Psql : PAnsiChar;
 begin
   fError := SQLITE_ERROR;
   if fIsOpen then
@@ -336,7 +336,7 @@ begin
    List_FieldName.clear;
    List_Field.clear;
    Nb_Champ:=-1;
-    fError := SQLite_Exec(fSQLite, PChar(sql), @ExecCallback, Self, @fPMsg);
+    fError := SQLite_Exec(fSQLite, PAnsiChar(sql), @ExecCallback, Self, @fPMsg);
     SQLite_FreeMem(fPMsg);
     fChangeCount := SQLite_Changes(fSQLite);
     fTable := nil;
@@ -389,7 +389,7 @@ begin
 end;
 
 function TSQLite.IsComplete(Sql: String): boolean;
-var Psql : pchar;
+var Psql : PAnsiChar;
 begin
   Psql:=StrAlloc (length(Sql)+1);
   strpcopy(Psql,Sql);
