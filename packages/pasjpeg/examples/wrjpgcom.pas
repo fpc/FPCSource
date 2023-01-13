@@ -60,7 +60,7 @@ begin
 end;
 
 { Error exit handler }
-procedure ERREXIT(msg : string);
+procedure ERREXIT(msg : ansistring);
 begin
   WriteLn(msg);
   Halt(EXIT_FAILURE);
@@ -353,14 +353,14 @@ begin
 end;
 
 
-function keymatch (const arg : string;
-                   const keyword : string;
+function keymatch (const arg : ansistring;
+                   const keyword : ansistring;
                    minchars : int) : boolean;
 { Case-insensitive matching of (possibly abbreviated) keyword switches. }
 { keyword is the constant keyword (must be lower case already), }
 { minchars is length of minimum legal abbreviation. }
 var
-  {register} ca, ck : char;
+  {register} ca, ck : AnsiChar;
   {register} nmatched : int;
   i, len : int;
 begin
@@ -386,10 +386,10 @@ end;
 var
   argc,
   argn : int;
-  arg : string;
+  arg : ansistring;
   keep_COM : boolean;
-  comment_arg : string;
-  comment_arg_0 : PChar;
+  comment_arg : ansistring;
+  comment_arg_0 : PAnsiChar;
   comment_file : TBufStream;
   comment_length : uint;
   marker : int;
@@ -560,7 +560,7 @@ begin
                    uint(MAX_COM_LENGTH)),' bytes);
           Halt(EXIT_FAILURE);
         end;
-        comment_arg[comment_length] := char(c);
+        comment_arg[comment_length] := AnsiChar(c);
         Inc(comment_length);
       end;
     until (c = EOF);

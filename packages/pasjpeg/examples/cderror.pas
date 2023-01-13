@@ -52,7 +52,7 @@ type
      JTRC_GIF_EXTENSION,  { Ignoring GIF extension block of type 0x%02x }
      JTRC_GIF_NONSQUARE,  { Caution: nonsquare pixels in input }
      JWRN_GIF_BADDATA,  { Corrupt data in GIF file }
-     JWRN_GIF_CHAR,  { Bogus char 0x%02x in GIF file, ignoring }
+     JWRN_GIF_CHAR,  { Bogus AnsiChar 0x%02x in GIF file, ignoring }
      JWRN_GIF_ENDCODE,  { Premature end of GIF image }
      JWRN_GIF_NOMOREDATA,  { Ran out of GIF bits }
    {$endif} { GIF_SUPPORTED }
@@ -144,7 +144,7 @@ const
   { JTRC_GIF_EXTENSION } 'Ignoring GIF extension block of type 0x%02x',
   { JTRC_GIF_NONSQUARE } 'Caution: nonsquare pixels in input',
   { JWRN_GIF_BADDATA } 'Corrupt data in GIF file',
-  { JWRN_GIF_CHAR } 'Bogus char 0x%02x in GIF file, ignoring',
+  { JWRN_GIF_CHAR } 'Bogus AnsiChar 0x%02x in GIF file, ignoring',
   { JWRN_GIF_ENDCODE } 'Premature end of GIF image',
   { JWRN_GIF_NOMOREDATA } 'Ran out of GIF bits',
 {$endif} { GIF_SUPPORTED }

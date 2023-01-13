@@ -5,7 +5,7 @@ Unit JDataDst;
   are sufficient for most applications, some will want to use a different
   destination manager.
   IMPORTANT: we assume that fwrite() will correctly transcribe an array of
-  JOCTETs into 8-bit-wide elements on external storage.  If char is wider
+  JOCTETs into 8-bit-wide elements on external storage.  If AnsiChar is wider
   than 8 bits on your machine, you may need to do some tweaking. }
 
 { Original : jdatadst.c ; Copyright (C) 1994-1996, Thomas G. Lane. }
