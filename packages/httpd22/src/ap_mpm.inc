@@ -106,7 +106,7 @@ function ap_graceful_stop_signalled: Integer;
 function ap_os_create_privileged_process(
  const r: Prequest_rec;
  newproc: Papr_proc_t;
- const progname, args, env: PChar;
+ const progname, args, env: PAnsiChar;
  attr: Papr_procattr_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_os_create_privileged_process' + LibSuff28;

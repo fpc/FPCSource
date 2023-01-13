@@ -56,8 +56,8 @@ type
     ref: PPapr_memnode_t;            {< reference to self }
     index: apr_uint32_t;             {< size }
     free_index: apr_uint32_t;        {< how much free }
-    first_avail: PChar;              {< pointer to first free memory }
-    endp: PChar;                     {< pointer to end of free memory }
+    first_avail: PAnsiChar;              {< pointer to first free memory }
+    endp: PAnsiChar;                     {< pointer to end of free memory }
   end;
 
 { The base size of a memory node - aligned.  }

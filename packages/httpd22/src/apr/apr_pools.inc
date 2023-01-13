@@ -206,7 +206,7 @@ function apr_pool_create_ex(newpool: PPapr_pool_t;
  }
 function apr_pool_create_ex_debug(newpool: PPapr_pool_t;
  parent: Papr_pool_t; abort_fn: apr_abortfunc_t;
- allocator: Papr_allocator_t; const file_line: PChar): apr_status_t;
+ allocator: Papr_allocator_t; const file_line: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pool_create_ex_debug' + LibSuff20;
 
@@ -272,7 +272,7 @@ procedure apr_pool_clear(p: Papr_pool_t);
  *         apr_pool_clear in a wrapper, trust the macro
  *         and don't call apr_pool_destroy_clear directly.
  }
-procedure apr_pool_clear_debug(p: Papr_pool_t; const file_line: PChar);
+procedure apr_pool_clear_debug(p: Papr_pool_t; const file_line: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pool_clear_debug' + LibSuff8;
 
@@ -304,7 +304,7 @@ procedure apr_pool_destroy(p: Papr_pool_t);
  *         apr_pool_destroy in a wrapper, trust the macro
  *         and don't call apr_pool_destroy_debug directly.
  }
-procedure apr_pool_destroy_debug(p: Papr_pool_t; const file_line: PChar);
+procedure apr_pool_destroy_debug(p: Papr_pool_t; const file_line: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pool_destroy_debug' + LibSuff8;
 
@@ -337,7 +337,7 @@ function apr_palloc(p: Papr_pool_t; size: apr_size_t): Pointer;
  * @return See: apr_palloc
  }
 function apr_palloc_debug(p: Papr_pool_t; size: apr_size_t;
- const file_line: PChar): Pointer;
+ const file_line: PAnsiChar): Pointer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_palloc_debug' + LibSuff12;
 
@@ -371,7 +371,7 @@ function apr_pcalloc(p: Papr_pool_t; size: apr_size_t): Pointer;
  * @return See: apr_pcalloc
  }
 {APR_DECLARE(void *) apr_pcalloc_debug(apr_pool_t *p, apr_size_t size,
-                                      const char *file_line);
+                                      const AnsiChar *file_line);
 
 #if APR_POOL_DEBUG
 #define apr_pcalloc(p, size) \
@@ -433,7 +433,7 @@ function apr_pool_is_ancestor(a, b: Papr_pool_t): Integer;
  * @param pool The pool to tag
  * @param tag  The tag
  }
-procedure apr_pool_tag(pool: Papr_pool_t; tag: PChar);
+procedure apr_pool_tag(pool: Papr_pool_t; tag: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pool_tag' + LibSuff8;
 
@@ -460,7 +460,7 @@ procedure apr_pool_tag(pool: Papr_pool_t; tag: PChar);
  *      key names is a typical way to help ensure this uniqueness.
  }
 //function apr_pool_userdata_set(
-// const data: Pointer; const key: PChar;
+// const data: Pointer; const key: PAnsiChar;
 // cleanup: function(param: Pointer): apr_status_t,
 // pool: Papr_pool_t): apr_status_t;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -486,7 +486,7 @@ procedure apr_pool_tag(pool: Papr_pool_t; tag: PChar);
  *
  }
 //function apr_pool_userdata_setn(
-// const data: Pointer; const key: PChar;
+// const data: Pointer; const key: PAnsiChar;
 // cleanup: function(param: Pointer): apr_status_t,
 // pool: Papr_pool_t): apr_status_t;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -498,7 +498,7 @@ procedure apr_pool_tag(pool: Papr_pool_t; tag: PChar);
  * @param key The key for the data to retrieve
  * @param pool The current pool.
  }
-function apr_pool_userdata_get(data: PPointer; const key: PChar;
+function apr_pool_userdata_get(data: PPointer; const key: PAnsiChar;
  pool: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pool_userdata_get' + LibSuff12;

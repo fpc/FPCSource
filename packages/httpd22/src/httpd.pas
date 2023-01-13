@@ -24,7 +24,9 @@
 unit httpd;
 
 {$ifdef fpc}
-  {$mode delphi}{$H+}
+  {$mode delphi}
+  {$H-}
+  {$modeswitch unicodestrings-}
 {$endif}
 
 {$IFNDEF FPC}
@@ -121,7 +123,7 @@ begin
   Result := number mod 1000;
 end;
 
-function ap_escape_uri(p: Papr_pool_t; const path: PChar): PChar;
+function ap_escape_uri(p: Papr_pool_t; const path: PAnsiChar): PAnsiChar;
 begin
   Result := ap_os_escape_path(p, path, 1);
 end;
@@ -134,7 +136,7 @@ begin
   mod_.version := MODULE_MAGIC_NUMBER_MAJOR;
   mod_.minor_version := MODULE_MAGIC_NUMBER_MINOR;
   mod_.module_index := -1;
-//  mod_.name: PChar;
+//  mod_.name: PAnsiChar;
   mod_.dynamic_load_handle := nil;
   mod_.next := nil;
   mod_.magic := MODULE_MAGIC_COOKIE;
@@ -147,7 +149,7 @@ begin
   mod_.version := MODULE_MAGIC_NUMBER_MAJOR;
   mod_.minor_version := MODULE_MAGIC_NUMBER_MINOR;
   mod_.module_index := -1;
-//  mod_.name: PChar;
+//  mod_.name: PAnsiChar;
   mod_.dynamic_load_handle := nil;
   mod_.next := nil;
   mod_.magic := MODULE_MAGIC_COOKIE;

@@ -71,7 +71,7 @@ function apr_signal(signo: Integer; func: apr_sigfunc_t): Papr_sigfunc_t;
  * @param signum The signal number
  * @return The description of the signal
  }
-function apr_signal_description_get(signo: Integer): PChar;
+function apr_signal_description_get(signo: Integer): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_signal_description_get' + LibSuff4;
 

@@ -59,12 +59,12 @@ type
  * @param klen The length of the key, or APR_HASH_KEY_STRING to use the string
  *             length. If APR_HASH_KEY_STRING then returns the actual key length.
  }
-  apr_hashfunc_t = function (const key: PChar; klen: Papr_size_t): cuint;
+  apr_hashfunc_t = function (const key: PAnsiChar; klen: Papr_size_t): cuint;
 
 {
  * The default hash function.
  }
-function apr_hashfunc_default(const key: PChar; klen: Papr_size_t): cuint;
+function apr_hashfunc_default(const key: PAnsiChar; klen: Papr_size_t): cuint;
  cdecl; external LibAPR name 'apr_hashfunc_default';
 
 {

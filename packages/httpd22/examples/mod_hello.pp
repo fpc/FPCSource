@@ -49,7 +49,7 @@ begin
   { The following line just prints a message to the errorlog }
   ap_log_error(MODULE_NAME, 54, APLOG_NOERRNO or APLOG_NOTICE,
    {$ifndef Apache1_3}0,{$endif} r^.server,
-   'mod_hello: %s', [PChar('Before content is output')]);
+   'mod_hello: %s', [PAnsiChar('Before content is output')]);
 
   { We set the content type before doing anything else }
   {$ifdef Apache1_3}
