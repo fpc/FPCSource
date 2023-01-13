@@ -34,7 +34,7 @@ Type
   TInt64Array = Array of Int64;
   TQWordArray = Array of QWord;
   TDoubleArray = Array of Double;
-  TStringArray = Array of String;
+  TStringArray = Array of AnsiString;
 
   TDBUSDictionary = Class;
   { TDBusMessageIterator }
@@ -43,8 +43,8 @@ Type
   private
     FIter : DBUSMessageIter;
   protected
-    Procedure Error(Const Msg : String);
-    Procedure Error(Const Fmt : String; Args : Array of Const);
+    Procedure Error(Const Msg : AnsiString);
+    Procedure Error(Const Fmt : AnsiString; Args : Array of Const);
   Public
     Constructor Create(AIter : DBUSMessageIter);
     Function GetFixedArray(Const AElementType : cint; Var P : Pointer) : cInt;
@@ -63,7 +63,7 @@ Type
     Procedure GetArgument(var Arg : Int64);
     Procedure GetArgument(Var Arg : QWord);
     Procedure GetArgument(var Arg : Double);
-    Procedure GetArgument(var Arg : String);
+    Procedure GetArgument(var Arg : AnsiString);
     Procedure GetArgument(Var Arg : TByteArray);
     Procedure GetArgument(Var Arg : TBooleanArray);
     Procedure GetArgument(Var Arg : TSmallIntArray);
@@ -87,7 +87,7 @@ Type
     Procedure AppendArgument(Const Arg : Int64);
     Procedure AppendArgument(Const Arg : QWord);
     Procedure AppendArgument(Const Arg : Double);
-    Procedure AppendArgument(Const Arg : String);
+    Procedure AppendArgument(Const Arg : AnsiString);
   end;
 
   TDBUSDictItem = Class(TCollectionItem)
@@ -128,8 +128,8 @@ Type
     Procedure CheckAllocated;
     Function Allocated : boolean;
     Function Copy : TDBUSMessage;
-    Procedure Error(Const Msg : String);
-    Procedure Error(Const Fmt : String; Args : Array of Const);
+    Procedure Error(Const Msg : AnsiString);
+    Procedure Error(Const Fmt : AnsiString; Args : Array of Const);
     Property Message : PDBUSMessage Read GetMessage;
     Property FromSource : Boolean Read FFromSource;
     Property Serial : dbus_uint32_t Read GetSerial;
@@ -147,7 +147,7 @@ Type
     Procedure AppendArgument(Const Arg : Int64);
     Procedure AppendArgument(Const Arg : QWord);
     Procedure AppendArgument(Const Arg : Double);
-    Procedure AppendArgument(Const Arg : String);
+    Procedure AppendArgument(Const Arg : AnsiString);
     Procedure Get(AType : cInt; Var Value);
     Procedure GetArgument(Var Arg : Byte);
     Procedure GetArgument(Var Arg : Boolean);
@@ -158,7 +158,7 @@ Type
     Procedure GetArgument(var Arg : Int64);
     Procedure GetArgument(Var Arg : QWord);
     Procedure GetArgument(var Arg : Double);
-    Procedure GetArgument(var Arg : String);
+    Procedure GetArgument(var Arg : AnsiString);
     Procedure GetArgument(Var Arg : TByteArray);
     Procedure GetArgument(Var Arg : TBooleanArray);
     Procedure GetArgument(Var Arg : TSmallIntArray);
@@ -174,10 +174,10 @@ Type
     Procedure GetArgument(Const Arg : TDBUSDictionary);
     Function GetNextArgumentType : cInt;
     Function GetArrayElementType : cInt;
-    Function HasPath(Const APath : String) : boolean; virtual;
-    Function HasSender(Const ASender : String) : boolean; virtual;
-    Function HasSignature(Const ASignature : String) : boolean; virtual;
-    Function IsError(Const AError : string) : Boolean; virtual;
+    Function HasPath(Const APath : AnsiString) : boolean; virtual;
+    Function HasSender(Const ASender : AnsiString) : boolean; virtual;
+    Function HasSignature(Const ASignature : AnsiString) : boolean; virtual;
+    Function IsError(Const AError : AnsiString) : Boolean; virtual;
   end;
 
   TDBUSGUID = Array[1..32] of Byte;
@@ -190,15 +190,15 @@ Type
   end;
   TDBUSInterfaceMessage = Class(TDBusMessage)
   Private
-    FInterface: String;
-    FPath: String;
-    procedure SetInterface(const AValue: String);
-    function GetInterface: String;
-    procedure SetPath(const AValue: String);
+    FInterface: AnsiString;
+    FPath: AnsiString;
+    procedure SetInterface(const AValue: AnsiString);
+    function GetInterface: AnsiString;
+    procedure SetPath(const AValue: AnsiString);
   Public
-    Function HasPath(Const APath : String) : boolean; override;
-    Property ObjectPath : String Read FPath Write SetPath;
-    Property InterfaceName : String Read GetInterface Write SetInterface;
+    Function HasPath(Const APath : AnsiString) : boolean; override;
+    Property ObjectPath : AnsiString Read FPath Write SetPath;
+    Property InterfaceName : AnsiString Read GetInterface Write SetInterface;
   end;
 
 
@@ -206,31 +206,31 @@ Type
 
   TDBusMethodCallMessage = Class(TDBUSInterfaceMessage)
   private
-    FDestination: String;
-    FMethod: String;
-    procedure SetDestination(const AValue: String);
-    procedure SetMethod(const AValue: String);
+    FDestination: AnsiString;
+    FMethod: AnsiString;
+    procedure SetDestination(const AValue: AnsiString);
+    procedure SetMethod(const AValue: AnsiString);
   Protected
     Class function MessageType : cint; override;
     Procedure AllocateMessage; override;
   Public
-    Constructor Create(Const ADestination,AObjectPath,AInterface,AMethod : String); virtual; overload;
-    Property Destination : String Read FDestination Write SetDestination;
-    Property MethodName : String Read FMethod Write SetMethod;
+    Constructor Create(Const ADestination,AObjectPath,AInterface,AMethod : AnsiString); virtual; overload;
+    Property Destination : AnsiString Read FDestination Write SetDestination;
+    Property MethodName : AnsiString Read FMethod Write SetMethod;
   end;
 
   { TDBusSignalMessage }
 
   TDBusSignalMessage = Class(TDBusInterfaceMessage)
   private
-    FName: String;
-    procedure SetName(const AValue: String);
+    FName: AnsiString;
+    procedure SetName(const AValue: AnsiString);
   Protected
     Class function MessageType : cint; override;
     Procedure AllocateMessage; override;
   Public
-    Constructor Create(Const AObjectPath,AInterface,AName : String); virtual; overload;
-    Property Name : String Read FName Write SetName;
+    Constructor Create(Const AObjectPath,AInterface,AName : AnsiString); virtual; overload;
+    Property Name : AnsiString Read FName Write SetName;
   end;
 
   { TDBusReplyToMessage }
@@ -246,19 +246,19 @@ Type
 
   TDBusErrorMessage = Class(TDBusReplyToMessage)
   private
-    FErrorMessage: String;
-    FErrorName: String;
-    FName: String;
-    procedure SetErrorMessage(const AValue: String);
-    procedure SetErrorName(const AValue: String);
+    FErrorMessage: AnsiString;
+    FErrorName: AnsiString;
+    FName: AnsiString;
+    procedure SetErrorMessage(const AValue: AnsiString);
+    procedure SetErrorName(const AValue: AnsiString);
   Protected
     Class function MessageType : cint; override;
     Procedure AllocateMessage; override;
   Public
-    Constructor Create(Const AReplyTo : TDBUSMessage; Const AErrorName,AErrorMessage : String); overload;
-    Constructor Create(Const AReplyTo : TDBUSMessage; Const AErrorName,AFormat : String; Args : Array of const); overload;
-    Property ErrorName : String Read FErrorName Write SetErrorName;
-    Property ErrorMessage : String Read FErrorMessage Write SetErrorMessage;
+    Constructor Create(Const AReplyTo : TDBUSMessage; Const AErrorName,AErrorMessage : AnsiString); overload;
+    Constructor Create(Const AReplyTo : TDBUSMessage; Const AErrorName,AFormat : AnsiString; Args : Array of const); overload;
+    Property ErrorName : AnsiString Read FErrorName Write SetErrorName;
+    Property ErrorMessage : AnsiString Read FErrorMessage Write SetErrorMessage;
   end;
 
   { TDBusMethodReturnMessage }
@@ -343,15 +343,15 @@ Type
   TDBUSObjectItem = Class(TDbusMessageItem)
   private
     FFallBack: Boolean;
-    FPath: String;
+    FPath: AnsiString;
     procedure SetFallback(const AValue: Boolean);
-    procedure SetPath(const AValue: String);
+    procedure SetPath(const AValue: AnsiString);
   Public
     Procedure Register; override;
     Procedure Unregister; override;
     function AllowRegister : Boolean; override;
   Published
-    Property Path : String Read FPath Write SetPath;
+    Property Path : AnsiString Read FPath Write SetPath;
     Property FallBack : Boolean Read FFallBack Write SetFallback;
   end;
   TDBUSObjectItemClass = Class of TDBUSObjectItem;
@@ -381,7 +381,7 @@ Type
     FMaxReceivedSize : clong;
     FMaxMessageSize: clong;
     FObjects: TDBUSObjects;
-    FPath: String;
+    FPath: AnsiString;
     FShared: Boolean;
     function GetAnonymous: boolean;
     function GetAuthenticated: boolean;
@@ -390,14 +390,14 @@ Type
     function GetMaxMessageSize: clong;
     function GetMaxReceivedSize: clong;
     function GetOutgoingSize: clong;
-    function GetServerID: String;
+    function GetServerID: AnsiString;
     procedure SetConnected(const AValue: Boolean);
     procedure SetFilters(const AValue: TDBUSFilters);
     procedure SetKind(const AValue: TConnectionKind);
     procedure SetMaxMessageSize(const AValue: clong);
     procedure SetMaxReceivedSize(const AValue: clong);
     procedure SetObjects(const AValue: TDBUSObjects);
-    procedure SetPath(const AValue: String);
+    procedure SetPath(const AValue: AnsiString);
     procedure SetShared(const AValue: Boolean);
   Protected
     Procedure CheckError;
@@ -409,7 +409,7 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-    Procedure Error(Const Msg : String);
+    Procedure Error(Const Msg : AnsiString);
     Procedure ResetError;
     procedure Connect;
     procedure Disconnect;
@@ -432,14 +432,14 @@ Type
     Function GetUnixFileDescriptor(Var fd : cInt) : Boolean;
     Function GetUnixProcessID(Var ID : CUlong) : Boolean;
     Function GetUnixUser(Var UID : CUlong) : Boolean;
-    Function GetWindowsUser(Var SID : String) : Boolean;
+    Function GetWindowsUser(Var SID : AnsiString) : Boolean;
     Function GetSocket(Var SD : cint) : Boolean;
-    Function GetObjectPathData(Const Path : String; DoCheck : Boolean = False) : TDBUSObjectItem;
+    Function GetObjectPathData(Const Path : AnsiString; DoCheck : Boolean = False) : TDBUSObjectItem;
     Procedure SetAllowAnonymous(AValue : Boolean);
     Procedure SetRoutePeerMessages(AValue : Boolean);
     Procedure ReturnMessage(var AMessage : TDBUSMessage);
     Procedure StealBorrowedMessage(var AMessage : TDBUSMessage);
-    Procedure ListRegistered(Const APath : String; AList : TStrings);
+    Procedure ListRegistered(Const APath : AnsiString; AList : TStrings);
     Class Function AllocateDataSlot(Var slot : dbus_int32_t) : Boolean;
     Class procedure FreeDataSlot(Var slot : dbus_int32_t);
     Function SetData(Const Slot: dbus_int32_t; Const Data : Pointer; Const FreeFunction : DBUSFreeFunction) : Boolean;
@@ -451,13 +451,13 @@ Type
     Property Connected : Boolean Read GetConnected Write SetConnected;
     Property Kind : TConnectionKind Read FKind Write SetKind;
     Property Shared : Boolean read FShared Write SetShared default true;
-    Property Path : String Read FPath Write SetPath;
+    Property Path : AnsiString Read FPath Write SetPath;
     Property MaxMessageSize : clong Read GetMaxMessageSize Write SetMaxMessageSize;
     Property MaxReceiveSize : clong Read GetMaxReceivedSize Write SetMaxReceivedSize;
     Property OutgoingSize : clong Read GetOutgoingSize;
     Property Authenticated : boolean Read GetAuthenticated;
     Property Anonymous : boolean Read GetAnonymous;
-    Property ServerID : String Read GetServerID;
+    Property ServerID : AnsiString Read GetServerID;
     Property Filters : TDBUSFilters Read FFilters Write SetFilters;
     Property Objects : TDBUSObjects Read FObjects Write SetObjects;
   end;
@@ -482,14 +482,14 @@ Type
 
   EDBus = Class(Exception)
   private
-    FName: String;
+    FName: AnsiString;
   Public
-    Property Name : String Read FName;
+    Property Name : AnsiString Read FName;
   end;
 
 Function CreateMessageFromSource(M : PDbusMessage) : TDBusMessage;
-Procedure RaiseDBUSError(Const AName,AMsg : String);
-Procedure RaiseDBUSError(Const AName,Fmt : String; Args : Array of const);
+Procedure RaiseDBUSError(Const AName,AMsg : AnsiString);
+Procedure RaiseDBUSError(Const AName,Fmt : AnsiString; Args : Array of const);
 
 implementation
 
@@ -535,7 +535,7 @@ begin
     end
 end;
 
-procedure RaiseDBUSError(const AName, AMsg: String);
+procedure RaiseDBUSError(const AName, AMsg: AnsiString);
 
 Var
   E : EDBUS;
@@ -546,7 +546,7 @@ begin
   Raise E;
 end;
 
-procedure RaiseDBUSError(const AName, Fmt: String; Args: array of const);
+procedure RaiseDBUSError(const AName, Fmt: AnsiString; Args: array of const);
 begin
   RaiseDBUSError(AName,Format(Fmt,Args));
 end;
@@ -600,10 +600,10 @@ begin
   Result:=dbus_connection_get_outgoing_size(fconn);
 end;
 
-function TCustomDBUSConnection.GetServerID: String;
+function TCustomDBUSConnection.GetServerID: AnsiString;
 
 Var
-  p : pchar;
+  p : PAnsiChar;
 
 begin
   CheckConnected;
@@ -658,7 +658,7 @@ begin
   FObjects.Assign(AValue);
 end;
 
-procedure TCustomDBUSConnection.SetPath(const AValue: String);
+procedure TCustomDBUSConnection.SetPath(const AValue: AnsiString);
 begin
   if FPath=AValue then exit;
   CheckDisconnected;
@@ -733,7 +733,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCustomDBUSConnection.Error(Const Msg: String);
+procedure TCustomDBUSConnection.Error(Const Msg: AnsiString);
 
 Var
   E : EDBUS;
@@ -763,9 +763,9 @@ begin
       If (FPath='') then
         Error(SErrNoDBUSPath);
       if Shared then
-        fconn:=dbus_connection_open(pchar(FPath),@Ferr)
+        fconn:=dbus_connection_open(PAnsiChar(FPath),@Ferr)
       else
-        fconn:=dbus_connection_open_private(pchar(FPath),@Ferr);
+        fconn:=dbus_connection_open_private(PAnsiChar(FPath),@Ferr);
       CheckError;
       end;
     ckSystem,
@@ -951,10 +951,10 @@ begin
   Result:=dbus_connection_get_unix_user(FConn,@UID)<>0;
 end;
 
-function TCustomDBUSConnection.GetWindowsUser(var SID: String): Boolean;
+function TCustomDBUSConnection.GetWindowsUser(var SID: AnsiString): Boolean;
 
 Var
-  P : PChar;
+  P : PAnsiChar;
 
 begin
   checkconnected;
@@ -971,7 +971,7 @@ begin
   Result:=dbus_connection_get_socket(FConn,@SD)<>0;
 end;
 
-function TCustomDBUSConnection.GetObjectPathData(const Path : String; DoCheck : Boolean = False): TDBUSObjectItem;
+function TCustomDBUSConnection.GetObjectPathData(const Path : AnsiString; DoCheck : Boolean = False): TDBUSObjectItem;
 
 Var
   P : Pointer;
@@ -979,7 +979,7 @@ Var
 
 begin
   CheckConnected;
-  dbus_connection_get_object_path_data(FConn,Pchar(Path),@P);
+  dbus_connection_get_object_path_data(FConn,PAnsiChar(Path),@P);
   Result:=Nil;
   If (P<>Nil) then
     if DoCheck then
@@ -1023,16 +1023,16 @@ begin
   dbus_connection_steal_borrowed_message(FConn,AMessage.Message);
 end;
 
-procedure TCustomDBUSConnection.ListRegistered(const APath: String;
+procedure TCustomDBUSConnection.ListRegistered(const APath: AnsiString;
   AList: TStrings);
 
 Var
-  P : PPchar;
+  P : PPAnsiChar;
 
 begin
   CheckConnected;
   AList.Clear;
-  if (dbus_connection_list_registered(FConn,PChar(APath),@P)<>0) then
+  if (dbus_connection_list_registered(FConn,PAnsiChar(APath),@P)<>0) then
     If (P<>Nil) then
       begin
       While (P^<>Nil) do
@@ -1172,12 +1172,12 @@ begin
   Result:=CreateMessageFromSource(dbus_message_copy(message));
 end;
 
-procedure TDBusMessage.Error(const Msg: String);
+procedure TDBusMessage.Error(const Msg: AnsiString);
 begin
   RaiseDBusError(ClassName,Msg);
 end;
 
-procedure TDBusMessage.Error(const Fmt: String; Args: array of const);
+procedure TDBusMessage.Error(const Fmt: AnsiString; Args: array of const);
 begin
   RaiseDBUSError(ClassName,Fmt,Args);
 end;
@@ -1295,7 +1295,7 @@ begin
   end;
 end;
 
-procedure TDBusMessage.AppendArgument(Const Arg: String);
+procedure TDBusMessage.AppendArgument(Const Arg: AnsiString);
 
 begin
   BeginAppend;
@@ -1342,7 +1342,7 @@ begin
   try
     Result:=FGetIterator.GetArgumentType;
     If (Result<>DBUS_TYPE_ARRAY) then
-      Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_ARRAY),Char(Result)]);
+      Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_ARRAY),AnsiChar(Result)]);
     Result:=FGetIterator.GetElementType;
   finally
     EndGet;
@@ -1449,7 +1449,7 @@ begin
   end;
 end;
 
-procedure TDBusMessage.GetArgument(var Arg: String);
+procedure TDBusMessage.GetArgument(var Arg: AnsiString);
 
 begin
   BeginGet;
@@ -1609,47 +1609,47 @@ begin
   end;
 end;
 
-function TDBusMessage.HasPath(const APath: String): boolean;
+function TDBusMessage.HasPath(const APath: AnsiString): boolean;
 begin
   Result:=Allocated;
   if Result then
-    Result:=dbus_message_has_path(Message,PChar(APath))<>0;
+    Result:=dbus_message_has_path(Message,PAnsiChar(APath))<>0;
 end;
 
-function TDBusMessage.HasSender(const ASender: String): boolean;
+function TDBusMessage.HasSender(const ASender: AnsiString): boolean;
 begin
   Result:=Allocated;
   if Result then
-    Result:=dbus_message_has_sender(message,PChar(ASender))<>0;
+    Result:=dbus_message_has_sender(message,PAnsiChar(ASender))<>0;
 end;
 
-function TDBusMessage.HasSignature(const ASignature: String): boolean;
+function TDBusMessage.HasSignature(const ASignature: AnsiString): boolean;
 begin
   Result:=Allocated;
   If Result then
-    Result:=dbus_message_has_signature(Message,Pchar(ASignature))<>0;
+    Result:=dbus_message_has_signature(Message,PAnsiChar(ASignature))<>0;
 end;
 
-function TDBusMessage.IsError(const AError : string): Boolean;
+function TDBusMessage.IsError(const AError : AnsiString): Boolean;
 begin
   Result:=Allocated;
   if Result then
-    Result:=dbus_message_is_error(message,Pchar(AError))<>0;
+    Result:=dbus_message_is_error(message,PAnsiChar(AError))<>0;
 end;
 
 { TDBusMethodCallMessage }
 
-procedure TDBusMethodCallMessage.SetDestination(const AValue: String);
+procedure TDBusMethodCallMessage.SetDestination(const AValue: AnsiString);
 begin
   if FDestination=AValue then exit;
   CheckNotAllocated;
   FDestination:=AValue;
 end;
 
-function TDBusInterfaceMessage.GetInterface: String;
+function TDBusInterfaceMessage.GetInterface: AnsiString;
 
 Var
-  p : pchar;
+  p : PAnsiChar;
 begin
   If not Allocated then
     Result:=FInterface
@@ -1661,21 +1661,21 @@ begin
     end;
 end;
 
-procedure TDBusInterfaceMessage.SetInterface(const AValue: String);
+procedure TDBusInterfaceMessage.SetInterface(const AValue: AnsiString);
 begin
   if FInterface=AValue then exit;
   CheckNotAllocated;
   FInterface:=AValue;
 end;
 
-procedure TDBusMethodCallMessage.SetMethod(const AValue: String);
+procedure TDBusMethodCallMessage.SetMethod(const AValue: AnsiString);
 begin
   if FMethod=AValue then exit;
   CheckNotAllocated;
   FMethod:=AValue;
 end;
 
-procedure TDBusInterfaceMessage.SetPath(const AValue: String);
+procedure TDBusInterfaceMessage.SetPath(const AValue: AnsiString);
 begin
   if FPath=AValue then exit;
   CheckNotAllocated;
@@ -1683,7 +1683,7 @@ begin
 end;
 
 constructor TDBusMethodCallMessage.Create(const ADestination, AObjectPath,
-  AInterface, AMethod: String);
+  AInterface, AMethod: AnsiString);
 begin
   FDestination:=ADestination;
   FPath:=AObjectPath;
@@ -1699,24 +1699,24 @@ end;
 procedure TDBusMethodCallMessage.AllocateMessage;
 
 Var
-  d,i : pchar;
+  d,i : PAnsiChar;
 
 begin
   CheckNotAllocated;
   d:=nil;
   i:=nil;
   if (FDestination<>'') then
-    d:=PChar(FDestination);
+    d:=PAnsiChar(FDestination);
   if (FInterface<>'') then
-    i:=PChar(FInterface);
+    i:=PAnsiChar(FInterface);
   if (FPath='') then
     Error(SErrEmptyPath);
   if (FMethod='') then
     Error(SErrEmptyMethod);
-  FMessage:=dbus_message_new_method_call(d,pchar(FPath),i,pchar(FMethod));
+  FMessage:=dbus_message_new_method_call(d,PAnsiChar(FPath),i,PAnsiChar(FMethod));
 end;
 
-function TDBusInterfaceMessage.HasPath(const APath: String): boolean;
+function TDBusInterfaceMessage.HasPath(const APath: AnsiString): boolean;
 begin
   If Allocated then
     Result:=Inherited  HasPath(APath)
@@ -1909,7 +1909,7 @@ var
     dbus_internal_pad4:Nil
   );
 
-procedure TDBUSObjectItem.SetPath(const AValue: String);
+procedure TDBUSObjectItem.SetPath(const AValue: AnsiString);
 begin
   If (FPath=AValue) then exit;
   FPath:=AValue;
@@ -1932,9 +1932,9 @@ begin
     Raise Exception.Create(SErrObjectWithoutPath);
   If HaveHandle then
     if FallBack then
-      FRegistered:=0<>dbus_connection_register_fallback(ConnHandle,Pchar(Path),@ObjectVTable,Self)
+      FRegistered:=0<>dbus_connection_register_fallback(ConnHandle,PAnsiChar(Path),@ObjectVTable,Self)
     else
-      FRegistered:=0<>dbus_connection_register_object_path(ConnHandle,Pchar(Path),@ObjectVTable,Self);
+      FRegistered:=0<>dbus_connection_register_object_path(ConnHandle,PAnsiChar(Path),@ObjectVTable,Self);
 end;
 
 procedure TDBUSObjectItem.Unregister;
@@ -1942,7 +1942,7 @@ begin
   If Path='' then
     Raise Exception.Create(SErrObjectWithoutPath);
   if HaveHandle then
-   FRegistered:=0=dbus_connection_unregister_object_path(ConnHandle,Pchar(Path));
+   FRegistered:=0=dbus_connection_unregister_object_path(ConnHandle,PAnsiChar(Path));
 end;
 
 function TDBUSObjectItem.AllowRegister: Boolean;
@@ -1975,7 +1975,7 @@ end;
 
 { TDBusSignalMessage }
 
-procedure TDBusSignalMessage.SetName(const AValue: String);
+procedure TDBusSignalMessage.SetName(const AValue: AnsiString);
 begin
   if FName=AValue then exit;
   CheckNotAllocated;
@@ -1990,22 +1990,22 @@ end;
 procedure TDBusSignalMessage.AllocateMessage;
 
 Var
-  i : pchar;
+  i : PAnsiChar;
 
 begin
   CheckNotAllocated;
   i:=nil;
   if (FInterface<>'') then
-    i:=PChar(FInterface);
+    i:=PAnsiChar(FInterface);
   if (FPath='') then
     Error(SErrEmptyPath);
   if (FName='') then
     Error(SErrEmptyName);
-  FMessage:=dbus_message_new_signal(PChar(FPath),I,Pchar(Name));
+  FMessage:=dbus_message_new_signal(PAnsiChar(FPath),I,PAnsiChar(Name));
 end;
 
 constructor TDBusSignalMessage.Create(const AObjectPath, AInterface,
-  AName: String);
+  AName: AnsiString);
 begin
   FPath:=AObjectPath;
   FInterface:=AInterface;
@@ -2014,14 +2014,14 @@ end;
 
 { TDBusErrorMessage }
 
-procedure TDBusErrorMessage.SetErrorMessage(const AValue: String);
+procedure TDBusErrorMessage.SetErrorMessage(const AValue: AnsiString);
 begin
   if FErrorMessage=AValue then exit;
   CheckNotAllocated;
   FErrorMessage:=AValue;
 end;
 
-procedure TDBusErrorMessage.SetErrorName(const AValue: String);
+procedure TDBusErrorMessage.SetErrorName(const AValue: AnsiString);
 begin
   if FErrorName=AValue then exit;
   CheckNotAllocated;
@@ -2048,7 +2048,7 @@ end;
 procedure TDBusErrorMessage.AllocateMessage;
 
 Var
-  P : PChar;
+  P : PAnsiChar;
 
 begin
   If (ErrorName='') then
@@ -2057,12 +2057,12 @@ begin
     Error(SErrNoReplyTo);
   P:=Nil;
   If (ErrorMessage<>'') then
-    P:=Pchar(ErrorMessage);
-  FMessage:=dbus_message_new_error(ReplyTo.Message,Pchar(FErrorName),P);
+    P:=PAnsiChar(ErrorMessage);
+  FMessage:=dbus_message_new_error(ReplyTo.Message,PAnsiChar(FErrorName),P);
 end;
 
 constructor TDBusErrorMessage.Create(const AReplyTo: TDBUSMessage;
-  const AErrorName, AErrorMessage: String);
+  const AErrorName, AErrorMessage: AnsiString);
 begin
   Inherited Create(AReplyto);
   FErrorName:=AErrorName;
@@ -2070,7 +2070,7 @@ begin
 end;
 
 constructor TDBusErrorMessage.Create(const AReplyTo: TDBUSMessage;
-  const AErrorName, AFormat: String; Args: array of const);
+  const AErrorName, AFormat: AnsiString; Args: array of const);
 begin
   Inherited Create(AReplyTo);
   FErrorName:=AErrorName;
@@ -2105,12 +2105,12 @@ end;
 
 { TDBusMessageIterator }
 
-procedure TDBusMessageIterator.Error(const Msg: String);
+procedure TDBusMessageIterator.Error(const Msg: AnsiString);
 begin
   RaiseDBusError(ClassName,Msg);
 end;
 
-procedure TDBusMessageIterator.Error(const Fmt: String; Args: array of const);
+procedure TDBusMessageIterator.Error(const Fmt: AnsiString; Args: array of const);
 begin
   RaiseDBUSError(ClassName,Fmt,Args);
 end;
@@ -2129,10 +2129,10 @@ Var
 begin
   A:=dbus_message_iter_get_arg_type(@FIter);
   If (A<>DBUS_TYPE_ARRAY) then
-    Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_ARRAY),Char(A)]);
+    Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_ARRAY),AnsiChar(A)]);
   A:=dbus_message_iter_get_element_type(@FIter);
   If (A<>AElementType) then
-    Error(SErrInvalidArrayElementType,[Char(AElementType),Char(A)]);
+    Error(SErrInvalidArrayElementType,[AnsiChar(AElementType),AnsiChar(A)]);
   dbus_message_iter_recurse(@FIter, @AI);
   dbus_message_iter_get_fixed_array(@AI,@P,@Result);
 end;
@@ -2177,7 +2177,7 @@ begin
   if (A=DBUS_TYPE_INVALID) then
     Error(SErrNoMoreArguments);
   if (A<>AType) then
-    Error(SErrInvalidArgumentType,[Char(AType),Char(A)]);
+    Error(SErrInvalidArgumentType,[AnsiChar(AType),AnsiChar(A)]);
   dbus_message_iter_get_basic(@FIter,@value);
   next;
 end;
@@ -2232,9 +2232,9 @@ begin
   Get(DBUS_TYPE_DOUBLE,Arg);
 end;
 
-procedure TDBusMessageIterator.GetArgument(var Arg: String);
+procedure TDBusMessageIterator.GetArgument(var Arg: AnsiString);
 Var
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   p:=Nil;
@@ -2369,15 +2369,15 @@ Var
   A : cInt;
   AI : DBUSMessageIter;
   l : integer;
-  p : Pchar;
+  p : PAnsiChar;
 
 begin
   A:=dbus_message_iter_get_arg_type(@fIter);
   If (A<>DBUS_TYPE_ARRAY) then
-    Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_ARRAY),Char(A)]);
+    Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_ARRAY),AnsiChar(A)]);
    A:=dbus_message_iter_get_element_type(@fIter);
   If (A<>DBUS_TYPE_STRING) then
-      Error(SErrInvalidArrayElementType,[Char(DBUS_TYPE_STRING),Char(A)]);
+      Error(SErrInvalidArrayElementType,[AnsiChar(DBUS_TYPE_STRING),AnsiChar(A)]);
   dbus_message_iter_recurse(@Fiter, @AI);
   setlength(Arg,0);
   l:=0;
@@ -2403,15 +2403,15 @@ procedure TDBusMessageIterator.GetArgument(var Arg: TStringList);
 Var
   A : cInt;
   AI : DBUSMessageIter;
-  p : Pchar;
+  p : PAnsiChar;
 
 begin
   A:=GetArgumentType;
   If (A<>DBUS_TYPE_ARRAY) then
-    Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_ARRAY),Char(A)]);
+    Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_ARRAY),AnsiChar(A)]);
   A:=GetElementType;
   If (A<>DBUS_TYPE_STRING) then
-      Error(SErrInvalidArrayElementType,[Char(DBUS_TYPE_STRING),Char(A)]);
+      Error(SErrInvalidArrayElementType,[AnsiChar(DBUS_TYPE_STRING),AnsiChar(A)]);
   dbus_message_iter_recurse(@FIter, @AI);
   Arg.Clear;
   while (dbus_message_iter_get_arg_type(@AI)<>DBUS_TYPE_INVALID) do
@@ -2430,7 +2430,7 @@ procedure TDBusMessageIterator.GetArgument(var Arg: Variant);
 Var
   A : cInt;
   AI : DBUSMessageIter;
-  p : Pchar;
+  p : PAnsiChar;
   By : Byte;
   Boo : Boolean;
   S : smallint;
@@ -2440,13 +2440,13 @@ Var
   I64 : Int64;
   Q : QWord;
   D : Double;
-  St : String;
+  St : AnsiString;
   IR : TDBusMessageIterator;
 
 begin
   A:=GetArgumentType;
   If (A<>DBUS_TYPE_VARIANT) then
-    Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_VARIANT),Char(A)]);
+    Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_VARIANT),AnsiChar(A)]);
   IR:=Recurse;
   try
     A:=IR.GetArgumentType;
@@ -2502,7 +2502,7 @@ begin
       Arg:=St;
       end;
     else
-      Error(SErrInvalidVariantType,[Char(DBUS_TYPE_VARIANT),Char(A)]);
+      Error(SErrInvalidVariantType,[AnsiChar(DBUS_TYPE_VARIANT),AnsiChar(A)]);
     end;
   finally
     IR.free;
@@ -2519,10 +2519,10 @@ Var
 begin
   A:=GetArgumentType;
   If (A<>DBUS_TYPE_ARRAY) then
-      Error(SErrInvalidArgumentType,[Char(DBUS_TYPE_ARRAY),Char(A)]);
+      Error(SErrInvalidArgumentType,[AnsiChar(DBUS_TYPE_ARRAY),AnsiChar(A)]);
   A:=GetElementType;
   If (A<>DBUS_TYPE_DICT_ENTRY) then
-    Error(SErrInvalidArrayElementType,[Char(DBUS_TYPE_DICT_ENTRY),Char(A)]);
+    Error(SErrInvalidArrayElementType,[AnsiChar(DBUS_TYPE_DICT_ENTRY),AnsiChar(A)]);
   I:=Recurse;
   try
     While I.HasNext do
@@ -2588,13 +2588,13 @@ begin
   Append(DBUS_TYPE_DOUBLE,Arg);
 end;
 
-procedure TDBusMessageIterator.AppendArgument(Const Arg: String);
+procedure TDBusMessageIterator.AppendArgument(Const Arg: AnsiString);
 
 Var
-  P : PChar;
+  P : PAnsiChar;
 
 begin
-  P:=Pchar(Arg);
+  P:=PAnsiChar(Arg);
   Append(DBUS_TYPE_STRING,P);
 end;
 

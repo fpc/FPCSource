@@ -22,7 +22,7 @@
  }
 
 
-function dbus_get_local_machine_id: PChar; cdecl; external LibDBus;
+function dbus_get_local_machine_id: PAnsiChar; cdecl; external LibDBus;
 
 procedure dbus_get_version(major_version_p, minor_version_p,
   micro_version_p: Pcint); cdecl; external LibDBus;

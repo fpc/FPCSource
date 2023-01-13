@@ -57,13 +57,13 @@ type
 
 function dbus_message_new(message_type: Integer): PDBusMessage; cdecl; external LibDBus;
 function dbus_message_new_method_call(
- const bus_name, path, interface_, method: PChar): PDBusMessage; cdecl; external LibDBus;
+ const bus_name, path, interface_, method: PAnsiChar): PDBusMessage; cdecl; external LibDBus;
 function dbus_message_new_method_return(method_call: PDBusMessage): PDBusMessage; cdecl; external LibDBus;
-function dbus_message_new_signal(const path, interface_, name: PChar): PDBusMessage; cdecl; external LibDBus;
+function dbus_message_new_signal(const path, interface_, name: PAnsiChar): PDBusMessage; cdecl; external LibDBus;
 function dbus_message_new_error(reply_to: PDBusMessage;
- const error_name, error_message: PChar): PDBusMessage; cdecl; external LibDBus;
+ const error_name, error_message: PAnsiChar): PDBusMessage; cdecl; external LibDBus;
 function dbus_message_new_error_printf(reply_to: PDBusMessage;
- const error_name, error_format: PChar;
+ const error_name, error_format: PAnsiChar;
  others: array of const): PDBusMessage; cdecl; external LibDBus;
 
 function dbus_message_copy(const message_: PDBusMessage): PDBusMessage; cdecl; external LibDBus;
@@ -72,45 +72,45 @@ function dbus_message_ref(message_: PDBusMessage): PDBusMessage; cdecl; external
 procedure dbus_message_unref(message_: PDBusMessage); cdecl; external LibDBus;
 function dbus_message_get_type(message_: PDBusMessage): cint; cdecl; external LibDBus;
 function dbus_message_set_path(message_: PDBusMessage;
- const object_path: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_path(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const object_path: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_path(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_has_path(message_: PDBusMessage;
- const object_path: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const object_path: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_set_interface(message_: PDBusMessage;
- const interface_: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_interface(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const interface_: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_interface(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_has_interface(message_: PDBusMessage;
- const interface_: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const interface_: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_set_member(message_: PDBusMessage;
- const member: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_member(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const member: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_member(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_has_member(message_: PDBusMessage;
- const member: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const member: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_set_error_name(message_: PDBusMessage;
- const name: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_error_name(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_error_name(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_set_destination(message_: PDBusMessage;
- const destination: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_destination(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const destination: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_destination(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_set_sender(message_: PDBusMessage;
- const sender: PChar): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_get_sender(message_: PDBusMessage): PChar; cdecl; external LibDBus;
-function dbus_message_get_signature(message_: PDBusMessage): PChar; cdecl; external LibDBus;
+ const sender: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_sender(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
+function dbus_message_get_signature(message_: PDBusMessage): PAnsiChar; cdecl; external LibDBus;
 procedure dbus_message_set_no_reply(message_: PDBusMessage;
  no_reply: dbus_bool_t); cdecl; external LibDBus;
 function dbus_message_get_no_reply(message_: PDBusMessage): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_is_method_call(message_: PDBusMessage;
- const interface_, method: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const interface_, method: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_is_signal(message_: PDBusMessage;
- const interface_, signal_name: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const interface_, signal_name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_is_error(message_: PDBusMessage;
- const error_name: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const error_name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_has_destination(message_: PDBusMessage;
- const bus_name: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const bus_name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_has_sender(message_: PDBusMessage;
- const unique_bus_name: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const unique_bus_name: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_has_signature(message_: PDBusMessage;
- const signature: PChar): dbus_bool_t; cdecl; external LibDBus;
+ const signature: PAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_get_serial(message_: PDBusMessage): dbus_uint32_t; cdecl; external LibDBus;
 function dbus_message_set_reply_serial(message_: PDBusMessage;
  reply_serial: dbus_uint32_t): dbus_bool_t; cdecl; external LibDBus;
@@ -119,7 +119,7 @@ function dbus_message_get_reply_serial(message_: PDBusMessage): dbus_uint32_t; c
 procedure dbus_message_set_auto_start(message_: PDBusMessage; auto_start: dbus_bool_t); cdecl; external LibDBus;
 function dbus_message_get_auto_start(message_: PDBusMessage): dbus_bool_t; cdecl; external LibDBus;
 
-function dbus_message_get_path_decomposed(message_: PDBusMessage; path: PPPChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_message_get_path_decomposed(message_: PDBusMessage; path: PPPAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 
 function dbus_message_append_args(message_: PDBusMessage;
  first_arg_type: cint; others: array of const): dbus_bool_t; cdecl; external LibDBus;
@@ -134,7 +134,7 @@ function dbus_message_get_args_valist(message_: PDBusMessage;
 function dbus_message_iter_init(message_: PDBusMessage; iter: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_iter_has_next(iter: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_iter_next(iter: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_iter_get_signature(iter: PDBusMessageIter): PChar; cdecl; external LibDBus;
+function dbus_message_iter_get_signature(iter: PDBusMessageIter): PAnsiChar; cdecl; external LibDBus;
 function dbus_message_iter_get_arg_type(iter: PDBusMessageIter): cint; cdecl; external LibDBus;
 function dbus_message_iter_get_element_type(iter: PDBusMessageIter): cint; cdecl; external LibDBus;
 procedure dbus_message_iter_recurse(iter, sub: PDBusMessageIter); cdecl; external LibDBus;
@@ -151,7 +151,7 @@ function dbus_message_iter_append_basic(iter: PDBusMessageIter;
 function dbus_message_iter_append_fixed_array(iter: PDBusMessageIter;
  element_type: cint; const value: Pointer; n_elements: cint): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_iter_open_container(iter: PDBusMessageIter;
- type_: cint; const contained_signature: PChar; sub: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
+ type_: cint; const contained_signature: PAnsiChar; sub: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_iter_close_container(iter, sub: PDBusMessageIter): dbus_bool_t; cdecl; external LibDBus;
 
 
@@ -164,12 +164,12 @@ function dbus_message_set_data(message_: PDBusMessage;
  slot: dbus_int32_t; data: Pointer; free_data_func: DBusFreeFunction): dbus_bool_t; cdecl; external LibDBus;
 function dbus_message_get_data(message_: PDBusMessage; slot: dbus_int32_t): Pointer; cdecl; external LibDBus;
 
-function dbus_message_type_from_string(const type_str: PChar): cint; cdecl; external LibDBus;
-function dbus_message_type_to_string(type_: cint): PChar; cdecl; external LibDBus;
+function dbus_message_type_from_string(const type_str: PAnsiChar): cint; cdecl; external LibDBus;
+function dbus_message_type_to_string(type_: cint): PAnsiChar; cdecl; external LibDBus;
 
 function dbus_message_marshal(msg: PDBusMessage;
- marshalled_data_p: PPChar;
+ marshalled_data_p: PPAnsiChar;
  len_p: pcint): dbus_bool_t; cdecl; external LibDBus;
-function dbus_message_demarshal(const str: PChar;
+function dbus_message_demarshal(const str: PAnsiChar;
  len: cint; error: PDBusError): PDBusMessage; cdecl; external LibDBus;
 

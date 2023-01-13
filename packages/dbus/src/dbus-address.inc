@@ -35,12 +35,12 @@ type
 
   PPPDBusAddressEntry = ^PPDBusAddressEntry;
 
-function dbus_parse_address(const address: PChar; entry: PPPDBusAddressEntry;
+function dbus_parse_address(const address: PAnsiChar; entry: PPPDBusAddressEntry;
  array_len: PInteger; error: PDBusError): dbus_bool_t; cdecl; external LibDBus;
-function dbus_address_entry_get_value(entry: PDBusAddressEntry; const key: PChar): PChar; cdecl; external LibDBus;
-function dbus_address_entry_get_method(entry: PDBusAddressEntry): PChar; cdecl; external LibDBus;
+function dbus_address_entry_get_value(entry: PDBusAddressEntry; const key: PAnsiChar): PAnsiChar; cdecl; external LibDBus;
+function dbus_address_entry_get_method(entry: PDBusAddressEntry): PAnsiChar; cdecl; external LibDBus;
 procedure dbus_address_entries_free(entries: PPDBusAddressEntry); cdecl; external LibDBus;
 
-function dbus_address_escape_value(const value: PChar): PChar; cdecl; external LibDBus;
-function dbus_address_unescape_value(const value: PChar; error: PDBusError): PChar; cdecl; external LibDBus;
+function dbus_address_escape_value(const value: PAnsiChar): PAnsiChar; cdecl; external LibDBus;
+function dbus_address_unescape_value(const value: PAnsiChar; error: PDBusError): PAnsiChar; cdecl; external LibDBus;
 

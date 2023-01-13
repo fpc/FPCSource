@@ -33,7 +33,7 @@ procedure dbus_free(memory: Pointer); cdecl; external LibDBus;
 //#define dbus_new(type, count)  ((type*)dbus_malloc (sizeof (type) * (count)));
 //#define dbus_new0(type, count) ((type*)dbus_malloc0 (sizeof (type) * (count)));
 
-procedure dbus_free_string_array(str_array: PPChar); cdecl; external LibDBus;
+procedure dbus_free_string_array(str_array: PPAnsiChar); cdecl; external LibDBus;
 
 type
   DBusFreeFunction = procedure(memory: Pointer); cdecl;

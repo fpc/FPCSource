@@ -34,13 +34,13 @@ type
   DBusNewConnectionFunction = procedure (server: PDBusServer;
    new_connection: PDBusConnection; data: Pointer); cdecl;
 
-function dbus_server_listen(const address: PChar; error: PDBusError): PDBusServer; cdecl; external LibDBus;
+function dbus_server_listen(const address: PAnsiChar; error: PDBusError): PDBusServer; cdecl; external LibDBus;
 function dbus_server_ref(server: PDBusServer): PDBusServer; cdecl; external LibDBus;
 procedure dbus_server_unref(server: PDBusServer); cdecl; external LibDBus;
 procedure dbus_server_disconnect(server: PDBusServer); cdecl; external LibDBus;
 function dbus_server_get_is_connected(server: PDBusServer): dbus_bool_t; cdecl; external LibDBus;
-function dbus_server_get_address(server: PDBusServer): PChar; cdecl; external LibDBus;
-function dbus_server_get_id(server: PDBusServer): PChar; cdecl; external LibDBus;
+function dbus_server_get_address(server: PDBusServer): PAnsiChar; cdecl; external LibDBus;
+function dbus_server_get_id(server: PDBusServer): PAnsiChar; cdecl; external LibDBus;
 procedure dbus_server_set_new_connection_function(server: PDBusServer;
  function_: DBusNewConnectionFunction; data: Pointer; free_data_function: DBusFreeFunction); cdecl; external LibDBus;
 function dbus_server_set_watch_functions(server: PDBusServer;
@@ -55,7 +55,7 @@ function dbus_server_set_timeout_functions(server: PDBusServer;
  toggled_function: DBusTimeoutToggledFunction;
  data: Pointer;
  free_data_function: DBusFreeFunction): dbus_bool_t; cdecl; external LibDBus;
-function dbus_server_set_auth_mechanisms(server: PDBusServer; const mechanisms: PPChar): dbus_bool_t; cdecl; external LibDBus;
+function dbus_server_set_auth_mechanisms(server: PDBusServer; const mechanisms: PPAnsiChar): dbus_bool_t; cdecl; external LibDBus;
 
 function dbus_server_allocate_data_slot(slot_p: Pdbus_int32_t): dbus_bool_t; cdecl; external LibDBus;
 procedure dbus_server_free_data_slot(slot_p: Pdbus_int32_t); cdecl; external LibDBus;
