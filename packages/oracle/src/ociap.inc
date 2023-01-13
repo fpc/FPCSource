@@ -8829,7 +8829,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
        OCIWideCharStrCaseConversion - convert a wchar string into lowercase or
                                       uppercase
      REMARKS
-       This function convert the wide char string pointed to by wsrcstr into the
+       This function convert the wide AnsiChar string pointed to by wsrcstr into the
        uppercase or lowercase specified by flag and copies the result into the
        array pointed to by wdststr. The result string will be null-terminated.
      RETURNS

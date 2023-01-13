@@ -267,7 +267,7 @@
       cxcheng    10/09/96 -  more lint fixes
       skrishna   10/09/96 -  continue beautification
       cxcheng    10/09/96 -  more fixes
-      skrishna   10/09/96 -  change fixed-char rep. to orlvstr*
+      skrishna   10/09/96 -  change fixed-AnsiChar rep. to orlvstr*
       jwijaya    10/08/96 -  continue beautification
       jwijaya    10/07/96 -  beautify
       cxcheng    10/07/96 -  more changes
@@ -507,7 +507,7 @@
        int     inum;
        double  dnum;
        OCINumber ornum;
-       char    buffer[21];
+       AnsiChar    buffer[21];
        ub4     buflen;
        sword   result;
        
@@ -1862,7 +1862,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
          /o error handling code o/
   
        /o convert date for display purposes o/
-       char str[100];
+       AnsiChar str[100];
        ub4 strlen = sizeof(str);
        if (OCIDateToText(err, &joe->start_date, FMT, sizeof(FMT)-1, LANG,
                   sizeof(LANG)-1, &strlen, str) != OCI_SUCCESS)
@@ -2410,10 +2410,10 @@ var OCIDateCheck : function(err:POCIError; date:POCIDate; valid:Puword):sword;cd
               <to be discovered>
       }
     {*************************************************************************** }
-    {                  FIXED-LENGTH STRING - CHAR (N)                            }
+    {                  FIXED-LENGTH STRING - AnsiChar (N)                            }
     {*************************************************************************** }
     {
-     * An ADT attribute declared as "x CHAR(n)" is mapped to "OCIString *x;".
+     * An ADT attribute declared as "x AnsiChar(n)" is mapped to "OCIString *x;".
      * The representation of OCIString * is shown below.
       }
     {*************************************************************************** }

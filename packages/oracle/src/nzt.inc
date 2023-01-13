@@ -808,9 +808,9 @@ var nztwOpenWallet : function (_para1:Pnzctx; _para2:ub4; _para3:Ptext; _para4:u
     }
 
 {$IFNDEF LinkDynamically}
-  function nztwRetrievePersonaCopyByName(_para1:Pnzctx; _para2:PnzttWallet; _para3:Pchar; _para4:PPnzttPersona):nzerror;cdecl;external ocilib name 'nztwRetrievePersonaCopyByName';
+  function nztwRetrievePersonaCopyByName(_para1:Pnzctx; _para2:PnzttWallet; _para3:PAnsiChar; _para4:PPnzttPersona):nzerror;cdecl;external ocilib name 'nztwRetrievePersonaCopyByName';
 {$ELSE}
-  nztwRetrievePersonaCopyByName : function (_para1:Pnzctx; _para2:PnzttWallet; _para3:Pchar; _para4:PPnzttPersona):nzerror;cdecl;
+  nztwRetrievePersonaCopyByName : function (_para1:Pnzctx; _para2:PnzttWallet; _para3:PAnsiChar; _para4:PPnzttPersona):nzerror;cdecl;
 {$ENDIF}
 
   {---------------------- nzteOpenPersona ---------------------- }
