@@ -464,9 +464,9 @@ begin
     if Assigned(FrameList.ValueAt[I].AsTuple['line']) then
       frames[I]^.line_number := FrameList.ValueAt[I].AsTuple['line'].AsLongInt;
     if Assigned(FrameList.ValueAt[I].AsTuple['func']) then
-      frames[I]^.function_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
+      frames[I]^.function_name := StrNew(PAnsiChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
     if Assigned(FrameList.ValueAt[I].AsTuple['fullname']) then
-      frames[I]^.file_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
+      frames[I]^.file_name := StrNew(PAnsiChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
   end;
   Command('-stack-list-arguments 1');
   if not GDB.ResultRecord.Success then
@@ -488,7 +488,7 @@ begin
           s:=s+':='+ArgList.ValueAt[J].AsTuple['value'].ASString;
       end;
     s:=s+')';
-    frames[I]^.args:=StrNew(pchar(s));
+    frames[I]^.args:=StrNew(PAnsiChar(s));
   end;
 end;
 

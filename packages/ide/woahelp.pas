@@ -13,6 +13,7 @@
 
  **********************************************************************}
 {$R-}
+{$H-}
 unit WOAHelp;
 
 interface
@@ -41,8 +42,8 @@ const
       ctNibble       = $02;
 
 type
-      FileStamp      = array [0..32] of char; {+ null terminator + $1A }
-      FileSignature  = array [0..12] of char; {+ null terminator }
+      FileStamp      = array [0..32] of AnsiChar; {+ null terminator + $1A }
+      FileSignature  = array [0..12] of AnsiChar; {+ null terminator }
 
       THLPVersion = packed record
         FormatVersion : byte;
@@ -385,7 +386,7 @@ begin
   Inc(SrcPtr);
   GetNextNibble:=N;
 end;
-procedure RealAddChar(C: char);
+procedure RealAddChar(C: AnsiChar);
 begin
   if Assigned(NewR.Data) then
     PByteArray(NewR.Data)^[DestPtr]:=ord(C);
@@ -393,7 +394,7 @@ begin
 end;
 var CurX,CurY: integer;
     InLink: boolean;
-procedure AddChar(C: char);
+procedure AddChar(C: AnsiChar);
 begin
   if IsLinkPosStart(CurX+2,CurY) then
     begin
@@ -421,10 +422,10 @@ begin
     end;
 end;
 var OK: boolean;
-    C: char;
+    C: AnsiChar;
     P: pointer;
-function GetNextChar: char;
-var C: char;
+function GetNextChar: AnsiChar;
+var C: AnsiChar;
     I,N,Cnt: byte;
 begin
   N:=GetNextNibble;

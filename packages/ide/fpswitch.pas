@@ -17,6 +17,7 @@ unit FPSwitch;
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 
@@ -115,8 +116,8 @@ type
 
     PSwitches = ^TSwitches;
     TSwitches = object
-      constructor Init(ch:char);
-      constructor InitSelect(ch:char);
+      constructor Init(ch:AnsiChar);
+      constructor InitSelect(ch:AnsiChar);
       destructor  Done;
       { general items }
       function  ItemCount:integer;
@@ -146,7 +147,7 @@ type
       function  ReadItemsCfg(const s:string):boolean;
     private
       IsSel  : boolean;
-      Prefix : char;
+      Prefix : AnsiChar;
       SelNr  : array[TSwitchMode] of integer;
       Items  : PCollection;
     end;
@@ -573,7 +574,7 @@ end;
                TSwitch
 *****************************************************************************}
 
-constructor TSwitches.Init(ch:char);
+constructor TSwitches.Init(ch:AnsiChar);
 begin
   new(Items,Init(10,5));
   Prefix:=ch;
@@ -582,7 +583,7 @@ begin
 end;
 
 
-constructor TSwitches.InitSelect(ch:char);
+constructor TSwitches.InitSelect(ch:AnsiChar);
 begin
   new(Items,Init(10,5));
   Prefix:=ch;
@@ -821,7 +822,7 @@ end;
 
 procedure TSwitches.WriteItemsCfg;
 var
-  Pref : char;
+  Pref : AnsiChar;
 
   procedure writeitem(P:PSwitchItem);
   var
@@ -987,7 +988,7 @@ end;
 
 procedure ReadSwitches(const fn:string);
 var
-  c : char;
+  c : AnsiChar;
   s : string;
   res : boolean;
   OldSwitchesMode,i : TSwitchMode;
@@ -1070,7 +1071,7 @@ function  GetSourceDirectories : string;
 var
   P : PStringItem;
   S : String;
-  c : char;
+  c : AnsiChar;
   function checkitem(P:PSwitchItem):boolean;
   begin
     CheckItem:=(P^.Typ=ot_string) and (P^.Param=c);
