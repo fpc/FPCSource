@@ -181,7 +181,7 @@ end;
 
 FUNCTION Hex2(B : Byte) : Sw_String;
 Const
-  HexArray : array[0..15] of char = '0123456789ABCDEF';
+  HexArray : array[0..15] of AnsiChar = '0123456789ABCDEF';
 begin
 SetLength(Hex2, 2);
 Hex2[1] := HexArray[B shr 4];

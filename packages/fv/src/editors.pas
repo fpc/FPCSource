@@ -137,7 +137,7 @@ type
 
 
   PEditBuffer = ^TEditBuffer;
-  TEditBuffer = array[0..MaxBufLength] of Char;
+  TEditBuffer = array[0..MaxBufLength] of AnsiChar;
 
   PEditor = ^TEditor;
   TEditor = object (TView)
@@ -178,7 +178,7 @@ type
                           AIndicator : PIndicator; ABufSize : Sw_Word);
     constructor Load (var S : Objects.TStream);
     destructor Done; virtual;
-    function   BufChar (P : Sw_Word) : Char;
+    function   BufChar (P : Sw_Word) : AnsiChar;
     function   BufPtr (P : Sw_Word) : Sw_Word;
     procedure  ChangeBounds (var Bounds : TRect); virtual;
     procedure  ConvertEvent (var Event : Drivers.TEvent); virtual;
@@ -322,7 +322,7 @@ function TabStopDialog : Dialogs.PDialog;
 function StdEditorDialog(Dialog: SmallInt; Info: Pointer): Word;
 
 const
-  WordChars    : set of Char = ['!'..#255];
+  WordChars    : set of AnsiChar = ['!'..#255];
 
   LineBreak    : string[2]=
 {$ifdef UNIXLF}
@@ -977,10 +977,10 @@ end;
 
 function CountLines(var Buf; Count: sw_Word): sw_Integer;
 var
-  p : pchar;
+  p : PAnsiChar;
   lines : sw_word;
 begin
-  p:=pchar(@buf);
+  p:=PAnsiChar(@buf);
   lines:=0;
   while (count>0) do
    begin
@@ -1006,13 +1006,13 @@ procedure GetLimits(var Buf; Count: sw_Word;var lim:objects.TPoint);
 { Get the limits needed for Buf, its an extended version of countlines (lim.y),
   which also gets the maximum line length in lim.x }
 var
-  p : pchar;
+  p : PAnsiChar;
   len : sw_word;
 begin
   lim.x:=0;
   lim.y:=0;
   len:=0;
-  p:=pchar(@buf);
+  p:=PAnsiChar(@buf);
   while (count>0) do
    begin
      if p^ in [#10,#13] then
@@ -1116,15 +1116,15 @@ end;
 
 function IScan(var Block; Size: Sw_Word;const Str: String): Sw_Word;
 Var
-  buffer : Array[0..MaxBufLength-1] of Char Absolute block;
+  buffer : Array[0..MaxBufLength-1] of AnsiChar Absolute block;
   s      : String;
   len,
   numb,
   x      : Sw_Word;
   found  : Boolean;
   bt     : Btable;
-  p      : pchar;
-  c      : char;
+  p      : PAnsiChar;
+  c      : AnsiChar;
 begin
   len:=length(str);
   if (len=0) or (len>size) then
@@ -1194,7 +1194,7 @@ end; { TIndicator.Init }
 procedure TIndicator.Draw;
 VAR
   Color : Byte;
-  Frame : Char;
+  Frame : AnsiChar;
   L     : array[0..1] of PtrInt;
   S     : String[15];
   B     : TDrawBuffer;
@@ -1414,7 +1414,7 @@ begin
 end; { TEditor.Done }
 
 
-function TEditor.BufChar(P: Sw_Word): Char;
+function TEditor.BufChar(P: Sw_Word): AnsiChar;
 begin
   if P>=CurPtr then
    inc(P,Gaplen);
@@ -1437,7 +1437,7 @@ procedure TEditor.Center_Text (Select_Mode : Byte);
 { If the Line_Length exceeds the Right_Margin, or the  }
 { line is just a blank line, we exit and do nothing.   }
 VAR
-  Spaces      : array [1..80] of Char;  { Array to hold spaces we'll insert. }
+  Spaces      : array [1..80] of AnsiChar;  { Array to hold spaces we'll insert. }
   Index       : Byte;                   { Index into Spaces array.           }
   Line_Length : Sw_Integer;             { Holds the length of the line.      }
   E,S : Sw_Word;                        { End of the current line.           }
@@ -1936,10 +1936,10 @@ var
 
   function FormatUntil(endpos:Sw_word):boolean;
   var
-    p : pchar;
+    p : PAnsiChar;
   begin
     FormatUntil:=false;
-    p:=pchar(Buffer)+idxpos;
+    p:=PAnsiChar(Buffer)+idxpos;
     while endpos>idxpos do
      begin
        if OutCnt>=Width then
@@ -2381,17 +2381,17 @@ function TEditor.LineEnd (P : Sw_Word) : Sw_Word;
 var
   start,
   i  : Sw_word;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   if P<CurPtr then
    begin
      i:=CurPtr-P;
-     pc:=pchar(Buffer)+P;
+     pc:=PAnsiChar(Buffer)+P;
      while (i>0) do
       begin
         if pc^ in [#10,#13] then
          begin
-           LineEnd:=pc-pchar(Buffer);
+           LineEnd:=pc-PAnsiChar(Buffer);
            exit;
          end;
         inc(pc);
@@ -2402,18 +2402,18 @@ begin
   else
    start:=P;
   i:=BufLen-Start;
-  pc:=pchar(Buffer)+GapLen+start;
+  pc:=PAnsiChar(Buffer)+GapLen+start;
   while (i>0) do
    begin
      if pc^ in [#10,#13] then
       begin
-        LineEnd:=pc-(pchar(Buffer)+Gaplen);
+        LineEnd:=pc-(PAnsiChar(Buffer)+Gaplen);
         exit;
       end;
      inc(pc);
      dec(i);
    end;
-  LineEnd:=pc-(pchar(Buffer)+Gaplen);
+  LineEnd:=pc-(PAnsiChar(Buffer)+Gaplen);
 end; { TEditor.LineEnd }
 
 
@@ -2448,12 +2448,12 @@ end; { TEditor.LineMove }
 function TEditor.LineStart (P : Sw_Word) : Sw_Word;
 var
   i  : Sw_word;
-  start,pc : pchar;
-  oc : char;
+  start,pc : PAnsiChar;
+  oc : AnsiChar;
 begin
   if P>CurPtr then
    begin
-     start:=pchar(Buffer)+GapLen;
+     start:=PAnsiChar(Buffer)+GapLen;
      pc:=start;
      i:=P-CurPtr;
      dec(pc);
@@ -2469,7 +2469,7 @@ begin
    i:=0;
   if i=0 then
    begin
-     start:=pchar(Buffer);
+     start:=PAnsiChar(Buffer);
      i:=P;
      pc:=start+p;
      dec(pc);
@@ -2493,11 +2493,11 @@ end; { TEditor.LineStart }
 
 function TEditor.LineNr (P : Sw_Word) : Sw_Word;
 var
-  pc,endp : pchar;
+  pc,endp : PAnsiChar;
   lines : sw_word;
 begin
-  endp:=pchar(Buffer)+BufPtr(P);
-  pc:=pchar(Buffer);
+  endp:=PAnsiChar(Buffer)+BufPtr(P);
+  pc:=PAnsiChar(Buffer);
   lines:=0;
   while (pc<endp) do
    begin
@@ -2561,14 +2561,14 @@ end; { TEditor.NewLine }
 
 function TEditor.NextChar (P : Sw_Word) : Sw_Word;
 var
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   if P<>BufLen then
    begin
      inc(P);
      if P<>BufLen then
       begin
-        pc:=pchar(Buffer);
+        pc:=PAnsiChar(Buffer);
         if P>=CurPtr then
          inc(pc,GapLen);
         inc(pc,P-1);
@@ -2600,14 +2600,14 @@ end; { TEditor.NextWord }
 
 function TEditor.PrevChar (P : Sw_Word) : Sw_Word;
 var
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   if p<>0 then
    begin
      dec(p);
      if p<>0 then
       begin
-        pc:=pchar(Buffer);
+        pc:=PAnsiChar(Buffer);
         if P>=CurPtr then
          inc(pc,GapLen);
         inc(pc,P-1);
@@ -2690,7 +2690,7 @@ function TEditor.Reformat_Paragraph (Select_Mode   : Byte;
 { the AutoIndent feature.  Reformat is not possible if the CurPos exceeds   }
 { the Right_Margin.  Right_Margin is where the EOL is considered to be.     }
 CONST
-  Space : array [1..2] of Char = #32#32;
+  Space : array [1..2] of AnsiChar = #32#32;
 VAR
   C : Sw_Word;  { Position of CurPtr when we come into procedure. }
   E : Sw_Word;  { End of a line.                                  }
@@ -3215,7 +3215,7 @@ VAR
   Index    : Sw_Integer;             { Loop counter.                       }
   Position : Sw_Integer;             { CurPos.X position.                  }
   S        : Sw_Word;                { Start of current line.              }
-  Spaces   : array [1..80] of Char;  { Array to hold spaces for insertion. }
+  Spaces   : array [1..80] of AnsiChar;  { Array to hold spaces for insertion. }
 begin
   E := LineEnd (CurPtr);
   S := LineStart (CurPtr);
