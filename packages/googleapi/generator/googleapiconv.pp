@@ -3,20 +3,11 @@
 
 { $DEFINE USESYNAPSE}
 
-{$IFDEF VER2_6}
-{$DEFINE USESYNAPSE}
-{$ENDIF}
-
 program googleapiconv;
 
 uses
   custapp, classes, sysutils, fpjson, jsonparser, fpwebclient,
-{$IFDEF USESYNAPSE}
-  ssl_openssl,
-  synapsewebclient,
-{$ELSE}
   fphttpwebclient, opensslsockets,
-{$ENDIF}
   googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
 Const
@@ -116,11 +107,7 @@ begin
   Result:=True;
   Req:=Nil;
   Resp:=Nil;
-{$IFDEF USESYNAPSE}
-  WebClient:=TSynapseWebClient.Create(Self);
-{$ELSE}
   WebClient:=TFPHTTPWebClient.Create(Self);
-{$ENDIF}
   try
     Req:=WebClient.CreateRequest;
     Req.ResponseContent:=Response;
@@ -210,7 +197,7 @@ procedure TGoogleAPIConverter.RegisterUnit(FileName :String; L : TAPIEntries);
 
 Var
   I : Integer;
-  UN,N,V : String;
+  UN,N : String;
 
 begin
   UN:=ChangeFileext(ExtractFileName(FileName),'');
@@ -281,10 +268,9 @@ procedure TGoogleAPIConverter.CreateFPMake(FileName :String; L : TAPIEntries);
 
 Var
   I : Integer;
-  UN,N,V : String;
+  N : String;
 
 begin
-  UN:=ChangeFileext(ExtractFileName(FileName),'');
   With TStringList.Create do
     try
       Add('program fpmake;');
@@ -320,7 +306,7 @@ begin
       For I:=0 to L.Count-1 do
         begin
         N:=L[i].APIUnitName;
-        Add(Format('    T:=StdDep(P.Targets.AddUnit(''%s''));',[ExtractFileName(L[i].FAPIUnitName)]));
+        Add(Format('    T:=StdDep(P.Targets.AddUnit(''%s''));',[ExtractFileName(N)]));
         end;
       Add('    end;');
       Add('end;');
@@ -608,4 +594,3 @@ begin
   Application.Run;
   FreeAndNil(Application);  //gets rid of memory leak and makes Heaptrc happy
 end.
-

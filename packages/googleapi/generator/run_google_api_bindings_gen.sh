@@ -4,7 +4,7 @@
 #   If they exist, this script deletes the "./_google_api_bindings_tmp"
 #   and "./_google_api_icons_tmp" directories before attempting
 #   to convert new files. It does not download any JSON, but works on
-#   files which must already be present in "./_google_api_bindings_tmp"
+#   files which must already be present in "./_google_api_json_tmp"
 #   (use "./fetch_google_json.sh" to download the JSON files)
 
 shopt -s nocaseglob  #ignore case for filename matches

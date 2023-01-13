@@ -316,23 +316,18 @@ var
   psrc,pend : pbyte;
 begin
   psrc:=@buf;
+  pend:=psrc+len;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) or
-     (psrc+len < psrc) then
-    pend:=pbyte(high(PtrUInt)-sizeof(byte))
+     (pend < psrc) then
+    pend:=pbyte(high(PtrUInt)-PtrUint(sizeof(byte)));
+  while (psrc<pend) and (psrc^<>b) do
+    inc(psrc);
+  if psrc<pend then
+    result:=psrc-pbyte(@buf)
   else
-    pend:=psrc+len;
-  while (psrc<pend) do
-    begin
-      if psrc^=b then
-        begin
-          result:=psrc-pbyte(@buf);
-          exit;
-        end;
-      inc(psrc);
-    end;
-  result:=-1;
+    result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXBYTE}
 
@@ -343,40 +338,28 @@ var
   psrc,pend : pword;
 begin
   psrc:=@buf;
+  pend:=psrc+len;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) or
-     { is this ever true? }
-     (len > high(PtrInt)) or
-     (psrc+len < psrc) then
-    pend:=pword(high(PtrUInt)-sizeof(word))
-  else
-    pend:=psrc+len;
+  if not (
+      (len >= 0) and
+      { is this ever false? }
+      (len <= high(PtrInt))) or
+     (pend < psrc) then
+    pend:=pword(high(PtrUInt)-PtrUint(sizeof(word)));
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
   if (ptruint(psrc) mod 2)<>0 then
-    while psrc<pend do
-      begin
-        if unaligned(psrc^)=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(word);
-            exit;
-          end;
-        inc(psrc);
-      end
+    while (psrc<pend) and (unaligned(psrc^)<>b) do
+      inc(psrc)
   else
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-    while psrc<pend do
-      begin
-        if psrc^=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(word);
-            exit;
-          end;
-        inc(psrc);
-      end;
-  result:=-1;
+    while (psrc<pend) and (psrc^<>b) do
+      inc(psrc);
+  if psrc<pend then
+    { the result is always >=0 so avoid handling of negative values }
+    result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(word)
+  else
+    result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXWORD}
 
@@ -387,39 +370,27 @@ var
   psrc,pend : pdword;
 begin
   psrc:=@buf;
+  pend:=psrc+len;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) or
-     (len > high(PtrInt) div 2) or
-     (psrc+len < psrc) then
-    pend:=pdword(high(PtrUInt)-PtrUInt(sizeof(dword)))
-  else
-    pend:=psrc+len;
+  if not (
+      (len >= 0) and
+      (len <= high(PtrInt) div 2)) or
+     (pend < psrc) then
+    pend:=pdword(high(PtrUInt)-PtrUInt(sizeof(dword)));
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
   if (ptruint(psrc) mod 4)<>0 then
-    while psrc<pend do
-      begin
-        if unaligned(psrc^)=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(DWord);
-            exit;
-          end;
-        inc(psrc);
-      end
+    while (psrc<pend) and (unaligned(psrc^)<>b) do
+      inc(psrc)
   else
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-    while psrc<pend do
-      begin
-        if psrc^=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(DWord);
-            exit;
-          end;
-        inc(psrc);
-      end;
-  result:=-1;
+    while (psrc<pend) and (psrc^<>b) do
+      inc(psrc);
+  if psrc<pend then
+    { the result is always >=0 so avoid handling of negative values }
+    result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(DWord)
+  else
+    result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXDWORD}
 
@@ -430,39 +401,27 @@ var
   psrc,pend : pqword;
 begin
   psrc:=@buf;
+  pend:=psrc+len;
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
-  if (len < 0) or
-     (len > high(PtrInt) div 4) or
-     (psrc+len < psrc) then
-    pend:=pqword(high(PtrUInt)-PtrUInt(sizeof(qword)))
-  else
-    pend:=psrc+len;
+  if not (
+      (len >= 0) and
+      (len <= high(PtrInt) div 4)) or
+     (pend < psrc) then
+    pend:=pqword(high(PtrUInt)-PtrUInt(sizeof(qword)));
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
   if (ptruint(psrc) mod 8)<>0 then
-    while psrc<pend do
-      begin
-        if unaligned(psrc^)=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(QWord);
-            exit;
-          end;
-        inc(psrc);
-      end
+    while (psrc<pend) and (unaligned(psrc^)<>b) do
+      inc(psrc)
   else
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-    while psrc<pend do
-      begin
-        if psrc^=b then
-          begin
-            { the result is always >=0 so avoid handling of negative values }
-            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(QWord);
-            exit;
-          end;
-        inc(psrc);
-      end;
-  result:=-1;
+    while (psrc<pend) and (psrc^<>b) do
+      inc(psrc);
+  if psrc<pend then
+    { the result is always >=0 so avoid handling of negative values }
+    result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(QWord)
+  else
+    result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXQWORD}
 

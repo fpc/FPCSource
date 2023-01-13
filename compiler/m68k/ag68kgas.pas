@@ -50,7 +50,7 @@ interface
 
     const
       gas_opsize2str : array[topsize] of string[2] =
-        ('','.b','.w','.l','.s','.d','.x','');
+        ('','.b','.w','.l','.s','.d','.x');
 
 
   implementation

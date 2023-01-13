@@ -2729,8 +2729,8 @@ implementation
                   begin
                     a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE),href);
                     inc(href.offset,sizeof(aint));
+                    include(rg[R_INTREGISTER].preserved_by_proc,regs_to_save_int[r]);
                   end;
-                include(rg[R_INTREGISTER].preserved_by_proc,regs_to_save_int[r]);
               end;
             current_procinfo.saved_regs_int := rg[R_INTREGISTER].preserved_by_proc;
 
@@ -2742,8 +2742,8 @@ implementation
                       begin
                         a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,regs_to_save_address[r],R_SUBWHOLE),href);
                         inc(href.offset,sizeof(aint));
+                        include(rg[R_ADDRESSREGISTER].preserved_by_proc,regs_to_save_address[r]);
                       end;
-                    include(rg[R_ADDRESSREGISTER].preserved_by_proc,regs_to_save_address[r]);
                   end;
 
                 current_procinfo.saved_regs_mm := rg[R_MMREGISTER].preserved_by_proc;
@@ -2766,8 +2766,8 @@ implementation
                           begin
                             a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,regs_to_save_mm[r],R_SUBMMWHOLE),href,nil);
                             inc(href.offset,tcgsize2size[OS_VECTOR]);
+                            include(rg[R_MMREGISTER].preserved_by_proc,regs_to_save_mm[r]);
                           end;
-                        include(rg[R_MMREGISTER].preserved_by_proc,regs_to_save_mm[r]);
                       end;
                   end;
 
