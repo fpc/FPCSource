@@ -5,10 +5,10 @@ program nitrodir;
 uses
   ctypes, nds9, filesystem;
 
-procedure dirlist(path: pchar);
+procedure dirlist(path: PAnsiChar);
 var
   MyDir: PDIR;
-  dnbuf: pchar;
+  dnbuf: PAnsiChar;
   pent: pdirent;  
   statbuf: PStat;        
 begin

@@ -7,7 +7,7 @@ uses
   
 var
   hours, seconds, minutes: integer; 
-  months: array [0..11] of pchar = ('January', 'February', 'March', 'April', 
+  months: array [0..11] of PAnsiChar = ('January', 'February', 'March', 'April', 
                                     'May', 'June', 'July', 'August', 
                                     'September', 'October', 'November', 'December');
 

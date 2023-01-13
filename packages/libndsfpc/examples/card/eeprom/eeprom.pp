@@ -57,7 +57,7 @@ begin
       cardReadHeader(@header2);
     end;
 
-		// Add a null char right after the game title, so we can print it
+		// Add a null AnsiChar right after the game title, so we can print it
 		header1[32] :=  cchar(#0);
   
     // Read some various info about the EEPROM
@@ -88,7 +88,7 @@ begin
       for x := 0 to 7 do
       begin
         c := data[y*8 + x];
-        if not (char(c) in [#0..#7, #14..#31, #127]) then // only display if it's a printable character
+        if not (AnsiChar(c) in [#0..#7, #14..#31, #127]) then // only display if it's a printable character
           iprintf('%c', c)
         else
           iprintf('.');

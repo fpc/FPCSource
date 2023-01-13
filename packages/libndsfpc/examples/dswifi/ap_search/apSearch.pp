@@ -14,7 +14,7 @@ var
 	ap2: Wifi_AccessPoint;
   pressed: cint;
   displayend: integer;
-  s1, s2: string;
+  s1, s2: ansistring;
 begin
   selected := 0;  
   count := 0;
@@ -88,9 +88,9 @@ var
   status: integer;
   kb: pKeyboard;
   oldStatus: integer;
-	url: array [0..255] of char;
+	url: array [0..255] of AnsiChar;
   host: phostent;
-  wepkey = array [0..63] of char;
+  wepkey = array [0..63] of AnsiChar;
   wepmode: cint;
   len: integer;
   ip: cuint32;

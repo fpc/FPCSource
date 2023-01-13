@@ -209,7 +209,7 @@ end;
 
 // Demo titles
 var
-  demo_titles: array [0..2] of pchar = ('Lovely Wobbly  ',
+  demo_titles: array [0..2] of PAnsiChar = ('Lovely Wobbly  ',
                                         'OldSkool       ',
 	                                      'This Suxxors!  ');
 
