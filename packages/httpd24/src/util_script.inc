@@ -49,9 +49,9 @@ extern "C" {
  * @param t Apache table of key-value pairs
  * @return An array containing the same key-value pairs suitable for
  *         use with an exec call.
- * @fn char **ap_create_environment(apr_pool_t *p, apr_table_t *t)
+ * @fn AnsiChar **ap_create_environment(apr_pool_t *p, apr_table_t *t)
  */
-AP_DECLARE(char **) ap_create_environment(apr_pool_t *p, apr_table_t *t);
+AP_DECLARE(AnsiChar **) ap_create_environment(apr_pool_t *p, apr_table_t *t);
 
 /**
  * This "cute" little function comes about because the path info on
@@ -60,9 +60,9 @@ AP_DECLARE(char **) ap_create_environment(apr_pool_t *p, apr_table_t *t);
  * @param uri The uri we are currently parsing
  * @param path_info The current path info
  * @return The length of the path info
- * @fn int ap_find_path_info(const char *uri, const char *path_info)
+ * @fn int ap_find_path_info(const AnsiChar *uri, const AnsiChar *path_info)
  */
-AP_DECLARE(int) ap_find_path_info(const char *uri, const char *path_info);
+AP_DECLARE(int) ap_find_path_info(const AnsiChar *uri, const AnsiChar *path_info);
 
 /**
  * Add CGI environment variables required by HTTP/1.1 to the request's
@@ -88,9 +88,9 @@ AP_DECLARE(void) ap_add_common_vars(request_rec *r);
  * @param buffer Empty when calling the function.  On output, if there was an
  *               error, the string that cause the error is stored here.
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
- * @fn int ap_scan_script_header_err(request_rec *r, apr_file_t *f, char *buffer)
+ * @fn int ap_scan_script_header_err(request_rec *r, apr_file_t *f, AnsiChar *buffer)
  */
-AP_DECLARE(int) ap_scan_script_header_err(request_rec *r, apr_file_t *f, char *buffer);
+AP_DECLARE(int) ap_scan_script_header_err(request_rec *r, apr_file_t *f, AnsiChar *buffer);
 
 /**
  * Read headers output from a script, ensuring that the output is valid.  If
@@ -104,7 +104,7 @@ AP_DECLARE(int) ap_scan_script_header_err(request_rec *r, apr_file_t *f, char *b
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  */
 AP_DECLARE(int) ap_scan_script_header_err_ex(request_rec *r, apr_file_t *f,
-                                             char *buffer, int module_index);
+                                             AnsiChar *buffer, int module_index);
 
 
 /**
@@ -116,11 +116,11 @@ AP_DECLARE(int) ap_scan_script_header_err_ex(request_rec *r, apr_file_t *f,
  * @param buffer Empty when calling the function.  On output, if there was an
  *               error, the string that cause the error is stored here.
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
- * @fn int ap_scan_script_header_err_brigade(request_rec *r, apr_bucket_brigade *bb, char *buffer)
+ * @fn int ap_scan_script_header_err_brigade(request_rec *r, apr_bucket_brigade *bb, AnsiChar *buffer)
  */
 AP_DECLARE(int) ap_scan_script_header_err_brigade(request_rec *r,
                                                   apr_bucket_brigade *bb,
-                                                  char *buffer);
+                                                  AnsiChar *buffer);
 
 /**
  * Read headers output from a script, ensuring that the output is valid.  If
@@ -135,7 +135,7 @@ AP_DECLARE(int) ap_scan_script_header_err_brigade(request_rec *r,
  */
 AP_DECLARE(int) ap_scan_script_header_err_brigade_ex(request_rec *r,
                                                      apr_bucket_brigade *bb,
-                                                     char *buffer,
+                                                     AnsiChar *buffer,
                                                      int module_index);
 
 /**
@@ -154,8 +154,8 @@ AP_DECLARE(int) ap_scan_script_header_err_brigade_ex(request_rec *r,
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  */
 AP_DECLARE_NONSTD(int) ap_scan_script_header_err_strs(request_rec *r,
-                                                      char *buffer,
-                                                      const char **termch,
+                                                      AnsiChar *buffer,
+                                                      const AnsiChar **termch,
                                                       int *termarg, ...)
                        AP_FN_ATTR_SENTINEL;
 
@@ -176,9 +176,9 @@ AP_DECLARE_NONSTD(int) ap_scan_script_header_err_strs(request_rec *r,
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  */
 AP_DECLARE_NONSTD(int) ap_scan_script_header_err_strs_ex(request_rec *r,
-                                                         char *buffer,
+                                                         AnsiChar *buffer,
                                                          int module_index,
-                                                         const char **termch,
+                                                         const AnsiChar **termch,
                                                          int *termarg, ...)
                        AP_FN_ATTR_SENTINEL;
 
@@ -195,8 +195,8 @@ AP_DECLARE_NONSTD(int) ap_scan_script_header_err_strs_ex(request_rec *r,
  * @param getsfunc_data The place to read from
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  */
-AP_DECLARE(int) ap_scan_script_header_err_core(request_rec *r, char *buffer,
-                                               int (*getsfunc) (char *, int, void *),
+AP_DECLARE(int) ap_scan_script_header_err_core(request_rec *r, AnsiChar *buffer,
+                                               int (*getsfunc) (AnsiChar *, int, void *),
                                                void *getsfunc_data);
 
 /**
@@ -212,8 +212,8 @@ AP_DECLARE(int) ap_scan_script_header_err_core(request_rec *r, char *buffer,
  * @param module_index The module index to be used for logging
  * @return HTTP_OK on success, HTTP_INTERNAL_SERVER_ERROR otherwise
  */
-AP_DECLARE(int) ap_scan_script_header_err_core_ex(request_rec *r, char *buffer,
-                                        int (*getsfunc) (char *, int, void *),
+AP_DECLARE(int) ap_scan_script_header_err_core_ex(request_rec *r, AnsiChar *buffer,
+                                        int (*getsfunc) (AnsiChar *, int, void *),
                                         void *getsfunc_data, int module_index);
 }
 

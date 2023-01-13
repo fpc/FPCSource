@@ -229,7 +229,7 @@ type
   }
   ap_filter_rec_t = record
   {* The registered name for this filter  }
-        name : Pchar;
+        name : PAnsiChar;
 
   {* The function to call when this filter is invoked.  }
         filter_func : ap_filter_func;
@@ -346,11 +346,11 @@ function ap_pass_brigade(filter: Pap_filter_t;
   }
 //AP_DECLARE(apr_status_t) ap_pass_brigade_fchk(request_rec *r,
 //                                              apr_bucket_brigade *bucket,
-//                                              const char *fmt,
+//                                              const AnsiChar *fmt,
 //                                              ...);
 function ap_pass_brigade_fchk(r: Prequest_rec;
                               bucket: Papr_bucket_brigade;
-                              const fmt: PChar;
+                              const fmt: PAnsiChar;
                               fmt_args: array of const): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_pass_brigade_fchk';
@@ -369,7 +369,7 @@ function ap_pass_brigade_fchk(r: Prequest_rec;
  *              ::AP_FTYPE_CONNECTION
  * @see add_input_filter()
   }
-function ap_register_input_filter(const name: PChar;
+function ap_register_input_filter(const name: PAnsiChar;
                                   filter_func: ap_in_filter_func;
                                   filter_init: ap_init_filter_func;
                                   ftype: ap_filter_type): Pap_filter_rec_t;
@@ -377,7 +377,7 @@ function ap_register_input_filter(const name: PChar;
  external LibHTTPD name LibNamePrefix + 'ap_register_input_filter' + LibSuff16;
 
 {* @deprecated @see ap_register_output_filter_protocol  }
-function ap_register_output_filter(const name: PChar;
+function ap_register_output_filter(const name: PAnsiChar;
                                    filter_func: ap_out_filter_func;
                                    filter_init: ap_init_filter_func;
                                    ftype: ap_filter_type): Pap_filter_rec_t;
@@ -405,7 +405,7 @@ function ap_register_output_filter(const name: PChar;
  * @return the filter rec
  * @see ap_add_output_filter()
   }
-function ap_register_output_filter_protocol(const name: PChar;
+function ap_register_output_filter_protocol(const name: PAnsiChar;
                                             filter_func: ap_out_filter_func;
                                             filter_init: ap_init_filter_func;
                                             ftype: ap_filter_type;
@@ -431,7 +431,7 @@ function ap_register_output_filter_protocol(const name: PChar;
  * @param r The request to add this filter for (or NULL if it isn't associated with a request)
  * @param c The connection to add the fillter for
   }
-function ap_add_input_filter(const name: PChar;
+function ap_add_input_filter(const name: PAnsiChar;
                              ctx: Pointer;
                              r: Prequest_rec;
                              c: Pconn_rec): Pap_filter_t;
@@ -459,7 +459,7 @@ function ap_add_input_filter_handle(f: Pap_filter_t;
  *
  * @param name The filter name to look up
   }
-function ap_get_input_filter_handle(const name: PChar): Pap_filter_rec_t;
+function ap_get_input_filter_handle(const name: PAnsiChar): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_input_filter_handle' + LibSuff4;
 
@@ -475,7 +475,7 @@ function ap_get_input_filter_handle(const name: PChar): Pap_filter_rec_t;
  * object r must be passed in to ensure the filter chains are modified
  * correctly.  f->r will still be initialized as NULL in the new filter.
   }
-function ap_add_output_filter(const name: PChar;
+function ap_add_output_filter(const name: PAnsiChar;
                               ctx: Pointer;
                               r: Prequest_rec;
                               c: Pconn_rec): Pap_filter_t;
@@ -507,7 +507,7 @@ function ap_add_output_filter_handle(f: Pap_filter_rec_t;
  *
  * @param name The filter name to look up
   }
-function ap_get_output_filter_handle(const name: PChar): Pap_filter_rec_t;
+function ap_get_output_filter_handle(const name: PAnsiChar): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_output_filter_handle' + LibSuff4;
 
@@ -633,12 +633,12 @@ function ap_fputstrs(f: Pap_filter_t;
   }
 //AP_DECLARE_NONSTD(apr_status_t) ap_fprintf(ap_filter_t *f,
 //                                           apr_bucket_brigade *bb,
-//                                           const char *fmt,
+//                                           const AnsiChar *fmt,
 //                                           ...)
 //        __attribute__((format(printf,3,4)));
 function ap_fprintf(f: Pap_filter_t;
                     bb: Papr_bucket_brigade;
-                    const fmt: PChar;
+                    const fmt: PAnsiChar;
                     fmt_args: array of const): apr_status_t;
  cdecl; external LibHTTPD name 'ap_fprintf';
 

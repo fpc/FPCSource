@@ -15,7 +15,9 @@
   }
 unit apr24;
 {$ifdef fpc}
-  {$mode delphi}{$H+}
+  {$mode delphi}
+  {$H-}
+  
 {$endif}
 {$ifdef Unix}
   {$PACKRECORDS C}

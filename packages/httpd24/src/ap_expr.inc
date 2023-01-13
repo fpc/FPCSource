@@ -77,7 +77,7 @@ type
     {** The filename where the expression has been defined (for logging).
      *  May be NULL
      *}
-    filename: PChar;
+    filename: PAnsiChar;
     //** The line number where the expression has been defined (for logging). */
     line_number: cuint;
     //** Flags relevant for the expression, see AP_EXPR_FLAG_* */
@@ -113,8 +113,8 @@ const
  *       response header, unless ::AP_EXPR_FLAG_DONT_VARY is set.
  *}
 //AP_DECLARE(int) ap_expr_exec(request_rec *r, const ap_expr_info_t *expr,
-//                             const char **err);
-function ap_expr_exec(r: Prequest_rec; const expr: Pap_expr_info_t; err: PPChar): Integer;
+//                             const AnsiChar **err);
+function ap_expr_exec(r: Prequest_rec; const expr: Pap_expr_info_t; err: PPAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_exec' + LibSuff12;
 
@@ -136,10 +136,10 @@ function ap_expr_exec(r: Prequest_rec; const expr: Pap_expr_info_t; err: PPChar)
  *}
 //AP_DECLARE(int) ap_expr_exec_re(request_rec *r, const ap_expr_info_t *expr,
 //                                apr_size_t nmatch, ap_regmatch_t *pmatch,
-//                                const char **source, const char **err);
+//                                const AnsiChar **source, const AnsiChar **err);
 function ap_expr_exec_re(r: Prequest_rec; const expr: Pap_expr_info_t;
                          nmatch: apr_size_t; pmatch: Pap_regmatch_t;
-                         const source: PPChar; const err: PPChar): Integer;
+                         const source: PPAnsiChar; const err: PPAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_exec_re' + LibSuff24;
 
@@ -156,7 +156,7 @@ type
     //** the pool to use */
     p : Papr_pool_t;
     //** where to store the error string */
-    err : PPchar;
+    err : PPAnsiChar;
     //** ap_expr_info_t for the expression */
     info : Pap_expr_info_t;
     //** regex match information for back references */
@@ -164,14 +164,14 @@ type
     //** size of the vector pointed to by re_pmatch */
     re_nmatch : apr_size_t;
     //** the string corresponding to the re_pmatch */
-    re_source : PPchar;
+    re_source : PPAnsiChar;
     {** A string where the comma separated names of headers are stored
      * to be later added to the Vary: header. If NULL, the caller is not
      * interested in this information.
      *}
-    vary_this : PPchar;
+    vary_this : PPAnsiChar;
     //** where to store the result string */
-    result_string : PPchar;
+    result_string : PPAnsiChar;
     //** Arbitrary context data provided by the caller for custom functions */
     data : pointer;
     //** The current recursion level */
@@ -202,12 +202,12 @@ function ap_expr_exec_ctx(ctx: Pap_expr_eval_ctx_t): Integer;
  * @note request headers used during evaluation will be added to the Vary:
  *       response header, unless ::AP_EXPR_FLAG_DONT_VARY is set.
  *}
-//AP_DECLARE(const char *) ap_expr_str_exec(request_rec *r,
+//AP_DECLARE(const AnsiChar *) ap_expr_str_exec(request_rec *r,
 //                                          const ap_expr_info_t *expr,
-//                                          const char **err);
+//                                          const AnsiChar **err);
 function ap_expr_str_exec(r: Prequest_rec;
                           const expr: Pap_expr_info_t;
-                          const err: PPChar): PChar;
+                          const err: PPAnsiChar): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_str_exec' + LibSuff12;
 
@@ -227,18 +227,18 @@ function ap_expr_str_exec(r: Prequest_rec;
  * @note request headers used during evaluation will be added to the Vary:
  *       response header, unless ::AP_EXPR_FLAG_DONT_VARY is set.
  *}
-//AP_DECLARE(const char *) ap_expr_str_exec_re(request_rec *r,
+//AP_DECLARE(const AnsiChar *) ap_expr_str_exec_re(request_rec *r,
 //                                             const ap_expr_info_t *expr,
 //                                             apr_size_t nmatch,
 //                                             ap_regmatch_t *pmatch,
-//                                             const char **source,
-//                                             const char **err);
+//                                             const AnsiChar **source,
+//                                             const AnsiChar **err);
 function ap_expr_str_exec_re(r: Prequest_rec;
                           const expr: Pap_expr_info_t;
                           nmatch: apr_size_t;
                           pmatch: Pap_regmatch_t;
-                          const source: PPChar;
-                          const err: PPChar): PChar;
+                          const source: PPAnsiChar;
+                          const err: PPAnsiChar): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_str_exec_re' + LibSuff24;
 
@@ -269,10 +269,10 @@ function ap_expr_str_exec_re(r: Prequest_rec;
  * @return 0 or 1
  *}
 //typedef int ap_expr_op_unary_t(ap_expr_eval_ctx_t *ctx, const void *data,
-//                               const char *arg);
+//                               const AnsiChar *arg);
 type
   ap_expr_op_unary_t = function(ctx: Pap_expr_eval_ctx_t; const data: Pointer;
-                                const arg: PChar): Integer; cdecl;
+                                const arg: PAnsiChar): Integer; cdecl;
 
 {** Binary operator, takes two string arguments and returns a bool value.
  * The name must have the form '-cmp' (at least two letters).
@@ -283,9 +283,9 @@ type
  * @return 0 or 1
  *}
 //typedef int ap_expr_op_binary_t(ap_expr_eval_ctx_t *ctx, const void *data,
-//                                const char *arg1, const char *arg2);
+//                                const AnsiChar *arg1, const AnsiChar *arg2);
   ap_expr_op_binary_t = function(ctx: Pap_expr_eval_ctx_t; const data: Pointer;
-                                 const arg1: PChar; const arg2: PChar): Integer; cdecl;
+                                 const arg1: PAnsiChar; const arg2: PAnsiChar): Integer; cdecl;
 
 {** String valued function, takes a string argument and returns a string
  * @param ctx The evaluation context
@@ -293,12 +293,12 @@ type
  * @param arg The argument
  * @return The functions result string, may be NULL for 'empty string'
  *}
-//typedef const char *(ap_expr_string_func_t)(ap_expr_eval_ctx_t *ctx,
+//typedef const AnsiChar *(ap_expr_string_func_t)(ap_expr_eval_ctx_t *ctx,
 //                                            const void *data,
-//                                            const char *arg);
+//                                            const AnsiChar *arg);
   ap_expr_string_func_t = function(ctx: Pap_expr_eval_ctx_t;
                                    const data: Pointer;
-                                   const arg: PChar): PChar; cdecl;
+                                   const arg: PAnsiChar): PAnsiChar; cdecl;
 
 {** List valued function, takes a string argument and returns a list of strings
  * Can currently only be called following the builtin '-in' operator.
@@ -309,20 +309,20 @@ type
  *}
 //typedef apr_array_header_t *(ap_expr_list_func_t)(ap_expr_eval_ctx_t *ctx,
 //                                                  const void *data,
-//                                                  const char *arg);
+//                                                  const AnsiChar *arg);
   ap_expr_list_func_t = function(ctx: Pap_expr_eval_ctx_t;
                                  const data: Pointer;
-                                 const arg: PChar): Papr_array_header_t;
+                                 const arg: PAnsiChar): Papr_array_header_t;
 
 {** Variable lookup function, takes no argument and returns a string
  * @param ctx The evaluation context
  * @param data An opaque context provided by the lookup hook function
  * @return The expanded variable
  *}
-//typedef const char *(ap_expr_var_func_t)(ap_expr_eval_ctx_t *ctx,
+//typedef const AnsiChar *(ap_expr_var_func_t)(ap_expr_eval_ctx_t *ctx,
 //                                         const void *data);
   ap_expr_var_func_t = function(ctx: Pap_expr_eval_ctx_t;
-                                const data: Pointer): PChar; cdecl;
+                                const data: Pointer): PAnsiChar; cdecl;
 
 const
   AP_EXPR_FUNC_VAR        = 0;
@@ -343,7 +343,7 @@ type
 //#define AP_EXPR_FUNC_OP_UNARY   3
 //#define AP_EXPR_FUNC_OP_BINARY  4
     //** name of the looked up object */
-    name: PChar;
+    name: PAnsiChar;
 
     flags: Integer;
 
@@ -355,11 +355,11 @@ type
     //** where to store the function's context */
     data: PPointer;
     //** where to store the error message (if any) */
-    err: PPChar;
+    err: PPAnsiChar;
 
     {** arg for pre-parsing (only if a simple string).
      *  For binary ops, this is the right argument. *}
-    arg: PChar;
+    arg: PAnsiChar;
   end; {ap_expr_lookup_parms}
 
 {** Function for looking up the provider function for a variable, operator
@@ -396,13 +396,13 @@ function ap_expr_lookup_default(parms: Pap_expr_lookup_parms): Integer; cdecl;
  *         A pointer to the resulting parse tree will be stored in
  *         info->root_node.
  *}
-//AP_DECLARE(const char *) ap_expr_parse(apr_pool_t *pool, apr_pool_t *ptemp,
-//                                       ap_expr_info_t *info, const char *expr,
+//AP_DECLARE(const AnsiChar *) ap_expr_parse(apr_pool_t *pool, apr_pool_t *ptemp,
+//                                       ap_expr_info_t *info, const AnsiChar *expr,
 //                                       ap_expr_lookup_fn_t *lookup_fn);
 function ap_expr_parse(pool, ptemp: Papr_pool_t;
                        info: Pap_expr_info_t;
-                       const expr: PChar;
-                       lookup_fn: ap_expr_lookup_fn_t): PChar;
+                       const expr: PAnsiChar;
+                       lookup_fn: ap_expr_lookup_fn_t): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_parse' + LibSuff20;
 
@@ -420,17 +420,17 @@ function ap_expr_parse(pool, ptemp: Papr_pool_t;
  * @note Usually ap_expr_parse_cmd() should be used
  *}
 //AP_DECLARE(ap_expr_info_t *) ap_expr_parse_cmd_mi(const cmd_parms *cmd,
-//                                                  const char *expr,
+//                                                  const AnsiChar *expr,
 //                                                  unsigned int flags,
-//                                                  const char **err,
+//                                                  const AnsiChar **err,
 //                                                  ap_expr_lookup_fn_t *lookup_fn,
 //                                                  int module_index);
 function ap_expr_parse_cmd_mi(cmd: Pcmd_parms;
-                              const expr: PChar;
+                              const expr: PAnsiChar;
                               flags: cuint;
-                              const err: PPChar;
+                              const err: PPAnsiChar;
                               lookup_fn: ap_expr_lookup_fn_t;
-                              module_index: Integer): PChar;
+                              module_index: Integer): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_expr_parse_cmd_mi' + LibSuff24;
 

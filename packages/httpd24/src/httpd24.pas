@@ -45,7 +45,9 @@
 unit httpd24;
 
 {$ifdef fpc}
-  {$mode delphi}{$H+}
+  {$mode delphi}
+  {$modeswitch unicodestrings-}
+  {$H-}
 {$endif}
 {$ifdef Unix}
   {$PACKRECORDS C}
@@ -246,15 +248,15 @@ var
     function APR_BUCKET_IS_MMAP(e: Papr_bucket): boolean;
   {$ENDIF}
   function APR_BUCKET_IS_POOL(e: Papr_bucket): boolean;
-  function apr_bucket_read(e: Papr_bucket; const str: PPChar; len: Papr_size_t;
+  function apr_bucket_read(e: Papr_bucket; const str: PPAnsiChar; len: Papr_size_t;
     block: apr_read_type_e): apr_status_t;
 
-  function AP_INIT_TAKE1(directive: Pchar; const take1func : ttake1func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
-  function AP_INIT_TAKE2(directive: Pchar; const take2func: ttake2func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
-  function AP_INIT_TAKE3(directive: Pchar; const take3func: ttake3func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
+  function AP_INIT_TAKE1(directive: PAnsiChar; const take1func : ttake1func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec;
+  function AP_INIT_TAKE2(directive: PAnsiChar; const take2func: ttake2func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec;
+  function AP_INIT_TAKE3(directive: PAnsiChar; const take3func: ttake3func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec;
 
 implementation
   { Internal representation for a HTTP protocol number, e.g., HTTP/1.1 }
@@ -327,12 +329,12 @@ implementation
     end;
   end;
 
-  function ap_escape_uri(ppool: Papr_pool_t; const path: PChar) : PChar;  
+  function ap_escape_uri(ppool: Papr_pool_t; const path: PAnsiChar) : PAnsiChar;  
   begin
     ap_escape_uri:=ap_os_escape_path(ppool,path,1);
   end;
 
-  function ap_escape_html(p: Papr_pool_t; const s: PChar) : PChar;
+  function ap_escape_html(p: Papr_pool_t; const s: PAnsiChar) : PAnsiChar;
   begin
     ap_escape_html:=ap_escape_html2(p,s,0);
   end;
@@ -429,14 +431,14 @@ implementation
     APR_BUCKET_NEXT(e)^.link.prev := APR_BUCKET_PREV(e);
   end;
 
-  function apr_bucket_read(e: Papr_bucket; const str: PPChar; len: Papr_size_t;
+  function apr_bucket_read(e: Papr_bucket; const str: PPAnsiChar; len: Papr_size_t;
     block: apr_read_type_e): apr_status_t; inline;
   begin
     apr_bucket_read := e^.type_^.read(e, str, len, block);
   end;
 
-  function AP_INIT_TAKE1(directive: Pchar; const take1func: ttake1func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  function AP_INIT_TAKE1(directive: PAnsiChar; const take1func: ttake1func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec; inline;
   begin
     with result DO
     begin
@@ -449,8 +451,8 @@ implementation
     end;
   end;
 
-  function AP_INIT_TAKE2(directive: Pchar; const take2func: ttake2func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  function AP_INIT_TAKE2(directive: PAnsiChar; const take2func: ttake2func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec; inline;
   begin
     with result DO
     begin
@@ -463,8 +465,8 @@ implementation
     end;
   end;
 
-  function AP_INIT_TAKE3(directive: Pchar; const take3func: ttake3func;
-    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  function AP_INIT_TAKE3(directive: PAnsiChar; const take3func: ttake3func;
+    mconfig: Pointer; where: Integer; help: PAnsiChar): command_rec; inline;
   begin
     with result DO
     begin
@@ -486,7 +488,7 @@ implementation
     mod_.version := MODULE_MAGIC_NUMBER_MAJOR;
     mod_.minor_version := MODULE_MAGIC_NUMBER_MINOR;
     mod_.module_index := -1;
-  //  mod_.name: PChar;
+  //  mod_.name: PAnsiChar;
     mod_.dynamic_load_handle := nil;
     mod_.next := nil;
     mod_.magic := MODULE_MAGIC_COOKIE;
@@ -499,7 +501,7 @@ implementation
     mod_.version := MODULE_MAGIC_NUMBER_MAJOR;
     mod_.minor_version := MODULE_MAGIC_NUMBER_MINOR;
     mod_.module_index := -1;
-  //  mod_.name: PChar;
+  //  mod_.name: PAnsiChar;
     mod_.dynamic_load_handle := nil;
     mod_.next := nil;
     mod_.magic := MODULE_MAGIC_COOKIE;
