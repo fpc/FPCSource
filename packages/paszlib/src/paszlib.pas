@@ -64,24 +64,24 @@ function deflate(var strm:TZstream; flush:longint):longint;inline;
 function deflateEnd(var strm:TZstream):longint;inline;
 function inflate(var strm:TZstream; flush:longint):longint;inline;
 function inflateEnd(var strm:TZstream):longint;inline;
-function deflateSetDictionary(var strm:TZstream;dictionary : Pchar; dictLength:cardinal):longint;inline;
+function deflateSetDictionary(var strm:TZstream;dictionary : PAnsiChar; dictLength:cardinal):longint;inline;
 function deflateCopy(var dest,source:TZstream):longint;inline;
 function deflateReset(var strm:TZstream):longint;inline;
 function deflateParams(var strm:TZstream; level:longint; strategy:longint):longint;inline;
-function inflateSetDictionary(var strm:TZStream;dictionary : Pchar; dictLength:cardinal):longint;inline;
+function inflateSetDictionary(var strm:TZStream;dictionary : PAnsiChar; dictLength:cardinal):longint;inline;
 function inflateSync(var strm:TZStream):longint;inline;
 function inflateReset(var strm:TZStream):longint;inline;
-function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
-function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;
-function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
-function gzopen(path:Pchar; mode:Pchar):gzFile;inline;
+function compress(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal):longint;
+function compress2(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal; level:longint):longint;
+function uncompress(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal):longint;
+function gzopen(path:PAnsiChar; mode:PAnsiChar):gzFile;inline;
 function gzsetparams(Thefile:gzFile; level:longint; strategy:longint):longint;inline;
 function gzread(thefile:gzFile; buf : pointer; len:cardinal):longint;inline;
 function gzwrite(thefile:gzFile; buf: pointer; len:cardinal):longint;inline;
-function gzputs(thefile:gzFile; s:Pchar):longint;inline;
-function gzgets(thefile:gzFile; buf:Pchar; len:longint):Pchar;inline;
-function gzputc(thefile:gzFile; c:char):longint;inline;
-function gzgetc(thefile:gzFile):char;inline;
+function gzputs(thefile:gzFile; s:PAnsiChar):longint;inline;
+function gzgets(thefile:gzFile; buf:PAnsiChar; len:longint):PAnsiChar;inline;
+function gzputc(thefile:gzFile; c:AnsiChar):longint;inline;
+function gzgetc(thefile:gzFile):AnsiChar;inline;
 function gzflush(thefile:gzFile; flush:longint):longint;inline;
 function gzseek(thefile:gzFile; offset:z_off_t; whence:longint):z_off_t;inline;
 function gzrewind(thefile:gzFile):longint;inline;
@@ -89,12 +89,12 @@ function gztell(thefile:gzFile):z_off_t;inline;
 function gzeof(thefile:gzFile):longbool;inline;
 function gzclose(thefile:gzFile):longint;inline;
 function gzerror(thefile:gzFile; var errnum:smallint):string;inline;
-function adler32(theadler:cardinal;buf : Pchar; len:cardinal):cardinal;inline;
-function crc32(thecrc:cardinal;buf : Pchar; len:cardinal):cardinal;inline;
-function deflateInit_(var strm:TZStream; level:longint; version:Pchar; stream_size:longint):longint;inline;
-function inflateInit_(var strm:TZStream; version:Pchar; stream_size:longint):longint;inline;
-function deflateInit2_(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:Pchar; stream_size:longint):longint;inline;
-function inflateInit2_(var strm:TZStream; windowBits:longint; version:Pchar; stream_size:longint):longint;inline;
+function adler32(theadler:cardinal;buf : PAnsiChar; len:cardinal):cardinal;inline;
+function crc32(thecrc:cardinal;buf : PAnsiChar; len:cardinal):cardinal;inline;
+function deflateInit_(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;inline;
+function inflateInit_(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;inline;
+function deflateInit2_(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;inline;
+function inflateInit2_(var strm:TZStream; windowBits:longint; version:PAnsiChar; stream_size:longint):longint;inline;
 function deflateInit(var strm:TZStream;level : longint) : longint;inline;
 function inflateInit(var strm:TZStream) : longint;inline;
 function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : longint) : longint;inline;
@@ -133,7 +133,7 @@ begin
   inflateEnd:=zinflate.inflateEnd(strm);
 end;
 
-function deflateSetDictionary(var strm:TZstream;dictionary : Pchar; dictLength:cardinal):longint;inline;
+function deflateSetDictionary(var strm:TZstream;dictionary : PAnsiChar; dictLength:cardinal):longint;inline;
 begin
   deflateSetDictionary:=zdeflate.deflateSetDictionary(strm,Pbyte(dictionary),dictlength);
 end;
@@ -153,7 +153,7 @@ begin
   deflateParams:=zdeflate.deflateParams(strm,level,strategy);
 end;
 
-function inflateSetDictionary(var strm:TZStream;dictionary : Pchar; dictLength:cardinal):longint;inline;
+function inflateSetDictionary(var strm:TZStream;dictionary : PAnsiChar; dictLength:cardinal):longint;inline;
 begin
   inflateSetDictionary:=zinflate.inflateSetDictionary(strm,Pbyte(dictionary),dictlength);
 end;
@@ -168,7 +168,7 @@ begin
   inflateReset:=zinflate.inflateReset(strm);
 end;
 
-function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
+function compress(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;
@@ -177,7 +177,7 @@ begin
   compress:=zcompres.compress(Pbyte(dest),destlen,Pbytearray(source)^,sourcelen);
 end;
 
-function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;
+function compress2(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal; level:longint):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;
@@ -186,7 +186,7 @@ begin
   compress2:=zcompres.compress2(Pbyte(dest),destlen,Pbytearray(source)^,sourcelen,level);
 end;
 
-function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
+function uncompress(dest:PAnsiChar;var destLen:cardinal; source : PAnsiChar; sourceLen:cardinal):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;
@@ -195,7 +195,7 @@ begin
   uncompress:=zuncompr.uncompress(Pbyte(dest),destlen,Pbytearray(source)^,sourcelen);
 end;
 
-function gzopen(path:Pchar; mode:Pchar):gzFile;inline;
+function gzopen(path:PAnsiChar; mode:PAnsiChar):gzFile;inline;
 begin
   gzopen:=gzio.gzopen(path,mode);
 end;
@@ -215,22 +215,22 @@ begin
   gzwrite:=gzio.gzwrite(thefile,buf,len);
 end;
 
-function gzputs(thefile:gzFile; s:Pchar):longint;inline;
+function gzputs(thefile:gzFile; s:PAnsiChar):longint;inline;
 begin
   gzputs:=gzio.gzputs(thefile,s);
 end;
 
-function gzgets(thefile:gzFile; buf:Pchar; len:longint):Pchar;inline;
+function gzgets(thefile:gzFile; buf:PAnsiChar; len:longint):PAnsiChar;inline;
 begin
   gzgets:=gzio.gzgets(thefile,buf,len);
 end;
 
-function gzputc(thefile:gzFile; c:char):longint;inline;
+function gzputc(thefile:gzFile; c:AnsiChar):longint;inline;
 begin
   gzputc:=gzio.gzputc(thefile,c);
 end;
 
-function gzgetc(thefile:gzFile):char;inline;
+function gzgetc(thefile:gzFile):AnsiChar;inline;
 begin
   gzgetc:=chr(gzio.gzgetc(thefile));
 end;
@@ -270,32 +270,32 @@ begin
   gzerror:=gzio.gzerror(thefile,errnum);
 end;
 
-function adler32(theadler:cardinal;buf : Pchar; len:cardinal):cardinal;inline;
+function adler32(theadler:cardinal;buf : PAnsiChar; len:cardinal):cardinal;inline;
 begin
   adler32:=adler.adler32(theadler,Pbyte(buf),len);
 end;
 
-function crc32(thecrc:cardinal;buf : Pchar; len:cardinal):cardinal;inline;
+function crc32(thecrc:cardinal;buf : PAnsiChar; len:cardinal):cardinal;inline;
 begin
   crc32:=crc.crc32(thecrc,Pbyte(buf),len);
 end;
 
-function deflateInit_(var strm:TZStream; level:longint; version:Pchar; stream_size:longint):longint;inline;
+function deflateInit_(var strm:TZStream; level:longint; version:PAnsiChar; stream_size:longint):longint;inline;
 begin
   deflateInit_:=zdeflate.deflateInit_(@strm,level,version,stream_size);
 end;
 
-function inflateInit_(var strm:TZStream; version:Pchar; stream_size:longint):longint;inline;
+function inflateInit_(var strm:TZStream; version:PAnsiChar; stream_size:longint):longint;inline;
 begin
   inflateInit_:=zinflate.inflateInit_(@strm,version,stream_size);
 end;
 
-function deflateInit2_(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:Pchar; stream_size:longint):longint;inline;
+function deflateInit2_(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:PAnsiChar; stream_size:longint):longint;inline;
 begin
   deflateInit2_:=zdeflate.deflateInit2_(strm,level,method,windowBits,memlevel,strategy,version,stream_size);
 end;
 
-function inflateInit2_(var strm:TZStream; windowBits:longint; version:Pchar; stream_size:longint):longint;inline;
+function inflateInit2_(var strm:TZStream; windowBits:longint; version:PAnsiChar; stream_size:longint):longint;inline;
 begin
   inflateInit2_:=zinflate.inflateInit2_(strm,windowBits,version,stream_size);
 end;
