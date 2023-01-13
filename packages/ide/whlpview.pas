@@ -13,6 +13,7 @@
 
  **********************************************************************}
 unit WHlpView;
+{$H-}
 
 interface
 
@@ -430,7 +431,7 @@ end;
 procedure THelpTopic.ReBuild;
 var TextPos,LinePos,LinkNo,NamedMarkNo: sw_word;
     Line,CurWord: string;
-    C: char;
+    C: AnsiChar;
     InLink,InCodeArea,InColorArea,InImage: boolean;
     LinkStart,LinkEnd,CodeAreaStart,CodeAreaEnd: TPoint;
     ColorAreaStart,ColorAreaEnd: TPoint;

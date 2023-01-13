@@ -20,6 +20,7 @@ unit FPCodTmp; { Code Templates }
   {$macro on}
   {$define resourcestring := const}
 {$endif}
+{$H-}
 
 interface
 

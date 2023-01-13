@@ -64,7 +64,7 @@ const
       MaxLineLength     = 255;
       MaxLineCount      = 2000000;
 
-      CodeTemplateCursorChar = '|'; { char to signal cursor pos in templates }
+      CodeTemplateCursorChar = '|'; { AnsiChar to signal cursor pos in templates }
 
       efBackupFiles         = $00000001;
       efInsertMode          = $00000002;
@@ -687,7 +687,7 @@ type
       procedure ReadBlock; virtual;
       procedure PrintBlock; virtual;
       procedure ExpandCodeTemplate; virtual;
-      procedure AddChar(C: char); virtual;
+      procedure AddChar(C: AnsiChar); virtual;
 {$ifdef WinClipSupported}
       function  ClipCopyWin: Boolean; virtual;
       function  ClipPasteWin: Boolean; virtual;
@@ -753,13 +753,13 @@ const
 {$ifndef NO_UNTYPEDSET}
   {$define USE_UNTYPEDSET}
 {$endif ndef NO_UNTYPEDSET}
-     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#0,#32,#255];
-     TabChars           {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#9];
-     HashChars          {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['#'];
-     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['A'..'Z','a'..'z','_'];
-     NumberChars        {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9'];
-     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9','A'..'F','a'..'f'];
-     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['E','e','.'{,'+','-'}];
+     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = [#0,#32,#255];
+     TabChars           {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = [#9];
+     HashChars          {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['#'];
+     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['A'..'Z','a'..'z','_'];
+     NumberChars        {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['0'..'9'];
+     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['0'..'9','A'..'F','a'..'f'];
+     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['E','e','.'{,'+','-'}];
 
 procedure RegisterWEditor;
 
@@ -902,7 +902,7 @@ begin
   scankeymap:=0;
 end;
 
-function IsWordSeparator(C: char): boolean;
+function IsWordSeparator(C: AnsiChar): boolean;
 begin
   IsWordSeparator:=C in
       [' ',#0,#255,':','=','''','"',
@@ -913,7 +913,7 @@ begin
       '!'];
 end;
 
-{function IsSpace(C: char): boolean;
+{function IsSpace(C: AnsiChar): boolean;
 begin
   IsSpace:=C in[' ',#0,#255];
 end;}
@@ -985,7 +985,7 @@ var
 begin
   for i:=1 to length(s) do
    if s[i] in ['a'..'z'] then
-    upper[i]:=char(byte(s[i])-32)
+    upper[i]:=AnsiChar(byte(s[i])-32)
    else
     upper[i]:=s[i];
   upper[0]:=s[0];
@@ -1108,13 +1108,13 @@ end;
 
 function BMFIScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
 Var
-  buffer : Array[0..MaxBufLength-1] of Char Absolute block;
+  buffer : Array[0..MaxBufLength-1] of AnsiChar Absolute block;
   len,
   numb,
   x      : Sw_Word;
   found  : Boolean;
-  p      : pchar;
-  c      : char;
+  p      : PAnsiChar;
+  c      : AnsiChar;
 begin
   len:=length(str);
   if (len=0) or (len>size) then
@@ -1217,13 +1217,13 @@ end;
 
 function BMBIScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw_Integer;
 Var
-  buffer : Array[0..MaxBufLength-1] of Char Absolute block;
+  buffer : Array[0..MaxBufLength-1] of AnsiChar Absolute block;
   len,
   x      : Sw_Word;
   numb   : Sw_Integer;
   found  : Boolean;
-  p      : pchar;
-  c      : char;
+  p      : PAnsiChar;
+  c      : AnsiChar;
 begin
   len:=length(str);
   if (len=0) or (len>size) then
@@ -2221,17 +2221,17 @@ var
     {MatchedSymbol:=StoredMatchedSymbol;}
   end;
 
-  function GetCharClass(C: char): TCharClass;
+  function GetCharClass(C: AnsiChar): TCharClass;
   var CC: TCharClass;
   begin
   (*
-     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#0,#32,#255];
-     TabChars           {$ifdef USE_UNTYPEDSET}: set of char {$endif} = [#9];
-     HashChars          {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['#'];
-     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['A'..'Z','a'..'z','_'];
-     NumberChars        {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9'];
-     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['0'..'9','A'..'F','a'..'f'];
-     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of char {$endif} = ['E','e','.'{,'+','-'}];
+     WhiteSpaceChars    {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = [#0,#32,#255];
+     TabChars           {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = [#9];
+     HashChars          {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['#'];
+     AlphaChars         {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['A'..'Z','a'..'z','_'];
+     NumberChars        {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['0'..'9'];
+     HexNumberChars     {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['0'..'9','A'..'F','a'..'f'];
+     RealNumberChars    {$ifdef USE_UNTYPEDSET}: set of AnsiChar {$endif} = ['E','e','.'{,'+','-'}];
   *)
     if C in {$ifdef USE_UNTYPEDSET}[#0,#32,#255]{$else}WhiteSpaceChars{$endif} then
       CC:=ccWhiteSpace
@@ -2316,7 +2316,7 @@ var
       InAsm:=true;
   end;
 
-  procedure ProcessChar(C: char);
+  procedure ProcessChar(C: AnsiChar);
   var CC: TCharClass;
       EX: Sw_integer;
       EndComment: pstring;
@@ -3474,7 +3474,7 @@ begin
           which are normally interpreted as control chars. So, when you enter
           Alt+24 (on the numeric pad) then this will normally move the cursor
           one line down, but if you do it in ASCII mode (also after Ctrl+B)
-          then this will insert the ASCII #24 char (upper arrow) in the
+          then this will insert the ASCII #24 AnsiChar (upper arrow) in the
           source code. - Gabor }
         if InASCIIMode {and (Event.CharCode<>0)} then
           begin
@@ -3749,7 +3749,7 @@ var SelectColor,
     Line: PCustomLine;
     LineText,Format: string;
     isBreak : boolean;
-    C: char;
+    C: AnsiChar;
     FreeFormat: array[0..MaxLineLength] of boolean;
     Color: word;
     ColorTab: array[coFirstColor..coLastColor] of word;
@@ -4041,7 +4041,7 @@ end;
 
 procedure TCustomCodeEditor.GetFoldStrings(EditorLine: sw_integer; var Prefix, Suffix: openstring);
 var F: PFold;
-    C: char;
+    C: AnsiChar;
 begin
   Prefix:=CharStr(' ',GetFoldStringWidth); Suffix:='';
   F:=GetLineFold(EditorLine);
@@ -4467,7 +4467,7 @@ procedure TCustomCodeEditor.ChangeCaseArea(StartP,EndP: TPoint; CaseAction: TCas
 var Y,X: sw_integer;
     X1,X2: sw_integer;
     S: string;
-    C: char;
+    C: AnsiChar;
     StartPos : TPoint;
     HoldUndo : boolean;
 begin
@@ -4632,7 +4632,7 @@ const OpenSymbols  : string[6] = '[{(<''"';
       CloseSymbols : string[6] = ']})>''"';
 var SymIdx: integer;
     LineText,LineAttr: string;
-    CurChar: char;
+    CurChar: AnsiChar;
     X,Y: sw_integer;
     LineCount: sw_integer;
     JumpPos: TPoint;
@@ -5639,7 +5639,7 @@ begin
   UnLock;
 end;
 
-procedure TCustomCodeEditor.AddChar(C: char);
+procedure TCustomCodeEditor.AddChar(C: AnsiChar);
 const OpenBrackets  : string[10] = '[({';
       CloseBrackets : string[10] = '])}';
 var S,SC,TabS: string;
@@ -5769,7 +5769,7 @@ end;
 var
     OK: boolean;
     l,i,len,len10 : longint;
-    p,p10,p2,p13 : pchar;
+    p,p10,p2,p13 : PAnsiChar;
     s : string;
 begin
   Lock;
@@ -5841,7 +5841,7 @@ end;
 
 function TCustomCodeEditor.ClipCopyWin: Boolean;
 var OK,ShowInfo: boolean;
-    p,p2 : pchar;
+    p,p2 : PAnsiChar;
     s : string;
     i,str_begin,str_end,NumLines,PcLength : longint;
 begin
@@ -6108,7 +6108,7 @@ var S: string;
     RegExpEngine : TRegExprEngine;
     RegExpFlags : tregexprflags;
     regexpindex,regexplen : longint;
-    findstrpchar : pchar;
+    findstrpchar : PAnsiChar;
 {$endif TEST_REGEXP}
     LeftOK,RightOK: boolean;
     FoundCount: sw_integer;

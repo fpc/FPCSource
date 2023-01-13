@@ -24,8 +24,8 @@ function WinClipboardSupported : boolean;
 function OpenWinClipboard : boolean;
 function EmptyWinClipboard : boolean;
 function GetTextWinClipboardSize : longint;
-function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
-function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
+function GetTextWinClipBoardData(var p : PAnsiChar;var l : longint) : boolean;
+function SetTextWinClipBoardData(p : PAnsiChar;l : longint) : boolean;
 {$endif WinClipSupported}
 
 implementation
@@ -127,7 +127,7 @@ begin
   HC:=GetClipBoardData(CF_OEMTEXT);
   if HC<>0 then
     begin
-      InternGetDataSize:=strlen(pchar(GlobalLock(HC)))+1;
+      InternGetDataSize:=strlen(PAnsiChar(GlobalLock(HC)))+1;
       GlobalUnlock(HC);
     end
   else
@@ -173,7 +173,7 @@ begin
   CloseWinClipboard;
 end;
 
-function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
+function GetTextWinClipBoardData(var p : PAnsiChar;var l : longint) : boolean;
 var
 {$ifdef DOS}
   r : Registers;
@@ -181,11 +181,11 @@ var
 {$endif DOS}
 {$ifdef Windows}
   h : HGlobal;
-  pp : pchar;
+  pp : PAnsiChar;
 {$endif Windows}
 {$ifdef HASAMIGA}
   Text: AnsiString;
-  pp: PChar;
+  pp: PAnsiChar;
 {$endif HASAMIGA}
 begin
   p:=nil;
@@ -213,7 +213,7 @@ begin
   h:=GetClipboardData(CF_OEMTEXT);
   if h<>0 then
     begin
-      pp:=pchar(GlobalLock(h));
+      pp:=PAnsiChar(GlobalLock(h));
       l:=strlen(pp)+1;
       getmem(p,l);
       move(pp^,p^,l);
@@ -236,7 +236,7 @@ begin
 {$endif DOS}
 end;
 
-function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
+function SetTextWinClipBoardData(p : PAnsiChar;l : longint) : boolean;
 var
 {$ifdef DOS}
   r : Registers;
@@ -244,11 +244,11 @@ var
 {$endif DOS}
 {$ifdef Windows}
   h : HGlobal;
-  pp : pchar;
+  pp : PAnsiChar;
   res : boolean;
 {$endif Windows}
 {$ifdef HASAMIGA}
-  pp: PChar;
+  pp: PAnsiChar;
   Test: AnsiString;
 {$endif HASAMIGA}
 begin
@@ -280,12 +280,12 @@ begin
 {$endif DOS}
 {$ifdef Windows}
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
-  pp:=pchar(GlobalLock(h));
+  pp:=PAnsiChar(GlobalLock(h));
   move(p^,pp^,l+1);
   GlobalUnlock(h);
   res:=(SetClipboardData(CF_OEMTEXT,h)=h);
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
-  pp:=pchar(GlobalLock(h));
+  pp:=PAnsiChar(GlobalLock(h));
   OemToCharBuffA(p,pp,l+1);
   SetClipboardData(CF_TEXT,h);
   GlobalUnlock(h);

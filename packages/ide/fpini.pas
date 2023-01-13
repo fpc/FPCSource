@@ -293,10 +293,10 @@ begin
       if code<>0 then
         break;
       inc(len);
-      strtopalette[len]:=char(X);
+      strtopalette[len]:=AnsiChar(X);
       inc(i,p);
     end;
-  strtopalette[0]:=char(len);
+  strtopalette[0]:=AnsiChar(len);
 end;
 
 {$ifndef NODEBUG}

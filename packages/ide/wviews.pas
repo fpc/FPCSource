@@ -244,7 +244,7 @@ var  FormatParams     : array[1..20] of ptrint;
 procedure ClearFormatParams;
 procedure AddFormatParam(P: pointer);
 procedure AddFormatParamInt(L: longint);
-procedure AddFormatParamChar(C: char);
+procedure AddFormatParamChar(C: AnsiChar);
 procedure AddFormatParamStr(const S: string);
 function FormatStrF(const Format: string; var Params): string;
 function FormatStrStr(const Format, Param: string): string;
@@ -345,7 +345,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
 {$ifdef WinClipSupported}
@@ -627,7 +627,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
@@ -960,7 +960,7 @@ type
 var
   AutoSelect: Boolean;
   Action: MenuAction;
-  Ch: Char;
+  Ch: AnsiChar;
   Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
@@ -2209,7 +2209,7 @@ end;
 procedure TDropDownListBox.Draw;
 var B: TDrawBuffer;
     C,TextC: word;
-    LC: char;
+    LC: AnsiChar;
 begin
   if GetState(sfFocused)=false then
     begin
@@ -2352,7 +2352,7 @@ begin
   FormatParams[FormatParamCount]:=L;
 end;
 
-procedure AddFormatParamChar(C: char);
+procedure AddFormatParamChar(C: AnsiChar);
 begin
   AddFormatParamInt(ord(C));
 end;

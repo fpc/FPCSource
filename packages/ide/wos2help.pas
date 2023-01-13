@@ -13,9 +13,11 @@
 
  **********************************************************************}
 {$R-}
+{$H-}
 unit WOS2Help;
 
 interface
+
 
 uses Objects,
      WUtils,WHelp;
@@ -31,7 +33,7 @@ const
 
 type
       TINFFileHeader = packed record
-        Signature   : array[1..2] of char;{ ID magic word (5348h = "HS")                 }
+        Signature   : array[1..2] of AnsiChar;{ ID magic word (5348h = "HS")                 }
         Unknown1    : byte;      { unknown purpose, could be third letter of ID }
         Flags       : byte;      { probably a flag word...                      }
                                  {  bit 0: set if INF style file                }
@@ -68,7 +70,7 @@ type
         NLSTabSize  : longint;   { size of NLS table                            }
         ExtBlockOfs : longint;   { 32 bit file offset of extended data block    }
         Unknown5: array[1..12] of byte;{ unknown purpose                        }
-        Title       : array[1..48] of char;{ ASCII title of database            }
+        Title       : array[1..48] of AnsiChar;{ ASCII title of database            }
       end;
 
       PINFTOCArray = ^TINFTOCArray;
@@ -213,7 +215,7 @@ end;
 function TOS2HelpFile.ReadDictionary: boolean;
 var OK: boolean;
     I: longint;
-    C: array[0..255] of char;
+    C: array[0..255] of AnsiChar;
     B: byte;
 begin
   F^.Seek(Header.DictOfs);
@@ -251,7 +253,7 @@ var OK: boolean;
     I,Count: longint;
     TE: TINFTOCEntry;
     W: word;
-    C: array[0..255] of char;
+    C: array[0..255] of AnsiChar;
     StartOfs: longint;
     S: string;
     SubSlots: PWordArray;
@@ -326,7 +328,7 @@ begin
   if Line<>'' then Lines^.InsertStr(Line);
   Line:='';
 end;
-procedure AddChar(C: char);
+procedure AddChar(C: AnsiChar);
 begin
   if length(Line)>=255 then FlushLine;
   Line:=Line+C;
@@ -337,7 +339,7 @@ begin
   for I:=1 to length(S) do
     AddChar(S[I]);
 end;
-procedure AddTextChar(C: char);
+procedure AddTextChar(C: AnsiChar);
 begin
   if (C=hscLineBreak) then
   begin

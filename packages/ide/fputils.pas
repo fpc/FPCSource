@@ -14,6 +14,8 @@
  **********************************************************************}
 unit FPUtils;
 
+{$H-}
+
 interface
 
 uses
@@ -70,7 +72,7 @@ function GetStr(const P: PString): string;
 procedure ReplaceStr(var S: string; const What,NewS: string);
 procedure ReplaceStrI(var S: string; What: string; const NewS: string);
 
-const ListSeparator      : char = ';';
+const ListSeparator      : AnsiChar = ';';
 
 implementation
 
@@ -153,13 +155,13 @@ begin
               NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
             end;
  'A'..'Z' : if NoPath then
-             FixFileName[i]:=char(byte(s[i])+ord('a')-ord('A'))
+             FixFileName[i]:=AnsiChar(byte(s[i])+ord('a')-ord('A'))
             else
              FixFileName[i]:=s[i];
  {$else}
  {$ifndef hasamiga}
       '/' : FixFileName[i]:='\';
- 'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
+ 'A'..'Z' : FixFileName[i]:=AnsiChar(byte(s[i])+32);
  {$else}
       '\' : FixFileName[i]:='/';
  {$endif}
@@ -272,7 +274,7 @@ function MatchesMask(What, Mask: string): boolean;
   begin
      for i:=1 to length(s) do
       if s[i] in ['a'..'z'] then
-       upper[i]:=char(byte(s[i])-32)
+       upper[i]:=AnsiChar(byte(s[i])-32)
       else
        upper[i]:=s[i];
      upper[0]:=s[0];

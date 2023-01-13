@@ -14,6 +14,8 @@
  **********************************************************************}
 unit FPTemplt;
 
+{$H-}
+
 interface
 
 uses FPViews;
@@ -135,7 +137,7 @@ end;
 function ReadStringPos(const InS: string; StartP: sw_integer; var Expr: string; var EndPos: sw_integer): sw_integer;
 const Enclosers : string[2] = '''"';
 var OK: boolean;
-    Encloser: char;
+    Encloser: AnsiChar;
     P: sw_integer;
 begin
   OK:=false; Expr:=''; P:=StartP; EndPos:=-1;

@@ -151,7 +151,7 @@ procedure ProcessParams(BeforeINI: boolean);
   function IsSwitch(const Param: string): boolean;
   begin
     IsSwitch:=(Param<>'') and (Param[1]<>DirSep) { <- allow UNIX root-relative paths            }
-          and (Param[1] in ['-','/']);           { <- but still accept dos switch char, eg. '/' }
+          and (Param[1] in ['-','/']);           { <- but still accept dos switch AnsiChar, eg. '/' }
   end;
 
 var I: Sw_integer;

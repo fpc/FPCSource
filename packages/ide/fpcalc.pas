@@ -40,9 +40,9 @@ type
   TCalcDisplay = object(TView)
     Status: TCalcState;
     Number: string[MaxDigits];
-    Sign: Char;
+    Sign: AnsiChar;
     LastOperator,
-    _Operator: Char;
+    _Operator: AnsiChar;
     LastR,
     Operand: extended;
     Memory: extended;

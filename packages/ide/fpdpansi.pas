@@ -14,6 +14,8 @@
  **********************************************************************}
 unit fpdpansi;
 
+{$H-}
+
 interface
 
 uses
@@ -88,7 +90,7 @@ var
       CurColor:=NewColor;
     end;
 var
-  Ch : char;
+  Ch : AnsiChar;
   textAttr : byte;
   i, j : sw_integer;
 begin

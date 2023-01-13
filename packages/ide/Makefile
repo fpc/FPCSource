@@ -3057,7 +3057,7 @@ ifdef NOGDBMI
 FPMAKE_OPT+=--NOGDBMI=1
 endif
 ifdef GDBMI
-FPMAKE_OPT+=--GDBMI=1
+FPMAKE_OPT+=
 ifeq ($(findstring $(OS_TARGET),aix beos darwin haiku solaris),)
 GDBMI_IS_STATIC=1
 endif
