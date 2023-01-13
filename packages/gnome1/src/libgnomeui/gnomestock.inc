@@ -96,7 +96,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         xpm_data : PPgchar;
      end;
 
@@ -105,7 +105,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         rgb_data : Pgchar;
         shape : TGdkImlibColor;
      end;
@@ -115,7 +115,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         rgb_data : Pgchar;
         shape : TGdkImlibColor;
         scaled_width : longint;
@@ -127,7 +127,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         filename : Pgchar;
      end;
 
@@ -136,7 +136,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         pathname : Pgchar;
      end;
 
@@ -145,7 +145,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         widget : PGtkWidget;
      end;
 
@@ -154,7 +154,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
         pixmap : PGnomePixmap;
      end;
 
@@ -163,7 +163,7 @@ type
         thetype : TGnomeStockPixmapType;
         width : longint;
         height : longint;
-        thelabel : Pchar;
+        thelabel : PAnsiChar;
      end;
 
    PGnomeStockPixmapEntry = ^TGnomeStockPixmapEntry;
@@ -187,7 +187,7 @@ type
         disabled : PGnomePixmap;
         focused : PGnomePixmap;
         current : PGnomePixmap;
-        icon : Pchar;
+        icon : PAnsiChar;
         c_regular : guint32;
         c_disabled : guint32;
         c_focused : guint32;
@@ -206,19 +206,19 @@ function GNOME_IS_STOCK(obj : pointer) : gboolean;
 function GNOME_IS_STOCK_CLASS(klass : pointer) : gboolean;
 function GNOME_IS_STOCK_PIXMAP_WIDGET(obj : pointer) : gboolean;
 
-function gnome_stock_pixmap_widget_new(window:PGtkWidget; icon:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_new';
+function gnome_stock_pixmap_widget_new(window:PGtkWidget; icon:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_new';
 function gnome_stock_get_type:TGTKType;cdecl;external libgnomeuidll name 'gnome_stock_get_type';
 function gnome_stock_new:PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_new';
-function gnome_stock_new_with_icon(icon:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_new_with_icon';
-function gnome_stock_set_icon(stock:PGnomeStock; icon:Pchar):gboolean;cdecl;external libgnomeuidll name 'gnome_stock_set_icon';
-function gnome_stock_pixmap(window:PGtkWidget; icon:Pchar; subtype:Pchar):PGnomePixmap;cdecl;external libgnomeuidll name 'gnome_stock_pixmap';
-function gnome_stock_pixmap_widget(window:PGtkWidget; icon:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget';
-function gnome_stock_pixmap_widget_at_size(window:PGtkWidget; icon:Pchar; width:guint; height:guint):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_at_size';
-procedure gnome_stock_pixmap_widget_set_icon(widget:PGnomeStock; icon:Pchar);cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_set_icon';
-function gnome_stock_pixmap_register(icon:Pchar; subtype:Pchar; entry:PGnomeStockPixmapEntry):gint;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_register';
-function gnome_stock_pixmap_change(icon:Pchar; subtype:Pchar; entry:PGnomeStockPixmapEntry):gint;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_change';
-function gnome_stock_pixmap_checkfor(icon:Pchar; subtype:Pchar):PGnomeStockPixmapEntry;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_checkfor';
-function gnome_pixmap_button(pixmap:PGtkWidget; thetext:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_button';
+function gnome_stock_new_with_icon(icon:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_new_with_icon';
+function gnome_stock_set_icon(stock:PGnomeStock; icon:PAnsiChar):gboolean;cdecl;external libgnomeuidll name 'gnome_stock_set_icon';
+function gnome_stock_pixmap(window:PGtkWidget; icon:PAnsiChar; subtype:PAnsiChar):PGnomePixmap;cdecl;external libgnomeuidll name 'gnome_stock_pixmap';
+function gnome_stock_pixmap_widget(window:PGtkWidget; icon:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget';
+function gnome_stock_pixmap_widget_at_size(window:PGtkWidget; icon:PAnsiChar; width:guint; height:guint):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_at_size';
+procedure gnome_stock_pixmap_widget_set_icon(widget:PGnomeStock; icon:PAnsiChar);cdecl;external libgnomeuidll name 'gnome_stock_pixmap_widget_set_icon';
+function gnome_stock_pixmap_register(icon:PAnsiChar; subtype:PAnsiChar; entry:PGnomeStockPixmapEntry):gint;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_register';
+function gnome_stock_pixmap_change(icon:PAnsiChar; subtype:PAnsiChar; entry:PGnomeStockPixmapEntry):gint;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_change';
+function gnome_stock_pixmap_checkfor(icon:PAnsiChar; subtype:PAnsiChar):PGnomeStockPixmapEntry;cdecl;external libgnomeuidll name 'gnome_stock_pixmap_checkfor';
+function gnome_pixmap_button(pixmap:PGtkWidget; thetext:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_button';
 procedure gnome_button_can_default(button:PGtkButton; can_default:gboolean);cdecl;external libgnomeuidll name 'gnome_button_can_default';
 
 const
@@ -235,8 +235,8 @@ const
    GNOME_STOCK_BUTTON_DOWN = 'Button_Down';
    GNOME_STOCK_BUTTON_FONT = 'Button_Font';
 
-function gnome_stock_button(thetype:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_button';
-function gnome_stock_or_ordinary_button(thetype:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_or_ordinary_button';
+function gnome_stock_button(thetype:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_button';
+function gnome_stock_or_ordinary_button(thetype:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_or_ordinary_button';
 
 const
    GNOME_STOCK_MENU_BLANK = 'Menu_';
@@ -308,11 +308,11 @@ const
    GNOME_STOCK_MENU_TEXT_STRIKEOUT = 'Menu_Strikeout';
    GNOME_STOCK_MENU_EXIT = GNOME_STOCK_MENU_QUIT;
 
-function gnome_stock_menu_item(thetype:Pchar; thetext:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_menu_item';
-function gnome_stock_menu_accel(thetype:Pchar; key:Pguchar; mods:Pguint8):gboolean;cdecl;external libgnomeuidll name 'gnome_stock_menu_accel';
-procedure gnome_stock_menu_accel_parse(section:Pchar);cdecl;external libgnomeuidll name 'gnome_stock_menu_accel_parse';
-function gnome_stock_transparent_window(icon:Pchar; subtype:Pchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_transparent_window';
-procedure gnome_stock_pixmap_gdk(icon:Pchar; subtype:Pchar; pixmap:PPGdkPixmap; mask:PPGdkPixmap);cdecl;external libgnomeuidll name 'gnome_stock_pixmap_gdk';
+function gnome_stock_menu_item(thetype:PAnsiChar; thetext:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_menu_item';
+function gnome_stock_menu_accel(thetype:PAnsiChar; key:Pguchar; mods:Pguint8):gboolean;cdecl;external libgnomeuidll name 'gnome_stock_menu_accel';
+procedure gnome_stock_menu_accel_parse(section:PAnsiChar);cdecl;external libgnomeuidll name 'gnome_stock_menu_accel_parse';
+function gnome_stock_transparent_window(icon:PAnsiChar; subtype:PAnsiChar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_stock_transparent_window';
+procedure gnome_stock_pixmap_gdk(icon:PAnsiChar; subtype:PAnsiChar; pixmap:PPGdkPixmap; mask:PPGdkPixmap);cdecl;external libgnomeuidll name 'gnome_stock_pixmap_gdk';
 
 {$EndIf read_interface}
 

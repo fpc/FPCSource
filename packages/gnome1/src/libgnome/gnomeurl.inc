@@ -1,6 +1,6 @@
 {$IfDef read_interface}
 
-procedure gnome_url_show(url:Pchar);cdecl;external libgnomedll name 'gnome_url_show';
+procedure gnome_url_show(url:PAnsiChar);cdecl;external libgnomedll name 'gnome_url_show';
 
 {$EndIf read_interface}
 

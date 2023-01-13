@@ -13,7 +13,7 @@ const
  libgnomeuidll='gnomeui';
 
 Type
-   va_list = pchar;
+   va_list = PAnsiChar;
 
 {$define read_interface}
 {$undef read_implementation}
