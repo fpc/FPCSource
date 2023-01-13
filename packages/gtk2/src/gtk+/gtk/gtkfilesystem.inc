@@ -69,7 +69,7 @@ type
         volume_get_base_path : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):PGtkFilePath;
         volume_get_is_mounted : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):gboolean;
         volume_mount : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume; error:PPGError):gboolean;
-        volume_get_display_name : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):Pchar;
+        volume_get_display_name : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):PAnsiChar;
         volume_render_icon : function (file_system:PGtkFileSystem; volume:PGtkFileSystemVolume; widget:PGtkWidget; pixel_size:gint; error:PPGError):PGdkPixbuf;
         get_parent : function (file_system:PGtkFileSystem; path:PGtkFilePath; parent:PPGtkFilePath; error:PPGError):gboolean;
         make_path : function (file_system:PGtkFileSystem; base_path:PGtkFilePath; display_name:Pgchar; error:PPGError):PGtkFilePath;
@@ -177,7 +177,7 @@ function gtk_file_system_volume_get_base_path(file_system:PGtkFileSystem; volume
 function gtk_file_system_volume_get_is_mounted(file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):gboolean;cdecl;external gtklib name 'gtk_file_system_volume_get_is_mounted';
 function gtk_file_system_volume_mount(file_system:PGtkFileSystem; volume:PGtkFileSystemVolume; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_system_volume_mount';
 
-function gtk_file_system_volume_get_display_name(file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):Pchar;cdecl;external gtklib name 'gtk_file_system_volume_get_display_name';
+function gtk_file_system_volume_get_display_name(file_system:PGtkFileSystem; volume:PGtkFileSystemVolume):PAnsiChar;cdecl;external gtklib name 'gtk_file_system_volume_get_display_name';
 
 function gtk_file_system_volume_render_icon(file_system:PGtkFileSystem; volume:PGtkFileSystemVolume; widget:PGtkWidget; pixel_size:gint; error:PPGError):PGdkPixbuf;cdecl;external gtklib name 'gtk_file_system_volume_render_icon';
 
@@ -240,7 +240,7 @@ procedure gtk_file_paths_free(paths:PGSList);cdecl;external gtklib name 'gtk_fil
 
 { GtkFileSystem modules support  }
 
-function _gtk_file_system_create(file_system_name:Pchar):PGtkFileSystem;cdecl;external gtklib name '_gtk_file_system_create';
+function _gtk_file_system_create(file_system_name:PAnsiChar):PGtkFileSystem;cdecl;external gtklib name '_gtk_file_system_create';
 
 {$endif HasGTK_FileSystem}
 

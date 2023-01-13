@@ -92,7 +92,7 @@
        in case the locale's charset will be changed later using setlocale()
        or in some other way.
       }
-    function g_get_charset(charset:PPchar):gboolean;cdecl;external gliblib name 'g_get_charset';
+    function g_get_charset(charset:PPAnsiChar):gboolean;cdecl;external gliblib name 'g_get_charset';
 
     { These are all analogs of the <ctype.h> functions.
       }
@@ -210,7 +210,7 @@
     function g_unichar_to_utf8(c:gunichar; outbuf:Pgchar):gint;cdecl;external gliblib name 'g_unichar_to_utf8';
 
     { Validate a UTF8 string, return TRUE if valid, put pointer to
-       first invalid char in   end
+       first invalid AnsiChar in   end
       }
     function g_utf8_validate(str:Pgchar; max_len:gssize; _end:PPgchar):gboolean;cdecl;external gliblib name 'g_utf8_validate';
 

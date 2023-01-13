@@ -21,7 +21,7 @@
     user_data : gpointer;
     cancel_data : gpointer;
     written : gint;
-    mime_type : pchar;
+    mime_type : PAnsiChar;
   end;//THtmlStream
 
   PHtmlStreamClass = ^THtmlStreamClass;
@@ -51,8 +51,8 @@
   function html_stream_get_written(stream:PHtmlStream):gint;cdecl; external gtkhtmllib;
   procedure html_stream_cancel(stream:PHtmlStream);cdecl; external gtkhtmllib;
   procedure html_stream_set_cancel_func(stream:PHtmlStream; abort_func:THtmlStreamCancelFunc; cancel_data:gpointer);cdecl; external gtkhtmllib;
-  function html_stream_get_mime_type(stream:PHtmlStream):pchar;cdecl; external gtkhtmllib;
-  procedure html_stream_set_mime_type(stream:PHtmlStream; mime_type:Pchar);cdecl; external gtkhtmllib;
+  function html_stream_get_mime_type(stream:PHtmlStream):PAnsiChar;cdecl; external gtkhtmllib;
+  procedure html_stream_set_mime_type(stream:PHtmlStream; mime_type:PAnsiChar);cdecl; external gtkhtmllib;
 
 
 {$ENDIF read_interface_rest}

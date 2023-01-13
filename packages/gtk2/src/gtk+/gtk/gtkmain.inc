@@ -56,15 +56,15 @@ function gtk_check_version(required_major:guint; required_minor:guint; required_
 
 {$ifndef G_PLATFORM_WIN32}
 { Initialization, exit, mainloop and miscellaneous routines }
-procedure gtk_init(argc:Plongint; argv:PPPchar); cdecl; external gtklib;
-function gtk_init_check(argc:Plongint; argv:PPPchar):gboolean; cdecl; external gtklib;
+procedure gtk_init(argc:Plongint; argv:PPPAnsiChar); cdecl; external gtklib;
+function gtk_init_check(argc:Plongint; argv:PPPAnsiChar):gboolean; cdecl; external gtklib;
 {$else}
 { Variants that are used to check for correct struct packing
    when building GTK+-using code. }
-procedure gtk_init_abi_check(argc:Plongint; argv:PPPchar; num_checks:longint; sizeof_GtkWindow:Tsize_t; sizeof_GtkBox:Tsize_t); cdecl; external gtklib;
-function gtk_init_check_abi_check(argc:Plongint; argv:PPPchar; num_checks:longint; sizeof_GtkWindow:Tsize_t; sizeof_GtkBox:Tsize_t):gboolean; cdecl; external gtklib;
-procedure gtk_init(argc: Plongint; argv : PPPchar);
-function gtk_init_check(argc: Plongint; argv : PPPchar) : gboolean;
+procedure gtk_init_abi_check(argc:Plongint; argv:PPPAnsiChar; num_checks:longint; sizeof_GtkWindow:Tsize_t; sizeof_GtkBox:Tsize_t); cdecl; external gtklib;
+function gtk_init_check_abi_check(argc:Plongint; argv:PPPAnsiChar; num_checks:longint; sizeof_GtkWindow:Tsize_t; sizeof_GtkBox:Tsize_t):gboolean; cdecl; external gtklib;
+procedure gtk_init(argc: Plongint; argv : PPPAnsiChar);
+function gtk_init_check(argc: Plongint; argv : PPPAnsiChar) : gboolean;
 {$endif G_PLATFORM_WIN32}
 
 
@@ -125,8 +125,8 @@ function _gtk_get_module_path(_type:Pgchar):PPgchar; cdecl; external gtklib;
 
 {$ifdef HasGTK2_6}
 function gtk_get_option_group(open_default_display:gboolean):PGOptionGroup; cdecl; external gtklib;
-function gtk_init_with_args(argc:PLongint; argv:PPPchar; parameter_string:Pchar; 
-  entries:PGOptionEntry; translation_domain:Pchar; error:PPGError):gboolean; cdecl; external gtklib;
+function gtk_init_with_args(argc:PLongint; argv:PPPAnsiChar; parameter_string:PAnsiChar; 
+  entries:PGOptionEntry; translation_domain:PAnsiChar; error:PPGError):gboolean; cdecl; external gtklib;
 {$endif}
 
 {$ENDIF read_interface_rest}
@@ -135,12 +135,12 @@ function gtk_init_with_args(argc:PLongint; argv:PPPchar; parameter_string:Pchar;
 
 {$IFDEF read_implementation}
 {$ifdef G_PLATFORM_WIN32}
-procedure gtk_init(argc: Plongint; argv : PPPchar);
+procedure gtk_init(argc: Plongint; argv : PPPAnsiChar);
 begin
    gtk_init_abi_check(argc,argv,2,sizeof(TGtkWindow),sizeof(TGtkBox));
 end;
 
-function gtk_init_check(argc: Plongint; argv : PPPchar) : gboolean;
+function gtk_init_check(argc: Plongint; argv : PPPAnsiChar) : gboolean;
 begin
    gtk_init_check:=gtk_init_check_abi_check(argc,argv,2,sizeof(TGtkWindow),sizeof(TGtkBox));
 end;

@@ -45,6 +45,6 @@ function g_locale_from_utf8(utf8string:Pgchar; len:gssize; bytes_read:Pgsize; by
 { Convert between the operating system (or C runtime) representation of file names and UTF-8. }
 function g_filename_to_utf8(opsysstring:Pgchar; len:gssize; bytes_read:Pgsize; bytes_written:Pgsize; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_to_utf8';
 function g_filename_from_utf8(utf8string:Pgchar; len:gssize; bytes_read:Pgsize; bytes_written:Pgsize; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_from_utf8';
-function g_filename_from_uri(uri:Pchar; hostname:PPchar; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_from_uri';
-function g_filename_to_uri(filename:Pchar; hostname:Pchar; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_to_uri';
+function g_filename_from_uri(uri:PAnsiChar; hostname:PPAnsiChar; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_from_uri';
+function g_filename_to_uri(filename:PAnsiChar; hostname:PAnsiChar; error:PPGError):Pgchar;cdecl;external gliblib name 'g_filename_to_uri';
 {$ENDIF read_interface_rest}

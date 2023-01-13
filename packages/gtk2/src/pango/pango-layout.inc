@@ -58,10 +58,10 @@ function pango_layout_copy(src:PPangoLayout):PPangoLayout; cdecl; external pango
 function pango_layout_get_context(layout:PPangoLayout):PPangoContext; cdecl; external pangolib;
 procedure pango_layout_set_attributes(layout:PPangoLayout; attrs:PPangoAttrList); cdecl; external pangolib;
 function pango_layout_get_attributes(layout:PPangoLayout):PPangoAttrList; cdecl; external pangolib;
-procedure pango_layout_set_text(layout:PPangoLayout; text:Pchar; length:longint); cdecl; external pangolib;
-function pango_layout_get_text(layout:PPangoLayout):Pchar; cdecl; external pangolib;
-procedure pango_layout_set_markup(layout:PPangoLayout; markup:Pchar; length:longint); cdecl; external pangolib;
-procedure pango_layout_set_markup_with_accel(layout:PPangoLayout; markup:Pchar; length:longint; accel_marker:gunichar; accel_char:Pgunichar); cdecl; external pangolib;
+procedure pango_layout_set_text(layout:PPangoLayout; text:PAnsiChar; length:longint); cdecl; external pangolib;
+function pango_layout_get_text(layout:PPangoLayout):PAnsiChar; cdecl; external pangolib;
+procedure pango_layout_set_markup(layout:PPangoLayout; markup:PAnsiChar; length:longint); cdecl; external pangolib;
+procedure pango_layout_set_markup_with_accel(layout:PPangoLayout; markup:PAnsiChar; length:longint; accel_marker:gunichar; accel_char:Pgunichar); cdecl; external pangolib;
 function pango_layout_get_font_description(layout:PPangoLayout):PPangoFontDescription; cdecl; external pangolib;
 procedure pango_layout_set_font_description(layout:PPangoLayout; desc:PPangoFontDescription); cdecl; external pangolib;
 procedure pango_layout_set_width(layout:PPangoLayout; width:longint); cdecl; external pangolib;

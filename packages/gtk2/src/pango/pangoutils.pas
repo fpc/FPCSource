@@ -52,17 +52,17 @@ Type
   {$WARNINGS OFF}
 {$ENDIF}
 
-function pango_split_file_list(str:Pchar):PPchar; cdecl; external pangolib;
-function pango_trim_string(str:Pchar):Pchar; cdecl; external pangolib;
+function pango_split_file_list(str:PAnsiChar):PPAnsiChar; cdecl; external pangolib;
+function pango_trim_string(str:PAnsiChar):PAnsiChar; cdecl; external pangolib;
 function pango_read_line(stream:PFILE; str:PGString):gint; cdecl; external pangolib;
-function pango_skip_space(pos:PPchar):gboolean; cdecl; external pangolib;
-function pango_scan_word(pos:PPchar; OutStr:PGString):gboolean; cdecl; external pangolib;
-function pango_scan_string(pos:PPchar; OutStr:PGString):gboolean; cdecl; external pangolib;
-function pango_scan_int(pos:PPchar; OutInt:Plongint):gboolean; cdecl; external pangolib;
+function pango_skip_space(pos:PPAnsiChar):gboolean; cdecl; external pangolib;
+function pango_scan_word(pos:PPAnsiChar; OutStr:PGString):gboolean; cdecl; external pangolib;
+function pango_scan_string(pos:PPAnsiChar; OutStr:PGString):gboolean; cdecl; external pangolib;
+function pango_scan_int(pos:PPAnsiChar; OutInt:Plongint):gboolean; cdecl; external pangolib;
 
 {$ifdef PANGO_ENABLE_BACKEND}
-function pango_config_key_get(key:Pchar):Pchar; cdecl; external pangolib;
-procedure pango_lookup_aliases(fontname:Pchar; families:PPPchar; n_families:Plongint); cdecl; external pangolib;
+function pango_config_key_get(key:PAnsiChar):PAnsiChar; cdecl; external pangolib;
+procedure pango_lookup_aliases(fontname:PAnsiChar; families:PPPAnsiChar; n_families:Plongint); cdecl; external pangolib;
 {$endif}
 { PANGO_ENABLE_BACKEND  }
 
@@ -73,10 +73,10 @@ procedure pango_lookup_aliases(fontname:Pchar; families:PPPchar; n_families:Plon
    a warning is printed (with g_warning) if the string does not
    contain a valid value.
   }
-function pango_parse_style(str:Pchar; style:PPangoStyle; warn:gboolean):gboolean; cdecl; external pangolib;
-function pango_parse_variant(str:Pchar; variant:PPangoVariant; warn:gboolean):gboolean; cdecl; external pangolib;
-function pango_parse_weight(str:Pchar; weight:PPangoWeight; warn:gboolean):gboolean; cdecl; external pangolib;
-function pango_parse_stretch(str:Pchar; stretch:PPangoStretch; warn:gboolean):gboolean; cdecl; external pangolib;
+function pango_parse_style(str:PAnsiChar; style:PPangoStyle; warn:gboolean):gboolean; cdecl; external pangolib;
+function pango_parse_variant(str:PAnsiChar; variant:PPangoVariant; warn:gboolean):gboolean; cdecl; external pangolib;
+function pango_parse_weight(str:PAnsiChar; weight:PPangoWeight; warn:gboolean):gboolean; cdecl; external pangolib;
+function pango_parse_stretch(str:PAnsiChar; stretch:PPangoStretch; warn:gboolean):gboolean; cdecl; external pangolib;
 {$ifdef PANGO_ENABLE_BACKEND}
 
 { On Unix, return the name of the "pango" subdirectory of SYSCONFDIR
@@ -85,13 +85,13 @@ function pango_parse_stretch(str:Pchar; stretch:PPangoStretch; warn:gboolean):gb
    stored in the registry). The returned string should not be
    g_free'd.
   }
-function pango_get_sysconf_subdirectory:Pchar; cdecl; external pangolib;
+function pango_get_sysconf_subdirectory:PAnsiChar; cdecl; external pangolib;
 
 { Ditto for LIBDIR/pango. On Win32, use the same Pango
    installation directory. This returned string should not be
    g_free'd either.
   }
-function pango_get_lib_subdirectory:Pchar; cdecl; external pangolib;
+function pango_get_lib_subdirectory:PAnsiChar; cdecl; external pangolib;
 {$endif}
 { PANGO_ENABLE_BACKEND  }
 
@@ -103,7 +103,7 @@ function pango_log2vis_get_embedding_levels(str:Pgunichar; len:longint; pbase_di
 function pango_unichar_direction(ch : gunichar) : TPangoDirection; cdecl; external pangolib;
 function pango_find_base_dir(text : Pgchar; aLength : gint) : TPangoDirection; cdecl; external pangolib;
 function pango_get_mirror_char(ch:gunichar; mirrored_ch:Pgunichar):gboolean; cdecl; external pangolib;
-function pango_language_get_sample_string(language:PPangoLanguage):Pchar; cdecl; external pangolib;
+function pango_language_get_sample_string(language:PPangoLanguage):PAnsiChar; cdecl; external pangolib;
 
 implementation
 

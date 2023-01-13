@@ -6,11 +6,11 @@
  * Initialization routines.
  *}
 
-function gtk_gl_parse_args(argc: Plongint; argv: PPPChar): gboolean;
+function gtk_gl_parse_args(argc: Plongint; argv: PPPAnsiChar): gboolean;
   cdecl; external GtkGLExtLib;
-function gtk_gl_init_check(argc: Plongint; argv: PPPChar): gboolean;
+function gtk_gl_init_check(argc: Plongint; argv: PPPAnsiChar): gboolean;
   cdecl; external GtkGLExtLib;
-procedure gtk_gl_init(argc: Plongint; argv: PPPChar);
+procedure gtk_gl_init(argc: Plongint; argv: PPPAnsiChar);
   cdecl; external GtkGLExtLib;
 
 {$endif read_interface_rest}

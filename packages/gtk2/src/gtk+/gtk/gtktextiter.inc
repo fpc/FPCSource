@@ -76,8 +76,8 @@ function gtk_text_iter_get_visible_line_index(iter:PGtkTextIter):gint; cdecl; ex
 
 function gtk_text_iter_get_char(iter:PGtkTextIter):gunichar; cdecl; external gtklib;
 
-{ includes the 0xFFFC char for pixmaps/widgets, so char offsets
-   into the returned string map properly into buffer char offsets
+{ includes the 0xFFFC AnsiChar for pixmaps/widgets, so AnsiChar offsets
+   into the returned string map properly into buffer AnsiChar offsets
   }
 function gtk_text_iter_get_slice(start:PGtkTextIter; theEnd:PGtkTextIter):Pgchar; cdecl; external gtklib;
 

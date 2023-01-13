@@ -111,7 +111,7 @@ procedure pango_cairo_error_underline_path(cr:Pcairo_t; x:double; y:double; widt
 {$ifdef HasPango1_22}
 procedure pango_cairo_font_map_set_default(fontmap:PPangoCairoFontMap);cdecl;external pangocairolib;
 function pango_cairo_create_context(cr:Pcairo_t):PPangoContext;cdecl;external pangocairolib;
-procedure pango_cairo_show_glyph_item(cr:Pcairo_t; text:Pchar; glyph_item:PPangoGlyphItem);cdecl;external pangocairolib;
+procedure pango_cairo_show_glyph_item(cr:Pcairo_t; text:PAnsiChar; glyph_item:PPangoGlyphItem);cdecl;external pangocairolib;
 {$endif}
 
 implementation

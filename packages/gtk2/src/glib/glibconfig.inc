@@ -44,7 +44,7 @@
 {$IFDEF read_interface_types}
   PGSystemThread = ^TGSystemThread;
   TGSystemThread = record
-    data           : array [0..3] of char;
+    data           : array [0..3] of AnsiChar;
     dummy_double   : double;
     dummy_pointer  : pointer;
     dummy_long     : longint;

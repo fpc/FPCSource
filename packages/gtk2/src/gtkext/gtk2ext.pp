@@ -11,12 +11,12 @@ const
   { This is equired when people don't have -dev/-devel packages on linux.
     I'm not sure how Darwin is handled tho }
   {$ifdef windows}
-  GtkLibNames: array[1..1] of string = (gtklib);
+  GtkLibNames: array[1..1] of ansistring = (gtklib);
   {$else}
     {$ifdef darwin} // Mac/Darwin
-    GtkLibNames: array[1..1] of string = (gtklib); // TODO: I don't know this one!
+    GtkLibNames: array[1..1] of ansistring = (gtklib); // TODO: I don't know this one!
     {$else} // BSD, Solaris, Linux
-    GtkLibNames: array[1..2] of string = (gtklib, gtklib + '.0');
+    GtkLibNames: array[1..2] of ansistring = (gtklib, gtklib + '.0');
     {$endif}
   {$endif}
   

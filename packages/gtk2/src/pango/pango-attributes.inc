@@ -33,7 +33,7 @@
    PPangoAttrString = ^TPangoAttrString;
    TPangoAttrString = record
         attr : TPangoAttribute;
-        value : Pchar;
+        value : PAnsiChar;
      end;
 
    PPangoAttrLanguage = ^TPangoAttrLanguage;
@@ -105,7 +105,7 @@ function PANGO_TYPE_COLOR : GType;
 function pango_color_get_type:GType; cdecl; external pangolib;
 function pango_color_copy(src:PPangoColor):PPangoColor; cdecl; external pangolib;
 procedure pango_color_free(color:PPangoColor); cdecl; external pangolib;
-function pango_color_parse(color:PPangoColor; spec:Pchar):gboolean; cdecl; external pangolib;
+function pango_color_parse(color:PPangoColor; spec:PAnsiChar):gboolean; cdecl; external pangolib;
 
 { Attributes  }
 
@@ -116,7 +116,7 @@ function pango_attribute_copy(attr:PPangoAttribute):PPangoAttribute; cdecl; exte
 procedure pango_attribute_destroy(attr:PPangoAttribute); cdecl; external pangolib;
 function pango_attribute_equal(attr1:PPangoAttribute; attr2:PPangoAttribute):gboolean; cdecl; external pangolib;
 function pango_attr_language_new(language:PPangoLanguage):PPangoAttribute; cdecl; external pangolib;
-function pango_attr_family_new(family:Pchar):PPangoAttribute; cdecl; external pangolib;
+function pango_attr_family_new(family:PAnsiChar):PPangoAttribute; cdecl; external pangolib;
 function pango_attr_foreground_new(red:guint16; green:guint16; blue:guint16):PPangoAttribute; cdecl; external pangolib;
 function pango_attr_background_new(red:guint16; green:guint16; blue:guint16):PPangoAttribute; cdecl; external pangolib;
 function pango_attr_size_new(size:longint):PPangoAttribute; cdecl; external pangolib;
@@ -146,7 +146,7 @@ function pango_attr_iterator_copy(iterator:PPangoAttrIterator):PPangoAttrIterato
 procedure pango_attr_iterator_destroy(iterator:PPangoAttrIterator); cdecl; external pangolib;
 function pango_attr_iterator_get(iterator:PPangoAttrIterator; _type:TPangoAttrType):PPangoAttribute; cdecl; external pangolib;
 procedure pango_attr_iterator_get_font(iterator:PPangoAttrIterator; desc:PPangoFontDescription; var language:PPangoLanguage; extra_attrs:PPGSList); cdecl; external pangolib;
-function pango_parse_markup(markup_text:Pchar; length:longint; accel_marker:gunichar; var attr_list:PPangoAttrList; text:PPchar;
+function pango_parse_markup(markup_text:PAnsiChar; length:longint; accel_marker:gunichar; var attr_list:PPangoAttrList; text:PPAnsiChar;
            accel_char:Pgunichar; error:PPGError):gboolean; cdecl; external pangolib;
 {$endif read_interface_functions}
 

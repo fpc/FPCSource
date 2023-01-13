@@ -45,7 +45,7 @@ Const
 type
    PXSettingsBuffer = ^TXSettingsBuffer;
    TXSettingsBuffer = record
-        byte_order : char;
+        byte_order : AnsiChar;
         len : size_t;
         data : Pbyte;
         pos : Pbyte;
@@ -61,12 +61,12 @@ type
 
    PXSettingsSetting = ^TXSettingsSetting;
    TXSettingsSetting = record
-        name : Pchar;
+        name : PAnsiChar;
         _type : TXSettingsType;
         data : record
             case longint of
                0 : ( v_int : longint );
-               1 : ( v_string : Pchar );
+               1 : ( v_string : PAnsiChar );
                2 : ( v_color : TXSettingsColor );
             end;
         last_change_serial : dword;
@@ -89,12 +89,12 @@ function xsettings_list_copy(list:PXSettingsList):PXSettingsList;cdecl;external;
 function xsettings_list_insert(list:PPXSettingsList; setting:PXSettingsSetting):TXSettingsResult;cdecl;external;
 
 (* Const before type ignored *)
-function xsettings_list_lookup(list:PXSettingsList; name:Pchar):PXSettingsSetting;cdecl;external;
+function xsettings_list_lookup(list:PXSettingsList; name:PAnsiChar):PXSettingsSetting;cdecl;external;
 
 (* Const before type ignored *)
-function xsettings_list_delete(list:PPXSettingsList; name:Pchar):TXSettingsResult;cdecl;external;
+function xsettings_list_delete(list:PPXSettingsList; name:PAnsiChar):TXSettingsResult;cdecl;external;
 
-function xsettings_byte_order:char;cdecl;external;
+function xsettings_byte_order:AnsiChar;cdecl;external;
 
 function XSETTINGS_PAD(n,m : longint) : longint;
 

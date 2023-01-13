@@ -106,7 +106,7 @@ function gdk_x11_get_xatom_name(xatom:TAtom):Pgchar;cdecl;external;
 function gdk_x11_font_get_xdisplay(font:PGdkFont):PDisplay;cdecl;external;
 function gdk_x11_font_get_xfont(font:PGdkFont):gpointer;cdecl;external;
 (* Const before type ignored *)
-function gdk_x11_font_get_name(font:PGdkFont):Pchar;cdecl;external;
+function gdk_x11_font_get_name(font:PGdkFont):PAnsiChar;cdecl;external;
 function GDK_FONT_XDISPLAY(font : PGdkFont): PDisplay;
 function GDK_FONT_XFONT(font : PGdkFont): gpointer;
 

@@ -158,7 +158,7 @@ function g_strsplit(_string:Pgchar; delimiter:Pgchar; max_tokens:gint):PPgchar; 
 function g_strjoinv(separator:Pgchar; str_array:PPgchar):Pgchar; cdecl; external gliblib;
 procedure g_strfreev(str_array:PPgchar); cdecl; external gliblib;
 function g_strdupv(str_array:PPgchar):PPgchar; cdecl; external gliblib;
-function g_stpcpy(dest:Pgchar; src:Pchar):Pgchar; cdecl; external gliblib;
+function g_stpcpy(dest:Pgchar; src:PAnsiChar):Pgchar; cdecl; external gliblib;
 {$ENDIF read_interface_rest}
 // included by glib2.pas
 

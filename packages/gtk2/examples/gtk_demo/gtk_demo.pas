@@ -20,7 +20,7 @@ var
 
 
 type
-  TFileOfChar = file of char;
+  TFileOfChar = file of AnsiChar;
 
   TGDoDemoFunc = function : PGtkWidget;
 
@@ -51,7 +51,7 @@ const
   STATE_NORMAL     = 0;
   STATE_IN_COMMENT = 1;
 
-  function demo_find_file (    base : pchar; err  : PPGError): pgchar; forward;
+  function demo_find_file (    base : PAnsiChar; err  : PPGError): pgchar; forward;
 
   (* file_is_valid
    *  a dirty little hack to find out if a file variable is assigned and the
@@ -154,10 +154,10 @@ const
       (title:  nil;                          filename: nil;                 func: nil;               children: nil));
 
 
-function demo_find_file (    base : pchar;
+function demo_find_file (    base : PAnsiChar;
                              err  : PPGError): pgchar;
 var
-  filename : pchar;
+  filename : PAnsiChar;
 
 begin
 
@@ -240,7 +240,7 @@ const
       ('integer',
        'gchar',
        'pgchar',
-       'char',
+       'AnsiChar',
        'gfloat',
        'real',
        'gint8',
@@ -567,7 +567,7 @@ function read_line (var f: TFileOfChar; str: PGString): boolean;
 var
   n_read : integer;
   c,
-  next_c : char;
+  next_c : AnsiChar;
 
 begin
   n_read := 0;
@@ -613,7 +613,7 @@ var
 
   in_para      : gboolean;
   f            : TFileOfChar;
-  full_name    : pchar;
+  full_name    : PAnsiChar;
   p, q, r      : pgchar;
 
 begin
@@ -966,7 +966,7 @@ end;
 procedure setup_default_icon;
 var
   pixbuf      : PGdkPixbuf;
-  filename    : pchar;
+  filename    : PAnsiChar;
   err         : PGError;
 
   dialog      : PGtkWidget;

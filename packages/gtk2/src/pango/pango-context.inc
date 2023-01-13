@@ -45,7 +45,7 @@ function pango_context_get_base_dir(context:PPangoContext):TPangoDirection; cdec
    consistent shaping/language engine and bidrectional level.
    Returns a GList of PangoItem's
   }
-function pango_itemize(context:PPangoContext; text:Pchar; start_index:longint; length:longint; attrs:PPangoAttrList;
+function pango_itemize(context:PPangoContext; text:PAnsiChar; start_index:longint; length:longint; attrs:PPangoAttrList;
            cached_iter:PPangoAttrIterator):PGList; cdecl; external pangolib;
 
 

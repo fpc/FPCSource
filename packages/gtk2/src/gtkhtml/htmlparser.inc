@@ -17,7 +17,7 @@
     stream : PHtmlStream;
     xmlctxt : xmlParserCtxtPtr;
     res : longint;
-    chars : array[0..9] of char;
+    chars : array[0..9] of AnsiChar;
     blocking : gboolean;
     blocking_node : PDomNode;
   end;//THtmlParser

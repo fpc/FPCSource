@@ -6,7 +6,7 @@ type
    PGladeXML = ^TGladeXML;
    TGladeXML = record
         parent : TGObject;
-        filename : Pchar;
+        filename : PAnsiChar;
         priv : PGladeXMLPrivate;
      end;
 
@@ -30,11 +30,11 @@ function GLADE_IS_XML_CLASS(klass: pointer) : gboolean;
 function GLADE_XML_GET_CLASS(obj: pointer) : PGladeXMLClass;
 
 function glade_xml_get_type:GType; cdecl; external LibGladeLib;
-function glade_xml_new(fname:Pchar; root:Pchar; domain:Pchar):PGladeXML; cdecl; external LibGladeLib;
-function glade_xml_new_from_buffer(buffer:Pchar; size:longint; root:Pchar; domain:Pchar):PGladeXML; cdecl; external LibGladeLib;
-function glade_xml_construct(self:PGladeXML; fname:Pchar; root:Pchar; domain:Pchar):gboolean; cdecl; external LibGladeLib;
-procedure glade_xml_signal_connect(self:PGladeXML; handlername:Pchar; func:TGCallback); cdecl; external LibGladeLib;
-procedure glade_xml_signal_connect_data(self:PGladeXML; handlername:Pchar; func:TGCallback; user_data:gpointer); cdecl; external LibGladeLib;
+function glade_xml_new(fname:PAnsiChar; root:PAnsiChar; domain:PAnsiChar):PGladeXML; cdecl; external LibGladeLib;
+function glade_xml_new_from_buffer(buffer:PAnsiChar; size:longint; root:PAnsiChar; domain:PAnsiChar):PGladeXML; cdecl; external LibGladeLib;
+function glade_xml_construct(self:PGladeXML; fname:PAnsiChar; root:PAnsiChar; domain:PAnsiChar):gboolean; cdecl; external LibGladeLib;
+procedure glade_xml_signal_connect(self:PGladeXML; handlername:PAnsiChar; func:TGCallback); cdecl; external LibGladeLib;
+procedure glade_xml_signal_connect_data(self:PGladeXML; handlername:PAnsiChar; func:TGCallback; user_data:gpointer); cdecl; external LibGladeLib;
 
 {
    use gmodule to connect signals automatically.  Basically a symbol with
@@ -50,11 +50,11 @@ procedure glade_xml_signal_autoconnect(self:PGladeXML); cdecl; external LibGlade
   }
 procedure glade_xml_signal_connect_full(self:PGladeXML; handler_name:Pgchar; func:TGladeXMLConnectFunc; user_data:gpointer); cdecl; external LibGladeLib;
 procedure glade_xml_signal_autoconnect_full(self:PGladeXML; func:TGladeXMLConnectFunc; user_data:gpointer); cdecl; external LibGladeLib;
-function glade_xml_get_widget(self:PGladeXML; name:Pchar):PGtkWidget; cdecl; external LibGladeLib;
-function glade_xml_get_widget_prefix(self:PGladeXML; name:Pchar):PGList; cdecl; external LibGladeLib;
+function glade_xml_get_widget(self:PGladeXML; name:PAnsiChar):PGtkWidget; cdecl; external LibGladeLib;
+function glade_xml_get_widget_prefix(self:PGladeXML; name:PAnsiChar):PGList; cdecl; external LibGladeLib;
 function glade_xml_relative_file(self:PGladeXML; filename:Pgchar):Pgchar; cdecl; external LibGladeLib;
 { don't free the results of these two ...  }
-function glade_get_widget_name(widget:PGtkWidget):Pchar; cdecl; external LibGladeLib;
+function glade_get_widget_name(widget:PGtkWidget):PAnsiChar; cdecl; external LibGladeLib;
 function glade_get_widget_tree(widget:PGtkWidget):PGladeXML; cdecl; external LibGladeLib;
 
 { interface for changing the custom widget handling  }
@@ -65,8 +65,8 @@ type
 procedure glade_set_custom_handler(handler:TGladeXMLCustomWidgetHandler; user_data:gpointer); cdecl; external LibGladeLib;
 
 {$ifndef LIBGLADE_DISABLE_DEPRECATED}
-function glade_xml_new_with_domain(fname:Pchar; root:Pchar; domain:Pchar):PGladeXML;
-function glade_xml_new_from_memory(buffer:Pchar; size:longint; root:Pchar; domain:Pchar):PGladeXML;
+function glade_xml_new_with_domain(fname:PAnsiChar; root:PAnsiChar; domain:PAnsiChar):PGladeXML;
+function glade_xml_new_from_memory(buffer:PAnsiChar; size:longint; root:PAnsiChar; domain:PAnsiChar):PGladeXML;
 {$endif}
 
 // included by libglade.pas

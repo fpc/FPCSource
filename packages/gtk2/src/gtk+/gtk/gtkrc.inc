@@ -148,7 +148,7 @@ procedure gtk_rc_add_default_file(filename:Pgchar); cdecl; external gtklib;
 procedure gtk_rc_set_default_files(filenames:PPgchar); cdecl; external gtklib;
 function gtk_rc_get_default_files:PPgchar; cdecl; external gtklib;
 function gtk_rc_get_style(widget:PGtkWidget):PGtkStyle; cdecl; external gtklib;
-function gtk_rc_get_style_by_paths(settings:PGtkSettings; widget_path:Pchar; class_path:Pchar; _type:GType):PGtkStyle; cdecl; external gtklib;
+function gtk_rc_get_style_by_paths(settings:PGtkSettings; widget_path:PAnsiChar; class_path:PAnsiChar; _type:GType):PGtkStyle; cdecl; external gtklib;
 function gtk_rc_reparse_all_for_settings(settings:PGtkSettings; force_load:gboolean):gboolean; cdecl; external gtklib;
 function gtk_rc_find_pixmap_in_path(settings:PGtkSettings; scanner:PGScanner; pixmap_file:Pgchar):Pgchar; cdecl; external gtklib;
 procedure gtk_rc_parse(filename:Pgchar); cdecl; external gtklib;

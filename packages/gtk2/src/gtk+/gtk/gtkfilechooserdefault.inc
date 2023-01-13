@@ -20,7 +20,7 @@ function GTK_IS_FILE_CHOOSER_DEFAULT(obj : pointer) : gboolean;
 
 function _gtk_file_chooser_default_get_type:GType;cdecl;external gtklib name '_gtk_file_chooser_default_get_type';
 
-function _gtk_file_chooser_default_new(file_system:Pchar):PGtkWidget;cdecl;external gtklib name '_gtk_file_chooser_default_new';
+function _gtk_file_chooser_default_new(file_system:PAnsiChar):PGtkWidget;cdecl;external gtklib name '_gtk_file_chooser_default_new';
 
 {$ENDIF}
 

@@ -55,8 +55,8 @@ function g_file_error_quark:TGQuark;cdecl;external gliblib name 'g_file_error_qu
 function g_file_error_from_errno(err_no:gint):TGFileError;cdecl;external gliblib name 'g_file_error_from_errno';
 function g_file_test(filename:Pgchar; test:TGFileTest):gboolean;cdecl;external gliblib name 'g_file_test';
 function g_file_get_contents(filename:Pgchar; contents:PPgchar; length:Pgsize; error:PPGError):gboolean;cdecl;external gliblib name 'g_file_get_contents';
-function g_mkstemp(tmpl:Pchar):longint;cdecl;external gliblib name 'g_mkstemp';
-function g_file_open_tmp(tmpl:Pchar; name_used:PPchar; error:PPGError):longint;cdecl;external gliblib name 'g_file_open_tmp';
+function g_mkstemp(tmpl:PAnsiChar):longint;cdecl;external gliblib name 'g_mkstemp';
+function g_file_open_tmp(tmpl:PAnsiChar; name_used:PPAnsiChar; error:PPGError):longint;cdecl;external gliblib name 'g_file_open_tmp';
 
 {$IFNDEF KYLIX}
   function g_build_path(separator:Pgchar; first_element:Pgchar; args:array of const):Pgchar;cdecl;overload;external gliblib name 'g_build_path';
