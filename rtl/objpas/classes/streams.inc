@@ -1218,7 +1218,7 @@ end;
 
     end;
 
-  Function TStream.ReadAnsiString : AnsiString;
+  function TStream.ReadAnsiString: AnsiString;
 
   Var
     TheSize : Longint;
@@ -1236,7 +1236,24 @@ end;
      end;
    end;
 
-  Procedure TStream.WriteAnsiString (const S : AnsiString);
+  function TStream.ReadUnicodeString: WideString;
+  Var
+    TheSize : Longint;
+    P : PByte ;
+  begin
+    Result:='';
+    ReadBuffer (TheSize,SizeOf(TheSize));
+    SetLength(Result,TheSize);
+    // Illegal typecast if no AnsiStrings defined.
+    if TheSize>0 then
+     begin
+       ReadBuffer (Pointer(Result)^,TheSize*SizeOf(unicodeChar));
+       P:=Pointer(Result)+TheSize*SizeOf(UnicodeChar);
+       PWord(p)^:=0;
+     end;
+  end;
+
+  procedure TStream.WriteAnsiString(const S: AnsiString);
 
   Var L : Longint;
 
@@ -1244,6 +1261,15 @@ end;
     L:=Length(S);
     WriteBuffer (L,SizeOf(L));
     WriteBuffer (Pointer(S)^,L);
+  end;
+
+  procedure TStream.WriteUnicodeString(const S: UnicodeString);
+  Var L : Longint;
+
+  begin
+    L:=Length(S);
+    WriteBuffer (L,SizeOf(L));
+    WriteBuffer (Pointer(S)^,L*SizeOf(UnicodeChar));
   end;
 
   procedure TStream.WriteByte(b : Byte);
@@ -1601,7 +1627,16 @@ end;
 {*                             TStringStream                                *}
 {****************************************************************************}
 
-function TStringStream.GetDataString: string;
+function TStringStream.GetDataString: RTLString;
+begin
+{$IF SIZEOF(CHAR)=1}
+  Result:=GetAnsiDataString;
+{$ELSE}
+  Result:=GetUnicodeDataString;
+{$ENDIF}
+end;
+
+function TStringStream.GetAnsiDataString: AnsiString;
 begin
   Result:=FEncoding.GetAnsiString(Bytes,0,Size);
 end;
@@ -1649,21 +1684,22 @@ begin
   inherited Create(BytesOf(AString));
 end;
 
-constructor TStringStream.Create(const AString: AnsiString; AEncoding: TEncoding; AOwnsEncoding: Boolean);
+constructor TStringStream.Create(const AString: Ansistring;
+  AEncoding: TEncoding; AOwnsEncoding: Boolean);
 begin
   FOwnsEncoding:=AOwnsEncoding and not TEncoding.IsStandardEncoding(AEncoding);
   FEncoding:=AEncoding;
   Inherited Create(AEncoding.GetAnsiBytes(AString));
 end;
 
-constructor TStringStream.Create(const AString: AnsiString; ACodePage: Integer);
+constructor TStringStream.Create(const AString: Ansistring; ACodePage: Integer);
 begin
   Create(AString,TEncoding.GetEncoding(ACodePage),true);
 end;
 
 constructor TStringStream.Create(const AString: UnicodeString);
 begin
-  Create(AString,TEncoding.Unicode,false);
+  Create(AString,TEncoding.Default,false);
 end;
 
 constructor TStringStream.Create(const AString: UnicodeString; AEncoding: TEncoding; AOwnsEncoding: Boolean);
