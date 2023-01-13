@@ -1004,7 +1004,7 @@ implementation
     end;
 
 
-  procedure Loadgles(lib : pchar);
+  procedure Loadgles(lib : PAnsiChar);
     begin
       Freegles;
       hlib:=LoadLibrary(lib);

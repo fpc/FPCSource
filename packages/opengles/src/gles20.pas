@@ -51,7 +51,7 @@ uses SysUtils,dynlibs{$ifdef X},x,xlib{$endif}{$ifdef windows},Windows{$endif};
 {$ENDIF}
 
 Type
-  Pchar  = ^char;
+  PAnsiChar  = ^AnsiChar;
 
 {$ifdef EGL}
 type
@@ -323,7 +323,7 @@ type
     eglInitialize : function(dpy:EGLDisplay; major:pEGLint; minor:pEGLint):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     eglTerminate : function(dpy:EGLDisplay):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    eglQueryString : function(dpy:EGLDisplay; name:EGLint):pchar;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    eglQueryString : function(dpy:EGLDisplay; name:EGLint):PAnsiChar;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     eglGetConfigs : function(dpy:EGLDisplay; configs:pEGLConfig; config_size:EGLint; num_config:pEGLint):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
     eglChooseConfig : function(dpy:EGLDisplay; attrib_list:pEGLint; configs:pEGLConfig; config_size:EGLint; num_config:pEGLint):EGLBoolean;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -369,7 +369,7 @@ type
 (* Const before type ignored *)
 
   var
-    eglGetProcAddress : function(procname:pchar):__eglMustCastToProperFunctionPointerType;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    eglGetProcAddress : function(procname:PAnsiChar):__eglMustCastToProperFunctionPointerType;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
   { Header file version number  }
   { Current version at http://www.khronos.org/registry/egl/  }
 
@@ -925,7 +925,7 @@ type
     glActiveTexture : procedure(texture:GLenum);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glAttachShader : procedure(_program:GLuint; shader:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    glBindAttribLocation : procedure(_program:GLuint; index:GLuint; name:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glBindAttribLocation : procedure(_program:GLuint; index:GLuint; name:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBindBuffer : procedure(target:GLenum; buffer:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBindFramebuffer : procedure(target:GLenum; framebuffer:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glBindRenderbuffer : procedure(target:GLenum; renderbuffer:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -991,12 +991,12 @@ type
     glGenRenderbuffers : procedure(n:GLsizei; renderbuffers:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGenTextures : procedure(n:GLsizei; textures:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetActiveAttrib : procedure(_program:GLuint; index:GLuint; bufsize:GLsizei; length:pGLsizei; size:pGLint; 
-      _type:pGLenum; name:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+      _type:pGLenum; name:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetActiveUniform : procedure(_program:GLuint; index:GLuint; bufsize:GLsizei; length:pGLsizei; size:pGLint; 
-      _type:pGLenum; name:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+      _type:pGLenum; name:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetAttachedShaders : procedure(_program:GLuint; maxcount:GLsizei; count:pGLsizei; shaders:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    glGetAttribLocation : function(_program:GLuint; name:pchar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetAttribLocation : function(_program:GLuint; name:PAnsiChar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetBooleanv : procedure(pname:GLenum; params:pGLboolean);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetBufferParameteriv : procedure(target:GLenum; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetError : function:GLenum;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1004,12 +1004,12 @@ type
     glGetFramebufferAttachmentParameteriv : procedure(target:GLenum; attachment:GLenum; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetIntegerv : procedure(pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetProgramiv : procedure(_program:GLuint; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetProgramInfoLog : procedure(_program:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetProgramInfoLog : procedure(_program:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetRenderbufferParameteriv : procedure(target:GLenum; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetShaderiv : procedure(shader:GLuint; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetShaderInfoLog : procedure(shader:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetShaderInfoLog : procedure(shader:GLuint; bufsize:GLsizei; length:pGLsizei; infolog:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetShaderPrecisionFormat : procedure(shadertype:GLenum; precisiontype:GLenum; range:pGLint; precision:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetShaderSource : procedure(shader:GLuint; bufsize:GLsizei; length:pGLsizei; source:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetShaderSource : procedure(shader:GLuint; bufsize:GLsizei; length:pGLsizei; source:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
     glGetString : function(name:GLenum):PGLubyte;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetTexParameterfv : procedure(target:GLenum; pname:GLenum; params:pGLfloat);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1017,7 +1017,7 @@ type
     glGetUniformfv : procedure(_program:GLuint; location:GLint; params:pGLfloat);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetUniformiv : procedure(_program:GLuint; location:GLint; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
-    glGetUniformLocation : function(_program:GLuint; name:pchar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetUniformLocation : function(_program:GLuint; name:PAnsiChar):longint;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribfv : procedure(index:GLuint; pname:GLenum; params:pGLfloat);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribiv : procedure(index:GLuint; pname:GLenum; params:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetVertexAttribPointerv : procedure(index:GLuint; pname:GLenum; pointer:Ppointer);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1044,7 +1044,7 @@ type
     glShaderBinary : procedure(n:GLsizei; shaders:pGLuint; binaryformat:GLenum; binary:pointer; length:GLsizei);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 (* Const before type ignored *)
 (* Const before type ignored *)
-    glShaderSource : procedure(shader:GLuint; count:GLsizei; _string:Ppchar; length:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glShaderSource : procedure(shader:GLuint; count:GLsizei; _string:PPAnsiChar; length:pGLint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilFunc : procedure(func:GLenum; ref:GLint; mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilFuncSeparate : procedure(face:GLenum; func:GLenum; ref:GLint; mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glStencilMask : procedure(mask:GLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1347,8 +1347,8 @@ type
   var
     glGetPerfMonitorGroupsAMD : procedure(numGroups:pGLint; groupsSize:GLsizei; groups:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetPerfMonitorCountersAMD : procedure(group:GLuint; numCounters:pGLint; maxActiveCounters:pGLint; counterSize:GLsizei; counters:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetPerfMonitorGroupStringAMD : procedure(group:GLuint; bufSize:GLsizei; length:pGLsizei; groupString:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
-    glGetPerfMonitorCounterStringAMD : procedure(group:GLuint; counter:GLuint; bufSize:GLsizei; length:pGLsizei; counterString:pchar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetPerfMonitorGroupStringAMD : procedure(group:GLuint; bufSize:GLsizei; length:pGLsizei; groupString:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+    glGetPerfMonitorCounterStringAMD : procedure(group:GLuint; counter:GLuint; bufSize:GLsizei; length:pGLsizei; counterString:PAnsiChar);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGetPerfMonitorCounterInfoAMD : procedure(group:GLuint; counter:GLuint; pname:GLenum; data:pointer);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glGenPerfMonitorsAMD : procedure(n:GLsizei; monitors:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
     glDeletePerfMonitorsAMD : procedure(n:GLsizei; monitors:pGLuint);{$ifdef windows}stdcall;{$else}cdecl;{$endif}
@@ -1367,11 +1367,11 @@ type
   { GL_EXT_texture_type_2_10_10_10_REV  }
      GL_EXT_texture_type_2_10_10_10_REV = 1;     
 
-function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
+function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
 
 implementation
 
-  function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
+  function glGetProcAddress(ahlib:tlibhandle;ProcName:PAnsiChar):pointer;
     begin
       result:=dynlibs.GetProcAddress(ahlib,ProcName);
 {$ifdef EGL}
@@ -1470,7 +1470,7 @@ implementation
     end;
 
 
-  procedure LoadEGL(lib : pchar);
+  procedure LoadEGL(lib : PAnsiChar);
     begin
       FreeEGL;
       EGLLib:=dynlibs.LoadLibrary(lib);
@@ -1692,7 +1692,7 @@ implementation
     end;
 
 
-  procedure LoadGLESv2(lib : pchar);
+  procedure LoadGLESv2(lib : PAnsiChar);
     begin
       FreeGLESv2;
       GLESv2Lib:=dynlibs.LoadLibrary(lib);
