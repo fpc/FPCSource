@@ -171,7 +171,7 @@ TYPE CharSet = TCharSet;
 {---------------------------------------------------------------------------}
 TYPE
    TFilterValidator = OBJECT (TValidator)
-         ValidChars: CharSet;                         { Valid char set }
+         ValidChars: CharSet;                         { Valid AnsiChar set }
       CONSTRUCTOR Init (AValidChars: CharSet);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION IsValid (CONST S: Sw_String): Boolean; Virtual;
@@ -319,9 +319,9 @@ USES MsgBox;                                          { GFV standard unit }
 {---------------------------------------------------------------------------}
 {  IsLetter -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION IsLetter (Chr: Char): Boolean;
+FUNCTION IsLetter (Chr: AnsiChar): Boolean;
 BEGIN
-   Chr := Char(Ord(Chr) AND $DF);                     { Lower to upper case }
+   Chr := AnsiChar(Ord(Chr) AND $DF);                     { Lower to upper case }
    If (Chr >= 'A') AND (Chr <='Z') Then               { Check if A..Z }
      IsLetter := True Else IsLetter := False;         { Return result }
 END;
@@ -346,19 +346,19 @@ END;
 {---------------------------------------------------------------------------}
 {  NumChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION NumChar (Chr: Char; Const S: String): Byte;
+FUNCTION NumChar (Chr: AnsiChar; Const S: String): Byte;
 VAR I, Total: Byte;
 BEGIN
    Total := 0;                                        { Zero total }
    For I := 1 To Length(S) Do                         { For entire string }
      If (S[I] = Chr) Then Inc(Total);                 { Count matches of Chr }
-   NumChar := Total;                                  { Return char count }
+   NumChar := Total;                                  { Return AnsiChar count }
 END;
 
 {---------------------------------------------------------------------------}
 {  IsSpecial -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION IsSpecial (Chr: Char; Const Special: String): Boolean;
+FUNCTION IsSpecial (Chr: AnsiChar; Const Special: String): Boolean;
 VAR Rslt: Boolean; I: Byte;
 BEGIN
    Rslt := False;                                     { Preset false result }
@@ -509,7 +509,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
    FUNCTION Process (TermCh: Byte): TPicResult;
    VAR Rslt: TPicResult; Incomp: Boolean; OldI, OldJ, IncompJ, IncompI: Byte;
 
-     PROCEDURE Consume (Ch: Char);
+     PROCEDURE Consume (Ch: AnsiChar);
      BEGIN
        Input[J] := Ch;                                { Return character }
        Inc(J);                                        { Inc count J }
@@ -630,7 +630,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
      END;
 
      FUNCTION Scan: TPicResult;
-     VAR Ch: Char; Rslt: TPicResult;
+     VAR Ch: AnsiChar; Rslt: TPicResult;
      BEGIN
        Scan := prError;                               { Preset return error }
        Rslt := prEmpty;                               { Preset empty result }
@@ -826,7 +826,7 @@ END;
 CONSTRUCTOR TFilterValidator.Init (AValidChars: CharSet);
 BEGIN
    Inherited Init;                                    { Call ancestor }
-   ValidChars := AValidChars;                         { Hold valid char set }
+   ValidChars := AValidChars;                         { Hold valid AnsiChar set }
 END;
 
 {--TFilterValidator---------------------------------------------------------}
@@ -835,7 +835,7 @@ END;
 CONSTRUCTOR TFilterValidator.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   S.Read(ValidChars, SizeOf(ValidChars));            { Read valid char set }
+   S.Read(ValidChars, SizeOf(ValidChars));            { Read valid AnsiChar set }
 END;
 
 {--TFilterValidator---------------------------------------------------------}
@@ -845,7 +845,7 @@ FUNCTION TFilterValidator.IsValid (Const S: Sw_String): Boolean;
 VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
-   While S[I] In ValidChars Do Inc(I);                { Check each char }
+   While S[I] In ValidChars Do Inc(I);                { Check each AnsiChar }
    If (I > Length(S)) Then IsValid := True Else       { All characters valid }
      IsValid := False;                                { Invalid characters }
 END;
@@ -857,7 +857,7 @@ FUNCTION TFilterValidator.IsValidInput (Var S: Sw_String; SuppressFill: Boolean)
 VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
-   While S[I] In ValidChars Do Inc(I);                { Check each char }
+   While S[I] In ValidChars Do Inc(I);                { Check each AnsiChar }
    If (I > Length(S)) Then IsValidInput := True       { All characters valid }
      Else IsValidInput := False;                      { Invalid characters }
 END;
@@ -877,7 +877,7 @@ END;
 PROCEDURE TFilterValidator.Store (Var S: TStream);
 BEGIN
    TValidator.Store(S);                               { TValidator.Store call }
-   S.Write(ValidChars, SizeOf(ValidChars));           { Write valid char set }
+   S.Write(ValidChars, SizeOf(ValidChars));           { Write valid AnsiChar set }
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}

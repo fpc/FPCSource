@@ -1,6 +1,7 @@
 program testuapp;
 
 {$codepage UTF8}
+{$h-}
 
 uses
   Objects, UDrivers, UViews, UMenus, UDialogs, UApp, UMsgBox, UInpLong, UTabs, SysUtils;

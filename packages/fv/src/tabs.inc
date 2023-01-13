@@ -57,7 +57,7 @@ type
       Name     : Sw_PString;
       Items    : PTabItem;
       DefItem  : PView;
-      ShortCut : char;
+      ShortCut : AnsiChar;
     end;
 
     PTab = ^TTab;
@@ -496,7 +496,7 @@ var B     : TDrawBuffer;
     Name       : Sw_PString;
     ActiveKPos : SmallInt;
     ActiveVPos : SmallInt;
-    FC   : char;
+    FC   : AnsiChar;
 procedure SWriteBuf(X,Y,W,H: SmallInt; var Buf);
 var i: SmallInt;
 begin

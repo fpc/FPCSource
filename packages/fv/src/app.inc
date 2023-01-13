@@ -1029,10 +1029,10 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.HandleEvent (Var Event: TEvent);
-VAR C: Char;
+VAR C: AnsiChar;
 BEGIN
    If (Event.What = evKeyDown) Then Begin             { Key press event }
-     C := GetAltChar(Event.KeyCode);                  { Get alt char code }
+     C := GetAltChar(Event.KeyCode);                  { Get alt AnsiChar code }
      If (C >= '1') AND (C <= '9') Then
        If (Message(Desktop, evBroadCast, cmSelectWindowNum,
          Pointer(Byte(C) - $30)) <> Nil)              { Select window }

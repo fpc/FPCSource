@@ -156,9 +156,9 @@ CONST
 {$ELSE FV_UNICODE}
 TYPE
    Sw_String = ShortString;
-   Sw_Char = Char;
+   Sw_Char = AnsiChar;
    Sw_PString = PShortString;
-   Sw_ExtendedGraphemeCluster = Char;
+   Sw_ExtendedGraphemeCluster = AnsiChar;
 CONST
    Sw_PString_Empty = Nil;
 {$ENDIF FV_UNICODE}
