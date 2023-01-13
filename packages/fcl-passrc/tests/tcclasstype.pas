@@ -1954,7 +1954,7 @@ begin
   '    TWord = word;',
   '    [Blue]',
   '    [Green]',
-  '    TChar = char;',
+  '    TChar = AnsiChar;',
   '  end;',
   '']);
   ParseDeclarations;

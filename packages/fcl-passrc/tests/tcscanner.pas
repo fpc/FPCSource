@@ -2,6 +2,8 @@ unit tcscanner;
 
 {$mode objfpc}{$H+}
 
+{$define NOCONSOLE}
+
 interface
 
 uses
@@ -50,7 +52,7 @@ type
   end;
 
   { TTestScanner }
-  TTestScanner= class(TTestCase)
+  TTestScanner = class(TTestCase)
   Private
     FLI: String;
     FLibAlias: String;
@@ -64,8 +66,8 @@ type
     FPathPrefix : String;
     FTestTokenString: String;
   protected
-    procedure DoComment(Sender: TObject; aComment: String);
-    procedure DoLinkLib(Sender: TObject; const aLibName,aAlias,aOptions : String; var aHandled : Boolean);
+    procedure DoComment(Sender: TObject; aComment: TPasScannerString);
+    procedure DoLinkLib(Sender: TObject; const aLibName,aAlias,aOptions : TPasScannerString; var aHandled : Boolean);
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure DoMultilineError;
@@ -75,10 +77,10 @@ type
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitch); overload;
     Procedure AssertEquals(Msg : String; Expected,Actual : TModeSwitches); overload;
     // creates a virtual source file with name 'afile.pp', prepended with PathPrefix
-    procedure NewSource(Const Source : string; DoClear : Boolean = True);
-    Procedure DoTestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
-    Procedure TestToken(t : TToken; Const ASource : String; Const CheckEOF : Boolean = True);
-    Procedure TestTokens(t : array of TToken; Const ASource : String; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
+    procedure NewSource(Const Source : RawBytestring; DoClear : Boolean = True);
+    Procedure DoTestToken(t : TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True);
+    Procedure TestToken(t : TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True);
+    Procedure TestTokens(t : array of TToken; Const ASource : RawByteString; Const CheckEOF : Boolean = True;Const DoClear : Boolean = True);
     Property LastIDentifier : String Read FLI Write FLi;
     Property Scanner : TPascalScanner Read FScanner;
     // Path for source filename.
@@ -432,13 +434,13 @@ end;
   TTestScanner
   ---------------------------------------------------------------------}
 
-procedure TTestScanner.DoComment(Sender: TObject; aComment: String);
+procedure TTestScanner.DoComment(Sender: TObject; aComment: TPasScannerString);
 begin
   FDoCommentCalled:=True;
   FComment:=aComment;
 end;
 
-procedure TTestScanner.DoLinkLib(Sender: TObject; const aLibName, aAlias, aOptions: String; var aHandled: Boolean);
+procedure TTestScanner.DoLinkLib(Sender: TObject; const aLibName, aAlias, aOptions: TPasScannerString; var aHandled: Boolean);
 begin
   FLibName:=aLibName;
   FLibAlias:=aAlias;
@@ -509,10 +511,12 @@ begin
   AssertEquals(Msg,ToString(Expected),ToString(Actual));
 end;
 
-procedure TTestScanner.NewSource(const Source: string; DoClear : Boolean = True);
+procedure TTestScanner.NewSource(const Source: RawBytestring; DoClear : Boolean = True);
 
+Const
+  afilename : TPasTreeString = TPasTreeString('afile.pp');
 Var
-  aFile : String;
+  aFile : TPasTreeString;
 
 begin
   aFile:='';
@@ -520,7 +524,7 @@ begin
     FResolver.Clear;
   if (FPathPrefix<>'') then
      aFile:=IncludeTrailingPathDelimiter(FPathPrefix);
-  aFile:=aFile+'afile.pp';
+  aFile:=aFile+aFileName;
   FResolver.AddStream(aFile,TStringStream.Create(Source));
   {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// '+TestName);
@@ -531,7 +535,7 @@ begin
   FScanner.OpenFile(aFile);
 end;
 
-procedure TTestScanner.DoTestToken(t: TToken; const ASource: String;
+procedure TTestScanner.DoTestToken(t: TToken; const ASource: RawByteString;
   const CheckEOF: Boolean);
 
 Var
@@ -551,7 +555,7 @@ begin
     end;
 end;
 
-procedure TTestScanner.TestToken(t: TToken; const ASource: String;
+procedure TTestScanner.TestToken(t: TToken; const ASource: RawByteString;
   const CheckEOF: Boolean);
 Var
   S : String;
@@ -567,7 +571,7 @@ begin
   DoTestToken(t,LowerCase(ASource),CheckEOF);
 end;
 
-procedure TTestScanner.TestTokens(t: array of TToken; const ASource: String;
+procedure TTestScanner.TestTokens(t: array of TToken; const ASource: RawByteString;
   const CheckEOF: Boolean; const DoClear: Boolean);
 Var
   tk : ttoken;
@@ -2163,7 +2167,7 @@ Const
 
 Var
   M : TModeSwitch;
-  C : Char;
+  C : AnsiChar;
 begin
   For M in TModeSwitch do
     for C in PlusMinus do

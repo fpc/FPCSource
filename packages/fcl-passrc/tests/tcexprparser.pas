@@ -1002,14 +1002,14 @@ end;
 
 procedure TTestExpressions.TestPrimitiveChar;
 begin
-  DeclareVar('char');
+  DeclareVar('AnsiChar');
   ParseExpression('#32');
   AssertExpression('Simple string',theExpr,pekString,'#32');
 end;
 
 procedure TTestExpressions.TestPrimitiveControlChar;
 begin
-  DeclareVar('char');
+  DeclareVar('AnsiChar');
   ParseExpression('^M');
   AssertExpression('Simple string',theExpr,pekString,'^M');
 end;
