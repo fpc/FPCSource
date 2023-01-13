@@ -25,7 +25,7 @@ uses
 type
   TDecoder = record
     Context: Pointer;
-    Decode: function(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+    Decode: function(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
     Cleanup: procedure(Context: Pointer); stdcall;
   end;
 
@@ -63,6 +63,7 @@ type
     function Matches(const arg: XMLString): Boolean;
     function MatchesLong(const arg: XMLString): Boolean;
     property SourceURI: XMLString read GetSourceURI write FSourceURI;
+
   end;
 
   TElementValidator = object
@@ -319,13 +320,14 @@ uses
 type
   TXMLDecodingSource = class(TXMLCharSource)
   private
-    FCharBuf: PChar;
-    FCharBufEnd: PChar;
+    FCharBuf: PAnsiChar;
+    FCharBufEnd: PAnsiChar;
     FBufStart: PWideChar;
     FDecoder: TDecoder;
     FHasBOM: Boolean;
     FFixedUCS2: string;
     FBufSize: Integer;
+    FAssumeUTF16: Boolean;
     procedure DecodingError(const Msg: string);
   protected
     function Reload: Boolean; override;
@@ -340,17 +342,20 @@ type
     procedure Initialize; override;
   end;
 
+  { TXMLStreamInputSource }
+
   TXMLStreamInputSource = class(TXMLDecodingSource)
   private
-    FAllocated: PChar;
+    FAllocated: PAnsiChar;
     FStream: TStream;
     FCapacity: Integer;
     FOwnStream: Boolean;
     FEof: Boolean;
   public
-    constructor Create(AStream: TStream; AOwnStream: Boolean);
+    constructor Create(AStream: TStream; AOwnStream: Boolean; aAssumeUTF16 : Boolean = False);
     destructor Destroy; override;
     procedure FetchData; override;
+    Property AssumeUTF16 : Boolean Read FAssumeUTF16;
   end;
 
   TXMLFileInputSource = class(TXMLDecodingSource)
@@ -473,9 +478,9 @@ begin
   repeat
     if FBuf^ = #10 then
       NewLine;
-    if (FBuf^ < #255) and (Char(ord(FBuf^)) in Delim) then
+    if (FBuf^ < #255) and (AnsiChar(ord(FBuf^)) in Delim) then
       Break;
-    if (FBuf^ > #32) or not (Char(ord(FBuf^)) in [#32, #9, #10, #13]) then
+    if (FBuf^ > #32) or not (AnsiChar(ord(FBuf^)) in [#32, #9, #10, #13]) then
       nonws := True;
     Inc(FBuf);
   until False;
@@ -584,7 +589,7 @@ begin
 
   repeat
     inLeft := FCharBufEnd - FCharBuf;
-    if inLeft < 4 then                      // may contain an incomplete char
+    if inLeft < 4 then                      // may contain an incomplete AnsiChar
     begin
       FetchData;
       inLeft := FCharBufEnd - FCharBuf;
@@ -603,7 +608,7 @@ begin
     if r + FBufEnd <= FBufStart + FBufSize then
       FBufEnd := FBufStart + FBufSize - r
     else
-      DecodingError('Decoder error: output char count out of bounds');
+      DecodingError('Decoder error: output AnsiChar count out of bounds');
 
     if rslt = 0 then
       Break
@@ -624,7 +629,13 @@ procedure TXMLDecodingSource.Initialize;
 begin
   inherited;
   FLineNo := 1;
-  FDecoder.Decode := @Decode_UTF8;
+  if FAssumeUTF16 then
+    begin
+    FFixedUCS2 := {$IFNDEF ENDIAN_BIG} 'UTF-16BE' {$ELSE} 'UTF-16LE' {$ENDIF};
+    FDecoder.Decode := @Decode_UCS2;
+    end
+  else
+    FDecoder.Decode := @Decode_UTF8;
 
   FFixedUCS2 := '';
   if FCharBufEnd-FCharBuf > 1 then
@@ -713,7 +724,7 @@ end;
 const
   Slack = 16;
 
-constructor TXMLStreamInputSource.Create(AStream: TStream; AOwnStream: Boolean);
+constructor TXMLStreamInputSource.Create(AStream: TStream; AOwnStream: Boolean; aAssumeUTF16 : Boolean = False);
 begin
   FStream := AStream;
   FCapacity := 4096;
@@ -722,6 +733,7 @@ begin
   FCharBufEnd := FCharBuf;
   FOwnStream := AOwnStream;
   FetchData;
+  FAssumeUTF16:=aAssumeUTF16;
 end;
 
 destructor TXMLStreamInputSource.Destroy;
@@ -735,7 +747,7 @@ end;
 procedure TXMLStreamInputSource.FetchData;
 var
   Remainder, BytesRead: Integer;
-  OldBuf: PChar;
+  OldBuf: PAnsiChar;
 begin
   Assert(FCharBufEnd - FCharBuf < Slack-4);
   if FEof then
@@ -780,7 +792,7 @@ begin
     FString := FString + #10;    // bad solution...
     if Remainder > 0 then
       Insert(FTmp, FString, 1);
-    FCharBuf := PChar(FString);
+    FCharBuf := PAnsiChar(FString);
     FCharBufEnd := FCharBuf + Length(FString);
   end;
 end;
@@ -823,12 +835,16 @@ begin
   SrcOut := nil;
   if Assigned(SrcIn) then
   begin
-    if Assigned(SrcIn.Stream) then
-      SrcOut := TXMLStreamInputSource.Create(SrcIn.Stream, False)
-    else if SrcIn.StringData <> '' then
-      SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.StringData), True)
-    else if (SrcIn.SystemID <> '') then
+    Case SrcIn.InputSourceType of
+    istStream:
+      SrcOut := TXMLStreamInputSource.Create(SrcIn.Stream, False);
+    istAnsi:
+      SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.AnsiStringData), True, False);
+    istUnicode:
+      SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.UnicodeStringData,TEncoding.Unicode), True, True);
+    istSystemID:
       ResolveResource(SrcIn.SystemID, SrcIn.PublicID, SrcIn.BaseURI, SrcOut);
+    end;
   end;
   if (SrcOut = nil) and (FSource = nil) then
     DoErrorPos(esFatal, 'No input source specified', NullLocation);
@@ -864,7 +880,7 @@ begin
     if fd <> THandle(-1) then
     begin
       Stream := THandleOwnerStream.Create(fd);
-      Source := TXMLStreamInputSource.Create(Stream, True);
+      Source := TXMLStreamInputSource.Create(Stream, True, False);
       Source.SourceURI := SrcURI;
     end;
   end;
@@ -1261,7 +1277,7 @@ begin
         Inc(p, 2)
       else
       begin
-  // here we come either when first char of name is bad (it may be a colon),
+  // here we come either when first AnsiChar of name is bad (it may be a colon),
   // or when a colon is not followed by a valid NameStartChar
         FSource.FBuf := p;
         Result := False;
@@ -1831,8 +1847,8 @@ begin
     SkipQuote(Delim);
     I := 0;
     while (I < 30) and (FSource.FBuf^ <> Delim) and (FSource.FBuf^ < #127) and
-      ((Char(ord(FSource.FBuf^)) in ['A'..'Z', 'a'..'z']) or
-      ((I > 0) and (Char(ord(FSource.FBuf^)) in ['0'..'9', '.', '-', '_']))) do
+      ((AnsiChar(ord(FSource.FBuf^)) in ['A'..'Z', 'a'..'z']) or
+      ((I > 0) and (AnsiChar(ord(FSource.FBuf^)) in ['0'..'9', '.', '-', '_']))) do
     begin
       buf[I] := FSource.FBuf^;
       Inc(I);
@@ -2965,7 +2981,7 @@ begin
   FCurrNode^.FValueLength := 0;
   FCurrNode^.FValueStr := '';
   StoreLocation(FCurrNode^.FLoc);
-  { point past '&' to first char of entity name }
+  { point past '&' to first AnsiChar of entity name }
   Dec(FCurrNode^.FLoc.LinePos, FName.Length+1);
 end;
 
@@ -3040,7 +3056,7 @@ begin
         (wc <> #9)) or (wc > #$FFFD) or
         (FXML11Rules and (wc >= #$7F) and (wc <= #$9F)) then
              FReader.FatalError('Invalid character');
-      if (wc < #255) and (Char(ord(wc)) in Delim) then
+      if (wc < #255) and (AnsiChar(ord(wc)) in Delim) then
         Break;
 // the checks above filter away everything below #32 that isn't a whitespace
       if wc > #32 then
@@ -3719,7 +3735,7 @@ begin
     for I := 1 to Length(PubID) do
     begin
       wc := PubID[I];
-      if (wc > #255) or not (Char(ord(wc)) in PubidChars) then
+      if (wc > #255) or not (AnsiChar(ord(wc)) in PubidChars) then
         FatalError('Illegal Public ID literal', -1);
     end;
   end

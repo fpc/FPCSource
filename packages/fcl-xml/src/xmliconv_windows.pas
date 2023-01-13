@@ -29,13 +29,13 @@ type
 const
   iconvlib = 'iconv.dll';
 
-function iconv_open(ToCode, FromCode: PChar): iconv_t; cdecl; external iconvlib name 'libiconv_open';
-function iconv(__cd: iconv_t; __inbuf: PPChar; var __inbytesleft: size_t; __outbuf:ppchar; var __outbytesleft: size_t): size_t; cdecl; external iconvlib name 'libiconv';
+function iconv_open(ToCode, FromCode: PAnsiChar): iconv_t; cdecl; external iconvlib name 'libiconv_open';
+function iconv(__cd: iconv_t; __inbuf: PPAnsiChar; var __inbytesleft: size_t; __outbuf:PPAnsiChar; var __outbytesleft: size_t): size_t; cdecl; external iconvlib name 'libiconv';
 function iconv_close(cd: iconv_t): Integer; cdecl; external iconvlib name 'libiconv_close';
 
 function errno_location: PInteger; cdecl; external 'msvcrt.dll' name '_errno';
 
-function Iconv_Decode(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Iconv_Decode(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   OutChars: size_t;
   InChars : size_t;
@@ -66,7 +66,7 @@ function GetIconvDecoder(const AEncoding: string; out Decoder: TDecoder): Boolea
 var
   f: iconv_t;
 begin
-  f := iconv_open('UCS-2-INTERNAL', PChar(AEncoding));
+  f := iconv_open('UCS-2-INTERNAL', PAnsiChar(AEncoding));
   if f <> Pointer(-1) then
   begin
     Decoder.Context := f;

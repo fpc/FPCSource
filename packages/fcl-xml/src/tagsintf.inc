@@ -169,7 +169,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property span : DOMString index atspan read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
@@ -185,7 +185,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property span : DOMString index atspan read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
@@ -653,7 +653,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
   end;
@@ -669,7 +669,7 @@
     property abbr : DOMString index atabbr read GetAttribute write SetAttribute;
     property align : THTMLalign read Getalign write Setalign;
     property axis : DOMString index ataxis read GetAttribute write SetAttribute;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property colspan : DOMString index atcolspan read GetAttribute write SetAttribute;
     property headers : DOMString index atheaders read GetAttribute write SetAttribute;
@@ -708,7 +708,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
   end;
@@ -724,7 +724,7 @@
     property abbr : DOMString index atabbr read GetAttribute write SetAttribute;
     property align : THTMLalign read Getalign write Setalign;
     property axis : DOMString index ataxis read GetAttribute write SetAttribute;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property colspan : DOMString index atcolspan read GetAttribute write SetAttribute;
     property headers : DOMString index atheaders read GetAttribute write SetAttribute;
@@ -742,7 +742,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
   end;
@@ -761,7 +761,7 @@
   public
     constructor create (AOwner: TDOMDocument); override;
     property align : THTMLalign read Getalign write Setalign;
-    property char : DOMString index atchar read GetAttribute write SetAttribute;
+    property AnsiChar : DOMString index atchar read GetAttribute write SetAttribute;
     property charoff : DOMString index atcharoff read GetAttribute write SetAttribute;
     property valign : THTMLvalign read Getvalign write Setvalign;
   end;

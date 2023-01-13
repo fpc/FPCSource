@@ -43,7 +43,7 @@ type
     FScannerContext: TXMLScannerContext;
     FTokenText: SAXString;
     FRawTokenText: string;
-    FCurStringValueDelimiter: Char;
+    FCurStringValueDelimiter: AnsiChar;
     FAttrNameRead: Boolean;
   protected
     procedure EnterNewScannerContext(NewContext: TXMLScannerContext);
@@ -138,7 +138,7 @@ procedure TSAXXMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
 var
-  Buffer: array[0..MaxBufferSize - 1] of Char;
+  Buffer: array[0..MaxBufferSize - 1] of AnsiChar;
   BufferSize, BufferPos: Integer;
 begin
   if not FStarted then
