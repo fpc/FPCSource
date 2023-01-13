@@ -242,7 +242,7 @@ type
     memory,             { videomemory in KB }
     linewidth_unit: Longint;    { Use only a multiple of this as parameter for set_logicalwidth and
                                   set_displaystart }
-    linear_aperture: PChar;     { points to mmap secondary mem aperture of card (NULL if unavailable) }
+    linear_aperture: PAnsiChar;     { points to mmap secondary mem aperture of card (NULL if unavailable) }
     aperture_size: Longint;     { size of aperture in KB if size>=videomemory. 0 if unavail }
     set_aperture_page: procedure (page: Longint);
     { if aperture_size<videomemory select a memory page }
@@ -252,7 +252,7 @@ type
   shutdown_routine_ptr = procedure;
 
 var
-  graph_mem: PChar;
+  graph_mem: PAnsiChar;
 
 Function vga_setmode(mode: Longint): Longint; cdecl; external;
 Function vga_hasmode(mode: Longint): Boolean; cdecl; external;
@@ -290,11 +290,11 @@ Function vga_getmodeinfo(mode: Longint): pvga_modeinfo; cdecl; external;
 Function vga_getdefaultmode: Longint; cdecl; external;
 Function vga_getcurrentmode: Longint; cdecl; external;
 Function vga_getcurrentchipset: Longint; cdecl; external;
-Function vga_getmodename(mode: Longint): PChar; cdecl; external;
-Function vga_getmodenumber(name: PChar): Longint; cdecl; external;
+Function vga_getmodename(mode: Longint): PAnsiChar; cdecl; external;
+Function vga_getmodenumber(name: PAnsiChar): Longint; cdecl; external;
 Function vga_lastmodenumber: Longint; cdecl; external;
 
-Function vga_getgraphmem: PChar; cdecl; external;
+Function vga_getgraphmem: PAnsiChar; cdecl; external;
 
 Procedure vga_setpage(p: Longint); cdecl; external;
 Procedure vga_setreadpage(p: Longint); cdecl; external;
@@ -314,10 +314,10 @@ Procedure vga_unlockvc; cdecl; external;
 Function vga_getkey: Longint; cdecl; external;
 Procedure vga_runinbackground(s: Longint); cdecl; external;
 Function vga_oktowrite: Longint; cdecl; external;
-Procedure vga_copytoplanar256(virtualp: PChar; pitch: Longint;
+Procedure vga_copytoplanar256(virtualp: PAnsiChar; pitch: Longint;
                                   voffset: Longint; vpitch: Longint; w: Longint; h: Longint);cdecl; external;
-Procedure vga_copytoplanar16(virtualp: PChar; pitch, voffset, vpitch, w, h: Longint); cdecl; external;
-Procedure vga_copytoplane(virtualp: PChar; pitch, voffset, vpitch, w, h, plane: Longint); cdecl; external;
+Procedure vga_copytoplanar16(virtualp: PAnsiChar; pitch, voffset, vpitch, w, h: Longint); cdecl; external;
+Procedure vga_copytoplane(virtualp: PAnsiChar; pitch, voffset, vpitch, w, h, plane: Longint); cdecl; external;
 Function vga_setlinearaddressing: Longint; cdecl; external;
 Procedure vga_safety_fork(shutdown_routine: shutdown_routine_ptr); cdecl; external;
 
@@ -480,11 +480,11 @@ Procedure gl_expandfont(fw, fh, c: LongInt; sfdp, dfdp: pointer); cdecl; externa
 Procedure gl_setfont(fw, fh: LongInt; fdp: pointer); cdecl; external;
 Procedure gl_colorfont(fw, fh, c: LongInt; fdp: pointer); cdecl; external;
 Procedure gl_setwritemode(wm: LongInt); cdecl; external;
-Procedure gl_write(x, y: LongInt; s: PChar); cdecl; external;
-Procedure gl_writen(x, y, n: LongInt; s: PChar); cdecl; external;
+Procedure gl_write(x, y: LongInt; s: PAnsiChar); cdecl; external;
+Procedure gl_writen(x, y, n: LongInt; s: PAnsiChar); cdecl; external;
 Procedure gl_setfontcolors(bg, fg: LongInt); cdecl; external;
 
-{extern unsigned char *gl_font8x8;      /* compressed 8x8 font */}
+{extern unsigned AnsiChar *gl_font8x8;      /* compressed 8x8 font */}
 
 type
   TRGB = record
