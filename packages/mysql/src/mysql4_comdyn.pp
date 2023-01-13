@@ -50,9 +50,9 @@ var
   net_end : procedure (net:PNET);extdecl;
   net_clear : procedure (net:PNET);extdecl;
   net_flush : function (net:PNET):longint;extdecl;
-  my_net_write : function (net:PNET; packet:Pchar; len:dword):longint;extdecl;
-  net_write_command : function (net:PNET; command:byte; packet:Pchar; len:dword):longint;extdecl;
-  net_real_write : function (net:PNET; packet:Pchar; len:dword):longint;extdecl;
+  my_net_write : function (net:PNET; packet:PAnsiChar; len:dword):longint;extdecl;
+  net_write_command : function (net:PNET; command:byte; packet:PAnsiChar; len:dword):longint;extdecl;
+  net_real_write : function (net:PNET; packet:PAnsiChar; len:dword):longint;extdecl;
   my_net_read : function (net:PNET):dword;extdecl;
 { The following function is not meant for normal usage  }
 {
@@ -62,15 +62,15 @@ unsigned int timeout);
 }
   randominit : procedure (_para1:Prand_struct; seed1:dword; seed2:dword);extdecl;
   rnd : function (_para1:Prand_struct):double;extdecl;
-  make_scrambled_password : procedure (_to:Pchar; password:Pchar);extdecl;
-  get_salt_from_password : procedure (res:Pdword; password:Pchar);extdecl;
-  make_password_from_salt : procedure (_to:Pchar; hash_res:Pdword);extdecl;
-  scramble : function (_to:Pchar; message:Pchar; password:Pchar; old_ver:my_bool):Pchar;extdecl;
-  check_scramble : function (_para1:Pchar; message:Pchar; salt:Pdword; old_ver:my_bool):my_bool;extdecl;
-  get_tty_password : function (opt_message:Pchar):Pchar;extdecl;
-  hash_password : procedure (result:Pdword; password:Pchar);extdecl;
+  make_scrambled_password : procedure (_to:PAnsiChar; password:PAnsiChar);extdecl;
+  get_salt_from_password : procedure (res:Pdword; password:PAnsiChar);extdecl;
+  make_password_from_salt : procedure (_to:PAnsiChar; hash_res:Pdword);extdecl;
+  scramble : function (_to:PAnsiChar; message:PAnsiChar; password:PAnsiChar; old_ver:my_bool):PAnsiChar;extdecl;
+  check_scramble : function (_para1:PAnsiChar; message:PAnsiChar; salt:Pdword; old_ver:my_bool):my_bool;extdecl;
+  get_tty_password : function (opt_message:PAnsiChar):PAnsiChar;extdecl;
+  hash_password : procedure (result:Pdword; password:PAnsiChar);extdecl;
   my_init : procedure;extdecl;
-  load_defaults : procedure (conf_file:Pchar; groups:PPchar; argc:Plongint; argv:PPPchar);extdecl;
+  load_defaults : procedure (conf_file:PAnsiChar; groups:PPAnsiChar; argc:Plongint; argv:PPPAnsiChar);extdecl;
   my_thread_init : function : my_bool;extdecl;
   my_thread_end : procedure ;extdecl;
 

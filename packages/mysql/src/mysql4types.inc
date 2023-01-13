@@ -5,28 +5,28 @@
 type
 
   Pmy_bool = ^my_bool;
-  my_bool = char;
+  my_bool = AnsiChar;
 
   Pgptr = ^gptr;
-  gptr = char;
+  gptr = AnsiChar;
 
   Pmy_socket = ^my_socket;
   my_socket = longint;
 
 var
   mysql_port : dword;cvar;external;
-  mysql_unix_port : Pchar;cvar;external;
+  mysql_unix_port : PAnsiChar;cvar;external;
 
 type
   Pst_mysql_field = ^st_mysql_field;
   st_mysql_field = record
-       name : Pchar;
-       org_name : pchar;
-       table : Pchar;
-       org_table : Pchar;
-       db : Pchar;
-       catalog : pchar;
-       def : Pchar;
+       name : PAnsiChar;
+       org_name : PAnsiChar;
+       table : PAnsiChar;
+       org_table : PAnsiChar;
+       db : PAnsiChar;
+       catalog : PAnsiChar;
+       def : PAnsiChar;
        length : culong;
        max_length : culong;
        name_length : cuint;
@@ -46,7 +46,7 @@ type
   PMYSQL_FIELD = ^MYSQL_FIELD;
 
 type
-  MYSQL_ROW = ppchar;
+  MYSQL_ROW = PPAnsiChar;
   PMYSQL_ROW = ^MYSQL_ROW;
   TMYSQL_ROW = MYSQL_ROW;
 
@@ -125,18 +125,18 @@ type
        user,
        password,
        unix_socket,
-       db : pchar;
+       db : PAnsiChar;
        init_commands : pst_dynamic_array;
-       my_cnf_file : Pchar;
-       my_cnf_group : Pchar;
-       charset_dir : Pchar;
-       charset_name : Pchar;
-       ssl_key : Pchar;
-       ssl_cert : Pchar;
-       ssl_ca : Pchar;
-       ssl_capath : Pchar;
-       ssl_cipher : Pchar;
-       shared_memory_base_name : pchar;
+       my_cnf_file : PAnsiChar;
+       my_cnf_group : PAnsiChar;
+       charset_dir : PAnsiChar;
+       charset_name : PAnsiChar;
+       ssl_key : PAnsiChar;
+       ssl_cert : PAnsiChar;
+       ssl_ca : PAnsiChar;
+       ssl_capath : PAnsiChar;
+       ssl_cipher : PAnsiChar;
+       shared_memory_base_name : PAnsiChar;
        max_allowed_packet : culong;
        use_ssl : my_bool;
        compress : my_bool;
@@ -145,7 +145,7 @@ type
        rpl_parse : my_bool;
        no_master_reads : my_bool;
        methods_to_use : mysql_option;
-       client_ip : pchar;
+       client_ip : PAnsiChar;
        secure_auth : my_bool;
        local_infile_init : pointer;
        local_infile_read : pointer;
@@ -165,14 +165,14 @@ type
   st_mysql = record
        net : NET;
        connector_fd : gptr;
-       host : Pchar;
-       user : Pchar;
-       passwd : Pchar;
-       unix_socket : Pchar;
-       server_version : Pchar;
-       host_info : Pchar;
-       info : Pchar;
-       db : Pchar;
+       host : PAnsiChar;
+       user : PAnsiChar;
+       passwd : PAnsiChar;
+       unix_socket : PAnsiChar;
+       server_version : PAnsiChar;
+       host_info : PAnsiChar;
+       info : PAnsiChar;
+       db : PAnsiChar;
        charset : Pointer;  //!! Was Pcharset_info_st;
        fields : PMYSQL_FIELD;
        field_alloc : MEM_ROOT;
@@ -193,7 +193,7 @@ type
        status : mysql_status;
        free_me : my_bool;
        reconnect : my_bool;
-       scramble_buff : array[0..20] of char;
+       scramble_buff : array[0..20] of AnsiChar;
        rpl_pivot : my_bool;
        master : Pst_mysql;
        next_slave : Pst_mysql;
@@ -243,24 +243,24 @@ type
   Pst_mysql_manager = ^st_mysql_manager;
   st_mysql_manager = record
        net : NET;
-       host : Pchar;
-       user : Pchar;
-       passwd : Pchar;
+       host : PAnsiChar;
+       user : PAnsiChar;
+       passwd : PAnsiChar;
        port : dword;
        free_me : my_bool;
        eof : my_bool;
        cmd_status : longint;
        last_errno : longint;
-       net_buf : Pchar;
-       net_buf_pos : Pchar;
-       net_data_end : Pchar;
+       net_buf : PAnsiChar;
+       net_buf_pos : PAnsiChar;
+       net_data_end : PAnsiChar;
        net_buf_size : longint;
-       last_error : array[0..(MAX_MYSQL_MANAGER_ERR)-1] of char;
+       last_error : array[0..(MAX_MYSQL_MANAGER_ERR)-1] of AnsiChar;
     end;
   MYSQL_MANAGER = st_mysql_manager;
   PMYSQL_MANAGER = ^MYSQL_MANAGER;
 
 Type
-  TExdendBuffer = function (_para1:pointer; _to:Pchar; length:Pdword):Pchar;
+  TExdendBuffer = function (_para1:pointer; _to:PAnsiChar; length:Pdword):PAnsiChar;
 
 

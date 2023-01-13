@@ -13,10 +13,10 @@ Type
 
 Const
  NAME_LEN  = 64 ;               { Field/table name length }
- LOCAL_HOST : pchar = 'localhost' ;
+ LOCAL_HOST : PAnsiChar = 'localhost' ;
 
  MYSQL_PORT = 3306;             { Alloced by ISI for MySQL }
- MYSQL_UNIX_ADDR  : pchar = '/tmp/mysql.sock';
+ MYSQL_UNIX_ADDR  : PAnsiChar = '/tmp/mysql.sock';
 
 Type
  enum_server_command = ( COM_SLEEP,COM_QUIT,COM_INIT_DB,COM_QUERY,
@@ -120,8 +120,8 @@ st_net  = record
   nettype : net_type; //DT
   fd : Socket;
   fcntl : Longint;
-  buff,buff_end,write_pos,read_pos : Pchar;//DT
-  last_error : array [0..MYSQL_ERRMSG_SIZE-1] of char;
+  buff,buff_end,write_pos,read_pos : PAnsiChar;//DT
+  last_error : array [0..MYSQL_ERRMSG_SIZE-1] of AnsiChar;
   last_errno,max_packet,timeout,pkt_nr : Cardinal;
   error,return_errno : my_bool;
   compress : my_bool; //DT
@@ -135,7 +135,7 @@ st_net  = record
 {$else}
   more : my_bool;//DT
 {$endif}
-  save_char : char; //DT
+  save_char : AnsiChar; //DT
 end;
 TNET = st_net;
 PNET = ^TNET;
@@ -192,7 +192,7 @@ Item_result = (STRING_RESULT,REAL_RESULT,INT_RESULT);
 st_udf_args = record
   arg_count : cardinal;                 { Number of arguments }
   arg_type : ^Item_result;              { Pointer to item_results }
-  args : ppchar;                        { Pointer to argument }
+  args : PPAnsiChar;                        { Pointer to argument }
   lengths : PCardinal;                  { Length of string arguments }
 end;
 TUDF_ARGS = st_udf_args;
@@ -204,7 +204,7 @@ st_udf_init = record
   maybe_null : my_bool;                 { 1 if function can return NULL }
   decimals : cardinal;                  { for real functions }
   max_length : Cardinal;                { For string functions }
-  ptr : PChar;                          { free pointer for function data }
+  ptr : PAnsiChar;                          { free pointer for function data }
 end;
 TUDF_INIT = st_udf_init;
 PUDF_INIT = TUDF_INIT;

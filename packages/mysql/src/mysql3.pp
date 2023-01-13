@@ -52,36 +52,36 @@ Function mysql_field_tell(res : PMYSQL_RES) : Cardinal; extdecl; external mysqll
 Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong; extdecl; external mysqllib;
 Function mysql_insert_id(mysql : PMYSQL): my_ulonglong; extdecl; external mysqllib;
 Function mysql_errno(mysql : PMYSQL) : Cardinal; extdecl; external mysqllib;
-Function mysql_info(mysql : PMYSQL): Pchar; extdecl; external mysqllib;
+Function mysql_info(mysql : PMYSQL): PAnsiChar; extdecl; external mysqllib;
 Function mysql_thread_id(mysql : PMYSQL) : ptruint; extdecl; external mysqllib;
-Function mysql_error(mysql : PMYSQL) : pchar; extdecl; external mysqllib;
+Function mysql_error(mysql : PMYSQL) : PAnsiChar; extdecl; external mysqllib;
 
 function mysql_init(mysql: PMYSQL) : PMYSQL;extdecl; external mysqllib name 'mysql_init';
-function mysql_connect (mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;extdecl; external mysqllib name 'mysql_connect';
-function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : pchar;
-		                   {$ifndef use_mysql_321} const db : Pchar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
+function mysql_connect (mysql : PMYSQL; host,user,passwd: PAnsiChar) : PMYSQL;extdecl; external mysqllib name 'mysql_connect';
+function mysql_real_connect (mysql : PMYSQL; const host,user,passwd : PAnsiChar;
+		                   {$ifndef use_mysql_321} const db : PAnsiChar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
                                    port : cardinal;
-                                   unix_socket : pchar;
+                                   unix_socket : PAnsiChar;
                                    clientflag : cardinal) : PMYSQL;extdecl; external mysqllib;
 
 function mysql_close(sock : PMYSQL) : longint ;extdecl; external mysqllib name 'mysql_close';
-function mysql_select_db(MYSQL : PMYSQL; db : Pchar) : longint;extdecl; external mysqllib name 'mysql_select_db';
-function mysql_query(mysql : PMYSQL; q : pchar) : longint;extdecl; external mysqllib name 'mysql_query';
-function mysql_real_query(mysql : PMYSQL; q : Pchar; length : longint) : longint;extdecl; external mysqllib name 'mysql_real_query';
-function mysql_create_db(mysql : PMYSQL; db : pchar) : longint;extdecl; external mysqllib name 'mysql_create_db';
-Function mysql_drop_db(mysql : PMYSQL; DB : Pchar) : longint;extdecl; external mysqllib name 'mysql_drop_db';
+function mysql_select_db(MYSQL : PMYSQL; db : PAnsiChar) : longint;extdecl; external mysqllib name 'mysql_select_db';
+function mysql_query(mysql : PMYSQL; q : PAnsiChar) : longint;extdecl; external mysqllib name 'mysql_query';
+function mysql_real_query(mysql : PMYSQL; q : PAnsiChar; length : longint) : longint;extdecl; external mysqllib name 'mysql_real_query';
+function mysql_create_db(mysql : PMYSQL; db : PAnsiChar) : longint;extdecl; external mysqllib name 'mysql_create_db';
+Function mysql_drop_db(mysql : PMYSQL; DB : PAnsiChar) : longint;extdecl; external mysqllib name 'mysql_drop_db';
 Function mysql_shutdown(mysql : PMYSQL) : longint;extdecl; external mysqllib name 'mysql_shutdown';
 Function mysql_dump_debug_info(mysql : PMYSQL) : longint;extdecl; external mysqllib name 'mysql_dump_debug_info';
 Function mysql_refresh(mysql : PMYSQL; refresh_options : cardinal) : longint;extdecl; external mysqllib name 'mysql_refresh';
 Function mysql_kill(mysql : PMYSQL; pid : Cardinal) : longint;extdecl; external mysqllib name 'mysql_kill';
-Function mysql_stat(mysql : PMYSQL) : Pchar;extdecl; external mysqllib name 'mysql_stat';
-Function mysql_get_server_info(mysql : PMYSQL) : pchar;extdecl; external mysqllib name 'mysql_get_server_info';
-Function mysql_get_client_info : pchar;extdecl; external mysqllib;
-Function mysql_get_host_info(mysql : PMYSQL) : pchar;extdecl; external mysqllib name 'mysql_get_host_info';
+Function mysql_stat(mysql : PMYSQL) : PAnsiChar;extdecl; external mysqllib name 'mysql_stat';
+Function mysql_get_server_info(mysql : PMYSQL) : PAnsiChar;extdecl; external mysqllib name 'mysql_get_server_info';
+Function mysql_get_client_info : PAnsiChar;extdecl; external mysqllib;
+Function mysql_get_host_info(mysql : PMYSQL) : PAnsiChar;extdecl; external mysqllib name 'mysql_get_host_info';
 Function mysql_get_proto_info(mysql : PMYSQL) : Cardinal;extdecl; external mysqllib name 'mysql_get_proto_info';
-Function mysql_list_dbs(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_dbs';
-Function mysql_list_tables(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_tables';
-Function mysql_list_fields(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_fields';
+Function mysql_list_dbs(mysql : PMYSQL;wild : PAnsiChar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_dbs';
+Function mysql_list_tables(mysql : PMYSQL;Wild : PAnsiChar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_tables';
+Function mysql_list_fields(mysql : PMYSQL; table,wild : PAnsiChar) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_fields';
 Function mysql_list_processes(mysql : PMYSQL) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_list_processes';
 Function mysql_store_result(mysql : PMYSQL) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_store_result';
 Function mysql_use_result(mysql : PMYSQL) : PMYSQL_RES;extdecl; external mysqllib name 'mysql_use_result';
@@ -92,8 +92,8 @@ Function mysql_field_seek(musql : PMYSQL_RES;offs : TMYSQL_FIELD_OFFSET): TMYSQL
 function mysql_fetch_row(mysql : PMYSQL_RES) : TMYSQL_ROW;extdecl; external mysqllib name 'mysql_fetch_row';
 function mysql_fetch_lengths(mysql : PMYSQL_RES) : PCardinal;extdecl; external mysqllib name 'mysql_fetch_lengths';
 function mysql_fetch_field(handle : PMYSQL_RES) : PMYSQL_FIELD;extdecl; external mysqllib name 'mysql_fetch_field';
-Function mysql_escape_string(escto,escfrom : pchar; length : Cardinal) : cardinal;extdecl; external mysqllib name 'mysql_escape_string';
-Procedure mysql_debug(debug : pchar);extdecl; external mysqllib name 'mysql_debug';
+Function mysql_escape_string(escto,escfrom : PAnsiChar; length : Cardinal) : cardinal;extdecl; external mysqllib name 'mysql_escape_string';
+Procedure mysql_debug(debug : PAnsiChar);extdecl; external mysqllib name 'mysql_debug';
 
 implementation
 

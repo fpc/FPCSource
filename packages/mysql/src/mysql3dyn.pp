@@ -32,7 +32,7 @@ uses dynlibs, classes, sysutils, mysql3_comdyn;
 
 {$i mysql3types.inc}
 
-type tpcharfunction = function : pchar; extdecl;
+type tpcharfunction = function : PAnsiChar; extdecl;
 
 var
   mysql_num_rows : function(res : PMYSQL_RES) : my_ulonglong; extdecl;
@@ -45,35 +45,35 @@ var
   mysql_affected_rows : function(mysql : PMYSQL): my_ulonglong; extdecl;
   mysql_insert_id : function(mysql : PMYSQL): my_ulonglong; extdecl;
   mysql_errno : function(mysql : PMYSQL) : Cardinal; extdecl;
-  mysql_info : function(mysql : PMYSQL): Pchar; extdecl;
+  mysql_info : function(mysql : PMYSQL): PAnsiChar; extdecl;
   mysql_thread_id : function(mysql : PMYSQL) : ptruint; extdecl;
-  mysql_error : function(mysql : PMYSQL) : pchar; extdecl;
+  mysql_error : function(mysql : PMYSQL) : PAnsiChar; extdecl;
 
   mysql_init : function(mysql: PMYSQL) : PMYSQL;extdecl;
-  mysql_connect : function(mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;extdecl;
-  mysql_real_connect : function(mysql : PMYSQL; const host,user,passwd : pchar;
-		                   {$ifndef use_mysql_321} const db : Pchar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
+  mysql_connect : function(mysql : PMYSQL; host,user,passwd: PAnsiChar) : PMYSQL;extdecl;
+  mysql_real_connect : function(mysql : PMYSQL; const host,user,passwd : PAnsiChar;
+		                   {$ifndef use_mysql_321} const db : PAnsiChar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
                                    port : cardinal;
-                                   unix_socket : pchar;
+                                   unix_socket : PAnsiChar;
                                    clientflag : cardinal) : PMYSQL;extdecl;
   mysql_close : function(sock : PMYSQL) : longint ;extdecl;
-  mysql_select_db : function(MYSQL : PMYSQL; db : Pchar) : longint;extdecl;
-  mysql_query : function(mysql : PMYSQL; q : pchar) : longint;extdecl;
-  mysql_real_query : function(mysql : PMYSQL; q : Pchar; length : longint) : longint;extdecl;
-  mysql_create_db : function(mysql : PMYSQL; db : pchar) : longint;extdecl;
-  mysql_drop_db : function(mysql : PMYSQL; DB : Pchar) : longint;extdecl;
+  mysql_select_db : function(MYSQL : PMYSQL; db : PAnsiChar) : longint;extdecl;
+  mysql_query : function(mysql : PMYSQL; q : PAnsiChar) : longint;extdecl;
+  mysql_real_query : function(mysql : PMYSQL; q : PAnsiChar; length : longint) : longint;extdecl;
+  mysql_create_db : function(mysql : PMYSQL; db : PAnsiChar) : longint;extdecl;
+  mysql_drop_db : function(mysql : PMYSQL; DB : PAnsiChar) : longint;extdecl;
   mysql_shutdown : function(mysql : PMYSQL) : longint;extdecl;
   mysql_dump_debug_info : function(mysql : PMYSQL) : longint;extdecl;
   mysql_refresh : function(mysql : PMYSQL; refresh_options : cardinal) : longint;extdecl;
   mysql_kill : function(mysql : PMYSQL; pid : Cardinal) : longint;extdecl;
-  mysql_stat : function(mysql : PMYSQL) : Pchar;extdecl;
-  mysql_get_server_info : function(mysql : PMYSQL) : pchar;extdecl;
-  mysql_get_client_info : function : pchar;extdecl;
-  mysql_get_host_info : function(mysql : PMYSQL) : pchar;extdecl;
+  mysql_stat : function(mysql : PMYSQL) : PAnsiChar;extdecl;
+  mysql_get_server_info : function(mysql : PMYSQL) : PAnsiChar;extdecl;
+  mysql_get_client_info : function : PAnsiChar;extdecl;
+  mysql_get_host_info : function(mysql : PMYSQL) : PAnsiChar;extdecl;
   mysql_get_proto_info : function(mysql : PMYSQL) : Cardinal;extdecl;
-  mysql_list_dbs : function(mysql : PMYSQL;wild : Pchar) : PMYSQL_RES;extdecl;
-  mysql_list_tables : function(mysql : PMYSQL;Wild : Pchar) : PMYSQL_RES;extdecl;
-  mysql_list_fields : function(mysql : PMYSQL; table,wild : pchar) : PMYSQL_RES;extdecl;
+  mysql_list_dbs : function(mysql : PMYSQL;wild : PAnsiChar) : PMYSQL_RES;extdecl;
+  mysql_list_tables : function(mysql : PMYSQL;Wild : PAnsiChar) : PMYSQL_RES;extdecl;
+  mysql_list_fields : function(mysql : PMYSQL; table,wild : PAnsiChar) : PMYSQL_RES;extdecl;
   mysql_list_processes : function(mysql : PMYSQL) : PMYSQL_RES;extdecl;
   mysql_store_result : function(mysql : PMYSQL) : PMYSQL_RES;extdecl;
   mysql_use_result : function(mysql : PMYSQL) : PMYSQL_RES;extdecl;
@@ -84,8 +84,8 @@ var
   mysql_fetch_row : function(mysql : PMYSQL_RES) : TMYSQL_ROW;extdecl;
   mysql_fetch_lengths : function(mysql : PMYSQL_RES) : PCardinal;extdecl;
   mysql_fetch_field : function(handle : PMYSQL_RES) : PMYSQL_FIELD;extdecl;
-  mysql_escape_string : function(escto,escfrom : pchar; length : Cardinal) : cardinal;extdecl;
-  mysql_debug : procedure(debug : pchar);extdecl;
+  mysql_escape_string : function(escto,escfrom : PAnsiChar; length : Cardinal) : cardinal;extdecl;
+  mysql_debug : procedure(debug : PAnsiChar);extdecl;
 
 Procedure InitialiseMysql3;
 Procedure ReleaseMysql3;

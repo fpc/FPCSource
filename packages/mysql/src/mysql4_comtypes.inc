@@ -118,8 +118,8 @@ type
     reading_or_writing : cuint;
     save_char : cchar;
     no_send_ok : my_bool;
-    last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of char;
-    sqlstate : array[0..SQLSTATE_LENGTH] of char;
+    last_error : array[0..(MYSQL_ERRMSG_SIZE)-1] of AnsiChar;
+    sqlstate : array[0..SQLSTATE_LENGTH] of AnsiChar;
     last_errno : cuint;
     error : cuchar;
     query_cache_query : gptr;
@@ -180,9 +180,9 @@ type
      st_udf_args = record
           arg_count : dword;
           arg_type : PItem_result;
-          args : ^Pchar;
+          args : ^PAnsiChar;
           lengths : Pdword;
-          maybe_null : Pchar;
+          maybe_null : PAnsiChar;
        end;
      UDF_ARGS = st_udf_args;
      PUDF_ARGS = ^UDF_ARGS;
@@ -198,7 +198,7 @@ type
           maybe_null : my_bool;
           decimals : dword;
           max_length : dword;
-          ptr : Pchar;
+          ptr : PAnsiChar;
           const_item : my_bool;
        end;
      UDF_INIT = st_udf_init;

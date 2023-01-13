@@ -57,10 +57,10 @@ uses ctypes,dynlibs, classes, sysutils, my4_sys, mysql4_comdyn;
 
 {$i mysql4types.inc}
 
-type tpcharfunction = function : pchar; extdecl;
+type tpcharfunction = function : PAnsiChar; extdecl;
 
 var
-  mysql_server_init : function (argc:longint; argv:PPchar; groups:PPchar):longint;extdecl;
+  mysql_server_init : function (argc:longint; argv:PPAnsiChar; groups:PPAnsiChar):longint;extdecl;
   mysql_server_end : procedure;extdecl;
   mysql_thread_init : function :my_bool;extdecl;
   mysql_thread_end : procedure;extdecl;
@@ -75,25 +75,25 @@ var
   mysql_affected_rows : function (mysql:PMYSQL):my_ulonglong;extdecl;
   mysql_insert_id : function (mysql:PMYSQL):my_ulonglong;extdecl;
   mysql_errno : function (mysql:PMYSQL):dword;extdecl;
-  mysql_error : function (mysql:PMYSQL):Pchar;extdecl;
-  mysql_info : function (mysql:PMYSQL):Pchar;extdecl;
+  mysql_error : function (mysql:PMYSQL):PAnsiChar;extdecl;
+  mysql_info : function (mysql:PMYSQL):PAnsiChar;extdecl;
   mysql_thread_id : function (mysql:PMYSQL):dword;extdecl;
-  mysql_character_set_name : function (mysql:PMYSQL):Pchar;extdecl;
+  mysql_character_set_name : function (mysql:PMYSQL):PAnsiChar;extdecl;
   mysql_init : function (mysql:PMYSQL):PMYSQL;extdecl;
-  mysql_ssl_set : function (mysql:PMYSQL; key:Pchar; cert:Pchar; ca:Pchar; capath:Pchar;cipher:Pchar):longint;extdecl;
+  mysql_ssl_set : function (mysql:PMYSQL; key:PAnsiChar; cert:PAnsiChar; ca:PAnsiChar; capath:PAnsiChar;cipher:PAnsiChar):longint;extdecl;
   mysql_ssl_clear : function (mysql:PMYSQL):longint;extdecl;
-  mysql_change_user : function (mysql:PMYSQL; user:Pchar; passwd:Pchar; db:Pchar):my_bool;extdecl;
-  mysql_real_connect : function (mysql:PMYSQL; host:Pchar; user:Pchar; passwd:Pchar; db:Pchar;port:dword; unix_socket:Pchar; clientflag:dword):PMYSQL;extdecl;
+  mysql_change_user : function (mysql:PMYSQL; user:PAnsiChar; passwd:PAnsiChar; db:PAnsiChar):my_bool;extdecl;
+  mysql_real_connect : function (mysql:PMYSQL; host:PAnsiChar; user:PAnsiChar; passwd:PAnsiChar; db:PAnsiChar;port:dword; unix_socket:PAnsiChar; clientflag:dword):PMYSQL;extdecl;
   mysql_close : procedure (sock:PMYSQL);extdecl;
-  mysql_select_db : function (mysql:PMYSQL; db:Pchar):longint;extdecl;
-  mysql_query : function (mysql:PMYSQL; q:Pchar):longint;extdecl;
-  mysql_send_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
+  mysql_select_db : function (mysql:PMYSQL; db:PAnsiChar):longint;extdecl;
+  mysql_query : function (mysql:PMYSQL; q:PAnsiChar):longint;extdecl;
+  mysql_send_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
   mysql_read_query_result : function (mysql:PMYSQL):longint;extdecl;
-  mysql_real_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
-  mysql_master_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
-  mysql_master_send_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
-  mysql_slave_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
-  mysql_slave_send_query : function (mysql:PMYSQL; q:Pchar; length:dword):longint;extdecl;
+  mysql_real_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
+  mysql_master_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
+  mysql_master_send_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
+  mysql_slave_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
+  mysql_slave_send_query : function (mysql:PMYSQL; q:PAnsiChar; length:dword):longint;extdecl;
   mysql_enable_rpl_parse : procedure (mysql:PMYSQL);extdecl;
   mysql_disable_rpl_parse : procedure (mysql:PMYSQL);extdecl;
   mysql_rpl_parse_enabled : function (mysql:PMYSQL):longint;extdecl;
@@ -101,28 +101,28 @@ var
   mysql_disable_reads_from_master : procedure (mysql:PMYSQL);extdecl;
   mysql_reads_from_master_enabled : function (mysql:PMYSQL):longint;extdecl;
 (* error
-enum mysql_rpl_type      mysql_rpl_query_type(const char* q, int len);
+enum mysql_rpl_type      mysql_rpl_query_type(const AnsiChar* q, int len);
 in declaration at line 291 *)
   mysql_rpl_probe : function (mysql:PMYSQL):longint;extdecl;
-  mysql_set_master : function (mysql:PMYSQL; host:Pchar; port:dword; user:Pchar; passwd:Pchar):longint;extdecl;
-  mysql_add_slave : function (mysql:PMYSQL; host:Pchar; port:dword; user:Pchar; passwd:Pchar):longint;extdecl;
+  mysql_set_master : function (mysql:PMYSQL; host:PAnsiChar; port:dword; user:PAnsiChar; passwd:PAnsiChar):longint;extdecl;
+  mysql_add_slave : function (mysql:PMYSQL; host:PAnsiChar; port:dword; user:PAnsiChar; passwd:PAnsiChar):longint;extdecl;
   mysql_shutdown : function (mysql:PMYSQL):longint;extdecl;
   mysql_dump_debug_info : function (mysql:PMYSQL):longint;extdecl;
   mysql_refresh : function (mysql:PMYSQL; refresh_options:dword):longint;extdecl;
   mysql_kill : function (mysql:PMYSQL; pid:dword):longint;extdecl;
   mysql_ping : function (mysql:PMYSQL):longint;extdecl;
-  mysql_stat : function (mysql:PMYSQL):Pchar;extdecl;
-  mysql_get_server_info : function (mysql:PMYSQL):Pchar;extdecl;
-  mysql_get_client_info : tpcharfunction; //function:Pchar; extdecl;
-  mysql_get_host_info : function (mysql:PMYSQL):Pchar;extdecl;
+  mysql_stat : function (mysql:PMYSQL):PAnsiChar;extdecl;
+  mysql_get_server_info : function (mysql:PMYSQL):PAnsiChar;extdecl;
+  mysql_get_client_info : tpcharfunction; //function:PAnsiChar; extdecl;
+  mysql_get_host_info : function (mysql:PMYSQL):PAnsiChar;extdecl;
   mysql_get_proto_info : function (mysql:PMYSQL):dword;extdecl;
-  mysql_list_dbs : function (mysql:PMYSQL; wild:Pchar):PMYSQL_RES;extdecl;
-  mysql_list_tables : function (mysql:PMYSQL; wild:Pchar):PMYSQL_RES;extdecl;
-  mysql_list_fields : function (mysql:PMYSQL; table:Pchar; wild:Pchar):PMYSQL_RES;extdecl;
+  mysql_list_dbs : function (mysql:PMYSQL; wild:PAnsiChar):PMYSQL_RES;extdecl;
+  mysql_list_tables : function (mysql:PMYSQL; wild:PAnsiChar):PMYSQL_RES;extdecl;
+  mysql_list_fields : function (mysql:PMYSQL; table:PAnsiChar; wild:PAnsiChar):PMYSQL_RES;extdecl;
   mysql_list_processes : function (mysql:PMYSQL):PMYSQL_RES;extdecl;
   mysql_store_result : function (mysql:PMYSQL):PMYSQL_RES;extdecl;
   mysql_use_result : function (mysql:PMYSQL):PMYSQL_RES;extdecl;
-  mysql_options : function (mysql:PMYSQL; option:mysql_option; arg:Pchar):longint;extdecl;
+  mysql_options : function (mysql:PMYSQL; option:mysql_option; arg:PAnsiChar):longint;extdecl;
   mysql_free_result : procedure (result:PMYSQL_RES);extdecl;
   mysql_data_seek : procedure (result:PMYSQL_RES; offset:my_ulonglong);extdecl;
   mysql_row_seek : function (result:PMYSQL_RES; _para2:MYSQL_ROW_OFFSET):MYSQL_ROW_OFFSET;extdecl;
@@ -130,18 +130,18 @@ in declaration at line 291 *)
   mysql_fetch_row : function (result:PMYSQL_RES):MYSQL_ROW;extdecl;
   mysql_fetch_lengths : function (result:PMYSQL_RES):Pdword;extdecl;
   mysql_fetch_field : function (result:PMYSQL_RES):PMYSQL_FIELD;extdecl;
-  mysql_escape_string : function (_to:Pchar; from:Pchar; from_length:dword):dword;extdecl;
-  mysql_real_escape_string : function (mysql:PMYSQL; _to:Pchar; from:Pchar; length:dword):dword;extdecl;
-  mysql_debug : procedure (debug:Pchar);extdecl;
-  mysql_odbc_escape_string : function (mysql:PMYSQL; _to:Pchar; to_length:dword; from:Pchar; from_length:dword;param:pointer; extend_buffer: TExdendBuffer):Pchar;extdecl;
-  myodbc_remove_escape : procedure (mysql:PMYSQL; name:Pchar);extdecl;
+  mysql_escape_string : function (_to:PAnsiChar; from:PAnsiChar; from_length:dword):dword;extdecl;
+  mysql_real_escape_string : function (mysql:PMYSQL; _to:PAnsiChar; from:PAnsiChar; length:dword):dword;extdecl;
+  mysql_debug : procedure (debug:PAnsiChar);extdecl;
+  mysql_odbc_escape_string : function (mysql:PMYSQL; _to:PAnsiChar; to_length:dword; from:PAnsiChar; from_length:dword;param:pointer; extend_buffer: TExdendBuffer):PAnsiChar;extdecl;
+  myodbc_remove_escape : procedure (mysql:PMYSQL; name:PAnsiChar);extdecl;
   mysql_thread_safe : function :dword;extdecl;
   mysql_manager_init : function (con:PMYSQL_MANAGER):PMYSQL_MANAGER;extdecl;
-  mysql_manager_connect : function (con:PMYSQL_MANAGER; host:Pchar; user:Pchar; passwd:Pchar; port:dword):PMYSQL_MANAGER;extdecl;
+  mysql_manager_connect : function (con:PMYSQL_MANAGER; host:PAnsiChar; user:PAnsiChar; passwd:PAnsiChar; port:dword):PMYSQL_MANAGER;extdecl;
   mysql_manager_close : procedure (con:PMYSQL_MANAGER);extdecl;
-  mysql_manager_command : function (con:PMYSQL_MANAGER; cmd:Pchar; cmd_len:longint):longint;extdecl;
-  mysql_manager_fetch_line : function (con:PMYSQL_MANAGER; res_buf:Pchar; res_buf_size:longint):longint;extdecl;
-  simple_command : function (mysql:PMYSQL; command:enum_server_command; arg:Pchar; length:dword; skipp_check:my_bool):longint;extdecl;
+  mysql_manager_command : function (con:PMYSQL_MANAGER; cmd:PAnsiChar; cmd_len:longint):longint;extdecl;
+  mysql_manager_fetch_line : function (con:PMYSQL_MANAGER; res_buf:PAnsiChar; res_buf_size:longint):longint;extdecl;
+  simple_command : function (mysql:PMYSQL; command:enum_server_command; arg:PAnsiChar; length:dword; skipp_check:my_bool):longint;extdecl;
   net_safe_read : function (mysql:PMYSQL):dword;extdecl;
 
 
