@@ -8,20 +8,20 @@
 
 type
    my_bool = byte;
-   gptr   = pchar;
+   gptr   = PAnsiChar;
    Socket = Longint;
    PCardinal = ^Cardinal;
 
 {$ifdef linux}
 Var
   mysql_port : cardinal; external name 'mysql_port';
-  mysql_unix_port : pchar; external name 'mysql_unix_port';
+  mysql_unix_port : PAnsiChar; external name 'mysql_unix_port';
 {$endif}
 
 {$ifdef darwin}
 Var
   mysql_port : cardinal; external mysqllib name 'mysql_port';
-  mysql_unix_port : pchar; external mysqllib name 'mysql_unix_port';
+  mysql_unix_port : PAnsiChar; external mysqllib name 'mysql_unix_port';
 {$endif}
 
 {
@@ -32,9 +32,9 @@ Var
 }
 Type
 st_mysql_field = record
-  name : Pchar;                 { Name of column }
-  table : pchar;                { Table of column if column was a field }
-  def: pchar;                   { Default value (set by mysql_list_fields) }
+  name : PAnsiChar;                 { Name of column }
+  table : PAnsiChar;                { Table of column if column was a field }
+  def: PAnsiChar;                   { Default value (set by mysql_list_fields) }
   ftype : enum_field_types;     { Type of field. See mysql_com.h for types }
   length : cardinal;            { Width of column }
   max_length : cardinal;        { Max width of selected set }
@@ -44,7 +44,7 @@ end;
 TMYSQL_FIELD = st_mysql_field;
 PMYSQL_FIELD = ^TMYSQL_FIELD;
 
-TMYSQL_ROW = PPchar;             { return data as array of strings }
+TMYSQL_ROW = PPAnsiChar;             { return data as array of strings }
 TMYSQL_FIELD_OFFSET = cardinal;  { offset to current field }
 
 {$ifndef oldmysql}
@@ -78,12 +78,12 @@ st_mysql_options = record
   connect_timeout,client_flag : cardinal;
   compress,named_pipe : my_bool;
   port : cardinal;
-  host,init_command,user,password,unix_socket,db : pchar;
-  my_cnf_file,my_cnf_group : pchar;
+  host,init_command,user,password,unix_socket,db : PAnsiChar;
+  my_cnf_file,my_cnf_group : PAnsiChar;
 {$ifndef use_mysql_321}
-  charset_dir, charset_name : pchar;
+  charset_dir, charset_name : PAnsiChar;
   use_ssl : my_bool;
-  ssl_key, ssl_cert, ssl_ca, ssl_capath : pchar;
+  ssl_key, ssl_cert, ssl_ca, ssl_capath : PAnsiChar;
 {$endif}
 end;
 
@@ -102,7 +102,7 @@ mysql_status = (MYSQL_STATUS_READY,
 (*
 charset_info_st = Record
         number : cardinal;
-        name : pchar;
+        name : PAnsiChar;
         ctype : pointer {uchar*};
         to_lower : pointer {uchar*};
         to_upper : pointer {uchar*};
@@ -123,7 +123,7 @@ st_mysql = Record
   connector_fd : gptr;
 {$endif}
   host,user,passwd,unix_socket,server_version,host_info,
-  info,db : pchar;
+  info,db : PAnsiChar;
   port,client_flag,server_capabilities : cardinal;
   protocol_version : cardinal;
   field_count : cardinal;
@@ -142,7 +142,7 @@ st_mysql = Record
   reconnect : my_bool;          { set to 1 if automatic reconnect }
   options : st_mysql_options;
 {$ifndef use_mysql_321}
-  scramble_buf : array[0..8] of char;
+  scramble_buf : array[0..8] of AnsiChar;
   charset : pointer { struct charset_info_st};
   server_language : cardinal;
 {$endif}
