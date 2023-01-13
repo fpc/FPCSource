@@ -14,7 +14,7 @@ uses
 
 procedure stream_write(stream: XQC_OutputStream; const buf: pchar; length: cuint); cdecl;
 var
-  S: String;
+  S: AnsiString;
 begin
   SetLength(S, length);
   Move(buf^, S[1], length);
@@ -117,4 +117,3 @@ begin
   impl^.free(impl);
   shutdown_simple_store(store);
 end.
-
