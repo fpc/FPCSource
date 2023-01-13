@@ -28,9 +28,9 @@ const
  }
 
 { The name of the Apache executable }
-//AP_DECLARE_DATA extern const char *ap_server_argv0;
+//AP_DECLARE_DATA extern const AnsiChar *ap_server_argv0;
 { The global server's ServerRoot }
-//AP_DECLARE_DATA extern const char *ap_server_root;
+//AP_DECLARE_DATA extern const AnsiChar *ap_server_root;
 
 { for -C, -c and -D switches }
 { An array of all -C directives.  These are processed before the server's

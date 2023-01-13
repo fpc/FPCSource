@@ -91,8 +91,8 @@ type
    csd: Papr_socket_t; conn_id: cLong; sbh: Pointer;
    alloc: Papr_bucket_alloc_t): Pconn_rec; cdecl;
 
-procedure ap_hook_create_connection(pf: ap_HOOK_create_connection_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_create_connection(pf: ap_HOOK_create_connection_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_create_connection' + LibSuff16;
 
@@ -110,8 +110,8 @@ procedure ap_hook_create_connection(pf: ap_HOOK_create_connection_t; const aszPr
 type
   ap_HOOK_pre_connection_t = function (c: Pconn_rec; csd: Pointer): Integer; cdecl;
 
-procedure ap_hook_pre_connection(pf: ap_HOOK_pre_connection_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_pre_connection(pf: ap_HOOK_pre_connection_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_pre_connection' + LibSuff16;
 
@@ -127,8 +127,8 @@ procedure ap_hook_pre_connection(pf: ap_HOOK_pre_connection_t; const aszPre: PPC
 type
   ap_HOOK_process_connection_t = function (c: Pconn_rec): Integer; cdecl;
 
-procedure ap_hook_process_connection(pf: ap_HOOK_process_connection_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_process_connection(pf: ap_HOOK_process_connection_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_process_connection' + LibSuff16;
 

@@ -213,7 +213,7 @@ type
  }
   ap_filter_rec_t = record
     { The registered name for this filter }
-    name: PChar;
+    name: PAnsiChar;
     
     { The function to call when this filter is invoked. }
     filter_func: ap_filter_func;
@@ -320,7 +320,7 @@ function ap_pass_brigade(filter: Pap_filter_t;
  *              ::AP_FTYPE_CONNECTION
  * @see add_input_filter()
  }
-function ap_register_input_filter(const name: PChar;
+function ap_register_input_filter(const name: PAnsiChar;
  filter_func: ap_in_filter_func; filter_init: ap_init_filter_func;
  ftype: ap_filter_type): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -342,7 +342,7 @@ function ap_register_input_filter(const name: PChar;
  *              ::AP_FTYPE_CONNECTION
  * @see ap_add_output_filter()
  }
-function ap_register_output_filter(const name: PChar;
+function ap_register_output_filter(const name: PAnsiChar;
  filter_func: ap_out_filter_func; filter_init: ap_init_filter_func;
  ftype: ap_filter_type): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -368,7 +368,7 @@ function ap_register_output_filter(const name: PChar;
  * @param proto_flags Protocol flags: logical OR of AP_FILTER_PROTO_* bits
  * @see ap_add_output_filter()
  }
-function ap_register_output_filter_protocol(const name: PChar;
+function ap_register_output_filter_protocol(const name: PAnsiChar;
  filter_func: ap_out_filter_func; filter_init: ap_init_filter_func;
  ftype: ap_filter_type; proto_flags: cuint): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -392,7 +392,7 @@ function ap_register_output_filter_protocol(const name: PChar;
  * @param r The request to add this filter for (or NULL if it isn't associated with a request)
  * @param c The connection to add the fillter for
  }
-function ap_add_input_filter(const name: PChar; ctx: Pointer;
+function ap_add_input_filter(const name: PAnsiChar; ctx: Pointer;
  r: Prequest_rec; c: Pconn_rec): Pap_filter_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_add_input_filter' + LibSuff16;
@@ -416,7 +416,7 @@ function ap_add_input_filter_handle(f: Pap_filter_t;
  *
  * @param name The filter name to look up
  }
-function ap_get_input_filter_handle(const name: PChar): Pap_filter_rec_t;
+function ap_get_input_filter_handle(const name: PAnsiChar): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_input_filter_handle' + LibSuff4;
 
@@ -428,7 +428,7 @@ function ap_get_input_filter_handle(const name: PChar): Pap_filter_rec_t;
  * @param r The request to add this filter for (or NULL if it isn't associated with a request)
  * @param c The connection to add this filter for
  }
-function ap_add_output_filter(const name: PChar; ctx: Pointer;
+function ap_add_output_filter(const name: PAnsiChar; ctx: Pointer;
  r: Prequest_rec; c: Pconn_rec): Pap_filter_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_add_output_filter' + LibSuff16;
@@ -451,7 +451,7 @@ function ap_add_output_filter_handle(f: Pap_filter_rec_t;
  *
  * @param name The filter name to look up
  }
-function ap_get_output_filter_handle(const name: PChar): Pap_filter_rec_t;
+function ap_get_output_filter_handle(const name: PAnsiChar): Pap_filter_rec_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_get_output_filter_handle' + LibSuff4;
 
@@ -567,7 +567,7 @@ function ap_fputstrs(f: Pap_filter_t; bb: Papr_bucket_brigade;
  * @param ... The argumets to use to fill out the format string
  }
 function ap_fprintf(f: Pap_filter_t; bb: Papr_bucket_brigade;
- const fmt: PChar; others: array of const): apr_status_t;
+ const fmt: PAnsiChar; others: array of const): apr_status_t;
  cdecl; external LibHTTPD name 'ap_fputstrs';
 
 {        __attribute__((format(printf,3,4)));}
