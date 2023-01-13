@@ -26,7 +26,7 @@ fd_form0 : PFD_form;
 procedure return_cb(ob : PFL_OBJECT; data : longint); cdecl;
 
 begin
-    fl_addto_browser(fd_form0^.br, pchar(data));
+    fl_addto_browser(fd_form0^.br, PAnsiChar(data));
 end;
 
 procedure set_when( n : longint);
@@ -56,10 +56,10 @@ end;
 
 Function create_form_form0 : PFD_FORM;
 
-Const Preturn : pchar = 'slider returned';
-      Pcounter : pchar = 'counter returned';
-      Pinput : pchar = 'input2 returned';
-      Pinput1 : Pchar =  'input1 returned';
+Const Preturn : PAnsiChar = 'slider returned';
+      Pcounter : PAnsiChar = 'counter returned';
+      Pinput : PAnsiChar = 'input2 returned';
+      Pinput1 : PAnsiChar =  'input1 returned';
 
 var
   obj : PFL_OBJECT;
