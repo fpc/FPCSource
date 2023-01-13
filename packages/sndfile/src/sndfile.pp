@@ -410,7 +410,7 @@ type
 ** to sf_perror () or sf_error_str ().
 ** All calls to sf_open() should be matched with a call to sf_close().
 }
-function sf_open (path : pChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
+function sf_open (path : PAnsiChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
   external sndfilelib  name 'sf_open';
 
 {
