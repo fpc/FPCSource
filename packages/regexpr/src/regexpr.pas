@@ -154,7 +154,7 @@ type
   TRegExprCharset = set of byte;
 
 const
-  // Escape char ('\' in common r.e.) used for escaping metachars (\w, \d etc)
+  // Escape AnsiChar ('\' in common r.e.) used for escaping metachars (\w, \d etc)
   EscChar = '\';
 
   // Substitute method: prefix of group reference: $1 .. $9 and $<name>
@@ -232,7 +232,7 @@ type
        // А-Я additionally includes 'Ё', and а-Я includes all Russian letters.
        // Turn it off if it interferes with your national alphabet.
     S: boolean;
-       // Dot '.' matches any char, otherwise only [^\n].
+       // Dot '.' matches any AnsiChar, otherwise only [^\n].
     G: boolean;
        // Greedy. Switching it off switches all operators to non-greedy style,
        // so if G=False, then '*' works like '*?', '+' works like '+?' and so on.
@@ -241,7 +241,7 @@ type
        // matching at only the very start/end of the string to the start/end
        // of any line anywhere within the string.
     X: boolean;
-       // Allow comments in regex using # char.
+       // Allow comments in regex using # AnsiChar.
   end;
 
 function IsModifiersEqual(const A, B: TRegExprModifiers): boolean;
@@ -314,16 +314,16 @@ type
     {$ENDIF}
 
     // work variables for Exec routines - save stack in recursion
-    regInput: PRegExprChar; // pointer to currently handling char of input string
-    fInputStart: PRegExprChar; // pointer to first char of input string
-    fInputEnd: PRegExprChar; // pointer after last char of input string
-    fRegexStart: PRegExprChar; // pointer to first char of regex
-    fRegexEnd: PRegExprChar; // pointer after last char of regex
+    regInput: PRegExprChar; // pointer to currently handling AnsiChar of input string
+    fInputStart: PRegExprChar; // pointer to first AnsiChar of input string
+    fInputEnd: PRegExprChar; // pointer after last AnsiChar of input string
+    fRegexStart: PRegExprChar; // pointer to first AnsiChar of regex
+    fRegexEnd: PRegExprChar; // pointer after last AnsiChar of regex
     regCurrentGrp: integer; // index of group handling by OP_OPEN* opcode
     regRecursion: integer; // current level of recursion (?R) (?1); always 0 if no recursion is used
 
     // work variables for compiler's routines
-    regParse: PRegExprChar; // pointer to currently handling char of regex
+    regParse: PRegExprChar; // pointer to currently handling AnsiChar of regex
     regNumBrackets: integer; // count of () brackets
     regDummy: REChar; // dummy pointer, used to detect 1st/2nd pass of Compile
                       // if p=@regDummy, it is pass-1: opcode memory is not yet allocated
@@ -570,7 +570,7 @@ type
     function ExecNext(ABackward: boolean {$IFDEF DefParam} = False{$ENDIF}): boolean;
 
     // find match for InputString starting from AOffset position
-    // (AOffset=1 - first char of InputString)
+    // (AOffset=1 - first AnsiChar of InputString)
     function ExecPos(AOffset: integer {$IFDEF DefParam} = 1{$ENDIF}): boolean;
     {$IFDEF OverMeth} overload;
     function ExecPos(AOffset: integer; ATryOnce, ABackward: boolean): boolean; overload;
@@ -1078,7 +1078,7 @@ end;
 
 {$IFDEF UNICODEEX}
 procedure IncUnicode(var p: PRegExprChar); {$IFDEF InlineFuncs}inline;{$ENDIF}
-// make additional increment if we are on low-surrogate char
+// make additional increment if we are on low-surrogate AnsiChar
 // no need to check p<fInputEnd, at the end of string we have chr(0)
 var
   ch: REChar;
@@ -1367,13 +1367,13 @@ begin
             // comment beginning!
             i0 := i;
             Inc(i);
-            if ARegExpr[i] = ']' // first ']' inside [] treated as simple char, no need to check '['
+            if ARegExpr[i] = ']' // first ']' inside [] treated as simple AnsiChar, no need to check '['
             then
               Inc(i);
             while (i <= Len) and (ARegExpr[i] <> ']') do
               if ARegExpr[i] = EscChar // ###0.942
               then
-                Inc(i, 2) // skip 'escaped' char to prevent stopping at '\]'
+                Inc(i, 2) // skip 'escaped' AnsiChar to prevent stopping at '\]'
               else
                 Inc(i);
             if (i > Len) or (ARegExpr[i] <> ']') // ###0.942
@@ -1395,7 +1395,7 @@ begin
           end;
         // here is no 'else' clause - we simply skip ordinary chars
       end; // of case
-      Inc(i); // skip scanned char
+      Inc(i); // skip scanned AnsiChar
       // ! can move after Len due to skipping quoted symbol
     end;
 
@@ -1426,7 +1426,7 @@ const
   OP_EOL = TREOp(2); // -    Match "" at end of line
   OP_ANY = TREOp(3); // -    Match any one character
   OP_ANYOF = TREOp(4); // Str  Match any character in string Str
-  OP_ANYBUT = TREOp(5); // Str  Match any char. not in string Str
+  OP_ANYBUT = TREOp(5); // Str  Match any AnsiChar. not in string Str
   OP_BRANCH = TREOp(6); // Node Match this alternative, or the next
   OP_BACK = TREOp(7); // -    Jump backward (Next < 0)
   OP_EXACTLY = TREOp(8); // Str  Match string Str
@@ -1437,8 +1437,8 @@ const
   OP_NOTDIGIT = TREOp(13); // -    Match not digit (equiv [0-9])
   OP_ANYLETTER = TREOp(14); // -    Match any letter from property WordChars
   OP_NOTLETTER = TREOp(15); // -    Match not letter from property WordChars
-  OP_ANYSPACE = TREOp(16); // -    Match any space char (see property SpaceChars)
-  OP_NOTSPACE = TREOp(17); // -    Match not space char (see property SpaceChars)
+  OP_ANYSPACE = TREOp(16); // -    Match any space AnsiChar (see property SpaceChars)
+  OP_NOTSPACE = TREOp(17); // -    Match not space AnsiChar (see property SpaceChars)
   OP_BRACES = TREOp(18);
   // Node,Min,Max Match this (simple) thing from Min to Max times.
   // Min and Max are TREBracesArg
@@ -1447,7 +1447,7 @@ const
   OP_ANYOFCI = TREOp(21);
   // Str  Match any character in string Str, case insensitive
   OP_ANYBUTCI = TREOp(22);
-  // Str  Match any char. not in string Str, case insensitive
+  // Str  Match any AnsiChar. not in string Str, case insensitive
   OP_LOOPENTRY = TREOp(23); // Node Start of loop (Node - LOOP for this loop)
   OP_LOOP = TREOp(24); // Node,Min,Max,LoopEntryJmp - back jump for LOOPENTRY.
   // Min and Max are TREBracesArg
@@ -1637,7 +1637,7 @@ begin
     reeUnmatchedSqBrackets:
       Result := 'TRegExpr compile: unmatched []';
     reeInternalUrp:
-      Result := 'TRegExpr compile: internal fail on char "|", ")"';
+      Result := 'TRegExpr compile: internal fail on AnsiChar "|", ")"';
     reeQuantifFollowsNothing:
       Result := 'TRegExpr compile: quantifier ?+*{ follows nothing';
     reeTrailingBackSlash:
@@ -1704,7 +1704,7 @@ begin
     reeExecNextWithoutExec:
       Result := 'TRegExpr exec: ExecNext without Exec(Pos)';
     reeBadOpcodeInCharClass:
-      Result := 'TRegExpr exec: invalid opcode in char class';
+      Result := 'TRegExpr exec: invalid opcode in AnsiChar class';
     reeDumpCorruptedOpcode:
       Result := 'TRegExpr dump: corrupted opcode';
     reeLoopStackExceeded:
@@ -1980,7 +1980,7 @@ end;
 {$IFDEF FastUnicodeData}
 function TRegExpr.IsWordChar(AChar: REChar): boolean;
 begin
-  // bit 7 in value: is word char
+  // bit 7 in value: is word AnsiChar
   Result := CharCategoryArray[Ord(AChar)] and 128 <> 0;
 end;
 
@@ -2083,7 +2083,7 @@ begin
 end;
 
 function CheckCharCategory(AChar: REChar; Ch0, Ch1: REChar): boolean;
-// AChar: check this char against opcode
+// AChar: check this AnsiChar against opcode
 // Ch0, Ch1: opcode operands after OP_*CATEGORY
 var
   N: byte;
@@ -2375,7 +2375,7 @@ end;
 {$IFDEF FastUnicodeData}
 procedure TRegExpr.FindCategoryName(var scan: PRegExprChar; var ch1, ch2: REChar);
 // scan: points into regex string after '\p', to find category name
-// ch1, ch2: 2-char name of category; ch2 can be #0
+// ch1, ch2: 2-AnsiChar name of category; ch2 can be #0
 var
   ch: REChar;
   pos1, pos2, namePtr: PRegExprChar;
@@ -2519,7 +2519,7 @@ const
   {$ENDIF}
 
 function TRegExpr.FindInCharClass(ABuffer: PRegExprChar; AChar: REChar; AIgnoreCase: boolean): boolean;
-// Buffer contains char pairs: (Kind, Data), where Kind is one of OpKind_ values,
+// Buffer contains AnsiChar pairs: (Kind, Data), where Kind is one of OpKind_ values,
 // and Data depends on Kind
 var
   OpKind: REChar;
@@ -3258,7 +3258,7 @@ begin
           InsertOperator(TheOp, Result, REOpSz + RENextOffSz);
         end;
         if NonGreedyCh or PossessiveCh then
-          Inc(regParse); // Skip extra char ('?')
+          Inc(regParse); // Skip extra AnsiChar ('?')
       end; { of case '*' }
     '+':
       begin
@@ -3300,7 +3300,7 @@ begin
           InsertOperator(TheOp, Result, REOpSz + RENextOffSz);
         end;
         if NonGreedyCh or PossessiveCh then
-          Inc(regParse); // Skip extra char ('?')
+          Inc(regParse); // Skip extra AnsiChar ('?')
       end; { of case '+' }
     '?':
       begin
@@ -3337,7 +3337,7 @@ begin
           OpTail(Result, NextNode);
         end;
         if NonGreedyCh or PossessiveCh then
-          Inc(regParse); // Skip extra char ('?')
+          Inc(regParse); // Skip extra AnsiChar ('?')
       end; { of case '?' }
     '{':
       begin
@@ -3400,7 +3400,7 @@ begin
           EmitComplexBraces(BracesMin, BracesMax, NonGreedyOp);
         end;
         if NonGreedyCh or PossessiveCh then
-          Inc(regParse); // Skip extra char '?'
+          Inc(regParse); // Skip extra AnsiChar '?'
       end; // of case '{'
     // else // here we can't be
   end; { of case op }
@@ -3463,7 +3463,7 @@ begin
         end;
       end;
     'x':
-      begin // \x: hex char
+      begin // \x: hex AnsiChar
         Result := #0;
         Inc(APtr);
         if APtr >= AEnd then
@@ -3681,7 +3681,7 @@ begin
 
         if regParse^ = ']' then
         begin
-          // first ']' inside [] treated as simple char, no need to check '['
+          // first ']' inside [] treated as simple AnsiChar, no need to check '['
           EmitRangeChar(regParse^, (regParse + 1)^ = '-');
           Inc(regParse);
         end;
@@ -3698,7 +3698,7 @@ begin
             Break;
           end;
 
-          // char '-' which (maybe) makes a range
+          // AnsiChar '-' which (maybe) makes a range
           if (regParse^ = '-') and ((regParse + 1) < fRegexEnd) and CanBeRange then
           begin
             Inc(regParse);
@@ -3783,7 +3783,7 @@ begin
               {$ENDIF}
               begin
                 TempChar := UnQuoteChar(regParse, fRegexEnd);
-                // False if '-' is last char in []
+                // False if '-' is last AnsiChar in []
                 DashForRange :=
                   (regParse + 2 < fRegexEnd) and
                   ((regParse + 1)^ = '-') and
@@ -3793,7 +3793,7 @@ begin
             end
             else
             begin
-              // False if '-' is last char in []
+              // False if '-' is last AnsiChar in []
               DashForRange :=
                 (regParse + 2 < fRegexEnd) and
                 ((regParse + 1)^ = '-') and
@@ -4168,22 +4168,22 @@ begin
               FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           's':
-            begin // r.e.extension - any space char
+            begin // r.e.extension - any space AnsiChar
               ret := EmitNode(OP_ANYSPACE);
               FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           'S':
-            begin // r.e.extension - not space char
+            begin // r.e.extension - not space AnsiChar
               ret := EmitNode(OP_NOTSPACE);
               FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           'w':
-            begin // r.e.extension - any english char / digit / '_'
+            begin // r.e.extension - any english AnsiChar / digit / '_'
               ret := EmitNode(OP_ANYLETTER);
               FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
           'W':
-            begin // r.e.extension - not english char / digit / '_'
+            begin // r.e.extension - not english AnsiChar / digit / '_'
               ret := EmitNode(OP_NOTLETTER);
               FlagParse := FlagParse or FLAG_HASWIDTH or FLAG_SIMPLE;
             end;
@@ -4357,7 +4357,7 @@ begin
     OP_ANY:
       begin
         // note - OP_ANYML cannot be proceeded in FindRepeated because can skip
-        // more than one char at once
+        // more than one AnsiChar at once
         {$IFDEF UnicodeEx}
         for i := 1 to TheMax do
           IncUnicode2(scan, Result);
@@ -4368,7 +4368,7 @@ begin
       end;
 
     OP_EXACTLY:
-      begin // in opnd can be only ONE char !!!
+      begin // in opnd can be only ONE AnsiChar !!!
         {
         // Alexey: commented because of https://github.com/andgineer/TRegExpr/issues/145
         NLen := PLongInt(opnd)^;
@@ -4384,7 +4384,7 @@ begin
       end;
 
     OP_EXACTLYCI:
-      begin // in opnd can be only ONE char !!!
+      begin // in opnd can be only ONE AnsiChar !!!
         {
         // Alexey: commented because of https://github.com/andgineer/TRegExpr/issues/145
         NLen := PLongInt(opnd)^;
@@ -5827,7 +5827,7 @@ begin
     else
     begin
       if (Ch = EscChar) and (p < TemplateEnd) then
-      begin // quoted or special char followed
+      begin // quoted or special AnsiChar followed
         Ch := p^;
         Inc(p);
         case Ch of
@@ -5889,7 +5889,7 @@ begin
     else
     begin
       if (Ch = EscChar) and (p < TemplateEnd) then
-      begin // quoted or special char followed
+      begin // quoted or special AnsiChar followed
         Ch := p^;
         Inc(p);
         case Ch of
@@ -5901,7 +5901,7 @@ begin
           'x', 't', 'r', 'f', 'a', 'e':
             begin
               p := p - 1;
-              // UnquoteChar expects the escaped char under the pointer
+              // UnquoteChar expects the escaped AnsiChar under the pointer
               QuotedChar := UnQuoteChar(p, TemplateEnd);
               p := p + 1;
               // Skip after last part of the escaped sequence - UnquoteChar stops on the last symbol of it
