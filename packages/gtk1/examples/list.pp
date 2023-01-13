@@ -94,7 +94,7 @@ begin
       begin
         list_item := pGTKOBJECT(dlist^.data);
         item_data_string := gtk_object_get_data(list_item,list_item_data_key);
-        write (pchar(item_data_string),' ');
+        write (PAnsiChar(item_data_string),' ');
         dlist := dlist^.next;
       end;
      writeln;
@@ -197,7 +197,7 @@ begin
      buffer:='List Item with Label '+itos(i)+#0;
      list_item := gtk_list_item_new_with_label(buffer);
      dlist := g_list_prepend(dlist, list_item);
-     gtk_object_set_data(pGTKOBJECT(list_item),list_item_data_key,pchar('ListItem with integrated Label'));
+     gtk_object_set_data(pGTKOBJECT(list_item),list_item_data_key,PAnsiChar('ListItem with integrated Label'));
    end;
   gtk_list_append_items(pGTKLIST(thelist), dlist);
 

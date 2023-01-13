@@ -14,7 +14,7 @@ uses
 
 procedure callback(widget : pGtkWidget ; data: pgpointer ); cdecl;
 begin
-  writeln('Hello again - '+pchar(data)+' was pressed');
+  writeln('Hello again - '+PAnsiChar(data)+' was pressed');
 end;
 
 function delete_event (widget : pGtkWidget ; event: pGdkEvent; data: pgpointer ): integer; cdecl;
@@ -60,7 +60,7 @@ begin
   // Now when the button is clicked, we call the "callback" function
   // with a pointer to "button 1" as its argument */
   gtk_signal_connect (pGTKOBJECT (button), 'clicked',
-                      GTK_SIGNAL_FUNC (@callback), pchar('Button 1'));
+                      GTK_SIGNAL_FUNC (@callback), PAnsiChar('Button 1'));
 
     // Instead of gtk_container_add, we pack this button into the invisible
    // box, which has been packed into the window. */
@@ -76,7 +76,7 @@ begin
   // Call the same callback function with a different argument,
   // passing a pointer to "button 2" instead. */
   gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-                      GTK_SIGNAL_FUNC (@callback), pchar('Button 2'));
+                      GTK_SIGNAL_FUNC (@callback), PAnsiChar('Button 2'));
 
   gtk_box_pack_start(GTK_BOX(box1), button, TRUE, TRUE, 0);
 

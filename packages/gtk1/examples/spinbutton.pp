@@ -59,7 +59,7 @@ Procedure  get_value( widget : PGtkWidget;
                     data : gpointer ) ; cdecl;
 Var
   Ptr_buf   : PGchar;
-  buf       : string;
+  buf       : ansistring;
   label_l   : PGtkLabel ;
   spin,spin2: PGtkSpinButton;
 Begin
@@ -72,7 +72,7 @@ Begin
     Str(gtk_spin_button_get_value_as_float (spin)
                     :10:gtk_spin_button_get_value_as_int(spin2)  //This checks how many digits we have
                     ,buf);
-  Ptr_buf:=PChar(buf); //We have to change ansistring to a pointer to char PChar == PGChar
+  Ptr_buf:=PAnsiChar(buf); //We have to change ansistring to a pointer to AnsiChar PAnsiChar == PGChar
   gtk_label_set_text (label_l, Ptr_buf);
 End;
 

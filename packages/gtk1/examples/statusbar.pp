@@ -33,7 +33,7 @@ Procedure push_item( widget : PGtkWidget;
       Str(count,buff);
       buff := 'Item ' + buff;
 
-      Ptr_buff := PChar(buff); //changing type from ansistring to PGChar == PChar
+      Ptr_buff := PAnsiChar(buff); //changing type from ansistring to PGChar == PAnsiChar
       gtk_statusbar_push(GTK_STATUSBAR(status_bar), data^, Ptr_buff);
     End;
 Procedure pop_item( widget : PGtkWidget;

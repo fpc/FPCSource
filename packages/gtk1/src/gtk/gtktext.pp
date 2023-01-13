@@ -93,7 +93,7 @@ Type
   GTK_TEXT=PGtkText;
   GTK_TEXT_CLASS=PGtkTextClass;
 
-function  GTK_TEXT_INDEX(t:PGtkText; index:longint):char;
+function  GTK_TEXT_INDEX(t:PGtkText; index:longint):AnsiChar;
 
 function  GTK_TEXT_TYPE:TGtkType;cdecl;external gtkdll name 'gtk_text_get_type';
 function  GTK_IS_TEXT(obj:pointer):boolean;
@@ -110,7 +110,7 @@ function  gtk_text_get_point(text:PGtkText):guint;cdecl;external gtkdll name 'gt
 function  gtk_text_get_length(text:PGtkText):guint;cdecl;external gtkdll name 'gtk_text_get_length';
 procedure gtk_text_freeze(text:PGtkText);cdecl;external gtkdll name 'gtk_text_freeze';
 procedure gtk_text_thaw(text:PGtkText);cdecl;external gtkdll name 'gtk_text_thaw';
-procedure gtk_text_insert(text:PGtkText; font:PGdkFont; fore:PGdkColor; back:PGdkColor; chars:pchar; length:gint);cdecl;external gtkdll name 'gtk_text_insert';
+procedure gtk_text_insert(text:PGtkText; font:PGdkFont; fore:PGdkColor; back:PGdkColor; chars:PAnsiChar; length:gint);cdecl;external gtkdll name 'gtk_text_insert';
 function  gtk_text_backward_delete(text:PGtkText; nchars:guint):gint;cdecl;external gtkdll name 'gtk_text_backward_delete';
 function  gtk_text_forward_delete(text:PGtkText; nchars:guint):gint;cdecl;external gtkdll name 'gtk_text_forward_delete';
 
@@ -153,14 +153,14 @@ procedure set_use_wchar(var a : TGtkText; __use_wchar : guint);
        a.flag0:=a.flag0 or ((__use_wchar shl bp_TGtkText_use_wchar) and bm_TGtkText_use_wchar);
     end;
 
-function  GTK_TEXT_INDEX(t:PGtkText; index:longint):char;
+function  GTK_TEXT_INDEX(t:PGtkText; index:longint):AnsiChar;
 begin
   if use_wchar(t^)<>0 then
    begin
      if index<t^.gap_position then
-      GTK_TEXT_INDEX:=char(TGdkWchar(t^.text.wc[index]))
+      GTK_TEXT_INDEX:=AnsiChar(TGdkWchar(t^.text.wc[index]))
      else
-      GTK_TEXT_INDEX:=char(TGdkWchar(t^.text.wc[index+t^.gap_position]));
+      GTK_TEXT_INDEX:=AnsiChar(TGdkWchar(t^.text.wc[index+t^.gap_position]));
    end
   else
    begin

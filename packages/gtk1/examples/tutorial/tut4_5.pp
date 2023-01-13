@@ -17,7 +17,7 @@ uses
 //* The data passed to this function is printed to stdout */
 procedure callback(widget : pGtkWidget ; data: pgpointer ); cdecl;
 begin
-  writeln('Hello again - '+pchar(data)+' was pressed');
+  writeln('Hello again - '+PAnsiChar(data)+' was pressed');
 end;
 
 //* This callback quits the program */
@@ -58,7 +58,7 @@ begin
   //* When the button is clicked, we call the "callback" function
   //* with a pointer to "button 1" as its argument */
   gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-                  GTK_SIGNAL_FUNC (@callback), pchar('button 1'));
+                  GTK_SIGNAL_FUNC (@callback), PAnsiChar('button 1'));
 
   //* Insert button 1 into the upper left quadrant of the table */
   gtk_table_attach_defaults (GTK_TABLE(table), button, 0, 1, 0, 1);
@@ -72,7 +72,7 @@ begin
   //* When the button is clicked, we call the "callback" function
   //* with a pointer to "button 2" as its argument */
   gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-                  GTK_SIGNAL_FUNC (@callback), pchar('button 2'));
+                  GTK_SIGNAL_FUNC (@callback), PAnsiChar('button 2'));
   //* Insert button 2 into the upper right quadrant of the table */
   gtk_table_attach_defaults (GTK_TABLE(table), button, 1, 2, 0, 1);
 

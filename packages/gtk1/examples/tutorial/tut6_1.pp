@@ -15,8 +15,8 @@
   //* Create a new hbox with an image and a label packed into it
   //* and return the box. */
    function xpm_label_box( parent: pGtkWidget;
-                           xpm_filename : pchar;
-                           label_text : pchar ): pGtkWidget; cdecl;
+                           xpm_filename : PAnsiChar;
+                           label_text : PAnsiChar ): pGtkWidget; cdecl;
    var
 
      box1, label_,pixmapwid : pGtkWidget;
@@ -52,7 +52,7 @@
    //* Our usual callback function */
  procedure callback( widget : pGtkWidget; data : pgpointer   );cdecl;
    begin
-     writeln ('Hello again - '+pchar(data)+' was pressed');
+     writeln ('Hello again - '+PAnsiChar(data)+' was pressed');
    end;
 
   var
@@ -75,7 +75,7 @@
      button := gtk_button_new ();
      //* Connect the "clicked" signal of the button to our callback */
      gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-                         GTK_SIGNAL_FUNC (@callback), pchar('cool button'));
+                         GTK_SIGNAL_FUNC (@callback), PAnsiChar('cool button'));
      //* This calls our box creating function */
      box1 := xpm_label_box(window, 'info.xpm', 'cool button');
      //* Pack and show all our widgets */

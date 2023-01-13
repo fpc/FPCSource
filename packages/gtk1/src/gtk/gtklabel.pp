@@ -46,12 +46,12 @@ function  GTK_IS_LABEL(obj:pointer):boolean;
 function  GTK_IS_LABEL_CLASS(klass:pointer):boolean;
 
 function  gtk_label_get_type:TGtkType;cdecl;external gtkdll name 'gtk_label_get_type';
-function  gtk_label_new (str:pchar):PGtkWidget;cdecl;external gtkdll name 'gtk_label_new';
-procedure gtk_label_set_text(theLabel: PGtkLabel; str:pchar);cdecl;external gtkdll name 'gtk_label_set_text';
+function  gtk_label_new (str:PAnsiChar):PGtkWidget;cdecl;external gtkdll name 'gtk_label_new';
+procedure gtk_label_set_text(theLabel: PGtkLabel; str:PAnsiChar);cdecl;external gtkdll name 'gtk_label_set_text';
 procedure gtk_label_set_justify(thelabel:PGtkLabel; jtype:TGtkJustification);cdecl;external gtkdll name 'gtk_label_set_justify';
 procedure gtk_label_set_pattern(thelabel:PGtkLabel; pattern:Pgchar);cdecl;external gtkdll name 'gtk_label_set_pattern';
 procedure gtk_label_set_line_wrap(thelabel:PGtkLabel; wrap:gboolean);cdecl;external gtkdll name 'gtk_label_set_line_wrap';
-procedure gtk_label_get(thelabel:PGtkLabel; str:ppchar);cdecl;external gtkdll name 'gtk_label_get';
+procedure gtk_label_get(thelabel:PGtkLabel; str:PPAnsiChar);cdecl;external gtkdll name 'gtk_label_get';
 function  gtk_label_parse_uline(thelabel:PGtkLabel;thestring:Pgchar):guint;cdecl;external gtkdll name 'gtk_label_parse_uline';
 
 {$endif read_interface}

@@ -8,7 +8,7 @@ program editform;
 uses
   glib,gdk,gtk;
 
-function get_widget(widget:PGtkWidget;widget_name:pchar):PGtkWidget;
+function get_widget(widget:PGtkWidget;widget_name:PAnsiChar):PGtkWidget;
 var
   found_widget : PGtkWidget;
 begin

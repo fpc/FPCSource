@@ -16,7 +16,7 @@
 
  procedure toggle_callback( widget : pGtkWidget; data : pgpointer   );cdecl;
    begin
-     writeln ('Hello again - '+pchar(data)+' was pressed');
+     writeln ('Hello again - '+PAnsiChar(data)+' was pressed');
           if active(GTK_TOGGLE_BUTTON(widget)^)<>0 then
             //* If control reaches here, the toggle button is down */
             writeln('Toggle button is down')
@@ -44,7 +44,7 @@
      button := gtk_toggle_button_new ();
      //* Connect the "clicked" signal of the button to our callback */
      gtk_signal_connect (GTK_OBJECT (button), 'clicked',
-                         GTK_SIGNAL_FUNC (@toggle_callback), pchar('toggle button'));
+                         GTK_SIGNAL_FUNC (@toggle_callback), PAnsiChar('toggle button'));
      //* This calls our box creating function */
      box1 := gtk_hbox_new(False, 0);
      gtk_container_set_border_width (GTK_CONTAINER (box1), 2);

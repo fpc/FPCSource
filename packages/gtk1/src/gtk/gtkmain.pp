@@ -30,8 +30,8 @@
 {$endif}
 
 function  gtk_check_gtkversion(required_major:guint; required_minor:guint; required_micro:guint):Pgchar;cdecl;external gtkdll name 'gtk_check_version';
-procedure gtk_init(argc:plongint; argv:pppchar);cdecl;external gtkdll name 'gtk_init';
-function  gtk_init_check(argc:plongint; argv:pppchar):gboolean;cdecl;external gtkdll name 'gtk_init_check';
+procedure gtk_init(argc:plongint; argv:PPPAnsiChar);cdecl;external gtkdll name 'gtk_init';
+function  gtk_init_check(argc:plongint; argv:PPPAnsiChar):gboolean;cdecl;external gtkdll name 'gtk_init_check';
 procedure gtk_exit(error_code:gint);cdecl;external gtkdll name 'gtk_exit';
 function  gtk_set_locale:Pgchar;cdecl;external gtkdll name 'gtk_set_locale';
 function  gtk_events_pending:gint;cdecl;external gtkdll name 'gtk_events_pending';
