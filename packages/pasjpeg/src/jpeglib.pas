@@ -713,7 +713,7 @@ type
 
   {int8array = Array[0..8-1] of int;}
   int8array = Array[0..8-1] of longint; { for TP FormatStr }
-  TFormatCallback = procedure  (cinfo : j_common_ptr; var buffer : shortstring);
+  TFormatCallback = procedure  (cinfo : j_common_ptr; var buffer : string);
 
   jpeg_error_mgr = record
     { Error exit handler: does not return to caller }

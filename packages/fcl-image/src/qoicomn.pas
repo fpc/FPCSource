@@ -19,7 +19,7 @@ interface
 
 type  PQoiHeader = ^TQoiHeader;
       TQoiHeader = packed record
-         magic  : array [0..3] of char; { magic bytes 'qoif' }
+         magic  : array [0..3] of AnsiChar; { magic bytes 'qoif' }
          width  : dword;                { image width in pixels (BE)}
          height : dword;                { image height in pixels (BE)}
          channels   : byte;             { 3 = RGB, 4 = RGBA }

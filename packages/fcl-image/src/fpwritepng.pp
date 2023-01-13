@@ -139,7 +139,7 @@ begin
     {$ELSE}
     chead.CLength := alength;
     {$ENDIF}
-	if (ReadType = '') then
+	if (Length(ReadType)=0) then
       if atype <> ctUnknown then
         chead.CType := ChunkTypes[aType]
       else

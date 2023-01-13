@@ -3,7 +3,7 @@ unit PasJPeg;
 {$I jconfig.inc}
 
 interface
-
+{$openstrings off}
 uses
   Classes, SysUtils;
 

@@ -25,9 +25,9 @@ type
       width, height, ncols, cpp, xhot, yhot : integer;
       xpmext : boolean;
       palette : TStringList;
-      function HexToColor(s : string) : TFPColor;
-      function NameToColor(s : string) : TFPColor;
-      function DiminishWhiteSpace (s : string) : string;
+      function HexToColor(s : AnsiString) : TFPColor;
+      function NameToColor(s : AnsiString) : TFPColor;
+      function DiminishWhiteSpace (s : AnsiString) : AnsiString;
     protected
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
@@ -53,9 +53,9 @@ begin
   inherited destroy;
 end;
 
-function TFPReaderXPM.HexToColor(s : string) : TFPColor;
+function TFPReaderXPM.HexToColor(s : AnsiString) : TFPColor;
 var l : integer;
-  function CharConv (c : char) : longword;
+  function CharConv (c : AnsiChar) : longword;
   begin
     if (c >= 'A') and (c <= 'F') then
       result := ord (c) - ord('A') + 10
@@ -64,7 +64,7 @@ var l : integer;
     else
       raise exception.CreateFmt ('Wrong character (%s) in hexadecimal number', [c]);
   end;
-  function convert (n : string) : word;
+  function convert (n : AnsiString) : word;
   var t,r: integer;
   begin
     result := 0;
@@ -89,7 +89,7 @@ begin
   result.alpha := AlphaOpaque;
 end;
 
-function TFPReaderXPM.NameToColor(s : string) : TFPColor;
+function TFPReaderXPM.NameToColor(s : AnsiString) : TFPColor;
 begin
   s := lowercase (s);
   if s = 'transparent' then
@@ -152,7 +152,7 @@ begin
     result := colTransparent;
 end;
 
-function TFPReaderXPM.DiminishWhiteSpace (s : string) : string;
+function TFPReaderXPM.DiminishWhiteSpace (s : AnsiString) : AnsiString;
 var r : integer;
     Doit : boolean;
 begin
@@ -175,7 +175,7 @@ end;
 procedure TFPReaderXPM.InternalRead  (Str:TStream; Img:TFPCustomImage);
 var l : TStringList;
 
-  procedure TakeInteger (var s : string; var i : integer);
+  procedure TakeInteger (var s : AnsiString; var i : integer);
   var r : integer;
   begin
     r := pos (' ', s);
@@ -192,7 +192,7 @@ var l : TStringList;
   end;
 
   procedure ParseFirstLine;
-  var s : string;
+  var s : AnsiString;
   begin
     s := l[0];
     // diminish all whitespace to 1 blank
@@ -211,15 +211,15 @@ var l : TStringList;
       end;
   end;
 
-  procedure AddPalette (const code:string;const Acolor:TFPColor);
+  procedure AddPalette (const code:AnsiString;const Acolor:TFPColor);
   var r : integer;
   begin
     r := Palette.Add(code);
     img.palette.Color[r] := Acolor;
   end;
 
-  procedure AddToPalette(s : string);
-  var code : string;
+  procedure AddToPalette(s : AnsiString);
+  var code : AnsiString;
       c : TFPColor;
        p : integer;
   begin
@@ -260,9 +260,9 @@ var l : TStringList;
       AddToPalette (l[r]);
   end;
 
-  procedure ReadLine (const s : string; imgindex : integer);
+  procedure ReadLine (const s : AnsiString; imgindex : integer);
   var color, r, p : integer;
-      code : string;
+      code : AnsiString;
   begin
     p := 1;
     for r := 1 to width do
@@ -309,12 +309,12 @@ begin
 end;
 
 function  TFPReaderXPM.InternalCheck (Str:TStream) : boolean;
-var s : string[9];
+var s : String[9];
     l : integer;
 begin
   try
     l := str.Read (s[1],9);
-    s[0] := char(l);
+    s[0] := AnsiChar(l);
     if l <> 9 then
       result := False
     else
