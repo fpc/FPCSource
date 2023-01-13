@@ -371,7 +371,7 @@ Type
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
     ulConnectorType  : LongInt;                  // Connector type
     ulConnectorIndex : LongInt;                  // Connector index
-    pszAlias         : pChar;                  // Connection device alias
+    pszAlias         : PAnsiChar;                  // Connection device alias
     usToDeviceID     : Integer;                 // Connected to device ID
     usReserved0      : Integer;                 // Reserved field
     ulReserved1      : LongInt;                  // Reserved field
@@ -545,11 +545,11 @@ type mci_connlist=record
       //****************************************************************************/
 type mci_network_default_connection_parms=record
      hwndCallback:HWND;                   // PM window handle for MCI notify message    */
-     szInstallName:ARRAY [0..MAX_DEVICE_NAME] of Char; // Name of section containing default conn.   */
+     szInstallName:ARRAY [0..MAX_DEVICE_NAME] of AnsiChar; // Name of section containing default conn.   */
      ulNumDevices:LongInt;                   // Number of additional devices in connection */
      ulNumPlayConnections:LongInt;           // Number of Play connections                 */
      ulNumRecordConnections:LongInt;         // Number of Record connections               */
-     pDevices:ARRAY [0..MAX_DEVICE_NAME] of ^Char;    // Pointer to array of device names to open   */
+     pDevices:ARRAY [0..MAX_DEVICE_NAME] of ^AnsiChar;    // Pointer to array of device names to open   */
      pPlayConnections:PMCI_CONNLIST;               // Pointer to array of connections to "make"  */
      pRecordConnections:PMCI_CONNLIST;             // Pointer to array of connections to "make"  */
      end;
@@ -569,11 +569,11 @@ CONST
       //********************************************************************/
 type  mci_Default_Connection_Parms = record
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
-    pszDevice        : pChar;                  // Device name
+    pszDevice        : PAnsiChar;                  // Device name
     ulConnectorType  : LongInt;                  // If specified, ulConnectorIndex is relative
                                                // to the specified connector type
     ulConnectorIndex : LongInt;                  // Connector number
-    pszToDevice      : pChar;                  // Return device name to which the connection exists
+    pszToDevice      : PAnsiChar;                  // Return device name to which the connection exists
     ulToConnectorType: LongInt;                  // Connector type
     ulToConnectorIndex:LongInt;                  // Connector number
   end;
@@ -586,7 +586,7 @@ type  mci_Default_Connection_Parms = record
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
     hwndNotebook     : hwnd;                   // Hwhd to notebook window
     usDeviceType     : Integer;                 // Device type
-    pszDeviceName    : pChar;                  // Device name
+    pszDeviceName    : PAnsiChar;                  // Device name
   end;
   pmci_DeviceSettings_Parms = ^mci_DeviceSettings_Parms;
 
@@ -614,7 +614,7 @@ const
 type
   mci_Escape_Parms = record
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
-    pszCommand       : pChar;                  // Command to send to the device
+    pszCommand       : PAnsiChar;                  // Command to send to the device
   end;
   pmci_Escape_Parms = ^mci_Escape_Parms;
 
@@ -981,7 +981,7 @@ type
     ulStructLength              : LongInt;       // Length of Structure in ULONGS.
     usMasterID                  : Integer;      // ID of Master device in Synchrounous groups.
     usReserved1                 : Integer;      // RESERVED
-    pszGroupAlias               : pChar;       // Pointer to Alias Name.
+    pszGroupAlias               : PAnsiChar;       // Pointer to Alias Name.
     ulNumDevices                : LongInt;       // Number of Devices in group.
     paulDeviceID                : PLongInt;      // Array of Device ids in the group.
   end;
@@ -1024,7 +1024,7 @@ CONST
 type
   mci_Info_Parms = record
     hwndCallback      : hwnd;                  // PM window handle for MCI notify message
-    pszReturn         : pChar;                 // Pointer to return buffer
+    pszReturn         : PAnsiChar;                 // Pointer to return buffer
     ulRetSize         : LongInt;                 // Return buffer size
   end;
   pmci_Info_Parms = ^mci_Info_Parms;
@@ -1036,7 +1036,7 @@ type
       //********************************************************************/
   mci_Load_Parms = record
     hwndCallback      : hwnd;                  // PM window handle for MCI notify message
-    pszElementName    : pChar;                 // File name to loads
+    pszElementName    : PAnsiChar;                 // File name to loads
   end;
   pmci_Load_Parms = ^mci_Load_Parms;
 
@@ -1089,9 +1089,9 @@ type
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
     usDeviceID       : Integer;                 // Device ID returned to user
     usReserved0      : Integer;                 // Reserved
-    pszDeviceType    : pChar;                  // Device name from SYSTEM.INI
-    pszElementName   : pChar;                  // Typically a file name or NULL
-    pszAlias         : pChar;                  // Optional device alias
+    pszDeviceType    : PAnsiChar;                  // Device name from SYSTEM.INI
+    pszElementName   : PAnsiChar;                  // Typically a file name or NULL
+    pszAlias         : PAnsiChar;                  // Optional device alias
   end;
   pmci_Open_Parms = ^mci_Open_Parms;
 
@@ -1102,9 +1102,9 @@ type
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
     usDeviceID       : Integer;                 // Device ID returned to user
     usReserved0      : Integer;                 // Reserved field
-    pszDeviceType    : pChar;                  // Device name from SYSTEM.INI
-    pszElementName   : pChar;                  // Typically a file name or NULL
-    pszAlias         : pChar;                  // Optional device alias
+    pszDeviceType    : PAnsiChar;                  // Device name from SYSTEM.INI
+    pszElementName   : PAnsiChar;                  // Typically a file name or NULL
+    pszAlias         : PAnsiChar;                  // Optional device alias
     pDevDataPtr      : Pointer;                // Pointer to device data
   end;
   pmci_Amp_Open_Parms = ^mci_Amp_Open_Parms;
@@ -1117,9 +1117,9 @@ type
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
     usDeviceID       : Integer;                 // Device ID returned to user
     usReserved0      : Integer;                 // Reserved field
-    pszDeviceType    : pChar;                  // Device name from SYSTEM.INI
-    pszElementName   : pChar;                  // Typically a file name or NULL
-    pszAlias         : pChar;                  // Optional device alias
+    pszDeviceType    : PAnsiChar;                  // Device name from SYSTEM.INI
+    pszElementName   : PAnsiChar;                  // Typically a file name or NULL
+    pszAlias         : PAnsiChar;                  // Optional device alias
     hwndParent       : hwnd;                   // Parent window handle
   end;
   pmci_Vid_Open_Parms = ^mci_Vid_Open_Parms;
@@ -1276,7 +1276,7 @@ const
 type
   mci_Save_Parms = record
     hwndCallback                : hwnd;        // PM window handle for MCI notify message
-    pszFileName                 : pChar;       // Filename to save data to
+    pszFileName                 : PAnsiChar;       // Filename to save data to
   end;
   pmci_Save_Parms = ^mci_Save_Parms;
 
@@ -2072,17 +2072,17 @@ CONST
       // parameter structures for the MCI_SYSINFO message                  */
       //********************************************************************/
 TYPE
-  MaxDevNameChar = array [0..Max_Device_Name-1] of CHAR;
-  MaxVerNumChar = array [0..Max_Version_Number-1] of CHAR;
-  MaxProdInfChar = array [0..Max_ProdInfo-1] of CHAR;
-  MaxPddNameChar = array [0..Max_Pdd_Name-1] of CHAR;
+  MaxDevNameChar = array [0..Max_Device_Name-1] of AnsiChar;
+  MaxVerNumChar = array [0..Max_Version_Number-1] of AnsiChar;
+  MaxProdInfChar = array [0..Max_ProdInfo-1] of AnsiChar;
+  MaxPddNameChar = array [0..Max_Pdd_Name-1] of AnsiChar;
   MaxClsShort    = array [0..Max_Classes-1] of integer;
   MaxClsShort2   = array [0..Max_Classes-1,0..Max_Classes-1] of integer;
-  MaxDevParmChar = array [0..Max_Dev_Params-1] of CHAR;
+  MaxDevParmChar = array [0..Max_Dev_Params-1] of AnsiChar;
 
   mci_SysInfo_Parms = record
     hwndDummyCallback        : hwnd;           // NOTIFY not allowed for SYSINFO
-    pszReturn                : pChar;          // Pointer to return buffer
+    pszReturn                : PAnsiChar;          // Pointer to return buffer
     ulRetSize                : LongInt;          // Return buffer size
     ulNumber                 : LongInt;          // Ordinal Number
     usDeviceType             : Integer;         // MCI device type number
@@ -2135,9 +2135,9 @@ type
 
 
   MaxCnctCnct      = array[0..MAX_CONNECTORS-1] of Connect;
-  MaxExtChar2      = array[0..MAX_EXTENSIONS-1,0..MAX_EXTENSION_NAME-1] of CHAR;
-  MaxAliasNameChar = array[0..Max_Alias_Name-1] of Char;
-  MaxTypeBufChar   = array[0..Max_TypeBuffer] of Char;
+  MaxExtChar2      = array[0..MAX_EXTENSIONS-1,0..MAX_EXTENSION_NAME-1] of AnsiChar;
+  MaxAliasNameChar = array[0..Max_Alias_Name-1] of AnsiChar;
+  MaxTypeBufChar   = array[0..Max_TypeBuffer] of AnsiChar;
 
   mci_SysInfo_ConParams = record
     szInstallName            : MaxDevNameChar; // Device install name
@@ -2231,8 +2231,8 @@ type
                                                // the destination of the video image
     usCmdShow                   : Integer;      // Specifies how the window is displayed
     usReserved1                 : Integer;      // Reserved
-    pszText                     : pChar;       // The text to use as the window caption
-    pszAlias                    : pChar;       // The window alias for the display window
+    pszText                     : PAnsiChar;       // The text to use as the window caption
+    pszAlias                    : PAnsiChar;       // The window alias for the display window
   end;
   pmci_Vid_Window_Parms = ^mci_Vid_Window_Parms;
 
@@ -2265,7 +2265,7 @@ type
     ulReserved0                 : LongInt;       // Reserved 0
     ulTVChannel                 : LongInt;       // TV Channel
     lFineTune                   : LongInt;        // Fine tuning adjustments.
-    pszRegion                   : pChar;       // TV Channel Region
+    pszRegion                   : PAnsiChar;       // TV Channel Region
     ulReserved1                 : LongInt;       // Reserved 1
     ulReserved2                 : LongInt;       // Reserved 2
   end;
@@ -2313,10 +2313,10 @@ CONST
 function mciSendCommand(usDeviceID: Integer; usMessage: Integer; ulParam1: LongInt;
          var Param2; usUserParm: Integer): longint; cdecl;
 
-function mciSendString(pszCommandBuf: pChar; pszReturnString: pChar;
+function mciSendString(pszCommandBuf: PAnsiChar; pszReturnString: PAnsiChar;
          wReturnLength: Integer; hwndCallBack: hwnd; usUserParm: Integer): longInt; cdecl;
 
-function mciGetErrorString(ulError: LongInt; pszBuffer: pChar; usLength: Integer): longint; cdecl;
+function mciGetErrorString(ulError: LongInt; pszBuffer: PAnsiChar; usLength: Integer): longint; cdecl;
 
 function mciMakeGroup(var usDeviceGroupID:Integer; usDeviceCount: Integer;
              var ausDeviceList: Integer; ulFlags: LongInt; ulMMTime: LongInt): longint; cdecl;
@@ -2327,7 +2327,7 @@ function mciSetSysValue(iSysValue: Integer; var Value): Boolean; cdecl;
 
 function mciQuerySysValue(iSysValue: Integer;var Value): Boolean; cdecl;
 
-function mciGetDeviceID(pszName: pChar): Longint; cdecl;
+function mciGetDeviceID(pszName: PAnsiChar): Longint; cdecl;
 
 Implementation
 
@@ -2443,17 +2443,17 @@ end;
 
 function tmsf_minute(time: mmTime): Byte;
 begin
-  tmsf_minute := pbyte(pchar(@time)+1)^;
+  tmsf_minute := pbyte(PAnsiChar(@time)+1)^;
 end;
 
 function tmsf_second(time: mmTime): Byte;
 begin
-  tmsf_second := pbyte(pchar(@time)+2)^;
+  tmsf_second := pbyte(PAnsiChar(@time)+2)^;
 end;
 
 function tmsf_frame(time: mmTime): Byte;
 begin
-  tmsf_frame := pbyte(pchar(@time)+3)^;
+  tmsf_frame := pbyte(PAnsiChar(@time)+3)^;
 end;
 
 function msf_minute(time: mmTime): Byte;
@@ -2463,12 +2463,12 @@ end;
 
 function msf_second(time: mmTime): Byte;
 begin
-  msf_second := pbyte(pchar(@time)+1)^;
+  msf_second := pbyte(PAnsiChar(@time)+1)^;
 end;
 
 function msf_frame(time: mmTime): Byte;
 begin
-  msf_frame := pbyte(pchar(@time)+2)^;
+  msf_frame := pbyte(PAnsiChar(@time)+2)^;
 end;
 
 function uLong_lwlb(var ul): Byte;   // Low word low byte
@@ -2478,36 +2478,36 @@ end;
 
 function uLong_lwhb(var ul): Byte;   // Low word high byte
 begin
-  uLong_lwhb := pbyte(pchar(@ul)+1)^;
+  uLong_lwhb := pbyte(PAnsiChar(@ul)+1)^;
 end;
 
 function uLong_hwlb(var ul): Byte;   // High word low byte
 begin
-  uLong_hwlb := pbyte(pchar(@ul)+2)^;
+  uLong_hwlb := pbyte(PAnsiChar(@ul)+2)^;
 end;
 
 function uLong_hwhb(var ul): Byte;   // High word high byte
 begin
-  uLong_hwhb := pbyte(pchar(@ul)+3)^;
+  uLong_hwhb := pbyte(PAnsiChar(@ul)+3)^;
 end;
 
 function uLong_lowd(var ul): Word;   // Low word
 begin
-  uLong_lowd:=pWord(pchar(@ul))^;
+  uLong_lowd:=pWord(PAnsiChar(@ul))^;
 end;
 
 function uLong_hiwd(var ul): Word;   // High word
 begin
-  uLong_hiwd := pWord(pchar(@ul)+Sizeof(Word))^;
+  uLong_hiwd := pWord(PAnsiChar(@ul)+Sizeof(Word))^;
 end;
 
 function mciSendCommand(usDeviceID: Integer; usMessage: Integer; ulParam1: LongInt;
          var Param2; usUserParm: Integer): longint; cdecl; external 'MDM' index 1;
 
-function mciSendString(pszCommandBuf: pChar; pszReturnString: pChar;
+function mciSendString(pszCommandBuf: PAnsiChar; pszReturnString: PAnsiChar;
          wReturnLength: Integer; hwndCallBack: hwnd; usUserParm: Integer): longInt; cdecl; external 'MDM' index 2;
 
-function mciGetErrorString(ulError: LongInt; pszBuffer: pChar; usLength: Integer): longint;  cdecl; external 'MDM' index 3;
+function mciGetErrorString(ulError: LongInt; pszBuffer: PAnsiChar; usLength: Integer): longint;  cdecl; external 'MDM' index 3;
 
 function mciMakeGroup(var usDeviceGroupID:Integer; usDeviceCount: Integer;
              var ausDeviceList: Integer; ulFlags: LongInt; ulMMTime: LongInt): longint; cdecl; external 'MDM' index 12;
@@ -2518,6 +2518,6 @@ function mciSetSysValue(iSysValue: Integer; var Value): Boolean; cdecl; external
 
 function mciQuerySysValue(iSysValue: Integer;var Value): Boolean; cdecl; external 'MDM' index 11;
 
-function mciGetDeviceID(pszName: pChar): Longint; cdecl; external 'MDM' index 16;
+function mciGetDeviceID(pszName: PAnsiChar): Longint; cdecl; external 'MDM' index 16;
 
 End.

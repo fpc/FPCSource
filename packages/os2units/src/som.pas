@@ -53,7 +53,7 @@ type
   CORBAObjectType                       = TSOMObject;    (* in SOM, a CORBA object is a SOM object *)
 
   somToken              =Pointer;       (* Uninterpretted value   *)
-  somId                 =^PChar;
+  somId                 =^PAnsiChar;
   somIdPtr              =^somId;
   PsomToken             =^somToken;       (* Uninterpretted value   *)
 
@@ -63,8 +63,8 @@ type
   somDTokenPtr          =^somDToken;
 
 type
-  ImplId                =^PChar;
-  RepositoryId          = PChar;
+  ImplId                =^PAnsiChar;
+  RepositoryId          = PAnsiChar;
   AttributeDef_AttributeMode    = Cardinal;
   OperationDef_OperationMode = Longint;
   ParameterDef_ParameterMode    = Cardinal;
@@ -80,7 +80,7 @@ type
   somClassInfo          =somToken;
 
 
-  Identifier            =PChar;         (* CORBA 7.5.1, p. 129 *)
+  Identifier            =PAnsiChar;         (* CORBA 7.5.1, p. 129 *)
 
   TypeCode              = pointer;
 
@@ -271,7 +271,7 @@ type
   somMethodTabStruct    =record
     classObject         :SOMClassType;
     classInfo           :somClassInfoPtr;
-    className           :PChar;
+    className           :PAnsiChar;
     instanceSize        :Longint;
     dataAlignment       :Longint;
     mtabSize            :Longint;
@@ -462,7 +462,7 @@ type
 (* to specify non-internal data *)
   somNonInternalDataStruct=record
     classData           :somDTokenPtr;
-    basisForDataOffset  :PChar;
+    basisForDataOffset  :PAnsiChar;
   end;
   somNonInternalData_t  =somNonInternalDataStruct;
   somNonInternalData_p  =^somNonInternalData_t;
@@ -573,7 +573,7 @@ type
     ccds                :somCClassDataStructurePtr;
     smt                 :somStaticMethod_p; (* basic "static" methods for mtab *)
     omt                 :somOverrideMethod_p; (* overrides for mtab *)
-    nitReferenceBase    :PChar;
+    nitReferenceBase    :PAnsiChar;
     nit                 :somNonInternalData_p; (* datatokens for instance data *)
     pmt                 :somProcMethods_p; (* Arbitrary ClassData members *)
     vft                 :somVarargsFuncs_p; (* varargs stubs *)
@@ -717,7 +717,7 @@ type
  *  Should return 0 (false) if an error occurs and 1 (true) otherwise.
  *)
 type
-  somTD_SOMOutCharRoutine       =Function(ch:Char):Longint; cdecl;
+  somTD_SOMOutCharRoutine       =Function(ch:AnsiChar):Longint; cdecl;
 
 var
 {$warning support of external vars required}
@@ -755,7 +755,7 @@ Function  somAncestorResolve(obj:TSOMObject;                 (* the object *)
                              mToken:somMToken):{somMethodProc}pointer; cdecl;
   external 'som' name 'somAncestorResolve'; {index 74}
 Function  somResolveByName(obj:TSOMObject;
-                           methodName:PChar):{somMethodProc}pointer; cdecl;
+                           methodName:PAnsiChar):{somMethodProc}pointer; cdecl;
   external 'som' name 'somResolveByName'; {index 61}
 (*------------------------------------------------------------------------------
  * Offset-based data resolution
@@ -814,15 +814,15 @@ Function  somRegisterId(id:somId):Longint; cdecl;
 (* time the string associated with this id has been registered, *)
 (* returns 0 (false) otherwise *)
 
-Function  somIDFromString(aString:PChar):somId; cdecl;
+Function  somIDFromString(aString:PAnsiChar):somId; cdecl;
   external 'som' name 'somIdFromString'; {index 31}
 (* caller is responsible for freeing the returned id with SOMFree *)
 
 // Not found
-//Function  somIdFromStringNoFree(aString:PChar):somId; cdecl;
+//Function  somIdFromStringNoFree(aString:PAnsiChar):somId; cdecl;
 (* call is responsible for *not* freeing the returned id *)
 
-Function  somStringFromId(id:somId):PChar; cdecl;
+Function  somStringFromId(id:somId):PAnsiChar; cdecl;
   external 'som' name 'somStringFromId'; {index 40}
 
 Function  somCompareIds(id1,id2:somId):Longint; cdecl;
@@ -892,7 +892,7 @@ var
  * macro (for statically linked libraries), or during the _somFindClass
  * method (for libraries that are dynamically loaded).
  *)
-Procedure somRegisterClassLibrary(libraryName:PChar;
+Procedure somRegisterClassLibrary(libraryName:PAnsiChar;
                                   libraryInitRun:somMethodProc); cdecl;
   external 'som' name 'somRegisterClassLibrary'; {index 86}
 
@@ -971,11 +971,11 @@ Procedure somConstructClass(classInitRoutine:somTD_ClassInitRoutine;
  * Uses <SOMOutCharRoutine> to output its arguments under control of the ANSI C
  * style format.  Returns the number of characters output.
  *)
-Function  somPrintf(fnt:PChar;buf:pointer):Longint; cdecl;
+Function  somPrintf(fnt:PAnsiChar;buf:pointer):Longint; cdecl;
   external 'som' name 'somPrintf'; {index 35}
 
 // vprint form of somPrintf
-Function  somVPrintf(fnt:PChar;var ap):Longint; cdecl;
+Function  somVPrintf(fnt:PAnsiChar;var ap):Longint; cdecl;
   external 'som' name 'somVprintf'; {index 45}
 
 // Outputs (via somPrintf) blanks to prefix a line at the indicated level
@@ -983,7 +983,7 @@ Procedure somPrefixLevel(level:Longint); cdecl;
   external 'som' name 'somPrefixLevel'; {index 34}
 
 // Combines somPrefixLevel and somPrintf
-Procedure somLPrintf(level:Longint;fmt:PChar;var buf); cdecl;
+Procedure somLPrintf(level:Longint;fmt:PAnsiChar;var buf); cdecl;
   external 'som' name 'somLPrintf'; {index 32}
 
 Function SOMObjectNewClass(majorVersion,minorVersion:Longint):SOMClassType; cdecl;
@@ -998,14 +998,14 @@ Function SOMClassMgrNewClass(majorVersion,minorVersion:Longint):SOMClassType; cd
  * Pointers to routines used to do dynamic code loading and deleting
  *)
 type
-  somTD_SOMLoadModule           =Function({IN}Module:PChar      (* className *);
-                                          {IN}FileName:PChar    (* fileName *);
-                                          {IN}FuncName:PChar    (* functionName *);
+  somTD_SOMLoadModule           =Function({IN}Module:PAnsiChar      (* className *);
+                                          {IN}FileName:PAnsiChar    (* fileName *);
+                                          {IN}FuncName:PAnsiChar    (* functionName *);
                                           {IN}MajorVer:Longint  (* majorVersion *);
                                           {IN}MinorVer:Longint  (* minorVersion *);
                                           {OUT}var ref:somToken (* modHandle *)):Longint; cdecl;
   somTD_SOMDeleteModule         =Function({IN} ref:somToken     (* modHandle *)):Longint; cdecl;
-  somTD_SOMClassInitFuncName    =Function:PChar; cdecl;
+  somTD_SOMClassInitFuncName    =Function:PAnsiChar; cdecl;
 
 var
 {$warning support of external vars required}
@@ -1046,7 +1046,7 @@ var
 
 type
   somTD_SOMError                =Procedure({IN} code:Longint    (* code *);
-                                           {IN} fn:PChar        (* fileName *);
+                                           {IN} fn:PAnsiChar        (* fileName *);
                                            {IN} ln:Longint      (* linenum *)); cdecl;
 
 var
@@ -1098,13 +1098,13 @@ var
  *)
 
 Function  somTestCls(obj:TSOMObject; classObj:SOMClassType;
-                     fileName:PChar; lineNumber:Longint):TSOMObject; cdecl;
+                     fileName:PAnsiChar; lineNumber:Longint):TSOMObject; cdecl;
   external 'som' name 'somTestCls'; {index 42}
-Procedure somTest(condition,severity:Longint;fileName:PChar;
-                  lineNum:Longint;msg:PChar); cdecl;
+Procedure somTest(condition,severity:Longint;fileName:PAnsiChar;
+                  lineNum:Longint;msg:PAnsiChar); cdecl;
   external 'som' name 'somTest'; {index 41}
 Procedure somAssert(condition,ecode:Longint;
-                    fileName:PChar;lineNum:Longint;msg:PChar); cdecl;
+                    fileName:PAnsiChar;lineNum:Longint;msg:PAnsiChar); cdecl;
   external 'som' name 'somAssert'; {index 23}
 
 type
@@ -1119,25 +1119,25 @@ type
   EnvironmentType       = record
     _major              : exception_type;
     exception           : record
-      _exception_name   : PChar;
+      _exception_name   : PAnsiChar;
       _params           : Pointer;
     end;
     _somdAnchor         : pointer;
   end;
 
-Function  somExceptionId(ev:Environment):PChar; cdecl;
+Function  somExceptionId(ev:Environment):PAnsiChar; cdecl;
   external 'som' name 'somExceptionId'; {index 52}
 Function  somExceptionValue(ev:Environment):Pointer; cdecl;
   external 'som' name 'somExceptionValue'; {index 53}
 Procedure somExceptionFree(ev:Environment); cdecl;
   external 'som' name 'somExceptionFree'; {index 54}
-Procedure somSetException(ev:Environment;major:exception_type;exception_name:PChar;params:pointer); cdecl;
+Procedure somSetException(ev:Environment;major:exception_type;exception_name:PAnsiChar;params:pointer); cdecl;
   external 'som' name 'somSetException'; {index 55}
 Function  somGetGlobalEnvironment:Environment; cdecl;
   external 'som' name 'somGetGlobalEnvironment'; {index 58}
 
 (* Exception function names per CORBA 5.19, p.99 *)
-Function  exception_id(ev:Environment):PChar; cdecl;
+Function  exception_id(ev:Environment):PAnsiChar; cdecl;
 Function  exception_value(ev:Environment):Pointer; cdecl;
 Procedure exception_free(ev:Environment); cdecl;
 
@@ -1396,9 +1396,9 @@ var
   SOM_AssertLevel: Longint; //³ 00017 ³ SOM_AssertLevel
 
 // ToDo: Move this to corresponding place
-Procedure somCheckArgs(argc: longint; argv: array of pchar); cdecl;
+Procedure somCheckArgs(argc: longint; argv: array of PAnsiChar); cdecl;
   external 'som' name 'somCheckArgs'; {index 25}
-Procedure somUnregisterClassLibrary (libraryName: PChar); cdecl;
+Procedure somUnregisterClassLibrary (libraryName: PAnsiChar); cdecl;
   external 'som' name 'somUnregisterClassLibrary'; {index 89}
 Function somResolveTerminal(x : SOMClassPtr; mdata: somMToken): somMethodProcPtr; cdecl;
   external 'som' name 'somResolveTerminal'; {index 133}
@@ -1468,7 +1468,7 @@ Function somva_SOMObject_somClassDispatch(somSelf: PSOMObject;
 
 Implementation
 
-Function exception_id(ev:Environment):PChar; cdecl;
+Function exception_id(ev:Environment):PAnsiChar; cdecl;
 begin
   Result := somExceptionId(ev)
 end;
