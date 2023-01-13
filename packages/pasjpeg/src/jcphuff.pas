@@ -55,7 +55,7 @@ type
     ac_tbl_no : int;            { the table number of the single component }
     EOBRUN : uInt;              { run length of EOBs }
     BE : uInt;                  { # of buffered correction bits before MCU }
-    bit_buffer : JBytePtr;      { buffer for correction bits (1 per char) }
+    bit_buffer : JBytePtr;      { buffer for correction bits (1 per AnsiChar) }
     { packing correction bits tightly would save some space but cost time... }
 
     restarts_to_go : uInt;      { MCUs left in this restart interval }

@@ -33,7 +33,7 @@ begin
 end;
 
 { Error exit handler }
-procedure ERREXIT(msg : string);
+procedure ERREXIT(msg : shortstring);
 begin
   WriteLn(output, msg);
   Halt(EXIT_FAILURE);
@@ -182,7 +182,7 @@ const
   LF = 10;
 var
   length : uInt;
-  comment : string;
+  comment : shortstring;
   lastch : byte;
 begin
   comment := '';
@@ -196,7 +196,7 @@ begin
   comment := '';
   while (length > 0) do
   begin
-    comment := comment + char(read_1_byte);
+    comment := comment + AnsiChar(read_1_byte);
     Dec(length);
   end;
   WriteLn(comment);
@@ -211,7 +211,7 @@ var
   length : uInt;
   image_height, image_width : uInt;
   data_precision, num_components : int;
-  process : string;
+  process : shortstring;
   ci: int;
 begin
   length := read_2_bytes;       { usual parameter length count }
@@ -341,7 +341,7 @@ end;
 var
   verbose : boolean;
   argn : int;
-  arg : string;
+  arg : shortstring;
 begin
   verbose := FALSE;
 

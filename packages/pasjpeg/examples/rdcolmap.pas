@@ -141,7 +141,7 @@ end;
 
 {LOCAL}
 function pbm_getc (var infile : FILE) : int;
-{ Read next char, skipping over any comments }
+{ Read next AnsiChar, skipping over any comments }
 { A comment/newline sequence is returned as a newline }
 var
   {register} ch : int;
@@ -255,7 +255,7 @@ end;
 procedure read_color_map (cinfo : j_decompress_ptr;
                           var infile : FILE);
 var
-  ch : char;
+  ch : AnsiChar;
 begin
   { Allocate space for a color map of maximum supported size. }
   cinfo^.colormap := cinfo^.mem^.alloc_sarray

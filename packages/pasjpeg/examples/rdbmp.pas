@@ -50,11 +50,11 @@ type
 {$else} { !HAVE_UNSIGNED_CHAR }
   {$ifdef CHAR_IS_UNSIGNED}
   type
-    U_CHAR = char;
+    U_CHAR = AnsiChar;
     UCH = int;
   {$else}
   type
-    U_CHAR = char;
+    U_CHAR = AnsiChar;
     UCH = int(x) and $FF
   {$endif}
 {$endif} { HAVE_UNSIGNED_CHAR }

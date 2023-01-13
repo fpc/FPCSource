@@ -56,7 +56,7 @@ implementation
 
 {$ifdef HAVE_UNSIGNED_CHAR}
 type
-  U_CHAR = unsigned char;
+  U_CHAR = unsigned AnsiChar;
   UCH = int;
 {$else} { !HAVE_UNSIGNED_CHAR }
   {$ifdef CHAR_IS_UNSIGNED}
@@ -66,7 +66,7 @@ type
     UCH = int;
   {$else}
   type
-    U_CHAR = char;
+    U_CHAR = AnsiChar;
     UCH(x) = int (x and $FF)
   {$endif}
 {$endif} { HAVE_UNSIGNED_CHAR }
@@ -105,11 +105,11 @@ const
   CR = #13;
 
 {LOCAL}
-function pbm_getc (var infile : file) : char;
-{ Read next char, skipping over any comments }
+function pbm_getc (var infile : file) : AnsiChar;
+{ Read next AnsiChar, skipping over any comments }
 { A comment/newline sequence is returned as a newline }
 var
-  {register} ch : char;
+  {register} ch : AnsiChar;
 begin
   {getch} BlockRead(infile, ch, 1);
   if (ch = '#') then
@@ -132,7 +132,7 @@ function read_pbm_integer (cinfo : j_compress_ptr; var infile : file) : uint;
 const
   TAB = ^I;
 var
-  {register} ch : char;
+  {register} ch : AnsiChar;
   {register} val : uint;
 begin
   { Skip any leading whitespace }
@@ -386,7 +386,7 @@ procedure start_input_ppm (cinfo : j_compress_ptr;
                            sinfo : cjpeg_source_ptr); far;
 var
   source : ppm_source_ptr;
-  c : char;
+  c : AnsiChar;
   w, h, maxval : uint;
   need_iobuffer, use_raw_buffer, need_rescale : boolean;
 var

@@ -23,7 +23,7 @@ uses
   jpeglib;
 
 {GLOBAL}
-function set_quant_slots (cinfo : j_compress_ptr; argtxt : string) : boolean;
+function set_quant_slots (cinfo : j_compress_ptr; argtxt : ansistring) : boolean;
 { Process a quantization-table-selectors parameter string, of the form
       N[,N,...]
   If there are more components than parameters, the last value is re0licated.
@@ -32,7 +32,7 @@ function set_quant_slots (cinfo : j_compress_ptr; argtxt : string) : boolean;
 
 {GLOBAL}
 function set_sample_factors (cinfo : j_compress_ptr;
-                             argtxt : string) : boolean;
+                             argtxt ansi: string) : boolean;
 { Process a sample-factors parameter string, of the form
       HxV[,HxV,...]
   If there are more components than parameters, "1x1" is assumed for the rest.
@@ -40,7 +40,7 @@ function set_sample_factors (cinfo : j_compress_ptr;
 
 {GLOBAL}
 function read_quant_tables (cinfo : j_compress_ptr;
-                            const filename : string;
+                            const filename : ansistring;
                             scale_factor : int;
                             force_baseline : boolean) : boolean;
 
@@ -55,7 +55,7 @@ function read_quant_tables (cinfo : j_compress_ptr;
 
 {GLOBAL}
 function read_scan_script (cinfo : j_compress_ptr;
-                           const filename : string) : boolean;
+                           const filename : ansistring) : boolean;
 { Read a scan script from the specified text file.
   Each entry in the file defines one scan to be emitted.
   Entries are separated by semicolons ';'.
@@ -83,16 +83,16 @@ const
   LF = #10; { }
 
 {LOCAL}
-function text_getc (var fc : Cache) : char;
-{ Read next char, skipping over any comments (# to end of line) }
+function text_getc (var fc : Cache) : AnsiChar;
+{ Read next AnsiChar, skipping over any comments (# to end of line) }
 { A comment/newline sequence is returned as a newline }
 var
-  ch : char; {register }
+  ch : AnsiChar; {register }
 begin
-  ch := char(fc_GetC(fc));
+  ch := AnsiChar(fc_GetC(fc));
   if (ch = '#') then
   repeat
-    ch := char(fc_GetC(fc));
+    ch := AnsiChar(fc_GetC(fc));
   Until (ch = #13) or (ch = EOF);
   text_getc := ch;
 end;
@@ -100,11 +100,11 @@ end;
 {LOCAL}
 function read_text_integer (var f : Cache;
                             var outval : long;
-                            var termchar : char) : boolean;
+                            var termchar : AnsiChar) : boolean;
 { Read an unsigned decimal integer from a file, store it in outval }
 { Reads one trailing character after the integer; returns it in termchar }
 var
-  {register} ch : char;
+  {register} ch : AnsiChar;
   {register} val : long;
 begin
   { Skip any leading whitespace, detect EOF }
@@ -143,7 +143,7 @@ end;
 
 {GLOBAL}
 function read_quant_tables (cinfo : j_compress_ptr;
-                            const filename : string;
+                            const filename : ansistring;
                             scale_factor : int;
                             force_baseline : boolean) : boolean;
 { Read a set of quantization tables from the specified file.
@@ -158,7 +158,7 @@ var
   f : file;
   fp : Cache;
   tblno, i : int;
-  termchar : char;
+  termchar : AnsiChar;
   val : long;
   table : array[0..DCTSIZE2-1] of uInt;
 begin
@@ -219,11 +219,11 @@ end;
 {LOCAL}
 function read_scan_integer (var f : cache;
                             var outval : long;
-                            var termchar : char) : boolean;
+                            var termchar : AnsiChar) : boolean;
 { Variant of read_text_integer that always looks for a non-space termchar;
   this simplifies parsing of punctuation in scan scripts. }
 var
-  ch : char; { register }
+  ch : AnsiChar; { register }
 begin
   if not read_text_integer(f, outval, termchar) then
   begin
@@ -257,7 +257,7 @@ end;
 
 {GLOBAL}
 function read_scan_script (cinfo : j_compress_ptr;
-                           const filename : string) : boolean;
+                           const filename : ansistring) : boolean;
 { Read a scan script from the specified text file.
   Each entry in the file defines one scan to be emitted.
   Entries are separated by semicolons ';'.
@@ -278,7 +278,7 @@ var
   f : file;
   fp : Cache;
   scanno, ncomps : int;
-  termchar : char;
+  termchar : AnsiChar;
   val : long;
   scanptr : jpeg_scan_info_ptr;
 const
@@ -389,9 +389,9 @@ end;
 
 {$endif} { C_MULTISCAN_FILES_SUPPORTED }
 
-function sscanf(var lineptr : PChar;
+function sscanf(var lineptr : PAnsiChar;
                 var val : int;
-                var ch : char) : boolean;
+                var ch : AnsiChar) : boolean;
 var
   digits : int;
 begin
@@ -423,10 +423,10 @@ function set_quant_slots (cinfo : j_compress_ptr;
 var
   val : int;    { default table # }
   ci : int;
-  ch : char;
+  ch : AnsiChar;
 var
-  arg_copy : string;
-  arg : PChar;
+  arg_copy : ansistring;
+  arg : PAnsiChar;
 begin
   arg_copy := argtxt + #0;
   if arg_copy[Length(arg_copy)] <> #0 then
@@ -469,17 +469,17 @@ end;
 
 {GLOBAL}
 function set_sample_factors (cinfo : j_compress_ptr;
-                             argtxt : string) : boolean;
+                             argtxt : ansistring) : boolean;
 { Process a sample-factors parameter string, of the form
       HxV[,HxV,...]
   If there are more components than parameters, "1x1" is assumed for the rest.
  }
 var
   ci, val1, val2 : int;
-  ch1, ch2 : char;
+  ch1, ch2 : AnsiChar;
 var
-  arg_copy : string;
-  arg : PChar;
+  arg_copy : ansistring;
+  arg : PAnsiChar;
 begin
   arg_copy := argtxt + #0;
   if arg_copy[Length(arg_copy)] <> #0 then

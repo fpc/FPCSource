@@ -37,7 +37,7 @@ Function fc_getc(var fc : Cache) : Byte;
 { Read a byte at the current buffer read-index, increment the buffer
   read-index }
 
-function fc_ungetc (var fc  : Cache; ch : char) : Byte;
+function fc_ungetc (var fc  : Cache; ch : AnsiChar) : Byte;
 { Read a byte at the current buffer read-index, increment the buffer
   read-index }
 
@@ -133,7 +133,7 @@ begin
     fc_getc := Byte(EOF);
 end;
 
-function fc_ungetc (var fc  : Cache; ch : char) : Byte;
+function fc_ungetc (var fc  : Cache; ch : AnsiChar) : Byte;
 { Read a byte at the current buffer read-index, increment the buffer
   read-index }
 begin
