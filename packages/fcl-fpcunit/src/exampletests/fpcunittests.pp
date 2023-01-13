@@ -299,7 +299,7 @@ end;
 
 procedure TAssertTest.TestEqualsChar;
 var
-  a, b: char;
+  a, b: AnsiChar;
 begin
   a := 'a';
   b := 'a';
@@ -434,7 +434,7 @@ end;
 
 procedure TAssertTest.FailEqualsChar;
 var
-  a, b: char;
+  a, b: AnsiChar;
 begin
   a := 'a';
   b := 'b';
