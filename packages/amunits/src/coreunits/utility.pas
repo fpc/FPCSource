@@ -377,8 +377,8 @@ function SMult64(Arg1: LongInt location 'd0'; Arg2 : LongInt location 'd1') : Lo
 function Stricmp(const Str1: STRPTR location 'a0';const Str2 : STRPTR location 'a1') : LongInt; syscall _UtilityBase 162;
 function Strnicmp(const Str1: STRPTR location 'a0';const Str2 : STRPTR location 'a1';len : LongInt location 'd0') : LongInt; syscall _UtilityBase 168;
 function TagInArray(t : Tag location 'd0';const TagArray : pULONG location 'a0') : LongBool; syscall _UtilityBase 090;
-function ToLower(c : ULONG location 'd0') : Char; syscall _UtilityBase 180;
-function ToUpper(c : ULONG location 'd0') : Char; syscall _UtilityBase 174;
+function ToLower(c : ULONG location 'd0') : AnsiChar; syscall _UtilityBase 180;
+function ToUpper(c : ULONG location 'd0') : AnsiChar; syscall _UtilityBase 174;
 function UDivMod32( dividend: ULONG location 'd0'; divisor : ULONG location 'd1') : ULONG; syscall _UtilityBase 156;
 function UMult32(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG; syscall _UtilityBase 144;
 function UMult64(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG; syscall _UtilityBase 204;
@@ -386,25 +386,25 @@ function UnpackStructureTags(const pac: APTR location 'a0';const packTable: pULO
 
 function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
 
-function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
-FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
-FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
-FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
-FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
-FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
-FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
-FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
+function AllocNamedObjectA(const name : ShortString;const TagList : pTagItem) : pNamedObject;
+FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : ShortString; lastObject : pNamedObject) : pNamedObject;
+FUNCTION Stricmp(CONST string1 : ShortString; CONST string2 : PAnsiChar) : LONGINT;
+FUNCTION Stricmp(CONST string1 : PAnsiChar; CONST string2 : ShortString) : LONGINT;
+FUNCTION Stricmp(CONST string1 : ShortString; CONST string2 : ShortString) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : ShortString; CONST string2 : PAnsiChar; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : PAnsiChar; CONST string2 : ShortString; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : ShortString; CONST string2 : ShortString; length : LONGINT) : LONGINT;
 {$endif}
 
 
 function TAG_(value: pointer): PtrUInt; overload; inline;
-function TAG_(value: pchar): PtrUInt; overload; inline;
+function TAG_(value: PAnsiChar): PtrUInt; overload; inline;
 function TAG_(value: boolean): PtrUInt; overload; inline;
 function TAG_(value: LongInt): PtrUInt; overload; inline;
 function TAG_(Value: LongWord): PtrUInt; overload; inline;
 
 function AsTag(value: pointer): PtrUInt; overload; inline;
-function AsTag(value: pchar): PtrUInt; overload; inline;
+function AsTag(value: PAnsiChar): PtrUInt; overload; inline;
 function AsTag(value: boolean): PtrUInt; overload; inline;
 function AsTag(value: LongInt): PtrUInt; overload; inline;
 function AsTag(Value: LongWord): PtrUInt; overload; inline;
@@ -454,44 +454,44 @@ begin
 end;
 
 
-function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
+function AllocNamedObjectA(const name : ShortString;const TagList : pTagItem) : pNamedObject;
 begin
-       AllocNamedObjectA := AllocNamedObjectA(PChar(RawByteString(name)),TagList);
+       AllocNamedObjectA := AllocNamedObjectA(PAnsiChar(RawByteString(name)),TagList);
 end;
 
-FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
+FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : ShortString; lastObject : pNamedObject) : pNamedObject;
 begin
-       FindNamedObject := FindNamedObject(nameSpace,PChar(RawByteString(name)),lastObject);
+       FindNamedObject := FindNamedObject(nameSpace,PAnsiChar(RawByteString(name)),lastObject);
 end;
 
-FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
+FUNCTION Stricmp(CONST string1 : ShortString; CONST string2 : PAnsiChar) : LONGINT;
 begin
-       Stricmp := Stricmp(PChar(RawbyteString(string1)),string2);
+       Stricmp := Stricmp(PAnsiChar(RawbyteString(string1)),string2);
 end;
 
-FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
+FUNCTION Stricmp(CONST string1 : PAnsiChar; CONST string2 : ShortString) : LONGINT;
 begin
-       Stricmp := Stricmp(string1,PChar(RawbyteString(string2)));
+       Stricmp := Stricmp(string1,PAnsiChar(RawbyteString(string2)));
 end;
 
-FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
+FUNCTION Stricmp(CONST string1 : ShortString; CONST string2 : ShortString) : LONGINT;
 begin
-       Stricmp := Stricmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)));
+       Stricmp := Stricmp(PAnsiChar(RawbyteString(string1)),PAnsiChar(RawbyteString(string2)));
 end;
 
-FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : ShortString; CONST string2 : PAnsiChar; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),string2,length);
+       Strnicmp := Strnicmp(PAnsiChar(RawbyteString(string1)),string2,length);
 end;
 
-FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : PAnsiChar; CONST string2 : ShortString; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(string1,PChar(RawbyteString(string2)),length);
+       Strnicmp := Strnicmp(string1,PAnsiChar(RawbyteString(string2)),length);
 end;
 
-FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : ShortString; CONST string2 : ShortString; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
+       Strnicmp := Strnicmp(PAnsiChar(RawbyteString(string1)),PAnsiChar(RawbyteString(string2)),length);
 end;
 {$endif}
 
@@ -500,7 +500,7 @@ begin
   TAG_:=PtrUInt(value);
 end;
 
-function TAG_(value: pchar): PtrUInt; inline;
+function TAG_(value: PAnsiChar): PtrUInt; inline;
 begin
   TAG_:=PtrUInt(value);
 end;
@@ -528,7 +528,7 @@ begin
   AsTag:=PtrUInt(value);
 end;
 
-function AsTag(value: pchar): PtrUInt; inline;
+function AsTag(value: PAnsiChar): PtrUInt; inline;
 begin
   AsTag:=PtrUInt(value);
 end;

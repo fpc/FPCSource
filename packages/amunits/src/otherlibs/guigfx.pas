@@ -37,7 +37,7 @@ USES Exec,utility,agraphics;
 VAR GuiGFXBase : pLibrary;
 
 const
-    GUIGFXNAME : PChar = 'guigfx.library';
+    GUIGFXNAME : PAnsiChar = 'guigfx.library';
 
 
   {
@@ -158,7 +158,7 @@ FUNCTION ClonePictureA(pic : POINTER location 'a0'; tags : pTagItem location 'a1
 FUNCTION CreateDirectDrawHandleA(drawhandle : POINTER location 'a0'; sw : WORD location 'd0'; sh : WORD location 'd1'; dw : WORD location 'd2'; dh : WORD location 'd3'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 168;
 FUNCTION CreatePenShareMapA(tags : pTagItem location 'a0') : POINTER; syscall GuiGFXBase 90;
 FUNCTION CreatePictureBitMapA(drawhandle : POINTER location 'a0'; pic : POINTER location 'a1'; tags : pTagItem location 'a2') : pBitMap; syscall GuiGFXBase 132;
-FUNCTION CreatePictureMaskA(pic : POINTER location 'a0'; mask : pCHAR location 'a1'; maskwidth : WORD location 'd0'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 186;
+FUNCTION CreatePictureMaskA(pic : POINTER location 'a0'; mask : PAnsiChar location 'a1'; maskwidth : WORD location 'd0'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 186;
 PROCEDURE DeleteDirectDrawHandle(ddh : POINTER location 'a0'); syscall GuiGFXBase 174;
 PROCEDURE DeletePenShareMap(psm : POINTER location 'a0'); syscall GuiGFXBase 96;
 PROCEDURE DeletePicture(pic : POINTER location 'a0'); syscall GuiGFXBase 54;
@@ -166,11 +166,11 @@ FUNCTION DirectDrawTrueColorA(ddh : POINTER location 'a0'; _array : pULONG locat
 FUNCTION DoPictureMethodA(pic : POINTER location 'a0'; method : longword location 'd0'; arguments : pULONG location 'a1') : longword; syscall GuiGFXBase 138;
 FUNCTION DrawPictureA(drawhandle : POINTER location 'a0'; pic : POINTER location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 114;
 FUNCTION GetPictureAttrsA(pic : POINTER location 'a0'; tags : pTagItem location 'a1') : longword; syscall GuiGFXBase 144;
-FUNCTION IsPictureA(filename : pCHAR location 'a0'; tags : pTagItem location 'a1') : BOOLEAN; syscall GuiGFXBase 162;
-FUNCTION LoadPictureA(filename : pCHAR location 'a0'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 36;
+FUNCTION IsPictureA(filename : PAnsiChar location 'a0'; tags : pTagItem location 'a1') : BOOLEAN; syscall GuiGFXBase 162;
+FUNCTION LoadPictureA(filename : PAnsiChar location 'a0'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 36;
 FUNCTION LockPictureA(pic : POINTER location 'a0'; mode : longword location 'd0'; args : pULONG location 'a1') : longword; syscall GuiGFXBase 150;
 FUNCTION MakePictureA(_array : POINTER location 'a0'; width : WORD location 'd0'; height : WORD location 'd1'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 30;
-FUNCTION MapPaletteA(drawhandle : POINTER location 'a0'; palette : POINTER location 'a1'; pentab : pCHAR location 'a2'; tags : pTagItem location 'a3') : BOOLEAN; syscall GuiGFXBase 120;
+FUNCTION MapPaletteA(drawhandle : POINTER location 'a0'; palette : POINTER location 'a1'; pentab : PAnsiChar location 'a2'; tags : pTagItem location 'a3') : BOOLEAN; syscall GuiGFXBase 120;
 FUNCTION MapPenA(drawhandle : POINTER location 'a0'; rgb : longword location 'a1'; tags : pTagItem location 'a2') : LONGINT; syscall GuiGFXBase 126;
 FUNCTION ObtainDrawHandleA(psm : POINTER location 'a0'; a1arg : pRastPort location 'a1'; cm : pColorMap location 'a2'; tags : pTagItem location 'a3') : POINTER; syscall GuiGFXBase 102;
 FUNCTION ReadPictureA(a0arg : pRastPort location 'a0'; colormap : pColorMap location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; width : WORD location 'd2'; height : WORD location 'd3'; tags : pTagItem location 'a2') : POINTER; syscall GuiGFXBase 42;
@@ -187,16 +187,16 @@ FUNCTION ClonePicture(pic : POINTER; const tags : array of PtrUInt) : POINTER;
 FUNCTION CreateDirectDrawHandle(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; const tags : array of PtrUInt) : POINTER;
 FUNCTION CreatePenShareMap(const tags : array of PtrUInt) : POINTER;
 FUNCTION CreatePictureBitMap(drawhandle : POINTER; pic : POINTER; const tags : array of PtrUInt) : pBitMap;
-FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION CreatePictureMask(pic : POINTER; mask : PAnsiChar; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
 FUNCTION DirectDrawTrueColor(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
 FUNCTION DoPictureMethod(pic : POINTER; method : longword; const arguments : array of PtrUInt) : longword;
 FUNCTION DrawPicture(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
 FUNCTION GetPictureAttrs(pic : POINTER; const tags : array of PtrUInt) : longword;
-FUNCTION IsPicture(filename : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
-FUNCTION LoadPicture(filename : pCHAR; const tags : array of PtrUInt) : POINTER;
+FUNCTION IsPicture(filename : PAnsiChar; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION LoadPicture(filename : PAnsiChar; const tags : array of PtrUInt) : POINTER;
 FUNCTION LockPicture(pic : POINTER; mode : longword; const args : array of PtrUInt) : longword;
 FUNCTION MakePicture(_array : POINTER; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
-FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : PAnsiChar; const tags : array of PtrUInt) : BOOLEAN;
 FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : array of PtrUInt) : LONGINT;
 FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : array of PtrUInt) : POINTER;
 FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
@@ -241,7 +241,7 @@ begin
     CreatePictureBitMap := CreatePictureBitMapA(drawhandle , pic , @tags);
 end;
 
-FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION CreatePictureMask(pic : POINTER; mask : PAnsiChar; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
 begin
     CreatePictureMask := CreatePictureMaskA(pic , mask , maskwidth , @tags);
 end;
@@ -266,12 +266,12 @@ begin
     GetPictureAttrs := GetPictureAttrsA(pic , @tags);
 end;
 
-FUNCTION IsPicture(filename : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION IsPicture(filename : PAnsiChar; const tags : array of PtrUInt) : BOOLEAN;
 begin
     IsPicture := IsPictureA(filename , @tags);
 end;
 
-FUNCTION LoadPicture(filename : pCHAR; const tags : array of PtrUInt) : POINTER;
+FUNCTION LoadPicture(filename : PAnsiChar; const tags : array of PtrUInt) : POINTER;
 begin
     LoadPicture := LoadPictureA(filename , @tags);
 end;
@@ -286,7 +286,7 @@ begin
     MakePicture := MakePictureA(_array , width , height , @tags);
 end;
 
-FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : PAnsiChar; const tags : array of PtrUInt) : BOOLEAN;
 begin
     MapPalette := MapPaletteA(drawhandle , palette , pentab , @tags);
 end;

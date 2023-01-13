@@ -44,7 +44,7 @@ uses exec, clipboard, utility;
 
 const
 
-    IFFPARSENAME  : PChar = 'iffparse.library';
+    IFFPARSENAME  : PAnsiChar = 'iffparse.library';
 
 {
  * Struct associated with an active IFF stream.
@@ -252,7 +252,7 @@ PROCEDURE FreeIFF(iff : pIFFHandle location 'a0'); syscall IFFParseBase 054;
 PROCEDURE FreeLocalItem(localItem : pLocalContextItem location 'a0'); syscall IFFParseBase 204;
 FUNCTION GoodID(id : LONGINT location 'd0') : LONGINT; syscall IFFParseBase 258;
 FUNCTION GoodType(typ : LONGINT location 'd0') : LONGINT; syscall IFFParseBase 264;
-FUNCTION IDtoStr(id : LONGINT location 'd0'; buf : pCHAR location 'a0') : pCHAR; syscall IFFParseBase 270;
+FUNCTION IDtoStr(id : LONGINT location 'd0'; buf : PAnsiChar location 'a0') : PAnsiChar; syscall IFFParseBase 270;
 PROCEDURE InitIFF(iff : pIFFHandle location 'a0'; flags : LONGINT location 'd0'; const streamHook : pHook location 'a1'); syscall IFFParseBase 228;
 PROCEDURE InitIFFasClip(iff : pIFFHandle location 'a0'); syscall IFFParseBase 240;
 PROCEDURE InitIFFasDOS(iff : pIFFHandle location 'a0'); syscall IFFParseBase 234;
@@ -276,11 +276,11 @@ FUNCTION StoreLocalItem(iff : pIFFHandle location 'a0'; localItem : pLocalContex
 FUNCTION WriteChunkBytes(iff : pIFFHandle location 'a0'; const buf : POINTER location 'a1'; numBytes : LONGINT location 'd0') : LONGINT; syscall IFFParseBase 066;
 FUNCTION WriteChunkRecords(iff : pIFFHandle location 'a0'; const buf : POINTER location 'a1'; bytesPerRecord : LONGINT location 'd0'; numRecords : LONGINT location 'd1') : LONGINT; syscall IFFParseBase 078;
 
-Function Make_ID(str : String) : LONGINT;
+Function Make_ID(str : ShortString) : LONGINT;
 
 IMPLEMENTATION
 
-Function Make_ID(str : String) : LONGINT;
+Function Make_ID(str : ShortString) : LONGINT;
 begin
         Make_ID := (LONGINT(Ord(Str[1])) shl 24) or
                   (LONGINT(Ord(Str[2])) shl 16 ) or

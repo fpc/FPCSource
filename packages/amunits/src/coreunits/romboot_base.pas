@@ -33,7 +33,7 @@ Type
 
 Const
 
-    ROMBOOT_NAME : PChar = 'romboot.library';
+    ROMBOOT_NAME : PAnsiChar = 'romboot.library';
 
 IMPLEMENTATION
 

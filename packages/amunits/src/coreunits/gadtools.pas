@@ -76,7 +76,7 @@ CONST
 
  NUM_KINDS     =  14;
 
- GADTOOLSNAME   : PChar = 'gadtools.library';
+ GADTOOLSNAME   : PAnsiChar = 'gadtools.library';
 
 
 {------------------------------------------------------------------------}

@@ -60,11 +60,11 @@ Const
  *--
  *-- Normal usage would be:
  *--
- *-- char internalName[] = TD_NAME;
+ *-- AnsiChar internalName[] = TD_NAME;
  *--
  }
 
-    TD_NAME     : PChar = 'trackdisk.device';
+    TD_NAME     : PAnsiChar = 'trackdisk.device';
 
     TDF_EXTCOM  = $00010000;            { for internal use only! }
 

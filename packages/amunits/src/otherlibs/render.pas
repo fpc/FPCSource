@@ -40,7 +40,7 @@ type
     pPLANEPTR = ^TPLANEPTR;
 
 const
-    RENDERNAME : PChar = 'render.library';
+    RENDERNAME : PAnsiChar = 'render.library';
 
 {
         $VER: render.h v40 (19.12.2002)

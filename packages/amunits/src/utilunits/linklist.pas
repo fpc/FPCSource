@@ -48,7 +48,7 @@ type
         ln_Pred: pNode;
         ln_Type: byte;
         ln_Pri : shortint;
-        ln_Name: pchar;
+        ln_Name: PAnsiChar;
         end;
 
     pList = ^tList;
@@ -69,7 +69,7 @@ type
         ln_Pred   : pNode;
         ln_Type   : Byte;
         ln_Pri    : Shortint;
-        ln_Name   : PChar;
+        ln_Name   : PAnsiChar;
 {
    Increase this record if you need more information
    just add your own to the record. Don't forget to
@@ -88,24 +88,24 @@ function RemHead(list : pList): pNode;
 function RemTail(list : pList): pNode;
 {$endif}
 
-FUNCTION AddNewNode(VAR fpclist : pList; Str : PChar): pFPCNode;
+FUNCTION AddNewNode(VAR fpclist : pList; Str : PAnsiChar): pFPCNode;
 FUNCTION AddNewNode(VAR fpclist : pList; Str : String): pFPCNode;
 PROCEDURE ClearList(VAR fpclist : pList);
 PROCEDURE CreateList(VAR fpclist : pList);
 FUNCTION CopyList(fpclist : pList): pList;
 PROCEDURE DeleteNode(ANode : pFPCNode);
 PROCEDURE DestroyList(VAR fpclist : pList);
-FUNCTION FindNodeData(fpclist : pList; data : PChar): pFPCNode;
+FUNCTION FindNodeData(fpclist : pList; data : PAnsiChar): pFPCNode;
 FUNCTION FindNodeData(fpclist : pList; data : String): pFPCNode;
 FUNCTION GetFirstNode(fpclist : pList): pFPCNode;
 FUNCTION GetLastNode(fpclist : pList): pFPCNode;
 FUNCTION GetNextNode( ANode : pFPCNode): pFPCNode;
-FUNCTION GetNodeData(Anode : pFPCNode): PChar;
+FUNCTION GetNodeData(Anode : pFPCNode): PAnsiChar;
 FUNCTION GetNodeNumber(fpclist : pList; num : Longint): pFPCNode;
 FUNCTION GetPrevNode( ANode : pFPCNode): pFPCNode;
-FUNCTION InsertNewNode(var fpclist : pList; data : PChar; Anode : pFPCNode): pFPCNode;
+FUNCTION InsertNewNode(var fpclist : pList; data : PAnsiChar; Anode : pFPCNode): pFPCNode;
 FUNCTION InsertNewNode(var fpclist : pList; data : String; Anode : pFPCNode): pFPCNode;
-PROCEDURE ListToBuffer(fpclist : pList; VAR buf : PChar);
+PROCEDURE ListToBuffer(fpclist : pList; VAR buf : PAnsiChar);
 FUNCTION MergeLists(firstlist , secondlist : pList): pList;
 PROCEDURE MoveNodeBottom(var fpclist: pList; ANode : pFPCNode);
 PROCEDURE MoveNodeDown(VAR fpclist : pList; ANode : pFPCNode);
@@ -117,12 +117,12 @@ PROCEDURE RemoveDupNode( VAR fpclist :  pList);
 PROCEDURE RemoveLastNode(VAR fpclist : pList);
 FUNCTION SizeOfList(fpclist : pList): Longint;
 PROCEDURE SortList(VAR fpclist: pList);
-FUNCTION UpDateNode(ANode : pFPCNode; data : PChar): BOOLEAN;
+FUNCTION UpDateNode(ANode : pFPCNode; data : PAnsiChar): BOOLEAN;
 FUNCTION UpDateNode(ANode : pFPCNode; data : String): BOOLEAN;
 
-function FileToList(thefile : PChar; var thelist : pList): boolean;
+function FileToList(thefile : PAnsiChar; var thelist : pList): boolean;
 function FileToList(thefile : String; var thelist : pList): boolean;
-function ListToFile(TheFile : PChar; thelist : pList): Boolean;
+function ListToFile(TheFile : PAnsiChar; thelist : pList): Boolean;
 function ListToFile(TheFile : String; thelist : pList): Boolean;
 
 implementation
@@ -200,7 +200,7 @@ end;
 
 {$endif}
 
-FUNCTION AddNewNode(VAR fpclist : pList; Str : PChar): pFPCNode;
+FUNCTION AddNewNode(VAR fpclist : pList; Str : PAnsiChar): pFPCNode;
 VAR
    tempnode : pFPCNode;
 BEGIN
@@ -323,7 +323,7 @@ BEGIN
    end;
 END;
 
-FUNCTION FindNodeData(fpclist : pList; data : PChar): pFPCNode;
+FUNCTION FindNodeData(fpclist : pList; data : PAnsiChar): pFPCNode;
 VAR
     temp : pFPCNode;
     result : pFPCNode;
@@ -346,7 +346,7 @@ FUNCTION FindNodeData(fpclist : pList; data : String): pFPCNode;
 VAR
     temp : pFPCNode;
     result : pFPCNode;
-    p : PChar;
+    p : PAnsiChar;
 BEGIN
     result := NIL;
     p := StrAlloc(length(data)+1);
@@ -395,7 +395,7 @@ BEGIN
     end else GetNextNode := nil;
 END;
 
-FUNCTION GetNodeData(Anode : pFPCNode): PChar;
+FUNCTION GetNodeData(Anode : pFPCNode): PAnsiChar;
 BEGIN
    IF ANode <> NIL THEN BEGIN
        IF ANode^.ln_Name <> NIL THEN BEGIN
@@ -432,7 +432,7 @@ BEGIN
     end else GetPrevNode := nil;
 END;
 
-FUNCTION InsertNewNode(var fpclist : pList; data : PChar; Anode : pFPCNode): pFPCNode;
+FUNCTION InsertNewNode(var fpclist : pList; data : PAnsiChar; Anode : pFPCNode): pFPCNode;
 VAR
     dummy    : pFPCNode;
 BEGIN
@@ -472,7 +472,7 @@ BEGIN
     END;
 END;
 
-PROCEDURE ListToBuffer(fpclist : pList; VAR buf : PChar);
+PROCEDURE ListToBuffer(fpclist : pList; VAR buf : PAnsiChar);
 VAR
    i     : Longint;
    dummy : Longint;
@@ -485,7 +485,7 @@ BEGIN
       IF tempnode^.ln_Name <> NIL THEN BEGIN
          strcat(buf,tempnode^.ln_Name);
          IF dummy < i THEN BEGIN
-            StrCat(buf,PChar(';'#0));
+            StrCat(buf,PAnsiChar(';'#0));
          END;
       END;
       tempnode := pFPCNode(tempnode^.ln_Succ);
@@ -695,7 +695,7 @@ BEGIN
     END;
 END;
 
-FUNCTION UpDateNode(ANode : pFPCNode; data : PChar): BOOLEAN;
+FUNCTION UpDateNode(ANode : pFPCNode; data : PAnsiChar): BOOLEAN;
 VAR
    result : BOOLEAN;
 BEGIN
@@ -733,7 +733,7 @@ BEGIN
      UpDateNode := result;
 END;
 
-function FileToList(thefile : PChar; var thelist : pList): boolean;
+function FileToList(thefile : PAnsiChar; var thelist : pList): boolean;
 begin
     FileToList := FileToList(strpas(thefile), thelist);
 end;
@@ -742,8 +742,8 @@ function FileToList(thefile : String; var thelist : pList): boolean;
 var
    Inf : Text;
    tempnode : pFPCNode;
-   buffer : PChar;
-   buf : Array [0..500] of Char;
+   buffer : PAnsiChar;
+   buf : Array [0..500] of AnsiChar;
 begin
    buffer := @buf;
    Assign(Inf, thefile);
@@ -764,7 +764,7 @@ begin
    end else FileToList := false;
 end;
 
-function ListToFile(TheFile : PChar; thelist : pList): Boolean;
+function ListToFile(TheFile : PAnsiChar; thelist : pList): Boolean;
 begin
     ListToFile := ListToFile(strpas(TheFile), thelist);
 end;
@@ -788,7 +788,7 @@ begin
              IF tempnode^.ln_Name <> NIL THEN BEGIN
                 {
                   Have to check the strlen here, if it's an
-                  empty pchar fpc will write out a #0
+                  empty PAnsiChar fpc will write out a #0
                 }
                 if strlen(tempnode^.ln_Name) > 0 then
                    WriteLN(Out,tempnode^.ln_Name)

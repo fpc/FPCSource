@@ -16,10 +16,10 @@
 
 {
     History:
-    Added overlay functions for Pchar->Strings, functions
-    and procedures. Now you can mix PChar and Strings e.g
+    Added overlay functions for PAnsiChar->Strings, functions
+    and procedures. Now you can mix PAnsiChar and Strings e.g
     OpenLibrary('whatis.library',37). No need to cast to
-    a PChar.
+    a PAnsiChar.
     12 Oct 1998.
 
     More missing functions added.
@@ -95,7 +95,7 @@ INTERFACE
 
 TYPE
 
-       STRPTR   = PChar;
+       STRPTR   = PAnsiChar;
        ULONG    = Longword;
        LONG     = longint;
        APTR     = Pointer;
@@ -1180,7 +1180,7 @@ var
 FUNCTION Supervisor(userFunction : tPROCEDURE location 'a5') : ULONG; syscall _ExecBase 030;
 PROCEDURE Alert(alertNum : ULONG location 'd7'); syscall _ExecBase 108;
 PROCEDURE Debug(flags : ULONG location 'd0'); syscall _ExecBase 114;
-FUNCTION FindResident(const name : pCHAR location 'a1') : pResident; syscall _ExecBase 096;
+FUNCTION FindResident(const name : PAnsiChar location 'a1') : pResident; syscall _ExecBase 096;
 PROCEDURE InitCode(startClass : ULONG location 'd0'; version : ULONG location 'd1'); syscall _ExecBase 072;
 FUNCTION InitResident(const resident_ : pResident location 'a1'; segList : ULONG location 'd0') : POINTER; syscall _ExecBase 102;
 PROCEDURE InitStruct(const initTable : POINTER location 'a1'; memory : POINTER location 'a2'; size : ULONG location 'd0'); syscall _ExecBase 078;
@@ -1209,7 +1209,7 @@ PROCEDURE ExecFreeMem(memoryBlock : POINTER location 'a1'; byteSize : ULONG loca
 PROCEDURE AddHead(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 240;
 PROCEDURE AddTail(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 246;
 PROCEDURE Enqueue(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 270;
-FUNCTION FindName(list : pList location 'a0'; const name : pCHAR location 'a1') : pNode; syscall _ExecBase 276;
+FUNCTION FindName(list : pList location 'a0'; const name : PAnsiChar location 'a1') : pNode; syscall _ExecBase 276;
 PROCEDURE ExecInsert(list : pList location 'a0'; node : pNode location 'a1'; pred : pNode location 'a2'); syscall _ExecBase 234;
 FUNCTION RemHead(list : pList location 'a0') : pNode; syscall _ExecBase 258;
 PROCEDURE Remove(node : pNode location 'a1'); syscall _ExecBase 252;
@@ -1218,7 +1218,7 @@ FUNCTION RemTail(list : pList location 'a0') : pNode; syscall _ExecBase 264;
 FUNCTION AddTask(task : pTask location 'a1';const initPC : POINTER location 'a2';const finalPC : POINTER location 'a3') : POINTER; syscall _ExecBase 282;
 FUNCTION AllocSignal(signalNum : LONGINT location 'd0') : shortint; syscall _ExecBase 330;
 FUNCTION AllocTrap(trapNum : LONGINT location 'd0') : LONGINT; syscall _ExecBase 342;
-FUNCTION FindTask(const name : pCHAR location 'a1') : pTask; syscall _ExecBase 294;
+FUNCTION FindTask(const name : PAnsiChar location 'a1') : pTask; syscall _ExecBase 294;
 PROCEDURE FreeSignal(signalNum : LONGINT location 'd0'); syscall _ExecBase 336;
 PROCEDURE FreeTrap(trapNum : LONGINT location 'd0'); syscall _ExecBase 348;
 PROCEDURE RemTask(task : pTask location 'a1'); syscall _ExecBase 288;
@@ -1228,7 +1228,7 @@ FUNCTION SetTaskPri(task : pTask location 'a1'; priority : LONGINT location 'd0'
 FUNCTION Wait(signalSet : ULONG location 'd0') : ULONG; syscall _ExecBase 318;
 
 PROCEDURE AddPort(port : pMsgPort location 'a1'); syscall _ExecBase 354;
-FUNCTION FindPort(const name : pCHAR location 'a1') : pMsgPort; syscall _ExecBase 390;
+FUNCTION FindPort(const name : PAnsiChar location 'a1') : pMsgPort; syscall _ExecBase 390;
 FUNCTION GetMsg(port : pMsgPort location 'a0') : pMessage; syscall _ExecBase 372;
 PROCEDURE PutMsg(port : pMsgPort location 'a0'; message : pMessage location 'a1'); syscall _ExecBase 366;
 PROCEDURE RemPort(port : pMsgPort location 'a1'); syscall _ExecBase 360;
@@ -1239,8 +1239,8 @@ PROCEDURE AddLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 396;
 PROCEDURE CloseLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 414;
 PROCEDURE MakeFunctions(const target : POINTER location 'a0';const functionArray : POINTER location 'a1';const funcDispBase :pointer location 'a2'); syscall _ExecBase 090;
 FUNCTION MakeLibrary(const  funcInit : POINTER location 'a0';const  structInit : POINTER location 'a1'; libInit : tPROCEDURE location 'a2';dataSize : ULONG location 'd0'; segList : ULONG location 'd0') : pLibrary; syscall _ExecBase 084;
-FUNCTION OldOpenLibrary(const libName : pCHAR location 'a1') : pLibrary; syscall _ExecBase 408;
-FUNCTION OpenLibrary(const libName : pCHAR location 'a1'; version : ULONG location 'd0') : pLibrary; syscall _ExecBase 552;
+FUNCTION OldOpenLibrary(const libName : PAnsiChar location 'a1') : pLibrary; syscall _ExecBase 408;
+FUNCTION OpenLibrary(const libName : PAnsiChar location 'a1'; version : ULONG location 'd0') : pLibrary; syscall _ExecBase 552;
 PROCEDURE RemLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 402;
 FUNCTION SetFunction(lib : pLibrary location 'a1'; funcOffset : LONGINT location 'a0'; newFunction : tPROCEDURE location 'd0') : POINTER; syscall _ExecBase 420;
 PROCEDURE SumLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 426;
@@ -1250,18 +1250,18 @@ PROCEDURE AddDevice(device : pDevice location 'a1'); syscall _ExecBase 432;
 FUNCTION CheckIO(ioRequest : pIORequest location 'a1') : pIORequest; syscall _ExecBase 468;
 PROCEDURE CloseDevice(ioRequest : pIORequest location 'a1'); syscall _ExecBase 450;
 FUNCTION DoIO(ioRequest : pIORequest location 'a1') : shortint; syscall _ExecBase 456;
-FUNCTION OpenDevice(const devName : pCHAR location 'a0'; unite : ULONG location 'd0'; ioRequest : pIORequest location 'a1'; flags : ULONG location 'd1') : shortint; syscall _ExecBase 444;
+FUNCTION OpenDevice(const devName : PAnsiChar location 'a0'; unite : ULONG location 'd0'; ioRequest : pIORequest location 'a1'; flags : ULONG location 'd1') : shortint; syscall _ExecBase 444;
 PROCEDURE RemDevice(device : pDevice location 'a1'); syscall _ExecBase 438;
 PROCEDURE SendIO(ioRequest : pIORequest location 'a1'); syscall _ExecBase 462;
 FUNCTION WaitIO(ioRequest : pIORequest location 'a1') : shortint; syscall _ExecBase 474;
 
 PROCEDURE AddResource(resource : POINTER location 'a1'); syscall _ExecBase 486;
-FUNCTION OpenResource(const resName : pCHAR location 'a1') : POINTER; syscall _ExecBase 498;
+FUNCTION OpenResource(const resName : PAnsiChar location 'a1') : POINTER; syscall _ExecBase 498;
 PROCEDURE RemResource(resource : POINTER location 'a1'); syscall _ExecBase 492;
 
 PROCEDURE AddSemaphore(sigSem : pSignalSemaphore location 'a1'); syscall _ExecBase 600;
 FUNCTION AttemptSemaphore(sigSem : pSignalSemaphore location 'a0') : LongBool; syscall _ExecBase 576;
-FUNCTION FindSemaphore(const sigSem : pCHAR location 'a1') : pSignalSemaphore; syscall _ExecBase 594;
+FUNCTION FindSemaphore(const sigSem : PAnsiChar location 'a1') : pSignalSemaphore; syscall _ExecBase 594;
 PROCEDURE InitSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 558;
 PROCEDURE ObtainSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 564;
 PROCEDURE ObtainSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 582;
@@ -1271,13 +1271,13 @@ PROCEDURE ReleaseSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 
 PROCEDURE RemSemaphore(sigSem : pSignalSemaphore location 'a1'); syscall _ExecBase 606;
 PROCEDURE Vacate(sigSem : pSignalSemaphore location 'a0'; bidMsg : pSemaphoreMessage location 'a1'); syscall _ExecBase 546;
 
-PROCEDURE AddMemList(size : ULONG location 'd0'; attributes : ULONG location 'd1'; pri : LONGINT location 'd2'; base : POINTER location 'a0'; const name : pCHAR location 'a1'); syscall _ExecBase 618;
+PROCEDURE AddMemList(size : ULONG location 'd0'; attributes : ULONG location 'd1'; pri : LONGINT location 'd2'; base : POINTER location 'a0'; const name : PAnsiChar location 'a1'); syscall _ExecBase 618;
 PROCEDURE CopyMem(const source : POINTER location 'a0'; dest : POINTER location 'a1'; size : ULONG location 'd0'); syscall _ExecBase 624;
 PROCEDURE CopyMemQuick(const source : POINTER location 'a0'; dest : POINTER location 'a1'; size : ULONG location 'd0'); syscall _ExecBase 630;
 PROCEDURE SumKickData; syscall _ExecBase 612;
 
 FUNCTION GetCC : ULONG; syscall _ExecBase 528;
-function RawDoFmt(const formatString : pCHAR location 'a0';const dataStream : POINTER location 'a1'; putChProc : tPROCEDURE location 'a2'; putChData : POINTER location 'a3'): pointer; syscall _ExecBase 522;
+function RawDoFmt(const formatString : PAnsiChar location 'a0';const dataStream : POINTER location 'a1'; putChProc : tPROCEDURE location 'a2'; putChData : POINTER location 'a3'): pointer; syscall _ExecBase 522;
 FUNCTION TypeOfMem(const address : POINTER location 'a1') : ULONG; syscall _ExecBase 534;
 
 {$else}
@@ -1287,7 +1287,7 @@ PROCEDURE AddHead(list : pList location 'a0'; node : pNode location 'a1'); sysca
 PROCEDURE AddIntServer(intNumber : LONGINT location 'd0'; interrupt_ : pInterrupt location 'a1'); syscall _ExecBase 168;
 PROCEDURE AddLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 396;
 PROCEDURE AddMemHandler(memhand : pInterrupt location 'a1'); syscall _ExecBase 774;
-PROCEDURE AddMemList(size : ULONG location 'd0'; attributes : ULONG location 'd1'; pri : LONGINT location 'd2'; base : POINTER location 'a0'; const name : pCHAR location 'a1'); syscall _ExecBase 618;
+PROCEDURE AddMemList(size : ULONG location 'd0'; attributes : ULONG location 'd1'; pri : LONGINT location 'd2'; base : POINTER location 'a0'; const name : PAnsiChar location 'a1'); syscall _ExecBase 618;
 PROCEDURE AddPort(port : pMsgPort location 'a1'); syscall _ExecBase 354;
 PROCEDURE AddResource(resource : POINTER location 'a1'); syscall _ExecBase 486;
 PROCEDURE AddSemaphore(sigSem : pSignalSemaphore location 'a1'); syscall _ExecBase 600;
@@ -1335,11 +1335,11 @@ PROCEDURE Enable; syscall _ExecBase 126;
 PROCEDURE Enqueue(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 270;
 PROCEDURE ExecFreeMem(memoryBlock : POINTER location 'a1'; byteSize : ULONG location 'd0'); syscall _ExecBase 210;
 PROCEDURE ExecInsert(list : pList location 'a0'; node : pNode location 'a1'; pred : pNode location 'a2'); syscall _ExecBase 234;
-FUNCTION FindName(list : pList location 'a0'; const name : pCHAR location 'a1') : pNode; syscall _ExecBase 276;
-FUNCTION FindPort(const name : pCHAR location 'a1') : pMsgPort; syscall _ExecBase 390;
-FUNCTION FindResident(const name : pCHAR location 'a1') : pResident; syscall _ExecBase 096;
-FUNCTION FindSemaphore(const sigSem : pCHAR location 'a1') : pSignalSemaphore; syscall _ExecBase 594;
-FUNCTION FindTask(const name : pCHAR location 'a1') : pTask; syscall _ExecBase 294;
+FUNCTION FindName(list : pList location 'a0'; const name : PAnsiChar location 'a1') : pNode; syscall _ExecBase 276;
+FUNCTION FindPort(const name : PAnsiChar location 'a1') : pMsgPort; syscall _ExecBase 390;
+FUNCTION FindResident(const name : PAnsiChar location 'a1') : pResident; syscall _ExecBase 096;
+FUNCTION FindSemaphore(const sigSem : PAnsiChar location 'a1') : pSignalSemaphore; syscall _ExecBase 594;
+FUNCTION FindTask(const name : PAnsiChar location 'a1') : pTask; syscall _ExecBase 294;
 PROCEDURE Forbid; syscall _ExecBase 132;
 PROCEDURE FreeEntry(entry : pMemList location 'a0'); syscall _ExecBase 228;
 PROCEDURE FreePooled(poolHeader : POINTER location 'a0'; memory : POINTER location 'a1'; memSize : ULONG location 'd0'); syscall _ExecBase 714;
@@ -1358,14 +1358,14 @@ FUNCTION ObtainQuickVector(interruptCode : POINTER location 'a0') : ULONG; sysca
 PROCEDURE ObtainSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 564;
 PROCEDURE ObtainSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 582;
 PROCEDURE ObtainSemaphoreShared(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 678;
-FUNCTION OldOpenLibrary(const libName : pCHAR location 'a1') : pLibrary; syscall _ExecBase 408;
-FUNCTION OpenDevice(const devName : pCHAR location 'a0'; unite : ULONG location 'd0'; ioRequest : pIORequest location 'a1'; flags : ULONG location 'd1') : shortint; syscall _ExecBase 444;
-FUNCTION OpenLibrary(const libName : pCHAR location 'a1'; version : ULONG location 'd0') : pLibrary; syscall _ExecBase 552;
-FUNCTION OpenResource(const resName : pCHAR location 'a1') : POINTER; syscall _ExecBase 498;
+FUNCTION OldOpenLibrary(const libName : PAnsiChar location 'a1') : pLibrary; syscall _ExecBase 408;
+FUNCTION OpenDevice(const devName : PAnsiChar location 'a0'; unite : ULONG location 'd0'; ioRequest : pIORequest location 'a1'; flags : ULONG location 'd1') : shortint; syscall _ExecBase 444;
+FUNCTION OpenLibrary(const libName : PAnsiChar location 'a1'; version : ULONG location 'd0') : pLibrary; syscall _ExecBase 552;
+FUNCTION OpenResource(const resName : PAnsiChar location 'a1') : POINTER; syscall _ExecBase 498;
 PROCEDURE Permit; syscall _ExecBase 138;
 FUNCTION Procure(sigSem : pSignalSemaphore location 'a0'; bidMsg : pSemaphoreMessage location 'a1') : LongBool; syscall _ExecBase 540;
 PROCEDURE PutMsg(port : pMsgPort location 'a0'; message : pMessage location 'a1'); syscall _ExecBase 366;
-function RawDoFmt(const formatString : pCHAR location 'a0';const dataStream : POINTER location 'a1'; putChProc : tPROCEDURE location 'a2'; putChData : POINTER location 'a3'): pointer; syscall _ExecBase 522;
+function RawDoFmt(const formatString : PAnsiChar location 'a0';const dataStream : POINTER location 'a1'; putChProc : tPROCEDURE location 'a2'; putChData : POINTER location 'a3'): pointer; syscall _ExecBase 522;
 PROCEDURE ReleaseSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 570;
 PROCEDURE ReleaseSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 588;
 PROCEDURE RemDevice(device : pDevice location 'a1'); syscall _ExecBase 438;
@@ -1413,16 +1413,16 @@ FUNCTION AVL_FindFirstNode(CONST root : pAVLNode location 'a0') : pAVLNode; sysc
 FUNCTION AVL_FindLastNode(CONST root : pAVLNode location 'a0') : pAVLNode; syscall _ExecBase 906;
 {$endif}
 
-FUNCTION FindName(list : pList; const name : String) : pNode;
-FUNCTION FindPort(const name : String) : pMsgPort;
-FUNCTION FindResident(const name : String) : pResident;
-FUNCTION FindSemaphore(const sigSem : String) : pSignalSemaphore;
-FUNCTION FindTask(const name : String) : pTask;
-FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
-FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;flags : ULONG) : shortint;
-FUNCTION OpenLibrary(const libName : String; version : ULONG) : pLibrary;
-FUNCTION OpenResource(const resName : String) : POINTER;
-function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc :tPROCEDURE; putChData : POINTER): pointer;
+FUNCTION FindName(list : pList; const name : ShortString) : pNode;
+FUNCTION FindPort(const name : ShortString) : pMsgPort;
+FUNCTION FindResident(const name : ShortString) : pResident;
+FUNCTION FindSemaphore(const sigSem : ShortString) : pSignalSemaphore;
+FUNCTION FindTask(const name : ShortString) : pTask;
+FUNCTION OldOpenLibrary(const libName : ShortString) : pLibrary;
+FUNCTION OpenDevice(const devName : ShortString; unite : ULONG; ioRequest : pIORequest;flags : ULONG) : shortint;
+FUNCTION OpenLibrary(const libName : ShortString; version : ULONG) : pLibrary;
+FUNCTION OpenResource(const resName : ShortString) : POINTER;
+function RawDoFmt(const formatString : ShortString;const dataStream : POINTER; putChProc :tPROCEDURE; putChData : POINTER): pointer;
 
 function BitMask(no :shortint): longint;
 function IsListEmpty( list : pList): boolean;
@@ -1433,7 +1433,7 @@ function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
 procedure DeleteExtIO(IOReq: PIORequest);
 function CreateStdIO(Port: PMsgPort): PIOStdReq;
 procedure DeleteStdIO(IOReq: PIOStdReq);
-function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+function CreatePort(Name: PAnsiChar; Pri: LongInt): PMsgPort;
 procedure DeletePort(Port: PMsgPort);
 function CreateTask(Name: STRPTR; Pri: LongInt; InitPC: Pointer; StackSize: LongWord): PTask;
 procedure DeleteTask(Task: PTask);
@@ -1467,55 +1467,55 @@ begin
          IsMsgPortEmpty := mp_MsgList.lh_TailPred = pNode(@mp_MsgList);
 end;
 
-FUNCTION FindName(list : pList; const name : String) : pNode;
+FUNCTION FindName(list : pList; const name : ShortString) : pNode;
 BEGIN
-    FindName := FindName(list,PChar(RawByteString(name)));
+    FindName := FindName(list,PAnsiChar(RawByteString(name)));
 END;
 
-FUNCTION FindPort(const name : String) : pMsgPort;
+FUNCTION FindPort(const name : ShortString) : pMsgPort;
 BEGIN
-    FindPort := FindPort(PChar(RawByteString(name)));
+    FindPort := FindPort(PAnsiChar(RawByteString(name)));
 END;
 
-FUNCTION FindResident(const name : String) : pResident;
+FUNCTION FindResident(const name : ShortString) : pResident;
 BEGIN
-    FindResident := FindResident(PChar(RawByteString(name)));
+    FindResident := FindResident(PAnsiChar(RawByteString(name)));
 END;
 
-FUNCTION FindSemaphore(const sigSem : String) : pSignalSemaphore;
+FUNCTION FindSemaphore(const sigSem : ShortString) : pSignalSemaphore;
 BEGIN
-    FindSemaphore := FindSemaphore(PChar(RawByteString(sigSem)));
+    FindSemaphore := FindSemaphore(PAnsiChar(RawByteString(sigSem)));
 END;
 
-FUNCTION FindTask(const name : String) : pTask;
+FUNCTION FindTask(const name : ShortString) : pTask;
 BEGIN
-    FindTask := FindTask(PChar(RawByteString(name)));
+    FindTask := FindTask(PAnsiChar(RawByteString(name)));
 END;
 
-FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
+FUNCTION OldOpenLibrary(const libName : ShortString) : pLibrary;
 BEGIN
-    OldOpenLibrary := OldOpenLibrary(PChar(RawByteString(libName)));
+    OldOpenLibrary := OldOpenLibrary(PAnsiChar(RawByteString(libName)));
 END;
 
-FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;
+FUNCTION OpenDevice(const devName : ShortString; unite : ULONG; ioRequest : pIORequest;
 flags : ULONG) : shortint;
 BEGIN
-    OpenDevice := OpenDevice(PChar(RawByteString(devName)),unite,ioRequest,flags);
+    OpenDevice := OpenDevice(PAnsiChar(RawByteString(devName)),unite,ioRequest,flags);
 END;
 
-FUNCTION OpenLibrary(const libName : String; version : ULONG) : pLibrary;
+FUNCTION OpenLibrary(const libName : ShortString; version : ULONG) : pLibrary;
 BEGIN
-    OpenLibrary := OpenLibrary(PChar(RawByteString(libName)),version);
+    OpenLibrary := OpenLibrary(PAnsiChar(RawByteString(libName)),version);
 END;
 
-FUNCTION OpenResource(const resName : String) : POINTER;
+FUNCTION OpenResource(const resName : ShortString) : POINTER;
 BEGIN
-    OpenResource := OpenResource(PChar(RawByteString(resName)));
+    OpenResource := OpenResource(PAnsiChar(RawByteString(resName)));
 END;
 
-function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
+function RawDoFmt(const formatString : ShortString;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 BEGIN
-    RawDoFmt := RawDoFmt(PChar(RawByteString(formatString)),dataStream,putChProc,putChData);
+    RawDoFmt := RawDoFmt(PAnsiChar(RawByteString(formatString)),dataStream,putChProc,putChData);
 END;
 
 
@@ -1584,7 +1584,7 @@ begin
 end;
 
 
-function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+function CreatePort(Name: PAnsiChar; Pri: LongInt): PMsgPort;
 var
   SigBit: Byte;
   Port: PMsgPort;

@@ -36,7 +36,7 @@ USES Exec;
 VAR PreferencesBase : pLibrary = nil;
 
 const
-    PREFERENCESNAME : PChar = 'preferences.library';
+    PREFERENCESNAME : PAnsiChar = 'preferences.library';
 
 
   {
@@ -129,16 +129,16 @@ const
      SCP_PlugInList = $80000035;
 
 
-FUNCTION AllocPrefsHandle(name : pCHAR location 'a0') : POINTER; syscall PreferencesBase 30;
+FUNCTION AllocPrefsHandle(name : PAnsiChar location 'a0') : POINTER; syscall PreferencesBase 30;
 FUNCTION FindPreferences(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1') : pPrefsStruct; syscall PreferencesBase 66;
 PROCEDURE FreePrefsHandle(PrefsHandle : POINTER location 'a0'); syscall PreferencesBase 36;
 FUNCTION GetEntry(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1'; a1arg : POINTER location 'a1'; Struct_Size : WORD location 'd2'; Entry : longword location 'd3') : longword; syscall PreferencesBase 78;
 FUNCTION GetPreferences(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1'; a1arg : POINTER location 'a1'; Struct_Size : WORD location 'd2') : longword; syscall PreferencesBase 48;
-PROCEDURE ReadPrefsHandle(PrefsHandle : POINTER location 'a0'; Filename : pCHAR location 'a1'); syscall PreferencesBase 54;
+PROCEDURE ReadPrefsHandle(PrefsHandle : POINTER location 'a0'; Filename : PAnsiChar location 'a1'); syscall PreferencesBase 54;
 FUNCTION RemEntry(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1'; Entry : longword location 'd2') : longword; syscall PreferencesBase 84;
 PROCEDURE SetEntry(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1'; a1arg : POINTER location 'a1'; Struct_Size : WORD location 'd2'; Entry : longword location 'd3'); syscall PreferencesBase 72;
 PROCEDURE SetPreferences(PrefsHandle : POINTER location 'a0'; ID : longword location 'd0'; d1arg : longword location 'd1'; a1arg : POINTER location 'a1'; Struct_Size : WORD location 'd2'); syscall PreferencesBase 42;
-PROCEDURE WritePrefsHandle(PrefsHandle : POINTER location 'a0'; Filename : pCHAR location 'a1'); syscall PreferencesBase 60;
+PROCEDURE WritePrefsHandle(PrefsHandle : POINTER location 'a0'; Filename : PAnsiChar location 'a1'); syscall PreferencesBase 60;
 
 IMPLEMENTATION
 

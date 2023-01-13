@@ -55,7 +55,7 @@ begin
     halt(20);
 end;
 
-procedure CleanUp(why : string; err : longint);
+procedure CleanUp(why : ShortString; err : longint);
 begin
     if assigned(w) then CloseWindow(w);
     if assigned(s) then CloseScreen(s);

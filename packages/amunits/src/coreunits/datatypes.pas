@@ -859,7 +859,7 @@ var
   DataTypesBase: PLibrary = nil;
 
 const
-  DATATYPESNAME: PChar = 'datatypes.library';
+  DATATYPESNAME: PAnsiChar = 'datatypes.library';
 
 function AddDTObject(Win: PWindow location 'a0'; Req: PRequester location 'a1'; o: PObject_ location 'a2'; Pos: LongInt location 'd0'): LongInt; syscall DataTypesBase 072;
 procedure DisposeDTObject(o: PObject_ location 'a0'); syscall DataTypesBase 054;

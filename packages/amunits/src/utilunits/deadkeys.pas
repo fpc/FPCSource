@@ -48,13 +48,13 @@ interface
 
 uses exec,intuition,console,inputevent;
 
-function DeadKeyConvert(msg : pIntuiMessage; buffer : pchar;
+function DeadKeyConvert(msg : pIntuiMessage; buffer : PAnsiChar;
                         bufsize : longint; keymap : pointer): longint;
 
 implementation
 
 
-function DeadKeyConvert(msg : pIntuiMessage; buffer : pchar;
+function DeadKeyConvert(msg : pIntuiMessage; buffer : PAnsiChar;
                         bufsize : longint; keymap : pointer): longint;
 
 var
@@ -86,7 +86,7 @@ end;
 
 begin
    ConsoleDevice := nil;
-   OpenDevice(pchar('console.device'#0),-1,Addr(ConsoleRequest),0);
+   OpenDevice(PAnsiChar('console.device'#0),-1,Addr(ConsoleRequest),0);
    ConsoleDevice := ConsoleRequest.io_Device;
    my_exit := ExitProc;
    ExitProc := @CloseConsoleDevice;
