@@ -120,7 +120,7 @@ begin
   // draw a row of text from beginning of message
   updatescrolltext(0);
 
-  // set the screen base to 31 (0x600F800) and char base to 0 (0x6000000)
+  // set the screen base to 31 (0x600F800) and AnsiChar base to 0 (0x6000000)
   BGCTRL[0] := SCREEN_BASE(31);
 
   // screen mode & background to display
