@@ -38,12 +38,12 @@ type
 
 // This is slated to be deleted in the next version.
 function SelectTimeV33(var startTimeP, EndTimeP: TimeType; untimed: Boolean;
-                       const titleP: PChar; startOfDay: Int16): Boolean; syscall sysTrapSelectTimeV33;
+                       const titleP: PAnsiChar; startOfDay: Int16): Boolean; syscall sysTrapSelectTimeV33;
 
-function SelectTime(var startTimeP, EndTimeP: TimeType; untimed: Boolean; const titleP: PChar;
+function SelectTime(var startTimeP, EndTimeP: TimeType; untimed: Boolean; const titleP: PAnsiChar;
                     startOfDay, endOfDay, startOfDisplay: Int16): Boolean; syscall sysTrapSelectTime;
 
-function SelectOneTime(var hour, minute: Int16; const titleP: PChar): Boolean; syscall sysTrapSelectOneTime;
+function SelectOneTime(var hour, minute: Int16; const titleP: PAnsiChar): Boolean; syscall sysTrapSelectOneTime;
 
 implementation
 

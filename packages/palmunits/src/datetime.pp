@@ -54,7 +54,7 @@ const
 
 // pass a TimeFormatType
 // Use24HourFormat(t) ((t) == tfColon24h || (t) == tfDot24h || (t) == tfHours24h || (t) == tfComma24h)
-// TimeSeparator(t) ((Char) ( t <= tfColon24h ? ':' : (t <= tfDot24h ? '.' : ',')))
+// TimeSeparator(t) ((AnsiChar) ( t <= tfColon24h ? ':' : (t <= tfDot24h ? '.' : ',')))
 
 type
   DateFormatType = Enum;
@@ -268,13 +268,13 @@ function TimDateTimeToSeconds(dateTimeP: DateTimePtr): UInt32; syscall sysTrapTi
 
 procedure TimAdjust(dateTimeP: DateTimePtr; adjustment: Int32); syscall sysTrapTimAdjust;
 
-procedure TimeToAscii(hours, minutes: UInt8; timeFormat: TimeFormatType; pString: PChar); syscall sysTrapTimeToAscii;
+procedure TimeToAscii(hours, minutes: UInt8; timeFormat: TimeFormatType; pString: PAnsiChar); syscall sysTrapTimeToAscii;
 
 function TimTimeZoneToUTC(seconds: UInt32; timeZone: Int16; daylightSavingAdjustment: Int16): UInt32; syscall sysTrapTimTimeZoneToUTC;
 
 function TimUTCToTimeZone(seconds: UInt32; timeZone: Int16; daylightSavingAdjustment: Int16): UInt32; syscall sysTrapTimUTCToTimeZone;
 
-procedure TimeZoneToAscii(timeZone: Int16; localeP: LmLocalePtr; string_: PChar); syscall sysTrapTimeZoneToAscii;
+procedure TimeZoneToAscii(timeZone: Int16; localeP: LmLocalePtr; string_: PAnsiChar); syscall sysTrapTimeZoneToAscii;
 
 function DaysInMonth(month, year: Int16): Int16; syscall sysTrapDaysInMonth;
 
@@ -292,13 +292,13 @@ function DateToDays(date: DateType): UInt32; syscall sysTrapDateToDays;
 procedure DateAdjust(dateP: DatePtr; adjustment: Int32); syscall sysTrapDateAdjust;
 
 procedure DateToAscii(months, days: UInt8; years: UInt16;
-                      dateFormat: DateFormatType; pString: PChar); syscall sysTrapDateToAscii;
+                      dateFormat: DateFormatType; pString: PAnsiChar); syscall sysTrapDateToAscii;
 
 procedure DateToDOWDMFormat(months, days: UInt8; years: UInt16;
-                            dateFormat: DateFormatType; pString: PChar); syscall sysTrapDateToDOWDMFormat;
+                            dateFormat: DateFormatType; pString: PAnsiChar); syscall sysTrapDateToDOWDMFormat;
 
-function DateTemplateToAscii(const templateP: PChar; months, days: UInt8;
-                             years: UInt16; stringP: PChar; stringLen: Int16): UInt16; syscall sysTrapDateTemplateToAscii;
+function DateTemplateToAscii(const templateP: PAnsiChar; months, days: UInt8;
+                             years: UInt16; stringP: PAnsiChar; stringLen: Int16): UInt16; syscall sysTrapDateTemplateToAscii;
 
 implementation
 

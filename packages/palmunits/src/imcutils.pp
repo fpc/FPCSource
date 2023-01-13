@@ -41,32 +41,32 @@ const
 
 type
   GetCharF = function(const p: Pointer): UInt16;
-  PutStringF = procedure(p: Pointer; const stringP: PChar);
+  PutStringF = procedure(p: Pointer; const stringP: PAnsiChar);
 
 // maxChars does NOT include trailing null, buffer may be 1 larger.
 // use imcUnlimitedChars if you don't want a max.
 function ImcReadFieldNoSemicolon(inputStream: Pointer; inputFunc: GetCharF; var c: UInt16;
-                                const maxChars: UInt16): PChar; syscall sysTrapImcReadFieldNoSemicolon;
+                                const maxChars: UInt16): PAnsiChar; syscall sysTrapImcReadFieldNoSemicolon;
 
 // maxChars does NOT include trailing null, buffer may be 1 larger.
 // use imcUnlimitedChars if you don't want a max.
 function ImcReadFieldQuotablePrintable(inputStream: Pointer; inputFunc: GetCharF; var c: UInt16;
-                                       const stopAt: Char; const quotedPrintable: Boolean; const maxChars: UInt16): PChar; syscall sysTrapImcReadFieldQuotablePrintable;
+                                       const stopAt: AnsiChar; const quotedPrintable: Boolean; const maxChars: UInt16): PAnsiChar; syscall sysTrapImcReadFieldQuotablePrintable;
 
 procedure ImcReadPropertyParameter(inputStream: Pointer; inputFunc: GetCharF; var cP: UInt16;
-                                   nameP, valueP: PChar); syscall sysTrapImcReadPropertyParameter;
+                                   nameP, valueP: PAnsiChar); syscall sysTrapImcReadPropertyParameter;
 
 procedure ImcSkipAllPropertyParameters(inputStream: Pointer; inputFunc: GetCharF; var cP: UInt16;
-                                       identifierP: PChar; var quotedPrintableP: Boolean); syscall sysTrapImcSkipAllPropertyParameters;
+                                       identifierP: PAnsiChar; var quotedPrintableP: Boolean); syscall sysTrapImcSkipAllPropertyParameters;
 
 procedure ImcReadWhiteSpace(inputStream: Pointer; inputFunc: GetCharF; var c, charAttrP: UInt16); syscall sysTrapImcReadWhiteSpace;
 
 procedure ImcWriteQuotedPrintable(outputStream: Pointer; outputFunc: PutStringF;
-                                  const stringP: PChar; const noSemicolons: Boolean); syscall sysTrapImcWriteQuotedPrintable;
+                                  const stringP: PAnsiChar; const noSemicolons: Boolean); syscall sysTrapImcWriteQuotedPrintable;
 
-procedure ImcWriteNoSemicolon(outputStream: Pointer; outputFunc: PutStringF; const stringP: PChar); syscall sysTrapImcWriteNoSemicolon;
+procedure ImcWriteNoSemicolon(outputStream: Pointer; outputFunc: PutStringF; const stringP: PAnsiChar); syscall sysTrapImcWriteNoSemicolon;
 
-function ImcStringIsAscii(const stringP: PChar): Boolean; syscall sysTrapImcStringIsAscii;
+function ImcStringIsAscii(const stringP: PAnsiChar): Boolean; syscall sysTrapImcStringIsAscii;
 
 implementation
 

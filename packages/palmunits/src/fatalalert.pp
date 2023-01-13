@@ -29,7 +29,7 @@ const
   fatalEnterDebugger = 1;
   fatalDoNothing = $FFFF;
 
-function SysFatalAlert(const msg: PChar): UInt16; syscall sysTrapSysFatalAlert;
+function SysFatalAlert(const msg: PAnsiChar): UInt16; syscall sysTrapSysFatalAlert;
 
 procedure SysFatalAlertInit; syscall sysTrapSysFatalAlertInit;
 

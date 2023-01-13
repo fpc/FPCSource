@@ -110,7 +110,7 @@ type
   end;
 
   _TSMConfirmType = record
-    yomiText: PChar;
+    yomiText: PAnsiChar;
     formID: UInt16;
   end;
 

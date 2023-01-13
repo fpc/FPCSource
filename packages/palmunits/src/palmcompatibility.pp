@@ -97,7 +97,7 @@ type
 // Logical data types
   BooleanPtr = ^Boolean;
 
-  CharPtr = ^Char;
+  CharPtr = ^AnsiChar;
   SCharPtr = ^SChar;
   UCharPtr = ^UChar;
 

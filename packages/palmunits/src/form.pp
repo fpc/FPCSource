@@ -172,7 +172,7 @@ type
     attr: FormObjAttrType;
     fontID: FontID;
     reserved: UInt8;
-    text: PChar;
+    text: PAnsiChar;
   {$endif}
   end;
   FormLabelTag = FormLabelType;
@@ -181,7 +181,7 @@ type
   FormTitleType = record
   {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_FORMS} // These fields will not be available in the next OS release!
     rect: RectangleType;
-    text: PChar;
+    text: PAnsiChar;
   {$endif}
   end;
   FormTitleTag = FormTitleType;
@@ -288,7 +288,7 @@ type
   end;
 
 // FrmCustomResponseAlert callback routine prototype
-  FormCheckResponseFuncType = function(button: Int16; attempt: PChar): Boolean;
+  FormCheckResponseFuncType = function(button: Int16; attempt: PAnsiChar): Boolean;
   FormCheckResponseFuncPtr = FormCheckResponseFuncType;
 
 //--------------------------------------------------------------------
@@ -365,17 +365,17 @@ function FrmGetControlGroupSelection(const formP: FormPtr; groupNum: UInt8): UIn
 
 procedure FrmSetControlGroupSelection(const formP: FormPtr; groupNum: UInt8; controlID: UInt16); syscall sysTrapFrmSetControlGroupSelection;
 
-procedure FrmCopyLabel(formP: FormPtr; labelID: UInt16; const newLabel: PChar); syscall sysTrapFrmCopyLabel;
+procedure FrmCopyLabel(formP: FormPtr; labelID: UInt16; const newLabel: PAnsiChar); syscall sysTrapFrmCopyLabel;
 
-function FrmGetLabel(const formP: FormPtr; labelID: UInt16): {const} PChar; syscall sysTrapFrmGetLabel;
+function FrmGetLabel(const formP: FormPtr; labelID: UInt16): {const} PAnsiChar; syscall sysTrapFrmGetLabel;
 
-procedure FrmSetCategoryLabel(const formP: FormPtr; objIndex: UInt16; newLabel: PChar); syscall sysTrapFrmSetCategoryLabel;
+procedure FrmSetCategoryLabel(const formP: FormPtr; objIndex: UInt16; newLabel: PAnsiChar); syscall sysTrapFrmSetCategoryLabel;
 
-function FrmGetTitle(const formP: FormPtr): {const} PChar; syscall sysTrapFrmGetTitle;
+function FrmGetTitle(const formP: FormPtr): {const} PAnsiChar; syscall sysTrapFrmGetTitle;
 
-procedure FrmSetTitle(formP: FormPtr; newTitle: PChar); syscall sysTrapFrmSetTitle;
+procedure FrmSetTitle(formP: FormPtr; newTitle: PAnsiChar); syscall sysTrapFrmSetTitle;
 
-procedure FrmCopyTitle(formP: FormPtr; const newTitle: PChar); syscall sysTrapFrmCopyTitle;
+procedure FrmCopyTitle(formP: FormPtr; const newTitle: PAnsiChar); syscall sysTrapFrmCopyTitle;
 
 function FrmGetGadgetData(const formP: FormPtr; objIndex: UInt16): Pointer; syscall sysTrapFrmGetGadgetData;
 
@@ -387,7 +387,7 @@ function FrmDoDialog(formP: FormPtr): UInt16; syscall sysTrapFrmDoDialog;
 
 function FrmAlert(alertId: UInt16): UInt16; syscall sysTrapFrmAlert;
 
-function FrmCustomAlert(alertId: UInt16; const s1, s2, s3: PChar): UInt16; syscall sysTrapFrmCustomAlert;
+function FrmCustomAlert(alertId: UInt16; const s1, s2, s3: PAnsiChar): UInt16; syscall sysTrapFrmCustomAlert;
 
 procedure FrmHelp(helpMsgId: UInt16); syscall sysTrapFrmHelp;
 
@@ -421,10 +421,10 @@ function FrmAddSpaceForObject(var formPP: FormPtr; var objectPP: MemPtr; objectK
 
 function FrmRemoveObject(var formPP: FormPtr; objIndex: UInt16): Err; syscall sysTrapFrmRemoveObject;
 
-function FrmNewForm(formID: UInt16; const titleStrP: PChar; x, y, width, height: Coord; modal: Boolean;
+function FrmNewForm(formID: UInt16; const titleStrP: PAnsiChar; x, y, width, height: Coord; modal: Boolean;
                     defaultButton, helpRscID, menuRscID: UInt16): FormPtr; syscall sysTrapFrmNewForm;
 
-function FrmNewLabel(var formPP: FormPtr; ID: UInt16; const textP: PChar; x, y: Coord; font: FontID): FormLabelPtr; syscall sysTrapFrmNewLabel;
+function FrmNewLabel(var formPP: FormPtr; ID: UInt16; const textP: PAnsiChar; x, y: Coord; font: FontID): FormLabelPtr; syscall sysTrapFrmNewLabel;
 
 function FrmNewBitmap(var formPP: FormPtr; ID, rscID: UInt16; x, y: Coord): FormBitmapPtr; syscall sysTrapFrmNewBitmap;
 
@@ -432,7 +432,7 @@ function FrmNewGadget(var formPP: FormPtr; id: UInt16; x, y, width, height: Coor
 
 function FrmActiveState(var stateP: FormActiveStateType; save: Boolean): Err; syscall sysTrapFrmActiveState;
 
-function FrmCustomResponseAlert(alertId: UInt16; const s1, s2, s3: PChar; entryStringBuf: PChar;
+function FrmCustomResponseAlert(alertId: UInt16; const s1, s2, s3: PAnsiChar; entryStringBuf: PAnsiChar;
                                 entryStringBufLength: Int16; callback: FormCheckResponseFuncType): UInt16; syscall sysTrapFrmCustomResponseAlert;
 
 function FrmNewGsi(var formPP: FormPtr; x, y: Coord): FrmGraffitiStatePtr; syscall sysTrapFrmNewGsi;

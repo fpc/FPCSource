@@ -38,9 +38,9 @@ const
 type
   PrgCallbackData = record
     stage: UInt16;              // <= current stage
-    textP: PChar;               // => buffer to hold text to display
+    textP: PAnsiChar;               // => buffer to hold text to display
     textLen: UInt16;            // <= length of text buffer
-    message: PChar;             // <= additional text for display
+    message: PAnsiChar;             // <= additional text for display
     error: Err;                 // <= current error
     bitmapId: UInt16;           // => resource ID of bitmap to display
     Bits: UInt16;
@@ -57,7 +57,7 @@ type
                                 // not visible
     barCurValue: UInt32;        // the current value of the progress bar, the bar will be drawn
                                 // filled the percentage of maxValue \ value
-    barMessage: PChar;          // additional text for display below the progress bar.
+    barMessage: PAnsiChar;          // additional text for display below the progress bar.
     barFlags: UInt16;           // reserved for future use.
 
     //
@@ -73,7 +73,7 @@ type
 
   PrgCallbackDataPtr = ^PrgCallbackData;
 
-//typedef Boolean (*PrgCallbackFunc)  (UInt16 stage,Boolean showDetails,Char *message,Boolean cancel,UInt16 error,Char *textP, UInt16 maxtextLen,UInt16 *bitmapID);
+//typedef Boolean (*PrgCallbackFunc)  (UInt16 stage,Boolean showDetails,AnsiChar *message,Boolean cancel,UInt16 error,AnsiChar *textP, UInt16 maxtextLen,UInt16 *bitmapID);
 
   PrgCallbackFunc = function(cbP: PrgCallbackDataPtr): Boolean;
 
@@ -150,7 +150,7 @@ type
     //  certain stages. The netConStageSending stage for example uses this string
     //  for holding the text string that it is sending. It is set by
     //  PrgUpdateDialog().
-    message: array [0..progressMaxMessage] of Char; // connection stage message.
+    message: array [0..progressMaxMessage] of AnsiChar; // connection stage message.
 
     reserved1: UInt8;
 
@@ -159,9 +159,9 @@ type
 
     // Text array used to hold control title for the OK/Cancel button. This
     //  must be kept around while the control is present in case of updates.
-    ctlLabel: array [0..progressMaxButtonText] of Char;
+    ctlLabel: array [0..progressMaxButtonText] of AnsiChar;
 
-    serviceNameP: PChar;
+    serviceNameP: PAnsiChar;
 
     //progress bar stuff (Not implemented)
     lastBarMaxValue: UInt32;
@@ -177,7 +177,7 @@ type
 
     textCallback: PrgCallbackFunc;
 
-    title: array [0..progressMaxTitle] of Char;
+    title: array [0..progressMaxTitle] of AnsiChar;
 
     //
     // *** The following field was added in PalmOS 3.2 ***
@@ -231,13 +231,13 @@ function PrgUserCancel(prgP: ProgressPtr): Boolean;
 // Prototypes
 //-----------------------------------------------------------------------
 
-function PrgStartDialogV31(const title: PChar; textCallback: PrgCallbackFunc): ProgressPtr; syscall sysTrapPrgStartDialogV31;
+function PrgStartDialogV31(const title: PAnsiChar; textCallback: PrgCallbackFunc): ProgressPtr; syscall sysTrapPrgStartDialogV31;
 
-function PrgStartDialog(const title: PChar; textCallback: PrgCallbackFunc; userDataP: Pointer): ProgressPtr; syscall sysTrapPrgStartDialog;
+function PrgStartDialog(const title: PAnsiChar; textCallback: PrgCallbackFunc; userDataP: Pointer): ProgressPtr; syscall sysTrapPrgStartDialog;
 
 procedure PrgStopDialog(prgP: ProgressPtr; force: Boolean); syscall sysTrapPrgStopDialog;
 
-procedure PrgUpdateDialog(prgGP: ProgressPtr; err, stage: UInt16; const messageP: PChar; updateNow: Boolean); syscall sysTrapPrgUpdateDialog;
+procedure PrgUpdateDialog(prgGP: ProgressPtr; err, stage: UInt16; const messageP: PAnsiChar; updateNow: Boolean); syscall sysTrapPrgUpdateDialog;
 
 function PrgHandleEvent(prgGP: ProgressPtr; eventP: EventPtr): Boolean; syscall sysTrapPrgHandleEvent;
 

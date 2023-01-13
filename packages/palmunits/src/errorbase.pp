@@ -238,7 +238,7 @@ function ErrExceptionList: MemPtrPtr; syscall sysTrapErrExceptionList;
 
 procedure ErrThrow(err_: Int32); syscall sysTrapErrThrow;
 
-procedure ErrDisplayFileLineMsg(const filename: PChar; lineNo: UInt16; const msg: PChar); syscall sysTrapErrDisplayFileLineMsg;
+procedure ErrDisplayFileLineMsg(const filename: PAnsiChar; lineNo: UInt16; const msg: PAnsiChar); syscall sysTrapErrDisplayFileLineMsg;
 
 //---------------------------------------------------------------------
 // 2/25/98 - New routine for PalmOS >3.0 to display a UI alert for
@@ -256,7 +256,7 @@ procedure ErrDisplayFileLineMsg(const filename: PChar; lineNo: UInt16; const msg
 //  macro below 'ErrAlert'
 //---------------------------------------------------------------------
 
-function ErrAlertCustom(errCode: Err; errMsgP, preMsgP, postMsgP: PChar): UInt16; syscall sysTrapErrAlertCustom;
+function ErrAlertCustom(errCode: Err; errMsgP, preMsgP, postMsgP: PAnsiChar): UInt16; syscall sysTrapErrAlertCustom;
 
 function ErrAlert(err: Err): UInt16;
 

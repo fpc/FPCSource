@@ -433,19 +433,19 @@ procedure WinPaintBitmap(bitmapP: BitmapPtr; x, y: Coord); syscall sysTrapWinPai
 // Characters
 procedure WinDrawChar(theChar: WChar; x, y: Coord); syscall sysTrapWinDrawChar;
 
-procedure WinDrawChars(const chars: PChar; len: Int16; x, y: Coord); syscall sysTrapWinDrawChars;
+procedure WinDrawChars(const chars: PAnsiChar; len: Int16; x, y: Coord); syscall sysTrapWinDrawChars;
 
 procedure WinPaintChar(theChar: WChar; x, y: Coord); syscall sysTrapWinPaintChar;
 
-procedure WinPaintChars(const chars: PChar; len: Int16; x, y: Coord); syscall sysTrapWinPaintChars;
+procedure WinPaintChars(const chars: PAnsiChar; len: Int16; x, y: Coord); syscall sysTrapWinPaintChars;
 
-procedure WinDrawInvertedChars(const chars: PChar; len: Int16; x, y: Coord); syscall sysTrapWinDrawInvertedChars;
+procedure WinDrawInvertedChars(const chars: PAnsiChar; len: Int16; x, y: Coord); syscall sysTrapWinDrawInvertedChars;
 
-procedure WinDrawTruncChars(const chars: PChar; len: Int16; x, y, maxWidth: Coord); syscall sysTrapWinDrawTruncChars;
+procedure WinDrawTruncChars(const chars: PAnsiChar; len: Int16; x, y, maxWidth: Coord); syscall sysTrapWinDrawTruncChars;
 
-procedure WinEraseChars(const chars: PChar; len: Int16; x, y: Coord); syscall sysTrapWinEraseChars;
+procedure WinEraseChars(const chars: PAnsiChar; len: Int16; x, y: Coord); syscall sysTrapWinEraseChars;
 
-procedure WinInvertChars(const chars: PChar; len: Int16; x, y: Coord); syscall sysTrapWinInvertChars;
+procedure WinInvertChars(const chars: PAnsiChar; len: Int16; x, y: Coord); syscall sysTrapWinInvertChars;
 
 function WinSetUnderlineMode(mode: UnderlineModeType): UnderlineModeType; syscall sysTrapWinSetUnderlineMode;
 

@@ -80,12 +80,12 @@ type
     // The name of the helper to show to the user (for example, when choosing
     //  a default/preferred helper for a given class of service; zero-terminated
     //  string).
-    helperAppName: array [0..kHelperAppMaxNameSize-1] of Char;
+    helperAppName: array [0..kHelperAppMaxNameSize-1] of AnsiChar;
 
     // Custom text that represents the action to be taken, such as "Dial",
     //  "Send fax", etc. (for display in an action pop-up, or button, for example);
     //  zero-terminated string.
-    actionName: array [0..kHelperAppMaxActionNameSize-1] of Char;
+    actionName: array [0..kHelperAppMaxActionNameSize-1] of AnsiChar;
 
     // The registered, unique ID of the helper (typically the helper app's
     //  creator ID).
@@ -145,11 +145,11 @@ type
     //    duplicated by helper if necessary (ex. "1-650-123-4567",
     //    "john@host.com", etc.). Multiple fields may be separated by
     //    semicolons (';').
-    dataP: PChar;
+    dataP: PAnsiChar;
 
     // IN:  Description of data; zero-terminated; will be duplicated by helper
     //    if necessary (ex. "John Doe"); this field is optional -- may be NULL.
-    displayedName: PChar;
+    displayedName: PAnsiChar;
 
     // IN:   Pointer to a service-specific extended details data structure or NULL.
     //    This optional field is used for supplying additional arguments to the

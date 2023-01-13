@@ -31,7 +31,7 @@
  *          kwk   Fixed charEncodingMax - was 76, should be 75.
  * 06/27/00 kwk   Fixed charEncodingMax in the automatically generated section
  *             to also be 75.
- *          kwk   Renumbered char encodings so that charEncodingUCS2 stays
+ *          kwk   Renumbered AnsiChar encodings so that charEncodingUCS2 stays
  *             at 9 (where it was before I integrated with Michel), since
  *             the Sony version of TxtConvertEncoding relies on this.
  *             Basically swapped charEncodingUCS2 (was 25) with charEncodingEucJp

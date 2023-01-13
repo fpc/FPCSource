@@ -40,7 +40,7 @@ type
 
 const
   menuCmdBarResultNone = 0;                                // send nothing (this'd be quite unusual but is allowed)
-  menuCmdBarResultChar = Succ(menuCmdBarResultNone);       // char to send (with commandKeyMask bit set)
+  menuCmdBarResultChar = Succ(menuCmdBarResultNone);       // AnsiChar to send (with commandKeyMask bit set)
   menuCmdBarResultMenuItem = Succ(menuCmdBarResultChar);   // id of the menu item
   menuCmdBarResultNotify = Succ(menuCmdBarResultMenuItem); // Nofication Manager notification type
 
@@ -51,7 +51,7 @@ type
   MenuCmdBarButtonType = record
   {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_MENUS} // These fields will not be available in the next OS release!
     bitmapId: UInt16;
-    name: array [0..menuCmdBarMaxTextLength-1] of Char;
+    name: array [0..menuCmdBarMaxTextLength-1] of AnsiChar;
     resultType: MenuCmdBarResultType;
     reserved: UInt8; // alignment padding
     result: UInt32;
@@ -88,20 +88,20 @@ const
   menuCommandCause = 1;
 
 // To match Apple's ResEdit the first byte of a menu item's text can
-// be a special char indicating a special menu item.
+// be a special AnsiChar indicating a special menu item.
   MenuSeparatorChar = '-';
 
 type
   MenuItemType = record
   {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_MENUS} // These fields will not be available in the next OS release!
     id: UInt16;    // id of the menu item
-    command: Char;   // command key
+    command: AnsiChar;   // command key
     bits: UInt8;
 {
     UInt8      hidden: 1;  // true if menu item is hidden
     UInt8      reserved: 7;
 }
-    itemStr: PChar;   // string to be displayed
+    itemStr: PAnsiChar;   // string to be displayed
   {$endif}
   end;
   MenuItemTag = MenuItemType;
@@ -112,7 +112,7 @@ type
     bounds: RectangleType; // bounds of the pulldown
     bitsBehind: WinHandle; // saving bits behind pull-down menu
     titleBounds: RectangleType; // bounds of the title in menu bar
-    title: PChar; // menu title displayed in menu bar
+    title: PAnsiChar; // menu title displayed in menu bar
     bits: UInt16;
 {
     UInt16     hidden: 1;  // true if pulldown is hidden
@@ -173,10 +173,10 @@ procedure MenuEraseStatus(menuP: MenuBarPtr); syscall sysTrapMenuEraseStatus;
 procedure MenuSetActiveMenuRscID(resourceId: UInt16); syscall sysTrapMenuSetActiveMenuRscID;
 
 function MenuCmdBarAddButton(where: UInt8; bitmapId: UInt16; resultType: MenuCmdBarResultType;
-                             result_: UInt32; nameP: PChar): Err; syscall sysTrapMenuCmdBarAddButton;
+                             result_: UInt32; nameP: PAnsiChar): Err; syscall sysTrapMenuCmdBarAddButton;
 
 function MenuCmdBarGetButtonData(buttonIndex: Int16; var bitmapIdP: UInt16; var resultTypeP: MenuCmdBarResultType;
-                                 var resultP: UInt32; nameP: PChar): Boolean; syscall sysTrapMenuCmdBarGetButtonData;
+                                 var resultP: UInt32; nameP: PAnsiChar): Boolean; syscall sysTrapMenuCmdBarGetButtonData;
 
 procedure MenuCmdBarDisplay; syscall sysTrapMenuCmdBarDisplay;
 
@@ -184,7 +184,7 @@ function MenuShowItem(id: UInt16): Boolean; syscall sysTrapMenuShowItem;
 
 function MenuHideItem(id: UInt16): Boolean; syscall sysTrapMenuHideItem;
 
-function MenuAddItem(positionId, id: UInt16; cmd: Char; const textP: PChar): Err; syscall sysTrapMenuAddItem;
+function MenuAddItem(positionId, id: UInt16; cmd: AnsiChar; const textP: PAnsiChar): Err; syscall sysTrapMenuAddItem;
 
 implementation
 

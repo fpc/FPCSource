@@ -465,8 +465,8 @@ const
 
 type
   NetHostInfoType = record
-    nameP: PChar;         // official name of host
-    nameAliasesP: ^PChar; // array of alias's for the name
+    nameP: PAnsiChar;         // official name of host
+    nameAliasesP: ^PAnsiChar; // array of alias's for the name
     addrType: UInt16;     // address type of return addresses
     addrLen: UInt16;      // the length, in bytes, of the addresses
                           // Note this denotes length of a address, not # of addresses.
@@ -481,10 +481,10 @@ type
 
     // The following fields contain the variable length data that
     //  hostInfo points to
-    name: array [0..netDNSMaxDomainName] of Char; // hostInfo->name
+    name: array [0..netDNSMaxDomainName] of AnsiChar; // hostInfo->name
 
-    aliasList: array [0..netDNSMaxAliases] of PChar; // +1 for 0 termination.
-    aliases: array [0..netDNSMaxAliases-1, 0..netDNSMaxDomainName] of Char;
+    aliasList: array [0..netDNSMaxAliases] of PAnsiChar; // +1 for 0 termination.
+    aliases: array [0..netDNSMaxAliases-1, 0..netDNSMaxDomainName] of AnsiChar;
 
     addressList: array [0..netDNSMaxAddresses-1] of ^NetIPAddr;
     address: array [0..netDNSMaxAddresses-1] of NetIPAddr;
@@ -507,10 +507,10 @@ const
 
 type
   NetServInfoType = record
-    nameP: PChar;         // official name of service
-    nameAliasesP: ^PChar; // array of alias's for the name
+    nameP: PAnsiChar;         // official name of service
+    nameAliasesP: ^PAnsiChar; // array of alias's for the name
     port: UInt16;         // port number for this service
-    protoP: PChar;        // name of protocol to use
+    protoP: PAnsiChar;        // name of protocol to use
   end;
 
   NetServInfoPtr = ^NetServInfoType;
@@ -521,11 +521,11 @@ type
 
     // The following fields contain the variable length data that
     //  servInfo points to
-    name: array [0..netServMaxName] of Char; // hostInfo->name
+    name: array [0..netServMaxName] of AnsiChar; // hostInfo->name
 
-    aliasList: array [0..netServMaxAliases] of PChar; // +1 for 0 termination.
-    aliases: array [0..netServMaxAliases-1, 0..netServMaxName-1] of Char;
-    protoName: array [0..netProtoMaxName] of Char;
+    aliasList: array [0..netServMaxAliases] of PAnsiChar; // +1 for 0 termination.
+    aliases: array [0..netServMaxAliases-1, 0..netServMaxName-1] of AnsiChar;
+    protoName: array [0..netProtoMaxName] of AnsiChar;
 
     reserved: UInt8;
   end;
@@ -541,7 +541,7 @@ const
 
 type
   NetConfigNameType = record
-    name: array [0..netConfigNameSize-1] of Char; // name of configuration
+    name: array [0..netConfigNameSize-1] of AnsiChar; // name of configuration
   end;
 
   NetConfigNamePtr = ^NetConfigNameType;
@@ -626,14 +626,14 @@ type
     netIFP: Pointer;  // <- net_if pointer
 
     // driver level info
-    drvrName: array [0..netDrvrTypeNameLen-1] of Char; // <- type of driver (SLIP,PPP, etc)
-    hwName: array [0..netDrvrHWNameLen-1] of Char;     // <- hardware name (Serial Library, etc)
+    drvrName: array [0..netDrvrTypeNameLen-1] of AnsiChar; // <- type of driver (SLIP,PPP, etc)
+    hwName: array [0..netDrvrHWNameLen-1] of AnsiChar;     // <- hardware name (Serial Library, etc)
     localNetHdrLen: UInt8;     // <- local net header length
     localNetTrailerLen: UInt8; // <- local net trailer length
     localNetMaxFrame: UInt16;  // <- local net maximum frame size
 
     // media layer info
-    ifName: array [0..netIFNameLen-1] of Char; // <- interface name w/instance
+    ifName: array [0..netIFNameLen-1] of AnsiChar; // <- interface name w/instance
     driverUp: Boolean; // <- true if interface driver up
     ifUp: Boolean;     // <- true if interface is up
     hwAddrLen: UInt16; // <- length of hardware address
@@ -764,7 +764,7 @@ type
 
   traceEventGet = record
     index: UInt16; // which event
-    textP: PChar;  // ptr to text string to return it in
+    textP: PAnsiChar;  // ptr to text string to return it in
   end;
 
 type
@@ -803,9 +803,9 @@ const
   netSettingDefaultRouter = Succ(netSettingSecondaryDNS);         // UInt32, IP address of Default router
   netSettingDefaultIFCreator = Succ(netSettingDefaultRouter);     // UInt32, Creator type of default interface
   netSettingDefaultIFInstance = Succ(netSettingDefaultIFCreator); // UInt16, Instance# of default interface
-  netSettingHostName = Succ(netSettingDefaultIFInstance);         // Char[64], name of host (not including domain)
-  netSettingDomainName = Succ(netSettingHostName);                // Char[256], domain name of hosts's domain
-  netSettingHostTbl = Succ(netSettingDomainName);                 // Char[], host table
+  netSettingHostName = Succ(netSettingDefaultIFInstance);         // AnsiChar[64], name of host (not including domain)
+  netSettingDomainName = Succ(netSettingHostName);                // AnsiChar[256], domain name of hosts's domain
+  netSettingHostTbl = Succ(netSettingDomainName);                 // AnsiChar[], host table
   netSettingCloseWaitTime = Succ(netSettingHostTbl);              // UInt32, time in milliseconds to stay in close-wait state
   netSettingInitialTCPResendTime = Succ(netSettingCloseWaitTime); // UInt32, time in milliseconds before TCP resends a packet.
                                                                   //  This is just the initial value, the timeout is adjusted
@@ -849,7 +849,7 @@ const
     // Status - read only
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     netIFSettingUp = Succ(netIFSettingResetAll);                            // UInt8, true if interface is UP.
-    netIFSettingName = Succ(netIFSettingUp);                                // Char[32], name of interface
+    netIFSettingName = Succ(netIFSettingUp);                                // AnsiChar[32], name of interface
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     // Addressing
@@ -861,17 +861,17 @@ const
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     // User Info
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    netIFSettingUsername = Succ(netIFSettingBroadcast);                     // Char[], login script user name
+    netIFSettingUsername = Succ(netIFSettingBroadcast);                     // AnsiChar[], login script user name
                                                                             //               If 0 length, then user will be prompted for it
-    netIFSettingPassword = Succ(netIFSettingUsername);                      // Char[], login script user password
+    netIFSettingPassword = Succ(netIFSettingUsername);                      // AnsiChar[], login script user password
                                                                             //               If 0 length, then user will be prompted for it
-    netIFSettingDialbackUsername = Succ(netIFSettingPassword);              // Char[], login script dialback user name.
+    netIFSettingDialbackUsername = Succ(netIFSettingPassword);              // AnsiChar[], login script dialback user name.
                                                                             //               If 0 length, then netIFSettingUsername is used
-    netIFSettingDialbackPassword = Succ(netIFSettingDialbackUsername);      // Char[], login script dialback user password.
+    netIFSettingDialbackPassword = Succ(netIFSettingDialbackUsername);      // AnsiChar[], login script dialback user password.
                                                                             //               If 0 length, then user will be prompted for it
-    netIFSettingAuthUsername = Succ(netIFSettingDialbackPassword);          // Char[], PAP/CHAP name.
+    netIFSettingAuthUsername = Succ(netIFSettingDialbackPassword);          // AnsiChar[], PAP/CHAP name.
                                                                             //               If 0 length, then netIFSettingUsername is used
-    netIFSettingAuthPassword = Succ(netIFSettingAuthUsername);              // Char[], PAP/CHAP password.
+    netIFSettingAuthPassword = Succ(netIFSettingAuthUsername);              // AnsiChar[], PAP/CHAP password.
                                                                             //               If "$", then user will be prompted for it
                                                                             //               else If 0 length, then netIFSettingPassword or result
                                                                             //                  of it's prompt (if it was empty) will be used
@@ -880,9 +880,9 @@ const
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     // Connect Settings
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    netIFSettingServiceName = Succ(netIFSettingAuthPassword);               // Char[], name of service
-    netIFSettingLoginScript = Succ(netIFSettingServiceName);                // Char[], login script
-    netIFSettingConnectLog = Succ(netIFSettingLoginScript);                 // Char[], connect log
+    netIFSettingServiceName = Succ(netIFSettingAuthPassword);               // AnsiChar[], name of service
+    netIFSettingLoginScript = Succ(netIFSettingServiceName);                // AnsiChar[], login script
+    netIFSettingConnectLog = Succ(netIFSettingLoginScript);                 // AnsiChar[], connect log
     netIFSettingInactivityTimeout = Succ(netIFSettingConnectLog);           // UInt16, # of seconds of inactivity allowed before
                                                                             //  interface is brought down. If 0 then
                                                                             //  no inactivity timeout enforced.
@@ -914,8 +914,8 @@ const
     // Modem settings, optionally used by serial based network interfaces
     netIFSettingUseModem = Succ(netIFSettingParityEven);                    // UInt8, if true dial-up through modem
     netIFSettingPulseDial = Succ(netIFSettingUseModem);                     // UInt8, if true use pulse dial, else tone
-    netIFSettingModemInit = Succ(netIFSettingPulseDial);                    // Char[], modem initialization string
-    netIFSettingModemPhone = Succ(netIFSettingModemInit);                   // Char[], modem phone number string
+    netIFSettingModemInit = Succ(netIFSettingPulseDial);                    // AnsiChar[], modem initialization string
+    netIFSettingModemPhone = Succ(netIFSettingModemInit);                   // AnsiChar[], modem phone number string
     netIFSettingRedialCount = Succ(netIFSettingModemPhone);                 // UInt16, # of times to redial
 
     //---------------------------------------------------------------------------------
@@ -945,8 +945,8 @@ const
     netIFSettingTxInQueue = Succ(netIFSettingQueueSize);                    // BYTE  R-only. Packets remaining to be sent
     netIFSettingTxSent = Succ(netIFSettingTxInQueue);                       // BYTE  R-only. Packets sent since SocketOpen
     netIFSettingTxDiscard = Succ(netIFSettingTxSent);                       // BYTE  R-only. Packets discarded on SocketClose
-    netIFSettingRssi = Succ(netIFSettingTxDiscard);                         // char  R-only. signed value in dBm.
-    netIFSettingRssiAsPercent = Succ(netIFSettingRssi);                     // char  R-only. signed value in percent, with 0 being no coverage and 100 being excellent.
+    netIFSettingRssi = Succ(netIFSettingTxDiscard);                         // AnsiChar  R-only. signed value in dBm.
+    netIFSettingRssiAsPercent = Succ(netIFSettingRssi);                     // AnsiChar  R-only. signed value in percent, with 0 being no coverage and 100 being excellent.
     netIFSettingRadioState = Succ(netIFSettingRssiAsPercent);               // enum  R-only. current state of the radio
     netIFSettingBase = Succ(netIFSettingRadioState);                        // UInt32 R-only. Interface specific
     netIFSettingRadioID = Succ(netIFSettingBase);                           // UInt32[2] R-only, two 32-bit. interface specific
@@ -957,7 +957,7 @@ const
     // New Settings as of PalmOS 3.3
     //---------------------------------------------------------------------------------
 
-    netIFSettingConnectionName = Succ(netIFSettingNetworkLoad);             // Char [] Connection Profile Name
+    netIFSettingConnectionName = Succ(netIFSettingNetworkLoad);             // AnsiChar [] Connection Profile Name
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     // The following settings are not used for configuration, but rather put the
@@ -1359,11 +1359,11 @@ function NetNToHL(x: Int32): Int32;
 // Convert 32-bit IP address to ascii dotted decimal form. The Sockets glue
 //  macro inet_ntoa will pass the address of an application global string in
 //  spaceP.
-function NetLibAddrINToA(libRefnum: UInt16; inet: NetIPAddr; spaceP: PChar): PChar; syscall netLibTrapAddrINToA;
+function NetLibAddrINToA(libRefnum: UInt16; inet: NetIPAddr; spaceP: PAnsiChar): PAnsiChar; syscall netLibTrapAddrINToA;
 
 // Convert a dotted decimal ascii string format of an IP address into
 //  a 32-bit value.
-function NetLibAddrAToIN(libRefnum: UInt16; const a: PChar): NetIPAddr; syscall netLibTrapAddrAToIN;
+function NetLibAddrAToIN(libRefnum: UInt16; const a: PAnsiChar): NetIPAddr; syscall netLibTrapAddrAToIN;
 
 //--------------------------------------------------
 // Socket creation and option setting
@@ -1506,14 +1506,14 @@ function NetLibDmReceive(libRefNum: UInt16; socket: NetSocketRef;
 // Name Lookups
 //--------------------------------------------------
 
-function NetLibGetHostByName(libRefNum: UInt16; const nameP: PChar; bufP: NetHostInfoBufPtr; timeout: Int32; var errP: Err): NetHostInfoPtr; syscall netLibTrapGetHostByName;
+function NetLibGetHostByName(libRefNum: UInt16; const nameP: PAnsiChar; bufP: NetHostInfoBufPtr; timeout: Int32; var errP: Err): NetHostInfoPtr; syscall netLibTrapGetHostByName;
 
 
 function NetLibGetHostByAddr(libRefNum: UInt16; var addrP: UInt8; len, type_: UInt16;
                              bufP: NetHostInfoBufPtr; timeout: Int32; var errP: Err): NetHostInfoPtr; syscall netLibTrapGetHostByAddr;
 
-function NetLibGetServByName(libRefNum: UInt16; const servNameP: PChar;
-                             const protoNameP: PChar;  bufP: NetServInfoBufPtr;
+function NetLibGetServByName(libRefNum: UInt16; const servNameP: PAnsiChar;
+                             const protoNameP: PAnsiChar;  bufP: NetServInfoBufPtr;
                              timeout: Int32; var errP: Err): NetServInfoPtr; syscall netLibTrapGetServByName;
 
 // Looks up a mail exchange name and returns a list of hostnames for it. Caller
@@ -1522,8 +1522,8 @@ function NetLibGetServByName(libRefNum: UInt16; const servNameP: PChar;
 //  return (maxEntries).
 // Returns # of entries found, or -1 on error. If error, *errP gets filled in
 //  with error code.
-function NetLibGetMailExchangeByName(libRefNum: UInt16; mailNameP: PChar;
-                                     maxEntries: UInt16; hostNames: Pointer{Char hostNames[][netDNSMaxDomainName+1]};
+function NetLibGetMailExchangeByName(libRefNum: UInt16; mailNameP: PAnsiChar;
+                                     maxEntries: UInt16; hostNames: Pointer{AnsiChar hostNames[][netDNSMaxDomainName+1]};
                                      priorities: Pointer{UInt16 priorities[]};
                                      timeout: Int32; var errP: Err): Int16; syscall netLibTrapGetMailExchangeByName;
 
@@ -1571,10 +1571,10 @@ function NetLibMaster(libRefNum: UInt16; cmd: UInt16; pbP: NetMasterPBPtr;
                       timeout: Int32): Err; syscall netLibTrapMaster;
 
 {!!!
-function NetLibTracePrintF(libRefNum: UInt16; const formatStr: PChar; ...): Err; syscall netLibTrapTracePrintF;
+function NetLibTracePrintF(libRefNum: UInt16; const formatStr: PAnsiChar; ...): Err; syscall netLibTrapTracePrintF;
 !!!}
 
-function NetLibTracePutS(libRefNum: UInt16; strP: PChar): Err; syscall netLibTrapTracePutS;
+function NetLibTracePutS(libRefNum: UInt16; strP: PAnsiChar): Err; syscall netLibTrapTracePutS;
 
 //--------------------------------------------------
 // Configuration Calls

@@ -60,7 +60,7 @@ type
     itemType: TableItemStyleType;
     fontID: FontID; // font for drawing text
     intValue: Int16;
-    ptr: PChar;
+    ptr: PAnsiChar;
   {$endif}
   end;
   TableItemTag = TableItemType;

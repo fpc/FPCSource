@@ -31,47 +31,47 @@ const
   maxStrIToALen = 12;
 
 // String Manipulation routines
-function StrCopy(dst: PChar; const src: PChar): PChar; syscall sysTrapStrCopy;
+function StrCopy(dst: PAnsiChar; const src: PAnsiChar): PAnsiChar; syscall sysTrapStrCopy;
 
-function StrNCopy(dst: PChar; const src: PChar; n: Int16): PChar; syscall sysTrapStrNCopy;
+function StrNCopy(dst: PAnsiChar; const src: PAnsiChar; n: Int16): PAnsiChar; syscall sysTrapStrNCopy;
 
-function StrCat(dst: PChar; const src: PChar): PChar; syscall sysTrapStrCat;
+function StrCat(dst: PAnsiChar; const src: PAnsiChar): PAnsiChar; syscall sysTrapStrCat;
 
-function StrNCat(dst: PChar; const src: PChar; n: Int16): PChar; syscall sysTrapStrNCat;
+function StrNCat(dst: PAnsiChar; const src: PAnsiChar; n: Int16): PAnsiChar; syscall sysTrapStrNCat;
 
-function StrLen(const src: PChar): Int16; syscall sysTrapStrLen;
+function StrLen(const src: PAnsiChar): Int16; syscall sysTrapStrLen;
 
-function StrCompareAscii(const s1, s2: PChar): Int16; syscall sysTrapStrCompareAscii;
+function StrCompareAscii(const s1, s2: PAnsiChar): Int16; syscall sysTrapStrCompareAscii;
 
-function StrCompare(const s1, s2: PChar): Int16; syscall sysTrapStrCompare;
+function StrCompare(const s1, s2: PAnsiChar): Int16; syscall sysTrapStrCompare;
 
-function StrNCompareAscii(const s1, s2: PChar; n: Int32): Int16; syscall sysTrapStrNCompareAscii;
+function StrNCompareAscii(const s1, s2: PAnsiChar; n: Int32): Int16; syscall sysTrapStrNCompareAscii;
 
-function StrNCompare(const s1, s2: PChar;n: Int32): Int16; syscall sysTrapStrNCompare;
+function StrNCompare(const s1, s2: PAnsiChar;n: Int32): Int16; syscall sysTrapStrNCompare;
 
-function StrCaselessCompare(const s1, s2: PChar): Int16; syscall sysTrapStrCaselessCompare;
+function StrCaselessCompare(const s1, s2: PAnsiChar): Int16; syscall sysTrapStrCaselessCompare;
 
-function StrNCaselessCompare(const s1, s2: PChar; n: Int32): Int16; syscall sysTrapStrNCaselessCompare;
+function StrNCaselessCompare(const s1, s2: PAnsiChar; n: Int32): Int16; syscall sysTrapStrNCaselessCompare;
 
-function StrToLower(dst: PChar; const src: PChar): PChar; syscall sysTrapStrToLower;
+function StrToLower(dst: PAnsiChar; const src: PAnsiChar): PAnsiChar; syscall sysTrapStrToLower;
 
-function StrIToA(s: PChar; i: Int32): PChar; syscall sysTrapStrIToA;
+function StrIToA(s: PAnsiChar; i: Int32): PAnsiChar; syscall sysTrapStrIToA;
 
-function StrIToH(s: PChar; i: UInt32): PChar; syscall sysTrapStrIToH;
+function StrIToH(s: PAnsiChar; i: UInt32): PAnsiChar; syscall sysTrapStrIToH;
 
-function StrLocalizeNumber(s: PChar; thousandSeparator, decimalSeparator: Char): PChar; syscall sysTrapStrLocalizeNumber;
+function StrLocalizeNumber(s: PAnsiChar; thousandSeparator, decimalSeparator: AnsiChar): PAnsiChar; syscall sysTrapStrLocalizeNumber;
 
-function StrDelocalizeNumber(s: PChar; thousandSeparator, decimalSeparator: Char): PChar; syscall sysTrapStrDelocalizeNumber;
+function StrDelocalizeNumber(s: PAnsiChar; thousandSeparator, decimalSeparator: AnsiChar): PAnsiChar; syscall sysTrapStrDelocalizeNumber;
 
-function StrChr(const str: PChar; chr: WChar): PChar; syscall sysTrapStrChr;
+function StrChr(const str: PAnsiChar; chr: WChar): PAnsiChar; syscall sysTrapStrChr;
 
-function StrStr(const str, token: PChar): PChar; syscall sysTrapStrStr;
+function StrStr(const str, token: PAnsiChar): PAnsiChar; syscall sysTrapStrStr;
 
-function StrAToI(const str: PChar): Int32; syscall sysTrapStrAToI;
+function StrAToI(const str: PAnsiChar): Int32; syscall sysTrapStrAToI;
 
-//function StrPrintF(s: PChar; const Char *formatStr, ...): Int16; syscall sysTrapStrPrintF;
+//function StrPrintF(s: PAnsiChar; const AnsiChar *formatStr, ...): Int16; syscall sysTrapStrPrintF;
 
-function StrVPrintF(s: PChar; const formatStr: PChar; arg: PChar): Int16; syscall sysTrapStrVPrintF;
+function StrVPrintF(s: PAnsiChar; const formatStr: PAnsiChar; arg: PAnsiChar): Int16; syscall sysTrapStrVPrintF;
 
 implementation
 

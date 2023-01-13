@@ -40,7 +40,7 @@ procedure UIContrastAdjust; syscall sysTrapUIContrastAdjust;
 procedure UIBrightnessAdjust; syscall sysTrapUIBrightnessAdjust;
 
 function UIPickColor(var indexP: IndexedColorType; var rgbP: RGBColorType;
-                    start: UIPickColorStartType; const titleP, tipP: PChar): Boolean; syscall sysTrapUIPickColor;
+                    start: UIPickColorStartType; const titleP, tipP: PAnsiChar): Boolean; syscall sysTrapUIPickColor;
 
 implementation
 
