@@ -64,9 +64,9 @@ procedure SysInsertionSort(baseP: Pointer; numOfElements, width: Int16;
 procedure SysQSort(baseP: Pointer; numOfElements, width: Int16;
                    comparF: CmpFuncPtr; other: Int32); syscall sysTrapSysQSort;
 
-procedure SysCopyStringResource(string_: PChar; theID: Int16); syscall sysTrapSysCopyStringResource;
+procedure SysCopyStringResource(string_: PAnsiChar; theID: Int16); syscall sysTrapSysCopyStringResource;
 
-function SysFormPointerArrayToStrings(c: PChar; stringCount: Int16): MemHandle; syscall sysTrapSysFormPointerArrayToStrings;
+function SysFormPointerArrayToStrings(c: PAnsiChar; stringCount: Int16): MemHandle; syscall sysTrapSysFormPointerArrayToStrings;
 
 
 // Return a random number ranging from 0 to sysRandomMax.
@@ -74,9 +74,9 @@ function SysFormPointerArrayToStrings(c: PChar; stringCount: Int16): MemHandle; 
 function SysRandom(newSeed: Int32): Int16; syscall sysTrapSysRandom;
 
 
-function SysStringByIndex(resID, index: UInt16; strP: PChar; maxLen: UInt16): PChar; syscall sysTrapSysStringByIndex;
+function SysStringByIndex(resID, index: UInt16; strP: PAnsiChar; maxLen: UInt16): PAnsiChar; syscall sysTrapSysStringByIndex;
 
-function SysErrString(err: Err; strP: PChar; maxLen: UInt16): PChar; syscall sysTrapSysErrString;
+function SysErrString(err: Err; strP: PAnsiChar; maxLen: UInt16): PAnsiChar; syscall sysTrapSysErrString;
 
 // This function is not to be called directly.  Instead, use the various Emu* calls
 // in EmuTraps.h because they work for Poser, the device, and the simulator, and

@@ -301,7 +301,7 @@ function ResLoadForm(rscID: UInt16): Pointer; syscall sysTrapResLoadForm;
 
 function ResLoadMenu(rscID: UInt16): Pointer; syscall sysTrapResLoadMenu;
 
-//!!!function ResLoadString(rscID: UInt16): PChar;
+//!!!function ResLoadString(rscID: UInt16): PAnsiChar;
 
 function ResLoadConstant(rscID: UInt16): UInt32; syscall sysTrapResLoadConstant;
 

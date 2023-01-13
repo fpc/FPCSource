@@ -33,7 +33,7 @@ interface
 uses palmos, coretraps, localemgr;
 
 function SelectTimeZone(var ioTimeZoneP: Int16; var ioLocaleInTimeZoneP: LmLocaleType;
-                        {const} titleP: PChar; showTimes, anyLocale: Boolean): Boolean; syscall sysTrapSelectTimeZone;
+                        {const} titleP: PAnsiChar; showTimes, anyLocale: Boolean): Boolean; syscall sysTrapSelectTimeZone;
 
 implementation
 

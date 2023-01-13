@@ -33,7 +33,7 @@ const
   nfApostrophePeriod = Succ(nfSpaceComma);
   nfApostropheComma = Succ(nfApostrophePeriod);
 
-procedure LocGetNumberSeparators(numberFormat: NumberFormatType; thousandSeparator, decimalSeparator: PChar); syscall sysTrapLocGetNumberSeparators;
+procedure LocGetNumberSeparators(numberFormat: NumberFormatType; thousandSeparator, decimalSeparator: PAnsiChar); syscall sysTrapLocGetNumberSeparators;
 
 implementation
 

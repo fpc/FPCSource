@@ -29,9 +29,9 @@ const
 
 function PwdExists: Boolean; syscall sysTrapPwdExists;
 
-function PwdVerify(Astring: PChar): Boolean; syscall sysTrapPwdVerify;
+function PwdVerify(Astring: PAnsiChar): Boolean; syscall sysTrapPwdVerify;
 
-procedure PwdSet(oldPassword, newPassword: PChar); syscall sysTrapPwdSet;
+procedure PwdSet(oldPassword, newPassword: PAnsiChar); syscall sysTrapPwdSet;
 
 procedure PwdRemove; syscall sysTrapPwdRemove;
 

@@ -179,7 +179,7 @@ implementation
 
 function ColorTableEntries(ctP: ColorTablePtr): RGBColorPtr;
 begin
-  ColorTableEntries := RGBColorPtr(PChar(ctP) + SizeOf(ctP^));
+  ColorTableEntries := RGBColorPtr(PAnsiChar(ctP) + SizeOf(ctP^));
 end;
 
 end.

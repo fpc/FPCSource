@@ -75,13 +75,13 @@ type
   _HelperServiceEMailDetailsType = record
     version: UInt16; // this is version 1
 
-    cc: PChar;       // IN: carbon copy address string or NULL -- will
+    cc: PAnsiChar;       // IN: carbon copy address string or NULL -- will
                      //  be duplicated by helper if necessary;
                      //  multiple addresses are separated by
                      //  semicolon (ex. "john@host.com; jane@host.com")
-    subject: PChar;  // IN: subject string or NULL -- will be duplicated
+    subject: PAnsiChar;  // IN: subject string or NULL -- will be duplicated
                      //  by helper if necessary (ex. "helper API")
-    message: PChar;  // IN: initial message body string or NULL -- will be
+    message: PAnsiChar;  // IN: initial message body string or NULL -- will be
                      //  duplicated by helper if necessary (ex.
                      //  "Lets discuss the helper API tomorrow.")
   end;
@@ -104,7 +104,7 @@ type
   _HelperServiceSMSDetailsType = record
     version: UInt16; // this is version 1
 
-    message: PChar;  // IN: initial message body string or NULL -- will be
+    message: PAnsiChar;  // IN: initial message body string or NULL -- will be
                      //  duplicated by helper if necessary (ex.
                      //  "Lets discuss the helper API tomorrow.")
   end;

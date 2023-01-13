@@ -504,7 +504,7 @@ type
   SysAppLaunchCmdCardType = record
     err: Err;
     volRefNum: UInt16;
-    path: PChar;
+    path: PAnsiChar;
     startFlags: UInt16; // See vfsStartFlagXXX constants below
   end;
 
@@ -873,7 +873,7 @@ const
 // SysCreateDataBaseList can generate a list of database.
 type
   SysDBListItemType = record
-    name: array [0..dmDBNameLength-1] of Char;
+    name: array [0..dmDBNameLength-1] of AnsiChar;
     creator: UInt32;
     type_: UInt32;
     version: UInt16;
@@ -935,7 +935,7 @@ type
 // mVolts: UInt16;
     // Character string received in response to inquiry string
     // (will be NUL terminated)
-    responseBuffer: array [0..sysMaxHSIResponseSize-1] of Char;
+    responseBuffer: array [0..sysMaxHSIResponseSize-1] of AnsiChar;
     // Length of string in responseBuffer
     responseLength: UInt16;
   end;
@@ -1020,7 +1020,7 @@ function SysDisableInts: UInt16; syscall sysTrapSysDisableInts;
 
 procedure SysRestoreStatus(status: UInt16); syscall sysTrapSysRestoreStatus;
 
-function SysGetOSVersionString: PChar; syscall sysTrapSysGetOSVersionString;
+function SysGetOSVersionString: PAnsiChar; syscall sysTrapSysGetOSVersionString;
 
 // The following trap is a public definition of HwrGetROMToken from <Hardware.h>
 // See token definitions (like sysROMTokenSerial) above...
@@ -1035,7 +1035,7 @@ function SysLibLoad(libType, libCreator: UInt32; var refNumP: UInt16): Err; sysc
 
 function SysLibRemove(refNum: UInt16): Err; syscall sysTrapSysLibRemove;
 
-function SysLibFind(const nameP: PChar; var refNumP: UInt16): Err; syscall sysTrapSysLibFind;
+function SysLibFind(const nameP: PAnsiChar; var refNumP: UInt16): Err; syscall sysTrapSysLibFind;
 
 function SysLibTblEntry(refNum: UInt16): SysLibTblEntryPtr; syscall sysTrapSysLibTblEntry;
 

@@ -260,7 +260,7 @@ const
 
 type
   INetConfigNameType = record
-    name: array [0..inetConfigNameSize-1] of Char; // name of configuration
+    name: array [0..inetConfigNameSize-1] of AnsiChar; // name of configuration
   end;
 
   INetConfigNamePtr = ^INetConfigNameType;
@@ -412,7 +412,7 @@ type
 const
   inetSettingProxyType = 0;                                    // (RW) UInt32, INetProxyEnum
 
-  inetSettingProxyName = Succ(inetSettingProxyType);           // (RW) Char[], name of proxy
+  inetSettingProxyName = Succ(inetSettingProxyType);           // (RW) AnsiChar[], name of proxy
   inetSettingProxyPort = Succ(inetSettingProxyName);           // (RW) UInt32,  TCP port # of proxy
 
   inetSettingProxySocketType = Succ(inetSettingProxyPort);     // (RW) UInt32, which type of socket to use
@@ -490,17 +490,17 @@ const
   inetSockSettingScheme = 0;                                               // (R) UInt32, INetSchemeEnum
   inetSockSettingSockContext = Succ(inetSockSettingScheme);                // (RW) UInt32,
 
-  inetSockSettingCompressionType = Succ(inetSockSettingSockContext);       // (R) Char[]
+  inetSockSettingCompressionType = Succ(inetSockSettingSockContext);       // (R) AnsiChar[]
   inetSockSettingCompressionTypeID = Succ(inetSockSettingCompressionType); // (R) UInt32 (INetCompressionTypeEnum)
-  inetSockSettingContentType = Succ(inetSockSettingCompressionTypeID);     // (R) Char[]
+  inetSockSettingContentType = Succ(inetSockSettingCompressionTypeID);     // (R) AnsiChar[]
   inetSockSettingContentTypeID = Succ(inetSockSettingContentType);         // (R) UInt32 (INetContentTypeEnum)
   inetSockSettingData = Succ(inetSockSettingContentTypeID);                // (R) UInt32, pointer to data
   inetSockSettingDataHandle = Succ(inetSockSettingData);                   // (R) UInt32, MemHandle to data
   inetSockSettingDataOffset = Succ(inetSockSettingDataHandle);             // (R) UInt32, offset to data from MemHandle
 
-  inetSockSettingTitle = Succ(inetSockSettingDataOffset);                  // (RW) Char[]
-  inetSockSettingURL = Succ(inetSockSettingTitle);                         // (R) Char[]
-  inetSockSettingIndexURL = Succ(inetSockSettingURL);                      // (RW) Char[]
+  inetSockSettingTitle = Succ(inetSockSettingDataOffset);                  // (RW) AnsiChar[]
+  inetSockSettingURL = Succ(inetSockSettingTitle);                         // (R) AnsiChar[]
+  inetSockSettingIndexURL = Succ(inetSockSettingURL);                      // (RW) AnsiChar[]
 
   inetSockSettingFlags = Succ(inetSockSettingIndexURL);                    // (W) UInt16, one or more of
                                                                            //   inetOpenURLFlagXXX flags
@@ -560,15 +560,15 @@ const
   inetHTTPAttrCommErr = 0;                                                  // (R) UInt32, read-only
 
   // object attributes, defined at creation
-  inetHTTPAttrEntityURL = Succ(inetHTTPAttrCommErr);                        // (-) Char[], which resource was requested
+  inetHTTPAttrEntityURL = Succ(inetHTTPAttrCommErr);                        // (-) AnsiChar[], which resource was requested
 
   //-----------------------------------------------------------
   // Request only attributes
   //-----------------------------------------------------------
-  inetHTTPAttrReqAuthorization = Succ(inetHTTPAttrEntityURL);               // (-) Char[]
-  inetHTTPAttrReqFrom = Succ(inetHTTPAttrReqAuthorization);                 // (-) Char[]
+  inetHTTPAttrReqAuthorization = Succ(inetHTTPAttrEntityURL);               // (-) AnsiChar[]
+  inetHTTPAttrReqFrom = Succ(inetHTTPAttrReqAuthorization);                 // (-) AnsiChar[]
   inetHTTPAttrReqIfModifiedSince = Succ(inetHTTPAttrReqFrom);               // (-) UInt32
-  inetHTTPAttrReqReferer = Succ(inetHTTPAttrReqIfModifiedSince);            // (-) Char[]
+  inetHTTPAttrReqReferer = Succ(inetHTTPAttrReqIfModifiedSince);            // (-) AnsiChar[]
 
   // The following are ignored unless going through a CTP proxy
   inetHTTPAttrWhichPart = Succ(inetHTTPAttrReqReferer);                     // (W) UInt32 (0 -> N)
@@ -585,29 +585,29 @@ const
   // Response only attributes
   //--------------------------------------------------------------
   // Server response info
-  inetHTTPAttrRspAll = Succ(inetHTTPAttrReqContentVersion);                 // (-) Char[] - entire HTTP response including
+  inetHTTPAttrRspAll = Succ(inetHTTPAttrReqContentVersion);                 // (-) AnsiChar[] - entire HTTP response including
                                                                             //   data
   inetHTTPAttrRspSize = Succ(inetHTTPAttrRspAll);                           // (R) UInt32 - entire HTTP Response size including
                                                                             //   header and data
-  inetHTTPAttrRspVersion = Succ(inetHTTPAttrRspSize);                       // (-) Char[]
+  inetHTTPAttrRspVersion = Succ(inetHTTPAttrRspSize);                       // (-) AnsiChar[]
   inetHTTPAttrResult = Succ(inetHTTPAttrRspVersion);                        // (R) UInt32 (ctpErrXXX when using CTP Proxy)
   inetHTTPAttrErrDetail = Succ(inetHTTPAttrResult);                         // (R) UInt32 (server/proxy err code when
                                                                             //      using CTP Proxy)
-  inetHTTPAttrReason = Succ(inetHTTPAttrErrDetail);                         // (R) Char[]
+  inetHTTPAttrReason = Succ(inetHTTPAttrErrDetail);                         // (R) AnsiChar[]
   inetHTTPAttrDate = Succ(inetHTTPAttrReason);                              // (-) UInt32
   inetHTTPAttrNoCache = Succ(inetHTTPAttrDate);                             // (-) UInt32
-  inetHTTPAttrPragma = Succ(inetHTTPAttrNoCache);                           // (-) Char[]
-  inetHTTPAttrServer = Succ(inetHTTPAttrPragma);                            // (-) Char[]
-  inetHTTPAttrWWWAuthentication = Succ(inetHTTPAttrServer);                 // (-) Char[]
+  inetHTTPAttrPragma = Succ(inetHTTPAttrNoCache);                           // (-) AnsiChar[]
+  inetHTTPAttrServer = Succ(inetHTTPAttrPragma);                            // (-) AnsiChar[]
+  inetHTTPAttrWWWAuthentication = Succ(inetHTTPAttrServer);                 // (-) AnsiChar[]
 
   // Returned entity attributes
-  inetHTTPAttrContentAllow = Succ(inetHTTPAttrWWWAuthentication);           // (-) Char[]
+  inetHTTPAttrContentAllow = Succ(inetHTTPAttrWWWAuthentication);           // (-) AnsiChar[]
   inetHTTPAttrContentLength = Succ(inetHTTPAttrContentAllow);               // (R) UInt32
   inetHTTPAttrContentLengthUncompressed = Succ(inetHTTPAttrContentLength);  // (R) UInt32 (in bytes)
-  inetHTTPAttrContentPtr = Succ(inetHTTPAttrContentLengthUncompressed);     // (-) Char *
+  inetHTTPAttrContentPtr = Succ(inetHTTPAttrContentLengthUncompressed);     // (-) AnsiChar *
   inetHTTPAttrContentExpires = Succ(inetHTTPAttrContentPtr);                // (-) UInt32
   inetHTTPAttrContentLastModified = Succ(inetHTTPAttrContentExpires);       // (-) UInt32
-  inetHTTPAttrContentLocation = Succ(inetHTTPAttrContentLastModified);      // (-) Char[]
+  inetHTTPAttrContentLocation = Succ(inetHTTPAttrContentLastModified);      // (-) AnsiChar[]
   inetHTTPAttrContentLengthUntruncated = Succ(inetHTTPAttrContentLocation); // (R) UInt32
   inetHTTPAttrContentVersion = Succ(inetHTTPAttrContentLengthUntruncated);  // (R) UInt32, actual content version. Represented
                                                                             //  as 2 low bytes. Lowest byte is minor version,
@@ -897,9 +897,9 @@ function INetLibSockHTTPAttrGet(libRefnum: UInt16; sockH: MemHandle; attr: UInt1
 
 function INetLibURLCrack(libRefnum: UInt16; var urlTextP: UInt8; var urlP: INetURLType): Err; syscall inetLibTrapURLCrack;
 
-function INetLibURLsAdd(libRefnum: UInt16; baseURLStr, embeddedURLStr, resultURLStr: PChar; var resultLenP: UInt16): Err; syscall inetLibTrapURLsAdd;
+function INetLibURLsAdd(libRefnum: UInt16; baseURLStr, embeddedURLStr, resultURLStr: PAnsiChar; var resultLenP: UInt16): Err; syscall inetLibTrapURLsAdd;
 
-function INetLibURLsCompare(libRefnum: UInt16; URLStr1, URLStr2: PChar): Int16; syscall inetLibTrapURLsCompare;
+function INetLibURLsCompare(libRefnum: UInt16; URLStr1, URLStr2: PAnsiChar): Int16; syscall inetLibTrapURLsCompare;
 
 function INetLibURLGetInfo(libRefnum: UInt16; inetH: MemHandle; var urlTextP: UInt8; var urlInfoP: INetURLInfoType): Err; syscall inetLibTrapURLGetInfo;
 

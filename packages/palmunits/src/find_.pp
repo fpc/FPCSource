@@ -49,8 +49,8 @@ type
     dbAccesMode: UInt16;                          // read mode and maybe show secret
     recordNum: UInt16;                            // index of last record that contained a match
     more: Boolean;                                // true of more matches to display
-    strAsTyped: array [0..maxFindStrLen] of Char; // search string as entered
-    strToFind: array [0..maxFindStrLen] of Char;  // search string is lower case
+    strAsTyped: array [0..maxFindStrLen] of AnsiChar; // search string as entered
+    strToFind: array [0..maxFindStrLen] of AnsiChar;  // search string is lower case
     reserved1: UInt8;
 
     // The lineNumber field can be modified by the app. The continuation field can
@@ -101,14 +101,14 @@ type
 
 procedure Find(goToP: GoToParamsPtr); syscall sysTrapFind;
 
-function FindStrInStr(strToSearch, strToFind: PChar; var posP: UInt16): Boolean; syscall sysTrapFindStrInStr;
+function FindStrInStr(strToSearch, strToFind: PAnsiChar; var posP: UInt16): Boolean; syscall sysTrapFindStrInStr;
 
 function FindSaveMatch(findParams: FindParamsPtr; recordNum, pos, fieldNum: UInt16;
                        appCustom: UInt32; cardNo: UInt16; dbID: LocalID): Boolean; syscall sysTrapFindSaveMatch;
 
 procedure FindGetLineBounds(const findParams: FindParamsPtr; r: RectanglePtr); syscall sysTrapFindGetLineBounds;
 
-function FindDrawHeader(findParams: FindParamsPtr; title: PChar): Boolean; syscall sysTrapFindDrawHeader;
+function FindDrawHeader(findParams: FindParamsPtr; title: PAnsiChar): Boolean; syscall sysTrapFindDrawHeader;
 
 implementation
 
