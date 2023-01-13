@@ -24,7 +24,7 @@ Var
     list_item       : PGtkWidget;
     i               : longint;
     buffer          : ansistring;
-    Ptr_Buffer      : PChar ;
+    Ptr_Buffer      : PAnsiChar ;
 Begin
     // Create a new scrolled window, with scrollbars only if needed
     scrolled_window := gtk_scrolled_window_new (NULL, NULL);
@@ -41,7 +41,7 @@ Begin
     for i:=0 to 10 do Begin
         Str (i,buffer);
         buffer := 'Message #' + buffer;
-        Ptr_buffer := PChar (buffer);
+        Ptr_buffer := PAnsiChar (buffer);
         list_item := gtk_list_item_new_with_label (Ptr_buffer);
         gtk_container_add (GTK_CONTAINER(list), list_item);
         gtk_widget_show (list_item);

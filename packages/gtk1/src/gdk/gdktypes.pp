@@ -1017,7 +1017,7 @@ type
           dummy : gushort;
           data : record
               case longint of
-                 0 : ( b : array[0..19] of char );
+                 0 : ( b : array[0..19] of AnsiChar );
                  1 : ( s : array[0..9] of system.integer );
                  2 : ( l : array[0..4] of longint );
               end;

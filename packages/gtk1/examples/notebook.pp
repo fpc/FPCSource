@@ -81,14 +81,14 @@ begin
     bufferf := 'Append Frame '+itos(i+1)+#0;
     bufferl := 'Page '+itos(i+1)+#0;
 
-    frame := gtk_frame_new (pchar(@bufferf[1]));
+    frame := gtk_frame_new (PAnsiChar(@bufferf[1]));
     gtk_container_set_border_width (pGTKCONTAINER (frame), 10);
     gtk_widget_set_usize (frame, 100, 75);
 
-    thelabel := gtk_label_new (pchar(@bufferf[1]));
+    thelabel := gtk_label_new (PAnsiChar(@bufferf[1]));
     gtk_container_add (pGTKCONTAINER (frame), thelabel);
 
-    thelabel := gtk_label_new (pchar(@bufferl[1]));
+    thelabel := gtk_label_new (PAnsiChar(@bufferl[1]));
     gtk_notebook_append_page (pGTKNOTEBOOK (thenotebook), frame, thelabel);
   end;
 
@@ -104,14 +104,14 @@ begin
     bufferf := 'Prepend Frame '+itos(i+1)+#0;
     bufferl := 'PPage '+itos(i+1)+#0;
 
-    frame := gtk_frame_new (pchar(@bufferf[1]));
+    frame := gtk_frame_new (PAnsiChar(@bufferf[1]));
     gtk_container_set_border_width (pGTKCONTAINER (frame), 10);
     gtk_widget_set_usize (frame, 100, 75);
 
-    thelabel := gtk_label_new (pchar(@bufferf[1]));
+    thelabel := gtk_label_new (PAnsiChar(@bufferf[1]));
     gtk_container_add (pGTKCONTAINER (frame), thelabel);
 
-    thelabel := gtk_label_new (pchar(@bufferl[1]));
+    thelabel := gtk_label_new (PAnsiChar(@bufferl[1]));
     gtk_notebook_prepend_page (pGTKNOTEBOOK(thenotebook), frame, thelabel);
         gtk_widget_show (frame);
   end;

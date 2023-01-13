@@ -38,10 +38,10 @@
 function  gtk_menu_factory_new(thetype:TGtkMenuFactoryType):PGtkMenuFactory;cdecl;external gtkdll name 'gtk_menu_factory_new';
 procedure gtk_menu_factory_destroy(factory:PGtkMenuFactory);cdecl;external gtkdll name 'gtk_menu_factory_destroy';
 procedure gtk_menu_factory_add_entries(factory:PGtkMenuFactory; entries:PGtkMenuEntry; nentries:longint);cdecl;external gtkdll name 'gtk_menu_factory_add_entries';
-procedure gtk_menu_factory_add_subfactory(factory:PGtkMenuFactory; subfactory:PGtkMenuFactory; path:pchar);cdecl;external gtkdll name 'gtk_menu_factory_add_subfactory';
+procedure gtk_menu_factory_add_subfactory(factory:PGtkMenuFactory; subfactory:PGtkMenuFactory; path:PAnsiChar);cdecl;external gtkdll name 'gtk_menu_factory_add_subfactory';
 procedure gtk_menu_factory_remove_paths(factory:PGtkMenuFactory; paths:PPgchar; npaths:longint);cdecl;external gtkdll name 'gtk_menu_factory_remove_paths';
 procedure gtk_menu_factory_remove_entries(factory:PGtkMenuFactory; entries:PGtkMenuEntry; nentries:longint);cdecl;external gtkdll name 'gtk_menu_factory_remove_entries';
-procedure gtk_menu_factory_remove_subfactory(factory:PGtkMenuFactory; subfactory:PGtkMenuFactory; path:pchar);cdecl;external gtkdll name 'gtk_menu_factory_remove_subfactory';
+procedure gtk_menu_factory_remove_subfactory(factory:PGtkMenuFactory; subfactory:PGtkMenuFactory; path:PAnsiChar);cdecl;external gtkdll name 'gtk_menu_factory_remove_subfactory';
 function  gtk_menu_factory_find(factory:PGtkMenuFactory; path:Pgchar):PGtkMenuPath;cdecl;external gtkdll name 'gtk_menu_factory_find';
 
 {$endif read_interface}
