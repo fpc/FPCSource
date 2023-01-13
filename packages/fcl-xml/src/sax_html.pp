@@ -56,7 +56,7 @@ type
     FRawTokenText: string;
     FScriptEndTag: string;
     FScriptEndMatchPos: Integer;
-    FCurStringValueDelimiter: Char;
+    FCurStringValueDelimiter: AnsiChar;
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
     FNesting: Integer;
@@ -158,10 +158,10 @@ procedure THTMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
 var
-  Buffer: array[0..MaxBufferSize - 1] of Char;
+  Buffer: array[0..MaxBufferSize - 1] of AnsiChar;
   BufferSize, BufferPos: Integer;
   len: Integer;
-  ch: Char;
+  ch: AnsiChar;
 begin
   if not FStarted then
   begin

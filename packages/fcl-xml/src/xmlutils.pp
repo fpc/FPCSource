@@ -24,7 +24,7 @@ uses
 
 type
   TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
-  TSetOfChar = set of Char;
+  TSetOfChar = set of AnsiChar;
   XMLString = UnicodeString;
   PXMLString = ^XMLString;
   PXMLChar = PWideChar;
@@ -249,10 +249,10 @@ procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
 
 { Built-in decoder functions for UTF-8, UTF-16 and ISO-8859-1 }
 
-function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UCS2(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UCS2_Swapped(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UTF8(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_8859_1(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 
 {$i names.inc}
 
@@ -376,10 +376,10 @@ var
   I: Integer;
 begin
   Result := False;
-  if (Value = '') or (Value[1] > #255) or not (char(ord(Value[1])) in ['A'..'Z', 'a'..'z']) then
+  if (Value = '') or (Value[1] > #255) or not (AnsiChar(ord(Value[1])) in ['A'..'Z', 'a'..'z']) then
     Exit;
   for I := 2 to Length(Value) do
-    if (Value[I] > #255) or not (char(ord(Value[I])) in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']) then
+    if (Value[I] > #255) or not (AnsiChar(ord(Value[I])) in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']) then
       Exit;
   Result := True;
 end;
@@ -1012,7 +1012,7 @@ end;
 
 { standard decoders }
 
-function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UCS2(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   cnt: Cardinal;
 begin
@@ -1025,11 +1025,11 @@ begin
   Result := cnt;
 end;
 
-function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UCS2_Swapped(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   I: Integer;
   cnt: Cardinal;
-  InPtr: PChar;
+  InPtr: PAnsiChar;
 begin
   cnt := OutCnt;         // num of widechars
   if cnt > InCnt div sizeof(WideChar) then
@@ -1045,7 +1045,7 @@ begin
   Result := cnt;
 end;
 
-function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_8859_1(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   I: Integer;
   cnt: Cardinal;
@@ -1060,7 +1060,7 @@ begin
   Result := cnt;
 end;
 
-function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UTF8(Context: Pointer; InBuf: PAnsiChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 const
   MaxCode: array[1..4] of Cardinal = ($7F, $7FF, $FFFF, $1FFFFF);
 var

@@ -36,7 +36,7 @@ type
   THTMLCharsets = THTMLCData;
   THTMLContentTypes = THTMLCData;
   THTMLURI = string;
-  THTMLCharacter = char;
+  THTMLCharacter = AnsiChar;
 
   THTMLDir = (dirEmpty,dirLeftToRight,dirRightToLeft);
   THTMLalign = (alEmpty,alleft,alcenter,alright,aljustify,alchar);
@@ -364,7 +364,7 @@ const
 
   HTMLAttributeTag : array [THTMLAttributeTag] of String = (
       'abbr', 'alink', 'accept-charset', 'accept', 'accesskey', 'action', 'align', 'alt', 'archive',
-      'axis', 'background', 'bgcolor', 'border', 'cellpadding', 'cellspacing', 'char', 'charoff', 'charset',
+      'axis', 'background', 'bgcolor', 'border', 'cellpadding', 'cellspacing', 'AnsiChar', 'charoff', 'charset',
       'checked', 'cite', 'class', 'classid', 'clear', 'code', 'codebase', 'codetype', 'color', 'cols',
       'colspan', 'compact', 'content', 'coords', 'data', 'datetime', 'declare', 'defer',
       'dir', 'disabled', 'enctype', 'face', 'for', 'frame', 'frameborder', 'headers',
@@ -383,7 +383,7 @@ const
     ('Black', 'Silver', 'Gray', 'White', 'Maroon', 'Red', 'Purple', 'Fuchsia',
      'Green', 'Lime', 'Olive', 'Yellow', 'Navy', 'Blue', 'Teal', 'Aqua');
   HTMLDir : array [THTMLDir] of string = ('','LTR','RTL');
-  HTMLAlign : array [THTMLalign] of string = ('','left','center','right','justify','char');
+  HTMLAlign : array [THTMLalign] of string = ('','left','center','right','justify','AnsiChar');
   HTMLvalign : array [THTMLvalign] of string = ('','top','middle','bottom','baseline');
   HTMLframe : array [THTMLframe] of string =
       ('','void','above','below','hsides','vsides','lhs','rhs','box','border');
