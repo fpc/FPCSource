@@ -153,7 +153,7 @@ procedure NSDrawWhiteBezel(aRect: NSRect; clipRect: NSRect); cdecl; external;
 procedure NSDrawButton(aRect: NSRect; clipRect: NSRect); cdecl; external;
 procedure NSEraseRect(aRect: NSRect); cdecl; external;
 function NSReadPixel(passedPoint: NSPoint): NSColor; cdecl; external;
-procedure NSDrawBitmap(rect: NSRect; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; bpp: NSInteger; bpr: NSInteger; isPlanar: ObjCBOOL; hasAlpha: ObjCBOOL; colorSpaceName: NSString; data: PChar { 5 element array of PChar }); cdecl; external;
+procedure NSDrawBitmap(rect: NSRect; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; bpp: NSInteger; bpr: NSInteger; isPlanar: ObjCBOOL; hasAlpha: ObjCBOOL; colorSpaceName: NSString; data: PAnsiChar { 5 element array of PAnsiChar }); cdecl; external;
 procedure NSHighlightRect(aRect: NSRect); cdecl; external; deprecated 'in 10_0, 10_0';
 procedure NSBeep; cdecl; external;
 function NSGetWindowServerMemory(context: NSInteger; virtualMemory: NSIntegerPtr; windowBackingMemory: NSIntegerPtr; windowDumpString: NSStringPtr): NSInteger; cdecl; external;

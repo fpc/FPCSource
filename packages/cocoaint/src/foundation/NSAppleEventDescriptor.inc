@@ -13,7 +13,7 @@ type
   private
     _desc: AEDesc;
     _hasValidDesc: ObjCBOOL;
-    _padding:array[0..2] of char;
+    _padding:array[0..2] of AnsiChar;
   public
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';
     class function descriptorWithDescriptorType_bytes_length (descriptorType: DescType; bytes: pointer; byteCount: NSUInteger): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';

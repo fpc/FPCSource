@@ -130,7 +130,7 @@ type
 {$endif}
 
 {$ifdef FUNCTIONS}
-function NSConvertGlyphsToPackedGlyphs(glBuf: NSGlyphPtr; count: NSInteger; packing: NSMultibyteGlyphPacking; packedGlyphs: PChar): NSInteger; cdecl; external;
+function NSConvertGlyphsToPackedGlyphs(glBuf: NSGlyphPtr; count: NSInteger; packing: NSMultibyteGlyphPacking; packedGlyphs: PAnsiChar): NSInteger; cdecl; external;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}

@@ -38,10 +38,10 @@ type
     cursor: NSUInteger;
     objectZone_: NSZonePtr;
     systemVersion: NSUInteger;
-    streamerVersion: char;
-    swap: char;
-    unused1: char;
-    unused2: char;
+    streamerVersion: AnsiChar;
+    swap: AnsiChar;
+    unused1: AnsiChar;
+    unused2: AnsiChar;
     pointerTable: pointer;
     stringTable: pointer;
     classVersions: id;

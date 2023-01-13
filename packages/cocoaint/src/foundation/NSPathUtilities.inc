@@ -19,8 +19,8 @@ type
     function stringByResolvingSymlinksInPath: NSString; message 'stringByResolvingSymlinksInPath';
     function stringsByAppendingPaths (paths: NSArray): NSArray; message 'stringsByAppendingPaths:';
     function completePathIntoString_caseSensitive_matchesIntoArray_filterTypes (outputName: NSStringPtr; flag: ObjCBOOL; outputArray: NSArrayPtr; filterTypes: NSArray): NSUInteger; message 'completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:';
-    function fileSystemRepresentation: PChar; message 'fileSystemRepresentation';
-    function getFileSystemRepresentation_maxLength (cname: PChar; max: NSUInteger): ObjCBOOL; message 'getFileSystemRepresentation:maxLength:';
+    function fileSystemRepresentation: PAnsiChar; message 'fileSystemRepresentation';
+    function getFileSystemRepresentation_maxLength (cname: PAnsiChar; max: NSUInteger): ObjCBOOL; message 'getFileSystemRepresentation:maxLength:';
   end;
 
 type

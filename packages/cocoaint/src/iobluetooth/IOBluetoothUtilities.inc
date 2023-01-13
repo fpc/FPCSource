@@ -20,10 +20,10 @@ function IOBluetoothLaunchHandsFreeAgent(deviceAddressString: CFStringRef): Bool
 
 {$endif}
 {$ifdef FUNCTIONS}
-function IOBluetoothPackData(ioBuffer: pointer; inFormat: PChar): clong; cdecl; external;
-function IOBluetoothPackDataList(ioBuffer: pointer; inFormat: PChar; inArgs: va_list): clong; cdecl; external;
-function IOBluetoothUnpackData(inBufferSize: ByteCount; inBuffer: pointer; inFormat: PChar): clong; cdecl; external;
-function IOBluetoothUnpackDataList(inBufferSize: ByteCount; inBuffer: pointer; inFormat: PChar; inArgs: va_list): clong; cdecl; external;
-function IOBluetoothFindNumberOfRegistryEntriesOfClassName(deviceType: PChar): clong; cdecl; external;
+function IOBluetoothPackData(ioBuffer: pointer; inFormat: PAnsiChar): clong; cdecl; external;
+function IOBluetoothPackDataList(ioBuffer: pointer; inFormat: PAnsiChar; inArgs: va_list): clong; cdecl; external;
+function IOBluetoothUnpackData(inBufferSize: ByteCount; inBuffer: pointer; inFormat: PAnsiChar): clong; cdecl; external;
+function IOBluetoothUnpackDataList(inBufferSize: ByteCount; inBuffer: pointer; inFormat: PAnsiChar; inArgs: va_list): clong; cdecl; external;
+function IOBluetoothFindNumberOfRegistryEntriesOfClassName(deviceType: PAnsiChar): clong; cdecl; external;
 {$endif}
 
