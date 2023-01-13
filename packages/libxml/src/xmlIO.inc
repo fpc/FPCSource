@@ -27,7 +27,7 @@
  *
  * Returns 1 if yes and 0 if another Input module should be used
  *)
-  xmlInputMatchCallback = function(filename: pchar): cint; EXTDECL;
+  xmlInputMatchCallback = function(filename: PAnsiChar): cint; EXTDECL;
 
 (**
  * xmlInputOpenCallback:
@@ -37,7 +37,7 @@
  *
  * Returns an Input context or NULL in case or error
  *)
-  xmlInputOpenCallback = function(filename: pchar): pointer; EXTDECL;
+  xmlInputOpenCallback = function(filename: PAnsiChar): pointer; EXTDECL;
 
 (**
  * xmlInputReadCallback:
@@ -49,7 +49,7 @@
  *
  * Returns the number of bytes read or -1 in case of error
  *)
-  xmlInputReadCallback = function(context: pointer; buffer: pchar; len: cint): cint; EXTDECL;
+  xmlInputReadCallback = function(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL;
 
 (**
  * xmlInputCloseCallback:
@@ -76,7 +76,7 @@
  *
  * Returns 1 if yes and 0 if another Output module should be used
  *)
-  xmlOutputMatchCallback = function(filename: pchar): cint; EXTDECL;
+  xmlOutputMatchCallback = function(filename: PAnsiChar): cint; EXTDECL;
 
 (**
  * xmlOutputOpenCallback:
@@ -86,7 +86,7 @@
  *
  * Returns an Output context or NULL in case or error
  *)
-  xmlOutputOpenCallback = function(filename: pchar): pointer; EXTDECL;
+  xmlOutputOpenCallback = function(filename: PAnsiChar): pointer; EXTDECL;
 
 (**
  * xmlOutputWriteCallback:
@@ -98,7 +98,7 @@
  *
  * Returns the number of bytes written or -1 in case of error
  *)
-  xmlOutputWriteCallback = function(context: pointer; buffer: pchar; len: cint): cint; EXTDECL;
+  xmlOutputWriteCallback = function(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL;
 
 (**
  * xmlOutputCloseCallback:
@@ -145,20 +145,20 @@ procedure xmlCleanupInputCallbacks; EXTDECL; external xml2lib;
 function xmlPopInputCallbacks: cint; EXTDECL; external xml2lib;
 procedure xmlRegisterDefaultInputCallbacks; EXTDECL; external xml2lib;
 function xmlAllocParserInputBuffer(enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
-function xmlParserInputBufferCreateFilename(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
+function xmlParserInputBufferCreateFilename(URI: PAnsiChar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
 function xmlParserInputBufferCreateFile(fp: PFILE; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
 function xmlParserInputBufferCreateFd(fd: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
-function xmlParserInputBufferCreateMem(mem: pchar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
-function xmlParserInputBufferCreateStatic(mem: pchar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
+function xmlParserInputBufferCreateMem(mem: PAnsiChar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
+function xmlParserInputBufferCreateStatic(mem: PAnsiChar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
 
 function xmlParserInputBufferCreateIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
 function xmlParserInputBufferRead(_in: xmlParserInputBufferPtr; len: cint): cint; EXTDECL; external xml2lib;
 function xmlParserInputBufferGrow(_in: xmlParserInputBufferPtr; len: cint): cint; EXTDECL; external xml2lib;
-function xmlParserInputBufferPush(_in: xmlParserInputBufferPtr; len: cint; buf: pchar): cint; EXTDECL; external xml2lib;
+function xmlParserInputBufferPush(_in: xmlParserInputBufferPtr; len: cint; buf: PAnsiChar): cint; EXTDECL; external xml2lib;
 procedure xmlFreeParserInputBuffer(_in: xmlParserInputBufferPtr); EXTDECL; external xml2lib;
-function xmlParserGetDirectory(filename: pchar): pchar; EXTDECL; external xml2lib;
+function xmlParserGetDirectory(filename: PAnsiChar): PAnsiChar; EXTDECL; external xml2lib;
 function xmlRegisterInputCallbacks(matchFunc: xmlInputMatchCallback; openFunc: xmlInputOpenCallback; readFunc: xmlInputReadCallback; closeFunc: xmlInputCloseCallback): cint; EXTDECL; external xml2lib;
-function __xmlParserInputBufferCreateFilename(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
+function __xmlParserInputBufferCreateFilename(URI: PAnsiChar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_OUTPUT_ENABLED}
 (*
@@ -168,18 +168,18 @@ procedure xmlCleanupOutputCallbacks; EXTDECL; external xml2lib;
 procedure xmlRegisterDefaultOutputCallbacks; EXTDECL; external xml2lib;
 function xmlAllocOutputBuffer(encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 
-function xmlOutputBufferCreateFilename(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL; external xml2lib;
+function xmlOutputBufferCreateFilename(URI: PAnsiChar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 function xmlOutputBufferCreateFile(fp: PFILE; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 function xmlOutputBufferCreateBuffer(buffer: xmlBufferPtr; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 function xmlOutputBufferCreateFd(fd: cint; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 function xmlOutputBufferCreateIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; EXTDECL; external xml2lib;
-function xmlOutputBufferWrite(_out: xmlOutputBufferPtr; len: cint; buf: pchar): cint; EXTDECL; external xml2lib;
-function xmlOutputBufferWriteString(_out: xmlOutputBufferPtr; str: pchar): cint; EXTDECL; external xml2lib;
+function xmlOutputBufferWrite(_out: xmlOutputBufferPtr; len: cint; buf: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlOutputBufferWriteString(_out: xmlOutputBufferPtr; str: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlOutputBufferWriteEscape(_out: xmlOutputBufferPtr; str: xmlCharPtr; escaping: xmlCharEncodingOutputFunc): cint; EXTDECL; external xml2lib;
 function xmlOutputBufferFlush(_out: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
 function xmlOutputBufferClose(_out: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
 function xmlRegisterOutputCallbacks(matchFunc: xmlOutputMatchCallback; openFunc: xmlOutputOpenCallback; writeFunc: xmlOutputWriteCallback; closeFunc: xmlOutputCloseCallback): cint; EXTDECL; external xml2lib;
-function __xmlOutputBufferCreateFilename(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL; external xml2lib;
+function __xmlOutputBufferCreateFilename(URI: PAnsiChar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_HTTP_ENABLED}
 (*  This function only exists if HTTP support built into the library  *)
@@ -192,31 +192,31 @@ function xmlCheckHTTPInput(ctxt: xmlParserCtxtPtr; ret: xmlParserInputPtr): xmlP
 (*
  * A predefined entity loader disabling network accesses
  *)
-function xmlNoNetExternalEntityLoader(URL: pchar; ID: pchar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; EXTDECL; external xml2lib;
+function xmlNoNetExternalEntityLoader(URL: PAnsiChar; ID: PAnsiChar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; EXTDECL; external xml2lib;
 
 (*
  * Check xmlCanonicPath in uri.h for a better alternative.
  *)
-function xmlCheckFilename(path: pchar): cint; EXTDECL; external xml2lib;
+function xmlCheckFilename(path: PAnsiChar): cint; EXTDECL; external xml2lib;
 
 (**
  * Default 'file://' protocol callbacks
  *)
-function xmlFileMatch(filename: pchar): cint; EXTDECL; external xml2lib;
-function xmlFileOpen(filename: pchar): pointer; EXTDECL; external xml2lib;
-function xmlFileRead(context: pointer; buffer: pchar; len: cint): cint; EXTDECL; external xml2lib;
+function xmlFileMatch(filename: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlFileOpen(filename: PAnsiChar): pointer; EXTDECL; external xml2lib;
+function xmlFileRead(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL; external xml2lib;
 function xmlFileClose(context: pointer): cint; EXTDECL; external xml2lib;
 
 (**
  * Default 'http://' protocol callbacks
  *)
 {$IFDEF LIBXML_HTTP_ENABLED}
-function xmlIOHTTPMatch(filename: pchar): cint; EXTDECL; external xml2lib;
-function xmlIOHTTPOpen(filename: pchar): pointer; EXTDECL; external xml2lib;
+function xmlIOHTTPMatch(filename: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlIOHTTPOpen(filename: PAnsiChar): pointer; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-function xmlIOHTTPOpenW(post_uri: pchar; compression: cint): pointer; EXTDECL; external xml2lib;
+function xmlIOHTTPOpenW(post_uri: PAnsiChar; compression: cint): pointer; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-function xmlIOHTTPRead(context: pointer; buffer: pchar; len: cint): cint; EXTDECL; external xml2lib;
+function xmlIOHTTPRead(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL; external xml2lib;
 function xmlIOHTTPClose(context: pointer): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_HTTP_ENABLED *)
 
@@ -224,9 +224,9 @@ function xmlIOHTTPClose(context: pointer): cint; EXTDECL; external xml2lib;
  * Default 'ftp://' protocol callbacks
  *)
 {$IFDEF LIBXML_FTP_ENABLED}
-function xmlIOFTPMatch(filename: pchar): cint; EXTDECL; external xml2lib;
-function xmlIOFTPOpen(filename: pchar): pointer; EXTDECL; external xml2lib;
-function xmlIOFTPRead(context: pointer; buffer: pchar; len: cint): cint; EXTDECL; external xml2lib;
+function xmlIOFTPMatch(filename: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlIOFTPOpen(filename: PAnsiChar): pointer; EXTDECL; external xml2lib;
+function xmlIOFTPRead(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL; external xml2lib;
 function xmlIOFTPClose(context: pointer): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_FTP_ENABLED *)
 {$ENDIF}

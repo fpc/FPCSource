@@ -144,7 +144,7 @@ function xmlUCSIsYiRadicals	(code: cint): cint; EXTDECL; external xml2lib;
 function xmlUCSIsYiSyllables	(code: cint): cint; EXTDECL; external xml2lib;
 function xmlUCSIsYijingHexagramSymbols	(code: cint): cint; EXTDECL; external xml2lib;
 
-function xmlUCSIsBlock	(code: cint; block: pchar): cint; EXTDECL; external xml2lib;
+function xmlUCSIsBlock	(code: cint; block: PAnsiChar): cint; EXTDECL; external xml2lib;
 
 function xmlUCSIsCatC	(code: cint): cint; EXTDECL; external xml2lib;
 function xmlUCSIsCatCc	(code: cint): cint; EXTDECL; external xml2lib;
@@ -183,7 +183,7 @@ function xmlUCSIsCatZl	(code: cint): cint; EXTDECL; external xml2lib;
 function xmlUCSIsCatZp	(code: cint): cint; EXTDECL; external xml2lib;
 function xmlUCSIsCatZs	(code: cint): cint; EXTDECL; external xml2lib;
 
-function xmlUCSIsCat  (code: cint; cat: pchar): cint; EXTDECL; external xml2lib;
+function xmlUCSIsCat  (code: cint; cat: PAnsiChar): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_UNICODE_ENABLED *)

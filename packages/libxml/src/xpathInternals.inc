@@ -332,7 +332,7 @@ procedure xmlXPathRegisterFuncLookup(ctxt: xmlXPathContextPtr; f: xmlXPathFuncLo
 (*
  * Error reporting.
  *)
-//procedure __xmlXPatherror(ctxt: xmlXPathParserContextPtr; _file: pchar; line, no: cint); EXTDECL; external xml2lib name 'xmlXPatherror';
+//procedure __xmlXPatherror(ctxt: xmlXPathParserContextPtr; _file: PAnsiChar; line, no: cint); EXTDECL; external xml2lib name 'xmlXPatherror';
 procedure xmlXPathErr(ctxt: xmlXPathParserContextPtr; error: cint); EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_DEBUG_ENABLED}
@@ -386,9 +386,9 @@ function valuePop(ctxt: xmlXPathParserContextPtr): xmlXPathObjectPtr; EXTDECL; e
 function valuePush(ctxt: xmlXPathParserContextPtr): cint; EXTDECL; external xml2lib;
 
 function xmlXPathNewString(val: xmlCharPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
-function xmlXPathNewCString(val: pchar): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathNewCString(val: PAnsiChar): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathWrapString(val: xmlCharPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
-function xmlXPathWrapCString(val: pchar): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathWrapCString(val: PAnsiChar): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathNewFloat(val: cdouble): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathNewBoolean(val: cint): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathNewNodeSet(val: xmlNodePtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;

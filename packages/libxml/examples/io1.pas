@@ -22,7 +22,7 @@ uses
   SysUtils;
 
 const
-  include: pchar =
+  include: PAnsiChar =
     '<?xml version=''1.0''?>'#10+
     '<document xmlns:xi="http://www.w3.org/2003/XInclude">'#10+
       '<p>List of people:</p>'#10+
@@ -30,8 +30,8 @@ const
     '</document>'#10;
 
 var
-  res: pchar = '<list><people>a</people><people>b</people></list>';
-  cur: pchar = nil;
+  res: PAnsiChar = '<list><people>a</people><people>b</people></list>';
+  cur: PAnsiChar = nil;
   rlen: cint = 0;
 
 
@@ -43,7 +43,7 @@ var
  *
  * Returns 1 if yes and 0 if another Input module should be used
  *)
-function sqlMatch(URI: pchar): cint; cdecl;
+function sqlMatch(URI: PAnsiChar): cint; cdecl;
 begin
   if assigned(URI) and (strlcomp(URI, 'sql:', 4) = 0) then
     result := 1
@@ -60,7 +60,7 @@ end;
  *
  * Returns an Input context or NULL in case or error
  *)
-function sqlOpen(URI: pchar): pointer; cdecl;
+function sqlOpen(URI: PAnsiChar): pointer; cdecl;
 begin
   if not assigned(URI) or (strlcomp(URI, 'sql:', 4) <> 0) then
     exit(nil);
@@ -100,9 +100,9 @@ end;
  *
  * Returns the number of bytes read or -1 in case of error
  *)
-function sqlRead(context: pointer; buffer: pchar; len: cint): cint; cdecl;
+function sqlRead(context: pointer; buffer: PAnsiChar; len: cint): cint; cdecl;
 var
-  ptr: pchar;
+  ptr: PAnsiChar;
 begin
   if not assigned(context) or not assigned(buffer) or (len < 0) then
     exit(-1);

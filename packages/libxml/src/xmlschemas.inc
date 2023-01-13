@@ -86,8 +86,8 @@
 (**
  * A schemas validation context
  *)
-  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
-  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
+  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
   xmlSchemaParserCtxt = record end;
 
@@ -100,8 +100,8 @@
 (*
  * Interfaces for parsing.
  *)
-function xmlSchemaNewParserCtxt(URL: pchar): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
-function xmlSchemaNewMemParserCtxt(buffer: pchar; size: cint): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewParserCtxt(URL: PAnsiChar): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewMemParserCtxt(buffer: PAnsiChar; size: cint): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
 function xmlSchemaNewDocParserCtxt(doc: xmlDocPtr): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
 procedure xmlSchemaFreeParserCtxt(ctxt: xmlSchemaParserCtxtPtr); EXTDECL; external xml2lib;
 procedure xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
@@ -127,7 +127,7 @@ procedure xmlSchemaFreeValidCtxt(ctxt: xmlSchemaValidCtxtPtr); EXTDECL; external
 function xmlSchemaNewValidCtxt(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateOneElement(ctxt: xmlSchemaValidCtxtPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateStream(ctxt: xmlSchemaValidCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding; sax: xmlSAXHandlerPtr; user_data: pointer): cint; EXTDECL; external xml2lib;
-function xmlSchemaValidateFile(ctxt: xmlSchemaValidCtxtPtr; filename: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateFile(ctxt: xmlSchemaValidCtxtPtr; filename: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Interface to insert Schemas SAX velidation in a SAX stream

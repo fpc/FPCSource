@@ -33,10 +33,10 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlSaveToFd(fd: cint; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
-function xmlSaveToFilename(filename: pchar; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
-function xmlSaveToBuffer(buffer: xmlBufferPtr; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
-function xmlSaveToIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToFd(fd: cint; encoding: PAnsiChar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToFilename(filename: PAnsiChar; encoding: PAnsiChar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToBuffer(buffer: xmlBufferPtr; encoding: PAnsiChar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoding: PAnsiChar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
 
 function xmlSaveDoc(ctxt: xmlSaveCtxtPtr; doc: xmlDocPtr): clong; EXTDECL; external xml2lib;
 function xmlSaveTree(ctxt: xmlSaveCtxtPtr; node: xmlNodePtr): clong; EXTDECL; external xml2lib;

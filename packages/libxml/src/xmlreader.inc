@@ -91,17 +91,17 @@
 
   xmlTextReaderLocatorPtr = pointer;
 
-  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: pchar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); EXTDECL;
+  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: PAnsiChar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 (*
  * Constructors & Destructor
  *)
-function xmlNewTextReader(input: xmlParserInputBufferPtr; URI: pchar): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlNewTextReaderFilename(URI: pchar): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlNewTextReader(input: xmlParserInputBufferPtr; URI: PAnsiChar): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlNewTextReaderFilename(URI: PAnsiChar): xmlTextReaderPtr; EXTDECL; external xml2lib;
 procedure xmlFreeTextReader(reader: xmlTextReaderPtr); EXTDECL; external xml2lib;
-function xmlTextReaderSetup(reader: xmlTextReaderPtr; input: xmlParserInputBufferPtr; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlTextReaderSetup(reader: xmlTextReaderPtr; input: xmlParserInputBufferPtr; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Iterators
@@ -186,9 +186,9 @@ function xmlTextReaderNextSibling(reader: xmlTextReaderPtr): cint; EXTDECL; exte
 function xmlTextReaderIsValid(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 
-function xmlTextReaderRelaxNGValidate(reader: xmlTextReaderPtr; rng: pchar): cint; EXTDECL; external xml2lib;
+function xmlTextReaderRelaxNGValidate(reader: xmlTextReaderPtr; rng: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlTextReaderRelaxNGSetSchema(reader: xmlTextReaderPtr; schema: xmlRelaxNGPtr): cint; EXTDECL; external xml2lib;
-function xmlTextReaderSchemaValidate(reader: xmlTextReaderPtr; xsd: pchar): cint; EXTDECL; external xml2lib;
+function xmlTextReaderSchemaValidate(reader: xmlTextReaderPtr; xsd: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlTextReaderSchemaValidateCtxt(reader: xmlTextReaderPtr; ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
 function xmlTextReaderSetSchema(reader: xmlTextReaderPtr; schema: xmlSchemaPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
@@ -204,18 +204,18 @@ function xmlTextReaderByteConsumed(reader: xmlTextReaderPtr): clong; EXTDECL; ex
  * New more complete APIs for simpler creation and reuse of readers
  *)
 function xmlReaderWalker(doc: xmlDocPtr): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlReaderForDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlReaderForFile(filename, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlReaderForMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlReaderForFd(fd: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
-function xmlReaderForIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForDoc(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForFile(filename, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForMemory(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForFd(fd: cint; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
 
 function xmlReaderNewWalker(reader: xmlTextReaderPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
-function xmlReaderNewDoc(reader: xmlTextReaderPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
-function xmlReaderNewFile(reader: xmlTextReaderPtr; filename, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
-function xmlReaderNewMemory(reader: xmlTextReaderPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
-function xmlReaderNewFd(reader: xmlTextReaderPtr; fd: cint; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
-function xmlReaderNewIO(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewDoc(reader: xmlTextReaderPtr; cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewFile(reader: xmlTextReaderPtr; filename, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewMemory(reader: xmlTextReaderPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewFd(reader: xmlTextReaderPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewIO(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Error handling extensions

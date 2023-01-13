@@ -61,8 +61,8 @@
  * Operations on a given catalog.
  *)
 function xmlNewCatalog(sgml: cint): xmlCatalogPtr; EXTDECL; external xml2lib;
-function xmlLoadACatalog(filename: pchar): xmlCatalogPtr; EXTDECL; external xml2lib;
-function xmlLoadSGMLSuperCatalog(filename: pchar): xmlCatalogPtr; EXTDECL; external xml2lib;
+function xmlLoadACatalog(filename: PAnsiChar): xmlCatalogPtr; EXTDECL; external xml2lib;
+function xmlLoadSGMLSuperCatalog(filename: PAnsiChar): xmlCatalogPtr; EXTDECL; external xml2lib;
 function xmlLoadACatalog(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
 function xmlACatalogAdd(catal: xmlCatalogPtr; _type, orig, replace: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlACatalogRemove(catal: xmlCatalogPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
@@ -80,8 +80,8 @@ function xmlCatalogIsEmpty(catal: xmlCatalogPtr): cint; EXTDECL; external xml2li
  * Global operations.
  *)
 procedure xmlInitializeCatalog; EXTDECL; external xml2lib;
-function xmlLoadCatalog(filename: pchar): cint; EXTDECL; external xml2lib;
-function xmlLoadCatalogs(paths: pchar): cint; EXTDECL; external xml2lib;
+function xmlLoadCatalog(filename: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlLoadCatalogs(paths: PAnsiChar): cint; EXTDECL; external xml2lib;
 procedure xmlCatalogCleanup; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
 procedure xmlCatalogDump(_out: PFILE); EXTDECL; external xml2lib;
@@ -92,7 +92,7 @@ function xmlCatalogResolvePublic(pubID: xmlCharPtr): xmlCharPtr; EXTDECL; extern
 function xmlCatalogResolveURI(URI: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlCatalogAdd(_type, orig, replace: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlCatalogRemove(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
-function xmlParseCatalogFile(filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlParseCatalogFile(filename: PAnsiChar): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCatalogConvert: cint; EXTDECL; external xml2lib;
 
 (*

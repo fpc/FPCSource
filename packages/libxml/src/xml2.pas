@@ -102,7 +102,7 @@ begin
   ReallocMem(Result, size);
 end;
 
-function fpcxmlStrdup(str: pchar): pchar; EXTDECL;
+function fpcxmlStrdup(str: PAnsiChar): PAnsiChar; EXTDECL;
 var
   L: SizeInt;
 begin
@@ -250,7 +250,7 @@ end;
  * macros from HTMLparser.inc
  *)
 
-function htmlDefaultSubelement(elt: htmlElemDescPtr): pchar;
+function htmlDefaultSubelement(elt: htmlElemDescPtr): PAnsiChar;
 begin
   Result := elt^.defaultsubelt;
 end;
@@ -260,7 +260,7 @@ begin
   Result := htmlElementAllowedHere(parent, xmlCharPtr(elt^.name));
 end;
 
-function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
+function htmlRequiredAttrs(elt: htmlElemDescPtr): PPAnsiChar;
 begin
   Result := elt^.attrs_req;
 end;
@@ -320,9 +320,9 @@ begin
     //__xmlParserMaxDepth := PCardinal(GetProcAddress(libHandle, 'xmlParserMaxDepth'));
    
   {  }
-   {xmlStringComment := PChar(GetProcAddress(libHandle, 'xmlStringComment'));
-    xmlStringText := PChar(GetProcAddress(libHandle, 'xmlStringText'));
-    xmlStringTextNoenc := PChar(GetProcAddress(libHandle, 'xmlStringTextNoenc'));}
+   {xmlStringComment := PAnsiChar(GetProcAddress(libHandle, 'xmlStringComment'));
+    xmlStringText := PAnsiChar(GetProcAddress(libHandle, 'xmlStringText'));
+    xmlStringTextNoenc := PAnsiChar(GetProcAddress(libHandle, 'xmlStringTextNoenc'));}
 
   { chvalid.inc }
     __xmlIsBaseCharGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsBaseCharGroup'));

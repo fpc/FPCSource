@@ -22,8 +22,8 @@
 (**
  * A schemas validation context
  *)
-  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
-  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
+  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
   xmlRelaxNGParserCtxt = record end;
 
@@ -97,8 +97,8 @@ function xmlRelaxNGCleanupTypes: cint; EXTDECL; external xml2lib;
 (*
  * Interfaces for parsing.
  *)
-function xmlRelaxNGNewParserCtxt(URL: pchar): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
-function xmlRelaxNGNewMemParserCtxt(buffer: pchar; size: cint): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlRelaxNGNewParserCtxt(URL: PAnsiChar): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlRelaxNGNewMemParserCtxt(buffer: PAnsiChar; size: cint): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
 function xmlRelaxNGNewDocParserCtxt(doc: xmlDocPtr): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
 function xmlRelaxParserSetFlag(ctxt: xmlRelaxNGParserCtxtPtr; flag: cint; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
 procedure xmlRelaxNGFreeParserCtxt(ctxt: xmlRelaxNGParserCtxtPtr); EXTDECL; external xml2lib;

@@ -1,6 +1,6 @@
 (**
  * section: InputOutput
- * synopsis: Output to char buffer
+ * synopsis: Output to AnsiChar buffer
  * purpose: Demonstrate the use of xmlDocDumpMemory
  *          to output document to a character buffer
  * usage: io2

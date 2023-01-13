@@ -58,7 +58,7 @@ end;
  *
  * Parse and print information about an XML file.
  *)
-procedure streamFile(const filename: pchar);
+procedure streamFile(const filename: PAnsiChar);
 var
   reader: xmlTextReaderPtr;
   ret: cint;
@@ -88,7 +88,7 @@ begin
    *)
   LIBXML_TEST_VERSION;
 
-  streamFile(pchar(ParamStr(1)));
+  streamFile(PAnsiChar(ParamStr(1)));
 
   (*
    * Cleanup function for the XML library.

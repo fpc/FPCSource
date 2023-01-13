@@ -70,13 +70,13 @@
   xmlError = record
     domain    : cint;	(* What part of the library raised this error *)
     code      : cint;	(* The error code, e.g. an xmlParserError *)
-    message   : pchar;(* human-readable informative error message *)
+    message   : PAnsiChar;(* human-readable informative error message *)
     level     : xmlErrorLevel;(* how consequent is the error *)
-    _file     : pchar;	(* the filename *)
+    _file     : PAnsiChar;	(* the filename *)
     line      : cint;	(* the line number if available *)
-    str1      : pchar;	(* extra string information *)
-    str2      : pchar;	(* extra string information *)
-    str3      : pchar;	(* extra string information *)
+    str1      : PAnsiChar;	(* extra string information *)
+    str2      : PAnsiChar;	(* extra string information *)
+    str3      : PAnsiChar;	(* extra string information *)
     int1      : cint;	(* extra number information *)
     int2      : cint;	(* column number of the error or 0 if N/A (todo: rename this field when we would break ABI) *)
     ctxt      : pointer;   (* the parser context if available *)
@@ -829,7 +829,7 @@
  * Signature of the function to use when there is an error and
  * no parsing or validity context available .
  *)
-  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlGenericErrorFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
 (**
  * xmlStructuredErrorFunc:
@@ -856,10 +856,10 @@ procedure xmlSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFun
  * Default message routines used by SAX and Valid context for error
  * and warning reporting.
  *)
-procedure xmlParserError(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
-procedure xmlParserWarning(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
-procedure xmlParserValidityError(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
-procedure xmlParserValidityWarning(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserError(ctx: pointer; msg: PAnsiChar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserWarning(ctx: pointer; msg: PAnsiChar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserValidityError(ctx: pointer; msg: PAnsiChar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserValidityWarning(ctx: pointer; msg: PAnsiChar; args: array of const); EXTDECL; external xml2lib;
 procedure xmlParserPrintFileInfo(input: xmlParserInputPtr); EXTDECL; external xml2lib;
 procedure xmlParserPrintFileContext(input: xmlParserInputPtr); EXTDECL; external xml2lib;
 
@@ -885,14 +885,14 @@ procedure __xmlRaiseError(
   domain: cint;
   code: cint;
   level: xmlErrorLevel;
-  _file: pchar;
+  _file: PAnsiChar;
   line: cint;
-  str1: pchar;
-  str2: pchar;
-  str3: pchar;
+  str1: PAnsiChar;
+  str2: PAnsiChar;
+  str3: PAnsiChar;
   int1: cint;
   col: cint;
-  msg: pchar;
+  msg: PAnsiChar;
   args: array of const
 ); EXTDECL; external xml2lib;
 
@@ -900,7 +900,7 @@ procedure __xmlSimpleError(
   domain: cint;
   code: cint;
   node: xmlNodePtr;
-  msg: pchar;
-  extra: pchar
+  msg: PAnsiChar;
+  extra: PAnsiChar
 ); EXTDECL; external xml2lib;
 {$ENDIF}

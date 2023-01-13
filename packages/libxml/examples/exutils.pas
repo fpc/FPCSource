@@ -24,7 +24,7 @@ var
 begin
   mem := nil;
   xmlDocDumpMemory(doc, mem, size);
-  writeln(pchar(mem));
+  writeln(PAnsiChar(mem));
   xmlFree(mem);
 end;
 

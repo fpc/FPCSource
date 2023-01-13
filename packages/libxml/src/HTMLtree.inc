@@ -57,16 +57,16 @@ function htmlSetMetaEncoding(doc: htmlDocPtr; encoding: xmlCharPtr): cint; EXTDE
 procedure htmlDocDumpMemory(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint); EXTDECL; external xml2lib;
 procedure htmlDocDumpMemoryFormat(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint; format: cint); EXTDECL; external xml2lib;
 procedure htmlDocDump(f: PFILE; cur: xmlDocPtr); EXTDECL; external xml2lib;
-function htmlSaveFile(filename: pchar; doc: htmlDocPtr): cint; EXTDECL; external xml2lib;
+function htmlSaveFile(filename: PAnsiChar; doc: htmlDocPtr): cint; EXTDECL; external xml2lib;
 function htmlNodeDump(buf: xmlBufferPtr; doc: htmlDocPtr; cur: xmlNodePtr): cint; EXTDECL; external xml2lib;
 procedure htmlNodeDumpFile(_out: PFILE; doc: xmlDocPtr; cur: xmlNodePtr); EXTDECL; external xml2lib;
-function htmlNodeDumpFileFormat(_out: PFILE; doc: htmlDocPtr; cur: xmlNodePtr; encoding: pchar; format: cint): cint; EXTDECL; external xml2lib;
-function htmlSaveFileEnc(filename: pchar; cur: htmlDocPtr; encoding: pchar): cint; EXTDECL; external xml2lib;
-function htmlSaveFileFormat(filename: pchar; cur: htmlDocPtr; encoding: pchar; format: cint): cint; EXTDECL; external xml2lib;
-procedure htmlNodeDumpFormatOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: pchar; format: cint); EXTDECL; external xml2lib;
-procedure htmlDocContentDumpOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: pchar); EXTDECL; external xml2lib;
-procedure htmlDocContentDumpFormatOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: pchar; format: cint); EXTDECL; external xml2lib;
-procedure htmlNodeDumpOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: pchar); EXTDECL; external xml2lib;
+function htmlNodeDumpFileFormat(_out: PFILE; doc: htmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint): cint; EXTDECL; external xml2lib;
+function htmlSaveFileEnc(filename: PAnsiChar; cur: htmlDocPtr; encoding: PAnsiChar): cint; EXTDECL; external xml2lib;
+function htmlSaveFileFormat(filename: PAnsiChar; cur: htmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL; external xml2lib;
+procedure htmlNodeDumpFormatOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint); EXTDECL; external xml2lib;
+procedure htmlDocContentDumpOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: PAnsiChar); EXTDECL; external xml2lib;
+procedure htmlDocContentDumpFormatOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint); EXTDECL; external xml2lib;
+procedure htmlNodeDumpOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 function htmlIsBooleanAttr(name: xmlCharPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
