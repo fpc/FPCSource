@@ -1604,7 +1604,7 @@ begin
   '  TObject = class end;',
   '  TBird<T> = class F: T; end;',
   '  TBirdWord = TBird<Word>;',
-  '  TBirdChar = TBird<Char>;',
+  '  TBirdChar = TBird<AnsiChar>;',
   'var',
   '  w: TBirdWord;',
   '  c: TBirdChar;',
@@ -1612,7 +1612,7 @@ begin
   '  w:=TBirdWord(c);',
   '']);
   ParseProgram;
-  CheckResolverHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird<System.Char>" and "TBird<System.Word>" are not related');
+  CheckResolverHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird<System.AnsiChar>" and "TBird<System.Word>" are not related');
 end;
 
 procedure TTestResolveGenerics.TestGen_Class_List;
@@ -2487,11 +2487,11 @@ begin
   'generic procedure {#B}Run<M,N>(a: M);',
   'begin',
   '  specialize {@A}Run<M>(a);',
-  '  specialize {@B}Run<double,char>(1.3);',
+  '  specialize {@B}Run<double,AnsiChar>(1.3);',
   'end;',
   'begin',
   '  specialize {@A}Run<word>(3);',
-  '  specialize {@B}Run<word,char>(4);',
+  '  specialize {@B}Run<word,AnsiChar>(4);',
   '']);
   ParseProgram;
 end;
@@ -2507,14 +2507,14 @@ begin
   'begin',
   '  specialize {@A}Run<M>;',
   '  specialize {@A}Run<M>();',
-  '  specialize {@B}Run<double,char>;',
-  '  specialize {@B}Run<double,char>();',
+  '  specialize {@B}Run<double,AnsiChar>;',
+  '  specialize {@B}Run<double,AnsiChar>();',
   'end;',
   'begin',
   '  specialize {@A}Run<word>;',
   '  specialize {@A}Run<word>();',
-  '  specialize {@B}Run<word,char>;',
-  '  specialize {@B}Run<word,char>();',
+  '  specialize {@B}Run<word,AnsiChar>;',
+  '  specialize {@B}Run<word,AnsiChar>();',
   '']);
   ParseProgram;
 end;
@@ -3004,12 +3004,12 @@ begin
   'generic procedure TObject.Run<M,N>(a: M);',
   'begin',
   '  specialize {@A}Run<M>(a);',
-  '  specialize {@B}Run<double,char>(1.3);',
+  '  specialize {@B}Run<double,AnsiChar>(1.3);',
   'end;',
   'var obj: TObject;',
   'begin',
   '  obj.specialize {@A}Run<word>(3);',
-  '  obj.specialize {@B}Run<word,char>(4);',
+  '  obj.specialize {@B}Run<word,AnsiChar>(4);',
   '']);
   ParseProgram;
 end;
@@ -3030,12 +3030,12 @@ begin
   'procedure TObject.Run<M,N>(a: M);',
   'begin',
   '  {@A}Run<M>(a);',
-  '  {@B}Run<double,char>(1.3);',
+  '  {@B}Run<double,AnsiChar>(1.3);',
   'end;',
   'var obj: TObject;',
   'begin',
   '  obj.{@A}Run<word>(3);',
-  '  obj.{@B}Run<word,char>(4);',
+  '  obj.{@B}Run<word,AnsiChar>(4);',
   '']);
   ParseProgram;
 end;

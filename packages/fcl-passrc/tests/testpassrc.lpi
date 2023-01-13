@@ -4,6 +4,7 @@
     <Version Value="12"/>
     <General>
       <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
@@ -140,6 +141,9 @@
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
+    <Other>
+      <CustomOptions Value="-tunicodertl"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
