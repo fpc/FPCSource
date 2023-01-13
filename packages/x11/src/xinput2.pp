@@ -44,7 +44,7 @@ type
   PXIAddMasterInfo = ^TXIAddMasterInfo;
   TXIAddMasterInfo = record
     _type: cint;
-    name: PChar;
+    name: PAnsiChar;
     send_core: TBool;
     enable: TBool;
   end;
@@ -172,7 +172,7 @@ type
   PXIDeviceInfo = ^TXIDeviceInfo;
   TXIDeviceInfo = record
     deviceid: cint;
-    name: PChar;
+    name: PAnsiChar;
     use: cint;
     attachment: cint;
     enabled: TBool;

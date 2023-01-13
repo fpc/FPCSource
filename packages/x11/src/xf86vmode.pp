@@ -142,8 +142,8 @@ Type
 
   PXF86VidModeMonitor = ^TXF86VidModeMonitor;
   TXF86VidModeMonitor = Record
-    vendor : PChar;
-    model : PChar;
+    vendor : PAnsiChar;
+    model : PAnsiChar;
     EMPTY : cfloat;
     nhsync : cuchar;
     hsync : PXF86VidModeSyncRange;

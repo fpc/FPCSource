@@ -76,7 +76,7 @@ Type
   PXDGAMode = ^TXDGAMode;
   TXDGAMode = Record
     num : cint;                 { A unique identifier for the mode (num > 0) }
-    name : PChar;               { name of mode given in the XF86Config }
+    name : PAnsiChar;               { name of mode given in the XF86Config }
     verticalRefresh : cfloat;
     flags : cint;               { DGA_CONCURRENT_ACCESS, etc... }
     imageWidth : cint;          { linear accessible portion (pixels) }

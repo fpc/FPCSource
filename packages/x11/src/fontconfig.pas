@@ -217,13 +217,13 @@ type
   PFcCharSet = ^TFcCharSet;
 
   TFcObjectType = record
-    object_: PChar;
+    object_: PAnsiChar;
     type_: TFcType;
   end;
 
   TFcConstant = record
     name: PFcChar8;
-    object_: PChar;
+    object_: PAnsiChar;
     value: cint;
   end;
 

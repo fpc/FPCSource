@@ -40,8 +40,8 @@ const
 type
   XextErrorHandler = function(
     dpy: PDisplay;
-    {_Xconst} ext_name: Pchar;
-    {_Xconst} reason: PChar
+    {_Xconst} ext_name: PAnsiChar;
+    {_Xconst} reason: PAnsiChar
   ): cint; cdecl;
 
 function XSetExtensionErrorHandler(
@@ -50,7 +50,7 @@ function XSetExtensionErrorHandler(
 
 function XMissingExtension(
     dpy: PDisplay;
-    {_Xconst} ext_name: PChar
+    {_Xconst} ext_name: PAnsiChar
 ): cint; cdecl; external libXext;
 
 implementation
