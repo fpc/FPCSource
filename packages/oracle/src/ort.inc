@@ -1517,9 +1517,9 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
           Get the character form of a fixed or variable length string type.
           The character form is an enumerated value that can be one of the
           4 values below:
-                 SQLCS_IMPLICIT for CHAR, VARCHAR2, CLOB w/o a specified set
+                 SQLCS_IMPLICIT for AnsiChar, VARCHAR2, CLOB w/o a specified set
                  SQLCS_NCHAR    for NCHAR, NCHAR VARYING, NCLOB
-                 SQLCS_EXPLICIT for CHAR, etc, with "CHARACTER SET ..." syntax
+                 SQLCS_EXPLICIT for AnsiChar, etc, with "CHARACTER SET ..." syntax
                  SQLCS_FLEXIBLE for PL/SQL "flexible" parameters
      RETURNS:
           character form of the fixed or variable string

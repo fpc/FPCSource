@@ -25,17 +25,17 @@ uses OCI, oratypes,Classes, SysUtils;
 
     procedure OraInit;
     procedure OraFin;
-    procedure OraLogin(name, pass, server: string);
+    procedure OraLogin(name, pass, server: AnsiString);
     procedure OraLogout;
-    procedure OraSQLExec(sql: string);
-    function OraGetFieldAsString(pos : integer) : string;
+    procedure OraSQLExec(sql: AnsiString);
+    function OraGetFieldAsString(pos : integer) : AnsiString;
     function OraGetFieldAsInteger(pos : integer) : longint;
     function OraNext: boolean;
     function OraGetFieldCount: integer;
-    function OraGetFieldName(pos : integer) : string;
+    function OraGetFieldName(pos : integer) : AnsiString;
     function OraGetFieldType(pos : integer) : longint;
     function IsFieldDate(Pos : integer): boolean;
-    procedure OraError(errcode: integer; err: POCIError; msg : string);
+    procedure OraError(errcode: integer; err: POCIError; msg : AnsiString);
 
 const
     cDescribeBuf = 1024;
@@ -48,7 +48,7 @@ type
   TDescribeRec = record
     dbsize      : sb4;
     dbtype      : sb2;
-    buf         : array [0..cDescribeBuf] of char;
+    buf         : array [0..cDescribeBuf] of AnsiChar;
     buflen      : sb4;
     dsize       : sb4;
     precision   : sb2;
@@ -56,7 +56,7 @@ type
     nullok      : sb2;
 
     // Define part
-      valbuf    : array [0..cDescribeBuf] of char;
+      valbuf    : array [0..cDescribeBuf] of AnsiChar;
       flt_buf   : double;
       int_buf   : cardinal;
       int64_buf : int64;
@@ -76,18 +76,18 @@ var
 
 implementation
 
-  function DecodeDataType(dtype : longint): string;
+  function DecodeDataType(dtype : longint): AnsiString;
   begin
     case dtype of
-        SQLT_CHR : DecodeDataType := '(ORANET TYPE) character string';
+        SQLT_CHR : DecodeDataType := '(ORANET TYPE) character AnsiString';
         SQLT_NUM : DecodeDataType := '(ORANET TYPE) oracle numeric';
         SQLT_INT : DecodeDataType := '(ORANET TYPE) integer';
         SQLT_FLT : DecodeDataType := '(ORANET TYPE) Floating point number';
-        SQLT_STR : DecodeDataType := 'zero terminated string';
+        SQLT_STR : DecodeDataType := 'zero terminated AnsiString';
         SQLT_VNU : DecodeDataType := 'NUM with preceding length byte';
         SQLT_PDN : DecodeDataType := '(ORANET TYPE) Packed Decimal Numeric';
         SQLT_LNG : DecodeDataType := 'long';
-        SQLT_VCS : DecodeDataType := 'Variable character string';
+        SQLT_VCS : DecodeDataType := 'Variable character AnsiString';
         SQLT_NON : DecodeDataType := 'Null/empty PCC Descriptor entry';
         SQLT_RID : DecodeDataType := 'rowid';
         SQLT_DAT : DecodeDataType := 'date in oracle format';
@@ -96,10 +96,10 @@ implementation
         SQLT_LBI : DecodeDataType := 'long binary';
         SQLT_UIN : DecodeDataType := 'unsigned integer';
         SQLT_SLS : DecodeDataType := 'Display sign leading separate';
-        SQLT_LVC : DecodeDataType := 'Longer longs (char)';
+        SQLT_LVC : DecodeDataType := 'Longer longs (AnsiChar)';
         SQLT_LVB : DecodeDataType := 'Longer long binary';
-        SQLT_AFC : DecodeDataType := 'Ansi fixed char';
-        SQLT_AVC : DecodeDataType := 'Ansi Var char';
+        SQLT_AFC : DecodeDataType := 'Ansi fixed AnsiChar';
+        SQLT_AVC : DecodeDataType := 'Ansi Var AnsiChar';
         SQLT_CUR : DecodeDataType := 'cursor  type';
         SQLT_RDD : DecodeDataType := 'rowid descriptor';
         SQLT_LAB : DecodeDataType := 'label type';
@@ -136,7 +136,7 @@ implementation
        var
         fldc    : longint;
         paramd  : POCIParam;
-        colname : PChar;
+        colname : PAnsiChar;
         colsize : ub4;
         Rec     : PDescribeRec;
        begin
@@ -229,9 +229,9 @@ implementation
         end;
     end;
 
-    procedure OraError( errcode : integer; err: POCIError; msg : string );
+    procedure OraError( errcode : integer; err: POCIError; msg : AnsiString );
     var
-        buff : array [0..1024] of char;
+        buff : array [0..1024] of AnsiChar;
 
     begin
         if err <> nil then
@@ -260,7 +260,7 @@ implementation
         if ecode <> 0 then OraError( ecode, nil, 'Error allocating statement handle');
     end;
 
-    procedure OraLogin(name, pass, server: string);
+    procedure OraLogin(name, pass, server: AnsiString);
     begin
         ecode := OCILogon(Env, Err, Svc, @name[1], Length(name),
             @pass[1], Length(pass), @server[1], Length(server));
@@ -280,7 +280,7 @@ implementation
         OCIHandleFree(Err, OCI_HTYPE_ERROR);
     end;
 
-    procedure OraSQLExec(sql: string);
+    procedure OraSQLExec(sql: AnsiString);
     var
         dtype: longint;
     begin
@@ -344,7 +344,7 @@ implementation
       Result := (Desc.dbtype = SQLT_DAT);
     end;
 
-    function OraGetFieldAsString(pos : integer) : string;
+    function OraGetFieldAsString(pos : integer) : AnsiString;
     var
         Desc : TDescribeRec;
     Date : array [0..6] of byte;
@@ -418,7 +418,7 @@ implementation
       OraGetFieldType := TDescribeRec(FieldList[pos-1]^).dbtype;
     end;
 
-    function OraGetFieldName(pos : integer) : string;
+    function OraGetFieldName(pos : integer) : AnsiString;
     begin
         if (Pos > FieldList.Count) or (Pos < 1) then
             Exit;

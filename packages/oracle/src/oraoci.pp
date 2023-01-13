@@ -160,10 +160,10 @@ interface
      SQLT_LBI = 24;             { long binary  }
      SQLT_UIN = 68;             { unsigned integer  }
      SQLT_SLS = 91;             { Display sign leading separate  }
-     SQLT_LVC = 94;             { Longer longs (char)  }
+     SQLT_LVC = 94;             { Longer longs (AnsiChar)  }
      SQLT_LVB = 95;             { Longer long binary  }
-     SQLT_AFC = 96;             { Ansi fixed char  }
-     SQLT_AVC = 97;             { Ansi Var char  }
+     SQLT_AFC = 96;             { Ansi fixed AnsiChar  }
+     SQLT_AVC = 97;             { Ansi Var AnsiChar  }
      SQLT_CUR = 102;            { cursor  type  }
      SQLT_RDD = 104;            { rowid descriptor  }
      SQLT_LAB = 105;            { label type  }
@@ -184,10 +184,10 @@ interface
      SQLT_CFILE = SQLT_CFILEE;
      SQLT_BFILE = SQLT_BFILEE;
 
-     { CHAR/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB char set "form" information  }
-     SQLCS_IMPLICIT = 1;        { for CHAR, VARCHAR2, CLOB w/o a specified set  }
+     { AnsiChar/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB AnsiChar set "form" information  }
+     SQLCS_IMPLICIT = 1;        { for AnsiChar, VARCHAR2, CLOB w/o a specified set  }
      SQLCS_NCHAR = 2;           { for NCHAR, NCHAR VARYING, NCLOB  }
-     SQLCS_EXPLICIT = 3;        { for CHAR, etc, with "CHARACTER SET ..." syntax  }
+     SQLCS_EXPLICIT = 3;        { for AnsiChar, etc, with "CHARACTER SET ..." syntax  }
      SQLCS_FLEXIBLE = 4;        { for PL/SQL "flexible" parameters  }
      SQLCS_LIT_NULL = 5;        { for typecheck of NULL and empty_clob() lits  }
 
@@ -827,7 +827,7 @@ type
   function OCIServerAttach(
           srvhp:OCIServer;
           errhp:OCIError;
-          dblink:PChar;
+          dblink:PAnsiChar;
           dblink_len:longint;
           mode:cardinal):sword;cdecl;external;
 
@@ -853,11 +853,11 @@ type
           envhp:OCIEnv;
           errhp:OCIError;
           var svchp:OCISvcCtx;
-          username:PChar;
+          username:PAnsiChar;
           uname_len:cardinal;
-          password:PChar;
+          password:PAnsiChar;
           passwd_len:cardinal;
-          dbname:PChar;
+          dbname:PAnsiChar;
           dbname_len:cardinal):sword;cdecl;external;
 
   function OCILogoff(
@@ -867,27 +867,27 @@ type
   function OCIErrorGet(
           hndlp:pointer;
           recordno:cardinal;
-          sqlstate:PChar;
+          sqlstate:PAnsiChar;
           var errcodep:PLongint;
-          bufp:PChar;
+          bufp:PAnsiChar;
           bufsiz:cardinal;
           AType:cardinal):sword;cdecl;external;
 
   function OCIPasswordChange(
           svchp:OCISvcCtx;
           errhp:OCIError;
-          user_name:PChar;
+          user_name:PAnsiChar;
           usernm_len:cardinal;
-          opasswd:PChar;
+          opasswd:PAnsiChar;
           opasswd_len:cardinal;
-          npasswd:PChar;
+          npasswd:PAnsiChar;
           npasswd_len:cardinal;
           mode:cardinal):sword;cdecl;external;
 
   function OCIStmtPrepare(
           stmtp:OCIStmt;
           errhp:OCIError;
-          stmt:PChar;
+          stmt:PAnsiChar;
           stmt_len:cardinal;
           language:cardinal;
           mode:cardinal):sword;cdecl;external;
@@ -910,7 +910,7 @@ type
           stmtp:OCIStmt;
           bindp:OCIBind;
           errhp:OCIError;
-          placeholder:PChar;
+          placeholder:PAnsiChar;
           placeh_len:longint;
           valuep:pointer;
           value_sz:longint;
@@ -1026,9 +1026,9 @@ type
           size:cardinal;
           startloc:cardinal;
           found:plongint;
-          bvnp:PChar;
+          bvnp:PAnsiChar;
           bvnl:byte;
-          invp:PChar;
+          invp:PAnsiChar;
           inpl:byte;
           dupl:byte;
           hndl:OCIBind):sword;cdecl;external;
@@ -1158,9 +1158,9 @@ type
           envhp:OCIEnv;
           errhp:OCIError;
           filep:OCILobLocator;
-          dir_alias:PChar;
+          dir_alias:PAnsiChar;
           d_length:pword;
-          filename:PChar;
+          filename:PAnsiChar;
           f_length:pword):sword;cdecl;external;
 
   function OCILobFileIsOpen(
@@ -1179,9 +1179,9 @@ type
           envhp:OCIEnv;
           errhp:OCIError;
           filepp:OCILobLocator;
-          dir_alias:PChar;
+          dir_alias:PAnsiChar;
           d_length:word;
-          filename:PChar;
+          filename:PAnsiChar;
           f_length:word):sword;cdecl;external;
 
   function OCILobFlushBuffer(
@@ -1261,7 +1261,7 @@ type
   function OCIServerVersion(
           hndlp:pointer;
           errhp:OCIError;
-          bufp:PChar;
+          bufp:PAnsiChar;
           bufsz:cardinal;
           hndltype:byte):sword;cdecl;external;
 
@@ -1298,12 +1298,12 @@ type
   function OCIDateToText(
       err:OCIError;
           date:POCIDate;
-          fmt:PChar;
+          fmt:PAnsiChar;
           fmt_length:ub1;
-          lang_name:PChar;
+          lang_name:PAnsiChar;
       lang_length:ub4;
           buf_size:PCardinal;
-          buf:PChar):sword;cdecl;external;
+          buf:PAnsiChar):sword;cdecl;external;
 
   {-------------------------------------------------------------------------------------------}
   { Security Package                                                                          }
@@ -1313,16 +1313,16 @@ type
 
   function OCISecurityTerminate(sechandle:pOCISecurity; error_handle:OCIError):sword;cdecl;
 
-  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar; wallet:pnzttWallet):sword;cdecl;
+  function OCISecurityOpenWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PAnsiChar; pwdlen:size_t;
+             password:PAnsiChar; wallet:pnzttWallet):sword;cdecl;
 
   function OCISecurityCloseWallet(osshandle:pOCISecurity; error_handle:OCIError; wallet:pnzttWallet):sword;cdecl;
 
-  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar; wallet:pnzttWallet):sword;cdecl;
+  function OCISecurityCreateWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PAnsiChar; pwdlen:size_t;
+             password:PAnsiChar; wallet:pnzttWallet):sword;cdecl;
 
-  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PChar; pwdlen:size_t;
-             password:PChar):sword;cdecl;
+  function OCISecurityDestroyWallet(osshandle:pOCISecurity; error_handle:OCIError; wrllen:size_t; wallet_resource_locator:PAnsiChar; pwdlen:size_t;
+             password:PAnsiChar):sword;cdecl;
 
   function OCISecurityStorePersona(osshandle:pOCISecurity; error_handle:OCIError; persona:ppnzttPersona; wallet:pnzttWallet):sword;cdecl;
 
@@ -1418,12 +1418,12 @@ type
   function OCISecuritySetBlock(osshandle:pOCISecurity; error_handle:OCIError; flags_to_set:uword; buffer_length:size_t; used_buffer_length:size_t;
              buffer:pbyte; buffer_block:pnzttBufferBlock):sword;cdecl;
 
-  function OCISecurityGetIdentity(osshandle:pOCISecurity; error_handle:OCIError; namelen:size_t; distinguished_name:PChar; identity:ppnzttIdentity):sword;cdecl;
+  function OCISecurityGetIdentity(osshandle:pOCISecurity; error_handle:OCIError; namelen:size_t; distinguished_name:PAnsiChar; identity:ppnzttIdentity):sword;cdecl;
 
-  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties;
+  function OCIAQEnq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PAnsiChar; enqopt:pOCIAQEnqOptions; msgprop:pOCIAQMsgProperties;
              payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
 
-  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties;
+  function OCIAQDeq(svchp:OCISvcCtx; errhp:OCIError; queue_name:PAnsiChar; deqopt:pOCIAQDeqOptions; msgprop:pOCIAQMsgProperties;
              payload_tdo:pOCIType; payload:ppointer; payload_ind:ppointer; msgid:ppOCIRaw; flags:cardinal):sword;cdecl;
 }
 
