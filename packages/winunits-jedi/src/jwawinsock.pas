@@ -213,13 +213,13 @@ const
 
 type
   hostent = record
-    h_name: PChar;           // official name of host
-    h_aliases: PPChar;  // alias list
+    h_name: PAnsiChar;           // official name of host
+    h_aliases: PPAnsiChar;  // alias list
     h_addrtype: Smallint;             // host address type
     h_length: Smallint;               // length of address
     case Integer of
-      0: (h_addr_list: PPChar); // list of addresses
-      1: (h_addr: PPChar);          // address, for backward compat
+      0: (h_addr_list: PPAnsiChar); // list of addresses
+      1: (h_addr: PPAnsiChar);          // address, for backward compat
   end;
   {$EXTERNALSYM hostent}
   THostEnt = hostent;
@@ -232,8 +232,8 @@ type
 
 type
   netent = record
-    n_name: PChar;           // official name of net
-    n_aliases: PPChar;  // alias list
+    n_name: PAnsiChar;           // official name of net
+    n_aliases: PPAnsiChar;  // alias list
     n_addrtype: Smallint;             // net address type
     n_net: u_long;                  // network #
   end;
@@ -242,18 +242,18 @@ type
   PNetEnt = ^netent;
 
   servent = record
-    s_name: PChar;           // official service name
-    s_aliases: PPChar;  // alias list
+    s_name: PAnsiChar;           // official service name
+    s_aliases: PPAnsiChar;  // alias list
     s_port: Smallint;                 // port #
-    s_proto: PChar;          // protocol to use
+    s_proto: PAnsiChar;          // protocol to use
   end;
   {$EXTERNALSYM servent}
   TServEnt = servent;
   PServEnt = ^servent;
 
   protoent = record
-    p_name: PChar;           // official protocol name
-    p_aliases: PPChar;  // alias list
+    p_name: PAnsiChar;           // official protocol name
+    p_aliases: PPAnsiChar;  // alias list
     p_proto: Smallint;                // protocol #
   end;
   {$EXTERNALSYM protoent}
@@ -476,7 +476,7 @@ type
     sin_family: Smallint;
     sin_port: u_short;
     sin_addr: in_addr;
-    sin_zero: array [0..7] of Char;
+    sin_zero: array [0..7] of AnsiChar;
   end;
   {$EXTERNALSYM sockaddr_in}
   TSockAddrIn = sockaddr_in;
@@ -492,11 +492,11 @@ type
   WSAData = record
     wVersion: WORD;
     wHighVersion: WORD;
-    szDescription: array [0..WSADESCRIPTION_LEN] of Char;
-    szSystemStatus: array [0..WSASYS_STATUS_LEN] of Char;
+    szDescription: array [0..WSADESCRIPTION_LEN] of AnsiChar;
+    szSystemStatus: array [0..WSASYS_STATUS_LEN] of AnsiChar;
     iMaxSockets: Word;
     iMaxUdpDg: Word;
-    lpVendorInfo: PChar;
+    lpVendorInfo: PAnsiChar;
   end;
   {$EXTERNALSYM WSAData}
   LPWSADATA = ^WSAData;
@@ -746,7 +746,7 @@ const
 type
   sockaddr = record
     sa_family: u_short;              // address family
-    sa_data: array [0..13] of Char;            // up to 14 bytes of direct address
+    sa_data: array [0..13] of AnsiChar;            // up to 14 bytes of direct address
   end;
   {$EXTERNALSYM sockaddr}
   TSockAddr = sockaddr;
@@ -1166,15 +1166,15 @@ function getpeername(s: TSocket; name: PSockAddr; var namelen: Integer): Integer
 {$EXTERNALSYM getpeername}
 function getsockname(s: TSocket; name: PSockAddr; var namelen: Integer): Integer; stdcall;
 {$EXTERNALSYM getsockname}
-function getsockopt(s: TSocket; level, optname: Integer; optval: PChar; var optlen: Integer): Integer; stdcall;
+function getsockopt(s: TSocket; level, optname: Integer; optval: PAnsiChar; var optlen: Integer): Integer; stdcall;
 {$EXTERNALSYM getsockopt}
 function htonl(hostlong: u_long): u_long; stdcall;
 {$EXTERNALSYM htonl}
 function htons(hostshort: u_short): u_short; stdcall;
 {$EXTERNALSYM htons}
-function inet_addr(cp: PChar): u_long; stdcall;
+function inet_addr(cp: PAnsiChar): u_long; stdcall;
 {$EXTERNALSYM inet_addr}
-function inet_ntoa(inaddr: in_addr): PChar; stdcall;
+function inet_ntoa(inaddr: in_addr): PAnsiChar; stdcall;
 {$EXTERNALSYM inet_ntoa}
 function listen(s: TSocket; backlog: Integer): Integer; stdcall;
 {$EXTERNALSYM listen}
@@ -1192,7 +1192,7 @@ function send(s: TSocket; var buf; len, flags: Integer): Integer; stdcall;
 {$EXTERNALSYM send}
 function sendto(s: TSocket; var buf; len, flags: Integer; toaddr: PSockAddr; tolen: Integer): Integer; stdcall;
 {$EXTERNALSYM sendto}
-function setsockopt(s: TSocket; level, optname: Integer; optval: PChar; optlen: Integer): Integer; stdcall;
+function setsockopt(s: TSocket; level, optname: Integer; optval: PAnsiChar; optlen: Integer): Integer; stdcall;
 {$EXTERNALSYM setsockopt}
 function shutdown(s: TSocket; how: Integer): Integer; stdcall;
 {$EXTERNALSYM shutdown}
@@ -1201,19 +1201,19 @@ function socket(af, type_, protocol: Integer): TSocket; stdcall;
 
 (* Database function prototypes *)
 
-function gethostbyaddr(addr: PChar; len, type_: Integer): PHostEnt; stdcall;
+function gethostbyaddr(addr: PAnsiChar; len, type_: Integer): PHostEnt; stdcall;
 {$EXTERNALSYM gethostbyaddr}
-function gethostbyname(name: PChar): PHostEnt; stdcall;
+function gethostbyname(name: PAnsiChar): PHostEnt; stdcall;
 {$EXTERNALSYM gethostbyname}
-function gethostname(name: PChar; namelen: Integer): Integer; stdcall;
+function gethostname(name: PAnsiChar; namelen: Integer): Integer; stdcall;
 {$EXTERNALSYM gethostname}
-function getservbyport(port: Integer; proto: PChar): PServEnt; stdcall;
+function getservbyport(port: Integer; proto: PAnsiChar): PServEnt; stdcall;
 {$EXTERNALSYM getservbyport}
-function getservbyname(name, proto: PChar): PServEnt; stdcall;
+function getservbyname(name, proto: PAnsiChar): PServEnt; stdcall;
 {$EXTERNALSYM getservbyname}
 function getprotobynumber(number: Integer): PProtoEnt; stdcall;
 {$EXTERNALSYM getprotobynumber}
-function getprotobyname(name: PChar): PProtoEnt; stdcall;
+function getprotobyname(name: PAnsiChar): PProtoEnt; stdcall;
 {$EXTERNALSYM getprotobyname}
 
 (* Microsoft Windows Extension function prototypes *)
@@ -1234,23 +1234,23 @@ function WSASetBlockingHook(lpBlockFunc: FARPROC): FARPROC; stdcall;
 {$EXTERNALSYM WSASetBlockingHook}
 function WSACancelBlockingCall: Integer; stdcall;
 {$EXTERNALSYM WSACancelBlockingCall}
-function WSAAsyncGetServByName(hWnd: HWND; wMsg: u_int; name, proto, buf: PChar;
+function WSAAsyncGetServByName(hWnd: HWND; wMsg: u_int; name, proto, buf: PAnsiChar;
   buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetServByName}
 function WSAAsyncGetServByPort(hWnd: HWND; wMsg: u_int; port: Integer;
-  proto, buf: PChar; buflen: Integer): HANDLE; stdcall;
+  proto, buf: PAnsiChar; buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetServByPort}
-function WSAAsyncGetProtoByName(hWnd: HWND; wMsg: u_int; name, buf: PChar;
+function WSAAsyncGetProtoByName(hWnd: HWND; wMsg: u_int; name, buf: PAnsiChar;
   buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetProtoByName}
 function WSAAsyncGetProtoByNumber(hWnd: HWND; wMsg: u_int; number: Integer;
-  buf: PChar; buflen: Integer): HANDLE; stdcall;
+  buf: PAnsiChar; buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetProtoByNumber}
-function WSAAsyncGetHostByName(hWnd: HWND; wMsg: u_int; name, buf: PChar;
+function WSAAsyncGetHostByName(hWnd: HWND; wMsg: u_int; name, buf: PAnsiChar;
   buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetHostByName}
-function WSAAsyncGetHostByAddr(hWnd: HWND; wMsg: u_int; addr: PChar;
-  len, type_: Integer; buf: PChar; buflen: Integer): HANDLE; stdcall;
+function WSAAsyncGetHostByAddr(hWnd: HWND; wMsg: u_int; addr: PAnsiChar;
+  len, type_: Integer; buf: PAnsiChar; buflen: Integer): HANDLE; stdcall;
 {$EXTERNALSYM WSAAsyncGetHostByAddr}
 function WSACancelAsyncRequest(hAsyncTaskHandle: HANDLE): Integer; stdcall;
 {$EXTERNALSYM WSACancelAsyncRequest}

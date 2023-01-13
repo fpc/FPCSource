@@ -272,7 +272,7 @@ function DsValidateSubnetName(SubnetName: LPCTSTR): DWORD; stdcall;
 type
   sockaddr = record
     sa_family: Word;                  // address family
-    sa_data: array [0..13] of Char;   // up to 14 bytes of direct address
+    sa_data: array [0..13] of AnsiChar;   // up to 14 bytes of direct address
   end;
   {$EXTERNALSYM sockaddr}
 
@@ -303,7 +303,7 @@ type
 {$ENDIF JWA_WINSOCK_2}
 
 function DsAddressToSiteNamesA(ComputerName: LPCSTR; EntryCount: DWORD;
-  SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPChar): DWORD; stdcall;
+  SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsAddressToSiteNamesA}
 function DsAddressToSiteNamesW(ComputerName: LPCWSTR; EntryCount: DWORD;
   SocketAddresses: PSOCKET_ADDRESS; var SiteNames: PPWideChar): DWORD; stdcall;
@@ -313,7 +313,7 @@ function DsAddressToSiteNames(ComputerName: LPCTSTR; EntryCount: DWORD;
 {$EXTERNALSYM DsAddressToSiteNames}
 
 function DsAddressToSiteNamesExA(ComputerName: LPCSTR; EntryCount: DWORD;
-  SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPChar): DWORD; stdcall;
+  SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsAddressToSiteNamesExA}
 function DsAddressToSiteNamesExW(ComputerName: LPCWSTR; EntryCount: DWORD;
   SocketAddresses: PSOCKET_ADDRESS; var SiteNames, SubnetNames: PPWideChar): DWORD; stdcall;
@@ -458,7 +458,7 @@ function DsMergeForestTrustInformationW(DomainName: LPCWSTR; NewForestTrustInfo,
 {$EXTERNALSYM DsMergeForestTrustInformationW}
 
 function DsGetDcSiteCoverageA(ServerName: LPCSTR; var EntryCount: ULONG;
-  var SiteNames: PPChar): DWORD; stdcall;
+  var SiteNames: PPAnsiChar): DWORD; stdcall;
 {$EXTERNALSYM DsGetDcSiteCoverageA}
 function DsGetDcSiteCoverageW(ServerName: LPCWSTR; var EntryCount: ULONG;
   var SiteNames: PPWideChar): DWORD; stdcall;

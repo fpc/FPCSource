@@ -1294,8 +1294,8 @@ const
 // Additional Prototypes for ALL interfaces
 
 //unsigned long             __RPC_USER  WideString_UserSize(     unsigned long *, unsigned long            , WideString * );
-//unsigned char * __RPC_USER  WideString_UserMarshal(  unsigned long *, unsigned char *, WideString * );
-//unsigned char * __RPC_USER  WideString_UserUnmarshal(unsigned long *, unsigned char *, WideString * );
+//unsigned AnsiChar * __RPC_USER  WideString_UserMarshal(  unsigned long *, unsigned AnsiChar *, WideString * );
+//unsigned AnsiChar * __RPC_USER  WideString_UserUnmarshal(unsigned long *, unsigned AnsiChar *, WideString * );
 //void                      __RPC_USER  WideString_UserFree(     unsigned long *, WideString * );
 
 // end of Additional Prototypes

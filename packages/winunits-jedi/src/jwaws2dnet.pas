@@ -142,7 +142,7 @@ type
     sdn_flags: Byte;        // flags
     sdn_objnum: Byte;       // object number
     sdn_objnamel: Word;     // size of object name
-    sdn_objname: array [0..DN_MAXOBJL - 1] of Char; // object name
+    sdn_objname: array [0..DN_MAXOBJL - 1] of AnsiChar; // object name
     sdn_add: dn_naddr;      // node address
   end;
   {$EXTERNALSYM sockaddr_dn}
@@ -181,11 +181,11 @@ const
 
 type
   nodeent_f = packed record
-    n_name: PChar;      // name of node
+    n_name: PAnsiChar;      // name of node
     n_addrtype: Word;   // node address type
     n_length: Word;     // address length
-    n_addr: PChar;      // address
-    n_params: PChar;    // node parameters
+    n_addr: PAnsiChar;      // address
+    n_params: PAnsiChar;    // node parameters
     n_reserved: array [0..15] of Byte; // Reserved
   end;
   {$EXTERNALSYM nodeent_f}
@@ -256,8 +256,8 @@ type
   dnet_accent = packed record
     dac_status: Byte;      // Reserved
     dac_type: Byte;        // DN_NONE, etc.
-    dac_username: array [0..DN_MAXACCL] of Char;
-    dac_password: array [0..DN_MAXACCL] of Char;
+    dac_username: array [0..DN_MAXACCL] of AnsiChar;
+    dac_password: array [0..DN_MAXACCL] of AnsiChar;
   end;
   {$EXTERNALSYM dnet_accent}
   DNETACCENT = dnet_accent;
@@ -311,32 +311,32 @@ const
 (*
 MVB TODO: Extension functions must be dynamically queried for using WSAIoctl.
 
-function dnet_addr(cp: PChar): PDNAddr; stdcall;
+function dnet_addr(cp: PAnsiChar): PDNAddr; stdcall;
 {$EXTERNALSYM dnet_addr}
 function dnet_eof(s: SOCKET): Integer; stdcall;
 {$EXTERNALSYM dnet_eof}
 function dnet_getacc(const nacc: TDNetAccent): PDNetAccent; stdcall;
 {$EXTERNALSYM dnet_getacc}
-function dnet_getalias(P: PChar): PChar; stdcall;
+function dnet_getalias(P: PAnsiChar): PAnsiChar; stdcall;
 {$EXTERNALSYM dnet_getalias}
-function dnet_htoa(const add: TDNNAddr): PChar; stdcall;
+function dnet_htoa(const add: TDNNAddr): PAnsiChar; stdcall;
 {$EXTERNALSYM dnet_htoa}
-function dnet_ntoa(const add: TDNNAddr): PChar; stdcall;
+function dnet_ntoa(const add: TDNNAddr): PAnsiChar; stdcall;
 {$EXTERNALSYM dnet_ntoa}
 function getnodeadd: PDNNAddr; stdcall;
 {$EXTERNALSYM getnodeadd}
-function getnodebyaddr(addr: PChar; len, type_: Integer): PNodeEntF; stdcall;
+function getnodebyaddr(addr: PAnsiChar; len, type_: Integer): PNodeEntF; stdcall;
 {$EXTERNALSYM getnodebyaddr}
-function getnodebyname(name: PChar): PNodeEntF; stdcall;
+function getnodebyname(name: PAnsiChar): PNodeEntF; stdcall;
 {$EXTERNALSYM getnodebyname}
-function getnodename: PChar; stdcall;
+function getnodename: PAnsiChar; stdcall;
 {$EXTERNALSYM getnodename}
 *)
 
 // typedefs for C++ compatability
 
 type
-  LPDNETADDR = function(cp: PChar): PDNNAddr; stdcall;
+  LPDNETADDR = function(cp: PAnsiChar): PDNNAddr; stdcall;
   {$EXTERNALSYM LPDNETADDR}
   TDNetAddr = LPDNETADDR;
   LPDNETEOF = function(s: TSocket): Integer; stdcall;
@@ -345,25 +345,25 @@ type
   LPDNETGETACC = function(const nacc: TDNetAccent): PDNetAccent; stdcall;
   {$EXTERNALSYM LPDNETGETACC}
   TDNetGetAcc = LPDNETGETACC;
-  LPDNETGETALIAS = function(P: PChar): PChar; stdcall;
+  LPDNETGETALIAS = function(P: PAnsiChar): PAnsiChar; stdcall;
   {$EXTERNALSYM LPDNETGETALIAS}
   TDNetGetAlias = LPDNETGETALIAS;
-  LPDNETHTOA = function(const add: TDNNAddr): PChar; stdcall;
+  LPDNETHTOA = function(const add: TDNNAddr): PAnsiChar; stdcall;
   {$EXTERNALSYM LPDNETHTOA}
   TDNetHToA = LPDNETHTOA;
-  LPDNETNTOA = function(const add: TDNNAddr): PChar; stdcall;
+  LPDNETNTOA = function(const add: TDNNAddr): PAnsiChar; stdcall;
   {$EXTERNALSYM LPDNETNTOA}
   TDNetNToA = LPDNETNTOA;
   LPGETNODEADD = function: PDNNAddr; stdcall;
   {$EXTERNALSYM LPGETNODEADD}
   TGetNodeAdd = LPGETNODEADD;
-  LPGETNODEBYADDR = function(addr: PChar; len, type_: Integer): PNodeEntF; stdcall;
+  LPGETNODEBYADDR = function(addr: PAnsiChar; len, type_: Integer): PNodeEntF; stdcall;
   {$EXTERNALSYM LPGETNODEBYADDR}
   TGetNodeByAddr = LPGETNODEBYADDR;
-  LPGETNODEBYNAME = function(name: PChar): PNodeEntF; stdcall;
+  LPGETNODEBYNAME = function(name: PAnsiChar): PNodeEntF; stdcall;
   {$EXTERNALSYM LPGETNODEBYNAME}
   TGetNodeByName = LPGETNODEBYNAME;
-  LPGETNODENAME = function: PChar; stdcall;
+  LPGETNODENAME = function: PAnsiChar; stdcall;
   {$EXTERNALSYM LPGETNODENAME}
   TGetNodeName = LPGETNODENAME;
 {$ENDIF JWA_IMPLEMENTATIONSECTION}

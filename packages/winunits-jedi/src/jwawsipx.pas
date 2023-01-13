@@ -94,8 +94,8 @@ interface
 type
   SOCKADDR_IPX = record
     sa_family: Smallint;
-    sa_netnum: array [0..3] of Char;
-    sa_nodenum: array [0..5] of Char;
+    sa_netnum: array [0..3] of AnsiChar;
+    sa_nodenum: array [0..5] of AnsiChar;
     sa_socket: Word;
   end;
   {$EXTERNALSYM SOCKADDR_IPX}

@@ -190,7 +190,7 @@ type
   {$EXTERNALSYM LPWSPGETSOCKNAME}
   TWspGetSockName = LPWSPGETSOCKNAME;
 
-  LPWSPGETSOCKOPT = function(s: TSocket; level, optname: Integer; optval: PChar; var optlen, lpErrno: Integer): Integer; stdcall;
+  LPWSPGETSOCKOPT = function(s: TSocket; level, optname: Integer; optval: PAnsiChar; var optlen, lpErrno: Integer): Integer; stdcall;
   {$EXTERNALSYM LPWSPGETSOCKOPT}
   TWspGetSockOpt = LPWSPGETSOCKOPT;
 
@@ -254,7 +254,7 @@ type
   {$EXTERNALSYM LPWSPSENDTO}
   TWspSendTo = LPWSPSENDTO;
 
-  LPWSPSETSOCKOPT = function(s: TSocket; level, optname: Integer; optval: PChar; optlen: Integer; var lpErrno: Integer): Integer; stdcall;
+  LPWSPSETSOCKOPT = function(s: TSocket; level, optname: Integer; optval: PAnsiChar; optlen: Integer; var lpErrno: Integer): Integer; stdcall;
   {$EXTERNALSYM LPWSPSETSOCKOPT}
   TWspSetSockOpt = LPWSPSETSOCKOPT;
 
@@ -802,7 +802,7 @@ var
 
 function WSCEnumProtocols;
 begin
-  GetProcedureAddress(_WSCEnumProtocols, ws2_32, 'WSCEnumProtocols');
+  GetProcedureAddress(_WSCEnumProtocols, ws2_32, AnsiString('WSCEnumProtocols'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -817,7 +817,7 @@ var
 
 function WSCEnumProtocols32;
 begin
-  GetProcedureAddress(_WSCEnumProtocols32, ws2_32, 'WSCEnumProtocols32');
+  GetProcedureAddress(_WSCEnumProtocols32, ws2_32, ('WSCEnumProtocols32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -832,7 +832,7 @@ var
 
 function WSCDeinstallProvider;
 begin
-  GetProcedureAddress(_WSCDeinstallProvider, ws2_32, 'WSCDeinstallProvider');
+  GetProcedureAddress(_WSCDeinstallProvider, ws2_32, AnsiString('WSCDeinstallProvider'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -847,7 +847,7 @@ var
 
 function WSCDeinstallProvider32;
 begin
-  GetProcedureAddress(_WSCDeinstallProvider32, ws2_32, 'WSCDeinstallProvider32');
+  GetProcedureAddress(_WSCDeinstallProvider32, ws2_32, AnsiString('WSCDeinstallProvider32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -862,7 +862,7 @@ var
 
 function WSCInstallProvider;
 begin
-  GetProcedureAddress(_WSCInstallProvider, ws2_32, 'WSCInstallProvider');
+  GetProcedureAddress(_WSCInstallProvider, ws2_32, AnsiString('WSCInstallProvider'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -877,7 +877,7 @@ var
 
 function WSCInstallProvider64_32;
 begin
-  GetProcedureAddress(_WSCInstallProvider64_32, ws2_32, 'WSCInstallProvider64_32');
+  GetProcedureAddress(_WSCInstallProvider64_32, ws2_32, AnsiString('WSCInstallProvider64_32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -892,7 +892,7 @@ var
 
 function WSCGetProviderPath;
 begin
-  GetProcedureAddress(_WSCGetProviderPath, ws2_32, 'WSCGetProviderPath');
+  GetProcedureAddress(_WSCGetProviderPath, ws2_32, AnsiString('WSCGetProviderPath'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -907,7 +907,7 @@ var
 
 function WSCGetProviderPath32;
 begin
-  GetProcedureAddress(_WSCGetProviderPath32, ws2_32, 'WSCGetProviderPath32');
+  GetProcedureAddress(_WSCGetProviderPath32, ws2_32, AnsiString('WSCGetProviderPath32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -922,7 +922,7 @@ var
 
 function WSCUpdateProvider;
 begin
-  GetProcedureAddress(_WSCUpdateProvider, ws2_32, 'WSCUpdateProvider');
+  GetProcedureAddress(_WSCUpdateProvider, ws2_32, AnsiString('WSCUpdateProvider'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -937,7 +937,7 @@ var
 
 function WSCUpdateProvider32;
 begin
-  GetProcedureAddress(_WSCUpdateProvider32, ws2_32, 'WSCUpdateProvider32');
+  GetProcedureAddress(_WSCUpdateProvider32, ws2_32, AnsiString('WSCUpdateProvider32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -952,7 +952,7 @@ var
 
 function WSCInstallQOSTemplate;
 begin
-  GetProcedureAddress(_WSCInstallQOSTemplate, String(qosname), String('WSCInstallQOSTemplate'));
+  GetProcedureAddress(_WSCInstallQOSTemplate, AnsiString(qosname), AnsiString('WSCInstallQOSTemplate'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -965,7 +965,7 @@ var
 
 function WSCRemoveQOSTemplate;
 begin
-  GetProcedureAddress(_WSCRemoveQOSTemplate, String(qosname), String('WSCRemoveQOSTemplate'));
+  GetProcedureAddress(_WSCRemoveQOSTemplate, AnsiString(qosname), AnsiString('WSCRemoveQOSTemplate'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -980,7 +980,7 @@ var
 
 function WSCEnumNameSpaceProviders32;
 begin
-  GetProcedureAddress(_WSCEnumNameSpaceProviders32, ws2_32, 'WSCEnumNameSpaceProviders32');
+  GetProcedureAddress(_WSCEnumNameSpaceProviders32, ws2_32, AnsiString('WSCEnumNameSpaceProviders32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -995,7 +995,7 @@ var
 
 function WSCInstallNameSpace;
 begin
-  GetProcedureAddress(_WSCInstallNameSpace, ws2_32, 'WSCInstallNameSpace');
+  GetProcedureAddress(_WSCInstallNameSpace, ws2_32, AnsiString('WSCInstallNameSpace'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1010,7 +1010,7 @@ var
 
 function WSCInstallNameSpace32;
 begin
-  GetProcedureAddress(_WSCInstallNameSpace32, ws2_32, 'WSCInstallNameSpace32');
+  GetProcedureAddress(_WSCInstallNameSpace32, ws2_32, AnsiString('WSCInstallNameSpace32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1025,7 +1025,7 @@ var
 
 function WSCUnInstallNameSpace;
 begin
-  GetProcedureAddress(_WSCUnInstallNameSpace, ws2_32, 'WSCUnInstallNameSpace');
+  GetProcedureAddress(_WSCUnInstallNameSpace, ws2_32, AnsiString('WSCUnInstallNameSpace'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1040,7 +1040,7 @@ var
 
 function WSCUnInstallNameSpace32;
 begin
-  GetProcedureAddress(_WSCUnInstallNameSpace32, ws2_32, 'WSCUnInstallNameSpace32');
+  GetProcedureAddress(_WSCUnInstallNameSpace32, ws2_32, AnsiString('WSCUnInstallNameSpace32'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1055,7 +1055,7 @@ var
 
 function WSCEnableNSProvider;
 begin
-  GetProcedureAddress(_WSCEnableNSProvider, ws2_32, 'WSCEnableNSProvider');
+  GetProcedureAddress(_WSCEnableNSProvider, ws2_32, AnsiString('WSCEnableNSProvider'));
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1070,7 +1070,7 @@ var
 
 function WSCEnableNSProvider32;
 begin
-  GetProcedureAddress(_WSCEnableNSProvider32, ws2_32, 'WSCEnableNSProvider32');
+  GetProcedureAddress(_WSCEnableNSProvider32, ws2_32, AnsiString('WSCEnableNSProvider32'));
   asm
         MOV     ESP, EBP
         POP     EBP

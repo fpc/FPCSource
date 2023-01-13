@@ -90,7 +90,7 @@ const
 
 // Server APIs
 
-function RpcNsBindingExportA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingExportA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; BindingVec: PRPC_BINDING_VECTOR;
   ObjectUuidVec: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingExportA}
@@ -103,7 +103,7 @@ function RpcNsBindingExport(EntryNameSyntax: Longword; EntryName: PTSTR;
   ObjectUuidVec: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingExport}
 
-function RpcNsBindingUnexportA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingUnexportA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; ObjectUuidVec: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingUnexportA}
 function RpcNsBindingUnexportW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -115,7 +115,7 @@ function RpcNsBindingUnexport(EntryNameSyntax: Longword; EntryName: PTSTR;
 
 // Server PnP APIs
 
-function RpcNsBindingExportPnPA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingExportPnPA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; ObjectVector: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingExportPnPA}
 function RpcNsBindingExportPnPW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -125,7 +125,7 @@ function RpcNsBindingExportPnP(EntryNameSyntax: Longword; EntryName: PTSTR;
   IfSpec: RPC_IF_HANDLE; ObjectVector: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingExportPnP}
 
-function RpcNsBindingUnexportPnPA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingUnexportPnPA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; ObjectVector: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingUnexportPnPA}
 function RpcNsBindingUnexportPnPW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -137,7 +137,7 @@ function RpcNsBindingUnexportPnP(EntryNameSyntax: Longword; EntryName: PTSTR;
 
 // Client APIs
 
-function RpcNsBindingLookupBeginA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingLookupBeginA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; ObjUuid: PUUID; BindingMaxCount: Longword;
   var LookupContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingLookupBeginA}
@@ -159,15 +159,15 @@ function RpcNsBindingLookupDone(var LookupContext: RPC_NS_HANDLE): RPC_STATUS; s
 
 // Group APIs
 
-function RpcNsGroupDeleteA(GroupNameSyntax: Longword; GroupName: PChar): RPC_STATUS; stdcall;
+function RpcNsGroupDeleteA(GroupNameSyntax: Longword; GroupName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupDeleteA}
 function RpcNsGroupDeleteW(GroupNameSyntax: Longword; GroupName: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupDeleteW}
 function RpcNsGroupDelete(GroupNameSyntax: Longword; GroupName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupDelete}
 
-function RpcNsGroupMbrAddA(GroupNameSyntax: Longword; GroupName: PChar;
-  MemberNameSyntax: Longword; MemberName: PChar): RPC_STATUS; stdcall;
+function RpcNsGroupMbrAddA(GroupNameSyntax: Longword; GroupName: PAnsiChar;
+  MemberNameSyntax: Longword; MemberName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrAddA}
 function RpcNsGroupMbrAddW(GroupNameSyntax: Longword; GroupName: PWideChar;
   MemberNameSyntax: Longword; MemberName: PWideChar): RPC_STATUS; stdcall;
@@ -176,8 +176,8 @@ function RpcNsGroupMbrAdd(GroupNameSyntax: Longword; GroupName: PTSTR;
   MemberNameSyntax: Longword; MemberName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrAdd}
 
-function RpcNsGroupMbrRemoveA(GroupNameSyntax: Longword; GroupName: PChar;
-  MemberNameSyntax: Longword; MemberName: PChar): RPC_STATUS; stdcall;
+function RpcNsGroupMbrRemoveA(GroupNameSyntax: Longword; GroupName: PAnsiChar;
+  MemberNameSyntax: Longword; MemberName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrRemoveA}
 function RpcNsGroupMbrRemoveW(GroupNameSyntax: Longword; GroupName: PWideChar;
   MemberNameSyntax: Longword; MemberName: PWideChar): RPC_STATUS; stdcall;
@@ -186,7 +186,7 @@ function RpcNsGroupMbrRemove(GroupNameSyntax: Longword; GroupName: PTSTR;
   MemberNameSyntax: Longword; MemberName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrRemove}
 
-function RpcNsGroupMbrInqBeginA(GroupNameSyntax: Longword; GroupName: PChar;
+function RpcNsGroupMbrInqBeginA(GroupNameSyntax: Longword; GroupName: PAnsiChar;
   MemberNameSyntax: Longword; var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrInqBeginA}
 function RpcNsGroupMbrInqBeginW(GroupNameSyntax: Longword; GroupName: PWideChar;
@@ -196,7 +196,7 @@ function RpcNsGroupMbrInqBegin(GroupNameSyntax: Longword; GroupName: PTSTR;
   MemberNameSyntax: Longword; var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrInqBegin}
 
-function RpcNsGroupMbrInqNextA(InquiryContext: RPC_NS_HANDLE; MemberName: PPChar): RPC_STATUS; stdcall;
+function RpcNsGroupMbrInqNextA(InquiryContext: RPC_NS_HANDLE; MemberName: PPAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrInqNextA}
 function RpcNsGroupMbrInqNextW(InquiryContext: RPC_NS_HANDLE; MemberName: PPWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsGroupMbrInqNextW}
@@ -208,16 +208,16 @@ function RpcNsGroupMbrInqDone(var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; st
 
 // Profile APIs
 
-function RpcNsProfileDeleteA(ProfileNameSyntax: Longword; ProfileName: PChar): RPC_STATUS; stdcall;
+function RpcNsProfileDeleteA(ProfileNameSyntax: Longword; ProfileName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileDeleteA}
 function RpcNsProfileDeleteW(ProfileNameSyntax: Longword; ProfileName: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileDeleteW}
 function RpcNsProfileDelete(ProfileNameSyntax: Longword; ProfileName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileDelete}
 
-function RpcNsProfileEltAddA(ProfileNameSyntax: Longword; ProfileName: PChar;
-  IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PChar;
-  Priority: Longword; Annotation: PChar): RPC_STATUS; stdcall;
+function RpcNsProfileEltAddA(ProfileNameSyntax: Longword; ProfileName: PAnsiChar;
+  IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PAnsiChar;
+  Priority: Longword; Annotation: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltAddA}
 function RpcNsProfileEltAddW(ProfileNameSyntax: Longword; ProfileName: PWideChar;
   IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PWideChar;
@@ -228,8 +228,8 @@ function RpcNsProfileEltAdd(ProfileNameSyntax: Longword; ProfileName: PTSTR;
   Priority: Longword; Annotation: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltAdd}
 
-function RpcNsProfileEltRemoveA(ProfileNameSyntax: Longword; ProfileName: PChar;
-  IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PChar): RPC_STATUS; stdcall;
+function RpcNsProfileEltRemoveA(ProfileNameSyntax: Longword; ProfileName: PAnsiChar;
+  IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltRemoveA}
 function RpcNsProfileEltRemoveW(ProfileNameSyntax: Longword; ProfileName: PWideChar;
   IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PWideChar): RPC_STATUS; stdcall;
@@ -238,9 +238,9 @@ function RpcNsProfileEltRemove(ProfileNameSyntax: Longword; ProfileName: PTSTR;
   IfId: PRPC_IF_ID; MemberNameSyntax: Longword; MemberName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltRemove}
 
-function RpcNsProfileEltInqBeginA(ProfileNameSyntax: Longword; ProfileName: PChar;
+function RpcNsProfileEltInqBeginA(ProfileNameSyntax: Longword; ProfileName: PAnsiChar;
   InquiryType: Longword; IfId: PRPC_IF_ID; VersOption, MemberNameSyntax: Longword;
-  MemberName: PChar; var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
+  MemberName: PAnsiChar; var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltInqBeginA}
 function RpcNsProfileEltInqBeginW(ProfileNameSyntax: Longword; ProfileName: PWideChar;
   InquiryType: Longword; IfId: PRPC_IF_ID; VersOption, MemberNameSyntax: Longword;
@@ -252,7 +252,7 @@ function RpcNsProfileEltInqBegin(ProfileNameSyntax: Longword; ProfileName: PTSTR
 {$EXTERNALSYM RpcNsProfileEltInqBegin}
 
 function RpcNsProfileEltInqNextA(InquiryContext: RPC_NS_HANDLE; var IfId: RPC_IF_ID;
-  MemberName: PPChar; var Priority: Longword; Annotation: PPChar): RPC_STATUS; stdcall;
+  MemberName: PPAnsiChar; var Priority: Longword; Annotation: PPAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsProfileEltInqNextA}
 function RpcNsProfileEltInqNextW(InquiryContext: RPC_NS_HANDLE; var IfId: RPC_IF_ID;
   MemberName: PPWideChar; var Priority: Longword; Annotation: PPWideChar): RPC_STATUS; stdcall;
@@ -266,7 +266,7 @@ function RpcNsProfileEltInqDone(var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; 
 
 // Entry object APIs
 
-function RpcNsEntryObjectInqBeginA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsEntryObjectInqBeginA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   var InquiryContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsEntryObjectInqBeginA}
 function RpcNsEntryObjectInqBeginW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -284,8 +284,8 @@ function RpcNsEntryObjectInqDone(var InquiryContext: RPC_NS_HANDLE): RPC_STATUS;
 
 // Management and MISC APIs
 
-function RpcNsEntryExpandNameA(EntryNameSyntax: Longword; EntryName: PChar;
-  var ExpandedName: PChar): RPC_STATUS; stdcall;
+function RpcNsEntryExpandNameA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
+  var ExpandedName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsEntryExpandNameA}
 function RpcNsEntryExpandNameW(EntryNameSyntax: Longword; EntryName: PWideChar;
   var ExpandedName: PWideChar): RPC_STATUS; stdcall;
@@ -294,7 +294,7 @@ function RpcNsEntryExpandName(EntryNameSyntax: Longword; EntryName: PTSTR;
   var ExpandedName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsEntryExpandName}
 
-function RpcNsMgmtBindingUnexportA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsMgmtBindingUnexportA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfId: PRPC_IF_ID; VersOption: Longword; ObjectUuidVec: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtBindingUnexportA}
 function RpcNsMgmtBindingUnexportW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -304,21 +304,21 @@ function RpcNsMgmtBindingUnexport(EntryNameSyntax: Longword; EntryName: PTSTR;
   IfId: PRPC_IF_ID; VersOption: Longword; ObjectUuidVec: PUUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtBindingUnexport}
 
-function RpcNsMgmtEntryCreateA(EntryNameSyntax: Longword; EntryName: PChar): RPC_STATUS; stdcall;
+function RpcNsMgmtEntryCreateA(EntryNameSyntax: Longword; EntryName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryCreateA}
 function RpcNsMgmtEntryCreateW(EntryNameSyntax: Longword; EntryName: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryCreateW}
 function RpcNsMgmtEntryCreate(EntryNameSyntax: Longword; EntryName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryCreate}
 
-function RpcNsMgmtEntryDeleteA(EntryNameSyntax: Longword; EntryName: PChar): RPC_STATUS; stdcall;
+function RpcNsMgmtEntryDeleteA(EntryNameSyntax: Longword; EntryName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryDeleteA}
 function RpcNsMgmtEntryDeleteW(EntryNameSyntax: Longword; EntryName: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryDeleteW}
 function RpcNsMgmtEntryDelete(EntryNameSyntax: Longword; EntryName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryDelete}
 
-function RpcNsMgmtEntryInqIfIdsA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsMgmtEntryInqIfIdsA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   var IfIdVec: PRPC_IF_ID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsMgmtEntryInqIfIdsA}
 function RpcNsMgmtEntryInqIfIdsW(EntryNameSyntax: Longword; EntryName: PWideChar;
@@ -340,7 +340,7 @@ function RpcNsMgmtSetExpAge(ExpirationAge: Longword): RPC_STATUS; stdcall;
 
 // Client API's implemented in wrappers.
 
-function RpcNsBindingImportBeginA(EntryNameSyntax: Longword; EntryName: PChar;
+function RpcNsBindingImportBeginA(EntryNameSyntax: Longword; EntryName: PAnsiChar;
   IfSpec: RPC_IF_HANDLE; ObjUuid: PUUID; var ImportContext: RPC_NS_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingImportBeginA}
 function RpcNsBindingImportBeginW(EntryNameSyntax: Longword; EntryName: PWideChar;

@@ -575,8 +575,8 @@ type
     dwMask: DWORD;
     dwState: DWORD;
     dwStateMask: DWORD;
-    szDisplayName: array [0..DSB_MAX_DISPLAYNAME_CHARS - 1] of CHAR;
-    szIconLocation: array [0..MAX_PATH - 1] of CHAR;
+    szDisplayName: array [0..DSB_MAX_DISPLAYNAME_CHARS - 1] of AnsiChar;
+    szIconLocation: array [0..MAX_PATH - 1] of AnsiChar;
     iIconResID: Integer;
   end;
   {$EXTERNALSYM DSBITEMA}
