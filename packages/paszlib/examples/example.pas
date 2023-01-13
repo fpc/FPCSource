@@ -46,13 +46,13 @@ begin
 end;
 
 const
-  hello : PChar = 'hello, hello!';
+  hello : PAnsiChar = 'hello, hello!';
 { "hello world" would be more standard, but the repeated "hello"
   stresses the compression code better, sorry... }
 
 {$IFDEF TEST_DICT}
 const
-  dictionary : PChar = 'hello';
+  dictionary : PAnsiChar = 'hello';
 var
   dictId : cardinal; { Adler32 value of the dictionary }
 {$ENDIF}
@@ -71,18 +71,18 @@ begin
   err := compress(compr, comprLen, Pbyte(hello)^, len);
   CHECK_ERR(err, 'compress');
 
-  strcopy(PChar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   err := uncompress(uncompr, uncomprLen, compr^, comprLen);
   CHECK_ERR(err, 'uncompress');
 
-  if (strcomp(PChar(uncompr), hello)) <> 0 then
+  if (strcomp(PAnsiChar(uncompr), hello)) <> 0 then
   begin
     WriteLn('bad uncompress');
     Stop;
   end
   else
-    WriteLn('uncompress(): ', StrPas(PChar(uncompr)));
+    WriteLn('uncompress(): ', StrPas(PAnsiChar(uncompr)));
 end;
 {$ENDIF}
 
@@ -135,7 +135,7 @@ begin
   if (zfile = NIL) then
     WriteLn('gzopen error');
 
-  strcopy(pchar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   uncomprLen := gzread(zfile, uncompr, cardinal(uncomprLen));
   if (uncomprLen <> len) then
@@ -143,13 +143,13 @@ begin
     WriteLn('gzread err: ', gzerror(zfile, err));
     Stop;
   end;
-  if (strcomp(pchar(uncompr), hello)) <> 0 then
+  if (strcomp(PAnsiChar(uncompr), hello)) <> 0 then
   begin
-    WriteLn('bad gzread: ', pchar(uncompr));
+    WriteLn('bad gzread: ', PAnsiChar(uncompr));
     Stop;
   end
   else
-    WriteLn('gzread(): ', pchar(uncompr));
+    WriteLn('gzread(): ', PAnsiChar(uncompr));
 
   pos := gzseek(zfile, longint(-8), SEEK_CUR);
   if (pos <> 6) or (gztell(zfile) <> pos) then
@@ -158,26 +158,26 @@ begin
     Stop;
   end;
 
-  if (char(gzgetc(zfile)) <> ' ') then
+  if (AnsiChar(gzgetc(zfile)) <> ' ') then
   begin
     WriteLn('gzgetc error');
     Stop;
   end;
 
-  gzgets(zfile, pchar(uncompr), uncomprLen);
-  uncomprLen := strlen(pchar(uncompr));
+  gzgets(zfile, PAnsiChar(uncompr), uncomprLen);
+  uncomprLen := strlen(PAnsiChar(uncompr));
   if (uncomprLen <> 6) then
   begin { "hello!" }
     WriteLn('gzgets err after gzseek: ', gzerror(zfile, err));
     Stop;
   end;
-  if (strcomp(pchar(uncompr), hello+7)) <> 0 then
+  if (strcomp(PAnsiChar(uncompr), hello+7)) <> 0 then
   begin
     WriteLn('bad gzgets after gzseek');
     Stop;
   end
   else
-    WriteLn('gzgets() after gzseek: ', PChar(uncompr));
+    WriteLn('gzgets() after gzseek: ', PAnsiChar(uncompr));
 
   gzclose(zfile);
 end;
@@ -235,7 +235,7 @@ var
   err : integer;
   d_stream : z_stream; { decompression stream }
 begin
-  strcopy(PChar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   d_stream.next_in  := compr;
   d_stream.avail_in := 0;
@@ -258,14 +258,14 @@ begin
   err := inflateEnd(d_stream);
   CHECK_ERR(err, 'inflateEnd');
 
-  if (strcomp(PChar(uncompr), hello) <> 0) then
+  if (strcomp(PAnsiChar(uncompr), hello) <> 0) then
   begin
     WriteLn('bad inflate');
     exit;
   end
   else
   begin
-    WriteLn('inflate(): ', StrPas(PChar(uncompr)));
+    WriteLn('inflate(): ', StrPas(PAnsiChar(uncompr)));
   end;
 end;
 {$ENDIF}
@@ -335,7 +335,7 @@ var
   err : integer;
   d_stream : z_stream; { decompression stream }
 begin
-  strcopy(PChar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   d_stream.next_in  := compr;
   d_stream.avail_in := cardinal(comprLen);
@@ -389,7 +389,7 @@ begin
   err := deflate(c_stream, Z_FULL_FLUSH);
   CHECK_ERR(err, 'deflate');
 
-  Inc(pchar(compr)[3]); { force an error in first compressed block }
+  Inc(PAnsiChar(compr)[3]); { force an error in first compressed block }
   c_stream.avail_in := len - 3;
 
   err := deflate(c_stream, Z_FINISH);
@@ -413,7 +413,7 @@ var
   err : integer;
   d_stream : z_stream; { decompression stream }
 begin
-  strcopy(PChar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   d_stream.next_in  := compr;
   d_stream.avail_in := 2; { just read the zlib header }
@@ -441,7 +441,7 @@ begin
   err := inflateEnd(d_stream);
   CHECK_ERR(err, 'inflateEnd');
 
-  WriteLn('after inflateSync(): hel', StrPas(PChar(uncompr)));
+  WriteLn('after inflateSync(): hel', StrPas(PAnsiChar(uncompr)));
 end;
 {$ENDIF}
 
@@ -487,7 +487,7 @@ var
   err : integer;
   d_stream : z_stream; { decompression stream }
 begin
-  strcopy(PChar(uncompr), 'garbage');
+  strcopy(PAnsiChar(uncompr), 'garbage');
 
   d_stream.next_in  := compr;
   d_stream.avail_in := cardinal(comprLen);
@@ -519,14 +519,14 @@ begin
   err := inflateEnd(d_stream);
   CHECK_ERR(err, 'inflateEnd');
 
-  if (strcomp(PChar(uncompr), hello)) <> 0 then
+  if (strcomp(PAnsiChar(uncompr), hello)) <> 0 then
   begin
     WriteLn('bad inflate with dict');
     Stop;
   end
   else
   begin
-    WriteLn('inflate with dictionary: ', StrPas(PChar(uncompr)));
+    WriteLn('inflate with dictionary: ', StrPas(PAnsiChar(uncompr)));
   end;
 end;
 {$ENDIF}

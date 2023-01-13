@@ -1538,7 +1538,7 @@ begin
   begin
     WriteLn(' start ',start,', match ',match ,' length ', length);
     repeat
-      Write(char(s.window^[match]), char(s.window^[start]));
+      Write(AnsiChar(s.window^[match]), AnsiChar(s.window^[start]));
       inc(match);
       inc(start);
       dec(length);
@@ -1549,7 +1549,7 @@ begin
   begin
     Write('\\[',start-match,',',length,']');
     repeat
-       Write(char(s.window^[start]));
+       Write(AnsiChar(s.window^[start]));
        inc(start);
        dec(length);
     Until (length = 0);
@@ -1917,7 +1917,7 @@ end;
     begin
       { No match, output a literal byte }
       {$IFDEF ZLIB_DEBUG}
-      Tracevv(char(s.window^[s.strstart]));
+      Tracevv(AnsiChar(s.window^[s.strstart]));
       {$ENDIF}
       {_tr_tally_lit (s, 0, s.window^[s.strstart], bflush);}
       bflush := _tr_tally (s, 0, s.window^[s.strstart]);
@@ -2074,7 +2074,7 @@ begin
             single literal. If there was a match but the current match
             is longer, truncate the previous match to a single literal. }
           {$IFDEF ZLIB_DEBUG}
-          Tracevv(char(s.window^[s.strstart-1]));
+          Tracevv(AnsiChar(s.window^[s.strstart-1]));
           {$ENDIF}
           bflush := _tr_tally (s, 0, s.window^[s.strstart-1]);
 
@@ -2113,7 +2113,7 @@ begin
   if (s.match_available) then
   begin
     {$IFDEF ZLIB_DEBUG}
-    Tracevv(char(s.window^[s.strstart-1]));
+    Tracevv(AnsiChar(s.window^[s.strstart-1]));
     bflush :=
     {$ENDIF}
       _tr_tally (s, 0, s.window^[s.strstart-1]);

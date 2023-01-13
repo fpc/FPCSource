@@ -41,7 +41,7 @@ const
     dosdate : the new date at the MSDos format (4 bytes)
     tmu_date : the SAME new date at the tm_unz format }
 
-  procedure change_file_date(const filename: PChar; dosdate: longword; tmu_date: tm_unz);
+  procedure change_file_date(const filename: PAnsiChar; dosdate: longword; tmu_date: tm_unz);
 {$ifdef Delphi32}
   var
     hFile: THandle;
@@ -81,7 +81,7 @@ end;
 { mymkdir and change_file_date are not 100 % portable
   As I don't know well Unix, I wait feedback for the unix portion }
 
-  function mymkdir(dirname: PChar): boolean;
+  function mymkdir(dirname: PAnsiChar): boolean;
   var
     S: string;
   begin
@@ -91,13 +91,13 @@ end;
     mymkdir := IOresult = 0;
   end;
 
-  function makedir(newdir: PChar): boolean;
+  function makedir(newdir: PAnsiChar): boolean;
   var
-    buffer: PChar;
-    p:      PChar;
+    buffer: PAnsiChar;
+    p:      PAnsiChar;
     len:    cint;
   var
-    hold:   char;
+    hold:   AnsiChar;
   begin
     makedir := False;
     len     := strlen(newdir);
@@ -105,7 +105,7 @@ end;
     if (len <= 0) then
       exit;
 
-    buffer := PChar(allocmem( len + 1));
+    buffer := PAnsiChar(allocmem( len + 1));
 
     strcopy(buffer, newdir);
 
@@ -170,7 +170,7 @@ end;
 
   function HexToStr(w: clong): string;
   const
-    ByteToChar: array[0..$F] of char = '0123456789ABCDEF';
+    ByteToChar: array[0..$F] of AnsiChar = '0123456789ABCDEF';
   var
     s: string;
     i: cint;
@@ -192,7 +192,7 @@ end;
     gi:     unz_global_info;
     err:    cint;
   var
-    filename_inzip: array[0..255] of char;
+    filename_inzip: array[0..255] of AnsiChar;
     file_info: unz_file_info;
     ratio:  longword;
     string_method: string[255];
@@ -259,24 +259,24 @@ end;
 
   function do_extract_currentfile(uf: unzFile; const popt_extract_without_path: cint; var popt_overwrite: cint): cint;
   var
-    filename_inzip: packed array[0..255] of char;
-    filename_withoutpath: PChar;
-    p:      PChar;
+    filename_inzip: packed array[0..255] of AnsiChar;
+    filename_withoutpath: PAnsiChar;
+    p:      PAnsiChar;
     err:    cint;
     fout:   FILEptr;
     buf:    pointer;
     size_buf: cuInt;
     file_info: unz_file_info;
   var
-    write_filename: PChar;
+    write_filename: PAnsiChar;
     skip:   cint;
   var
-    rep:    char;
+    rep:    AnsiChar;
     ftestexist: FILEptr;
   var
     answer: string[127];
   var
-    c:      char;
+    c:      AnsiChar;
   begin
     fout := nil;
 
@@ -362,7 +362,7 @@ end;
 
         { some zipfile don't contain directory alone before file }
         if (fout = nil) and (popt_extract_without_path = 0) and
-          (filename_withoutpath <> PChar(@filename_inzip)) then
+          (filename_withoutpath <> PAnsiChar(@filename_inzip)) then
         begin
           c := (filename_withoutpath - 1)^;
           (filename_withoutpath -1)^ := #0;
@@ -446,7 +446,7 @@ end;
     do_extract := 0;
   end;
 
-  function do_extract_onefile(uf: unzFile; const filename: PChar; opt_extract_without_path: cint; opt_overwrite: cint): cint;
+  function do_extract_onefile(uf: unzFile; const filename: PAnsiChar; opt_extract_without_path: cint; opt_overwrite: cint): cint;
   begin
     if (unzLocateFile(uf, filename, CASESENSITIVITY) <> UNZ_OK) then
     begin
@@ -465,20 +465,20 @@ end;
   { -------------------------------------------------------------------- }
   function main: cint;
   const
-    zipfilename: PChar = nil;
-    filename_to_extract: PChar = nil;
+    zipfilename: PAnsiChar = nil;
+    filename_to_extract: PAnsiChar = nil;
   var
     i:    cint;
     opt_do_list: cint;
     opt_do_extract: cint;
     opt_do_extract_withoutpath: cint;
     opt_overwrite: cint;
-    filename_try: array[0..512 - 1] of char;
+    filename_try: array[0..512 - 1] of AnsiChar;
     uf:   unzFile;
   var
     p:    cint;
     pstr: string[255];
-    c:    char;
+    c:    AnsiChar;
   begin
     opt_do_list := 0;
     opt_do_extract := 1;
@@ -516,10 +516,10 @@ end;
         begin
           pstr := pstr + #0;
           if (zipfilename = nil) then
-            zipfilename := StrNew(PChar(@pstr[1]))
+            zipfilename := StrNew(PAnsiChar(@pstr[1]))
           else
           if (filename_to_extract = nil) then
-            filename_to_extract := StrNew(PChar(@pstr[1]));
+            filename_to_extract := StrNew(PAnsiChar(@pstr[1]));
         end;
       end{ for };
 
