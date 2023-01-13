@@ -109,7 +109,7 @@ Type
     FErrors : Integer;
     FQuiet : Boolean;
     FSuccess : Boolean;
-    procedure WriteChar(c: char);
+    procedure WriteChar(c: AnsiChar);
   public
     Constructor Create(AQuiet : Boolean);
     destructor Destroy; override;
@@ -132,10 +132,10 @@ Type
   TProgressWriter
   ---------------------------------------------------------------------}
 
-procedure TProgressWriter.WriteChar(c: char);
+procedure TProgressWriter.WriteChar(c: AnsiChar);
 begin
   write(c);
-  // flush output, so that we see the char immediately, even it is written to file
+  // flush output, so that we see the AnsiChar immediately, even it is written to file
   Flush(output);
 end;
 
