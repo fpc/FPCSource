@@ -319,7 +319,7 @@ type
     dwSize: DWORD;
     GuidEffect: GUID;
     lpDiEffect: LPCDIEFFECT;
-    szFriendlyName: array [0..MAX_PATH-1] of CHAR;
+    szFriendlyName: array [0..MAX_PATH-1] of AnsiChar;
   end;
 //typedef BOOL (FAR PASCAL * LPDIENUMEFFECTSINFILECALLBACK)(LPCDIFILEEFFECT , LPVOID);
   LPDIENUMEFFECTSINFILECALLBACK = function(lpDiFileEf: LPCDIFILEEFFECT; pvRef: LPVOID): BOOL; stdcall;
@@ -824,7 +824,7 @@ type
     hInstString: HINST;  {OPTIONAL}
     ftTimeStamp: FILETIME;
     dwCRC: DWORD;
-    tszActionMap: array [0..MAX_PATH-1] of CHAR;
+    tszActionMap: array [0..MAX_PATH-1] of AnsiChar;
   end;
   LPDIACTIONFORMATW = ^TDIACTIONFORMATW;
   PDIACTIONFORMATW = ^TDIACTIONFORMATW;
@@ -970,7 +970,7 @@ type
   LPDIDEVICEIMAGEINFOA = ^TDIDEVICEIMAGEINFOA;
   PDIDEVICEIMAGEINFOA = ^TDIDEVICEIMAGEINFOA;
   TDIDEVICEIMAGEINFOA = record
-    tszImagePath: array [0..MAX_PATH-1] of CHAR;
+    tszImagePath: array [0..MAX_PATH-1] of AnsiChar;
     dwFlags: DWORD;
     // These are valid if DIDIFT_OVERLAY is present in dwFlags.
     dwViewID: DWORD;
@@ -1077,7 +1077,7 @@ type
     dwOfs: DWORD;
     dwType: DWORD;
     dwFlags: DWORD;
-    tszName: array [0..MAX_PATH-1] of CHAR;
+    tszName: array [0..MAX_PATH-1] of AnsiChar;
   end;
   LPDIDEVICEOBJECTINSTANCE_DX3W = ^TDIDEVICEOBJECTINSTANCE_DX3W;
   PDIDEVICEOBJECTINSTANCE_DX3W = ^TDIDEVICEOBJECTINSTANCE_DX3W;
@@ -1111,7 +1111,7 @@ type
     dwOfs: DWORD;
     dwType: DWORD;
     dwFlags: DWORD;
-    tszName: array [0..MAX_PATH-1] of CHAR;
+    tszName: array [0..MAX_PATH-1] of AnsiChar;
 {$IF DIRECTINPUT_VERSION >= $0500}
     dwFFMaxForce: DWORD;
     dwFFForceResolution: DWORD;
@@ -1469,8 +1469,8 @@ type
     guidInstance: GUID;
     guidProduct: GUID;
     dwDevType: DWORD;
-    tszInstanceName: array [0..MAX_PATH-1] of CHAR;
-    tszProductName: array [0..MAX_PATH-1] of CHAR;
+    tszInstanceName: array [0..MAX_PATH-1] of AnsiChar;
+    tszProductName: array [0..MAX_PATH-1] of AnsiChar;
   end;
   LPDIDEVICEINSTANCE_DX3W = ^TDIDEVICEINSTANCE_DX3W;
   PDIDEVICEINSTANCE_DX3W = ^TDIDEVICEINSTANCE_DX3W;
@@ -1506,8 +1506,8 @@ type
     guidInstance: GUID;
     guidProduct: GUID;
     dwDevType: DWORD;
-    tszInstanceName: array [0..MAX_PATH-1] of CHAR;
-    tszProductName: array [0..MAX_PATH-1] of CHAR;
+    tszInstanceName: array [0..MAX_PATH-1] of AnsiChar;
+    tszProductName: array [0..MAX_PATH-1] of AnsiChar;
 {$IF DIRECTINPUT_VERSION >= $0500}
     guidFFDriver: GUID;
     wUsagePage: WORD;
@@ -1697,7 +1697,7 @@ type
     dwEffType: DWORD;
     dwStaticParams: DWORD;
     dwDynamicParams: DWORD;
-    tszName: array [0..MAX_PATH-1] of CHAR;
+    tszName: array [0..MAX_PATH-1] of AnsiChar;
   end;
   LPDIEFFECTINFOW = ^TDIEFFECTINFOW;
   PDIEFFECTINFOW = ^TDIEFFECTINFOW;
@@ -4762,7 +4762,7 @@ function DIDFT_ENUMCOLLECTION(n: WORD): DWORD; inline;
 {$IF DIRECTINPUT_VERSION >= $050a}
 function DIMAKEUSAGEDWORD(UsagePage, Usage: Word): DWORD; inline;
 {$ENDIF} { DIRECTINPUT_VERSION >= $050a }
-function DISEQUENCE_COMPARE(dwSequence1: DWORD; const cmp: string; dwSequence2: DWORD): Boolean; inline;
+function DISEQUENCE_COMPARE(dwSequence1: DWORD; const cmp: AnsiString; dwSequence2: DWORD): Boolean; inline;
 function DIBUTTON_ANY(instance: Byte): DWORD; inline;
 
 implementation
@@ -4802,7 +4802,7 @@ end;
 
 //#define DISEQUENCE_COMPARE(dwSequence1, cmp, dwSequence2) \
 //                        ((int)((dwSequence1) - (dwSequence2)) cmp 0)
-function DISEQUENCE_COMPARE(dwSequence1: DWORD; const cmp: string; dwSequence2: DWORD): Boolean; inline;
+function DISEQUENCE_COMPARE(dwSequence1: DWORD; const cmp: AnsiString; dwSequence2: DWORD): Boolean; inline;
 begin
 {$PUSH}{$Q-,R-}
   if (cmp = '==') or (cmp = '=') then

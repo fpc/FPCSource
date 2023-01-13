@@ -71,4 +71,4 @@ function ptc_surface_clip(obj: TPTC_SURFACE): TPTC_AREA;
 function ptc_surface_format(obj: TPTC_SURFACE): TPTC_FORMAT;
 
 { surface option string }
-function ptc_surface_option(obj: TPTC_SURFACE; _option: string): Boolean;
+function ptc_surface_option(obj: TPTC_SURFACE; _option: AnsiString): Boolean;

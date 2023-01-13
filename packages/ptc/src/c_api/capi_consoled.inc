@@ -35,19 +35,19 @@ function ptc_console_create: TPTC_CONSOLE;
 procedure ptc_console_destroy(obj: TPTC_CONSOLE);
 
 { console configuration }
-procedure ptc_console_configure(obj: TPTC_CONSOLE; _file: String);
+procedure ptc_console_configure(obj: TPTC_CONSOLE; _file: AnsiString);
 
 { console option string }
-function ptc_console_option(obj: TPTC_CONSOLE; _option: String): Boolean;
+function ptc_console_option(obj: TPTC_CONSOLE; _option: AnsiString): Boolean;
 
 { console modes }
 function ptc_console_mode(obj: TPTC_CONSOLE; index: Integer): TPTC_MODE;
 
 { console management }
-procedure ptc_console_open(obj: TPTC_CONSOLE; title: string; pages: Integer);
-procedure ptc_console_open_format(obj: TPTC_CONSOLE; title: string; format: TPTC_FORMAT; pages: Integer);
-procedure ptc_console_open_resolution(obj: TPTC_CONSOLE; title: string; width, height: Integer; format: TPTC_FORMAT; pages: Integer);
-procedure ptc_console_open_mode(obj: TPTC_CONSOLE; title: string; mode: TPTC_MODE; pages: Integer);
+procedure ptc_console_open(obj: TPTC_CONSOLE; title: AnsiString; pages: Integer);
+procedure ptc_console_open_format(obj: TPTC_CONSOLE; title: AnsiString; format: TPTC_FORMAT; pages: Integer);
+procedure ptc_console_open_resolution(obj: TPTC_CONSOLE; title: AnsiString; width, height: Integer; format: TPTC_FORMAT; pages: Integer);
+procedure ptc_console_open_mode(obj: TPTC_CONSOLE; title: AnsiString; mode: TPTC_MODE; pages: Integer);
 procedure ptc_console_close(obj: TPTC_CONSOLE);
 
 { synchronization }
@@ -96,9 +96,9 @@ function ptc_console_pitch(obj: TPTC_CONSOLE): Integer;
 function ptc_console_area(obj: TPTC_CONSOLE): TPTC_AREA;
 function ptc_console_clip(obj: TPTC_CONSOLE): TPTC_AREA;
 function ptc_console_format(obj: TPTC_CONSOLE): TPTC_FORMAT;
-function ptc_console_name(obj: TPTC_CONSOLE): string;
-function ptc_console_title(obj: TPTC_CONSOLE): string;
-function ptc_console_information(obj: TPTC_CONSOLE): string;
+function ptc_console_name(obj: TPTC_CONSOLE): AnsiString;
+function ptc_console_title(obj: TPTC_CONSOLE): AnsiString;
+function ptc_console_information(obj: TPTC_CONSOLE): AnsiString;
 
 { extension functions }
 {#ifdef __PTC_WIN32_EXTENSIONS__

@@ -181,17 +181,17 @@ begin
     FreeMem(tmp);
 end;
 
-function IntToStr(Value: Integer): string;
+function IntToStr(Value: Integer): AnsiString;
 begin
   System.Str(Value, Result);
 end;
 
-function IntToStr(Value: Int64): string;
+function IntToStr(Value: Int64): AnsiString;
 begin
   System.Str(Value, Result);
 end;
 
-function IntToStr(Value: QWord): string;
+function IntToStr(Value: QWord): AnsiString;
 begin
   System.Str(Value, Result);
 end;

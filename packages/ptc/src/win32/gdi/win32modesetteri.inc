@@ -138,7 +138,7 @@ end;
 
 procedure TWin32ModeSetter.DispChangeCheck(ADispChangeResult: LONG);
 
-  function DispChangeResult2String(ADispChangeResult: LONG): string;
+  function DispChangeResult2String(ADispChangeResult: LONG): AnsiString;
   begin
     case ADispChangeResult of
       DISP_CHANGE_SUCCESSFUL:  Result := 'DISP_CHANGE_SUCCESSFUL';
@@ -162,7 +162,7 @@ end;
 
 procedure TWin32ModeSetter.LogDevMode(const ADevMode: TDEVMODE);
 
-  function Fields2String(dmFields: DWORD): string;
+  function Fields2String(dmFields: DWORD): AnsiString;
   begin
     Result := '';
     if (dmFields and DM_ORIENTATION) <> 0 then
@@ -232,7 +232,7 @@ procedure TWin32ModeSetter.LogDevMode(const ADevMode: TDEVMODE);
     Result := IntToStr(dmFields) + ' (' + Result + ')';
   end;
 
-  function DisplayOrientation2String(dmDisplayOrientation: DWORD): string;
+  function DisplayOrientation2String(dmDisplayOrientation: DWORD): AnsiString;
   begin
     case dmDisplayOrientation of
       DMDO_DEFAULT: Result := 'DMDO_DEFAULT';
@@ -245,7 +245,7 @@ procedure TWin32ModeSetter.LogDevMode(const ADevMode: TDEVMODE);
     Result := IntToStr(dmDisplayOrientation) + ' (' + Result + ')';
   end;
 
-  function DisplayFixedOutput2String(dmDisplayFixedOutput: DWORD): string;
+  function DisplayFixedOutput2String(dmDisplayFixedOutput: DWORD): AnsiString;
   begin
     case dmDisplayFixedOutput of
       DMDFO_DEFAULT: Result := 'DMDFO_DEFAULT';
@@ -257,7 +257,7 @@ procedure TWin32ModeSetter.LogDevMode(const ADevMode: TDEVMODE);
     Result := IntToStr(dmDisplayFixedOutput) + ' (' + Result + ')';
   end;
 
-  function DisplayFlags2String(dmDisplayFlags: DWORD): string;
+  function DisplayFlags2String(dmDisplayFlags: DWORD): AnsiString;
   begin
     Result := '';
     if (dmDisplayFlags and DM_GRAYSCALE) <> 0 then

@@ -43,7 +43,7 @@ type
                   AWidth, AHeight: Integer); virtual; abstract;
     function Lock: Pointer; virtual; abstract;
     function Pitch: Integer; virtual; abstract;
-    function Name: string; virtual; abstract;
+    function Name: AnsiString; virtual; abstract;
   end;
 
   TX11NormalImage = class(TX11Image)
@@ -57,7 +57,7 @@ type
                   AWidth, AHeight: Integer); override;
     function Lock: Pointer; override;
     function Pitch: Integer; override;
-    function Name: string; override;
+    function Name: AnsiString; override;
   end;
 
 {$IFDEF ENABLE_X11_EXTENSION_XSHM}
@@ -73,6 +73,6 @@ type
                   AWidth, AHeight: Integer); override;
     function Lock: Pointer; override;
     function Pitch: Integer; override;
-    function Name: string; override;
+    function Name: AnsiString; override;
   end;
 {$ENDIF ENABLE_X11_EXTENSION_XSHM}

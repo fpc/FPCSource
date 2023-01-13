@@ -45,4 +45,4 @@ procedure ptc_copy_copy(obj: TPTC_COPY; source_pixels: Pointer; source_x, source
                         destination_pixels: Pointer; destination_x, destination_y, destination_width, destination_height, destination_pitch: Integer);
 
 { copy option string }
-function ptc_copy_option(obj: TPTC_COPY; option: String): Boolean;
+function ptc_copy_option(obj: TPTC_COPY; option: AnsiString): Boolean;

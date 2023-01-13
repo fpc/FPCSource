@@ -89,7 +89,7 @@ type
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); override;
     destructor Destroy; override;
 
-    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); override;
+    procedure Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); override;
     procedure Open(AWindow: TWindow; AFormat: IPTCFormat); override;
     procedure Open(AWindow: TWindow; AFormat: IPTCFormat; AX, AY, AWidth, AHeight: Integer); override;
     procedure Close; override;

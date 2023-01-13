@@ -80,10 +80,10 @@ begin
 end;
 
 {$warning remove, when fix added to xlib}
-function XGetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XGetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetIMValues(para1:PXIM; dotdotdot:array of const):PAnsiChar;cdecl;external libX11;
+function XGetICValues(para1:PXIC; dotdotdot:array of const):PAnsiChar;cdecl;external libX11;
 
-{function fpsetlocale(category: cint; locale: Pchar): PChar;cdecl;external 'c' name 'setlocale';
+{function fpsetlocale(category: cint; locale: PAnsiChar): PAnsiChar;cdecl;external 'c' name 'setlocale';
 const
   LC_ALL = 6;}
 
@@ -96,7 +96,7 @@ var
   attr: TXSetWindowAttributes;
   AttrMask: culong;
   size_hints: PXSizeHints;
-  tmppchar: PChar;
+  tmppchar: PAnsiChar;
   tmpArrayOfCLong: array [1..1] of clong;
   tmpPixmap: TPixmap;
   BlackColor: TXColor;
@@ -108,8 +108,9 @@ var
 {$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
   selected_im_style: TXIMStyle = 0;
   im_event_mask: clong = 0;
+  lTitle : UTF8String;
 
-  function IMStyleToStr(style: TXIMStyle): string;
+  function IMStyleToStr(style: TXIMStyle): AnsiString;
   begin
     Result := '';
     if (style and XIMPreeditArea) <> 0 then
@@ -141,7 +142,7 @@ var
 {    PreferredStyle = XIMPreeditNone or XIMStatusNone;}
   var
     im_supported_styles: PXIMStyles;
-    locale_modifiers: PChar;
+    locale_modifiers: PAnsiChar;
     I: Integer;
   begin
 {    LOG('setting locale');
@@ -298,7 +299,12 @@ begin
   end;
 
   { Set window title }
-  tmppchar := PChar(ATitle);
+  {$IF SIZEOF(CHAR)=2}
+  lTitle:=UTF8Encode(aTitle);
+  {$ELSE}
+  lTitle:=aTitle;
+  {$ENDIF}
+  tmppchar := PAnsiChar(lTitle);
   X11Check(XStringListToTextProperty(@tmppchar, 1, @textprop), 'XStringListToTextProperty');
   try
     XSetWMName(FDisplay, FWindow, @textprop);

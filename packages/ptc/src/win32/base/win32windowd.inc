@@ -62,7 +62,7 @@ type
     function WMDestroy(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; virtual;
   public
     constructor Create(window: HWND);
-    constructor Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
+    constructor Create(const AWndClass, ATitle: AnsiString; AExtra, AStyle, AClassStyle: DWord;
                        AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor, AInterceptClose: Boolean);
     destructor Destroy; override;
     procedure Cursor(AFlag: Boolean);

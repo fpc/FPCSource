@@ -85,7 +85,7 @@ next
                   Windows CRT unit has with the GO32V2 CRT unit. Not all of them
                   are emulated though, since some of them can be considered
                   bugs.
- - ptcgraph now has a global string variable WindowTitle, which allows you to
+ - ptcgraph now has a global AnsiString variable WindowTitle, which allows you to
    set the window title, before calling InitGraph
  - ptcgraph was extended to also support resolutions, different than the ones,
    defined by VESA. This means that you can now use ptcgraph with resolutions,

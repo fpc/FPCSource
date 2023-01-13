@@ -475,7 +475,7 @@ var
   modkeys: TPTCModifierKeys;
   uni: Integer;
   key: TPTCKeyEvent;
-  buf: array [1..16] of Char;
+  buf: array [1..16] of AnsiChar;
   lslen: cint;
   status: TStatus;
   eaten_by_im: Boolean = False;

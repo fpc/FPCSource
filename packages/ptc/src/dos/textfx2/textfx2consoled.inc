@@ -34,8 +34,8 @@ type
   private
     { data }
     FModes: array of IPTCMode;
-    FTitle: string;
-    FInformation: string;
+    FTitle: AnsiString;
+    FInformation: AnsiString;
 
     { flags }
     FOpen: Boolean;
@@ -59,7 +59,7 @@ type
     F160x100buffer: TPTCSurface;
 
     { internal console management routines }
-    procedure internal_pre_open_setup(const _title: String);
+    procedure internal_pre_open_setup(const _title: AnsiString);
     procedure internal_open_fullscreen_start;
     procedure internal_open_fullscreen(_width, _height: Integer; _format: IPTCFormat);
     procedure internal_open_fullscreen_finish(_pages: Integer);
@@ -75,15 +75,15 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    procedure Configure(const AFileName: string); override;
-    function Option(const AOption: string): Boolean; override;
+    procedure Configure(const AFileName: AnsiString); override;
+    function Option(const AOption: AnsiString): Boolean; override;
     function Modes: TPTCModeList; override;
-    procedure open(const _title: string; _pages: Integer); overload; override;
-    procedure open(const _title: string; _format: IPTCFormat;
+    procedure open(const _title: AnsiString; _pages: Integer); overload; override;
+    procedure open(const _title: AnsiString; _format: IPTCFormat;
                    _pages: Integer); overload; override;
-    procedure open(const _title: string; _width, _height: Integer;
+    procedure open(const _title: AnsiString; _width, _height: Integer;
                    _format: IPTCFormat; _pages: Integer); overload; override;
-    procedure open(const _title: string; _mode: IPTCMode;
+    procedure open(const _title: AnsiString; _mode: IPTCMode;
                    _pages: Integer); overload; override;
     procedure close; override;
     procedure flush; override;
@@ -127,9 +127,9 @@ type
     function GetArea: IPTCArea; override;
     function Clip: IPTCArea; override;
     function GetFormat: IPTCFormat; override;
-    function GetName: string; override;
-    function GetTitle: string; override;
-    function GetInformation: string; override;
+    function GetName: AnsiString; override;
+    function GetTitle: AnsiString; override;
+    function GetInformation: AnsiString; override;
     function NextEvent(out event: IPTCEvent; wait: Boolean; const EventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(wait: Boolean; const EventMask: TPTCEventMask): IPTCEvent; override;
   end;

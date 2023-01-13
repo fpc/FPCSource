@@ -36,15 +36,15 @@ type
   private
     FConsole: IPTCConsole;
     FModes: array of IPTCMode;
-    FOptionsQueue: array of string;
+    FOptionsQueue: array of AnsiString;
     FHackyOptionConsoleFlag: Boolean;
     FUseOpenGL: Boolean;
 
     function ConsoleCreate(AIndex: Integer): IPTCConsole;
-    function ConsoleCreate(const AName: string): IPTCConsole;
+    function ConsoleCreate(const AName: AnsiString): IPTCConsole;
     procedure Check;
 
-    procedure AddOptionToOptionsQueue(const AOption: string);
+    procedure AddOptionToOptionsQueue(const AOption: AnsiString);
     procedure ExecuteOptionsFromOptionsQueue;
     procedure ClearOptionsQueue;
 
@@ -55,15 +55,15 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    procedure Configure(const AFile: string); override;
-    function Option(const AOption: string): Boolean; override;
+    procedure Configure(const AFile: AnsiString); override;
+    function Option(const AOption: AnsiString): Boolean; override;
     function Modes: TPTCModeList; override;
-    procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+    procedure Open(const ATitle: AnsiString; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                    APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+    procedure Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                    AFormat: IPTCFormat; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AMode: IPTCMode;
+    procedure Open(const ATitle: AnsiString; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
 
     procedure Close; override;
@@ -109,9 +109,9 @@ type
     function GetArea: IPTCArea; override;
     function Clip: IPTCArea; override;
     function GetFormat: IPTCFormat; override;
-    function GetName: string; override;
-    function GetTitle: string; override;
-    function GetInformation: string; override;
+    function GetName: AnsiString; override;
+    function GetTitle: AnsiString; override;
+    function GetInformation: AnsiString; override;
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
     function MoveMouseTo(X, Y: Integer): Boolean; override;
@@ -144,7 +144,7 @@ const
   ConsoleTypes: array [0..ConsoleTypesNumber - 1] of
     record
       ConsoleClass: TPTCBaseConsoleClass;
-      Names: array [1..2] of string;
+      Names: array [1..2] of AnsiString;
       OpenGL: Boolean;
     end =
   (
@@ -215,10 +215,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TPTCConsole.Configure(const AFile: string);
+procedure TPTCConsole.Configure(const AFile: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFile);
   {$push}{$I-}
@@ -238,7 +238,7 @@ begin
   CloseFile(F);
 end;
 
-procedure TPTCConsole.AddOptionToOptionsQueue(const AOption: string);
+procedure TPTCConsole.AddOptionToOptionsQueue(const AOption: AnsiString);
 begin
   SetLength(FOptionsQueue, Length(FOptionsQueue) + 1);
   FOptionsQueue[High(FOptionsQueue)] := AOption;
@@ -257,7 +257,7 @@ begin
   SetLength(FOptionsQueue, 0);
 end;
 
-function TPTCConsole.Option(const AOption: String): Boolean;
+function TPTCConsole.Option(const AOption: AnsiString): Boolean;
 begin
   if AOption = 'enable logging' then
   begin
@@ -335,7 +335,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; APages: Integer);
+procedure TPTCConsole.Open(const ATitle: AnsiString; APages: Integer);
 var
   composite, tmp: TPTCError;
   index: Integer;
@@ -395,7 +395,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TPTCConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                            APages: Integer);
 var
   composite, tmp: TPTCError;
@@ -456,7 +456,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TPTCConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                            AFormat: IPTCFormat; APages: Integer);
 var
   composite, tmp: TPTCError;
@@ -517,7 +517,7 @@ begin
   end;
 end;
 
-procedure TPTCConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TPTCConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
                            APages: Integer);
 var
   composite, tmp: TPTCError;
@@ -753,7 +753,7 @@ begin
   Result := FConsole.GetFormat;
 end;
 
-function TPTCConsole.GetName: string;
+function TPTCConsole.GetName: AnsiString;
 begin
   Result := '';
   if Assigned(FConsole) then
@@ -773,13 +773,13 @@ begin
 {$ENDIF LINUX}
 end;
 
-function TPTCConsole.GetTitle: string;
+function TPTCConsole.GetTitle: AnsiString;
 begin
   Check;
   Result := FConsole.GetTitle;
 end;
 
-function TPTCConsole.GetInformation: string;
+function TPTCConsole.GetInformation: AnsiString;
 begin
   Check;
   Result := FConsole.GetInformation;
@@ -816,7 +816,7 @@ begin
     Result.KeyReleaseEnabled := KeyReleaseEnabled;
 end;
 
-function TPTCConsole.ConsoleCreate(const AName: string): IPTCConsole;
+function TPTCConsole.ConsoleCreate(const AName: AnsiString): IPTCConsole;
 var
   I, J: Integer;
 begin

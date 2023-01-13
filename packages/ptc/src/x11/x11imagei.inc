@@ -40,7 +40,7 @@ end;
 constructor TX11NormalImage.Create(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer; AFormat: IPTCFormat);
 var
   xpad, xpitch: Integer;
-  tmp_FPixels: PChar;
+  tmp_FPixels: PAnsiChar;
 begin
   inherited;
 
@@ -98,7 +98,7 @@ begin
   Result := FImage^.bytes_per_line;
 end;
 
-function TX11NormalImage.Name: string;
+function TX11NormalImage.Name: AnsiString;
 begin
   Result := 'XImage';
 end;
@@ -201,7 +201,7 @@ begin
   Result := FImage^.bytes_per_line;
 end;
 
-function TX11ShmImage.Name: string;
+function TX11ShmImage.Name: AnsiString;
 begin
   Result := 'MIT-Shm';
 end;

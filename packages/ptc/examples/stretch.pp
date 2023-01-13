@@ -15,7 +15,7 @@ program StretchExample;
 uses
   ptc;
 
-procedure load(surface: IPTCSurface; filename: string);
+procedure load(surface: IPTCSurface; filename: AnsiString);
 var
   F: File;
   width, height: Integer;

@@ -15,7 +15,7 @@ program SaveExample;
 uses
   ptc, Math;
 
-procedure save(surface: IPTCSurface; filename: string);
+procedure save(surface: IPTCSurface; filename: AnsiString);
 var
   F: File;
   width, height: Integer;

@@ -36,7 +36,7 @@
 {$DEFINE DEFAULT_FORMAT:=TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF)}
 { $DEFINE DEFAULT_FORMAT:=TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF)}
 
-procedure VESALogProcedure(const S: string);
+procedure VESALogProcedure(const S: AnsiString);
 begin
   LOG(s);
 end;
@@ -199,10 +199,10 @@ begin
   FModesLast := J;
 end;
 
-procedure TVESAConsole.Configure(const AFileName: string);
+procedure TVESAConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -258,7 +258,7 @@ begin
   end;
 end;
 
-function TVESAConsole.Option(const AOption: string): Boolean;
+function TVESAConsole.Option(const AOption: AnsiString): Boolean;
 begin
   {...}
   if AOption = 'enable lfb' then
@@ -452,24 +452,24 @@ begin
   Result := modefound;
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; APages: Integer); overload;
+procedure TVESAConsole.Open(const ATitle: AnsiString; APages: Integer); overload;
 begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TVESAConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                             APages: Integer); overload;
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TVESAConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                             AFormat: IPTCFormat; APages: Integer); overload;
 begin
   Open(ATitle, TPTCMode.Create(AWidth, AHeight, AFormat), APages);
 end;
 
-procedure TVESAConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TVESAConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
                             APages: Integer); overload;
 
   procedure SetRGB332Palette;
@@ -952,17 +952,17 @@ begin
   Result := FModes[FCurrentMode].Format;
 end;
 
-function TVESAConsole.GetName: string;
+function TVESAConsole.GetName: AnsiString;
 begin
   Result := 'VESA';
 end;
 
-function TVESAConsole.GetTitle: string;
+function TVESAConsole.GetTitle: AnsiString;
 begin
   Result := FTitle;
 end;
 
-function TVESAConsole.GetInformation: string;
+function TVESAConsole.GetInformation: AnsiString;
 begin
   Result := FInformation;
 end;

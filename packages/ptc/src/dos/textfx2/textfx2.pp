@@ -87,7 +87,7 @@ function calcpal_lightbase(red, green, blue: Real): Word;
 function calcpal_lightbase_g(red, green, blue: Real): Word;
 {Function (*calcpal)(float red, float green, float blue): Word;}
 const calcpal: Function(red, green, blue: Real): Word = @calcpal_colorbase;
-    {* Finds the closest color/char combo for any 0:63,0:63,0:63 value.
+    {* Finds the closest color/AnsiChar combo for any 0:63,0:63,0:63 value.
      *
      * calcpal_colorbase is the 'old' calcpal, only "a bit" optimized.
      * calcpal is now function pointer so calcpal function can be changed
@@ -97,7 +97,7 @@ const calcpal: Function(red, green, blue: Real): Word = @calcpal_colorbase;
 
 function calc_gscale(light: Real): Word;
 function calc_gscale2(light: Real): Word;
-    {* Finds the closes gscale color/char combo for 0..1 range
+    {* Finds the closes gscale color/AnsiChar combo for 0..1 range
      * gscale2 uses colors 8,7,15, normal just uses 7.
      *}
 
@@ -131,7 +131,7 @@ uses
   go32;
 
 { $define __USE_178NOT176}
- { uncomment to use 75% char instead of 25% char }
+ { uncomment to use 75% AnsiChar instead of 25% AnsiChar }
 
 {$DEFINE __USE_REALIBMPAL}
  { comment out to use 'clean' truecolor palette for calculations }
@@ -435,7 +435,7 @@ end;
 procedure build_colormap(dots: Integer);
 
 const
-  wheel: array [0..3] of Char = ('-', '\', '|', '/');
+  wheel: array [0..3] of AnsiChar = ('-', '\', '|', '/');
 
 var
   r, g, b: Integer;

@@ -79,10 +79,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TVGAConsole.Configure(const AFileName: string);
+procedure TVGAConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -102,7 +102,7 @@ begin
   CloseFile(F);
 end;
 
-function TVGAConsole.option(const _option: string): Boolean;
+function TVGAConsole.option(const _option: AnsiString): Boolean;
 begin
   {...}
   if (System.Copy(_option, 1, 8) = 'FAKEMODE') and (Length(_option) = 10) and
@@ -155,24 +155,24 @@ begin
   Result := m_modes;
 end;
 
-procedure TVGAConsole.open(const _title: string; _pages: Integer); overload;
+procedure TVGAConsole.open(const _title: AnsiString; _pages: Integer); overload;
 begin
   open(_title, m_default_format, _pages);
 end;
 
-procedure TVGAConsole.open(const _title: string; _format: IPTCFormat;
+procedure TVGAConsole.open(const _title: AnsiString; _format: IPTCFormat;
                            _pages: Integer); overload;
 begin
   open(_title, m_default_width, m_default_height, _format, _pages);
 end;
 
-procedure TVGAConsole.open(const _title: string; _width, _height: Integer;
+procedure TVGAConsole.open(const _title: AnsiString; _width, _height: Integer;
                            _format: IPTCFormat; _pages: Integer); overload;
 begin
   open(_title, TPTCMode.Create(_width, _height, _format), _pages);
 end;
 
-procedure TVGAConsole.open(const _title: string; _mode: IPTCMode;
+procedure TVGAConsole.open(const _title: AnsiString; _mode: IPTCMode;
                            _pages: Integer); overload;
 var
   I: Integer;
@@ -532,22 +532,22 @@ begin
   Result := m_modes[m_CurrentMode].format;
 end;
 
-function TVGAConsole.GetName: string;
+function TVGAConsole.GetName: AnsiString;
 begin
   Result := 'VGA';
 end;
 
-function TVGAConsole.GetTitle: string;
+function TVGAConsole.GetTitle: AnsiString;
 begin
   Result := m_title;
 end;
 
-function TVGAConsole.GetInformation: string;
+function TVGAConsole.GetInformation: AnsiString;
 begin
   Result := m_information;
 end;
 
-procedure TVGAConsole.internal_pre_open_setup(const _title: string);
+procedure TVGAConsole.internal_pre_open_setup(const _title: AnsiString);
 begin
   m_title := _title;
 end;

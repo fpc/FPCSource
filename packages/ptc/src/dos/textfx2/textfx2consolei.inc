@@ -70,10 +70,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TTextFX2Console.Configure(const AFileName: string);
+procedure TTextFX2Console.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -93,7 +93,7 @@ begin
   CloseFile(F);
 end;
 
-function TTextFX2Console.Option(const AOption: string): Boolean;
+function TTextFX2Console.Option(const AOption: AnsiString): Boolean;
 begin
   {...}
   Result := True;
@@ -161,24 +161,24 @@ begin
   Result := FModes;
 end;
 
-procedure TTextFX2Console.Open(const _title: string; _pages: Integer); overload;
+procedure TTextFX2Console.Open(const _title: AnsiString; _pages: Integer); overload;
 begin
   Open(_title, FDefaultFormat, _pages);
 end;
 
-procedure TTextFX2Console.open(const _title: string; _format: IPTCFormat;
+procedure TTextFX2Console.open(const _title: AnsiString; _format: IPTCFormat;
                                _pages: Integer); overload;
 begin
   open(_title, FDefaultWidth, FDefaultHeight, _format, _pages);
 end;
 
-procedure TTextFX2Console.open(const _title: string; _width, _height: Integer;
+procedure TTextFX2Console.open(const _title: AnsiString; _width, _height: Integer;
                                _format: IPTCFormat; _pages: Integer); overload;
 begin
   open(_title, TPTCMode.Create(_width, _height, _format), _pages);
 end;
 
-procedure TTextFX2Console.open(const _title: string; _mode: IPTCMode;
+procedure TTextFX2Console.open(const _title: AnsiString; _mode: IPTCMode;
                                _pages: Integer); overload;
 var
   _width, _height: Integer;
@@ -522,22 +522,22 @@ begin
   Result := FPrimary.format;
 end;
 
-function TTextFX2Console.GetName: string;
+function TTextFX2Console.GetName: AnsiString;
 begin
   Result := 'TextFX2';
 end;
 
-function TTextFX2Console.GetTitle: string;
+function TTextFX2Console.GetTitle: AnsiString;
 begin
   Result := FTitle;
 end;
 
-function TTextFX2Console.GetInformation: string;
+function TTextFX2Console.GetInformation: AnsiString;
 begin
   Result := FInformation;
 end;
 
-procedure TTextFX2Console.internal_pre_open_setup(const _title: string);
+procedure TTextFX2Console.internal_pre_open_setup(const _title: AnsiString);
 begin
   FTitle := _title;
 end;

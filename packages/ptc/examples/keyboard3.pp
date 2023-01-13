@@ -10,7 +10,7 @@ program KeyboardExample3;
 uses
   ptc;
 
-function KeyCode2String(ACode: Integer): string;
+function KeyCode2String(ACode: Integer): AnsiString;
 begin
   case ACode of
     PTCKEY_UNDEFINED    : Result := 'PTCKEY_UNDEFINED';

@@ -5,7 +5,7 @@ program event;
 uses
   SysUtils, ptc;
 
-function ButtonState2Str(const bs: TPTCMouseButtonState): string;
+function ButtonState2Str(const bs: TPTCMouseButtonState): AnsiString;
 var
   I: TPTCMouseButton;
 begin
@@ -22,7 +22,7 @@ begin
   end;
 end;
 
-function ModifierKeys2Str(const mk: TPTCModifierKeys): string;
+function ModifierKeys2Str(const mk: TPTCModifierKeys): AnsiString;
 var
   I: TPTCModifierKey;
 begin

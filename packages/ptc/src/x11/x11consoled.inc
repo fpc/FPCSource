@@ -34,7 +34,7 @@ type
   TX11Console = class(TPTCBaseConsole)
   private
     FX11Display: TX11Display;
-    FTitle: string;
+    FTitle: AnsiString;
     FFlags: TX11Flags;
     FModes: array of IPTCMode;
 
@@ -50,21 +50,21 @@ type
     function GetArea: IPTCArea; override;
     function GetFormat: IPTCFormat; override;
     function GetPages: Integer; override;
-    function GetName: string; override;
-    function GetTitle: string; override;
-    function GetInformation: string; override;
+    function GetName: AnsiString; override;
+    function GetTitle: AnsiString; override;
+    function GetInformation: AnsiString; override;
     function GetOpenGL_Enabled: Boolean; override;
     procedure SetOpenGL_Enabled(AValue: Boolean); override;
   public
     constructor Create; override;
     destructor Destroy; override;
 
-    procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+    procedure Open(const ATitle: AnsiString; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                    APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+    procedure Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                    AFormat: IPTCFormat; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AMode: IPTCMode;
+    procedure Open(const ATitle: AnsiString; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
 
@@ -101,8 +101,8 @@ type
     procedure Clear(AColor: IPTCColor;
                     AArea: IPTCArea); override;
 
-    procedure Configure(const AFileName: String); override;
-    function Option(const AOption: String): Boolean; override;
+    procedure Configure(const AFileName: AnsiString); override;
+    function Option(const AOption: AnsiString): Boolean; override;
 
     procedure Palette(APalette: IPTCPalette); override;
     procedure Clip(AArea: IPTCArea); override;
