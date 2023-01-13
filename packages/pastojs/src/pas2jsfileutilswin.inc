@@ -28,7 +28,7 @@ var
   ArgsWCount: Integer; // length(ArgsW)+1
   {$IFDEF ArgsWAsUTF8}
   ArgsUTF8: Array of String; // the ArgsW array as UTF8
-  OldArgV: PPChar = nil;
+  OldArgV: PPAnsiChar = nil;
   {$IFEND}
 
 {$ifndef wince}
@@ -73,7 +73,7 @@ begin
   for i:=0 to length(ArgsW)-1 do
   begin
     ArgsUTF8[i]:=ArgsW{%H-}[i];
-    argv[i]:=PChar(ArgsUTF8[i]);
+    argv[i]:=PAnsiChar(ArgsUTF8[i]);
   end;
 end;
 {$endif}
@@ -253,7 +253,7 @@ begin
     D := WideChar(64 + DriveNr) + ':';
     if not SetCurrentDirectoryW(@D[1]) then
     begin
-      Dir := Char(64 + DriveNr) + ':\';
+      Dir := AnsiChar(64 + DriveNr) + ':\';
       SetCurrentDirectoryW(@SavedDir[1]);
       Exit;
     end;
@@ -273,7 +273,7 @@ var
   IsAbs, StartsWithRoot, CanUseBaseDir : Boolean;
   {$ifndef WinCE}
   HasDrive: Boolean;
-  FnDrive, CurDrive, BaseDirDrive: Char;
+  FnDrive, CurDrive, BaseDirDrive: AnsiChar;
   {$endif}
   CurDir, Fn: String;
 begin
@@ -542,12 +542,12 @@ begin
 end;
 
 {$ifdef WinCe}
-function UTF8ToSystemCP(const s: string): string; inline;
+function UTF8ToSystemCP(const s: ansistring): ansistring; inline;
 begin
   Result := s;
 end;
 {$else}
-function UTF8ToSystemCP(const s: string): string;
+function UTF8ToSystemCP(const s: ansistring): ansistring;
 // result has codepage CP_ACP
 var
   src: UnicodeString;
@@ -575,13 +575,13 @@ end;
 {$endif not wince}
 
 {$ifdef WinCE}
-function SystemCPToUTF8(const s: string): string; inline;
+function SystemCPToUTF8(const s: ansistring): ansistring; inline;
 begin
   Result := SysToUtf8(s);
 end;
 {$else}
 // for all Windows supporting 8bit codepages (e.g. not WinCE)
-function SystemCPToUTF8(const s: string): string;
+function SystemCPToUTF8(const s: ansistring): ansistring;
 // result has codepage CP_ACP
 var
   UTF16WordCnt: SizeInt;
@@ -606,22 +606,22 @@ end;
 {$endif not wince}
 
 {$ifdef WinCe}
-function UTF8ToConsole(const s: string): string; // converts UTF8 to console string (used by Write, WriteLn)
+function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
 begin
   Result := UTF8ToSystemCP(s);
 end;
 {$else}
-function UTF8ToConsole(const s: string): string; // converts UTF8 to console string (used by Write, WriteLn)
+function UTF8ToConsole(const s: ansistring): ansistring; // converts UTF8 to console string (used by Write, WriteLn)
 var
-  Dst: PChar;
+  Dst: PAnsiChar;
 begin
   {$ifndef NO_CP_RTL}
   Result := UTF8ToSystemCP(s);
   {$else NO_CP_RTL}
   Result := s; // Kept for compatibility
   {$endif NO_CP_RTL}
-  Dst := AllocMem((Length(Result) + 1) * SizeOf(Char));
-  if CharToOEM(PChar(Result), Dst) then
+  Dst := AllocMem((Length(Result) + 1) * SizeOf(AnsiChar));
+  if CharToOEM(PAnsiChar(Result), Dst) then
     Result := StrPas(Dst);
   FreeMem(Dst);
   {$ifndef NO_CP_RTL}
@@ -631,17 +631,17 @@ end;
 {$endif not WinCE}
 
 {$ifdef WinCE}
-function ConsoleToUTF8(const s: string): string;// converts console encoding to UTF8
+function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
 begin
   Result := SysToUTF8(s);
 end;
 {$else}
-function ConsoleToUTF8(const s: string): string;// converts console encoding to UTF8
+function ConsoleToUTF8(const s: ansistring): ansistring;// converts console encoding to UTF8
 var
-  Dst: PChar;
+  Dst: PAnsiChar;
 begin
-  Dst := AllocMem((Length(s) + 1) * SizeOf(Char));
-  if OemToChar(PChar(s), Dst) then
+  Dst := AllocMem((Length(s) + 1) * SizeOf(AnsiChar));
+  if OemToChar(PAnsiChar(s), Dst) then
     Result := StrPas(Dst)
   else
     Result := s;
@@ -673,7 +673,7 @@ end;
 procedure FinalizePlatform;
 {$IFDEF ArgsWAsUTF8}
 var
-  p: PPChar;
+  p: PPAnsiChar;
 {$ENDIF}
 begin
   {$IFDEF ArgsWAsUTF8}

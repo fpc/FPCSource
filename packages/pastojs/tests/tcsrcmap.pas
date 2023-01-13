@@ -153,7 +153,7 @@ var
 var
   i, j, ColMin, ColMax: integer;
   Line, aName, SegFile, ActLine: String;
-  p, StartP, ActP: PChar;
+  p, StartP, ActP: PAnsiChar;
   m: PMarker;
   aSeg: TSourceMapSegment;
 begin
@@ -184,26 +184,26 @@ begin
     for i:=1 to PasSrc.Count do
       begin
       Line:=PasSrc[i-1];
-      p:=PChar(Line);
+      p:=PAnsiChar(Line);
       repeat
         case p^ of
         #0: break;
         '(':
           if (p[1]='*') and (p[2] in ['a'..'z','A'..'Z','_']) then
             begin
-            ColMin:=p-PChar(Line);
+            ColMin:=p-PAnsiChar(Line);
             inc(p,2);
             StartP:=p;
             while p^ in ['a'..'z','A'..'Z','0'..'9','_'] do inc(p);
-            aName:=copy(Line,StartP-PChar(Line)+1,p-StartP);
+            aName:=copy(Line,StartP-PAnsiChar(Line)+1,p-StartP);
             if (p^<>'*') or (p[1]<>')') then
               begin
               for j:=1 to i do
                 writeln(PasSrc[j-1]);
-              Fail('missing closing bracket of Pascal marker at '+IntToStr(i)+','+IntToStr(p-PChar(Line)));
+              Fail('missing closing bracket of Pascal marker at '+IntToStr(i)+','+IntToStr(p-PAnsiChar(Line)));
               end;
             inc(p,2);
-            ColMax:=p-PChar(Line);
+            ColMax:=p-PAnsiChar(Line);
             AddMarker(aName,i,ColMin,ColMax);
             continue;
             end;
@@ -221,20 +221,20 @@ begin
         writeln('TCustomTestSrcMap.CheckSrcMap unexpected JS line ',i,': ',ActLine);
         Fail('created JS has more lines than expected JS');
         end;
-      ActP:=PChar(ActLine);
+      ActP:=PAnsiChar(ActLine);
       Line:=JSLines[i-1];
-      p:=PChar(Line);
+      p:=PAnsiChar(Line);
       repeat
         case p^ of
         #0: break;
         '(':
           if (p[1]='*') and (p[2] in ['a'..'z','A'..'Z','_']) then
             begin
-            ColMin:=ActP-PChar(ActLine);
+            ColMin:=ActP-PAnsiChar(ActLine);
             inc(p,2);
             StartP:=p;
             while p^ in ['a'..'z','A'..'Z','0'..'9','_'] do inc(p);
-            aName:=copy(Line,StartP-PChar(Line)+1,p-StartP);
+            aName:=copy(Line,StartP-PAnsiChar(Line)+1,p-StartP);
             if (p^<>'*') or (p[1]<>')') then
               begin
               for j:=1 to i do
@@ -265,7 +265,7 @@ begin
           writeln('JavaScript: ');
           for j:=0 to i-1 do
             writeln(JSSource[j]);
-          for j:=1 to P-PChar(Line) do write('-');
+          for j:=1 to P-PAnsiChar(Line) do write('-');
           writeln('^');
           writeln('Expected JS:<',Line,'>');
           AssertEquals('Expected JavaScript differs',p^,ActP^);
