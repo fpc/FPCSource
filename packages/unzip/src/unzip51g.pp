@@ -75,7 +75,7 @@ USES
 {**********************************************************************}
 {**********************************************************************}
 FUNCTION FileUnzip
-( SourceZipFile, TargetDirectory, FileSpecs : pChar;
+( SourceZipFile, TargetDirectory, FileSpecs : PAnsiChar;
  Report : UnzipReportProc;Question : UnzipQuestionProc ) : integer;
 
 {
@@ -95,7 +95,7 @@ e.g.,
 
 }
 
-FUNCTION FileUnzipEx ( SourceZipFile, TargetDirectory, FileSpecs : pChar ) : integer;
+FUNCTION FileUnzipEx ( SourceZipFile, TargetDirectory, FileSpecs : PAnsiChar ) : integer;
 {
 high level unzip with no callback parameters;
 passes ZipReport & ZipQuestion internally, so you
@@ -105,7 +105,7 @@ e.g.,
    Count := FileUnzipEx('test.zip', 'c:\temp', '*.*');
 }
 
-FUNCTION ViewZip ( SourceZipFile, FileSpecs : pChar; Report : UnzipReportProc ) : integer;
+FUNCTION ViewZip ( SourceZipFile, FileSpecs : PAnsiChar; Report : UnzipReportProc ) : integer;
 {
 view contents of zip file
 usage:
@@ -139,7 +139,7 @@ e.g.,
 SetUnZipQuestionProc(QueryFileExistProc);
 }
 
-FUNCTION UnzipSize ( SourceZipFile : pChar;VAR Compressed : Longint ) : longint;
+FUNCTION UnzipSize ( SourceZipFile : PAnsiChar;VAR Compressed : Longint ) : longint;
 { uncompressed and compressed zip size
  usage:
  SourceZipFile  = the zip file
@@ -176,7 +176,7 @@ FUNCTION GetSupportedMethods : longint;
 {Checks which pack methods are supported by the dll}
 {bit 8=1 -> Format 8 supported, etc.}
 
-FUNCTION UnzipFile ( in_name : pchar;out_name : pchar;offset : longint;hFileAction : word;cm_index : integer ) : integer;
+FUNCTION UnzipFile ( in_name : PAnsiChar;out_name : PAnsiChar;offset : longint;hFileAction : word;cm_index : integer ) : integer;
 {usage:
  in_name:      name of zip file with full path
  out_name:     desired name for out file
@@ -211,7 +211,7 @@ FUNCTION UnzipFile ( in_name : pchar;out_name : pchar;offset : longint;hFileActi
  end;
 }
 
-FUNCTION  GetFirstInZip ( zipfilename : pchar;VAR zprec : tZipRec ) : integer;
+FUNCTION  GetFirstInZip ( zipfilename : PAnsiChar;VAR zprec : tZipRec ) : integer;
 {
  Get first entry from ZIP file
  e.g.,
@@ -226,7 +226,7 @@ FUNCTION  GetNextInZip ( VAR Zprec : tZiprec ) : integer;
    rc:=GetNextInZip(myZipRec);
 }
 
-FUNCTION  IsZip ( filename : pchar ) : boolean;
+FUNCTION  IsZip ( filename : PAnsiChar ) : boolean;
 {
   VERY simple test for zip file
 
@@ -252,7 +252,7 @@ NoRecurseDirs : Boolean;              {Global Recurse variable}
 
 {*************************************************************************}
 {$ifdef Delphi}
-PROCEDURE SetCurDir ( p : pChar );
+PROCEDURE SetCurDir ( p : PAnsiChar );
 BEGIN
    Chdir ( strpas ( p ) );
 END;
@@ -267,7 +267,7 @@ BEGIN
    {$ifdef Win32}Result := {$endif}FileSetDate ( TFileRec ( f ) .Handle, l );
 END;
 
-PROCEDURE CreateDir ( p : pchar );
+PROCEDURE CreateDir ( p : PAnsiChar );
 BEGIN
   mkdir ( strpas ( p ) );
 END;
@@ -329,7 +329,7 @@ TYPE li = PACKED RECORD
 TYPE
   plocalheader = ^tlocalheader;
   tlocalheader = PACKED RECORD
-    signature : ARRAY [ 0..3 ] of char;  {'PK'#1#2}
+    signature : ARRAY [ 0..3 ] of AnsiChar;  {'PK'#1#2}
     extract_ver,
     bit_flag,
     zip_type : word;
@@ -341,7 +341,7 @@ TYPE
     extra_field_len : word;
   END;
 
-VAR slide : pchar;            {Sliding dictionary for unzipping}
+VAR slide : PAnsiChar;            {Sliding dictionary for unzipping}
     inbuf : iobuf;            {input buffer}
     inpos, readpos : integer;  {position in input buffer, position read from file}
 
@@ -682,10 +682,10 @@ END;
 {******************************* Break string into tokens ****************************}
 
 VAR
-  _Token : PChar;
+  _Token : PAnsiChar;
 
-FUNCTION StrTok ( Source : PChar; Token : CHAR ) : PChar;
-  VAR P : PChar;
+FUNCTION StrTok ( Source : PAnsiChar; Token : AnsiChar ) : PAnsiChar;
+  VAR P : PAnsiChar;
 BEGIN
   IF Source <> NIL THEN _Token := Source;
   IF _Token = NIL THEN BEGIN
@@ -991,7 +991,7 @@ BEGIN
     UNTIL e <= 16;
     DUMPBITS ( t^.b );
     IF e = 16 THEN BEGIN
-      slide [ w ] := char ( t^.v_n );
+      slide [ w ] := AnsiChar ( t^.v_n );
       inc ( w );
       IF w = WSIZE THEN BEGIN
         IF NOT flush ( w ) THEN BEGIN
@@ -1082,7 +1082,7 @@ BEGIN
   WHILE ( n > 0 ) AND NOT ( totalabort OR zipeof ) DO BEGIN {read and output the compressed data}
     dec ( n );
     NEEDBITS ( 8 );
-    slide [ w ] := char ( b );
+    slide [ w ] := AnsiChar ( b );
     inc ( w );
     IF w = WSIZE THEN BEGIN
       IF NOT flush ( w ) THEN BEGIN
@@ -1421,7 +1421,7 @@ BEGIN
         e := t^.e;
       UNTIL e <= 16;
       DUMPBITS ( t^.b );
-      slide [ w ] := char ( t^.v_n );
+      slide [ w ] := AnsiChar ( t^.v_n );
       inc ( w );
       IF w = WSIZE THEN BEGIN
         IF NOT flush ( w ) THEN BEGIN
@@ -1552,7 +1552,7 @@ BEGIN
         e := t^.e;
       UNTIL e <= 16;
       DUMPBITS ( t^.b );
-      slide [ w ] := char ( t^.v_n );
+      slide [ w ] := AnsiChar ( t^.v_n );
       inc ( w );
       IF w = WSIZE THEN BEGIN
         IF NOT flush ( w ) THEN BEGIN
@@ -1665,7 +1665,7 @@ BEGIN
       DUMPBITS ( 1 );
       dec ( s );
       NEEDBITS ( 8 );
-      slide [ w ] := char ( b );
+      slide [ w ] := AnsiChar ( b );
       inc ( w );
       IF w = WSIZE THEN BEGIN
         IF NOT flush ( w ) THEN BEGIN
@@ -1781,7 +1781,7 @@ BEGIN
       DUMPBITS ( 1 );
       dec ( s );
       NEEDBITS ( 8 );
-      slide [ w ] := char ( b );
+      slide [ w ] := AnsiChar ( b );
       inc ( w );
       IF w = WSIZE THEN BEGIN
         IF NOT flush ( w ) THEN BEGIN
@@ -2005,11 +2005,11 @@ CONST max_code = 8192;
 
 TYPE prev = ARRAY [ 257..max_code ] of integer;
      pprev = ^prev;
-     cds = ARRAY [ 257..max_code ] of char;
+     cds = ARRAY [ 257..max_code ] of AnsiChar;
      pcds = ^cds;
-     stacktype = ARRAY [ 0..max_stack ] of char;
+     stacktype = ARRAY [ 0..max_stack ] of AnsiChar;
      pstacktype = ^stacktype;
-     writebuftype = ARRAY [ 0..write_max ] of char;   {write buffer}
+     writebuftype = ARRAY [ 0..write_max ] of AnsiChar;   {write buffer}
      pwritebuftype = ^writebuftype;
 
 VAR previous_code : pprev;       {previous code trie}
@@ -2044,7 +2044,7 @@ BEGIN
   unshrink_flush := b;
 END;
 
-FUNCTION write_char ( c : char ) : boolean;
+FUNCTION write_char ( c : AnsiChar ) : boolean;
 BEGIN
   writebuf^ [ write_ptr ] := c;
   inc ( write_ptr );
@@ -2088,7 +2088,7 @@ FUNCTION unshrink : integer;
 
 VAR incode : integer;            {code read in}
     lastincode : integer;        {last code read in}
-    lastoutcode : char;          {last code emitted}
+    lastoutcode : AnsiChar;          {last code emitted}
     code_size : byte;            {Actual code size}
     stack_ptr,                 {Stackpointer}
     new_code,                  {Save new code read}
@@ -2130,7 +2130,7 @@ BEGIN
   DUMPBITS ( code_size );
 
   lastincode := incode;
-  lastoutcode := char ( incode );
+  lastoutcode := AnsiChar ( incode );
   IF NOT write_char ( lastoutcode ) THEN BEGIN
     unshrink := unzip_writeErr;
     exit
@@ -2166,8 +2166,8 @@ BEGIN
       END;
     END ELSE BEGIN
       new_code := incode;
-      IF incode < 256 THEN BEGIN          {Simple char}
-        lastoutcode := char ( incode );
+      IF incode < 256 THEN BEGIN          {Simple AnsiChar}
+        lastoutcode := AnsiChar ( incode );
         IF NOT write_char ( lastoutcode ) THEN BEGIN
           unshrink := unzip_writeErr;
           exit
@@ -2183,7 +2183,7 @@ BEGIN
           dec ( stack_ptr );
           incode := previous_code^ [ incode ];
         END;
-        lastoutcode := char ( incode );
+        lastoutcode := AnsiChar ( incode );
         IF NOT write_char ( lastoutcode ) THEN BEGIN
           unshrink := unzip_writeErr;
           exit
@@ -2221,19 +2221,19 @@ END;
 
 {******************** main low level function: unzipfile ********************}
 {written and not copyrighted by Christian Ghisler}
-FUNCTION unzipfile ( in_name : pchar;out_name : pchar;offset : longint;
+FUNCTION unzipfile ( in_name : PAnsiChar;out_name : PAnsiChar;offset : longint;
   hFileAction : word;cm_index : integer ) : integer;
 VAR err : integer;
     header : plocalheader;
-    buf : ARRAY [ 0..tfSize+1 ] of char;
+    buf : ARRAY [ 0..tfSize+1 ] of AnsiChar;
 {$ifndef unix}
-    buf0 : ARRAY [ 0..3 ] of char;
+    buf0 : ARRAY [ 0..3 ] of AnsiChar;
 {$endif}
     storefilemode,
     timedate : longint;
     originalcrc : cardinal;    {crc from zip-header}
     ziptype, aResult : integer;
-    p, p1 : pchar;
+    p, p1 : PAnsiChar;
     isadir : boolean;
     oldcurdir : string [ 80 ];
 
@@ -2446,7 +2446,7 @@ END;
 {***************************************************************************}
 {***************************************************************************}
 { other functions; zipread.pas }
-CONST mainheader : pchar = 'PK'#5#6;
+CONST mainheader : PAnsiChar = 'PK'#5#6;
       maxbufsize = 64000;  {Can be as low as 500 Bytes; however, }
                          {this would lead to extensive disk reading!}
                          {If one entry (including Extra field) is bigger}
@@ -2456,7 +2456,7 @@ TYPE
   pheader = ^theader;
   pmainheader = ^tmainheader;
   tmainheader = PACKED RECORD
-    signature : ARRAY [ 0..3 ] of char;  {'PK'#5#6}
+    signature : ARRAY [ 0..3 ] of AnsiChar;  {'PK'#5#6}
     thisdisk,
     centralstartdisk,
     entries_this_disk,
@@ -2467,7 +2467,7 @@ TYPE
     unknown : word;
   END;
   theader = PACKED RECORD
-    signature : ARRAY [ 0..3 ] of char;  {'PK'#1#2}
+    signature : ARRAY [ 0..3 ] of AnsiChar;  {'PK'#1#2}
     OSversion,      {Operating system version}
     OSmadeby : byte;  {MSDOS (FAT): 0}
     extract_ver,
@@ -2489,11 +2489,11 @@ TYPE
 {*********** Fill out tZipRec structure with next entry *************}
 
 FUNCTION filloutRec ( VAR zprec : tZipRec ) : integer;
-VAR p : pchar;
+VAR p : PAnsiChar;
     incr : longint;
     header : pheader;
     offs : word;
-    old : char;
+    old : AnsiChar;
     f : file;
     extra, err : nword;
 
@@ -2544,7 +2544,7 @@ BEGIN
   offs := localstart + header^.filename_len + sizeof ( header^ );
   old := buf^ [ offs ];
   buf^ [ offs ] := #0;  {Repair signature of next block!}
-  strlcopy ( filename, pchar ( @buf^ [ localstart + sizeof ( header^ ) ] ), sizeof ( filename ) -1 );
+  strlcopy ( filename, PAnsiChar ( @buf^ [ localstart + sizeof ( header^ ) ] ), sizeof ( filename ) -1 );
   buf^ [ offs ] := old;
 {$ifndef unix}
   REPEAT           {Convert slash to backslash!}
@@ -2569,7 +2569,7 @@ BEGIN
 END;
 
 {**************** Get first entry from ZIP file ********************}
-FUNCTION GetFirstInZip ( zipfilename : pchar;VAR zprec : tZipRec ) : integer;
+FUNCTION GetFirstInZip ( zipfilename : PAnsiChar;VAR zprec : tZipRec ) : integer;
 VAR bufstart, headerstart, start : longint;
     err, i : integer;
     mainh : pmainheader;
@@ -2731,12 +2731,12 @@ BEGIN
 END;
 
 {**************** VERY simple test for zip file ********************}
-FUNCTION isZip ( filename : pchar ) : boolean;
+FUNCTION isZip ( filename : PAnsiChar ) : boolean;
 VAR
     myname : tdirtype;
     l, err : integer;
     f : file;
-    buf : ARRAY [ 0..4 ] of char;
+    buf : ARRAY [ 0..4 ] of AnsiChar;
     oldcurdir : string{$ifndef BIT32} [ 80 ]{$endif};
 
 BEGIN
@@ -2808,7 +2808,7 @@ END;
 {***************************************************************************}
 {***************************************************************************}
 {$ifndef Delphi}
-FUNCTION FileExists ( CONST fname : string ) : boolean; {simple fileexist function}
+FUNCTION FileExists ( CONST fname : AnsiString ) : boolean; {simple fileexist function}
 VAR
 f : file;
 i : byte;
@@ -2836,11 +2836,11 @@ begin
   DummyQuestion:=true;
 end;
 
-FUNCTION Matches ( s : String;CONST main : string ) : Boolean;
+FUNCTION Matches ( s : AnsiString;CONST main : AnsiString ) : Boolean;
 {rudimentary matching function;
  accepts only '', '*.*', 'XXX.*' or '*.XXX'
 }
-FUNCTION extensiononly ( CONST s : string ) : string;{return just the extension}
+FUNCTION extensiononly ( CONST s : AnsiString ) : AnsiString;{return just the extension}
 VAR i : integer;
 BEGIN
    extensiononly := '';
@@ -2849,7 +2849,7 @@ BEGIN
    extensiononly := copy ( s, succ ( i ), length ( s ) );
 END;
 
-FUNCTION nameonly ( CONST s : string ) : string;{return just the name}
+FUNCTION nameonly ( CONST s : AnsiString ) : AnsiString;{return just the name}
 VAR i : integer;
 BEGIN
    nameonly := s;
@@ -2881,14 +2881,14 @@ BEGIN
    END;
 END;  { Matches }
 {****************************************************}
-FUNCTION FileUnzip ( SourceZipFile, TargetDirectory, FileSpecs : pChar;
+FUNCTION FileUnzip ( SourceZipFile, TargetDirectory, FileSpecs : PAnsiChar;
  Report : UnzipReportProc;Question : UnzipQuestionProc ) : integer;
 VAR
     rc : integer;
     r : tziprec;
     buf,
     thename,
-    target : ARRAY [ 0..tFSize ] of char;
+    target : ARRAY [ 0..tFSize ] of AnsiChar;
     Count : integer;
     rSize, cSize : longint;
     s : string [ 255 ];
@@ -3037,17 +3037,17 @@ BEGIN
   FileUnzip := Count;
 END; { FileUnzip }
 {***************************************************************************}
-FUNCTION FileUnzipEx ( SourceZipFile, TargetDirectory, FileSpecs : pChar ) : integer;
+FUNCTION FileUnzipEx ( SourceZipFile, TargetDirectory, FileSpecs : PAnsiChar ) : integer;
 BEGIN
   FileUnzipEx :=
   FileUnzip ( SourceZipFile, TargetDirectory, FileSpecs, ZipReport, ZipQuestion );
 END; { FileUnzipEx }
 {***************************************************************************}
-FUNCTION Viewzip ( SourceZipFile, FileSpecs : pChar; Report : UnzipReportProc ) : integer;
+FUNCTION Viewzip ( SourceZipFile, FileSpecs : PAnsiChar; Report : UnzipReportProc ) : integer;
 VAR
     rc : integer;
     r : tziprec;
-    thename : ARRAY [ 0..tFSize ] of char;
+    thename : ARRAY [ 0..tFSize ] of AnsiChar;
     Count : integer;
     rSize, cSize : longint;
 
@@ -3106,11 +3106,11 @@ BEGIN
   ViewZip := Count;
 END; { ViewZip }
 {***************************************************************************}
-FUNCTION UnZipSize ( SourceZipFile : pChar;VAR Compressed : Longint ) : longint;
+FUNCTION UnZipSize ( SourceZipFile : PAnsiChar;VAR Compressed : Longint ) : longint;
 VAR
     rc : integer;
     r : tziprec;
-    thename : ARRAY [ 0..tFSize ] of char;
+    thename : ARRAY [ 0..tFSize ] of AnsiChar;
     Count : longint;
     f : file;
 
