@@ -229,3 +229,5 @@
 {$ifdef TYPED_LOCAL_CALLBACKS}
 {$modeswitch nestedprocvars}
 {$endif}
+
+{$h-}

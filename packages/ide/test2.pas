@@ -1,4 +1,5 @@
 {$L+}
+{$H-}
 unit Test2;
 
 interface

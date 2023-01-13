@@ -17,6 +17,7 @@ unit WHTMLScn;
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 
@@ -32,7 +33,7 @@ type
      PHTMLLinkScanDocument = ^THTMLLinkScanDocument;
 
      TCustomHTMLLinkScanner = object(THTMLParser)
-       function    DocAddTextChar(C: char): boolean; virtual;
+       function    DocAddTextChar(C: AnsiChar): boolean; virtual;
        procedure   DocAnchor(Entered: boolean); virtual;
      public
     {a}function    CheckURL(const URL: string): boolean; virtual;
@@ -202,7 +203,7 @@ const
 const
   CurrentHTMLIndexVersion : sw_integer = HTMLIndexVersion;
 
-function TCustomHTMLLinkScanner.DocAddTextChar(C: char): boolean;
+function TCustomHTMLLinkScanner.DocAddTextChar(C: AnsiChar): boolean;
 var Added: boolean;
 begin
   Added:=false;

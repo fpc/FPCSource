@@ -13,6 +13,7 @@
 unit WHTML;
 
 {$I globdir.inc}
+{$H-}
 
 interface
 
@@ -55,7 +56,7 @@ type
       Line,LinePos: sw_integer;
       procedure   DocSoftBreak; virtual;
       function    GetFileName : string;
-      function    DocAddTextChar(C: char): boolean; virtual;
+      function    DocAddTextChar(C: AnsiChar): boolean; virtual;
       procedure   DocAddText(S: string); virtual;
       procedure   DocProcessTag(Tag: string); virtual;
       procedure   DocProcessComment(Comment: string); virtual;
@@ -69,7 +70,7 @@ type
     PHTMLParser = ^THTMLParser;
     THTMLParser = object(TSGMLParser)
       procedure   DocSoftBreak; virtual;
-      function    DocAddTextChar(C: char): boolean; virtual;
+      function    DocAddTextChar(C: AnsiChar): boolean; virtual;
       procedure   DocProcessTag(Tag: string); virtual;
       function    DocGetTagParam(Name: string; var Value: string): boolean; virtual;
       procedure   DocProcessComment(Comment: string); virtual;
@@ -251,7 +252,7 @@ end;
 
 function TSGMLParser.ProcessLine(LineText: string): boolean;
 var OK: boolean;
-    C: char;
+    C: AnsiChar;
     NewInString: boolean;
     OldInComment: boolean;
     WasThereAnyText: boolean;
@@ -351,7 +352,7 @@ begin
   Abstract;
 end;
 
-function TSGMLParser.DocAddTextChar(C: char): boolean;
+function TSGMLParser.DocAddTextChar(C: AnsiChar): boolean;
 begin
   Abstract;
   DocAddTextChar:=false;
@@ -388,7 +389,7 @@ procedure THTMLParser.DocSoftBreak;
 begin
 end;
 
-function THTMLParser.DocAddTextChar(C: char): boolean;
+function THTMLParser.DocAddTextChar(C: AnsiChar): boolean;
 begin
   { Abstract }
   DocAddTextChar:=false;

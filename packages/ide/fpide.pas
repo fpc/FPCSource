@@ -438,7 +438,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 status_compile         = '~Alt+F9~ Compile';
                 status_make            = '~F9~ Make';
                 status_localmenu       = '~Alt+F10~ Local menu';
-                status_transferchar    = '~Ctrl+Enter~ Transfer char';
+                status_transferchar    = '~Ctrl+Enter~ Transfer AnsiChar';
                 status_msggotosource   = '~'+EnterSign+'~ Goto source';
                 status_msgtracksource  = '~Space~ Track source';
                 status_close           = '~Esc~ Close';
@@ -1561,7 +1561,7 @@ begin
 {$else}
 {$ifndef Unix}
     posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
-    { if programpath was three char long => bug }
+    { if programpath was three AnsiChar long => bug }
     if (posexe>0) and (posexe=Length(ProgramPath)-3) then
       begin
 {$endif Unix}

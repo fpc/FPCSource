@@ -19,6 +19,7 @@ unit FPCodCmp; { CodeComplete }
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 

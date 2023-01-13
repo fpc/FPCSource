@@ -14,6 +14,8 @@
  **********************************************************************}
 Unit windebug;
 
+{$H-}
+
 interface
 
 {$ifndef NODEBUG}
@@ -55,7 +57,7 @@ function CygDrivePrefix : string;
 var
   i : longint;
   length : dword;
-  Value : pchar;
+  Value : PAnsiChar;
   _type : dword;
   Key,NKey : HKey;
 begin
@@ -107,7 +109,7 @@ const
 
 
 function GetWindowHandle(H : HWND; state : LPARAM) : WINBOOL;stdcall;
-   var pTitle, pEnd, pNewTitle : pchar;
+   var pTitle, pEnd, pNewTitle : PAnsiChar;
        len : longint;
    begin
      GetWindowHandle:=true;

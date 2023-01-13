@@ -14,6 +14,8 @@
  **********************************************************************}
 unit FPDesk;
 
+{$H-}
+
 interface
 
 const
@@ -382,7 +384,7 @@ procedure ProcessWindowInfo;
 var W: PWindow;
     SW: PSourceWindow absolute W;
     St: string;
-    Ch: char;
+    Ch: AnsiChar;
     TP,TP2: TPoint;
     L: longint;
     R: TRect;
@@ -510,7 +512,7 @@ begin
          W:=ASCIIChart;
          if DV>=$A then
            begin
-             GetData(ch,sizeof(char));
+             GetData(ch,sizeof(AnsiChar));
              AsciiChart^.Report^.AsciiChar:=ord(ch);
              AsciiChart^.Table^.SetCursor(
                ord(ch) mod AsciiChart^.Table^.Size.X,
@@ -638,7 +640,7 @@ var W: PWindow;
     XDataOfs: word;
     XData: array[0..1024] of byte;
     St: string;
-    Ch: char;
+    Ch: AnsiChar;
     TP: TPoint;
     L: longint;
 procedure AddData(const B; Size: word);
@@ -693,7 +695,7 @@ begin
     hcAsciiTableWindow :
       begin
         ch:=chr(PFPAsciiChart(P)^.Report^.AsciiChar);
-        AddData(ch,sizeof(char));
+        AddData(ch,sizeof(AnsiChar));
       end;
   end;
 

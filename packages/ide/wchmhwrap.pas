@@ -187,7 +187,7 @@ end;
 
 procedure splitline(idestream:PMemoryTextFile;s:ansistring);
 
-function scanvalue:integer; // searches for a possible breaking point left of char 255.
+function scanvalue:integer; // searches for a possible breaking point left of AnsiChar 255.
 var n,i  : integer;
     lastpoint:integer;
     inquote : boolean;

@@ -160,7 +160,7 @@ type
 
     PBrowserTabItem = ^TBrowserTabItem;
     TBrowserTabItem = record
-      Sign  : char;
+      Sign  : AnsiChar;
       Link  : PView;
       Next  : PBrowserTabItem;
     end;
@@ -276,7 +276,7 @@ const
                 dialog_browse = 'Browse: %s';
 
 const           { Symbol browser tabs }
-                { must be char constants (so cannot be resourcestring)}
+                { must be AnsiChar constants (so cannot be resourcestring)}
                 label_browsertab_scope = 'S';
                 label_browsertab_reference = 'R';
                 label_browsertab_inheritance = 'I';
@@ -323,7 +323,7 @@ begin
     end;
 end;
 
-function NewBrowserTabItem(ASign: char; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
+function NewBrowserTabItem(ASign: AnsiChar; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
 var P: PBrowserTabItem;
 begin
   New(P); FillChar(P^,SizeOf(P^),0);
@@ -537,7 +537,7 @@ end;
 
 procedure TGDBValue.GetValue;
 var
-  p : pchar;
+  p : PAnsiChar;
 begin
 {$ifdef BROWSERCOL}
 {$ifndef NODEBUG}
@@ -1466,7 +1466,7 @@ procedure TBrowserTab.Draw;
 var B: TDrawBuffer;
     SelColor, NormColor, C: word;
     I,CurX,Count: Sw_integer;
-function Names(Idx: integer): char;
+function Names(Idx: integer): AnsiChar;
 begin
   Names:=GetItem(Idx)^.Sign;
 end;

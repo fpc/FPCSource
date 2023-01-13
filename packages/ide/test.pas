@@ -1,5 +1,6 @@
 {$mode objfpc}
 {$R-}
+{$H-}
 
 program TestProgram;
 uses
@@ -78,7 +79,7 @@ var Hello : word;
     ProcVar: procedure;
     ProcVarD: function(X: real): boolean;
     ProcVarI: ProcTyp;
-    SetVarD: set of char;
+    SetVarD: set of AnsiChar;
     SetVarI: SetTyp;
     Float1: real;
     Float2: double;
@@ -90,7 +91,7 @@ var Hello : word;
     ClassVar2: TClass2;
     Obj1: TObj;
     Obj2: TObj2;
-    CharArray : Array[1..2000] of char;
+    CharArray : Array[1..2000] of AnsiChar;
     ExtendedArray : Array[1..2000] of extended;
     ExtendedPackedArray : packed Array[1..2000] of extended;
     SingleArrayArray : Array[1..10,1..10] of single;

@@ -45,6 +45,7 @@ Interface
 {$ifdef netware_clib}
 {$define implemented}
 {$endif}
+{$H-}
 
 Var
   IOStatus                   : Integer;

@@ -1,5 +1,5 @@
 unit fpcygwin;
-
+{$H-}
 interface
 
 function GetCygwinVersionString : string;
@@ -16,7 +16,7 @@ uses
 
 var
   ModuleH,DummyH : Handle;
-  CygwinFullName : pchar;
+  CygwinFullName : PAnsiChar;
   fileinfosize : cardinal;
   size : longint;
   InfoData : pointer;

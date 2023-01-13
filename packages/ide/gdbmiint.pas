@@ -36,9 +36,9 @@ type
     procedure Reset;
     procedure Clear;
   public
-    file_name: PChar;
-    function_name: PChar;
-    args: PChar;
+    file_name: PAnsiChar;
+    function_name: PAnsiChar;
+    args: PAnsiChar;
     line_number: LongInt;
     address: CORE_ADDR;
     level : longint;
@@ -48,11 +48,11 @@ type
 
   TGDBBuffer = object
   private
-    buf: PChar;
+    buf: PAnsiChar;
     size, idx: LongInt;
     procedure Resize(nsize: LongInt);
-    procedure Append(p: PChar);
-    procedure LAppend(p: PChar; len: LongInt);
+    procedure Append(p: PAnsiChar);
+    procedure LAppend(p: PAnsiChar; len: LongInt);
   public
     constructor Init;
     destructor Done;
@@ -87,8 +87,8 @@ type
     frames: PPFrameEntry;
     frame_count: LongInt;
     command_level: LongInt;
-    signal_name: PChar;
-    signal_string: PChar;
+    signal_name: PAnsiChar;
+    signal_string: PAnsiChar;
     current_pc: CORE_ADDR;
     switch_to_user: Boolean;
 
@@ -96,10 +96,10 @@ type
     constructor Init;
     destructor Done;
     { from gdbcon }
-    function GetOutput: PChar;
-    function GetError: PChar;
+    function GetOutput: PAnsiChar;
+    function GetError: PAnsiChar;
 {$ifdef DEBUG}
-    function GetRaw: PChar;
+    function GetRaw: PAnsiChar;
 {$endif DEBUG}
     { Lowlevel }
     procedure Set_debuggee_started;
@@ -112,7 +112,7 @@ type
     procedure DebuggerScreen;
     procedure UserScreen;
     procedure FlushAll; virtual;
-    function Query(question: PChar; args: PChar): LongInt; virtual;
+    function Query(question: PAnsiChar; args: PAnsiChar): LongInt; virtual;
     { Hooks }
     function DoSelectSourceline(const fn: string; line, BreakIndex: longint): Boolean;virtual;
     procedure DoStartSession; virtual;
@@ -200,7 +200,7 @@ end;
 
 procedure TGDBBuffer.Resize(nsize: LongInt);
 var
-  np: PChar;
+  np: PAnsiChar;
 begin
   nsize := ((nsize + BlockSize - 1) div BlockSize) * BlockSize;
   GetMem(np, nsize);
@@ -213,7 +213,7 @@ begin
   size := nsize;
 end;
 
-procedure TGDBBuffer.Append(p: PChar);
+procedure TGDBBuffer.Append(p: PAnsiChar);
 var
   len: LongInt;
 begin
@@ -223,7 +223,7 @@ begin
   LAppend(p, len);
 end;
 
-procedure TGDBBuffer.LAppend(p: PChar; len: LongInt);
+procedure TGDBBuffer.LAppend(p: PAnsiChar; len: LongInt);
 begin
   if not Assigned(p) then
     exit;
@@ -266,25 +266,25 @@ begin
 {$endif GDB_RAW_OUTPUT}
 end;
 
-function TGDBInterface.GetOutput: PChar;
+function TGDBInterface.GetOutput: PAnsiChar;
 begin
   GetOutput := GDBOutputBuf.buf;
 end;
 
 {$ifdef GDB_RAW_OUTPUT}
-function TGDBInterface.GetRaw: PChar;
+function TGDBInterface.GetRaw: PAnsiChar;
 begin
   GetRaw := GDBRawBuf.buf;
 end;
 {$endif GDB_RAW_OUTPUT}
 
-function TGDBInterface.GetError: PChar;
+function TGDBInterface.GetError: PAnsiChar;
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   p := GDBErrorBuf.buf;
   if (p^=#0) and got_error then
-    GetError := PChar(PtrInt(GDBOutputBuf.buf) + GDBOutputBuf.idx)
+    GetError := PAnsiChar(PtrInt(GDBOutputBuf.buf) + GDBOutputBuf.idx)
   else
     GetError := p;
 end;
@@ -308,16 +308,16 @@ begin
 {$ifdef GDB_RAW_OUTPUT}
   if output_raw then
     for I := 0 to GDB.RawResponse.Count - 1 do
-      GDBRawBuf.Append(PChar(GDB.RawResponse[I]));
+      GDBRawBuf.Append(PAnsiChar(GDB.RawResponse[I]));
 {$endif GDB_RAW_OUTPUT}
 
   for I := 0 to GDB.ConsoleStream.Count - 1 do
-    GDBOutputBuf.Append(PChar(GDB.ConsoleStream[I]));
+    GDBOutputBuf.Append(PAnsiChar(GDB.ConsoleStream[I]));
   if GDB.ResultRecord.AsyncClass='error' then
   begin
     got_error := True;
     if Assigned(GDB.ResultRecord.Parameters['msg']) then
-      GDBErrorBuf.Append(PChar(GDB.ResultRecord.Parameters['msg'].AsString));
+      GDBErrorBuf.Append(PAnsiChar(GDB.ResultRecord.Parameters['msg'].AsString));
   end;
   ProcessResponse;
   Dec(command_level);
@@ -556,7 +556,7 @@ procedure TGDBInterface.FlushAll;
 begin
 end;
 
-function TGDBInterface.Query(question: PChar; args: PChar): LongInt;
+function TGDBInterface.Query(question: PAnsiChar; args: PAnsiChar): LongInt;
 begin
   Query := 0;
 end;

@@ -1125,11 +1125,11 @@ begin
   for i:=1 to LineSize do
     begin
       Text[i]:=LineBuf^[i-1].AsciiChar;
-      Attr[i]:=char(byte(LineBuf^[i-1].Attributes));
+      Attr[i]:=AnsiChar(byte(LineBuf^[i-1].Attributes));
     end;
   FreeMem(LineBuf,SizeOf(CharInfoArray));
-  Text[0]:=char(byte(LineSize));
-  Attr[0]:=char(byte(LineSize));
+  Text[0]:=AnsiChar(byte(LineSize));
+  Attr[0]:=AnsiChar(byte(LineSize));
 end;
 
 

@@ -15,9 +15,9 @@
 
 unit GDBMIProc;
 
-{$MODE objfpc}{$H+}
-
+{$MODE objfpc}
 {$I globdir.inc}
+{$H+}
 
 interface
 
@@ -60,7 +60,7 @@ end;
 
 function TGDBProcess.GDBReadLn: string;
 var
-  C: Char;
+  C: AnsiChar;
 begin
   Result := '';
   while FProcess.Running do
