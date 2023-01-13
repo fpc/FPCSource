@@ -1131,12 +1131,14 @@ type
     function ReadWord : Word;
     function ReadDWord : Cardinal;
     function ReadQWord : QWord;
-    function ReadAnsiString : String;
+    function ReadAnsiString : AnsiString;
+    function ReadUnicodeString : WideString;
     procedure WriteByte(b : Byte);
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
     procedure WriteQWord(q : QWord);
-    Procedure WriteAnsiString (const S : String); virtual;
+    Procedure WriteAnsiString (const S : AnsiString); virtual;
+    Procedure WriteUnicodeString (const S : UnicodeString); virtual;
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize64;
   end;
@@ -1257,7 +1259,8 @@ type
   private
     FEncoding: TEncoding;
     FOwnsEncoding : Boolean;
-    function GetDataString: string;
+    function GetAnsiDataString: AnsiString;
+    function GetDataString: RTLString;
     function GetUnicodeDataString: UnicodeString;
   protected
   public
@@ -1277,7 +1280,8 @@ type
     procedure WriteAnsiString(const AString: AnsiString); override;
     function ReadString(Count: Longint): string; 
     procedure WriteString(const AString: string);
-    property DataString: string read GetDataString;
+    property DataString: RTLString read GetDataString;
+    Property AnsiDataString : AnsiString Read GetAnsiDataString;
     Property UnicodeDataString : UnicodeString Read GetUnicodeDataString;
     Property OwnsEncoding : Boolean Read FOwnsEncoding;
     Property Encoding : TEncoding Read FEncoding;
