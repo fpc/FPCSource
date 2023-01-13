@@ -72,17 +72,17 @@ type
      PPasswd  = ^TPasswd;
      PPPasswd = ^PPasswd;
      Passwd   = record
-            pw_name    : pchar;        { user name  }
-            pw_passwd  : pchar;	{ encrypted password  }
+            pw_name    : PAnsiChar;        { user name  }
+            pw_passwd  : PAnsiChar;	{ encrypted password  }
             pw_uid     : Tuid;		{ user uid  }
             pw_gid     : Tgid;		{ user gid  }
             {$ifdef bsd}
             pw_change  : Ttime platform;         { password change time  }
-            pw_class   : pchar platform;        { user access class  }
+            pw_class   : PAnsiChar platform;        { user access class  }
             {$endif}
-            pw_gecos   : pchar;        { Honeywell login info  }
-            pw_dir     : pchar;        { home directory  }
-            pw_shell   : pchar;        { default shell  }
+            pw_gecos   : PAnsiChar;        { Honeywell login info  }
+            pw_dir     : PAnsiChar;        { home directory  }
+            pw_shell   : PAnsiChar;        { default shell  }
             {$ifdef bsd}
             pw_expire  : Ttime platform;         { account expiration  }
             {$ifdef FreeBSD}
@@ -113,17 +113,17 @@ const
         _PWF_HESIOD 	 = $3000;       
 {$endif}
 
-function  fpgetpwnam (name:pchar):PPasswd; cdecl;external External_library name 'getpwnam';
+function  fpgetpwnam (name:PAnsiChar):PPasswd; cdecl;external External_library name 'getpwnam';
 function  fpgetpwuid (id:tuid):PPasswd;cdecl;external External_library name 'getpwuid';
 
 procedure fpendpwent;cdecl;external External_library name 'endpwent';
 function  fpgetpwent:ppasswd;cdecl;external External_library name 'getpwent';
 procedure fpsetpwent;cdecl;external External_library name 'setpwent';
 
-function  fpgetpwnam_r (namepara1:pchar; pwd:Ppasswd; buffer:pchar; bufsize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwnam_r';
-function  fpgetpwuid_r (uid:uid_t; pwd:Ppasswd; buffer:pchar; buffersize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwuid_r';
+function  fpgetpwnam_r (namepara1:PAnsiChar; pwd:Ppasswd; buffer:PAnsiChar; bufsize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwnam_r';
+function  fpgetpwuid_r (uid:uid_t; pwd:Ppasswd; buffer:PAnsiChar; buffersize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwuid_r';
 {$ifndef Darwin}
-function  fpgetpwent_r (pwd:Ppasswd; buffer:pchar; buffersize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwent_r';
+function  fpgetpwent_r (pwd:Ppasswd; buffer:PAnsiChar; buffersize:size_t; pwresult:PPpasswd):cint;cdecl;external External_library name 'getpwent_r';
 {$endif}
 
 implementation

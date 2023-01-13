@@ -7,7 +7,7 @@ Program TestPass;
 uses {$ifdef linux}shadow, {$endif} pwd  ,crypth ;
 
 Var
-  strUserName, Password : String;
+  strUserName, Password : AnsiString;
   sEntry : PPasswordFileEntry;
   pEntry : PPasswd;
 
@@ -17,9 +17,9 @@ Const
   Err_WrongPass = 2;
   NoUser = '*NO USER*';
 
-Function UserEncPass(User: String): String;
+Function UserEncPass(User: AnsiString): AnsiString;
 Var
-  A : Array[0..255] of char;
+  A : Array[0..255] of AnsiChar;
 Begin
   A := strUserName;
   {$IFDEF DEBUG}
@@ -44,10 +44,10 @@ Begin
   if pEntry <> nil then UserEncPass := pEntry^.pw_passwd
 End;
 
-Function CheckPass(User, Pass: String): Integer;
+Function CheckPass(User, Pass: AnsiString): Integer;
 Var
-  EncPass, ResultPass, SSalt : String;
-  PCPass, PCSalt, PCResult : Array[0..255] of Char;
+  EncPass, ResultPass, SSalt : AnsiString;
+  PCPass, PCSalt, PCResult : Array[0..255] of AnsiChar;
   I : Integer;
 Begin
   EncPass := UserEncPass(User);

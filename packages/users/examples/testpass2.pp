@@ -4,7 +4,7 @@ Uses pwd,grp,baseunix,sysutils;
 
 {$mode objfpc}{$h+}
 
-Procedure printpchar(fieldname:String;p:pchar);
+Procedure printpchar(fieldname:ansistring;p:PAnsiChar);
 
 Begin
   If assigned(p) Then
@@ -15,10 +15,10 @@ Begin
     End;
 End;
 
-Procedure printpchar(fieldname,p:string);
+Procedure printpchar(fieldname,p:ansistring);
 
 Begin
-  printpchar(fieldname,pchar(p));
+  printpchar(fieldname,PAnsiChar(p));
 End;
 
 Var p : PPasswd;

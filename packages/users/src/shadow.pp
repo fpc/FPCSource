@@ -35,8 +35,8 @@ type
 
    Pspwd = ^spwd;
    spwd = record
-        sp_namp : pchar;
-        sp_pwdp : pchar;
+        sp_namp : PAnsiChar;
+        sp_pwdp : PAnsiChar;
         sp_lstchg : longint;
         sp_min : longint;
         sp_max : longint;
@@ -51,8 +51,8 @@ type
 procedure setspent;cdecl;external External_library name 'setspent';
 procedure endspent;cdecl;external External_library name 'endspent';
 function getspent:Pspwd;cdecl;external External_library name 'getspent';
-function getspnam(__name:Pchar):Pspwd;cdecl;external External_library name 'getspnam';
-function sgetspent(__string:Pchar):Pspwd;cdecl;external External_library name 'sgetspent';
+function getspnam(__name:PAnsiChar):Pspwd;cdecl;external External_library name 'getspnam';
+function sgetspent(__string:PAnsiChar):Pspwd;cdecl;external External_library name 'sgetspent';
 function fgetspent(__stream:PFILE):Pspwd;cdecl;external External_library name 'fgetspent';
 function putspent(__p:Pspwd; __stream:PFILE):longint;cdecl;external External_library name 'putspent';
 function lckpwdf:longint;cdecl;external External_library name 'lckpwdf';
