@@ -10,7 +10,7 @@ uses
   ncurses, menu;
 
 const
-  choices: array[0..4] of PChar  =
+  choices: array[0..4] of PAnsiChar  =
                       (
                         'Choice 1',
                         'Choice 2',

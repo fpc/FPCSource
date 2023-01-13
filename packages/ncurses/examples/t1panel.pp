@@ -41,7 +41,7 @@ begin
   temp := (width - slength)/ 2;
   x := startx + round(temp);
   wattron(win, color);
-  mvwaddstr(win, y, x, PChar(str));
+  mvwaddstr(win, y, x, PAnsiChar(str));
   wattroff(win, color);
   refresh();
 

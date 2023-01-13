@@ -25,8 +25,8 @@ uses oCrt;
 var
    win,win1,
    stdscr : pwin;
-   s : string;
-   c : char;
+   s : shortstring;
+   c : AnsiChar;
    i,j,k,x,y : integer;
 
 var

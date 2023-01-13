@@ -2,7 +2,7 @@ uses
   ncurses,menu;
 
 const
-  choices : array[0..5] of pchar = (
+  choices : array[0..5] of PAnsiChar = (
                         'Choice 1',
                         'Choice 2',
                         'Choice 3',
@@ -10,7 +10,7 @@ const
                         'Exit',
                         nil
                   );
-procedure print_in_middle(win : PWINDOW;starty,startx,width : longint;_string : pchar;color : chtype);
+procedure print_in_middle(win : PWINDOW;starty,startx,width : longint;_string : PAnsiChar;color : chtype);
   var
     length,x,y : longint;
     temp : single;

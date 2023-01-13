@@ -30,7 +30,7 @@ begin
         chtype('2'): raw();
         chtype('3'): halfdelay(10);
       else
-        mvaddstr(LINES - 1, 1,PChar(Format('name:%-14s code:%d', [ keyname(ch), ch ] )));
+        mvaddstr(LINES - 1, 1,PAnsiChar(Format('name:%-14s code:%d', [ keyname(ch), ch ] )));
       end;
     until (ch = chtype('q')) OR (ch = KEY_F(10));
   finally
