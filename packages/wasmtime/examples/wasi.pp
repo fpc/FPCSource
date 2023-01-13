@@ -2,7 +2,7 @@ program wasi;
 
 uses classes,ctypes, wasmtime;
 
-procedure exit_with_error(message : Pchar; error : Pwasmtime_error_t; trap: Pwasm_trap_t); cdecl;
+procedure exit_with_error(message : PAnsiChar; error : Pwasmtime_error_t; trap: Pwasm_trap_t); cdecl;
 
 var
   error_message : Twasm_byte_vec_t ;
@@ -82,7 +82,7 @@ begin
   wasi_config_inherit_stdin(wasi_config);
   wasi_config_inherit_stdout(wasi_config);
   wasi_config_inherit_stderr(wasi_config);
-  wasi_config_preopen_dir(wasi_config,pchar('.'),pchar('.'));
+  wasi_config_preopen_dir(wasi_config,PAnsiChar('.'),PAnsiChar('.'));
   error:=wasmtime_context_set_wasi(context, wasi_config);
   if (error<>Nil) then
     exit_with_error('failed to instantiate WASI', error, nil);
