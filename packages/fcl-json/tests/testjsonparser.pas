@@ -14,6 +14,8 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$codepage UTF8}
+
 unit testjsonparser;
 
 interface
@@ -534,9 +536,13 @@ Var
   S : TStream;
 
 begin
+{$IF SIZEOF(Char)=2}
+  S:=TStringStream.Create(UTF8Encode('"123"'));
+{$else}
   S:=TStringStream.Create('"123"');
+{$ENDIF}
   try
-    D:=GetJSON(S);
+    D:=GetJSON(S,False);
     try
       AssertEquals('Have correct string','123',D.AsString);
     finally

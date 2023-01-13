@@ -14,6 +14,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$codepage utf8}
 unit testjsondata; 
 
 interface
@@ -1520,7 +1521,7 @@ begin
   try
     For I:=0 to 31 do
       begin
-      J.AsString:='-->'+Char(I)+'<--';
+      J.AsString:='-->'+AnsiChar(I)+'<--';
       Case I of
        8  : T:='\b';
        9  : T:='\t';
@@ -1530,7 +1531,7 @@ begin
       else
         T:='\u'+HexStr(I,4);
       end;
-      AssertEquals('Control char','"-->'+T+'<--"',J.AsJSON);
+      AssertEquals('Control AnsiChar','"-->'+T+'<--"',J.AsJSON);
       end;
   finally
     FreeAndNil(J);
@@ -2224,7 +2225,7 @@ Var
   J : TJSONArray;
 
 begin
-  J:=TJSonArray.Create([Pchar(S)]);
+  J:=TJSonArray.Create([PAnsiChar(S)]);
   try
     TestJSONType(J,jtArray);
     TestItemCount(J,1);
@@ -3590,7 +3591,7 @@ Var
   O : TJSONObject;
 
 begin
-  O:=TJSONObject.Create([A,Pchar(S)]);
+  O:=TJSONObject.Create([A,PAnsiChar(S)]);
   try
     TestJSONType(O,jtObject);
     TestItemCount(O,1);
@@ -3613,7 +3614,7 @@ Var
 
 begin
   TJSONObject.UnQuotedMemberNames:=True;
-  O:=TJSONObject.Create([A,Pchar(S)]);
+  O:=TJSONObject.Create([A,PAnsiChar(S)]);
   try
     TestJSONType(O,jtObject);
     TestItemCount(O,1);
@@ -4121,6 +4122,7 @@ Var
 
 begin
   S:='JSONStringToString('''+Src+''')='''+Dest+'''';
+  Flush(output);
   AssertEquals(S,Dest,JSONStringToString(Src));
 end;
 

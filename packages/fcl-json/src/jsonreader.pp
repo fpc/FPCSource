@@ -63,6 +63,7 @@ Type
     Constructor Create(Const Source : RawByteString; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
     constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
     constructor Create(const Source: RawByteString; AOptions: TJSONOptions); overload;
+    constructor Create(const Source: UnicodeString; AOptions: TJSONOptions); overload;
     destructor Destroy();override;
     // Parsing options
     Property Options : TJSONOptions Read GetOptions Write SetOptions;
@@ -184,7 +185,7 @@ Resourcestring
 { TBaseJSONReader }
 
 
-Procedure TBaseJSONReader.DoExecute;
+procedure TBaseJSONReader.DoExecute;
 
 begin
   if (FScanner=Nil) then
@@ -338,7 +339,7 @@ end;
 
 
 // Current token is {, on exit current token is }
-Procedure TBaseJSONReader.ParseObject;
+procedure TBaseJSONReader.ParseObject;
 
 Var
   T : TJSONtoken;
@@ -375,7 +376,7 @@ begin
 end;
 
 // Current token is [, on exit current token is ]
-Procedure TBaseJSONReader.ParseArray;
+procedure TBaseJSONReader.ParseArray;
 
 Var
   T : TJSONtoken;
@@ -446,6 +447,13 @@ end;
 constructor TBaseJSONReader.Create(const Source: RawByteString; AOptions: TJSONOptions);
 begin
   FScanner:=TJSONScanner.Create(Source,AOptions);
+end;
+
+constructor TBaseJSONReader.Create(const Source: UnicodeString;
+  AOptions: TJSONOptions);
+begin
+  Include(aOptions,joUTF8);
+  Create(UTF8Encode(Source),aOptions);
 end;
 
 destructor TBaseJSONReader.Destroy();

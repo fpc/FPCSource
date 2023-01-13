@@ -1177,7 +1177,7 @@ begin
         end;
         end;
     tkChar:
-      Result:=TJSONString.Create(Char(GetOrdProp(AObject,PI)));
+      Result:=TJSONString.Create(AnsiChar(GetOrdProp(AObject,PI)));
     tkSString,
     tkLString,
     tkAString:
