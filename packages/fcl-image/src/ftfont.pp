@@ -52,15 +52,15 @@ type
     procedure DoAllocateResources; override;
     procedure DoDeAllocateResources; override;
     procedure DoCopyProps (From:TFPCanvasHelper); override;
-    procedure DoDrawText (atx,aty:integer; atext:string); override;
-    procedure DoGetTextSize (text:string; var w,h:integer); override;
-    function DoGetTextHeight (text:string) : integer; override;
-    function DoGetTextWidth (text:string) : integer; override;
+    procedure DoDrawText (atx,aty:integer; atext:Ansistring); override;
+    procedure DoGetTextSize (text:ansistring; var w,h:integer); override;
+    function DoGetTextHeight (text:ansistring) : integer; override;
+    function DoGetTextWidth (text:ansistring) : integer; override;
     procedure DoDrawText (atx,aty:integer; atext: unicodestring); override;
     procedure DoGetTextSize (text:unicodestring; var w,h:integer); override;
     function DoGetTextHeight (text:unicodestring) : integer; override;
     function DoGetTextWidth (text: unicodestring) : integer; override;
-    procedure GetText (aText:string);
+    procedure GetText (aText:ansistring);
     procedure GetText (aText:unicodestring);
     procedure GetFace;
   public
@@ -175,7 +175,7 @@ procedure TFreeTypeFont.DoDeAllocateResources;
 begin
 end;
 
-procedure TFreeTypeFont.DoGetTextSize (text:string; var w,h:integer);
+procedure TFreeTypeFont.DoGetTextSize (text:ansistring; var w,h:integer);
 var r : TRect;
 begin
   GetText (text);
@@ -187,7 +187,7 @@ begin
     end;
 end;
 
-function TFreeTypeFont.DoGetTextHeight (text:string) : integer;
+function TFreeTypeFont.DoGetTextHeight (text:ansistring) : integer;
 var r : TRect;
 begin
   GetText (text);
@@ -196,7 +196,7 @@ begin
     result := top - bottom;
 end;
 
-function TFreeTypeFont.DoGetTextWidth (text:string) : integer;
+function TFreeTypeFont.DoGetTextWidth (text:ansistring) : integer;
 var r : TRect;
 begin
   GetText (text);
@@ -263,7 +263,7 @@ begin
     result := inherited GetFlags (index);
 end;
 
-procedure TFreeTypeFont.GetText (aText:string);
+procedure TFreeTypeFont.GetText (aText:AnsiString);
 var b : boolean;
 begin
   if assigned (FLastText) then
@@ -341,7 +341,7 @@ begin
   DrawLastText(atX,atY);
 end;
 
-procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:string);
+procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:AnsiString);
 
 begin
   GetText (atext);

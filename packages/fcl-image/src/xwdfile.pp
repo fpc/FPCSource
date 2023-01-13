@@ -117,8 +117,8 @@ type
     red: Word;
     green: Word;
     blue: Word;
-    flags: Char;
-    pad: Char;
+    flags: AnsiChar;
+    pad: AnsiChar;
   end;
 
 { Last comes the image data in the format described by XWDFileHeader. }

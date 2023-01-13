@@ -23,8 +23,9 @@
 }
 unit FPReadJPEG;
 
-{$mode objfpc}{$H+}
-
+{$mode objfpc}
+{$H+}
+{$openstrings on}
 interface
 
 uses
@@ -102,7 +103,7 @@ procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
 var
   NewLength: Integer;
   ReadLen: Integer;
-  Buffer: string;
+  Buffer: AnsiString;
 begin
   if (SrcStream is TMemoryStream) or (SrcStream is TFileStream)
   or (SrcStream is TStringStream)
@@ -142,7 +143,7 @@ begin
   if CurInfo=nil then exit;
 end;
 
-procedure FormatMessage(CurInfo: j_common_ptr; var buffer: string);
+procedure FormatMessage(CurInfo: j_common_ptr; var buffer: shortstring);
 begin
   if CurInfo=nil then exit;
   {$ifdef FPC_Debug_Image}

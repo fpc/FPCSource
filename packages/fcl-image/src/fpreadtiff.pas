@@ -1515,7 +1515,7 @@ begin
   end;
 end;
 
-function TFPReaderTiff.ReadEntryString: string;
+function TFPReaderTiff.ReadEntryString: AnsiString;
 var
   EntryType: Word;
   EntryCount: LongWord;

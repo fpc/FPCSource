@@ -312,7 +312,7 @@ begin
   Result:=FLocks>0;
 end;
 
-procedure TFPCustomCanvas.TextOut (x,y:integer;text:string);
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:ansistring);
 begin
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).DrawText(x,y, text)
@@ -320,7 +320,7 @@ begin
     DoTextOut (x,y, text);
 end;
 
-procedure TFPCustomCanvas.GetTextSize (text:string; var w,h:integer);
+procedure TFPCustomCanvas.GetTextSize (text:ansistring; var w,h:integer);
 begin
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).GetTextSize (text, w, h)
@@ -328,23 +328,23 @@ begin
     DoGetTextSize (Text, w, h);
 end;
 
-function TFPCustomCanvas.GetTextHeight (text:string) : integer;
+function TFPCustomCanvas.GetTextHeight (text:ansistring) : integer;
 begin
   Result := TextHeight(Text);
 end;
 
-function TFPCustomCanvas.GetTextWidth (text:string) : integer;
+function TFPCustomCanvas.GetTextWidth (text:ansistring) : integer;
 begin
   Result := TextWidth(Text);
 end;
 
-function TFPCustomCanvas.TextExtent(const Text: string): TSize;
+function TFPCustomCanvas.TextExtent(const Text: ansistring): TSize;
 begin
   Result:=Default(TSize);
   GetTextSize(Text, Result.cx, Result.cy);
 end;
 
-function TFPCustomCanvas.TextHeight(const Text: string): Integer;
+function TFPCustomCanvas.TextHeight(const Text: ansistring): Integer;
 begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextHeight (text)
@@ -352,7 +352,7 @@ begin
     result := DoGetTextHeight (Text);
 end;
 
-function TFPCustomCanvas.TextWidth(const Text: string): Integer;
+function TFPCustomCanvas.TextWidth(const Text: ansistring): Integer;
 begin
   if Font is TFPCustomDrawFont then
     result := TFPCustomDrawFont(Font).GetTextWidth (text)
@@ -411,25 +411,25 @@ end;
 procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring); 
 
 begin
-  DoTextOut(x,y,string(text));
+  DoTextOut(x,y,UTF8Encode(text));
 end;
 
 procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer); 
 
 begin
-  DoGetTextSize(String(Text),w,h);
+  DoGetTextSize(UTF8Encode(Text),w,h);
 end;
 
 function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer; 
 
 begin
-  Result:=DoGetTextHeight(String(text));
+  Result:=DoGetTextHeight(UTF8Encode(text));
 end;
 
 function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer; 
 
 begin
-  Result:=DoGetTextWidth(String(text));
+  Result:=DoGetTextWidth(UTF8Encode(text));
 end;
 
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
