@@ -171,7 +171,7 @@ function SCREEN_BASE_BLOCK(m: integer): pointer; inline;
 function SCREEN_BASE(m: integer): integer; inline;
 function BG_MAP_BASE(m: integer): integer; inline;
 
-//alternate names for char and screen base
+//alternate names for AnsiChar and screen base
 function TILE_BASE(m: integer): integer; inline;
 function TILE_BASE_ADR(m: integer): pointer; inline;
 function MAP_BASE(m: integer): integer; inline;
@@ -320,7 +320,7 @@ begin
   BG_MAP_BASE := ((m) shl 8);
 end;
 
-//alternate names for char and screen base
+//alternate names for AnsiChar and screen base
 function TILE_BASE(m: integer): integer; inline;
 begin
   TILE_BASE := ((m) shl 2);

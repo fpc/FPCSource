@@ -44,13 +44,13 @@
 //---------------------------------------------------------------------------------
 // Don't Use these function names
 //---------------------------------------------------------------------------------
-procedure mbv2_dprintf(str: pchar; args: array of const); cdecl; external;
-procedure mbv2_dfprintf(fp: integer; str: pchar; args: array of const); cdecl; external;
+procedure mbv2_dprintf(str: PAnsiChar; args: array of const); cdecl; external;
+procedure mbv2_dfprintf(fp: integer; str: PAnsiChar; args: array of const); cdecl; external;
 function mbv2_dputchar(c: integer): integer; cdecl; external;
 function mbv2_dgetch(): integer; cdecl; external;
 function mbv2_dkbhit(): integer; cdecl; external;
 
-function mbv2_dfopen(const _file: pchar; const _type: pchar): integer; cdecl; external;
+function mbv2_dfopen(const _file: PAnsiChar; const _type: PAnsiChar): integer; cdecl; external;
 function mbv2_dfclose	(fp: integer): integer; cdecl; external;
 function mbv2_dfgetc(fp: integer): integer; cdecl; external;
 function mbv2_dfputc(ch, fp: integer): integer; cdecl; external;
@@ -60,12 +60,12 @@ procedure mbv2_drewind(fp: integer); cdecl; external;
 // Use these function names instead
 // these will be repeated for VBA & Xcomms
 //---------------------------------------------------------------------------------
-procedure dprintf(str: pchar; args: array of const); inline;
-procedure dfprintf(fp: integer; str: pchar; args: array of const); inline;
+procedure dprintf(str: PAnsiChar; args: array of const); inline;
+procedure dfprintf(fp: integer; str: PAnsiChar; args: array of const); inline;
 function dputchar(c: integer): integer; inline;
 function dgetch(): integer; inline;
 function dkbhit(): integer; inline;
-function dfopen(const _file: pchar; const _type: pchar): integer; inline;
+function dfopen(const _file: PAnsiChar; const _type: PAnsiChar): integer; inline;
 function dfclose	(fp: integer): integer; inline;
 function dfgetc(fp: integer): integer; inline;
 function dfputc(ch, fp: integer): integer; inline;
@@ -97,12 +97,12 @@ function __dputchar (c: integer): integer; cdecl; external;
 // Use these function names instead
 // these will be repeated for VBA & Xcomms
 //---------------------------------------------------------------------------------
-procedure dprintf(str: pchar; args: array of const); inline;
+procedure dprintf(str: PAnsiChar; args: array of const); inline;
 begin
   mbv2_dprintf(str, args); 
 end;
 
-procedure dfprintf(fp: integer; str: pchar; args: array of const); inline;
+procedure dfprintf(fp: integer; str: PAnsiChar; args: array of const); inline;
 begin
   mbv2_dfprintf(fp, str, args); 
 end;
@@ -123,7 +123,7 @@ begin
 end;
 
 
-function dfopen(const _file: pchar; const _type: pchar): integer; inline;
+function dfopen(const _file: PAnsiChar; const _type: PAnsiChar): integer; inline;
 begin
   dfopen := mbv2_dfopen(_file, _type);
 end;

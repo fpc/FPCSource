@@ -46,14 +46,14 @@
 //---------------------------------------------------------------------------------
 // Don't Use these function names
 //---------------------------------------------------------------------------------
-procedure mappy_dprintf(str: pchar; args: array of const); cdecl; external;
+procedure mappy_dprintf(str: PAnsiChar; args: array of const); cdecl; external;
 procedure mappy_dputchar(c: integer); cdecl; external;
 
 //---------------------------------------------------------------------------------
 // Use these function names instead
 // these will be repeated for Xcomms & MBV2
 //---------------------------------------------------------------------------------
-procedure dprintf(str: pchar; args: array of const); inline;
+procedure dprintf(str: PAnsiChar; args: array of const); inline;
 procedure dputchar(c: integer); inline;
 
 //---------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ procedure dputchar(c: integer); inline;
 {$endif GBA_INTERFACE}
 
 {$ifdef GBA_IMPLEMENTATION}
-procedure dprintf(str: pchar; args: array of const); inline;
+procedure dprintf(str: PAnsiChar; args: array of const); inline;
 begin
   mappy_dprintf(str, args);
 end;
