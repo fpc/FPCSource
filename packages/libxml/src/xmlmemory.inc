@@ -84,7 +84,7 @@
  *
  * Returns the copy of the string or NULL in case of error.
  *)
-  xmlStrdupFunc = function(str: pchar): pchar; EXTDECL;
+  xmlStrdupFunc = function(str: PAnsiChar): PAnsiChar; EXTDECL;
   {$IFDEF NO_EXTERNAL_VARS}
   PxmlStrdupFunc = ^xmlStrdupFunc;
   {$ENDIF}
@@ -131,12 +131,12 @@ procedure xmlMemoryDump(); EXTDECL; external xml2lib;
 function xmlMemMalloc(size: csize_t): pointer; EXTDECL; external xml2lib;
 function xmlMemRealloc(ptr: pointer; size: csize_t): pointer; EXTDECL; external xml2lib;
 procedure xmlMemFree(ptr: pointer); EXTDECL; external xml2lib;
-function xmlMemoryStrdup(str: pchar): pchar; EXTDECL; external xml2lib;
+function xmlMemoryStrdup(str: PAnsiChar): PAnsiChar; EXTDECL; external xml2lib;
 
-function xmlMallocLoc(size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
-function xmlReallocLoc(ptr: pointer; size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
-function xmlMallocAtomicLoc(size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
-function xmlMemStrdupLoc(str: pchar; _file: pchar; line: cint): pchar; EXTDECL; external xml2lib;
+function xmlMallocLoc(size: csize_t; _file: PAnsiChar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlReallocLoc(ptr: pointer; size: csize_t; _file: PAnsiChar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlMallocAtomicLoc(size: csize_t; _file: PAnsiChar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlMemStrdupLoc(str: PAnsiChar; _file: PAnsiChar; line: cint): PAnsiChar; EXTDECL; external xml2lib;
 
 {$IFDEF DEBUG_MEMORY_LOCATION}
 (**

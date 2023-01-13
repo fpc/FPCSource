@@ -9,8 +9,8 @@
  *)
 
 {$IFDEF POINTER}
-  xmlCharPtr = PChar;
-  xmlCharPtrPtr = PPChar;
+  xmlCharPtr = PAnsiChar;
+  xmlCharPtrPtr = PPAnsiChar;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -18,10 +18,10 @@
  * xmlChar:
  *
  * This is a basic byte in an UTF-8 encoded string.
- * It's unsigned allowing to pinpoint case where char * are assigned
+ * It's unsigned allowing to pinpoint case where AnsiChar * are assigned
  * to xmlChar * (possibly making serialization back impossible).
  *)
-  xmlChar = Char;
+  xmlChar = AnsiChar;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -37,8 +37,8 @@
  *)
 function xmlStrdup(cur: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlStrndup(cur: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
-function xmlCharStrndup(cur: pchar; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
-function xmlCharStrdup(cur: pchar): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCharStrndup(cur: PAnsiChar; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCharStrdup(cur: PAnsiChar): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlStrsub(str: xmlCharPtr; start: cint; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlStrchr(str: xmlCharPtr; val: xmlChar): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlStrstr(str: xmlCharPtr; val: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
@@ -55,8 +55,8 @@ function xmlStrncat(cur: xmlCharPtr; add: xmlCharPtr; len: cint): xmlCharPtr; EX
 function xmlStrncatNew(str1: xmlCharPtr; str2: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlStrPrintf(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; args: array of const): cint; cdecl; external xml2lib;
 function xmlStrVPrintf(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; ap: va_list): cint; EXTDECL; external xml2lib;
-function xmlGetUTF8Char(utf: pchar; len: pcint): cint; EXTDECL; external xml2lib;
-function xmlCheckUTF8(utf: pchar): cint; EXTDECL; external xml2lib;
+function xmlGetUTF8Char(utf: PAnsiChar; len: pcint): cint; EXTDECL; external xml2lib;
+function xmlCheckUTF8(utf: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlUTF8Strsize(utf: xmlCharPtr; len: cint): cint; EXTDECL; external xml2lib;
 function xmlUTF8Strndup(utf: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlUTF8Strpos(utf: xmlCharPtr; pos: cint): xmlCharPtr; EXTDECL; external xml2lib;
