@@ -212,6 +212,10 @@ Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
 Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
 Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+{$IF SIZEOF(CHAR)=2}
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+{$ENDIF}
 Function FloatToText(Buffer: PWideChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToText(Buffer: PWideChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Function FloatToText(Buffer: PAnsiChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
