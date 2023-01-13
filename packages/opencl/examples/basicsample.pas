@@ -57,7 +57,7 @@ const
 
 // Simple compute kernel which computes the square of an input array
 const
-  KernelSource : PChar = 
+  KernelSource : PAnsiChar = 
   '__kernel void square(                   '#10+
   '   __global float* input,               '#10+
   '   __global float* output,              '#10+
@@ -147,7 +147,7 @@ begin
   end;
 
   // Create the compute program from the source buffer
-  prog:= clCreateProgramWithSource(context, 1, PPChar(@KernelSource), nil, err);
+  prog:= clCreateProgramWithSource(context, 1, PPAnsiChar(@KernelSource), nil, err);
   writeln('clCreateProgramWithSource ', err);
   if prog=nil then begin
     writeln('Error: Failed to create compute program! ');
