@@ -166,12 +166,12 @@ begin
 end;
 
 const
-  win_info: array[0..63] of char = '';
+  win_info: array[0..63] of AnsiChar = '';
 
 var
   appl_h: smallint;
   win_h: smallint;
-  win_name: pchar;
+  win_name: PAnsiChar;
   vdi_h: smallint;
   mx, my: smallint;
 

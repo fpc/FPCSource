@@ -25,33 +25,33 @@ unit NF_OPS;
 interface
 
 const
-    NF_ID_NAME      : pchar = 'NF_NAME';
-    NF_ID_VERSION   : pchar = 'NF_VERSION';
-    NF_ID_STDERR    : pchar = 'NF_STDERR';
-    NF_ID_SHUTDOWN  : pchar = 'NF_SHUTDOWN';
-    NF_ID_EXIT      : pchar = 'NF_EXIT';
-    NF_ID_DEBUG     : pchar = 'DEBUGPRINTF';
-    NF_ID_ETHERNET  : pchar = 'ETHERNET';
-    NF_ID_HOSTFS    : pchar = 'HOSTFS';
-    NF_ID_AUDIO     : pchar = 'AUDIO';
-    NF_ID_BOOTSTRAP : pchar = 'BOOTSTRAP';
-    NF_ID_CDROM     : pchar = 'CDROM';
-    NF_ID_CLIPBRD   : pchar = 'CLIPBRD';
-    NF_ID_JPEG      : pchar = 'JPEG';
-    NF_ID_OSMESA    : pchar = 'OSMESA';
-    NF_ID_PCI       : pchar = 'PCI';
-    NF_ID_FVDI      : pchar = 'fVDI';
-    NF_ID_USBHOST   : pchar = 'USBHOST';
-    NF_ID_XHDI      : pchar = 'XHDI';
-    NF_ID_SCSI      : pchar = 'NF_SCSIDRV';
-    NF_ID_HOSTEXEC  : pchar = 'HOSTEXEC';
-    NF_ID_CONFIG    : pchar = 'NF_CONFIG';
+    NF_ID_NAME      : PAnsiChar = 'NF_NAME';
+    NF_ID_VERSION   : PAnsiChar = 'NF_VERSION';
+    NF_ID_STDERR    : PAnsiChar = 'NF_STDERR';
+    NF_ID_SHUTDOWN  : PAnsiChar = 'NF_SHUTDOWN';
+    NF_ID_EXIT      : PAnsiChar = 'NF_EXIT';
+    NF_ID_DEBUG     : PAnsiChar = 'DEBUGPRINTF';
+    NF_ID_ETHERNET  : PAnsiChar = 'ETHERNET';
+    NF_ID_HOSTFS    : PAnsiChar = 'HOSTFS';
+    NF_ID_AUDIO     : PAnsiChar = 'AUDIO';
+    NF_ID_BOOTSTRAP : PAnsiChar = 'BOOTSTRAP';
+    NF_ID_CDROM     : PAnsiChar = 'CDROM';
+    NF_ID_CLIPBRD   : PAnsiChar = 'CLIPBRD';
+    NF_ID_JPEG      : PAnsiChar = 'JPEG';
+    NF_ID_OSMESA    : PAnsiChar = 'OSMESA';
+    NF_ID_PCI       : PAnsiChar = 'PCI';
+    NF_ID_FVDI      : PAnsiChar = 'fVDI';
+    NF_ID_USBHOST   : PAnsiChar = 'USBHOST';
+    NF_ID_XHDI      : PAnsiChar = 'XHDI';
+    NF_ID_SCSI      : PAnsiChar = 'NF_SCSIDRV';
+    NF_ID_HOSTEXEC  : PAnsiChar = 'HOSTEXEC';
+    NF_ID_CONFIG    : PAnsiChar = 'NF_CONFIG';
 
 (*
  * return the NF id to use for feature_name,
  *  or zero when not available.
  *)
-function nf_get_id(feature_name: pchar): longint;
+function nf_get_id(feature_name: PAnsiChar): longint;
 
 (*
  * return the version of the NatFeat implementation,
@@ -63,13 +63,13 @@ function nf_version: longint;
  * return the name of the NatFeat implementor,
  *  or NULL when not available.
  *)
-procedure nf_get_name(buf: Pchar; bufsize: longint);
+procedure nf_get_name(buf: PAnsiChar; bufsize: longint);
 
 (*
  * return the full name of the NatFeat implementor,
  *  or NULL when not available.
  *)
-procedure nf_get_fullname(buf: Pchar; bufsize: longint);
+procedure nf_get_fullname(buf: PAnsiChar; bufsize: longint);
 
 (*
  * Write a string to the host's terminal.
@@ -105,17 +105,17 @@ var
     nf_stderr: longint;
 
 type
-   Tnf_id = function(id: Pchar): longint; cdecl;
+   Tnf_id = function(id: PAnsiChar): longint; cdecl;
    Tnf_call = function(id: longint): longint; cdecl; varargs;
 
 var cnf_call: Tnf_call;
 
-var ps: array[0..255] of char;
+var ps: array[0..255] of AnsiChar;
 
 const nf_id_opcodes: array[0..1] of word = (NATFEAT_ID, $4e75);
       nf_call_opcodes: array[0..1] of word = (NATFEAT_CALL, $4e75);
 
-function nf_id(id: Pchar): longint;
+function nf_id(id: PAnsiChar): longint;
 var cnf_id: Tnf_id;
 begin
   cnf_id := Tnf_id(@nf_id_opcodes);
@@ -123,7 +123,7 @@ begin
 end;
 
 
-const nf_version_str: array[0..11] of char = 'NF_VERSION';
+const nf_version_str: array[0..11] of AnsiChar = 'NF_VERSION';
 
 function nf_detect: longint; assembler; nostackframe;
 asm
@@ -175,7 +175,7 @@ begin
 end;
 
 
-function nf_get_id(feature_name: pchar): longint;
+function nf_get_id(feature_name: PAnsiChar): longint;
 begin
   nf_get_id := 0;
   if nf_init then
@@ -191,7 +191,7 @@ begin
     nf_version := cnf_call(id);
 end;
 
-procedure nf_get_name(buf: Pchar; bufsize: longint);
+procedure nf_get_name(buf: PAnsiChar; bufsize: longint);
 var id: longint;
 begin
   id := nf_get_id(NF_ID_NAME);
@@ -201,7 +201,7 @@ begin
     buf^ := #0;
 end;
 
-procedure nf_get_fullname(buf: Pchar; bufsize: longint);
+procedure nf_get_fullname(buf: PAnsiChar; bufsize: longint);
 var id: longint;
 begin
   id := nf_get_id(NF_ID_NAME);

@@ -35,14 +35,14 @@ type
 function appl_exit: smallint;
 function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
 function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
-function appl_find(fname: PChar): smallint;
+function appl_find(fname: PAnsiChar): smallint;
 function appl_find(ap_fpname: String): smallint;
 function appl_tplay(ap_tpmem: Pointer; ap_tpnum, ap_tpscale: smallint): smallint;
 function appl_trecord(ap_trmem: Pointer; ap_trcount: smallint): smallint;
 function appl_bvset(ap_bvdisk, ap_bvhard: Word): smallint;
 function appl_yield: smallint;
 procedure _appl_yield;
-function appl_search(ap_smode: smallint; ap_sname: Pchar; out ap_stype, ap_sid: smallint): smallint;
+function appl_search(ap_smode: smallint; ap_sname: PAnsiChar; out ap_stype, ap_sid: smallint): smallint;
 function appl_search(ap_smode: smallint; out ap_sname: String; out ap_stype, ap_sid: smallint): smallint;
 function appl_getinfo(ap_gtype: smallint; out ap_gout1, ap_gout2, ap_gout3, ap_gout4: smallint): smallint;
 function appl_init: smallint;
@@ -81,8 +81,8 @@ function menu_bar(me_btree: PAESOBJECT; me_bshow: smallint): smallint; overload;
 function menu_icheck(me_ctree: PAESOBJECT; me_citem: smallint; me_ccheck: smallint): smallint; overload;
 function menu_ienable(me_etree: PAESOBJECT; me_eitem: smallint; me_eenable: smallint): smallint; overload;
 function menu_tnormal(me_ntree: PAESOBJECT; me_ntitle: smallint; me_nnormal: smallint): smallint; overload;
-function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PChar): smallint; overload;
-function menu_register(me_rapid: smallint; me_rpstring: PChar): smallint;
+function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PAnsiChar): smallint; overload;
+function menu_register(me_rapid: smallint; me_rpstring: PAnsiChar): smallint;
 function menu_register(me_rapid: smallint; me_rpstring: String): smallint;
 function menu_unregister(me_uapid: smallint): smallint;
 function menu_popup(me_menu: PMENU; me_xpos, me_ypos: smallint; var me_mdata: TMENU): smallint;
@@ -125,7 +125,7 @@ function form_dial(fo_diflag: smallint; fo_dilittlx: smallint;
                    fo_dilittlh: smallint; fo_dibigx: smallint;
                    fo_dibigy: smallint; fo_dibigw: smallint;
                    fo_dibigh: smallint): smallint;
-function form_alert(fo_adefbttn: smallint; alertstr: PChar): smallint;
+function form_alert(fo_adefbttn: smallint; alertstr: PAnsiChar): smallint;
 function form_alert(fo_adefbttn: smallint; fo_astring: String): smallint;
 function form_error(error: smallint): smallint;
 function form_center(fo_ctree: PAESOBJECT; fo_cx: psmallint;
@@ -164,14 +164,14 @@ function graf_mkstate(gr_mkmx: psmallint; gr_mkmy: psmallint;
                       gr_mkmstate: psmallint; gr_mkkstate: psmallint): smallint;
 function graf_mkstate(out gr_mkmx, gr_mkmy, gr_mkmstate, gr_mkkstate: smallint): smallint;
 
-function scrp_read(sc_rpscrap: pchar): smallint;
+function scrp_read(sc_rpscrap: PAnsiChar): smallint;
 function scrp_read(out sc_rpscrap: String): smallint;
-function scrp_write(sc_wpscrap: pchar): smallint;
+function scrp_write(sc_wpscrap: PAnsiChar): smallint;
 function scrp_write(const sc_wpscrap: String): smallint;
 
-function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
+function fsel_input(fs_iinpath: PAnsiChar; fs_iinsel: PAnsiChar; fs_iexbutton: psmallint): smallint;
 function fsel_input(var fs_iinpath, fs_iinsel: String; out fs_iexbutton: smallint): smallint;
-function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
+function fsel_exinput(fs_einpath: PAnsiChar; fs_einsel: PAnsiChar; fs_eexbutton: psmallint; elabel: PAnsiChar): smallint;
 function fsel_exinput(var fs_einpath, fs_einsel: String; out fs_eexbutton: smallint;
         const fs_elabel: String): smallint;
 
@@ -201,7 +201,7 @@ function wind_calc(wi_ctype, wi_ckind, wi_cinx, wi_ciny, wi_cinw, wi_cinh : smal
            out wi_coutx, wi_couty, wi_coutw, wi_couth: smallint): smallint;
 procedure wind_new;
 
-function rsrc_load(re_lpfname: PChar): smallint;
+function rsrc_load(re_lpfname: PAnsiChar): smallint;
 function rsrc_load(re_lpfname: String): smallint;
 function rsrc_free: smallint;
 function rsrc_gaddr(re_gtype: smallint; re_gindex: smallint; gaddr: ppointer): smallint;
@@ -210,18 +210,18 @@ function rsrc_saddr(re_stype: smallint; re_sindex: smallint; saddr: pointer): sm
 function rsrc_obfix(re_otree: PAESOBJECT; re_oobject: smallint): smallint; overload;
 function rsrc_rcfix(rc_header: PRSHDR): smallint;
 
-function shel_read(sh_rpcmd: pchar; sh_rptail: pchar): smallint;
+function shel_read(sh_rpcmd: PAnsiChar; sh_rptail: PAnsiChar): smallint;
 function shel_read(out sh_rpcmd, sh_rptail: String): smallint;
 function shel_write(sh_wdoex: smallint; sh_wisgr: smallint;
-                    sh_wiscr: smallint; sh_wpcmd: pchar;
-                    sh_wptail: pchar): smallint;
+                    sh_wiscr: smallint; sh_wpcmd: PAnsiChar;
+                    sh_wptail: PAnsiChar): smallint;
 function shel_write(sh_wdoex, sh_wisgr, sh_wiscr: smallint;
             const sh_wpcmd, sh_wptail: String): smallint;
-function shel_get(sh_gaddr: pchar; sh_glen: word): smallint;
-function shel_put(sh_paddr: pchar; sh_plen: word): smallint;
-function shel_find(sh_fpbuff: pchar): smallint;
+function shel_get(sh_gaddr: PAnsiChar; sh_glen: word): smallint;
+function shel_put(sh_paddr: PAnsiChar; sh_plen: word): smallint;
+function shel_find(sh_fpbuff: PAnsiChar): smallint;
 function shel_find(var sh_fpbuff: String): smallint;
-function shel_envrn(sh_epvalue: ppchar; sh_eparm: pchar): smallint;
+function shel_envrn(sh_epvalue: PPAnsiChar; sh_eparm: PAnsiChar): smallint;
 function shel_envrn(out sh_epvalue: Pointer; const sh_eparm: String): smallint;
 function shel_rdef(out sh_rlpcmd, sh_rlpdir: String): smallint;
 function shel_wdef(const sh_wlpcmd, sh_wlpdir: String): smallint;
@@ -274,7 +274,7 @@ Geneva functions
 implementation
 
 type
-  aesstr = array[0..255] of char;
+  aesstr = array[0..255] of AnsiChar;
 
 const
   ops_table: array[0..120,0..3] of SmallInt = (
@@ -446,7 +446,7 @@ begin
   appl_write:=crys_if(12);
 end;
 
-function appl_find(fname: PChar): smallint;
+function appl_find(fname: PAnsiChar): smallint;
 begin
   _addrin[0]:=fname;
   appl_find:=crys_if(13);
@@ -495,7 +495,7 @@ asm
     movea.l     (a7)+,a2
 end;
 
-function appl_search(ap_smode: smallint; ap_sname: Pchar; out ap_stype, ap_sid: smallint): smallint;
+function appl_search(ap_smode: smallint; ap_sname: PAnsiChar; out ap_stype, ap_sid: smallint): smallint;
 begin
   _intin[0]:=ap_smode;
   _addrin[0]:=ap_sname;
@@ -510,7 +510,7 @@ begin
   _intin[0]:=ap_smode;
   _addrin[0]:=@s[0];
   appl_search:=crys_if(18);
-  ap_sname:=PChar(@s[0]);
+  ap_sname:=PAnsiChar(@s[0]);
   ap_stype:=_intout[1];
   ap_sid:=_intout[2];
 end;
@@ -782,7 +782,7 @@ begin
   menu_tnormal:=crys_if(33);
 end;
 
-function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PChar): smallint;
+function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PAnsiChar): smallint;
 begin
   _intin[0]:=me_titem;
   _addrin[0]:=me_ttree;
@@ -791,7 +791,7 @@ begin
   menu_text:=crys_if(34);
 end;
 
-function menu_register(me_rapid: smallint; me_rpstring: PChar): smallint;
+function menu_register(me_rapid: smallint; me_rpstring: PAnsiChar): smallint;
 begin
   _intin[0]:=me_rapid;
   _addrin[0]:=me_rpstring;
@@ -1087,7 +1087,7 @@ begin
   form_dial:=crys_if(51);
 end;
 
-function form_alert(fo_adefbttn: smallint; alertstr: PChar): smallint;
+function form_alert(fo_adefbttn: smallint; alertstr: PAnsiChar): smallint;
 begin
   _intin[0]:=fo_adefbttn;
   _addrin[0]:=alertstr;
@@ -1348,7 +1348,7 @@ begin
 end;
 
 
-function scrp_read(sc_rpscrap: pchar): smallint;
+function scrp_read(sc_rpscrap: PAnsiChar): smallint;
 begin
   _addrin[0]:=sc_rpscrap;
   scrp_read:=crys_if(80);
@@ -1359,10 +1359,10 @@ var s: aesstr;
 begin
   _addrin[0]:=@s;
   scrp_read:=crys_if(80);
-  sc_rpscrap:=Pchar(@s[0]);
+  sc_rpscrap:=PAnsiChar(@s[0]);
 end;
 
-function scrp_write(sc_wpscrap: pchar): smallint;
+function scrp_write(sc_wpscrap: PAnsiChar): smallint;
 begin
   _addrin[0]:=sc_wpscrap;
   scrp_write:=crys_if(81);
@@ -1382,7 +1382,7 @@ begin
 end;
 
 
-function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
+function fsel_input(fs_iinpath: PAnsiChar; fs_iinsel: PAnsiChar; fs_iexbutton: psmallint): smallint;
 begin
   _addrin[0]:=fs_iinpath;
   _addrin[1]:=fs_iinsel;
@@ -1404,11 +1404,11 @@ begin
 
   fsel_input:=crys_if(90);
   fs_iexbutton:=_intout[1];
-  fs_iinpath:=Pchar(@s1[0]);
-  fs_iinsel:=Pchar(@s2[0]);
+  fs_iinpath:=PAnsiChar(@s1[0]);
+  fs_iinsel:=PAnsiChar(@s2[0]);
 end;
 
-function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
+function fsel_exinput(fs_einpath: PAnsiChar; fs_einsel: PAnsiChar; fs_eexbutton: psmallint; elabel: PAnsiChar): smallint;
 begin
   _addrin[0]:=fs_einpath;
   _addrin[1]:=fs_einsel;
@@ -1434,8 +1434,8 @@ begin
 
   fsel_exinput:=crys_if(91);
   fs_eexbutton:=_intout[1];
-  fs_einpath:=Pchar(@s1[0]);
-  fs_einsel:=Pchar(@s2[0]);
+  fs_einpath:=PAnsiChar(@s1[0]);
+  fs_einsel:=PAnsiChar(@s2[0]);
 end;
 
 
@@ -1679,7 +1679,7 @@ begin
 end;
 
 
-function rsrc_load(re_lpfname: PChar): smallint;
+function rsrc_load(re_lpfname: PAnsiChar): smallint;
 begin
   _addrin[0]:=re_lpfname;
   rsrc_load:=crys_if(110);
@@ -1747,7 +1747,7 @@ begin
 end;
 
 
-function shel_read(sh_rpcmd: pchar; sh_rptail: pchar): smallint;
+function shel_read(sh_rpcmd: PAnsiChar; sh_rptail: PAnsiChar): smallint;
 begin
   _addrin[0]:=sh_rpcmd;
   _addrin[1]:=sh_rptail;
@@ -1762,13 +1762,13 @@ begin
   _addrin[1]:=@s2;
 
    shel_read:=crys_if(120);
-   sh_rpcmd:=Pchar(@s1[0]);
-   sh_rptail:=Pchar(@s2[0]);
+   sh_rpcmd:=PAnsiChar(@s1[0]);
+   sh_rptail:=PAnsiChar(@s2[0]);
 end;
 
 function shel_write(sh_wdoex: smallint; sh_wisgr: smallint;
-                    sh_wiscr: smallint; sh_wpcmd: pchar;
-                    sh_wptail: pchar): smallint;
+                    sh_wiscr: smallint; sh_wpcmd: PAnsiChar;
+                    sh_wptail: PAnsiChar): smallint;
 begin
   _intin[0]:=sh_wdoex;
   _intin[1]:=sh_wisgr;
@@ -1793,7 +1793,7 @@ begin
   shel_write:=crys_if(121);
 end;
 
-function shel_get(sh_gaddr: pchar; sh_glen: word): smallint;
+function shel_get(sh_gaddr: PAnsiChar; sh_glen: word): smallint;
 begin
   _intin[0]:=smallint(sh_glen);
   _addrin[0]:=sh_gaddr;
@@ -1801,7 +1801,7 @@ begin
   shel_get:=crys_if(122);
 end;
 
-function shel_put(sh_paddr: pchar; sh_plen: word): smallint;
+function shel_put(sh_paddr: PAnsiChar; sh_plen: word): smallint;
 begin
   _intin[0]:=smallint(sh_plen);
   _addrin[0]:=sh_paddr;
@@ -1809,7 +1809,7 @@ begin
   shel_put:=crys_if(123);
 end;
 
-function shel_find(sh_fpbuff: pchar): smallint;
+function shel_find(sh_fpbuff: PAnsiChar): smallint;
 begin
   _addrin[0]:=sh_fpbuff;
 
@@ -1823,10 +1823,10 @@ begin
   _addrin[0]:=@s;
 
   shel_find:=crys_if(124);
-  sh_fpbuff:=Pchar(@s[0]);
+  sh_fpbuff:=PAnsiChar(@s[0]);
 end;
 
-function shel_envrn(sh_epvalue: ppchar; sh_eparm: pchar): smallint;
+function shel_envrn(sh_epvalue: PPAnsiChar; sh_eparm: PAnsiChar): smallint;
 begin
   _addrin[0]:=sh_epvalue;
   _addrin[1]:=sh_eparm;
@@ -1851,8 +1851,8 @@ begin
   _addrin[1]:=@s2;
 
   shel_rdef:=crys_if(126);
-  sh_rlpcmd:=Pchar(@s1[0]);
-  sh_rlpdir:=Pchar(@s2[0]);
+  sh_rlpcmd:=PAnsiChar(@s1[0]);
+  sh_rlpdir:=PAnsiChar(@s2[0]);
 end;
 
 function shel_wdef(const sh_wlpcmd, sh_wlpdir: String): smallint;

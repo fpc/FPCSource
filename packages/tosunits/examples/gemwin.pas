@@ -20,8 +20,8 @@ uses
 
 var
   win_h: smallint;
-  win_name: pchar;
-  win_info: pchar;
+  win_name: PAnsiChar;
+  win_info: PAnsiChar;
   vdi_h: smallint;
 
 const

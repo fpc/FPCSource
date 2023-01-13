@@ -38,8 +38,8 @@ procedure vdi(pb: PVDIPB);
 function vq_gdos: smallint;
 function vq_vgdos: LongInt;
 
-procedure vdi_str_to_pchar(src: psmallint; des: pchar; len: smallint);
-function pchar_str_to_vdi(src: pchar; des: psmallint): longint;
+procedure vdi_str_to_pchar(src: psmallint; des: PAnsiChar; len: smallint);
+function pchar_str_to_vdi(src: PAnsiChar; des: psmallint): longint;
 
 procedure v_opnwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
 procedure v_clswk(handle: smallint);
@@ -57,7 +57,7 @@ procedure v_curhome(handle: smallint);
 procedure v_eeos(handle: smallint);
 procedure v_eeol(handle: smallint);
 procedure v_curaddress(handle, row, column: smallint);
-procedure v_curtext(handle: smallint; const outString: String);
+procedure v_curtext(handle: smallint; const outstring: shortstring);
 procedure v_rvon(handle: smallint);
 procedure v_rvoff(handle: smallint);
 procedure vq_curaddress(handle: smallint; out row, column: smallint);
@@ -68,11 +68,11 @@ procedure v_rmcur(handle: smallint);
 procedure v_form_adv(handle: smallint);
 procedure v_output_window(handle: smallint; xyarray: ARRAY_4);
 procedure v_clear_disp_list(handle: smallint);
-procedure v_bit_image(handle: smallint; const filename: string;
+procedure v_bit_image(handle: smallint; const filename: shortstring;
                 aspect, x_scale, y_scale, h_align, v_align: smallint;
                 const xyarray: ARRAY_4);
 procedure vq_scan(handle: smallint; out g_slice, g_page, a_slice, a_page, div_fac: smallint);
-procedure v_alpha_text(handle: smallint; const outString: String);
+procedure v_alpha_text(handle: smallint; const outstring: shortstring);
 function v_orient(handle, orientation: smallint): smallint;
 function v_copies(handle, count: smallint): smallint;
 procedure v_tray(handle, tray: smallint);
@@ -88,7 +88,7 @@ procedure vt_origin(handle, xorigin, yorigin: smallint);
 procedure vq_tdimensions(handle: smallint; out xdimension, ydimension: smallint);
 procedure vt_alignment(handle, dx, dy: smallint);
 procedure vsp_film(handle, index, lightness: smallint);
-function vqp_filmname(handle, index: smallint; out name: String): smallint;
+function vqp_filmname(handle, index: smallint; out name: shortstring): smallint;
 procedure vsc_expose(handle, state: smallint);
 procedure v_meta_extents(handle, min_x, min_y, max_x, max_y: smallint);
 procedure v_write_meta(handle, num_intin: smallint; a_intin: Pointer;
@@ -96,7 +96,7 @@ procedure v_write_meta(handle, num_intin: smallint; a_intin: Pointer;
 procedure vm_pagesize(handle, pgwidth, pgheight: smallint);
 procedure vm_coords(handle, llx, lly, urx, ury: smallint);
 function v_bez_qual(handle, prcnt: smallint; out actual: smallint): smallint;
-procedure vm_filename(handle: smallint; const filename: String);
+procedure vm_filename(handle: smallint; const filename: shortstring);
 procedure v_offset(handle, offset: smallint);
 procedure v_fontinit(handle: smallint; var fh: TFONT_HDR);
 procedure v_escape2000(handle, times: smallint);
@@ -112,8 +112,8 @@ procedure v_bez_fill(handle, count: smallint;
                     out totpts, totmoves: smallint);
 
 procedure v_pmarker(handle, count: smallint; const pxyarray: Array of smallint);
-procedure v_gtext(handle: smallint; x: smallint; y: smallint; outputstring: pchar);
-procedure v_gtext(handle, x, y: smallint; const outputstring: string);
+procedure v_gtext(handle: smallint; x: smallint; y: smallint; outputstring: PAnsiChar);
+procedure v_gtext(handle, x, y: smallint; const outputstring: shortstring);
 procedure v_fillarea(handle, count: smallint; const pxyarray: Array of smallint);
 
 procedure v_bar(handle: smallint; pxyarray: psmallint);
@@ -127,7 +127,7 @@ procedure v_ellpie(handle, x, y, xradius, yradius, begang, endang: smallint);
 procedure v_rbox(handle: smallint; const xyarray: ARRAY_4);
 procedure v_rfbox(handle: smallint; const xyarray: ARRAY_4);
 procedure v_justified(handle, x, y: smallint;
-        const outputstring: string;
+        const outputstring: shortstring;
         width, wordspace, charspace: smallint);
 function v_bez_on(handle: smallint): smallint;
 procedure v_bez_off(handle: smallint);
@@ -154,8 +154,8 @@ procedure vrq_valuator(handle, valuator_in: smallint; out valuator_out, terminat
 procedure vsm_valuator(handle, val_in: smallint; out val_out, term, status: smallint);
 procedure vrq_choice(handle, ch_in: smallint; out ch_out: smallint);
 function vsm_choice(handle: smallint; out choice: smallint): smallint;
-procedure vrq_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resString: string);
-function vsm_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resString: string): smallint;
+procedure vrq_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resstring: shortstring);
+function vsm_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resstring: shortstring): smallint;
 
 function vst_color(handle: smallint; color_index: smallint): smallint;
 function vsf_color(handle: smallint; color_index: smallint): smallint;
@@ -191,7 +191,7 @@ procedure vsf_udpat(handle: smallint; pfill_pat: Pointer; planes: smallint);
 procedure vsl_udsty(handle, pattern: smallint);
 procedure vr_recfl(handle: smallint; const pxyarray: ARRAY_4);
 procedure vqin_mode(handle, dev_type: smallint; out input_mode: smallint);
-procedure vqt_extent(handle: smallint; calcString: pchar; extent: psmallint); overload;
+procedure vqt_extent(handle: smallint; calcshortstring: PAnsiChar; extent: psmallint); overload;
 function vqt_width(handle, character: smallint; out cell_width, left_delta, right_delta: smallint): smallint;
 
 procedure vex_timv(handle: smallint; tim_addr: Pointer; out otim_addr: Pointer; out tim_conv: smallint);
@@ -214,20 +214,20 @@ procedure vs_clip(handle: smallint; clip_flag: smallint; pxyarray: psmallint);
 procedure vs_clip(handle, clip_flag: smallint; const pxyarray: ARRAY_4);
 procedure vs_clip_off(handle: smallint);
 
-function vqt_name(handle, element_num: smallint; out name: String33): smallint;
+function vqt_name(handle, element_num: smallint; out name: string33): smallint;
 procedure vqt_fontinfo(handle: smallint;
         out minADE, maxADE: smallint;
         out distances: ARRAY_5;
         out maxwidth: smallint;
         out effects: ARRAY_3);
 
-procedure vqt_justified(handle, x, y: smallint; const outString: String;
+procedure vqt_justified(handle, x, y: smallint; const outstring: shortstring;
             length, word_space, char_space: smallint;
             offsets: Pointer);
 
 procedure vst_width(handle, width: smallint; out char_width, char_height, cell_width, cell_height: smallint);
 procedure vqt_fontheader(handle: smallint; buffer: Pointer;
-                         out pathname: String);
+                         out pathname: shortstring);
 procedure vqt_trackkern(handle: smallint; out x, y: fix31);
 procedure vqt_pairkern(handle, ch1, ch2: smallint; out x, y: fix31);
 procedure vst_charmap(handle, mode: smallint);
@@ -239,9 +239,9 @@ procedure v_getbitmap_info(handle, ch: smallint;
                            out width, height: smallint;
                            out bitmap: pointer);
 
-procedure v_ftext(handle, x, y: smallint; const str: String);
+procedure v_ftext(handle, x, y: smallint; const str: shortstring);
 procedure v_ftext_offset(handle, x, y: smallint;
-                         const outputstring: string;
+                         const outputstring: shortstring;
                          const offset: Array of smallint);
 procedure v_killoutline(handle: smallint; component: Pointer);
 procedure v_getoutline(handle, ch: smallint;
@@ -259,15 +259,15 @@ procedure vqt_advance(handle, ch: smallint; out advx, advy, remx, remy: smallint
 procedure vqt_advance32(handle, ch: smallint; out advx, advy: fix31);
 function vq_devinfo(handle, devnum: smallint;
                       out devexists: smallint;
-                      out filename: String;
-                      out devicename: String): smallint;
+                      out filename: shortstring;
+                      out devicename: shortstring): smallint;
 procedure vqt_devinfo(handle, devnum: smallint;
                       out dev_busy: smallint;
-                      out filename: String;
-                      out devicename: String);
+                      out filename: shortstring;
+                      out devicename: shortstring);
 
-function v_savecache(handle: smallint; const filename: String): smallint;
-function v_loadcache(handle: smallint; const filename: String; mode: smallint): smallint;
+function v_savecache(handle: smallint; const filename: shortstring): smallint;
+function v_loadcache(handle: smallint; const filename: shortstring; mode: smallint): smallint;
 function v_flushcache(handle: smallint): smallint;
 function vst_setsize(handle, point: smallint;
                      out chwd, chht, cellwd, cellht: smallint): smallint;
@@ -405,7 +405,7 @@ const
     ptsout: @_ptsout;
   ); public name 'vdipb';
 
-function string_to_vdi(const src: String; dst: psmallint): smallint;
+function string_to_vdi(const src: shortstring; dst: psmallint): smallint;
 var
   i, len: longint;
 begin
@@ -416,7 +416,7 @@ begin
   string_to_vdi:=len;
 end;
 
-procedure vdi_to_string(src: psmallint; out dst: String; len: longint);
+procedure vdi_to_string(src: psmallint; out dst: shortstring; len: longint);
 var
   i: longint;
 begin
@@ -463,19 +463,19 @@ asm
   movea.l     (a7)+,a2
 end;
 
-procedure vdi_str_to_pchar(src: psmallint; des: pchar; len: smallint);
+procedure vdi_str_to_pchar(src: psmallint; des: PAnsiChar; len: smallint);
 begin
   while len > 0 do
     begin
-      des[0]:=char(src[0]); {* Only low byte *}
+      des[0]:=AnsiChar(src[0]); {* Only low byte *}
       inc(src);
       inc(des);
       dec(len);
     end;
-  des[0]:=#0; {* End of string *}
+  des[0]:=#0; {* End of shortstring *}
 end;
 
-function pchar_str_to_vdi(src: pchar; des: psmallint): longint;
+function pchar_str_to_vdi(src: PAnsiChar; des: psmallint): longint;
 var
   len: longint;
 begin
@@ -670,10 +670,10 @@ begin
   vdi;
 end;
 
-procedure v_curtext(handle: smallint; const outString: String);
+procedure v_curtext(handle: smallint; const outstring: shortstring);
 var len: longint;
 begin
-  len:=string_to_vdi(outString, @_intin[0]);
+  len:=string_to_vdi(outstring, @_intin[0]);
   _contrl[0]:=5;
   _contrl[1]:=0;
   _contrl[3]:=len;
@@ -804,7 +804,7 @@ begin
   vdi;
 end;
 
-procedure v_bit_image(handle: smallint; const filename: string;
+procedure v_bit_image(handle: smallint; const filename: shortstring;
                 aspect, x_scale, y_scale, h_align, v_align: smallint;
                 const xyarray: ARRAY_4);
 var len: longint;
@@ -845,10 +845,10 @@ begin
   div_fac:=_intout[4];
 end;
 
-procedure v_alpha_text(handle: smallint; const outString: String);
+procedure v_alpha_text(handle: smallint; const outstring: shortstring);
 var len: longint;
 begin
-  len:=string_to_vdi(outString, @_intin[0]);
+  len:=string_to_vdi(outstring, @_intin[0]);
   _contrl[0]:=5;
   _contrl[1]:=0;
   _contrl[3]:=len;
@@ -1052,7 +1052,7 @@ begin
   vdi;
 end;
 
-function vqp_filmname(handle, index: smallint; out name: String): smallint;
+function vqp_filmname(handle, index: smallint; out name: shortstring): smallint;
 begin
   _intin[0]:=index;
   _contrl[0]:=5;
@@ -1159,7 +1159,7 @@ begin
   v_bez_qual:=_intout[0];
 end;
 
-procedure vm_filename(handle: smallint; const filename: String);
+procedure vm_filename(handle: smallint; const filename: shortstring);
 var len: longint;
 begin
   len:=string_to_vdi(filename, @_intin[0]);
@@ -1294,7 +1294,7 @@ begin
   vdi(@pb);
 end;
 
-procedure v_gtext(handle: smallint; x: smallint; y: smallint; outputstring: pchar);
+procedure v_gtext(handle: smallint; x: smallint; y: smallint; outputstring: PAnsiChar);
 var len: smallint;
 begin
   _ptsin[0]:=x;
@@ -1311,7 +1311,7 @@ begin
   vdi;
 end;
 
-procedure v_gtext(handle, x, y: smallint; const outputstring: string);
+procedure v_gtext(handle, x, y: smallint; const outputstring: shortstring);
 var len: smallint;
 begin
   _ptsin[0]:=x;
@@ -1554,7 +1554,7 @@ begin
 end;
 
 procedure v_justified(handle, x, y: smallint;
-        const outputstring: string;
+        const outputstring: shortstring;
         width, wordspace, charspace: smallint);
 var len: smallint;
 begin
@@ -1955,7 +1955,7 @@ begin
   vsm_choice:=_contrl[4];
 end;
 
-procedure vrq_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resString: string);
+procedure vrq_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resstring: shortstring);
 begin
   _intin[0]:=max_length;
   _intin[1]:=echo_mode;
@@ -1971,10 +1971,10 @@ begin
 
   vdi;
 
-  vdi_to_string(@_intout, resString, _contrl[4]);
+  vdi_to_string(@_intout, resstring, _contrl[4]);
 end;
 
-function vsm_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resString: string): smallint;
+function vsm_string(handle, max_length, echo_mode: smallint; const echo_xy: ARRAY_2; out resstring: shortstring): smallint;
 begin
   _intin[0]:=max_length;
   _intin[1]:=echo_mode;
@@ -1990,7 +1990,7 @@ begin
 
   vdi;
 
-  vdi_to_string(@_intout, resString, _contrl[4]);
+  vdi_to_string(@_intout, resstring, _contrl[4]);
   vsm_string:=_contrl[4];
 end;
 
@@ -2450,10 +2450,10 @@ begin
   input_mode:=_intout[0];
 end;
 
-procedure vqt_extent(handle: smallint; calcString: pchar; extent: psmallint);
+procedure vqt_extent(handle: smallint; calcshortstring: PAnsiChar; extent: psmallint);
 var len: smallint;
 begin
-  len:=pchar_str_to_vdi(calcstring, @_intin[0]);
+  len:=pchar_str_to_vdi(calcshortstring, @_intin[0]);
   _contrl[0]:=116;
   _contrl[1]:=0;
   _contrl[3]:=len;
@@ -2703,7 +2703,7 @@ begin
   vdi;
 end;
 
-function vqt_name(handle, element_num: smallint; out name: String33): smallint;
+function vqt_name(handle, element_num: smallint; out name: string33): smallint;
 begin
   _intin[0]:=element_num;
 
@@ -2747,7 +2747,7 @@ begin
   effects[2]:=_ptsout[6];
 end;
 
-procedure vqt_justified(handle, x, y: smallint; const outString: String;
+procedure vqt_justified(handle, x, y: smallint; const outstring: shortstring;
             length, word_space, char_space: smallint;
             offsets: Pointer);
 var len: smallint;
@@ -2807,7 +2807,7 @@ begin
 end;
 
 procedure vqt_fontheader(handle: smallint; buffer: Pointer;
-                         out pathname: String);
+                         out pathname: shortstring);
 begin
   Ppointer(@_intin[0])^:=buffer;
   _contrl[0]:=232;
@@ -2936,7 +2936,7 @@ begin
 end;
 
 
-procedure v_ftext(handle, x, y: smallint; const str: String);
+procedure v_ftext(handle, x, y: smallint; const str: shortstring);
 var len: longint;
 begin
   len:=string_to_vdi(str, @_intin[0]);
@@ -2952,7 +2952,7 @@ begin
 end;
 
 procedure v_ftext_offset(handle, x, y: smallint;
-                         const outputstring: string;
+                         const outputstring: shortstring;
                          const offset: Array of smallint);
 var i, len: longint;
     src, dst: psmallint;
@@ -3112,10 +3112,10 @@ end;
 
 function vq_devinfo(handle, devnum: smallint;
                       out devexists: smallint;
-                      out filename: String;
-                      out devicename: String): smallint;
+                      out filename: shortstring;
+                      out devicename: shortstring): smallint;
 var i, len: smallint;
-    ch: char;
+    ch: AnsiChar;
 begin
   _intin[0]:=devnum;
   _contrl[0]:=248;
@@ -3137,9 +3137,9 @@ begin
       (* here, the driver exists *)
       devexists:=1;
       (* set the filename. The value in vdi_intout may be "DRIVER.SYS"
-       * or "DRIVER   SYS". vdi_intout is not a nul-terminated string.
+       * or "DRIVER   SYS". vdi_intout is not a nul-terminated shortstring.
        * In both cases, this binding returns a valid filename: "DRIVER.SYS"
-       * with a null-character to ended the string.
+       * with a null-character to ended the shortstring.
        *)
       len := 0;
       for i:=0 to _contrl[4]-1 do
@@ -3160,7 +3160,7 @@ begin
         end;
       setlength(filename, len);
 
-      (* device name in ptsout is a C-String, (a nul-terminated string with 8bits per characters)
+      (* device name in ptsout is a C-shortstring, (a nul-terminated shortstring with 8bits per characters)
        * each short value (vdi_ptsout[x]) contains 2 characters.
        * When ptsout contains a device name, NVDI/SpeedoGDOS seems to always write the value "13"
        * in vdi_control[1] (hey! this should be a read only value from the VDI point of view!!!),
@@ -3181,14 +3181,14 @@ end;
 
 procedure vqt_devinfo(handle, devnum: smallint;
                       out dev_busy: smallint;
-                      out filename: String;
-                      out devicename: String);
+                      out filename: shortstring;
+                      out devicename: shortstring);
 var dummy: smallint;
 begin
   dev_busy:=vq_devinfo(handle, devnum, dummy, filename, devicename);
 end;
 
-function v_savecache(handle: smallint; const filename: String): smallint;
+function v_savecache(handle: smallint; const filename: shortstring): smallint;
 var len: longint;
 begin
   len:=string_to_vdi(filename, @_intin[0]);
@@ -3203,7 +3203,7 @@ begin
   v_savecache:=_intout[0];
 end;
 
-function v_loadcache(handle: smallint; const filename: String; mode: smallint): smallint;
+function v_loadcache(handle: smallint; const filename: shortstring; mode: smallint): smallint;
 var len: longint;
 begin
   len:=string_to_vdi(filename, @_intin[1]);

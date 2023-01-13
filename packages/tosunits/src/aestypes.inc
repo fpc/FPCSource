@@ -114,9 +114,9 @@ const
 type
     PTEDINFO = ^TTEDINFO;
     TTEDINFO = record
-        te_ptext        : Pchar;
-        te_ptmplt       : Pchar;
-        te_pvalid       : Pchar;
+        te_ptext        : PAnsiChar;
+        te_ptmplt       : PAnsiChar;
+        te_pvalid       : PAnsiChar;
         te_font         : smallint;
         te_resvd1       : smallint;
         te_just         : smallint;
@@ -131,7 +131,7 @@ type
     TICONBLK = record
         ib_pmask        : Pointer;
         ib_pdata        : Pointer;
-        ib_ptext        : Pchar;
+        ib_ptext        : PAnsiChar;
         ib_char         : smallint;
         ib_xchar        : smallint;
         ib_ychar        : smallint;
@@ -192,7 +192,7 @@ type
             G_USERDEF:  ( user_blk:     PUSERBLK    );
             G_BUTTON,
             G_STRING,
-            G_TITLE:    ( free_string:  Pchar       );
+            G_TITLE:    ( free_string:  PAnsiChar       );
             G_ICON:     ( icon_blk:     PICONBLK    );
             G_CICON:    ( cicon_blk:    PCICONBLK   );
 
@@ -788,10 +788,10 @@ type
 {* shel_write alternative structure for sh_wpcmd parameter *}
     PSHELW = ^TSHELW;
     TSHELW = record
-        newcmd: Pchar;
+        newcmd: PAnsiChar;
         psetlimit: longint;
         prenice: longint;
-        defdir: pchar;
+        defdir: PAnsiChar;
         env: pointer;
         case boolean of
           false: (uid, gid: smallint;);
