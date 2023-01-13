@@ -43,7 +43,7 @@ type
     { The number of elements allocated in the array }
     nalloc: Integer;
     { The elements in the array }
-    elts: PChar;
+    elts: PAnsiChar;
   end;
   Papr_array_header_t = ^apr_array_header_t;
   PPapr_array_header_t = ^Papr_array_header_t;
@@ -55,11 +55,11 @@ type
 { The type for each entry in a string-content table }
   apr_table_entry_t = record
     { The key for the current table entry }
-    key: PChar;          { maybe NULL in future;
+    key: PAnsiChar;          { maybe NULL in future;
                          * check when iterating thru table_elts
                          }
     { The value for the current table entry }
-    val: PChar;
+    val: PAnsiChar;
 
     { A checksum for the key, for use by the apr_table internals }
     key_checksum: apr_uint32_t;
@@ -187,7 +187,7 @@ function apr_array_append(p: Papr_pool_t;
  * @return A string containing all of the data in the array.
  }
 function apr_array_pstrcat(p: Papr_pool_t;
- const arr: Papr_array_header_t; sep: Char): PChar;
+ const arr: Papr_array_header_t; sep: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_array_pstrcat' + LibSuff12;
 
@@ -227,7 +227,7 @@ procedure apr_table_clear(t: Papr_table_t);
  * @param key The key to search for
  * @return The value associated with the key
  }
-function apr_table_get(t: Papr_table_t; key: PChar): PChar;
+function apr_table_get(t: Papr_table_t; key: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_get' + LibSuff8;
 
@@ -240,7 +240,7 @@ function apr_table_get(t: Papr_table_t; key: PChar): PChar;
  * @remark When adding data, this function makes a copy of both the key and the
  *         value.
  }
-procedure apr_table_set(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_set(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_set' + LibSuff12;
 
@@ -254,7 +254,7 @@ procedure apr_table_set(t: Papr_table_t; const key, val: PChar);
  *          the value, so care should be taken to ensure that the values will
  *          not change after they have been added..
  }
-procedure apr_table_setn(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_setn(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_setn' + LibSuff12;
 
@@ -263,7 +263,7 @@ procedure apr_table_setn(t: Papr_table_t; const key, val: PChar);
  * @param t The table to remove data from
  * @param key The key of the data being removed
  }
-procedure apr_table_unset(t: Papr_table_t; const key: PChar);
+procedure apr_table_unset(t: Papr_table_t; const key: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_unset' + LibSuff8;
 
@@ -275,7 +275,7 @@ procedure apr_table_unset(t: Papr_table_t; const key: PChar);
  * @param val The data to add
  * @remark If the key is not found, then this function acts like apr_table_add
  }
-procedure apr_table_merge(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_merge(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_merge' + LibSuff12;
 
@@ -287,7 +287,7 @@ procedure apr_table_merge(t: Papr_table_t; const key, val: PChar);
  * @param val The data to add
  * @remark If the key is not found, then this function acts like apr_table_addn
  }
-procedure apr_table_mergen(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_mergen(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_mergen' + LibSuff12;
 
@@ -300,7 +300,7 @@ procedure apr_table_mergen(t: Papr_table_t; const key, val: PChar);
  * @remark When adding data, this function makes a copy of both the key and the
  *         value.
  }
-procedure apr_table_add(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_add(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_add' + LibSuff12;
 
@@ -314,7 +314,7 @@ procedure apr_table_add(t: Papr_table_t; const key, val: PChar);
  *         value, so care should be taken to ensure that the values will not
  *         change after they have been added..
  }
-procedure apr_table_addn(t: Papr_table_t; const key, val: PChar);
+procedure apr_table_addn(t: Papr_table_t; const key, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_table_addn' + LibSuff12;
 
@@ -342,7 +342,7 @@ function apr_table_overlay(t: Papr_table_t;
  }
 type
   apr_table_do_callback_fn_t = function (rec: Pointer;
-   const key, value: PChar): Integer;
+   const key, value: PAnsiChar): Integer;
    
   Papr_table_do_callback_fn_t = ^apr_table_do_callback_fn_t;
 

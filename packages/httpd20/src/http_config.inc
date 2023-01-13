@@ -121,17 +121,17 @@ type
  }
 
   { function to call for a no-args }
-  no_args_t = function (parms: Pcmd_parms; mconfig: Pointer): PChar; cdecl;
+  no_args_t = function (parms: Pcmd_parms; mconfig: Pointer): PAnsiChar; cdecl;
   { function to call for a raw-args }
-  raw_args_t = function (parms: Pcmd_parms; mconfig: Pointer; const args: PChar): Pchar; cdecl;
+  raw_args_t = function (parms: Pcmd_parms; mconfig: Pointer; const args: PAnsiChar): PAnsiChar; cdecl;
   { function to call for a take1 }
-  take1_t = function (parms: Pcmd_parms; mconfig: Pointer; const w: PChar): PChar; cdecl;
+  take1_t = function (parms: Pcmd_parms; mconfig: Pointer; const w: PAnsiChar): PAnsiChar; cdecl;
   { function to call for a take2 }
-  take2_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2: PChar): PChar; cdecl;
+  take2_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2: PAnsiChar): PAnsiChar; cdecl;
   { function to call for a take3 }
-  take3_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2, w3: PChar): PChar; cdecl;
+  take3_t = function (parms: Pcmd_parms; mconfig: Pointer; const w, w2, w3: PAnsiChar): PAnsiChar; cdecl;
   { function to call for a flag }
-  flag_t = function (parms: Pcmd_parms; mconfig: Pointer; on_: Integer): PChar; cdecl;
+  flag_t = function (parms: Pcmd_parms; mconfig: Pointer; on_: Integer): PAnsiChar; cdecl;
 
   cmd_func_kind = ( cfk_no_args, cfk_raw_args, cfk_take1, cfk_take2, cfk_take3, cfk_flag);
   cmd_func = record
@@ -198,7 +198,7 @@ type
 
 //#else { AP_HAVE_DESIGNATED_INITIALIZER }
 
-//typedef const char *( *cmd_func) ();
+//typedef const AnsiChar *( *cmd_func) ();
 
 //# define AP_NO_ARGS  func
 //# define AP_RAW_ARGS func
@@ -240,7 +240,7 @@ type
  }
   command_struct = record
     { Name of this command }
-    name: PChar;
+    name: PAnsiChar;
     { The function to be called when this directive is parsed }
     func: cmd_func;
     { Extra data, for functions which implement multiple commands... }
@@ -252,7 +252,7 @@ type
     args_how: cmd_how;
 
     { 'usage' message, in case of syntax errors }
-    errmsg: PChar;
+    errmsg: PAnsiChar;
   end;
   command_rec = command_struct;
   Pcommand_rec = ^command_rec;
@@ -272,7 +272,7 @@ type
     getstr: getstr_t;  {< a fgets()-like function }
     close: close_t;    {< a close handler function }
     param: Pointer;    {< the argument passed to getch/getstr/close }
-    name: PChar;       {< the filename / description }
+    name: PAnsiChar;       {< the filename / description }
     line_number: cuint;{< current line number, starting at 1 }
   end;
   
@@ -314,7 +314,7 @@ type
      * derived from this field is whether a command is being called in a 
      * server context (path == NULL) or being called in a dir context 
      * (path != NULL).  }
-    path: PChar;
+    path: PAnsiChar;
     { configuration command }
     cmd: Pcommand_rec;
 
@@ -346,7 +346,7 @@ type
     module_index: Integer;
 
     { The name of the module's C file }
-    name: PChar;
+    name: PAnsiChar;
     { The handle for the DSO.  Internal use only }
     dynamic_load_handle: Pointer;
 
@@ -370,7 +370,7 @@ type
      *  @param dir The directory currently being processed.
      *  @return The per-directory structure created
      }
-    create_dir_config: function(p: Papr_pool_t; dir: PChar): Pointer; cdecl;
+    create_dir_config: function(p: Papr_pool_t; dir: PAnsiChar): Pointer; cdecl;
 
     { Function to allow all modules to merge the per directory configuration
      *  structures for two directories.
@@ -492,7 +492,7 @@ procedure ap_set_module_config(v: Pap_conf_vector_t; m: Pmodule; val: Pap_conf_v
  * @param arg The argument to the directive
  * @return An error string or NULL on success
  }
-function ap_set_string_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_string_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_string_slot';
 
 {
@@ -502,7 +502,7 @@ function ap_set_string_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PCh
  * @param arg The argument to the directive
  * @return An error string or NULL on success
  }
-function ap_set_int_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_int_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_int_slot';
 
 {
@@ -515,7 +515,7 @@ function ap_set_int_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar)
  *                  directive handler.
  * @return  0 if the method is not limited in the current scope
  }
-function ap_method_is_limited(cmd: Pcmd_parms; const method: PChar): Integer;
+function ap_method_is_limited(cmd: Pcmd_parms; const method: PAnsiChar): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_method_is_limited' + LibSuff8;
 
@@ -527,7 +527,7 @@ function ap_method_is_limited(cmd: Pcmd_parms; const method: PChar): Integer;
  * @param arg The argument to the directive
  * @return An error string or NULL on success
  }
-function ap_set_string_slot_lower(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_string_slot_lower(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_string_slot_lower';
 
 {
@@ -537,7 +537,7 @@ function ap_set_string_slot_lower(cmd: Pcmd_parms; struct_ptr: Pointer; const ar
  * @param arg The argument to the directive (either 1 or 0)
  * @return An error string or NULL on success
  }
-function ap_set_flag_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_flag_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_flag_slot';
 
 {
@@ -547,7 +547,7 @@ function ap_set_flag_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar
  * @param arg The argument to the directive
  * @return An error string or NULL on success
  }
-function ap_set_file_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_file_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_file_slot';
 
 {
@@ -562,7 +562,7 @@ function ap_set_file_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar
  *         "The Foo directive is no longer supported, use Bar"),
  * </pre>
  }
-function ap_set_deprecated(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PChar): PChar;
+function ap_set_deprecated(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiChar): PAnsiChar;
  cdecl; external LibHTTPD name 'ap_set_deprecated';
 
 {
@@ -571,7 +571,7 @@ function ap_set_deprecated(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PCha
  * @param p pool to allocate data from
  * @param fname The file name
  }
-function ap_server_root_relative(p: Papr_pool_t; const fname: PChar): PChar;
+function ap_server_root_relative(p: Papr_pool_t; const fname: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_server_root_relative' + LibSuff8;
 
@@ -622,7 +622,7 @@ procedure ap_remove_loaded_module(m: Pmodule);
  * @param p The pool valid for the lifetime of the module
  * @return 1 on success, 0 on failure
  }
-function ap_add_named_module(const name: PChar; p: Papr_pool_t): Integer;
+function ap_add_named_module(const name: PAnsiChar; p: Papr_pool_t): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_add_named_module' + LibSuff8;
 
@@ -631,7 +631,7 @@ function ap_add_named_module(const name: PChar; p: Papr_pool_t): Integer;
  * @param m The module to get the name for
  * @return the name of the module
  }
-function ap_find_module_name(m: Pmodule): PChar;
+function ap_find_module_name(m: Pmodule): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_find_module_name' + LibSuff4;
 
@@ -640,7 +640,7 @@ function ap_find_module_name(m: Pmodule): PChar;
  * @param name the name of the module
  * @return the module structure if found, NULL otherwise
  }
-function ap_find_linked_module(const name: PChar): Pmodule;
+function ap_find_linked_module(const name: PAnsiChar): Pmodule;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_find_linked_module' + LibSuff4;
 
@@ -651,7 +651,7 @@ function ap_find_linked_module(const name: PChar): Pmodule;
  * @param name the name of the file to open
  }
 function ap_pcfg_openfile(ret_cfg: PPap_configfile_t;
- p: Papr_pool_t; const name: PChar): apr_status_t;
+ p: Papr_pool_t; const name: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_pcfg_openfile' + LibSuff12;
 
@@ -670,7 +670,7 @@ type
   close_func_t = function (param: Pointer): Integer;
 
 function ap_pcfg_open_custom(p: Papr_pool_t;
- const descr: PChar; param: Pointer;
+ const descr: PAnsiChar; param: Pointer;
  getc_func: getc_func_t; gets_func: gets_func_t;
  close_func: close_func_t): Pap_configfile_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -683,13 +683,13 @@ function ap_pcfg_open_custom(p: Papr_pool_t;
  * @param cfp File to read from
  * @return 1 on success, 0 on failure
  }
-function ap_cfg_getline(bug: PChar;
+function ap_cfg_getline(bug: PAnsiChar;
  bufsize: size_t; cfp: Pap_configfile_t): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_cfg_getline' + LibSuff12;
 
 {
- * Read one char from open configfile_t, increase line number upon LF 
+ * Read one AnsiChar from open configfile_t, increase line number upon LF 
  * @param cfp The file to read from
  * @return the character read
  }
@@ -713,7 +713,7 @@ function ap_cfg_closefile(cfp: Pap_configfile_t): Integer;
  * @param directive The directive name to read until
  * @return Error string on failure, NULL on success
  }
-function ap_soak_end_container(cmd: Pcmd_parms; directive: PChar): PChar;
+function ap_soak_end_container(cmd: Pcmd_parms; directive: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_soak_end_container' + LibSuff8;
 
@@ -730,7 +730,7 @@ function ap_soak_end_container(cmd: Pcmd_parms; directive: PChar): PChar;
 }
 function ap_build_cont_config(p, temp_pool: Papr_pool_t;
  parms: Pcmd_parms; current, curr_parent: PPap_directive_t;
- orig_directive: PChar): PChar;
+ orig_directive: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_build_cont_config' + LibSuff24;
 
@@ -743,7 +743,7 @@ function ap_build_cont_config(p, temp_pool: Papr_pool_t;
  * @return Error string on erro, NULL otherwise
  }
 function ap_build_config(parms: Pcmd_parms;
- conf_pool, temp_pool: Papr_pool_t; conftree: PPap_directive_t): PChar;
+ conf_pool, temp_pool: Papr_pool_t; conftree: PPap_directive_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_build_config' + LibSuff16;
 
@@ -755,7 +755,7 @@ function ap_build_config(parms: Pcmd_parms;
  * @return Error string on error, NULL otherwise
  }
 function ap_walk_config(conftree: Pap_directive_t;
- parms: Pcmd_parms; section_vector: Pap_conf_vector_t): PChar;
+ parms: Pcmd_parms; section_vector: Pap_conf_vector_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_walk_config' + LibSuff12;
 
@@ -769,7 +769,7 @@ function ap_walk_config(conftree: Pap_directive_t;
  * @return Error string on error, NULL on success
  }
 function ap_check_cmd_context(cmd: Pcmd_parms;
- forbidden: cuint): PChar;
+ forbidden: cuint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_check_cmd_context' + LibSuff8;
 
@@ -848,7 +848,7 @@ procedure ap_show_modules;
  * Show the MPM name.  Used in reporting modules such as mod_info to
  * provide extra information to the user
  }
-function ap_show_mpm: PChar;
+function ap_show_mpm: PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_show_mpm' + LibSuff0;
 
@@ -861,7 +861,7 @@ function ap_show_mpm: PChar;
  * @return The setup server_rec list.
  }
 function ap_read_config(process: Pprocess_rec;
- temp_pool: Papr_pool_t; const config_name: PChar;
+ temp_pool: Papr_pool_t; const config_name: PAnsiChar;
  conftree: PPap_directive_t): Pserver_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_read_config' + LibSuff16;
@@ -946,7 +946,7 @@ function ap_create_conn_config(p: Papr_pool_t): Pap_conf_vector_t;
  }
 function ap_parse_htaccess(result: PPap_conf_vector_t;
  r: Prequest_rec; override_: Integer;
- const path, access_name: PChar): Integer;
+ const path, access_name: PAnsiChar): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_parse_htaccess' + LibSuff20;
 
@@ -959,8 +959,8 @@ function ap_parse_htaccess(result: PPap_conf_vector_t;
  * return Error string on error, NULL on success
  }
 function ap_init_virtual_host(p: Papr_pool_t;
- const hostname: PChar; main_server: Pserver_rec;
- m: PPserver_rec): PChar;
+ const hostname: PAnsiChar; main_server: Pserver_rec;
+ m: PPserver_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_init_virtual_host' + LibSuff16;
 
@@ -973,7 +973,7 @@ function ap_init_virtual_host(p: Papr_pool_t;
  * @param ptem Pool for temporary allocation
  }
 procedure ap_process_resource_config(s: Pserver_rec;
- const fname: PChar; conftree: PPap_directive_t;
+ const fname: PAnsiChar; conftree: PPap_directive_t;
  p, ptemp: Papr_pool_t);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_process_resource_config' + LibSuff20;
@@ -1009,7 +1009,7 @@ function ap_invoke_handler(r: Prequest_rec): Integer;
  * @param cmds The table to search
  * @return The directive definition of the specified directive
  }
-function ap_find_command(const name: PChar;
+function ap_find_command(const name: PAnsiChar;
  const cmds: Pcommand_rec): Pcommand_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_find_command' + LibSuff8;
@@ -1020,7 +1020,7 @@ function ap_find_command(const name: PChar;
  * @param mod The module list to search
  * @return The directive definition of the specified directive
  }
-function ap_find_command_in_modules(const cmd_name: PChar;
+function ap_find_command_in_modules(const cmd_name: PAnsiChar;
  mod_: PPmodule): Pcommand_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_find_command_in_modules' + LibSuff8;
@@ -1037,7 +1037,7 @@ function ap_find_command_in_modules(const cmd_name: PChar;
  * @return The (new) per-section config data.
  }
 function ap_set_config_vectors(server: Pserver_rec;
- ection_vector: Pap_conf_vector_t; const section: PChar;
+ ection_vector: Pap_conf_vector_t; const section: PAnsiChar;
  mod_: Pmodule; pconf: Papr_pool_t): Pointer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_set_config_vectors' + LibSuff20;
@@ -1055,8 +1055,8 @@ type
   ap_HOOK_header_parser_t = function(r: Prequest_rec): Integer; cdecl;
 
 procedure ap_hook_header_parser(pf: ap_HOOK_header_parser_t;
- const aszPre: PPChar; const aszSucc:
- PPChar; nOrder: Integer);
+ const aszPre: PPAnsiChar; const aszSucc:
+ PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_header_parser' + LibSuff16;
 
@@ -1071,8 +1071,8 @@ type
   ap_HOOK_pre_config_t = function(pconf: Papr_pool_t; plog: Papr_pool_t;
     ptemp: Papr_pool_t): Integer; cdecl;
 
-procedure ap_hook_pre_config(pf: ap_HOOK_pre_config_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_pre_config(pf: ap_HOOK_pre_config_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_pre_config' + LibSuff16;
 
@@ -1087,8 +1087,8 @@ procedure ap_hook_pre_config(pf: ap_HOOK_pre_config_t; const aszPre: PPChar;
 type
   ap_HOOK_post_config_t = function(pconf, plog, ptemp: Papr_pool_t; s: Pserver_rec): Integer; cdecl;
 
-procedure ap_hook_post_config(pf: ap_HOOK_post_config_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_post_config(pf: ap_HOOK_post_config_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_post_config' + LibSuff16;
 
@@ -1104,8 +1104,8 @@ type
   ap_HOOK_open_logs_t = function(pconf: Papr_pool_t; plog: Papr_pool_t;
     ptemp: Papr_pool_t; s: Pserver_rec): Integer; cdecl;
 
-procedure ap_hook_open_logs(pf: ap_HOOK_open_logs_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_open_logs(pf: ap_HOOK_open_logs_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_open_logs' + LibSuff16;
 
@@ -1117,8 +1117,8 @@ procedure ap_hook_open_logs(pf: ap_HOOK_open_logs_t; const aszPre: PPChar;
 type
   ap_HOOK_child_init_t = procedure(pchild: Papr_pool_t; s: Pserver_rec); cdecl;
 
-procedure ap_hook_child_init(pf: ap_HOOK_child_init_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_child_init(pf: ap_HOOK_child_init_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_child_init' + LibSuff16;
 
@@ -1130,8 +1130,8 @@ procedure ap_hook_child_init(pf: ap_HOOK_child_init_t; const aszPre: PPChar;
 type
   ap_HOOK_handler_t = function(r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_handler(pf: ap_HOOK_handler_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_handler(pf: ap_HOOK_handler_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_handler' + LibSuff16;
 
@@ -1151,7 +1151,7 @@ type
     lookup_uri: Integer): Integer; cdecl;
 
 procedure ap_hook_quick_handler(pf: ap_HOOK_quick_handler_t;
- const aszPre: PPChar; const aszSucc: PPChar; nOrder: Integer);
+ const aszPre: PPAnsiChar; const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_quick_handler' + LibSuff16;
 
@@ -1164,7 +1164,7 @@ type
   ap_HOOK_optional_fn_retrieve_t = procedure; cdecl;
 
 procedure ap_hook_optional_fn_retrieve(pf: ap_HOOK_optional_fn_retrieve_t;
- const aszPre: PPChar; const aszSucc: PPChar; nOrder: Integer);
+ const aszPre: PPAnsiChar; const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_optional_fn_retrieve' + LibSuff16;
 

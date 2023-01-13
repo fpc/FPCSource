@@ -84,7 +84,7 @@ const
 // external LibAPRIconv name LibNamePrefix + 'api_version' + LibSuff4;
 
 { Return API's version information as a string. }
-//function api_version_string: PChar;
+//function api_version_string: PAnsiChar;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
 // external LibAPRIconv name LibNamePrefix + 'api_version_string' + LibSuff0;
 

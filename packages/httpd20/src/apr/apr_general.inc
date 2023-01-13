@@ -78,7 +78,7 @@ type
 //#else { ! (CRAY || __arm) }
 
 //#define APR_OFFSET(p_type,field) \
-//        ((long) (((char *) (&(((p_type)NULL)->field))) - ((char *) NULL)))
+//        ((long) (((AnsiChar *) (&(((p_type)NULL)->field))) - ((AnsiChar *) NULL)))
 
 //#endif { !CRAY }
 
@@ -108,13 +108,13 @@ type
 {#if (!APR_HAVE_STRCASECMP) && (APR_HAVE_STRICMP)
 #define strcasecmp(s1, s2) stricmp(s1, s2)
 #elif (!APR_HAVE_STRCASECMP)
-int strcasecmp(const char *a, const char *b);
+int strcasecmp(const AnsiChar *a, const AnsiChar *b);
 #endif
 
 #if (!APR_HAVE_STRNCASECMP) && (APR_HAVE_STRNICMP)
 #define strncasecmp(s1, s2, n) strnicmp(s1, s2, n)
 #elif (!APR_HAVE_STRNCASECMP)
-int strncasecmp(const char *a, const char *b, size_t n);
+int strncasecmp(const AnsiChar *a, const AnsiChar *b, size_t n);
 #endif}
 
 {$endif}
@@ -174,7 +174,7 @@ function apr_initialize: apr_status_t;
  * Otherwise, this call is identical to apr_initialize, and must be closed
  * with a call to apr_terminate at the end of program execution.
  }
-function apr_app_initialize(argc: PInteger; argv, env: PPChar): apr_status_t;
+function apr_app_initialize(argc: PInteger; argv, env: PPAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_app_initialize' + LibSuff12;
 
@@ -215,11 +215,11 @@ procedure apr_terminate2;
  * @param length Length of buffer in bytes (becomes apr_size_t in APR 1.0)
  }
 {$ifdef APR_ENABLE_FOR_1_0}
-function apr_generate_random_bytes(buf: PChar; length: apr_size_t): apr_status_t;
+function apr_generate_random_bytes(buf: PAnsiChar; length: apr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_generate_random_bytes' + LibSuff8;
 {$else}
-function apr_generate_random_bytes(buf: PChar; length: Integer): apr_status_t;
+function apr_generate_random_bytes(buf: PAnsiChar; length: Integer): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_generate_random_bytes' + LibSuff8;
 {$endif}

@@ -76,23 +76,23 @@ type
  }
   apr_uri_t = record
     { scheme ("http"/"ftp"/...) }
-    scheme: PChar;
+    scheme: PAnsiChar;
     { combined [user[:password]\@]host[:port] }
-    hostinfo: PChar;
+    hostinfo: PAnsiChar;
     { user name, as in http://user:passwd\@host:port/ }
-    user: PChar;
+    user: PAnsiChar;
     { password, as in http://user:passwd\@host:port/ }
-    password: PChar;
+    password: PAnsiChar;
     { hostname from URI (or from Host: header) }
-    hostname: PChar;
+    hostname: PAnsiChar;
     { port string (integer representation is in "port") }
-    port_str: PChar;
+    port_str: PAnsiChar;
     { the request path (or "/" if only scheme://host was given) }
-    path: PChar;
+    path: PAnsiChar;
     { Everything after a '?' in the path, if present }
-    query: PChar;
+    query: PAnsiChar;
     { Trailing "#fragment" string, if present }
-    fragment: PChar;
+    fragment: PAnsiChar;
 
     { structure returned from gethostbyname() }
     hostent: Pointer;
@@ -116,12 +116,12 @@ type
  * @param scheme_str The string that contains the current scheme
  * @return The default port for this scheme
  }
-function apr_uri_port_of_scheme(const scheme_str: PChar): apr_port_t;
+function apr_uri_port_of_scheme(const scheme_str: PAnsiChar): apr_port_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_uri_port_of_scheme' + LibSuff4;
 
 { @deprecated @see apr_uri_port_of_scheme }
-function apr_uri_default_port_for_scheme(const scheme_str: PChar): apr_port_t;
+function apr_uri_default_port_for_scheme(const scheme_str: PAnsiChar): apr_port_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_uri_default_port_for_scheme' + LibSuff4;
 
@@ -143,7 +143,7 @@ function apr_uri_default_port_for_scheme(const scheme_str: PChar): apr_port_t;
  * @return The uri as a string
  }
 function apr_uri_unparse(p: Papr_pool_t; const uptr: Papr_uri_t;
- flags: cuint): PChar;
+ flags: cuint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_uri_unparse' + LibSuff12;
 
@@ -156,7 +156,7 @@ function apr_uri_unparse(p: Papr_pool_t; const uptr: Papr_uri_t;
  * @param uptr The apr_uri_t to fill out
  * @return APR_SUCCESS for success or error code
  }
-function apr_uri_parse(p: Papr_pool_t; const uri: PChar;
+function apr_uri_parse(p: Papr_pool_t; const uri: PAnsiChar;
  uptr: Papr_uri_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_uri_parse' + LibSuff12;
@@ -169,7 +169,7 @@ function apr_uri_parse(p: Papr_pool_t; const uri: PChar;
  * @return APR_SUCCESS for success or error code
  }
 function apr_uri_parse_hostinfo(p: Papr_pool_t;
- const hostinfo: PChar; uptr: Papr_uri_t): apr_status_t;
+ const hostinfo: PAnsiChar; uptr: Papr_uri_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_uri_parse_hostinfo' + LibSuff12;
 

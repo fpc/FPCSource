@@ -13,7 +13,7 @@ implementation
  
 function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
-  RequestedHandler: string;
+  RequestedHandler: ;
 begin 
   RequestedHandler := r^.handler;
 

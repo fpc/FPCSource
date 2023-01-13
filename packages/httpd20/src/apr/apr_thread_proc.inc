@@ -129,7 +129,7 @@ type
      * builds - since it breaks binary compatibility.  We may enable
      * it always in APR 1.0 yet leave it undefined in most cases.
      }
-    invoked: PChar;
+    invoked: PAnsiChar;
 {$endif}
 {$if defined(WINDOWS) or defined(DOXYGEN)}
     { (Win32 only) Creator's handle granting access to the process
@@ -155,7 +155,7 @@ type
  * @param description Text description of type of processing which failed
  }
   apr_child_errfn_t = procedure (proc: Papr_pool_t;
-   err: apr_status_t; const description: PChar);
+   err: apr_status_t; const description: PAnsiChar);
 
 { Opaque Thread structure. }
   apr_thread_t = record end;
@@ -318,7 +318,7 @@ function apr_thread_detach(thd: Papr_thread_t): apr_status_t;
  * @param key The key to associate with the data
  * @param thread The currently open thread.
  }
-function apr_thread_data_get(data: PPointer; const key: PChar;
+function apr_thread_data_get(data: PPointer; const key: PAnsiChar;
  thread: Papr_thread_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_thread_data_get' + LibSuff12;
@@ -330,7 +330,7 @@ function apr_thread_data_get(data: PPointer; const key: PChar;
  * @param cleanup The cleanup routine to use when the thread is destroyed.
  * @param thread The currently open thread.
  }
-function apr_thread_data_set(data: Pointer; const key: PChar;
+function apr_thread_data_set(data: Pointer; const key: PAnsiChar;
  cleanup: cleanup_t; thread: Papr_thread_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_thread_data_set' + LibSuff16;
@@ -381,7 +381,7 @@ function apr_threadkey_private_delete(key: Papr_threadkey_t): apr_status_t;
  * @param key The key associated with the data
  * @param threadkey The currently open threadkey.
  }
-function apr_threadkey_data_get(data: PPointer; const key: PChar;
+function apr_threadkey_data_get(data: PPointer; const key: PAnsiChar;
  threadkey: Papr_threadkey_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_threadkey_data_get' + LibSuff12;
@@ -393,7 +393,7 @@ function apr_threadkey_data_get(data: PPointer; const key: PChar;
  * @param cleanup The cleanup routine to use when the file is destroyed.
  * @param threadkey The currently open threadkey.
  }
-function apr_threadkey_data_set(data: Pointer; const key: PChar;
+function apr_threadkey_data_set(data: Pointer; const key: PAnsiChar;
  cleanup: cleanup_t; threadkey: Papr_threadkey_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_threadkey_data_set' + LibSuff16;
@@ -476,7 +476,7 @@ function apr_procattr_child_err_set(attr: Papr_procattr_t;
  *            the parent currently resides in, when the createprocess call
  *            is made. 
  }
-function apr_procattr_dir_set(attr: Papr_procattr_t; const dir: PChar): apr_status_t;
+function apr_procattr_dir_set(attr: Papr_procattr_t; const dir: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_procattr_dir_set' + LibSuff8;
 
@@ -594,7 +594,7 @@ function apr_proc_fork(proc: Papr_proc_t; cont: Papr_pool_t): apr_status_t;
  * @param cont The pool to use. 
  }
 function apr_proc_create(new_proc: Papr_proc_t;
- const progname: PChar; args, arnv: PPChar;
+ const progname: PAnsiChar; args, arnv: PPAnsiChar;
  attr: Papr_procattr_t;
  cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

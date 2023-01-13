@@ -65,7 +65,7 @@
  *          this returns <0, if they are equivalent it returns 0, and if the
  *          first string is greater than second string it retuns >0.
  }
-function apr_strnatcmp(a, b: PChar): Integer;
+function apr_strnatcmp(a, b: PAnsiChar): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_strnatcmp' + LibSuff8;
 
@@ -78,7 +78,7 @@ function apr_strnatcmp(a, b: PChar): Integer;
  *         this returns <0, if they are equivalent it returns 0, and if the
  *         first string is greater than second string it retuns >0.
  }
-function apr_strnatcasecmp(a, b: PChar): Integer;
+function apr_strnatcasecmp(a, b: PAnsiChar): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_strnatcasecmp' + LibSuff8;
 
@@ -88,7 +88,7 @@ function apr_strnatcasecmp(a, b: PChar): Integer;
  * @param s The string to duplicate
  * @return The new string
  }
-function apr_pstrdup(p: Papr_pool_t; s: PChar): PChar;
+function apr_pstrdup(p: Papr_pool_t; s: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pstrdup' + LibSuff8;
 
@@ -104,7 +104,7 @@ function apr_pstrdup(p: Papr_pool_t; s: PChar): PChar;
  *         has 'n' or more characters.  If the string might contain
  *         fewer characters, use apr_pstrndup.
  }
-function apr_pstrmemdup(p: Papr_pool_t; s: PChar; n: apr_size_t): PChar;
+function apr_pstrmemdup(p: Papr_pool_t; s: PAnsiChar; n: apr_size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pstrmemdup' + LibSuff12;
 
@@ -116,7 +116,7 @@ function apr_pstrmemdup(p: Papr_pool_t; s: PChar; n: apr_size_t): PChar;
  * @param n The number of characters to duplicate
  * @return The new string
  }
-function apr_pstrndup(p: Papr_pool_t; s: PChar; n: apr_size_t): PChar;
+function apr_pstrndup(p: Papr_pool_t; s: PAnsiChar; n: apr_size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pstrndup' + LibSuff12;
 
@@ -138,7 +138,7 @@ function apr_pmemdup(p: Papr_pool_t; m: Pointer; n: apr_size_t): Pointer;
  * @param ... The strings to concatenate.  The final string must be NULL
  * @return The new string
  }
-function apr_pstrcat(p: Papr_pool_t; others: array of const): PChar;
+function apr_pstrcat(p: Papr_pool_t; others: array of const): PAnsiChar;
  cdecl; external LibAPR name 'apr_pstrcat';
 
 {
@@ -150,7 +150,7 @@ function apr_pstrcat(p: Papr_pool_t; others: array of const): PChar;
  * @return The new string
  }
 function apr_pstrcatv(p: Papr_pool_t; const vec: Piovec;
- nvec: apr_size_t; nbytes: Papr_size_t): PChar;
+ nvec: apr_size_t; nbytes: Papr_size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pstrcatv' + LibSuff16;
 
@@ -162,7 +162,7 @@ function apr_pstrcatv(p: Papr_pool_t; const vec: Piovec;
  * @param ap The arguments to use while printing the data
  * @return The new string
  }
-function apr_pvsprintf(p: Papr_pool_t; const fmt: PChar; ap: va_list): PChar;
+function apr_pvsprintf(p: Papr_pool_t; const fmt: PAnsiChar; ap: va_list): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_pvsprintf' + LibSuff12;
 
@@ -174,7 +174,7 @@ function apr_pvsprintf(p: Papr_pool_t; const fmt: PChar; ap: va_list): PChar;
  * @param ... The arguments to use while printing the data
  * @return The new string
  }
-function apr_psprintf(p: Papr_pool_t; const fmt: PChar; others: array of const): PChar;
+function apr_psprintf(p: Papr_pool_t; const fmt: PAnsiChar; others: array of const): PAnsiChar;
  cdecl; external LibAPR name 'apr_psprintf';
 
 {
@@ -196,8 +196,8 @@ function apr_psprintf(p: Papr_pool_t; const fmt: PChar; others: array of const):
  *          to allow us to check for truncation.
  * </PRE>
  }
-function apr_cpystrn(dst: PChar; const src: PChar;
- dst_size: apr_size_t): PChar;
+function apr_cpystrn(dst: PAnsiChar; const src: PAnsiChar;
+ dst_size: apr_size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_cpystrn' + LibSuff12;
 
@@ -207,7 +207,7 @@ function apr_cpystrn(dst: PChar; const src: PChar;
  *             in place.  Namely dest == src
  * @param src The string to rid the spaces from.
  }
-function apr_collapse_spaces(dst: PChar; const src: PChar): PChar;
+function apr_collapse_spaces(dst: PAnsiChar; const src: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_collapse_spaces' + LibSuff8;
 
@@ -218,8 +218,8 @@ function apr_collapse_spaces(dst: PChar; const src: PChar): PChar;
  * @param argv_out Output location.  This is a pointer to an array of strings.
  * @param token_context Pool to use.
  }
-function apr_tokenize_to_argv(const arg_str: PChar;
- var argv_out: PPChar; token_context: Papr_pool_t): apr_status_t;
+function apr_tokenize_to_argv(const arg_str: PAnsiChar;
+ var argv_out: PPAnsiChar; token_context: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_tokenize_to_argv' + LibSuff12;
 
@@ -234,8 +234,8 @@ function apr_tokenize_to_argv(const arg_str: PChar;
  * @param last Internal state saved by apr_strtok() between calls.
  * @return The next token from the string
  }
-function apr_strtok(str: PChar;
- const sep: PChar; last: PPChar): PChar;
+function apr_strtok(str: PAnsiChar;
+ const sep: PAnsiChar; last: PPAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_strtok' + LibSuff12;
 
@@ -269,8 +269,8 @@ function apr_strtok(str: PChar;
  * @param format The format string
  * @param ... The arguments to use to fill out the format string.
  }
-function apr_snprintf(buf: PChar; len: apr_size_t;
- const format: PChar; others: array of const): PChar;
+function apr_snprintf(buf: PAnsiChar; len: apr_size_t;
+ const format: PAnsiChar; others: array of const): PAnsiChar;
  cdecl; external LibAPR name 'apr_snprintf';
 
 {
@@ -281,8 +281,8 @@ function apr_snprintf(buf: PChar; len: apr_size_t;
  * @param format The format string
  * @param ap The arguments to use to fill out the format string.
  }
-function apr_vsnprintf(buf: PChar; len: apr_size_t;
- const format: PChar; ap: va_list): Integer;
+function apr_vsnprintf(buf: PAnsiChar; len: apr_size_t;
+ const format: PAnsiChar; ap: va_list): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_vsnprintf' + LibSuff16;
 
@@ -292,7 +292,7 @@ function apr_vsnprintf(buf: PChar; len: apr_size_t;
  * @param n The number to format
  * @return The string representation of the number
  }
-function apr_itoa(p: Papr_pool_t; n: Integer): PChar;
+function apr_itoa(p: Papr_pool_t; n: Integer): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_itoa' + LibSuff8;
 
@@ -302,7 +302,7 @@ function apr_itoa(p: Papr_pool_t; n: Integer): PChar;
  * @param n The number to format
  * @return The string representation of the number
  }
-function apr_ltoa(p: Papr_pool_t; n: Integer): PChar;
+function apr_ltoa(p: Papr_pool_t; n: Integer): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_ltoa' + LibSuff8;
 
@@ -312,7 +312,7 @@ function apr_ltoa(p: Papr_pool_t; n: Integer): PChar;
  * @param n The number to format
  * @return The string representation of the number
  }
-function apr_off_t_toa(p: Papr_pool_t; n: apr_off_t): PChar;
+function apr_off_t_toa(p: Papr_pool_t; n: apr_off_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_off_t_toa' + LibSuff12;
 
@@ -330,17 +330,17 @@ function apr_off_t_toa(p: Papr_pool_t; n: apr_off_t): PChar;
  *   base 16.
  * @return The numeric value of the string.
  }
-function apr_strtoi64(const buf: PChar; end_: PPChar; base: Integer): apr_int64_t;
+function apr_strtoi64(const buf: PAnsiChar; end_: PPAnsiChar; base: Integer): apr_int64_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_strtoi64' + LibSuff12;
 
 {
  * parse a base-10 numeric string into a 64-bit numeric value.
- * Equivalent to apr_strtoi64(buf, (char**)NULL, 10).
+ * Equivalent to apr_strtoi64(buf, (AnsiChar**)NULL, 10).
  * @param buf The string to parse
  * @return The numeric value of the string
  }
-function apr_atoi64(const buf: PChar): apr_int64_t;
+function apr_atoi64(const buf: PAnsiChar): apr_int64_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_atoi64' + LibSuff4;
 
@@ -352,7 +352,7 @@ function apr_atoi64(const buf: PChar): apr_int64_t;
  * @return The buf passed to apr_strfsize()
  * @remark All negative sizes report '  - ', apr_strfsize only formats positive values.
  }
-function apr_strfsize(size: apr_off_t; buf: PChar): PChar;
+function apr_strfsize(size: apr_off_t; buf: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_strfsize' + LibSuff12;
 

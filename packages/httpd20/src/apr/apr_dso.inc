@@ -56,7 +56,7 @@ type
  * @bug We aught to provide an alternative to RTLD_GLOBAL, which
  * is the only supported method of loading DSOs today.
  }
-function apr_dso_load(res_handle: PPapr_dso_handle_t; const path: PChar;
+function apr_dso_load(res_handle: PPapr_dso_handle_t; const path: PAnsiChar;
  ctx: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dso_load' + LibSuff12;
@@ -76,7 +76,7 @@ function apr_dso_unload(handle: Papr_dso_handle_t): apr_status_t;
  * @param symname Name of the symbol to load.
  }
 function apr_dso_sym(ressym: Papr_dso_handle_t; handle: Papr_dso_handle_t;
- const symname: PChar): apr_status_t;
+ const symname: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dso_sym' + LibSuff12;
 
@@ -86,8 +86,8 @@ function apr_dso_sym(ressym: Papr_dso_handle_t; handle: Papr_dso_handle_t;
  * @param buf Location to store the dso error
  * @param bufsize The size of the provided buffer
  }
-function apr_dso_error(dso: Papr_dso_handle_t; buf: PChar;
- bufsize: apr_size_t): PChar;
+function apr_dso_error(dso: Papr_dso_handle_t; buf: PAnsiChar;
+ bufsize: apr_size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_dso_error' + LibSuff12;
 

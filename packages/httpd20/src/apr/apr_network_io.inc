@@ -208,9 +208,9 @@ type
     { The pool to use... }
     pool: Papr_pool_t;
     { The hostname }
-    hostname: PChar;
+    hostname: PAnsiChar;
     { Either a string of the port number or the service name for the port }
-    servname: PChar;
+    servname: PAnsiChar;
     { The numeric port }
     port: apr_port_t;
     { The family }
@@ -409,7 +409,7 @@ function apr_socket_connect(sock: Papr_socket_t; sa: Papr_sockaddr_t): apr_statu
  * @param p The pool for the apr_sockaddr_t and associated storage.
  }
 function apr_sockaddr_info_get(sa: PPapr_socket_t;
- const hostname: PChar; family: apr_int32_t;
+ const hostname: PAnsiChar; family: apr_int32_t;
  port: apr_port_t; flags: apr_int32_t; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_sockaddr_info_get' + LibSuff24;
@@ -420,7 +420,7 @@ function apr_sockaddr_info_get(sa: PPapr_socket_t;
  * @param sa The apr_sockaddr_t.
  * @param flags Special processing flags.
  }
-function apr_getnameinfo(hostname: PPChar; sa: Papr_socket_t; flags: apr_int32_t): apr_status_t;
+function apr_getnameinfo(hostname: PPAnsiChar; sa: Papr_socket_t; flags: apr_int32_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_getnameinfo' + LibSuff12;
 
@@ -454,8 +454,8 @@ function apr_getnameinfo(hostname: PPChar; sa: Papr_socket_t; flags: apr_int32_t
  *         required, check for addr == NULL in addition to checking the 
  *         return code.
  }
-function apr_parse_addr_port(addr, scope_id: PPChar; port: Papr_port_t;
- const str: PChar; p: Papr_pool_t): apr_status_t;
+function apr_parse_addr_port(addr, scope_id: PPAnsiChar; port: Papr_port_t;
+ const str: PAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_parse_addr_port' + LibSuff20;
 
@@ -467,7 +467,7 @@ function apr_parse_addr_port(addr, scope_id: PPChar; port: Papr_port_t;
  * @param cont The pool to use.
  * @remark If the buffer was not large enough, an error will be returned.
  }
-function apr_gethostname(buf: PChar; len: Integer; cont: Papr_pool_t): apr_status_t;
+function apr_gethostname(buf: PAnsiChar; len: Integer; cont: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_gethostname' + LibSuff12;
 
@@ -477,7 +477,7 @@ function apr_gethostname(buf: PChar; len: Integer; cont: Papr_pool_t): apr_statu
  * @param key The key to associate with the user data.
  * @param sock The currently open socket.
  }
-function apr_socket_data_get(data: PPointer; const key: PChar;
+function apr_socket_data_get(data: PPointer; const key: PAnsiChar;
  sock: Papr_sockaddr_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_data_get' + LibSuff12;
@@ -493,7 +493,7 @@ type
   cleanup_t = function (param: Pointer): apr_status_t;
   
 function apr_socket_data_set(sock: Papr_socket_t; data: Pointer;
- const key: PChar; cleanup: cleanup_t): apr_status_t;
+ const key: PAnsiChar; cleanup: cleanup_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_data_set' + LibSuff16;
 
@@ -513,13 +513,13 @@ function apr_socket_data_set(sock: Papr_socket_t; data: Pointer;
  * APR_EINTR is never returned.
  * </PRE>
  }
-function apr_socket_send(sock: Papr_socket_t; const buf: PChar;
+function apr_socket_send(sock: Papr_socket_t; const buf: PAnsiChar;
  len: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_send' + LibSuff12;
 
 { @deprecated @see apr_socket_send }
-{APR_DECLARE(apr_status_t) apr_send(apr_socket_t *sock, const char *buf,
+{APR_DECLARE(apr_status_t) apr_send(apr_socket_t *sock, const AnsiChar *buf,
                                    apr_size_t *len);}
 
 {
@@ -557,13 +557,13 @@ function apr_socket_sendv(sock: Papr_socket_t; const vec: Piovec;
  * @param len  The length of the data to send
  }
 function apr_socket_sendto(sock: Papr_socket_t; where: Papr_sockaddr_t;
- flags: apr_int32_t; const buf: PChar; len: Papr_size_t): apr_status_t;
+ flags: apr_int32_t; const buf: PAnsiChar; len: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_sendto' + LibSuff20;
 
 { @deprecated @see apr_socket_sendto }
 {APR_DECLARE(apr_status_t) apr_sendto(apr_socket_t *sock, apr_sockaddr_t *where,
-                                     apr_int32_t flags, const char *buf, 
+                                     apr_int32_t flags, const AnsiChar *buf, 
                                      apr_size_t *len);}
 
 {
@@ -574,13 +574,13 @@ function apr_socket_sendto(sock: Papr_socket_t; where: Papr_sockaddr_t;
  * @param len  The length of the available buffer
  }
 function apr_socket_recvfrom(from: Papr_sockaddr_t; sock: Papr_socket_t;
- flags: apr_int32_t; buf: PChar; len: Papr_size_t): apr_status_t;
+ flags: apr_int32_t; buf: PAnsiChar; len: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_recvfrom' + LibSuff20;
 
 { @deprecated @see apr_socket_recvfrom }
 {APR_DECLARE(apr_status_t) apr_recvfrom(apr_sockaddr_t *from, apr_socket_t *sock,
-                                       apr_int32_t flags, char *buf, 
+                                       apr_int32_t flags, AnsiChar *buf, 
                                        apr_size_t *len);}
 
 {$if defined(APR_HAS_SENDFILE) or defined(DOXYGEN)}
@@ -631,13 +631,13 @@ function apr_socket_sendfile(sock: Papr_socket_t; file_: Papr_file_t;
  * APR_EINTR is never returned.
  * </PRE>
  }
-function apr_socket_recv(sock: Papr_socket_t; buf: PChar; len: Papr_size_t): apr_status_t;
+function apr_socket_recv(sock: Papr_socket_t; buf: PAnsiChar; len: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_recv' + LibSuff12;
 
 { @deprecated @see apr_socket_recv }
 {APR_DECLARE(apr_status_t) apr_recv(apr_socket_t *sock,
-                                   char *buf, apr_size_t *len);}
+                                   AnsiChar *buf, apr_size_t *len);}
 
 {
  * Setup socket options for the specified socket
@@ -763,7 +763,7 @@ function apr_sockaddr_port_get(port: Papr_port_t; sockaddr: Papr_sockaddr_t): ap
  *             Use APR_ANYADDR to use any IP addr on the machine.
  * @deprecated @see apr_sockaddr_info_get
  }
-function apr_sockaddr_ip_set(sockaddr: Papr_sockaddr_t; const addr: PChar): apr_status_t;
+function apr_sockaddr_ip_set(sockaddr: Papr_sockaddr_t; const addr: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_sockaddr_ip_set' + LibSuff8;
 
@@ -774,7 +774,7 @@ function apr_sockaddr_ip_set(sockaddr: Papr_sockaddr_t; const addr: PChar): apr_
  * @param addr The IP address.
  * @param sockaddr The socket address to reference.
  }
-function apr_sockaddr_ip_get(addr: PPChar; sockaddr: Papr_sockaddr_t): apr_status_t;
+function apr_sockaddr_ip_get(addr: PPAnsiChar; sockaddr: Papr_sockaddr_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_sockaddr_ip_get' + LibSuff8;
 
@@ -815,7 +815,7 @@ function apr_socket_from_file(newsock: Papr_socket_t; file_: Papr_file_t): apr_s
  * @param sockaddr The apr_sockaddr_t that will have its port set
  * @param servname The name of the service you wish to use
  }
-function apr_getservbyname(sockaddr: Papr_sockaddr_t; const servname: PChar): apr_status_t;
+function apr_getservbyname(sockaddr: Papr_sockaddr_t; const servname: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_getservbyname' + LibSuff8;
 
@@ -828,7 +828,7 @@ function apr_getservbyname(sockaddr: Papr_sockaddr_t; const servname: PChar): ap
  * @param p The pool to allocate from
  }
 function apr_ipsubnet_create(ipsub: PPapr_ipsubnet_t;
- const ipstr, mask_or_numbits: PChar; p: Papr_pool_t): apr_status_t;
+ const ipstr, mask_or_numbits: PAnsiChar; p: Papr_pool_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_ipsubnet_create' + LibSuff16;
 
@@ -851,7 +851,7 @@ function apr_ipsubnet_test(ipsub: Papr_ipsubnet_t; sa: Papr_sockaddr_t): Integer
  * @param args Any extra args to the accept filter.  Passing NULL here removes
  *             the accept filter. 
  }
-function apr_socket_accept_filter(sock: Papr_socket_t; name, args: PChar): apr_status_t;
+function apr_socket_accept_filter(sock: Papr_socket_t; name, args: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_socket_accept_filter' + LibSuff12;
 
