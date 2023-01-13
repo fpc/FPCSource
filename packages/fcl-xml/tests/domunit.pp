@@ -57,7 +57,7 @@ type
     procedure assertSize(const id: string; size: Integer; obj: TDOMNamedNodeMap);
     procedure assertInstanceOf(const id: string; obj: TObject; const typename: string);
     procedure assertURIEquals(const id: string;
-      scheme, path, host, file_, name, query, fragment: PChar;
+      scheme, path, host, file_, name, query, fragment: PAnsiChar;
       IsAbsolute: Boolean; const Actual: DOMString);
     function bad_condition(const TagName: XMLString): Boolean;
     property implementationAttribute[const name: string]: Boolean read getImplAttr write setImplAttr;
@@ -267,7 +267,7 @@ end;
 
 { expected args already UTF-8 encoded }
 procedure TDOMTestBase.assertURIEquals(const id: string; scheme, path,
-  host, file_, name, query, fragment: PChar; IsAbsolute: Boolean;
+  host, file_, name, query, fragment: PAnsiChar; IsAbsolute: Boolean;
   const Actual: DOMString);
 var
   URI: TURI;
