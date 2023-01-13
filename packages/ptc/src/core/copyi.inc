@@ -103,7 +103,7 @@ begin
     raise TPTCError.Create('hermes conversion failure');
 end;
 
-function TPTCCopy.Option(const AOption: String): Boolean;
+function TPTCCopy.Option(const AOption: AnsiString): Boolean;
 begin
   if (AOption = 'attempt dithering') and ((FFlags and HERMES_CONVERT_DITHER) = 0) then
   begin

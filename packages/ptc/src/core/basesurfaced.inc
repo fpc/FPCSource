@@ -67,7 +67,7 @@ type
                     AArea: IPTCArea);
     procedure Palette(APalette: IPTCPalette);
     procedure Clip(AArea: IPTCArea);
-    function Option(const AOption: String): Boolean;
+    function Option(const AOption: AnsiString): Boolean;
     function Clip: IPTCArea;
     function Palette: IPTCPalette;
     property Width: Integer read GetWidth;

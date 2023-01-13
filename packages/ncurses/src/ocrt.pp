@@ -2144,13 +2144,13 @@ End;
 
 { nEdit using currently active window }
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:string;var ch : integer) : string;
+               es:shortstring;var ch : integer) : shortstring;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
 
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:string;var ch : AnsiChar) : string;
+               es:shortstring;var ch : AnsiChar) : shortstring;
 Var i : integer;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,i);

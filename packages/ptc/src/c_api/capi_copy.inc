@@ -86,7 +86,7 @@ begin
   end;
 end;
 
-function ptc_copy_option(obj: TPTC_COPY; option: String): Boolean;
+function ptc_copy_option(obj: TPTC_COPY; option: AnsiString): Boolean;
 begin
   try
     TPTCCopy(obj).option(option);

@@ -87,7 +87,7 @@ TYPE
                          function CopyTree(p :pnode):pnode;
                          function NewFunc(fun:funcop;son:pnode):pnode; overload;
                          function NewFunc(fun:funcop;son,son2:pnode):pnode; overload;
-                         function NewVar(variable:shortShortString):pnode;
+                         function NewVar(variable:shortString):pnode;
                          procedure DisposeExpr(p:pnode);
                          end;
 
