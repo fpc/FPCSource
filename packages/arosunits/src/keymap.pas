@@ -88,11 +88,11 @@ Const
 var KeyMapBase : pLibrary;
 
 const
-    KEYMAPNAME : PChar = 'keymap.library';
+    KEYMAPNAME : PAnsiChar = 'keymap.library';
 
 function AskKeyMapDefault : PKeyMap; syscall KeyMapBase 6;
-function MapANSI(TheString : PChar; Count : LongInt; Buffer : PChar; Length : LongInt; KeyMap : PKeyMap) : LongInt;  syscall KeyMapBase 8;
-function MapRawKey(Event : PInputEvent; Buffer : PChar; Length : LongInt; KeyMap : PKeyMap) : SmallInt;  syscall KeyMapBase 7;
+function MapANSI(TheString : PAnsiChar; Count : LongInt; Buffer : PAnsiChar; Length : LongInt; KeyMap : PKeyMap) : LongInt;  syscall KeyMapBase 8;
+function MapRawKey(Event : PInputEvent; Buffer : PAnsiChar; Length : LongInt; KeyMap : PKeyMap) : SmallInt;  syscall KeyMapBase 7;
 procedure SetKeyMapDefault(KeyMap : PKeyMap);  syscall KeyMapBase 5;
 
 implementation

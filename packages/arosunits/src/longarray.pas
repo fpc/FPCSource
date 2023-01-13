@@ -56,7 +56,7 @@ begin
       vtpchar: ArgList[Offset + i] := IPTR(Args[i].vpchar);
       vtchar: ArgList[Offset + i] := IPTR(Args[i].vchar);
       vtpointer: ArgList[Offset + i] := IPTR(Args[i].vpointer);
-      vtstring: ArgList[Offset + i] := IPTR(PChar(string(Args[i].vstring^)));
+      vtstring: ArgList[Offset + i] := IPTR(PAnsiChar(string(Args[i].vstring^)));
       vtboolean: ArgList[Offset + i] := IPTR(Byte(Args[i].vboolean));
     end;
   end;

@@ -69,7 +69,7 @@ type
    PCyberModeNode = ^TCyberModeNode;
    TCyberModeNode = record
      Node: TNode;
-     ModeText: array[0..DISPLAYNAMELEN - 1] of Char; // name for this mode
+     ModeText: array[0..DISPLAYNAMELEN - 1] of AnsiChar; // name for this mode
      DisplayID: ULONG;                               // display id associated with the node
      Width: UWORD;                                   // visible width
      Height: UWORD;                                  // visible height

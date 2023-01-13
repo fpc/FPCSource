@@ -22,7 +22,7 @@ uses
 //,datatypes;
 
 const
-  ICONNAME    : PChar = 'icon.library';
+  ICONNAME    : PAnsiChar = 'icon.library';
 
   ICONA_Dummy = TAG_USER + $9000;  // Start of icon.library tags
   ICONA_ErrorCode = ICONA_Dummy + 1; // Errorcode (PLongInt)
@@ -114,7 +114,7 @@ const
 
   { Default icon type to retrieve (LongInt) }
   ICONGETA_GetDefaultType    = ICONA_Dummy+45;
-  { Retrieve default icon for the given name (PChar) }
+  { Retrieve default icon for the given name (PAnsiChar) }
   ICONGETA_GetDefaultName = ICONA_Dummy + 46;
   { Return a default icon if the requested icon
     file cannot be found (BOOL).}
@@ -127,7 +127,7 @@ const
   ICONGETA_RemapIcon = ICONA_Dummy + 50;
   { Generate icon image masks (BOOL).  }
   ICONGETA_GenerateImageMasks = ICONA_Dummy + 51;
-  { Label text to be assigned to the icon (PChar).  }
+  { Label text to be assigned to the icon (PAnsiChar).  }
   ICONGETA_Label = ICONA_Dummy + 52;
   { Screen to remap the icon to (PScreen).  }
   ICONGETA_Screen = ICONA_Dummy + 69;
@@ -138,7 +138,7 @@ const
   ICONPUTA_NotifyWorkbench = ICONA_Dummy + 53;
   { Store icon as the default for this type (LongInt)  }
   ICONPUTA_PutDefaultType = ICONA_Dummy + 54;
-  { Store icon as a default for the given name (PChar)  }
+  { Store icon as a default for the given name (PAnsiChar)  }
   ICONPUTA_PutDefaultName = ICONA_Dummy + 55;
   { When storing a palette mapped icon, don't save the
        the original planar icon image with the file. Replace
@@ -219,15 +219,15 @@ var
   IconBase: PLibrary;
 
 function AddFreeList(FreeList: PFreeList; const Mem: APTR; Size: ULONG): BOOL; syscall IconBase 12;
-function BumpRevision(NewName: PChar; const OldName: PChar): PChar; syscall IconBase 18;
-function DeleteDiskObject(const Name: PChar): BOOL; syscall IconBase 23;
-function FindToolType(const ToolTypeArray: PPChar; const TypeName: STRPTR): STRPTR; syscall IconBase 16;
+function BumpRevision(NewName: PAnsiChar; const OldName: PAnsiChar): PAnsiChar; syscall IconBase 18;
+function DeleteDiskObject(const Name: PAnsiChar): BOOL; syscall IconBase 23;
+function FindToolType(const ToolTypeArray: PPAnsiChar; const TypeName: STRPTR): STRPTR; syscall IconBase 16;
 procedure FreeDiskObject(DiskObj: PDiskObject); syscall IconBase 15;
 procedure FreeFreeList(FreeList: PFreeList); syscall IconBase 9;
 function GetDefDiskObject(Typ: LongInt): PDiskObject; syscall IconBase 20;
 function GetDiskObject(const Name: STRPTR): PDiskObject; syscall IconBase 13;
-function GetDiskObjectNew(const Name : PChar): PDiskObject; syscall IconBase 22;
-function MatchToolValue(const TypeString: PChar; const Value: PChar): BOOL; syscall IconBase 17;
+function GetDiskObjectNew(const Name : PAnsiChar): PDiskObject; syscall IconBase 22;
+function MatchToolValue(const TypeString: PAnsiChar; const Value: PAnsiChar): BOOL; syscall IconBase 17;
 function PutDefDiskObject(const Icon: PDiskObject): BOOL; syscall IconBase 21;
 function PutDiskObject(const Name: STRPTR; const Icon: PDiskObject): BOOL; syscall IconBase 14;
 
@@ -236,7 +236,7 @@ function DupDiskObjectA(const Icon: PDiskObject; const Tags: PTagItem): PDiskObj
 function IconControlA(Icon: PDiskObject; const Tags: PTagItem): ULONG;  syscall IconBase 26;
 procedure DrawIconStateA(Rp: PRastPort; const Icon: PDiskObject; const Label_: STRPTR;
   LeftEdge: LongInt; TopEdge: LongInt; State: ULONG; const Tags: PTagItem);  syscall IconBase 27;
-function GetIconRectangleA(Rp: PRastPort; const Icon: PDiskObject; const Label_: PChar;
+function GetIconRectangleA(Rp: PRastPort; const Icon: PDiskObject; const Label_: PAnsiChar;
   Rect: PRectangle; const Tags: PTagItem): BOOL;  syscall IconBase 28;
 function NewDiskObject(Type_: ULONG): PDiskObject; syscall IconBase 29;
 function GetIconTagList(const Name: STRPTR; const Tags: PTagItem): PDiskObject; syscall IconBase 30;
@@ -259,11 +259,11 @@ implementation
 function GetToolTypes(Filename: AnsiString): TToolTypeArray;
 var
   DObj: PDiskObject;
-  Tooltype: PPChar;
+  Tooltype: PPAnsiChar;
   Idx: Integer;
 begin
   SetLength(GetToolTypes, 0);
-  DObj := GetDiskObject(PChar(FileName));
+  DObj := GetDiskObject(PAnsiChar(FileName));
   if not Assigned(Dobj) then
     Exit;
   Tooltype := DObj^.do_Tooltypes;

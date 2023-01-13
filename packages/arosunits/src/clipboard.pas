@@ -91,7 +91,7 @@ var
   Iff: PIffHandle;
   Error: LongInt;
   Cn: PContextNode;
-  Buf: PChar;
+  Buf: PAnsiChar;
   Len: Integer;
   Cu: LongInt;
 begin

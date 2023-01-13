@@ -113,7 +113,7 @@ var
   ConsoleDevice: PDevice = nil;
 
 function CDInputHandler(Events: PInputEvent; CDIhData: APTR): PInputEvent; syscall ConsoleDevice 7;
-function RawKeyConvert(Events: PInputEvent; Buffer: PChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall ConsoleDevice 8;
+function RawKeyConvert(Events: PInputEvent; Buffer: PAnsiChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall ConsoleDevice 8;
 function GetConSnip(): APTR; syscall ConsoleDevice 84;
 function SetConSnip(Param: APTR): LongInt; syscall ConsoleDevice 88;
 procedure AddConSnipHook(Hook: PHook); syscall ConsoleDevice 92;
