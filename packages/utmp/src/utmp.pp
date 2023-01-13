@@ -56,7 +56,7 @@ function Number_of_logged_users : Word;
 
 {Low level rutines}
 function Number_of_utmp_entries : Word;
-procedure Set_utmp_file(const File_name : String);
+procedure Set_utmp_file(const File_name : AnsiString);
 
 
 type
@@ -69,14 +69,14 @@ type
     ut_type : integer;
     ut_pid : longint;
     ut_line : tdevice_name;
-    ut_id : array[1..4] of char;
+    ut_id : array[1..4] of AnsiChar;
     ut_user : tuser_name;
     ut_host : thost_name;
     ut_exit : texitstatus;
     ut_session : longint;
     ut_tv : Array [1..2] of longint;
     ut_addr : Array[1..4] of longint;
-    pad : array [1..48] of char
+    pad : array [1..48] of AnsiChar
     end;
   pUser_list = ^tUser_list;
   tUser_list = record
@@ -95,7 +95,7 @@ Type
 var
   User_list           : pUser_list;
   Current_user        : pUser_list;
-  Utmp_file           : String;
+  Utmp_file           : AnsiString;
   Search_parameters   : tSearch_parameters;
 
   procedure Set_search_parameters(
@@ -230,7 +230,7 @@ var
     Current_user := User_list;
   end;
 
-  procedure Set_utmp_file(const File_name : String);
+  procedure Set_utmp_file(const File_name : AnsiString);
 
   begin
     Utmp_file := File_name;
