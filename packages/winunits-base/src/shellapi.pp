@@ -1568,20 +1568,20 @@ Type
                                    uCallbackMessage     : UINT;
                                    hIcon                : HICON;
                                    {$ifdef IELower5}
-                                    szTip               : array[0..63] of CHAR;
+                                    szTip               : array[0..63] of AnsiChar;
                                    {$else}
-                                    szTip               : array[0..127] of CHAR;
+                                    szTip               : array[0..127] of AnsiChar;
                                    {$endif}
                                    {$ifdef IEhigherEqual5}
                                     dwState             : DWORD;
                                     dwStateMask         : DWORD;
-                                    szInfo              : array[0..255] of CHAR;
+                                    szInfo              : array[0..255] of AnsiChar;
                                     DUMMYUNIONNAME      : record
                                                            case longint of
                                                                0 : ( uTimeout : UINT );
                                                                1 : ( uVersion : UINT );
                                                               end;
-                                    szInfoTitle : array[0..63] of CHAR;
+                                    szInfoTitle : array[0..63] of AnsiChar;
                                     dwInfoFlags : DWORD;
                                    {$endif}
                                    {$ifdef IEHighEq6}
@@ -1614,7 +1614,7 @@ Type
                                                                0 : ( uTimeout : UINT );
                                                                1 : ( uVersion : UINT );
                                                               end;
-                                    szInfoTitle : array[0..63] of CHAR;
+                                    szInfoTitle : array[0..63] of AnsiChar;
                                     dwInfoFlags : DWORD;
                                    {$endif}
                                    {$ifdef IEHighEq6}
@@ -1739,8 +1739,8 @@ Function Shell_NotifyIcon( dwMessage: Dword;lpData: PNOTIFYICONDATAW):Bool;exter
                                             hIcon         : HICON;                          { out: icon }
                                             iIcon         : longint;                        { out: icon index }
                                             dwAttributes  : DWORD;                          { out: SFGAO_ flags }
-                                            szDisplayName : array[0..(MAX_PATH)-1] of CHAR; { out: display name (or path) }
-                                            szTypeName    : array[0..79] of CHAR;           { out: type name }
+                                            szDisplayName : array[0..(MAX_PATH)-1] of AnsiChar; { out: display name (or path) }
+                                            szTypeName    : array[0..79] of AnsiChar;           { out: type name }
                                            end;
        SHFILEINFOA                      = _SHFILEINFOA;
        TSHFILEINFOA                     = _SHFILEINFOA;

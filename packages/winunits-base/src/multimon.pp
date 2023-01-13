@@ -84,7 +84,7 @@ type
     rcMonitor: TRect;
     rcWork: TRect;
     dwFlags: DWORD;
-    szDevice: array[0..CCHDEVICENAME - 1] of Char;
+    szDevice: array[0..CCHDEVICENAME - 1] of AnsiChar;
   end;
   MONITORINFOEXA = tagMONITORINFOEXA;
   LPMONITORINFOEXA = ^tagMONITORINFOEXA;
@@ -123,11 +123,11 @@ type
 type
   _DISPLAY_DEVICEA = record
     cb: DWORD;
-    DeviceName: array[0..31] of Char;
-    DeviceString: array[0..127] of Char;
+    DeviceName: array[0..31] of AnsiChar;
+    DeviceString: array[0..127] of AnsiChar;
     StateFlags: DWORD;
-    DeviceID: array[0..127] of Char;
-    DeviceKey: array[0..127] of Char;
+    DeviceID: array[0..127] of AnsiChar;
+    DeviceKey: array[0..127] of AnsiChar;
   end;
   DISPLAY_DEVICEA = _DISPLAY_DEVICEA;
   PDISPLAY_DEVICEA = ^_DISPLAY_DEVICEA;

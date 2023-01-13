@@ -610,7 +610,7 @@ Const
           crTextColor : COLORREF;
           bCharSet : BYTE;
           bPitchAndFamily : BYTE;
-          szFaceName : array[0..(LF_FACESIZE)-1] of char;
+          szFaceName : array[0..(LF_FACESIZE)-1] of AnsiChar;
        end;
      CHARFORMATA = _charformat;
      TCHARFORMATA = _charformat;
@@ -638,7 +638,7 @@ Const
           crTextColor : COLORREF;
           bCharSet : BYTE;
           bPitchAndFamily : BYTE;
-          szFaceName : array[0..(LF_FACESIZE)-1] of char;
+          szFaceName : array[0..(LF_FACESIZE)-1] of AnsiChar;
           wWeight : WORD;
           sSpacing : SHORT;
           crBackColor : COLORREF;
@@ -907,7 +907,7 @@ Const
      GETTEXTEX = _gettextex;
      TGETTEXTEX = _gettextex;
 
-     EDITWORDBREAKPROCEX = function (pchText:pchar; cchText:LONG; bCharSet:BYTE; action:LONG):LONG;
+     EDITWORDBREAKPROCEX = function (pchText:PAnsiChar; cchText:LONG; bCharSet:BYTE; action:LONG):LONG;
   { Defines for EM_SETTYPOGRAPHYOPTIONS  }
 
   const

@@ -23,13 +23,13 @@ Begin
   
   // HH_DISPLAY_INDEX  or HH_DISPLAY_SEARCH work too. 
   Writeln('calling TOC');
-  Res:=HtmlHelpA(0,pchar(helpfilename) ,HH_DISPLAY_TOC,0);	
+  Res:=HtmlHelpA(0,PAnsiChar(helpfilename) ,HH_DISPLAY_TOC,0);	
   Writeln('program now blocked on readln, press enter (in console window) to continue');
   
   readln;
   writeln('Showing a topic that is probably about dialog.');
   // probably because due to automatic generation filenames and exact contact can drift.
-  Res:=HtmlHelpA(0,pchar(helpfilename) ,HH_DISPLAY_TOPIC,ptruint(pchar(htmltopic)));	 
+  Res:=HtmlHelpA(0,PAnsiChar(helpfilename) ,HH_DISPLAY_TOPIC,ptruint(PAnsiChar(htmltopic)));	 
   Writeln('program now blocked on readln, press enter (in console window) to continue');
   readln;
   Writeln('ready. Note that the windows die automatically on exit of the program');

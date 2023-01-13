@@ -31,10 +31,10 @@ Begin
   ah.fIndexOnFail:= false;
 
  
-  Res:=HtmlHelpA(0,pchar(helpfilename) ,HH_DISPLAY_INDEX,PTRUINT(PAnsiChar(Keyword)));	
+  Res:=HtmlHelpA(0,PAnsiChar(helpfilename) ,HH_DISPLAY_INDEX,PTRUINT(PAnsiChar(Keyword)));	
 
   // keyword search seems to have same effect.
-  Res:=HtmlHelpA(0,pchar(helpfilename) ,HH_ALINK_LOOKUP,PTRUINT(AH));	
+  Res:=HtmlHelpA(0,PAnsiChar(helpfilename) ,HH_ALINK_LOOKUP,PTRUINT(AH));	
   writeln(ah.pszkeywords);
   writeln(ah.pszurl);
   writeln(ah.pszmsgtext);
