@@ -298,12 +298,12 @@ End;
 
 var
    is_last : boolean;
-   last    : char;
+   last    : AnsiChar;
 
-function readkey : char;
+function readkey : AnsiChar;
 var
-  char2 : char;
-  char1 : char;
+  char2 : AnsiChar;
+  char1 : AnsiChar;
   regs : trealregs;
 begin
   if is_last then
@@ -539,7 +539,7 @@ end;
 var
   CurrX,CurrY : longint;
 
-Procedure WriteChar(c:char);
+Procedure WriteChar(c:AnsiChar);
 var
   regs : trealregs;
 begin
@@ -601,7 +601,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
 Begin
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;

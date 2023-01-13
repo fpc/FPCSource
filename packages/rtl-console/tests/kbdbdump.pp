@@ -42,7 +42,7 @@ begin
   TextOut(56, 17, 'Right_Shift', BitAttr(Regs.AX,  0));
 end;
 
-procedure SampleAllKeys(const Kbd: TKeyboard; const OutFileName: string);
+procedure SampleAllKeys(const Kbd: TKeyboard; const OutFileName: AnsiString);
 var
   I: Integer;
   Regs: Registers;

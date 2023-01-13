@@ -7,7 +7,7 @@ interface
 uses
   KbdUtil;
 
-procedure TextOut(X, Y: Integer; const S: string; TextAttr: Byte);
+procedure TextOut(X, Y: Integer; const S: AnsiString; TextAttr: Byte);
 procedure DrawKey(const Key: TKey; TextAttr: Byte);
 procedure DrawKeyboard(const Kbd: TKeyboard);
 
@@ -16,7 +16,7 @@ implementation
 uses
   Video;
 
-procedure TextOut(X, Y: Integer; const S: string; TextAttr: Byte);
+procedure TextOut(X, Y: Integer; const S: AnsiString; TextAttr: Byte);
 var
   W, P, I, M: Integer;
 begin

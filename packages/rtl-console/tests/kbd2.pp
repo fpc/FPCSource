@@ -3,7 +3,7 @@ program kbd2;
 uses
   keyboard;
 
-procedure ShowASCIIKey(C: Char);
+procedure ShowASCIIKey(C: AnsiChar);
 begin
   Write('ASCII key #', Ord(C), ' - #$', HexStr(Ord(C), 2));
   if C = '''' then
@@ -19,7 +19,7 @@ begin
   Write('Unicode key #', Ord(WC));
 end;
 
-function EnhancedShiftStateToString(const ShiftState: TEnhancedShiftState): string;
+function EnhancedShiftStateToString(const ShiftState: TEnhancedShiftState): shortstring;
 var
   S: TEnhancedShiftStateElement;
   FirstElement: Boolean = True;

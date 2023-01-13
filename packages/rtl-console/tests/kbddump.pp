@@ -5,7 +5,7 @@ program kbddump;
 uses
   Video, Keyboard, Mouse, kbdutil, vidutil;
 
-procedure SampleAllKeys(const Kbd: TKeyboard; const OutFileName: string);
+procedure SampleAllKeys(const Kbd: TKeyboard; const OutFileName: AnsiString);
 var
   I: Integer;
   K: TKeyEvent;

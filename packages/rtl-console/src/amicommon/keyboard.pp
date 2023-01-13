@@ -184,7 +184,7 @@ begin
     LastShiftState := LastShiftState or $40;
 end;
 
-procedure AnsiToIBMChar(var c: Char); inline;
+procedure AnsiToIBMChar(var c: AnsiChar); inline;
 begin
   // https://en.wikipedia.org/wiki/Code_page_437
   case c of
@@ -232,7 +232,7 @@ begin
   end;
 end;
 
-procedure IBMToAnsiChar(var c: Char); inline;
+procedure IBMToAnsiChar(var c: AnsiChar); inline;
 begin
   case c of
     // line 8
@@ -314,7 +314,7 @@ var
   MouseX: LongInt;
   MouseY: LongInt;
   KeyUp: Boolean;        // Event is a key up event
-  Buff: array[0..19] of Char;
+  Buff: array[0..19] of AnsiChar;
   ie: TInputEvent;       // for mapchar
   IAddr: Pointer;
 begin
@@ -454,7 +454,7 @@ begin
             ICode := 72;
           if ICode = 123 then
             ICode := 73;
-          // get char from rawkey
+          // get AnsiChar from rawkey
           KeyUp := (ICode and IECODE_UP_PREFIX) <> 0;   // is key up
           ICode := ICode and not IECODE_UP_PREFIX;      // remove key up from ICode
           ie.ie_Class := IECLASS_RAWKEY;
@@ -718,7 +718,7 @@ end;
 procedure InitSystemEventWait;
 var
   initOK: boolean;
-  envBuf: array[0..15] of char;
+  envBuf: array[0..15] of AnsiChar;
 begin
   {.$if not defined(AMIGA_V1_2_ONLY)}
   if GetVar('FPC_DOKEYCONVERSION',@envBuf,sizeof(envBuf),0) > -1 then

@@ -23,12 +23,12 @@ unit vesamode;
        dos,video,mouse;
 
     type
-       PFarChar = ^Char; far;
+       PFarChar = ^AnsiChar; far;
        twordarray = array[0..0] of word;
 
        pwordarray = ^twordarray; far;
        TVESAInfoBlock = packed record
-         VESASignature   : ARRAY[0..3] OF CHAR;
+         VESASignature   : ARRAY[0..3] OF AnsiChar;
          VESAVersion     : WORD;
          OEMStringPtr    : PFarChar;
          Capabilities    : LONGINT;

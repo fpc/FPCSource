@@ -37,7 +37,7 @@ end;
 {$else}
 function UTF8Enabled: Boolean;
 var
-  lang:string;
+  lang:shortstring;
 begin
 {$ifdef OpenBSD}
   lang:=upcase(fpgetenv('LC_CTYPE'));

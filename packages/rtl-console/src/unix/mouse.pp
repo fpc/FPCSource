@@ -157,7 +157,7 @@ const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
       xterm=6;
       mouse_1003_capable=[xterm]; {xterm only for now}
 
-var term:string;
+var term:shortstring;
     i,t:shortint;
 
 begin

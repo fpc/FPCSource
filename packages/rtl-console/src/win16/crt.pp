@@ -243,12 +243,12 @@ End;
 
 var
    is_last : boolean;
-   last    : char;
+   last    : AnsiChar;
 
-function readkey : char;
+function readkey : AnsiChar;
 var
   k: TKeyEvent;
-  char1, char2: char;
+  char1, char2: AnsiChar;
 begin
   if is_last then
   begin
@@ -390,7 +390,7 @@ end;
 var
   CurrX,CurrY : smallint;
 
-Procedure WriteChar(c:char);
+Procedure WriteChar(c:AnsiChar);
 begin
   case c of
    #10 : inc(CurrY);
@@ -451,7 +451,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
 Begin
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;

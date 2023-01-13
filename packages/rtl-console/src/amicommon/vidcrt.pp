@@ -16,7 +16,7 @@ var
   BGPen: Byte = 0;
   WinRect: TRect;
 
-  LastKeys: array[0..1] of Char;
+  LastKeys: array[0..1] of AnsiChar;
   LastKeysIdx: Integer = -1;
 
 
@@ -25,26 +25,26 @@ begin
   PosToArray := px + py * ScreenWidth;
 end;
 
-procedure SetChar(p: Integer; c: Char); overload;
+procedure SetChar(p: Integer; c: AnsiChar); overload;
 begin
   if (p >= 0) and (p < VideoBufSize) then
     VideoBuf^[p] := (BGPen shl 12) or (FGPen shl 8) or Byte(c);
 end;
 
-procedure SetChar(x,y: Integer; c: Char); overload;
+procedure SetChar(x,y: Integer; c: AnsiChar); overload;
 begin
   SetChar(PosToArray(x,y), c);
 end;
 
 procedure ProcessKeyEvent(NKey: TKeyEvent);
 var
-  c1: Char;
+  c1: AnsiChar;
 begin
   c1 := GetKeyEventChar(NKey);
   if c1 = #0 then
   begin
     LastKeys[1] := #0;
-    LastKeys[0] := Char((NKey shr 8) and $FF);
+    LastKeys[0] := AnsiChar((NKey shr 8) and $FF);
     LastKeysIdx := 1;
     case LastKeys[0] of
       #28: begin LastKeys[0] := #13; LastKeysIdx := 0; end; // Enter
@@ -63,7 +63,7 @@ begin
   KeyPressed := (LastKeysIdx >= 0) or (PollKeyEvent <> 0);
 end;
 
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 var
   NKey: TKeyEvent;
 begin
@@ -243,7 +243,7 @@ begin
   end;
 end;
 
-procedure WriteChar(c: Char);
+procedure WriteChar(c: AnsiChar);
 var
   NX,NY: Integer;
 begin
@@ -293,7 +293,7 @@ end;
 
 Procedure CrtRead(Var F: TextRec);
 var
-  ch : Char;
+  ch : AnsiChar;
 
   procedure BackSpace;
   begin

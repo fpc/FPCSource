@@ -204,7 +204,7 @@ threadvar
  CurrX, CurrY: dword;
 
 
-procedure WriteChar (C: char);
+procedure WriteChar (C: AnsiChar);
 begin
  case C of
   #7: WriteBell;
@@ -241,7 +241,7 @@ begin
   begin
    GetScreenCursor (CurrX, CurrY);
    for I := 0 to Pred (F.BufPos) do
-    WriteChar ((PChar (F.BufPtr) + I)^);
+    WriteChar ((PAnsiChar (F.BufPtr) + I)^);
    SetScreenCursor (CurrX, CurrY);
    F.BufPos := 0;
   end;
@@ -252,7 +252,7 @@ end;
 function CrtRead (var F: TextRec): integer;
 {Read a series of characters from the console.}
 var
- C: char;
+ C: AnsiChar;
 begin
  GetScreenCursor (CurrX, CurrY);
  F.BufPos := 0;

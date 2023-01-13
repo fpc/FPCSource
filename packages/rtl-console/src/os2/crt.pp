@@ -39,7 +39,7 @@ const
 
 type
  TKbdKeyInfo = record
-  CharCode, ScanCode: char;
+  CharCode, ScanCode: AnsiChar;
   fbStatus, bNlsShift: byte;
   fsState: word;
   Time: longint;
@@ -104,7 +104,7 @@ function VioGetCurPos (var Row, Column: word; VioHandle: word): word; cdecl;
                        external 'EMXWRAP' index 109;
 function VioSetCurPos (Row, Column, VioHandle: word): word; cdecl;
                        external 'EMXWRAP' index 115;
-function VioWrtCharStrAtt (S: PChar; Len, Row, Col: longint; var Attr: byte;
+function VioWrtCharStrAtt (S: PAnsiChar; Len, Row, Col: longint; var Attr: byte;
                            VioHandle: word): word; cdecl;
                            external 'EMXWRAP' index 148;
 function VioGetMode (var AModeInfo: VioModeInfo; VioHandle: word): word; cdecl;
@@ -219,7 +219,7 @@ begin
 end;
 
 
-procedure WriteNormal (C: char; X, Y: dword); inline;
+procedure WriteNormal (C: AnsiChar; X, Y: dword); inline;
 (* Write C to console at X, Y (0-based). *)
 begin
  VioWrtCharStrAtt (@C, 1, Y, X, TextAttr, VioHandle);
@@ -296,22 +296,22 @@ begin
 end;
 
 
-function ReadKey: char;
+function ReadKey: AnsiChar;
 {Reads the next character from the keyboard.}
 var
  AKeyRec: TKbdKeyInfo;
- C, S: char;
+ C, S: AnsiChar;
 begin
  if SpecialKey then
   begin
    SpecialKey := false;
-   ReadKey := char (ScanCode);
+   ReadKey := AnsiChar (ScanCode);
    ScanCode := 0;
   end
  else
   if ScanCode <> 0 then
    begin
-    ReadKey := char (ScanCode);
+    ReadKey := AnsiChar (ScanCode);
     ScanCode := 0;
    end
   else
@@ -334,7 +334,7 @@ begin
      end
     else
      begin
-      ReadKey := char (ScanCode);
+      ReadKey := AnsiChar (ScanCode);
       ScanCode := 0;
      end;
    end;

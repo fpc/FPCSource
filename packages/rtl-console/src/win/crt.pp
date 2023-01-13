@@ -235,7 +235,7 @@ procedure ClrEol;
 }
 var
   Temp: DWord;
-  CharInfo: Char;
+  CharInfo: AnsiChar;
   Coord: TCoord;
   X,Y: DWord;
 begin
@@ -292,7 +292,7 @@ End;
 *************************************************************************}
 
 var
-   ScanCode : char;
+   ScanCode : AnsiChar;
    SpecialKey : boolean;
    DoingNumChars: Boolean;
    DoingNumCode: Byte;
@@ -496,7 +496,7 @@ begin
 end;
 
 
-function ReadKey: char;
+function ReadKey: AnsiChar;
 begin
   while (not KeyPressed) do
     Sleep(1);
@@ -707,7 +707,7 @@ end;
 var
   CurrX, CurrY : DWord;
 
-procedure WriteChar(c : char);
+procedure WriteChar(c : AnsiChar);
 var
     WritePos: Coord;                       { Upper-left cell to write from }
     numWritten : DWord;
@@ -751,7 +751,7 @@ begin
 end;
 
 
-procedure WriteStr(const s: string);
+procedure WriteStr(const s: shortstring);
 var
   WritePos: Coord; { Upper-left cell to write from }
   numWritten : DWord;
@@ -787,7 +787,7 @@ end;
 Procedure CrtWrite(var f : textrec);
 var
   i : longint;
-  s : string;
+  s : shortstring;
   OldConsoleOutputCP : Word;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
@@ -841,7 +841,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
   OldConsoleOutputCP : Word;
 begin
   if SafeCPSwitching and UseACP then    //Switch codepage on every Read

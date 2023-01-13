@@ -242,7 +242,7 @@ procedure HandleKeyboard(var ir:INPUT_RECORD);
 var
    i      : longint;
    c      : word;
-   altc : char;
+   altc : AnsiChar;
    addThis: boolean;
 begin
   { Since Windows supports switching between different input locales, the
@@ -292,7 +292,7 @@ begin
                      if length (altNumBuffer) = 3 then
                        delete (altNumBuffer,1,1);
                      case wVirtualKeyCode of
-                       $60..$69 : altc:=char (wVirtualKeyCode-48);
+                       $60..$69 : altc:=AnsiChar (wVirtualKeyCode-48);
                        $c  : altc:='5';
                        $21 : altc:='9';
                        $22 : altc:='3';
@@ -727,9 +727,9 @@ CONST
    (n : $00; s : $0F; c : $94; a: $00));     {0F Tab }
 
 
-function WideCharToOemCpChar(WC: WideChar): Char;
+function WideCharToOemCpChar(WC: WideChar): AnsiChar;
 var
-  Res: Char;
+  Res: AnsiChar;
 begin
   if WideCharToMultiByte(CP_OEMCP,0,@WC,1,@Res,1,nil,nil)=0 then
     Res:=#0;
@@ -802,7 +802,7 @@ begin
   Key := NilEnhancedKeyEvent;
   if t.ev.bKeyDown then
   begin
-    { unicode-char is <> 0 if not a specal key }
+    { unicode-AnsiChar is <> 0 if not a specal key }
     { we return it here otherwise we have to translate more later }
     if t.ev.UnicodeChar <> WideChar(0) then
     begin
@@ -871,7 +871,7 @@ begin
     { ok, now add Shift-State }
     Key.ShiftState := t.ShiftState;
 
-    { Reset Ascii-Char if Alt+Key, fv needs that, may be we
+    { Reset Ascii-AnsiChar if Alt+Key, fv needs that, may be we
       need it for other special keys too
       18 Sept 1999 AD: not for right Alt i.e. for AltGr+ß = \ on german keyboard }
     if (essAlt in t.ShiftState) or

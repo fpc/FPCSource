@@ -73,7 +73,7 @@ type
 { Interface procedures }
 procedure AssignCrt(var F: Text);
 function KeyPressed: Boolean;
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 procedure TextMode (Mode: word);
 { Window parameters not changed to tcrtcoord, because the window() procedure
   does nothing if (x1 > x2) or (y1 > y2), and some people may set x2 or y2

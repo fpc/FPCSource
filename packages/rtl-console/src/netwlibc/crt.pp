@@ -277,7 +277,7 @@ var
    is_last : boolean;
 
 {
-function readkey : char;
+function readkey : AnsiChar;
 var
   keytype,modifier,scancode : longint;
 begin
@@ -297,9 +297,9 @@ begin
 end;
 }
 
-function readkey : char;  // for now
+function readkey : AnsiChar;  // for now
 begin
-  readkey := char(getcharacter);
+  readkey := AnsiChar(getcharacter);
 end;
 
 
@@ -414,8 +414,8 @@ end;
 var
   CurrX,CurrY : longint;
 
-Procedure WriteChar(c:char);
-var st : array [0..1] of char;
+Procedure WriteChar(c:AnsiChar);
+var st : array [0..1] of AnsiChar;
 begin
   case c of
    #10 : inc(CurrY);
@@ -477,7 +477,7 @@ Function CrtRead(Var F: TextRec): Integer;
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
 Begin
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;

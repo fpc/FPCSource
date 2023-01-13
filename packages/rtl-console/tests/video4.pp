@@ -6,7 +6,7 @@ program video4;
 uses
   video, keyboard;
 
-procedure TextOut(X, Y: Integer; const S: string; Attr: TEnhancedVideoAttributes);
+procedure TextOut(X, Y: Integer; const S: AnsiString; Attr: TEnhancedVideoAttributes);
 var
   W, P, I, M: Integer;
 begin

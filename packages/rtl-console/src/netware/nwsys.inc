@@ -48,7 +48,7 @@ TYPE
                  : unsignedshort; (* inherited rights mask *)
    st_originatingNameSpace
                  : BYTE;          (* namespace of creation       *)
-   st_name       : ARRAY [0..255] OF CHAR;
+   st_name       : ARRAY [0..255] OF AnsiChar;
                                   (* TARGET_NAMESPACE name *)
    st_blksize    : LONGINT;
    st_blocks     : LONGINT;
@@ -56,7 +56,7 @@ TYPE
    st_spare      : ARRAY [0..3] OF LONGINT;
   END;
 
-FUNCTION  _stat  (path : PCHAR; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL Clib NAME 'stat_411';
+FUNCTION  _stat  (path : PAnsiChar; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL Clib NAME 'stat_411';
 FUNCTION  _fstat (Fileno : LONGINT; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL CLib NAME 'fstat_411';
 
 PROCEDURE NWFree   (P : POINTER); CDECL; EXTERNAL Clib NAME 'free';
@@ -75,20 +75,20 @@ procedure _ThreadSwitchWithDelay; cdecl;external ThreadsNlm name 'ThreadSwitchWi
 function _GetThreadName(threadID:longint; var tName):longint; cdecl;external ThreadsNlm name 'GetThreadName';
 function GetNLMHandle:dword;  cdecl;external ThreadsNlm name 'GetNLMHandle';
 (*
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : pchar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf (FormatStr : PCHAR; P1,P2,P3,P4 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
-PROCEDURE ConsolePrintf (FormatStr : PCHAR); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; Param : PAnsiChar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; P1,P2 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; P1,P2,P3 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; P1,P2,P3,P4 : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
+PROCEDURE ConsolePrintf (FormatStr : PAnsiChar); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
 *)
 // this gives internal compiler error 1234124 ??
-//PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
+//PROCEDURE ConsolePrintf (FormatStr : PAnsiChar; Param : array of const); CDecl; EXTERNAL CLib;
 
-PROCEDURE _printf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib;
-PROCEDURE _printf (FormatStr : PCHAR); CDecl; EXTERNAL CLib;
+PROCEDURE _printf (FormatStr : PAnsiChar; Param : LONGINT); CDecl; EXTERNAL CLib;
+PROCEDURE _printf (FormatStr : PAnsiChar); CDecl; EXTERNAL CLib;
 // this gives internet compiler error 1234124 ??
-// PROCEDURE _printf (FormatStr : PCHAR; Param : array of const); CDecl; EXTERNAL CLib;
+// PROCEDURE _printf (FormatStr : PAnsiChar; Param : array of const); CDecl; EXTERNAL CLib;
 
 // values for __action_code used with ExitThread()
 CONST
@@ -102,7 +102,7 @@ FUNCTION _GetStdOut : POINTER; CDECL; EXTERNAL Clib NAME '__get_stdout';
 FUNCTION _GetStdErr : POINTER; CDECL; EXTERNAL Clib NAME '__get_stderr';
 
 // FileIO by Fileno
-FUNCTION _open   (FileName : PCHAR; access, mode : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'open';
+FUNCTION _open   (FileName : PAnsiChar; access, mode : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'open';
 FUNCTION _close  (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'close';
 FUNCTION _lseek  (FileNo,Pos,whence :LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'lseek';
 FUNCTION _chsize (FileNo,Pos : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'chsize';
@@ -116,7 +116,7 @@ FUNCTION _unlock (filedes : LONGINT; Offset, Length : Cardinal) : LONGINT; CDECL
 TYPE
   NWModifyStructure =
     RECORD
-       MModifyName            : PCHAR;
+       MModifyName            : PAnsiChar;
        MFileAttributes        : LONGINT;
        MFileAttributesMask    : LONGINT;
        MCreateDate            : WORD;
@@ -152,11 +152,11 @@ CONST MModifyNameBit                 = $0001;
       MLastUpdatedInSecondsBit       = $4000;
 
 // Directory
-FUNCTION _chdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'chdir';
-FUNCTION _getcwd (path : PCHAR; pathlen : LONGINT) : PCHAR; CDECL; EXTERNAL CLib NAME 'getcwd';
-FUNCTION _mkdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'mkdir';
-FUNCTION _rmdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'rmdir';
-FUNCTION _ChangeDirectoryEntry (PathName : PCHAR; VAR ModyStruct : NWModifyStructure; ModifyBits, AllowWildcard : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'ChangeDirectoryEntry';
+FUNCTION _chdir  (path : PAnsiChar) : LONGINT; CDECL; EXTERNAL CLib NAME 'chdir';
+FUNCTION _getcwd (path : PAnsiChar; pathlen : LONGINT) : PAnsiChar; CDECL; EXTERNAL CLib NAME 'getcwd';
+FUNCTION _mkdir  (path : PAnsiChar) : LONGINT; CDECL; EXTERNAL CLib NAME 'mkdir';
+FUNCTION _rmdir  (path : PAnsiChar) : LONGINT; CDECL; EXTERNAL CLib NAME 'rmdir';
+FUNCTION _ChangeDirectoryEntry (PathName : PAnsiChar; VAR ModyStruct : NWModifyStructure; ModifyBits, AllowWildcard : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'ChangeDirectoryEntry';
 
 // get fileno from stream
 FUNCTION _fileno (Handle : LONGINT) : LONGINT; CDECL; EXTERNAL Clib NAME 'fileno';
@@ -179,8 +179,8 @@ CONST O_RDONLY     = $0000;   (* open for read only *)
 
 
 // File Utils
-FUNCTION _unlink (FileName : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'unlink';
-FUNCTION _rename (oldpath, newpath : PCHAR) : LONGINT; CDECL; EXTERNAL Clib NAME 'rename';
+FUNCTION _unlink (FileName : PAnsiChar) : LONGINT; CDECL; EXTERNAL CLib NAME 'unlink';
+FUNCTION _rename (oldpath, newpath : PAnsiChar) : LONGINT; CDECL; EXTERNAL Clib NAME 'rename';
 
 // Error
 TYPE _PLONGINT = ^LONGINT;
@@ -196,7 +196,7 @@ FUNCTION _stackavail : CARDINAL; CDECL; EXTERNAL CLib NAME 'stackavail';
 PROCEDURE _EnterDebugger; CDECL; EXTERNAL Clib NAME 'EnterDebugger';
 
 // String
-FUNCTION _strlen (P : PCHAR) : LONGINT; CDECL; EXTERNAL Clib NAME 'strlen';
+FUNCTION _strlen (P : PAnsiChar) : LONGINT; CDECL; EXTERNAL Clib NAME 'strlen';
 
 // Time/Date
 TYPE NWTM = RECORD
@@ -227,7 +227,7 @@ FUNCTION  SetFileServerDateAndTime(year:WORD; month:WORD; day:WORD; hour:WORD; m
                second:WORD):longint;cdecl; EXTERNAL CLib Name 'SetFileServerDateAndTime';
 
 TYPE   FILE_SERV_INFO = record
-            serverName              : array[0..47] of char;
+            serverName              : array[0..47] of AnsiChar;
             netwareVersion          : BYTE;
             netwareSubVersion       : BYTE;
             maxConnectionsSupported : WORD;
@@ -268,29 +268,29 @@ TYPE NWDirEnt =
     d_uid                 : LONGINT;        {owner id (object id) }
     d_archivedID          : LONGINT;
     d_updatedID           : LONGINT;
-    d_nameDOS             : ARRAY [0..12] OF CHAR;
+    d_nameDOS             : ARRAY [0..12] OF AnsiChar;
     d_inheritedRightsMask : WORD;
     d_originatingNameSpace: BYTE;
     d_ddatetime           : time_t;         {deleted date time}
     d_deletedID           : LONGINT;
     {---- new fields starting in v4.11 ----}
-    d_name                : ARRAY [0..255] OF CHAR;  { enty's namespace name }
+    d_name                : ARRAY [0..255] OF AnsiChar;  { enty's namespace name }
   END;
   PNWDirEnt = ^NWDirEnt;
 
-  FUNCTION _opendir (pathname : PCHAR) : PNWDirEnt; CDECL; EXTERNAL CLib NAME 'opendir_411';
+  FUNCTION _opendir (pathname : PAnsiChar) : PNWDirEnt; CDECL; EXTERNAL CLib NAME 'opendir_411';
   FUNCTION _closedir (dirH : PNWDirEnt) : LONGINT; CDECL; EXTERNAL CLib NAME 'closedir';
   FUNCTION _readdir  (dirH : PNWDirEnt) : PNWDirEnt; CDECL; EXTERNAL CLib NAME 'readdir';
   FUNCTION _SetReaddirAttribute (dirH : PNWDirEnt; Attribute : LONGINT) : LONGINT; EXTERNAL CLib NAME 'SetReaddirAttribute';
 
 // Environment
-  FUNCTION _getenv (name : PCHAR) : PCHAR; CDECL; EXTERNAL CLib NAME 'getenv';
+  FUNCTION _getenv (name : PAnsiChar) : PAnsiChar; CDECL; EXTERNAL CLib NAME 'getenv';
 
 // Volumes
-  FUNCTION _GetVolumeName (volumeNumber : LONGINT; volumeName : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeName';
-  FUNCTION _GetVolumeNumber (volumeName : PCHAR; VAR volumeNumber : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeNumber';
+  FUNCTION _GetVolumeName (volumeNumber : LONGINT; volumeName : PAnsiChar) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeName';
+  FUNCTION _GetVolumeNumber (volumeName : PAnsiChar; VAR volumeNumber : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeNumber';
   FUNCTION _GetVolumeInfoWithNumber (VolumeNumber : BYTE;
-                                     VolumeName   : PCHAR;
+                                     VolumeName   : PAnsiChar;
                                  VAR TotalBlocks  : WORD;
                                  VAR SectorsPerBlock : WORD;
                                  VAR availableBlocks : WORD;
@@ -315,7 +315,7 @@ FUNCTION  _wherex : WORD; CDECL; EXTERNAL CLib NAME 'wherex';
 FUNCTION  _wherey : WORD; CDECL; EXTERNAL CLib NAME 'wherey';
 PROCEDURE _clrscr; CDECL; EXTERNAL CLib NAME 'clrscr';
 FUNCTION  _kbhit : LONGINT; CDECL; EXTERNAL Clib NAME 'kbhit';
-FUNCTION  _getch : CHAR; CDECL; EXTERNAL CLib NAME 'getch';
+FUNCTION  _getch : AnsiChar; CDECL; EXTERNAL CLib NAME 'getch';
 PROCEDURE _delay (miliseconds : longint); CDECL; EXTERNAL Clib NAME 'delay';
 FUNCTION  _SetCtrlCharCheckMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL CLib NAME 'SetCtrlCharCheckMode';
 FUNCTION  _SetAutoScreenDestructionMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL CLib NAME 'SetAutoScreenDestructionMode';
@@ -348,10 +348,10 @@ CONST
   NW_NS_FTAM    = 3;
   NW_NS_LONG    = 4;
 
-function _NWAddSearchPathAtEnd (searchPath : pchar; var number : longint) : longint; cdecl; external Clib name 'NWAddSearchPathAtEnd';
+function _NWAddSearchPathAtEnd (searchPath : PAnsiChar; var number : longint) : longint; cdecl; external Clib name 'NWAddSearchPathAtEnd';
 function _NWDeleteSearchPath (searchPathNumber : longint) : longint; cdecl; external Clib name 'NWDeleteSearchPath';
-function _NWInsertSearchPath (searchPathNumber : longint; path : pchar) : longint; cdecl; external Clib name 'NWInsertSearchPath';
-function _NWGetSearchPathElement (searchPathNumber : longint; var isDOSSearchPath : longint; searchPath : pchar) : longint; cdecl; external Clib name 'NWGetSearchPathElement';
+function _NWInsertSearchPath (searchPathNumber : longint; path : PAnsiChar) : longint; cdecl; external Clib name 'NWInsertSearchPath';
+function _NWGetSearchPathElement (searchPathNumber : longint; var isDOSSearchPath : longint; searchPath : PAnsiChar) : longint; cdecl; external Clib name 'NWGetSearchPathElement';
 
 
 // values for __mode used with spawnxx()
@@ -363,9 +363,9 @@ CONST
    P_SPAWN_IN_CURRENT_DOMAIN = 8;
 
 
-//function spawnlp(mode:longint; path:Pchar; arg0:Pchar; args:array of const):longint;cdecl;external CLib name 'spawnlp';
-function spawnlp(mode:longint; path:Pchar; arg0:Pchar):longint;cdecl;external Clib name 'spawnlp';
-function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external Clib name 'spawnvp';
+//function spawnlp(mode:longint; path:PAnsiChar; arg0:PAnsiChar; args:array of const):longint;cdecl;external CLib name 'spawnlp';
+function spawnlp(mode:longint; path:PAnsiChar; arg0:PAnsiChar):longint;cdecl;external Clib name 'spawnlp';
+function spawnvp(mode:longint; path:PAnsiChar; argv:PPAnsiChar):longint;cdecl;external Clib name 'spawnvp';
 
 
 

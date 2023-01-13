@@ -27,7 +27,7 @@ Const
 
 Type
   TCharAttr=packed record
-    ch   : char;
+    ch   : AnsiChar;
     attr : byte;
   end;
   TConsoleBuf=Array[0..ConsoleMaxX*ConsoleMaxY-1] of TCharAttr;
@@ -53,14 +53,14 @@ Var
 *****************************************************************************}
 
 {$ifdef debugcrt}
-Procedure Debug(Msg : string);
+Procedure Debug(Msg : shortstring);
 
 begin
   Writeln(DebugFile,Msg);
 end;
 {$endif}
 
-Function Str(l:longint):string;
+Function Str(l:longint):shortstring;
 {
   Return a String of the longint
 }
@@ -102,7 +102,7 @@ end;
                       Optimal AnsiString Conversion Routines
 *****************************************************************************}
 
-Function XY2Ansi(x,y,ox,oy:longint):String;
+Function XY2Ansi(x,y,ox,oy:longint):shortstring;
 {
   Returns a string with the escape sequences to go to X,Y on the screen
 }
@@ -166,7 +166,7 @@ End;
 
 const
   AnsiTbl : string[8]='04261537';
-Function Attr2Ansi(Attr,OAttr:longint):string;
+Function Attr2Ansi(Attr,OAttr:longint):shortstring;
 {
   Convert Attr to an Ansi String, the Optimal code is calculate
   with use of the old OAttr
@@ -175,7 +175,7 @@ var
   hstr : string[16];
   OFg,OBg,Fg,Bg : longint;
 
-  procedure AddSep(ch:char);
+  procedure AddSep(ch:AnsiChar);
   begin
     if length(hstr)>0 then
      hstr:=hstr+';';
@@ -226,7 +226,7 @@ end;
 
 
 
-Function Ansi2Attr(Const HStr:String;oattr:longint):longint;
+Function Ansi2Attr(Const HStr:shortstring;oattr:longint):longint;
 {
   Convert an Escape sequence to an attribute value, uses Oattr as the last
   color written
@@ -276,11 +276,11 @@ const
   InSize=256;
   OutSize=1024;
 var
-  InBuf  : array[0..InSize-1] of char;
+  InBuf  : array[0..InSize-1] of AnsiChar;
   InCnt,
   InHead,
   InTail : longint;
-  OutBuf : array[0..OutSize-1] of char;
+  OutBuf : array[0..OutSize-1] of AnsiChar;
   OutCnt : longint;
 
 
@@ -305,8 +305,8 @@ begin
 end;
 
 
-{Send Char to Remote}
-Procedure ttySendChar(c:char);
+{Send AnsiChar to Remote}
+Procedure ttySendChar(c:AnsiChar);
 Begin
   if OutCnt<OutSize then
    begin
@@ -321,7 +321,7 @@ End;
 
 
 {Send String to Remote}
-procedure ttySendStr(const hstr:string);
+procedure ttySendStr(const hstr:shortstring);
 var
   i : longint;
 begin
@@ -333,8 +333,8 @@ end;
 
 
 
-{Get Char from Remote}
-function ttyRecvChar:char;
+{Get AnsiChar from Remote}
+function ttyRecvChar:AnsiChar;
 var
   Readed,i : longint;
 begin
@@ -417,7 +417,7 @@ end;
 
 
 
-procedure ttyWrite(const s:string);
+procedure ttyWrite(const s:shortstring);
 {
   Write a string to the output, memory copy and Current X&Y are also updated
 }
@@ -455,7 +455,7 @@ begin
 end;
 
 
-procedure LineWrite(const temp:String);
+procedure LineWrite(const temp:shortstring);
 {
   Write a Line to the screen, doesn't write on 80,25 under Dos
   the Current CurrX is set to WindMax. NO MEMORY UPDATE!
@@ -489,7 +489,7 @@ procedure DoScrollLine(y1,y2,xl,xh:longint);
   Move Line y1 to y2, use only columns Xl-Xh, Memory is updated also
 }
 var
-  Temp    : string;
+  Temp    : shortstring;
   idx,
   OldAttr,
   x,attr  : longint;
@@ -778,11 +778,11 @@ End;
 Const
   KeyBufferSize = 20;
 var
-  KeyBuffer : Array[0..KeyBufferSize-1] of Char;
+  KeyBuffer : Array[0..KeyBufferSize-1] of AnsiChar;
   KeyPut,
   KeySend   : longint;
 
-Procedure PushKey(Ch:char);
+Procedure PushKey(Ch:AnsiChar);
 Var
   Tmp : Longint;
 Begin
@@ -798,7 +798,7 @@ End;
 
 
 
-Function PopKey:char;
+Function PopKey:AnsiChar;
 Begin
   If KeyPut<>KeySend Then
    Begin
@@ -825,7 +825,7 @@ const
   AltKeyStr  : string[38]='qwertyuiopasdfghjklzxcvbnm1234567890-=';
   AltCodeStr : string[38]=#016#017#018#019#020#021#022#023#024#025#030#031#032#033#034#035#036#037#038+
                           #044#045#046#047#048#049#050#120#121#122#123#124#125#126#127#128#129#130#131;
-Function FAltKey(ch:char):byte;
+Function FAltKey(ch:AnsiChar):byte;
 var
   Idx : longint;
 Begin
@@ -858,9 +858,9 @@ Begin
   Keypressed := (KeySend<>KeyPut) or sysKeyPressed;
 End;
 
-Function ReadKey:char;
+Function ReadKey:AnsiChar;
 Var
-  ch       : char;
+  ch       : AnsiChar;
   OldState,
   State    : longint;
   FDS      : TFDSet;
@@ -1106,8 +1106,8 @@ end;
 
 var
   Lastansi  : boolean;
-  AnsiCode  : string;
-Procedure DoWrite(const s:String);
+  AnsiCode  : shortstring;
+Procedure DoWrite(const s:shortstring);
 {
   Write string to screen, parse most common AnsiCodes
 }
@@ -1118,7 +1118,7 @@ var
   i,j,
   SendBytes : longint;
 
-  function AnsiPara(var hstr:string):byte;
+  function AnsiPara(var hstr:shortstring):byte;
   var
     k,j  : longint;
     code : word;
@@ -1252,7 +1252,7 @@ Procedure CrtWrite(Var F: TextRec);
   Top level write function for CRT
 }
 Var
-  Temp : String;
+  Temp : shortstring;
   idx,i : Longint;
   oldflush : boolean;
 Begin
@@ -1279,7 +1279,7 @@ Procedure CrtRead(Var F: TextRec);
   Read from CRT associated file.
 }
 var
-  c : char;
+  c : AnsiChar;
   i : longint;
 Begin
   if isATTY(F.Handle)=1 then
@@ -1530,7 +1530,7 @@ var
   fds    : tfdSet;
   i,j,
   readed : longint;
-  buf    : array[0..255] of char;
+  buf    : array[0..255] of AnsiChar;
   s      : string[16];
 begin
   x:=0;
