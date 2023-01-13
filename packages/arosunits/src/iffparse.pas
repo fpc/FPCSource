@@ -20,7 +20,7 @@ interface
 uses exec, clipboard, utility;
 
 const
-    IFFPARSENAME  : PChar = 'iffparse.library';
+    IFFPARSENAME  : PAnsiChar = 'iffparse.library';
 
 {
  * Struct associated with an active IFF stream.
@@ -228,7 +228,7 @@ procedure FreeIFF(Iff: PIFFHandle);  syscall IFFParseBase 9;
 procedure FreeLocalItem(LocalItem: PLocalContextItem); syscall IFFParseBase 34;
 function GoodID(Id: LongInt): LongInt; syscall IFFParseBase 43;
 function GoodType(Typ: LongInt): LongInt; syscall IFFParseBase 44;
-function IDtoStr(Id: LongInt; Buf: PChar): PChar; syscall IFFParseBase 45;
+function IDtoStr(Id: LongInt; Buf: PAnsiChar): PAnsiChar; syscall IFFParseBase 45;
 procedure InitIFF(Iff: PIFFHandle; Flags: LongInt;const StreamHook: PHook); syscall IFFParseBase 38;
 procedure InitIFFasClip(Iff: PIFFHandle); syscall IFFParseBase 40;
 procedure InitIFFasDOS(Iff: PIFFHandle); syscall IFFParseBase 39;

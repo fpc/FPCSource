@@ -88,16 +88,16 @@ type
   TFileInfoBlock = record
     fib_DiskKey: IPTR;
     fib_DirEntryType: LongInt;                              // type of Directory. If < 0, then a plain file. If > 0 a directory
-    fib_FileName: array [0..MAXFILENAMELENGTH - 1] of Char; // Null terminated. Max 30 chars used for now
+    fib_FileName: array [0..MAXFILENAMELENGTH - 1] of AnsiChar; // Null terminated. Max 30 chars used for now
     fib_Protection: LongInt;                                // bit mask of protection, rwxd are 3-0.
     fib_EntryType: LongInt;
     fib_Size: LongInt;                                      // Number of bytes in file
     fib_NumBlocks: LongInt;                                 // Number of blocks in file
     fib_Date: TDateStamp;                                   // Date file last changed
-    fib_Comment: array [0..MAXCOMMENTLENGTH - 1] of Char;   // Null terminated comment associated with file
+    fib_Comment: array [0..MAXCOMMENTLENGTH - 1] of AnsiChar;   // Null terminated comment associated with file
     fib_OwnerUID: Word;                                     // UserID of fileowner.
     fib_OwnerGID: Word;                                     // GroupID of fileowner.
-    fib_Reserved: array [0..31] of Char;                    // PRIVATE
+    fib_Reserved: array [0..31] of AnsiChar;                    // PRIVATE
   end;
 
 const
@@ -406,7 +406,7 @@ type
     an_Lock: BPTR;      // Lock of this anchor
     an_Info: TFileInfoBlock; // fib Discribing this anchor
     an_Flags: ShortInt;      // se below
-    an_String: array[0..0] of Char;
+    an_String: array[0..0] of AnsiChar;
   end;
 const
 // an_Flags
@@ -438,7 +438,7 @@ type
       ap_Reserved   : Shortint;            // Private
       ap_Strlen     : SmallInt;            // Size of ap_Buf (see below). This may be zero.
       ap_Info       : TFileInfoBlock;      // describes any files found by matching-functions.
-      ap_Buf        : Array[0..0] of Char; // Buffer for path name, allocated by user!!
+      ap_Buf        : Array[0..0] of AnsiChar; // Buffer for path name, allocated by user!!
     );
   end;
 
@@ -786,7 +786,7 @@ type
     seg_Next: BPTR;    // Pointer to next segment.
     seg_UC: LongInt;   // Usage count/type
     seg_Seg: BPTR;     // Actual Segment
-    seg_Name: array[0..3] of Char;  // actually the first 4 chars of BSTR name }
+    seg_Name: array[0..3] of AnsiChar;  // actually the first 4 chars of BSTR name }
   end;
 
 const
@@ -1006,7 +1006,7 @@ type
   PExAllData = ^TExAllData;
   TExAllData = record
     ed_Next: PExAllData;
-    ed_Name: PChar;        // Name of the file
+    ed_Name: PAnsiChar;        // Name of the file
     ed_Type: LongInt;      // Type of File
     ed_Size,               // Size of File
     ed_Prot,               // Protection Bits
@@ -1016,7 +1016,7 @@ type
     ed_Mins,
     ed_Ticks    : ULONG;
 
-    ed_Comment: PChar;     // The file comment
+    ed_Comment: PAnsiChar;     // The file comment
     ed_OwnerUID,           // The owner ID
     ed_OwnerGID : Word;    // the group-owner ID
   end;
@@ -1046,7 +1046,7 @@ type
   TExAllControl = record
     eac_Entries: ULONG;     // number of entries returned in buffer
     eac_LastKey: IPTR;      // Don't touch inbetween linked ExAll calls!
-    eac_MatchString: PChar; // wildcard string for pattern match OR nil
+    eac_MatchString: PAnsiChar; // wildcard string for pattern match OR nil
     eac_MatchFunc: PHook;   // optional private wildcard FUNCTION
   end;
 
@@ -1257,7 +1257,7 @@ type
 // This structure emulates an input stream by using a buffer.
   PCSource = ^TCSource;
   TCSource = record
-    CS_Buffer: PChar;   // The buffer, which contains the stream. In most cases this may be nil,
+    CS_Buffer: PAnsiChar;   // The buffer, which contains the stream. In most cases this may be nil,
                         // in which case the current input stream is used.
     CS_Length,
     CS_CurChr: LongInt;
@@ -1300,9 +1300,9 @@ type
         {The next two fields allow an application to supply a buffer to be parsed
        to ReadArgs(). If either of these fields is 0, ReadArgs() allocates this
        buffer itself.}
-    RDA_Buffer: PChar;       // Pointer to buffer. May be nil.
+    RDA_Buffer: PAnsiChar;       // Pointer to buffer. May be nil.
     RDA_BufSiz: LongInt;     // Size of the supplied RDA_Buffer. May be 0.
-    RDA_ExtHelp: PChar;      // Additional help, if user requests it, by supplying '?' as argument.
+    RDA_ExtHelp: PAnsiChar;      // Additional help, if user requests it, by supplying '?' as argument.
     RDA_Flags: LongInt;      // Flags for any required control (RDAF_?)
   end;
 
@@ -1531,7 +1531,7 @@ type
 // Reads from a filehandle into a buffer.
   PIFS_READ_WRITE = ^TIFS_READ_WRITE;
   TIFS_READ_WRITE = record
-    io_Buffer: PChar;    // The buffer for the data to read/write.
+    io_Buffer: PAnsiChar;    // The buffer for the data to read/write.
     io_Length: LongInt;  // The length of the buffer. This is filled by the filesystem handler
   end;                   // with the number of bytes actually read/written.
 // This action does exactly the same as the function Seek().
@@ -1714,7 +1714,7 @@ type
   end;
   PIFS_PARENT_DIR = ^TIFS_PARENT_DIR;
   TIFS_PARENT_DIR = record
-    io_DirName: PChar; // This will contain the return value of the parent directory, or
+    io_DirName: PAnsiChar; // This will contain the return value of the parent directory, or
   end;                 // nil if we are at the root directory already
 // Allows us to change a console between raw and cooked mode.
   PIFS_CONSOLE_MODE = ^TIFS_CONSOLE_MODE;
@@ -2158,7 +2158,7 @@ type
 
   TAttrs_Section = record
     Size:   LongWord;
-    Vendor: array[0..0] of char;   // NULL-terminated name
+    Vendor: array[0..0] of AnsiChar;   // NULL-terminated name
   end;                             // Vendor-specific subsections follow
 
   TAttrs_SubSection = packed record
@@ -2350,7 +2350,7 @@ function PathPart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 146;
 function AddPart(DirName: STRPTR; const FileName: STRPTR; Size: LongWord): LongBool; syscall AOS_DOSBase 147;
 function StartNotify(Notify: PNotifyRequest): LongBool; syscall AOS_DOSBase 148;
 procedure EndNotify(Notify: PNotifyRequest); syscall AOS_DOSBase 149;
-function SetVar(const Name: STRPTR; Buffer: PChar; Size: LongInt; Flags: LongInt): LongBool;  syscall AOS_DOSBase 150;
+function SetVar(const Name: STRPTR; Buffer: PAnsiChar; Size: LongInt; Flags: LongInt): LongBool;  syscall AOS_DOSBase 150;
 function GetVar(const Name: STRPTR; Buffer: STRPTR; Size: LongInt; Flags: LongInt): LongInt; syscall AOS_DOSBase 151;
 function DeleteVar(const Name: STRPTR; Flags: LongWord): LongBool; syscall AOS_DOSBase 152;
 function FindVar(const Name: STRPTR; Type_: LongWord): PLocalVar; syscall AOS_DOSBase 153;
@@ -2369,7 +2369,7 @@ function SetOwner(const Name: STRPTR; Owner_Info: LongWord): LongBool; syscall A
 function ScanVars(Hook: PHook; Flags: LongWord; UserData: APTR): LongInt; syscall AOS_DOSBase 167;
 
 {$ifdef AROS_ABIv0}
-function RunHandler(DevNode: PDeviceNode; Path: PChar): PMsgPort; syscall AOS_DOSBase 27;
+function RunHandler(DevNode: PDeviceNode; Path: PAnsiChar): PMsgPort; syscall AOS_DOSBase 27;
 function DosError(): BPTR; syscall AOS_DOSBase 142;
 function SelectError(Fh: BPTR): BPTR; syscall AOS_DOSBase 144;
 function Pipe(const Name: STRPTR; var Reader: BPTR; var Writer: BPTR): LongInt; syscall AOS_DOSBase 160;

@@ -34,7 +34,7 @@ type
     LeftEdge: SmallInt;    // relative start location for the text
     TopEdge: SmallInt;     // relative start location for the text
     ITextFont: PTextAttr;  // if nil, you accept the default
-    IText: PChar;          // pointer to null-terminated text
+    IText: PAnsiChar;          // pointer to null-terminated text
     NextText: PIntuiText;  // continuation to TxWrite another text
   end;
 
@@ -79,7 +79,7 @@ type
     MutualExclude: LongInt; // set bits mean this item excludes that
     ItemFill: APTR;         // points to Image, IntuiText, or nil
     SelectFill: APTR;       // points to Image, IntuiText, or nil when this item is pointed to by the cursor and the items highlight mode HIGHIMAGE is selected, this alternate image will be displayed
-    Command: Char;          // only if appliprog sets the COMMSEQ flag
+    Command: AnsiChar;          // only if appliprog sets the COMMSEQ flag
     SubItem: PMenuItem;     // if non-nil, DrawMenu shows "->"
     NextSelect: Word;       // The NextSelect field represents the menu number of next selected item (when user has drag-selected several items)
   end;
@@ -125,7 +125,7 @@ type
     Width,
     Height: SmallInt;     // dimensions of the select box
     Flags: Word;          // see flag definitions below (MENUENABLED, MIDRAWN)
-    MenuName: PChar;      // text for this Menu Header
+    MenuName: PAnsiChar;      // text for this Menu Header
     FirstItem: PMenuItem; // pointer to first in chain
     JazzX,                // these mysteriously-named variables are for internal use only
     JazzY,
@@ -212,7 +212,7 @@ const
   GFLG_STRINGEXTEND = 1 shl 10; // this String Gadget has StringExtend
   GFLG_IMAGEDISABLE = 1 shl 11; // Gadget's image knows how to do disabled rendering
   GFLG_LABELITEXT   = $0000;    // GadgetText points to IntuiText
-  GFLG_LABELSTRING  = 1 shl 12; // GadgetText points to (PChar)
+  GFLG_LABELSTRING  = 1 shl 12; // GadgetText points to (PAnsiChar)
   GFLG_LABELIMAGE   = 1 shl 13; // GadgetText points to Image (object)
   GFLG_LABELMASK    = $3000;
   GFLG_RELSPECIAL   = 1 shl 14; // custom gadget has special relativity. Gadget box values are absolutes, but can be changed via the GM_LAYOUT method.
@@ -389,8 +389,8 @@ type
   PStringInfo = ^TStringInfo;
   TStringInfo = record
     // you initialize these variables, and then Intuition maintains them
-    Buffer: PChar;       // the buffer containing the start and final string
-    UndoBuffer: PChar;   // optional buffer for undoing current entry
+    Buffer: PAnsiChar;       // the buffer containing the start and final string
+    UndoBuffer: PAnsiChar;   // optional buffer for undoing current entry
     BufferPos: SmallInt; // character position in Buffer
     MaxChars: SmallInt;  // max number of chars in Buffer (including #0)
     DispPos: SmallInt;   // Buffer position of first displayed character
@@ -573,7 +573,7 @@ type
 
     Flags: LongWord;       // see below for defines
     MenuStrip: PMenu;      // the strip of Menu headers
-    Title: PChar;          // the title text for this window
+    Title: PAnsiChar;          // the title text for this window
     FirstRequest: PRequester; // all active Requesters
     DMRequest: PRequester;    // double-click Requester
     ReqCount: SmallInt;    // count of reqs blocking Window
@@ -617,7 +617,7 @@ type
     DetailPen,
     BlockPen: Byte;       // for bar/border/gadget rendering
     CheckMark: PImage;    // the CheckMark is a pointer to the imagery that will be used when  rendering MenuItems of this Window that want to be checkmarked if this is equal to NULL, you'll get the default imagery
-    ScreenTitle: PChar;   // if non-nil, Screen title when Window is active
+    ScreenTitle: PAnsiChar;   // if non-nil, Screen title when Window is active
 
     { These variables have the mouse coordinates relative to the
       inner-Window of GIMMEZEROZERO Windows.  This is compared with the
@@ -665,8 +665,8 @@ type
 {$endif}
 
     Flags: Word;          // see definitions below
-    Title: PChar;         // null-terminated Title text
-    DefaultTitle: PChar;  // for Windows without ScreenTitle
+    Title: PAnsiChar;         // null-terminated Title text
+    DefaultTitle: PAnsiChar;  // for Windows without ScreenTitle
 
     // Bar sizes for this Screen and all Window's in this Screen
     BarHeight,
@@ -774,7 +774,7 @@ type
     CheckMark: PImage;    { the CheckMark is a pointer to the imagery that will be used when
                              rendering MenuItems of this Window that want to be checkmarked
                              if this is equal to NULL, you'll get the default imagery}
-    Title: PChar;         // the title text for this window
+    Title: PAnsiChar;         // the title text for this window
     Screen: PScreen;      { the Screen pointer is used only if you've defined a CUSTOMSCREEN and
                              want this Window to open in it.  If so, you pass the Pointer of the
                              Custom Screen structure in this variable.  Otherwise, this variable
@@ -827,7 +827,7 @@ type
 
     FirstGadget: PGadget;
     CheckMark: PImage;
-    Title: PChar;
+    Title: PAnsiChar;
     WScreen: PScreen;
     WBitMap: PBitMap;
 
@@ -885,7 +885,7 @@ const
   WA_InnerWidth   = WA_Dummy + 19;
   WA_InnerHeight  = WA_Dummy + 20; { You can specify the dimensions of the interior region of your window, independent of what the border widths will be.  You probably want
                                      to also specify WA_AutoAdjust to allow Intuition to move your window or even shrink it so that it is completely on screen.}
-  WA_PubScreenName = WA_Dummy + 21; // declares that you want the window to open as a visitor on the public screen whose name is pointed to by (PChar) ti_Data}
+  WA_PubScreenName = WA_Dummy + 21; // declares that you want the window to open as a visitor on the public screen whose name is pointed to by (PAnsiChar) ti_Data}
   WA_PubScreen     = WA_Dummy + 22; { open as a visitor window on the public screen whose Pointer is in (PScreen) ti_Data. To ensure that this screen remains open, you
                                       should either be the screen's owner, have a window open on the screen, or use LockPubScreen().}
   WA_PubScreenFallBack = WA_Dummy + 23; { A Boolean, specifies whether a visitor window should "fall back" to the default public screen
@@ -1068,9 +1068,9 @@ type
   TEasyStruct = record
     es_StructSize: LongWord; // should be sizeof (TEasyStruct) Note that this size may change, if you update the includes! Do not use absolute values as the size of pointers may vary on different platforms!
     es_Flags: LongWord;      // should be 0 for now
-    es_Title: PChar;         // title of requester window
-    es_TextFormat: PChar;    // 'printf' style formatting string
-    es_GadgetFormat: PChar;  // Text of the gadgets, separated by |'s
+    es_Title: PAnsiChar;         // title of requester window
+    es_TextFormat: PAnsiChar;    // 'printf' style formatting string
+    es_GadgetFormat: PAnsiChar;  // Text of the gadgets, separated by |'s
   end;
 
 const
@@ -1319,7 +1319,7 @@ type
     SType: Word;            // the Screen type (see defines above) (Type in C-Include)
 
     Font: PTextAttr;        // this Screen's default text attributes
-    DefaultTitle: PChar;    // the default title for this Screen
+    DefaultTitle: PAnsiChar;    // the default title for this Screen
     Gadgets: PGadget;       // your own Gadgets for this Screen
 
   { if you are opening a CUSTOMSCREEN and already have a BitMap
@@ -1342,7 +1342,7 @@ type
     ViewModes: Word;
     ens_Type: Word;     { type in C-Includes }
     Font: PTextAttr;
-    DefaultTitle: PChar;
+    DefaultTitle: PAnsiChar;
     Gadgets: PGadget;
     CustomBitMap: PBitMap;
     Extension: PTagItem; // ExtNewScreen specific extension SA_*
@@ -1480,7 +1480,7 @@ type
 
   // printer configurations
     PrinterType: Word;     // printer type
-    PrinterFilename: array[0..FILENAME_SIZE - 1] of char; // file for printer
+    PrinterFilename: array[0..FILENAME_SIZE - 1] of AnsiChar; // file for printer
 
   // print format and quality configurations
     PrintPitch: Word;         // print pitch
@@ -1506,7 +1506,7 @@ type
 
   // temp file for printer
     Pad: array[0..11] of Byte;
-    PrtDevName: array [0..DEVNAME_SIZE - 1] of char; // Device used by printer.device (leave out the ".device")
+    PrtDevName: array [0..DEVNAME_SIZE - 1] of AnsiChar; // Device used by printer.device (leave out the ".device")
 
     DefaultPrtUnit: Byte; // Default unit opened by printer.device
     DefaultSerUnit: Byte; // Default serial unit
@@ -1759,10 +1759,10 @@ const
   POINTERCLASS: ClassID  = 'pointerclass';     // pointerclass.h
 
 // public classes existing only in AROS but not AmigaOS
-  MENUBARLABELCLASS: PChar = 'menubarlabelclass';
-  WINDECORCLASS: PChar     = 'windecorclass';
-  SCRDECORCLASS: PChar     = 'scrdecorclass';
-  MENUDECORCLASS: PChar    = 'menudecorclass';
+  MENUBARLABELCLASS: PAnsiChar = 'menubarlabelclass';
+  WINDECORCLASS: PAnsiChar     = 'windecorclass';
+  SCRDECORCLASS: PAnsiChar     = 'scrdecorclass';
+  MENUDECORCLASS: PAnsiChar    = 'menudecorclass';
 
 { Dispatched method ID's
   NOTE: Applications should use Intuition entry points, not direct
@@ -1915,7 +1915,7 @@ const
   GA_RelHeight = (GA_Dummy + $0008); // [ISG] (LONG) Height of gadget, depending on window height: Height=Win^.Height-this
 
 // Gadget rendering
-  GA_Text         = (GA_Dummy + $0009); // [IS.] (PChar) Label text. This is mutually exclusive with GA_IntuiText and GA_LabelImage.
+  GA_Text         = (GA_Dummy + $0009); // [IS.] (PAnsiChar) Label text. This is mutually exclusive with GA_IntuiText and GA_LabelImage.
   // The next two attributes are mutually exclusive.
   GA_Image        = (GA_Dummy + $000A); // (PImage) Gadget imagry is an image
   GA_Border       = (GA_Dummy + $000B); // (PBorder) Gadget imagry is a border
@@ -1972,10 +1972,10 @@ const
      dependent on the size of the window. }
   GA_TextAttr = GA_Dummy + 40; // [IS.] (PTextAttr) Indicate the font to use for the gadget.
   GA_ReadOnly = GA_Dummy + 41; // (LongBool) Indicate that the gadget is read-only (non-selectable). Default = False
-  GA_Underscore = GA_Dummy + 42; // (Char) Underscore/escape character for keyboard shortcuts. Defaults = '_'
-  GA_ActivateKey = GA_Dummy + 43; // (PChar) Set/Get the gadgets shortcut/activation key(s) Default = nil
+  GA_Underscore = GA_Dummy + 42; // (AnsiChar) Underscore/escape character for keyboard shortcuts. Defaults = '_'
+  GA_ActivateKey = GA_Dummy + 43; // (PAnsiChar) Set/Get the gadgets shortcut/activation key(s) Default = nil
   GA_BackFill = GA_Dummy + 44; // (PHook) Backfill pattern hook. Defaults to nil.
-  GA_GadgetHelpText = GA_Dummy + 45; // (PChar) RESERVERD/PRIVATE DO NOT USE. Default = nil
+  GA_GadgetHelpText = GA_Dummy + 45; // (PAnsiChar) RESERVERD/PRIVATE DO NOT USE. Default = nil
   GA_UserInput = GA_Dummy + 46; // (LongBool) Notification tag indicates this notification is from the activite gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
 // Aros Specifics
   GA_LabelPlace = GA_Dummy + 100; { [I..] (LongInt) Choose the placing of the label. GadgetClass does not support
@@ -2464,7 +2464,7 @@ const
   EO_ENTER       = $0005; // "enter" or "return" key, terminate
   EO_RESET       = $0006; // current Intuition-style undo
   EO_REPLACECHAR = $0007; // replaced one character and (maybe) advanced cursor
-  EO_INSERTCHAR  = $0008; // inserted one char into string or added one at end
+  EO_INSERTCHAR  = $0008; // inserted one AnsiChar into string or added one at end
   EO_BADFORMAT   = $0009; // didn't like the text data, e.g., Bad LONGINT
   EO_BIGCHANGE   = $000A; // unused by Intuition complete or major change to the text, e.g. new string
   EO_UNDO        = $000B; // unused by Intuition  some other style of undo
@@ -2479,7 +2479,7 @@ const
   // These Mode Flags are for internal use only
   SGM_NOCHANGE   = 1 shl 3; // no edit changes yet
   SGM_NOWORKB    = 1 shl 4; // Buffer = PrevBuffer
-  SGM_CONTROL    = 1 shl 5; // control char escape mode
+  SGM_CONTROL    = 1 shl 5; // control AnsiChar escape mode
   SGM_LONGINT    = 1 shl 6; // an intuition LongInt gadget
   // String Gadget Action Flags (put in SGWork.Actions by EditHook)
   SGA_USE        = $1;  // use contents of SGWork
@@ -3338,7 +3338,7 @@ function CloseScreen(Screen: PScreen): LongBool; syscall IntuitionBase 11;
 procedure CloseWindow(Window: PWindow); syscall IntuitionBase 12;
 function CloseWorkBench: LongInt; syscall IntuitionBase 13;
 procedure CurrentTime(var Seconds: LongWord; var Micros: LongWord); syscall IntuitionBase 14;
-function DisplayAlert(AlertNumber: LongWord; String_: PChar; Height: Word): LongBool; syscall IntuitionBase 15; deprecated;
+function DisplayAlert(AlertNumber: LongWord; String_: PAnsiChar; Height: Word): LongBool; syscall IntuitionBase 15; deprecated;
 procedure DisplayBeep(Screen: PScreen); syscall IntuitionBase 16;
 function DoubleClick(SSeconds: LongWord; SMicros: LongWord; CSeconds: LongWord; CMicros: LongWord): LongBool; syscall IntuitionBase 17;
 procedure DrawBorder(Rp: PRastPort; Border: PBorder; LeftOffset: LongInt; TopOffset: LongInt); syscall IntuitionBase 18;
@@ -3369,7 +3369,7 @@ procedure ScreenToFront(Screen: PScreen); syscall IntuitionBase 42;
 function SetDMRequest(Window: PWindow; Requester: PRequester): LongBool; syscall IntuitionBase 43;
 function SetMenuStrip(Window: PWindow; Menu: PMenu): LongBool; syscall IntuitionBase 44;
 procedure SetPointer(Window: PWindow; Pointer_: PWord; Height: LongInt; Width: LongInt; XOffset: LongInt; YOffset: LongInt); syscall IntuitionBase 45;
-procedure SetWindowTitles(Window: PWindow; const WindowTitle: PChar; const ScreenTitle: PChar); syscall IntuitionBase 46;
+procedure SetWindowTitles(Window: PWindow; const WindowTitle: PAnsiChar; const ScreenTitle: PAnsiChar); syscall IntuitionBase 46;
 procedure ShowTitle(Screen: PScreen; ShowIt: LongBool); syscall IntuitionBase 47;
 procedure SizeWindow(Window: PWindow; Dx: LongInt; Dy: LongInt); syscall IntuitionBase 48;
 function ViewAddress: PView; syscall IntuitionBase 49;
@@ -3409,18 +3409,18 @@ function SetEditHook(Hook: PHook): PHook; syscall IntuitionBase 82;
 function SetMouseQueue(Window: PWindow; QueueLength: LongWord): LongInt; syscall IntuitionBase 83;
 procedure ZipWindow(Window: PWindow); syscall IntuitionBase 84;
 function LockPubScreen(const Name: STRPTR): PScreen; syscall IntuitionBase 85;
-procedure UnlockPubScreen(Name: PChar; Screen: PScreen); syscall IntuitionBase 86;
+procedure UnlockPubScreen(Name: PAnsiChar; Screen: PScreen); syscall IntuitionBase 86;
 function LockPubScreenList: PList; syscall IntuitionBase 87;
 procedure UnlockPubScreenList; syscall IntuitionBase 88;
-function NextPubScreen(Screen: PScreen; Namebuf: PChar): PChar; syscall IntuitionBase 89;
-procedure SetDefaultPubScreen(Name: PChar); syscall IntuitionBase 90;
+function NextPubScreen(Screen: PScreen; Namebuf: PAnsiChar): PAnsiChar; syscall IntuitionBase 89;
+procedure SetDefaultPubScreen(Name: PAnsiChar); syscall IntuitionBase 90;
 function SetPubScreenModes(Modes: Word): Word; syscall IntuitionBase 91;
 function PubScreenStatus(Screen: PScreen; StatusFlags: Word): Word; syscall IntuitionBase 92;
 function ObtainGIRPort(GInfo: PGadgetInfo): PRastPort; syscall IntuitionBase 93;
 procedure ReleaseGIRPort(Rp: PRastPort); syscall IntuitionBase 94;
 procedure GadgetMouse(Gadget: PGadget; GInfo: PGadgetInfo; var MousePoint: SmallInt); syscall IntuitionBase 95;
 function SetIPrefs(Data: Pointer; Length: LongWord; Typ: LongWord): LongWord; syscall IntuitionBase 96;
-function GetDefaultPubScreen(NameBuffer: PChar): PScreen; syscall IntuitionBase 97;
+function GetDefaultPubScreen(NameBuffer: PAnsiChar): PScreen; syscall IntuitionBase 97;
 function EasyRequestArgs(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; Args: APTR): LongInt; syscall IntuitionBase 98;
 function BuildEasyRequestArgs(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; Args: APTR): PWindow; syscall IntuitionBase 99;
 function SysReqHandler(Window: PWindow; IDCMPFlagsPtr: PLongWord; WaitInput: LongBool): LongInt; syscall IntuitionBase 100;
@@ -3429,7 +3429,7 @@ function OpenScreenTagList(NewScreen: PNewScreen; TagList: PTagItem): PScreen; s
 procedure DrawImageState(Rp: PRastPort; Image: PImage; LeftOffset: LongInt; TopOffset: LongInt; state: LongWord; DrawInfo: PDrawInfo); syscall IntuitionBase 103;
 function PointInImage(Point: LongWord; Image: PImage): LongBool; syscall IntuitionBase 104;
 procedure EraseImage(Rp: PRastPort; Image: PImage; LeftOffset: LongInt; TopOffset: LongInt); syscall IntuitionBase 105;
-function NewObjectA(ClassPtr: PIClass; ClassID: PChar; TagList: PTagItem): APTR; syscall IntuitionBase 106;
+function NewObjectA(ClassPtr: PIClass; ClassID: PAnsiChar; TagList: PTagItem): APTR; syscall IntuitionBase 106;
 procedure DisposeObject(Object_: APTR); syscall IntuitionBase 107;
 function SetAttrsA(Object_: APTR; TagList: PTagItem): IPTR; syscall IntuitionBase 108;
 function GetAttr(AttrID: LongWord; Object_: PObject_; StoragePtr: PIPTR): LongWord; overload syscall IntuitionBase 109;
@@ -3453,7 +3453,7 @@ procedure ScrollWindowRaster(Win: PWindow; Dx: SmallInt; Dy: SmallInt; XMin: Sma
 procedure LendMenus(FromWindow: PWindow; ToWindow: PWindow); syscall IntuitionBase 134;
 function DoGadgetMethodA(Gad: PGadget; Win: PWindow; Req: PRequester; Msg: TMsg): IPTR; syscall IntuitionBase 135;
 procedure SetWindowPointerA(Win: PWindow; Taglist: PTagItem); syscall IntuitionBase 136;
-function TimedDisplayAlert(AlertNumber: LongWord; String_: PChar; Height: Word; Time: LongWord): LongBool; syscall IntuitionBase 137;
+function TimedDisplayAlert(AlertNumber: LongWord; String_: PAnsiChar; Height: Word; Time: LongWord): LongBool; syscall IntuitionBase 137;
 procedure HelpControl(Window: PWindow; Flags: LongWord); syscall IntuitionBase 138;
 function IsWindowVisible(Window: PWindow): LongWord; syscall IntuitionBase 139;
 procedure ShowWindow(Window: PWindow); syscall IntuitionBase 140;
@@ -3488,7 +3488,7 @@ function GetMonitorList(Tags: PTagItem): PPObject_; syscall IntuitionBase 161;
 
 // VarArgs Versions
 function SetAttrs(Obj: APTR; const Tags: array of PtrUInt): LongWord;
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+function NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR;
 function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of PtrUInt): PWindow;
 function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of PtrUInt): IPTR;
 function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of PtrUInt): LongInt;
@@ -3544,7 +3544,7 @@ begin
   SetAttrs := SetAttrsA(Obj, @Tags);
 end;
 
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR; inline;
+function NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR; inline;
 begin
   NewObject := NewObjectA(ClassPtr, ClassID, @Tags);
 end;

@@ -210,7 +210,7 @@ var
   LocaleBase: PLocaleBase = nil;
 
 const
-  LOCALENAME: PChar = 'locale.library';
+  LOCALENAME: PAnsiChar = 'locale.library';
 
 procedure CloseCatalog(Catalog: PCatalog); syscall LocaleBase 6;
 procedure CloseLocale(Locale: PLocale); syscall LocaleBase 7;
