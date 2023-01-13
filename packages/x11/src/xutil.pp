@@ -127,8 +127,8 @@ type
 
    PXClassHint = ^TXClassHint;
    TXClassHint = record
-        res_name : Pchar;
-        res_class : Pchar;
+        res_name : PAnsiChar;
+        res_class : PAnsiChar;
      end;
 
 type
@@ -217,7 +217,7 @@ function XAllocStandardColormap:PXStandardColormap;cdecl;external libX11;
 function XAllocWMHints:PXWMHints;cdecl;external libX11;
 function XClipBox(para1:TRegion; para2:PXRectangle):cint;cdecl;external libX11;
 function XCreateRegion:TRegion;cdecl;external libX11;
-function XDefaultString:Pchar;cdecl;external libX11;
+function XDefaultString:PAnsiChar;cdecl;external libX11;
 function XDeleteContext(para1:PDisplay; para2:TXID; para3:TXContext):cint;cdecl;external libX11;
 function XDestroyRegion(para1:TRegion):cint;cdecl;external libX11;
 function XEmptyRegion(para1:TRegion):cint;cdecl;external libX11;
@@ -240,50 +240,50 @@ function XGetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4
 function XGetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):TStatus;cdecl;external libX11;
 function XIntersectRegion(para1:TRegion; para2:TRegion; para3:TRegion):cint;cdecl;external libX11;
 procedure XConvertCase(para1:TKeySym; para2:PKeySym; para3:PKeySym);cdecl;external libX11;
-function XLookupString(para1:PXKeyEvent; para2:Pchar; para3:cint; para4:PKeySym; para5:PXComposeStatus):cint;cdecl;external libX11;
+function XLookupString(para1:PXKeyEvent; para2:PAnsiChar; para3:cint; para4:PKeySym; para5:PXComposeStatus):cint;cdecl;external libX11;
 function XMatchVisualInfo(para1:PDisplay; para2:cint; para3:cint; para4:cint; para5:PXVisualInfo):TStatus;cdecl;external libX11;
 function XOffsetRegion(para1:TRegion; para2:cint; para3:cint):cint;cdecl;external libX11;
 function XPointInRegion(para1:TRegion; para2:cint; para3:cint):TBoolResult;cdecl;external libX11;
 function XPolygonRegion(para1:PXPoint; para2:cint; para3:cint):TRegion;cdecl;external libX11;
 function XRectInRegion(para1:TRegion; para2:cint; para3:cint; para4:cuint; para5:cuint):cint;cdecl;external libX11;
-function XSaveContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:Pchar):cint;cdecl;external libX11;
+function XSaveContext(para1:PDisplay; para2:TXID; para3:TXContext; para4:PAnsiChar):cint;cdecl;external libX11;
 function XSetClassHint(para1:PDisplay; para2:TWindow; para3:PXClassHint):cint;cdecl;external libX11;
 function XSetIconSizes(para1:PDisplay; para2:TWindow; para3:PXIconSize; para4:cint):cint;cdecl;external libX11;
 function XSetNormalHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):cint;cdecl;external libX11;
 procedure XSetRGBColormaps(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:cint; para5:TAtom);cdecl;external libX11;
 function XSetSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom):cint;cdecl;external libX11;
-function XSetStandardProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:TPixmap;
-           para6:PPchar; para7:cint; para8:PXSizeHints):cint;cdecl;external libX11;
+function XSetStandardProperties(para1:PDisplay; para2:TWindow; para3:PAnsiChar; para4:PAnsiChar; para5:TPixmap;
+           para6:PPAnsiChar; para7:cint; para8:PXSizeHints):cint;cdecl;external libX11;
 procedure XSetTextProperty(para1:PDisplay; para2:TWindow; para3:PXTextProperty; para4:TAtom);cdecl;external libX11;
 procedure XSetWMClientMachine(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
 function XSetWMHints(para1:PDisplay; para2:TWindow; para3:PXWMHints):cint;cdecl;external libX11;
 procedure XSetWMIconName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
 procedure XSetWMName(para1:PDisplay; para2:TWindow; para3:PXTextProperty);cdecl;external libX11;
 procedure XSetWMNormalHints(ADisplay:PDisplay; AWindow:TWindow; AHints:PXSizeHints);cdecl;external libX11;
-procedure XSetWMProperties(ADisplay:PDisplay; AWindow:TWindow; AWindowName:PXTextProperty; AIconName:PXTextProperty; AArgv:PPchar;
+procedure XSetWMProperties(ADisplay:PDisplay; AWindow:TWindow; AWindowName:PXTextProperty; AIconName:PXTextProperty; AArgv:PPAnsiChar;
             AArgc:cint; ANormalHints:PXSizeHints; AWMHints:PXWMHints; AClassHints:PXClassHint);cdecl;external libX11;
-procedure XmbSetWMProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:PPchar;
+procedure XmbSetWMProperties(para1:PDisplay; para2:TWindow; para3:PAnsiChar; para4:PAnsiChar; para5:PPAnsiChar;
             para6:cint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
-procedure Xutf8SetWMProperties(para1:PDisplay; para2:TWindow; para3:Pchar; para4:Pchar; para5:PPchar;
+procedure Xutf8SetWMProperties(para1:PDisplay; para2:TWindow; para3:PAnsiChar; para4:PAnsiChar; para5:PPAnsiChar;
             para6:cint; para7:PXSizeHints; para8:PXWMHints; para9:PXClassHint);cdecl;external libX11;
 procedure XSetWMSizeHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints; para4:TAtom);cdecl;external libX11;
 function XSetRegion(para1:PDisplay; para2:TGC; para3:TRegion):cint;cdecl;external libX11;
 procedure XSetStandardColormap(para1:PDisplay; para2:TWindow; para3:PXStandardColormap; para4:TAtom);cdecl;external libX11;
 function XSetZoomHints(para1:PDisplay; para2:TWindow; para3:PXSizeHints):cint;cdecl;external libX11;
 function XShrinkRegion(para1:TRegion; para2:cint; para3:cint):cint;cdecl;external libX11;
-function XStringListToTextProperty(para1:PPchar; para2:cint; para3:PXTextProperty):TStatus;cdecl;external libX11;
+function XStringListToTextProperty(para1:PPAnsiChar; para2:cint; para3:PXTextProperty):TStatus;cdecl;external libX11;
 function XSubtractRegion(para1:TRegion; para2:TRegion; para3:TRegion):cint;cdecl;external libX11;
-function XmbTextListToTextProperty(para1:PDisplay; para2:PPchar; para3:cint; para4:TXICCEncodingStyle; para5:PXTextProperty):cint;cdecl;external libX11;
+function XmbTextListToTextProperty(para1:PDisplay; para2:PPAnsiChar; para3:cint; para4:TXICCEncodingStyle; para5:PXTextProperty):cint;cdecl;external libX11;
 function XwcTextListToTextProperty(para1:PDisplay; para2:PPWideChar; para3:cint; para4:TXICCEncodingStyle; para5:PXTextProperty):cint;cdecl;external libX11;
-function Xutf8TextListToTextProperty(para1:PDisplay; para2:PPchar; para3:cint; para4:TXICCEncodingStyle; para5:PXTextProperty):cint;cdecl;external libX11;
+function Xutf8TextListToTextProperty(para1:PDisplay; para2:PPAnsiChar; para3:cint; para4:TXICCEncodingStyle; para5:PXTextProperty):cint;cdecl;external libX11;
 procedure XwcFreeStringList(para1:PPWideChar);cdecl;external libX11;
-function XTextPropertyToStringList(para1:PXTextProperty; para2:PPPchar; para3:Pcint):TStatus;cdecl;external libX11;
-function XmbTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPchar; para4:Pcint):cint;cdecl;external libX11;
+function XTextPropertyToStringList(para1:PXTextProperty; para2:PPPAnsiChar; para3:Pcint):TStatus;cdecl;external libX11;
+function XmbTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPAnsiChar; para4:Pcint):cint;cdecl;external libX11;
 function XwcTextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPWideChar; para4:Pcint):cint;cdecl;external libX11;
-function Xutf8TextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPchar; para4:Pcint):cint;cdecl;external libX11;
+function Xutf8TextPropertyToTextList(para1:PDisplay; para2:PXTextProperty; para3:PPPAnsiChar; para4:Pcint):cint;cdecl;external libX11;
 function XUnionRectWithRegion(para1:PXRectangle; para2:TRegion; para3:TRegion):cint;cdecl;external libX11;
 function XUnionRegion(para1:TRegion; para2:TRegion; para3:TRegion):cint;cdecl;external libX11;
-function XWMGeometry(para1:PDisplay; para2:cint; para3:Pchar; para4:Pchar; para5:cuint;
+function XWMGeometry(para1:PDisplay; para2:cint; para3:PAnsiChar; para4:PAnsiChar; para5:cuint;
            para6:PXSizeHints; para7:Pcint; para8:Pcint; para9:Pcint; para10:Pcint;
            para11:Pcint):cint;cdecl;external libX11;
 function XXorRegion(para1:TRegion; para2:TRegion; para3:TRegion):cint;cdecl;external libX11;
@@ -302,7 +302,7 @@ function IsFunctionKey(keysym : TKeySym) : Boolean;
 function IsMiscFunctionKey(keysym : TKeySym) : Boolean;
 function IsModifierKey(keysym : TKeySym) : Boolean;
 {function XUniqueContext : TXContext;
-function XStringToContext(_string : Pchar) : TXContext;}
+function XStringToContext(_string : PAnsiChar) : TXContext;}
 {$endif MACROS}
 
 implementation
@@ -377,7 +377,7 @@ begin
    XUniqueContext:=TXContext(XrmUniqueQuark);
 end;
 
-function XStringToContext(_string : Pchar) : TXContext;
+function XStringToContext(_string : PAnsiChar) : TXContext;
 begin
    XStringToContext:=TXContext(XrmStringToQuark(_string));
 end;}

@@ -230,11 +230,11 @@ function XRenderCreateGlyphSet(dpy:PDisplay; format:PXRenderPictFormat):TGlyphSe
 function XRenderReferenceGlyphSet(dpy:PDisplay; existing:TGlyphSet):TGlyphSet;cdecl;external libX11;
 procedure XRenderFreeGlyphSet(dpy:PDisplay; glyphset:TGlyphSet);cdecl;external libX11;
 procedure XRenderAddGlyphs(dpy:PDisplay; glyphset:TGlyphSet; gids:PGlyph; glyphs:PXGlyphInfo; nglyphs:longint;
-            images:Pchar; nbyte_images:longint);cdecl;external libX11;
+            images:PAnsiChar; nbyte_images:longint);cdecl;external libX11;
 procedure XRenderFreeGlyphs(dpy:PDisplay; glyphset:TGlyphSet; gids:PGlyph; nglyphs:longint);cdecl;external libX11;
 procedure XRenderCompositeString8(dpy:PDisplay; op:longint; src:TPicture; dst:TPicture; maskFormat:PXRenderPictFormat;
             glyphset:TGlyphSet; xSrc:longint; ySrc:longint; xDst:longint; yDst:longint;
-            _string:Pchar; nchar:longint);cdecl;external libX11;
+            _string:PAnsiChar; nchar:longint);cdecl;external libX11;
 
 implementation
 

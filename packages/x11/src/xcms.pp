@@ -165,7 +165,7 @@ type
         functionSet : TXPointer;
         screenData : TXPointer;
         state : byte;
-        pad : array[0..2] of char;
+        pad : array[0..2] of AnsiChar;
      end;
 
    PXcmsCCC = ^TXcmsCCC;
@@ -198,11 +198,11 @@ type
        PXcmsFuncListPtr = ^TXcmsFuncListPtr;
        TXcmsFuncListPtr = TXcmsConversionProc;
 
-       TXcmsParseStringProc = function (para1:Pchar; para2:PXcmsColor):longint;cdecl;
+       TXcmsParseStringProc = function (para1:PAnsiChar; para2:PXcmsColor):longint;cdecl;
 
        PXcmsColorSpace = ^TXcmsColorSpace;
        TXcmsColorSpace = record
-            prefix : Pchar;
+            prefix : PAnsiChar;
             id : TXcmsColorFormat;
             parseString : TXcmsParseStringProc;
             to_CIEXYZ : TXcmsFuncListPtr;
@@ -222,7 +222,7 @@ in declaration at line 323 *)
 
 function XcmsAddFunctionSet(para1:PXcmsFunctionSet):TStatus;cdecl;external libX11;
 function XcmsAllocColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external libX11;
-function XcmsAllocNamedColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXcmsColor; para5:PXcmsColor;
+function XcmsAllocNamedColor(para1:PDisplay; para2:TColormap; para3:PAnsiChar; para4:PXcmsColor; para5:PXcmsColor;
                para6:TXcmsColorFormat):TStatus;cdecl;external libX11;
 function XcmsCCCOfColormap(para1:PDisplay; para2:TColormap):TXcmsCCC;cdecl;external libX11;
 function XcmsCIELabClipab(para1:TXcmsCCC; para2:PXcmsColor; para3:dword; para4:dword; para5:PBool):TStatus;cdecl;external libX11;
@@ -259,11 +259,11 @@ function XcmsCreateCCC(para1:PDisplay; para2:longint; para3:PVisual; para4:PXcms
                para6:TXPointer; para7:TXcmsWhiteAdjustProc; para8:TXPointer):TXcmsCCC;cdecl;external libX11;
 function XcmsDefaultCCC(para1:PDisplay; para2:longint):TXcmsCCC;cdecl;external libX11;
 function XcmsDisplayOfCCC(para1:TXcmsCCC):PDisplay;cdecl;external libX11;
-function XcmsFormatOfPrefix(para1:Pchar):TXcmsColorFormat;cdecl;external libX11;
+function XcmsFormatOfPrefix(para1:PAnsiChar):TXcmsColorFormat;cdecl;external libX11;
 procedure XcmsFreeCCC(para1:TXcmsCCC);cdecl;external libX11;
-function XcmsLookupColor(para1:PDisplay; para2:TColormap; para3:Pchar; para4:PXcmsColor; para5:PXcmsColor;
+function XcmsLookupColor(para1:PDisplay; para2:TColormap; para3:PAnsiChar; para4:PXcmsColor; para5:PXcmsColor;
                para6:TXcmsColorFormat):TStatus;cdecl;external libX11;
-function XcmsPrefixOfFormat(para1:TXcmsColorFormat):Pchar;cdecl;external libX11;
+function XcmsPrefixOfFormat(para1:TXcmsColorFormat):PAnsiChar;cdecl;external libX11;
 function XcmsQueryBlack(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
 function XcmsQueryBlue(para1:TXcmsCCC; para2:TXcmsColorFormat; para3:PXcmsColor):TStatus;cdecl;external libX11;
 function XcmsQueryColor(para1:PDisplay; para2:TColormap; para3:PXcmsColor; para4:TXcmsColorFormat):TStatus;cdecl;external libX11;

@@ -258,7 +258,7 @@ type
                                   key_event_follows : Boolean;   // true if key event also generated
                                   group             : Smallint;  // effective group
                                   mods              : Word;      // effective mods
-                                  message           : array [0..XkbActionMessageLength] of Char;
+                                  message           : array [0..XkbActionMessageLength] of AnsiChar;
                                                            // message -- leave space for NUL
                                  end;
 
@@ -350,7 +350,7 @@ const
 function XkbIgnoreExtension (ignore : Boolean) : Boolean;
         cdecl; external libX11 name 'XkbIgnoreExtension';
 
-function XkbOpenDisplay (name : PChar; ev_rtrn, err_rtrn,
+function XkbOpenDisplay (name : PAnsiChar; ev_rtrn, err_rtrn,
                          major_rtrn, minor_rtrn, reason : PSmallint) : PDisplay;
         cdecl; external libX11 name 'XkbOpenDisplay';
 
@@ -371,10 +371,10 @@ function XkbGetXlibControls (dpy : PDisplay) : Word;
         cdecl; external libX11 name 'XkbGetXlibControls';
 
 type
-        TXkbInternAtomFunc = function (dpy : PDisplay; name : PChar; only_if_exists : Boolean) : TAtom; cdecl;
+        TXkbInternAtomFunc = function (dpy : PDisplay; name : PAnsiChar; only_if_exists : Boolean) : TAtom; cdecl;
 
 type
-        TXkbGetAtomNameFunc = function (dpy : PDisplay; atom : TAtom) : PChar; cdecl;
+        TXkbGetAtomNameFunc = function (dpy : PDisplay; atom : TAtom) : PAnsiChar; cdecl;
 
 procedure XkbSetAtomFuncs (getAtom : TXkbInternAtomFunc; getName : TXkbGetAtomNameFunc);
         cdecl; external libX11 name 'XkbSetAtomFuncs';
@@ -396,7 +396,7 @@ function XkbLookupKeySym (dpy               : PDisplay; keycode       : TKeyCode
         cdecl; external libX11 name 'XkbLookupKeySym';
 
 function XkbLookupKeyBinding (dpy    : PDisplay; sym_rtrn : TKeySym;  mods       : Word;
-                              buffer : PChar;    nbytes   : Smallint; extra_rtrn : PSmallint) : Smallint;
+                              buffer : PAnsiChar;    nbytes   : Smallint; extra_rtrn : PSmallint) : Smallint;
         cdecl; external libX11 name 'XkbLookupKeyBinding';
 
 function XkbTranslateKeyCode (xkb              : PXkbDescPtr; keycode       : TKeyCode; modifiers,
@@ -404,7 +404,7 @@ function XkbTranslateKeyCode (xkb              : PXkbDescPtr; keycode       : TK
         cdecl; external libX11 name 'XkbTranslateKeyCode';
 
 function XkbTranslateKeySym (dpy    : PDisplay; sym_return : TKeySym;  modifiers  : Word;
-                             buffer : PChar;    nbytes     : Smallint; extra_rtrn : PSmallint) : Smallint;
+                             buffer : PAnsiChar;    nbytes     : Smallint; extra_rtrn : PSmallint) : Smallint;
         cdecl; external libX11 name 'XkbTranslateKeySym';
 
 function XkbSetAutoRepeatRate (dpy : PDisplay; deviceSpec, delay, interval : Word) : Boolean;
@@ -779,7 +779,7 @@ function XkbToControl (c : Byte) : Byte;
 
 (***====================================================================***)
 
-function XkbSetDebuggingFlags (dpy : PDisplay; mask, flags : Word; msg : PChar;
+function XkbSetDebuggingFlags (dpy : PDisplay; mask, flags : Word; msg : PAnsiChar;
                                ctrls_mask, ctrls, rtrn_flags, rtrn_ctrls : Word) : Boolean;
         cdecl; external libX11 name 'XkbSetDebuggingFlags';
 

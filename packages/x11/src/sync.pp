@@ -65,7 +65,7 @@ const
 type
   PXSyncSystemCounter = ^TXSyncSystemCounter;
   TXSyncSystemCounter = record
-    name: Pchar;              { null-terminated name of system counter }
+    name: PAnsiChar;              { null-terminated name of system counter }
     counter: TXSyncCounter;   { counter id of this system counter }
     resolution: TXSyncValue;  { resolution of this system counter }
   end;
