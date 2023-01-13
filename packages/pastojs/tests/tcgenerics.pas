@@ -928,7 +928,7 @@ begin
   '  TObject = class end;',
   '  TBird<T> = class F: T; end;',
   '  TBirdWord = TBird<Word>;',
-  '  TBirdChar = TBird<Char>;',
+  '  TBirdChar = TBird<AnsiChar>;',
   'var',
   '  w: TBirdWord;',
   '  c: TBirdChar;',
@@ -955,14 +955,14 @@ begin
     '    $mod.TObject.$init.call(this);',
     '    this.F = "";',
     '  };',
-    '}, "TBird<System.Char>");',
+    '}, "TBird<System.AnsiChar>");',
     'this.w = null;',
     'this.c = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.w = $mod.c;',
     '']));
-  CheckHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird<System.Char>" and "TBird<System.Word>" are not related');
+  CheckHint(mtWarning,nClassTypesAreNotRelatedXY,'Class types "TBird<System.AnsiChar>" and "TBird<System.Word>" are not related');
   CheckResolverUnexpectedHints();
 end;
 
@@ -2942,11 +2942,11 @@ begin
   '  TProc<S,T> = procedure(a: S; b: T);',
   'var',
   '  p: TProc<word>;',
-  '  q: TProc<char,boolean>;',
+  '  q: TProc<AnsiChar,boolean>;',
   'procedure Run(x,y: word);',
   'begin',
   'end;',
-  'procedure Fly(x: char; y: boolean);',
+  'procedure Fly(x: AnsiChar; y: boolean);',
   'begin',
   'end;',
   'begin',
@@ -2960,8 +2960,8 @@ begin
     '  procsig: rtl.newTIProcSig([["a", rtl.word], ["b", rtl.word]])',
     '});',
     'this.p = null;',
-    'this.$rtti.$ProcVar("TProc<System.Char,System.Boolean>", {',
-    '  procsig: rtl.newTIProcSig([["a", rtl.char], ["b", rtl.boolean]])',
+    'this.$rtti.$ProcVar("TProc<System.AnsiChar,System.Boolean>", {',
+    '  procsig: rtl.newTIProcSig([["a", rtl.AnsiChar], ["b", rtl.boolean]])',
     '});',
     'this.q = null;',
     'this.Run = function (x, y) {',
