@@ -18,7 +18,7 @@ type
   private
     FRE: TRegExpr;
   protected
-    class function PrintableString(AString: string): string;
+    class function PrintableString(AString: AnsiString): AnsiString;
     Procedure RunRETest(aIndex : Integer);
     procedure SetUp; override;
     procedure TearDown; override;
@@ -56,10 +56,10 @@ implementation
 
 Type
   TRegExTest = record
-    Expression: string;
-    InputText: string;
-    SubstitutionText: string;
-    ExpectedResult: string;
+    Expression: AnsiString;
+    InputText: AnsiString;
+    SubstitutionText: AnsiString;
+    ExpectedResult: AnsiString;
     MatchStart: integer;
   end;
 
@@ -375,10 +375,10 @@ begin
 end;
 
 
-Class function TOrgTestRegexpr.PrintableString(AString: string): string;
+Class function TOrgTestRegexpr.PrintableString(AString: AnsiString): AnsiString;
 
 var
-    ch: Char;
+    ch: AnsiChar;
 
 begin
   Result := '';
@@ -394,7 +394,7 @@ procedure TOrgTestRegexpr.RunRETest(aIndex: Integer);
 
 var
   T: TRegExTest;
-  act : String;
+  act : AnsiString;
 
 begin
   T:=testCases[aIndex];

@@ -9,7 +9,7 @@
 {$h+}
 uses cwstring,uregexpr;
 
-Function ReplaceRegExpr(ARegExpr, AInputStr, AReplaceStr : Unicodestring) : string;
+Function ReplaceRegExpr(ARegExpr, AInputStr, AReplaceStr : Unicodestring) : AnsiString;
 
 begin
   with TRegExpr.Create do

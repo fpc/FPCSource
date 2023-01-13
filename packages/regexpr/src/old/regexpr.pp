@@ -48,7 +48,7 @@ unit regexpr;
     { some procedures return pregexprentry but programs which   }
     { use this unit shouldn't access this data structures        }
     type
-       tcharset = set of char;
+       tcharset = set of AnsiChar;
        tregexprentrytype = (ret_charset,ret_or,
           ret_illegalend,ret_backtrace,ret_startline,
           ret_endline,ret_pattern);
@@ -101,11 +101,11 @@ unit regexpr;
          @param(RegExprEngine The actual encoded version of the regular expression)
          @returns(true if success, otherwise syntax error in compiling regular expression)
      }
-     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
+     function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
 
 {$IFDEF FPC}
     {** Backward compatibility routine }
-     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
+     function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags): TREGExprEngine;
 {$ENDIF}
 
      {** Frees all up resources used for the encoded regular expression }
@@ -119,13 +119,13 @@ unit regexpr;
         @param(len length of the match)
         @returns(true if there was a match, otherwise false)
      }
-     function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+     function RegExprPos(RegExprEngine : TRegExprEngine;p : PAnsiChar;var index,len : longint) : boolean;
 
      function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
 
      { This function Escape known regex chars and place the result on Return. If something went wrong the
        function will return false. }
-     function RegExprEscapeStr (const S : string) : string;
+     function RegExprEscapeStr (const S : AnsiString) : AnsiString;
 
   implementation
 
@@ -145,7 +145,7 @@ unit regexpr;
 
     const
 
-      typ2str : array[tregexprentrytype] of string =
+      typ2str : array[tregexprentrytype] of AnsiString =
       (
         'ret_charset',
         'ret_or',
@@ -158,7 +158,7 @@ unit regexpr;
 
 
      { Dumps all the next elements of a tree }
-     procedure dumptree(space: string; regentry: pregexprentry);
+     procedure dumptree(space: AnsiString; regentry: pregexprentry);
       begin
         while assigned(regentry) do
           begin
@@ -219,7 +219,7 @@ unit regexpr;
          patlength:=count;
        end;
 
-     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags; var RegExprEngine:TRegExprEngine) : boolean;
+     function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags; var RegExprEngine:TRegExprEngine) : boolean;
 
        var
           first : pregexprentry;
@@ -232,13 +232,13 @@ unit regexpr;
          end;
 
        var
-          currentpos : pchar;
+          currentpos : PAnsiChar;
           error : boolean;
 
        procedure readchars(var chars: tcharset);
 
          var
-            c1 : char;
+            c1 : AnsiChar;
 
          begin
             chars:=[];
@@ -404,10 +404,10 @@ unit regexpr;
           elements. In case of error, sets error to true and returns false,
           otherwise returns true and set minoccurs and maxoccurs accordingly
           (-1 if not present). *)
-       function parseoccurences(var currentpos: pchar; var minoccurs,maxoccurs: integer): boolean;
+       function parseoccurences(var currentpos: PAnsiChar; var minoccurs,maxoccurs: integer): boolean;
          var
-          minOccursString: string;
-          maxOccursString: string;
+          minOccursString: AnsiString;
+          maxOccursString: AnsiString;
          begin
            parseoccurences:=false;
            minOccurs:=-1;
@@ -449,7 +449,7 @@ unit regexpr;
                 end;
                 if currentpos^= '}' then
                  begin
-                   { If the length of the string is zero, then there is
+                   { If the length of the AnsiString is zero, then there is
                      no upper bound. }
                    if length(maxOccursString) > 0 then
                       Val(maxOccursString,maxOccurs)
@@ -854,7 +854,7 @@ unit regexpr;
 
 
 {$IFDEF FPC}
-    function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
+    function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags): TREGExprEngine;
     var
      r: TRegExprEngine;
     begin
@@ -880,18 +880,18 @@ unit regexpr;
           regexpr.DestroyList:=nil;
        end;
 
-     function RegExprPos(regexprengine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+     function RegExprPos(regexprengine : TRegExprEngine;p : PAnsiChar;var index,len : longint) : boolean;
 
        var
-          lastpos : pchar;
-          firstpos: pchar;
+          lastpos : PAnsiChar;
+          firstpos: PAnsiChar;
 
        { Does the actual search of the data - return true if the term was found }
-       function dosearch(regexprentry : pregexprentry;pos : pchar) : boolean;
+       function dosearch(regexprentry : pregexprentry;pos : PAnsiChar) : boolean;
        var
           found: boolean;
           checkvalue: boolean;
-          savedpos: pchar;
+          savedpos: PAnsiChar;
           counter: word;
 
          begin
@@ -1119,11 +1119,11 @@ unit regexpr;
   function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
     var
       index,len : longint;
-      pos,lastpos : pchar;
+      pos,lastpos : PAnsiChar;
       first : boolean;
       oldlength : PtrInt;
     begin
-      pos:=pchar(src);
+      pos:=PAnsiChar(src);
       lastpos:=nil;
       first:=true;
       Result:=0;
@@ -1134,7 +1134,7 @@ unit regexpr;
           inc(pos,index);
           if (lastpos = nil) or (pos>lastpos) then
             begin
-              if lastpos = nil then lastpos := pchar(src);
+              if lastpos = nil then lastpos := PAnsiChar(src);
               { copy skipped part }
 
               { because we cheat with SetLength a SetLength(...,0) isn't what we want
@@ -1144,13 +1144,13 @@ unit regexpr;
                 begin
                   SetLength(dest,(pos-lastpos));
                   { cast dest here because it is already unified }
-                  move(lastpos^,char(dest[1]),pos-lastpos);
+                  move(lastpos^,AnsiChar(dest[1]),pos-lastpos);
                 end
               else
                 begin
                   oldlength:=Length(dest);
                   SetLength(dest,oldlength+(pos-lastpos));
-                  move(lastpos^,char(dest[oldlength+1]),pos-lastpos);
+                  move(lastpos^,AnsiChar(dest[oldlength+1]),pos-lastpos);
                 end;
               first:=false;
             end;
@@ -1165,21 +1165,21 @@ unit regexpr;
       if first then
         begin
           SetLength(dest,len);
-          move(pos^,char(dest[length(dest)+1]),len);
+          move(pos^,AnsiChar(dest[length(dest)+1]),len);
         end
       else
         begin
           oldlength:=Length(dest);
           SetLength(dest,oldlength+len);
-          move(pos^,char(dest[oldlength+1]),len);
+          move(pos^,AnsiChar(dest[oldlength+1]),len);
         end
     end;
 
 
-  function RegExprEscapeStr (const S : string) : string;
+  function RegExprEscapeStr (const S : AnsiString) : AnsiString;
     var
      i, len   : integer;
-     s1: string;
+     s1: AnsiString;
     begin
       RegExprEscapeStr:= '';
       s1:='';

@@ -21,7 +21,8 @@
 
 unit Regex;
 
-{$mode Delphi}{$H+}
+{$mode Delphi}
+{$H-}
 {$INLINE ON}
 
 interface
@@ -42,8 +43,8 @@ interface
                  <atom> '*' |                    - zero or more
                  <atom> 'n,m' |                  - min n, max m (added by Joost)
                  <atom> '+'                      - one or more
-    <atom> ::= <char> |
-               '.' |                             - any char
+    <atom> ::= <AnsiChar> |
+               '.' |                             - any AnsiChar
                '(' <expr> ') |                   - parentheses
                '[' <charclass> ']' |             - normal class
                '[^' <charclass> ']'              - negated class
@@ -51,7 +52,7 @@ interface
                     <charrange><charclass>
     <charrange> ::= <ccchar> |
                     <ccchar> '-' <ccchar>
-    <char> ::= <any character except metacharacters> |
+    <AnsiChar> ::= <any character except metacharacters> |
                '\' <any character at all>
     <ccchar> ::= <any character except '-' and ']'> |
                  '\' <any character at all>
@@ -80,8 +81,8 @@ type
 
   TRegexError = (    {error codes for invalid regex strings}
      recNone,          {..no error}
-     recSuddenEnd,     {..unexpected end of string}
-     recMetaChar,      {..read metacharacter, but needed normal char}
+     recSuddenEnd,     {..unexpected end of String}
+     recMetaChar,      {..read metacharacter, but needed normal AnsiChar}
      recNoCloseParen,  {..expected close paren, but not there}
      recExtraChars     {..not at end of string after parsing regex}
      );
@@ -93,7 +94,7 @@ type
      );
 
   PCharSet = ^TCharSet;
-  TCharSet = set of Char;
+  TCharSet = set of AnsiChar;
 
   { TtdRegexEngine }
 
@@ -116,7 +117,7 @@ type
       FIgnoreCase : boolean;
       FMultiLine  : boolean;
       FPosn       : PAnsiChar;
-      FRegexStr   : string;
+      FRegexStr   : AnsiString;
       FStartState : integer;
       FStateTable : Array of TNFAState;
       FStateCount : integer;
@@ -136,14 +137,14 @@ type
       procedure DequeGrow;
 
       procedure rcSetIgnoreCase(aValue : boolean); virtual;
-      procedure rcSetRegexStr(const aRegexStr : string); virtual;
+      procedure rcSetRegexStr(const aRegexStr : AnsiString); virtual;
       procedure rcSetUpcase(aValue : TUpcaseFunc); virtual;
       procedure rcSetMultiLine(aValue : Boolean); virtual;
 
       procedure rcClear; virtual;
       procedure rcError(aIndex      : integer); virtual;
       procedure rcLevel1Optimize; virtual;
-      function rcMatchSubString(const S   : string;
+      function rcMatchSubString(const S   : AnsiString;
                                 StartPosn : integer;
                                 var Len   : integer) : boolean; virtual;
       function rcAddState(aMatchType : TNFAMatchType;
@@ -167,20 +168,20 @@ type
       Function rcReturnEscapeChar : AnsiChar; virtual;
     public
       procedure WriteTable;
-      constructor Create(const aRegexStr : string);
+      constructor Create(const aRegexStr : AnsiString);
       destructor Destroy; override;
 
       function Parse(out aErrorPos : integer;
                      out aErrorCode: TRegexError) : boolean; virtual;
-      function MatchString(const S : string; out MatchPos : integer; var Offset : integer) : boolean; virtual;
-      function ReplaceAllString(const src, newstr: ansistring; out DestStr : string): Integer;
+      function MatchString(const S : AnsiString; out MatchPos : integer; var Offset : integer) : boolean; virtual;
+      function ReplaceAllString(const src, newstr: ansistring; out DestStr : AnsiString): Integer;
 
 
       property IgnoreCase : boolean
                   read FIgnoreCase write rcSetIgnoreCase;
       property MultiLine : boolean
                   read FMultiLine write rcSetMultiLine;
-      property RegexString : string
+      property RegexString : AnsiString
                   read FRegexStr write rcSetRegexStr;
       property Upcase : TUpcaseFunc
                   read FUpcase write rcSetUpcase;
@@ -222,7 +223,7 @@ end;
 
 
 {===TRegexEngine===================================================}
-constructor TRegexEngine.Create(const aRegexStr : string);
+constructor TRegexEngine.Create(const aRegexStr : AnsiString);
 begin
   inherited Create;
   FRegexStr := aRegexStr;
@@ -247,12 +248,12 @@ begin
   inherited Destroy;
 end;
 {--------}
-function TRegexEngine.MatchString(const S : string; out MatchPos : integer; var Offset : integer): boolean;
+function TRegexEngine.MatchString(const S : AnsiString; out MatchPos : integer; var Offset : integer): boolean;
 var
   i : integer;
   ErrorPos  : integer;
   ErrorCode : TRegexError;
-  pc : pchar;
+  pc : PAnsiChar;
   x:integer;
 begin
   if Offset>length(S) then
@@ -271,7 +272,7 @@ begin
   case FRegexType of
     rtSingleChar :
       begin
-      MatchPos := PosEx(char(FRegexStr[1]),s,Offset);
+      MatchPos := PosEx(AnsiChar(FRegexStr[1]),s,Offset);
       Offset := MatchPos+1;
       Result := (MatchPos>0);
       end;
@@ -322,7 +323,7 @@ begin
     end; {case}
 end;
 
-function TRegexEngine.ReplaceAllString(const src, newstr: ansistring; out DestStr : string): Integer;
+function TRegexEngine.ReplaceAllString(const src, newstr: ansistring; out DestStr : AnsiString): Integer;
 
 type TReplRec = record
                   Pos : integer;
@@ -357,7 +358,7 @@ begin
     inc(racount);
     end;
 
-  SetLength(DestStr, SizeOf(Char)*DestSize);
+  SetLength(DestStr, SizeOf(AnsiChar)*DestSize);
   MatchPos:=1; LastPos:=1;
 
   if size_newstr<>0 then for i := 0 to racount -1 do
@@ -534,7 +535,7 @@ begin
   end;
 end;
 {--------}
-function TRegexEngine.rcMatchSubString(const s   : string;
+function TRegexEngine.rcMatchSubString(const s   : AnsiString;
                                          StartPosn : integer;
                                          var Len   : integer)
                                                             : boolean;
@@ -785,7 +786,7 @@ begin
     Result := #0;
     Exit;
   end;
-  {if the current char is a metacharacter (at least in terms of a
+  {if the current AnsiChar is a metacharacter (at least in terms of a
    character class), it's an error}
   if FPosn^ in [']', '-'] then begin
     FErrorCode := recMetaChar;
@@ -815,7 +816,7 @@ begin
     FErrorCode := recSuddenEnd;
     Exit;
   end;
-  {if the current char is one of the metacharacters, it's an error}
+  {if the current AnsiChar is one of the metacharacters, it's an error}
   if FPosn^ in MetaCharacters then begin
     Result := ErrorState;
     FErrorCode := recMetaChar;
@@ -969,7 +970,7 @@ var
   StartStateAtom : integer;
   EndStateAtom   : integer;
   TempEndStateAtom : integer;
-  Int            : string;
+  Int            : AnsiString;
   n,m,nState     : integer;
   i              : integer;
 begin
@@ -1132,7 +1133,7 @@ begin
          be
            - an open parenthesis
            - an open square bracket
-           - an any char operator
+           - an any AnsiChar operator
            - a character that's not a metacharacter
          i.e., the three possibilities for the start of an "atom" in
          our grammar}
@@ -1159,7 +1160,7 @@ procedure TRegexEngine.WriteTable;
 var i : integer;
 begin
   for i := 0 to FStateCount-1 do with FStateTable[i] do
-    writeln('s:',i,' mt:',sdMatchType ,' ns1:',sdNextState1,' ns2:',sdNextState2,' char:',sdChar);
+    writeln('s:',i,' mt:',sdMatchType ,' ns1:',sdNextState1,' ns2:',sdNextState2,' AnsiChar:',sdChar);
 end;
 
 procedure TRegexEngine.DequeEnqueue(aValue: integer);
@@ -1234,7 +1235,7 @@ begin
   end;
 end;
 {--------}
-procedure TRegexEngine.rcSetRegexStr(const aRegexStr : string);
+procedure TRegexEngine.rcSetRegexStr(const aRegexStr : AnsiString);
 begin
   if (aRegexStr <> FRegexStr) then begin
     rcClear;
