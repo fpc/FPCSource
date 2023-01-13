@@ -72,7 +72,7 @@ Const
 Type
   THWATTRIBUTE=record
     ulLength: Cardinal;                //size of structure in bytes
-    szAttrDesc: Array[0..64] of Char;  //string, describing attribute
+    szAttrDesc: Array[0..64] of AnsiChar;  //string, describing attribute
     ulAttrType: Cardinal;              //type of attribute, check ATTRTYPE_* const
     ulValueSize: Cardinal;             //size in bytes of each value member
     ulValueCount: Cardinal;            //count of value members
