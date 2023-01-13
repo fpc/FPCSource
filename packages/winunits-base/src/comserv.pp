@@ -443,8 +443,8 @@ begin
   Result := True;
   if (ComServer <> nil) and (ComServer.ServerObjects > 0) and ComServer.IsInteractive then
   begin
-    Result := MessageBox(0, PChar('COM server is in use'),
-      PChar('OLE Automation'), MB_YESNO or MB_TASKMODAL or
+    Result := MessageBoxA(0, PAnsiChar('COM server is in use'),
+      PAnsiChar('OLE Automation'), MB_YESNO or MB_TASKMODAL or
       MB_ICONWARNING or MB_DEFBUTTON2) = IDYES;
   end;
 end;
