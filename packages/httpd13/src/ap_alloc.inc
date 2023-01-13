@@ -123,18 +123,18 @@ function ap_palloc(p: PPool; nbytes: cint): Pointer;
 function ap_pcalloc(p: PPool; nbytes: cint): Pointer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_pstrdup(p: PPool; const s: Char): PChar;
+function ap_pstrdup(p: PPool; const s: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { make a nul terminated copy of the n characters starting with s }
 
-function ap_pstrndup(p: PPool; const s: PChar; n: cint): PChar;
+function ap_pstrndup(p: PPool; const s: PAnsiChar; n: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-//API_EXPORT_NONSTD(char *) ap_pstrcat(struct pool *,...);	{ all '...' must be char* }
-//API_EXPORT_NONSTD(char *) ap_psprintf(struct pool *, const char *fmt, ...)
+//API_EXPORT_NONSTD(AnsiChar *) ap_pstrcat(struct pool *,...);	{ all '...' must be AnsiChar* }
+//API_EXPORT_NONSTD(AnsiChar *) ap_psprintf(struct pool *, const AnsiChar *fmt, ...)
 //    __attribute__((format(printf,2,3)));
-//API_EXPORT(char *) ap_pvsprintf(struct pool *, const char *fmt, va_list);
+//API_EXPORT(AnsiChar *) ap_pvsprintf(struct pool *, const AnsiChar *fmt, va_list);
 
 { array and alist management... keeping lists of things.
  * Common enough to want common support code ...
@@ -148,7 +148,7 @@ type
     elt_size: cint;
     nelts: cint;
     nalloc: cint;
-    elts: PChar;
+    elts: PAnsiChar;
   end;
 
 //API_EXPORT(array_header *) ap_make_array(pool *p, int nelts, int elt_size);
@@ -163,7 +163,7 @@ type
  * or if there are no elements in the array.
  * If sep is non-NUL, it will be inserted between elements as a separator.
  }
-function ap_array_pstrcat(p: PPool; const arr: Parray_header; const sep: Char): PChar;
+function ap_array_pstrcat(p: PPool; const arr: Parray_header; const sep: AnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { copy_array copies the *entire* array.  copy_array_hdr just copies
@@ -190,10 +190,10 @@ type
   Ptable = ^table;
 
   table_entry = record
-    key: PChar;		{ maybe NULL in future;
+    key: PAnsiChar;		{ maybe NULL in future;
 			 * check when iterating thru table_elts
                          }
-    val: PChar;
+    val: PAnsiChar;
   end;
 
   table_entry_t = table_entry;
@@ -207,31 +207,31 @@ function ap_copy_table(p: Ppool; p1: Ptable): Ptable;
 procedure ap_clear_table(p1: Ptable);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_table_get(const p1: Ptable; const p2: PChar): PChar;
+function ap_table_get(const p1: Ptable; const p2: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_set(p1: Ptable; const name, val: PChar);
+procedure ap_table_set(p1: Ptable; const name, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_setn(p1: Ptable; const name, val: PChar);
+procedure ap_table_setn(p1: Ptable; const name, val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_merge(p1: Ptable; const name, more_val: PChar);
+procedure ap_table_merge(p1: Ptable; const name, more_val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_mergen(p1: Ptable; const name, more_val: PChar);
+procedure ap_table_mergen(p1: Ptable; const name, more_val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_unset(p1: Ptable; const key: PChar);
+procedure ap_table_unset(p1: Ptable; const key: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_add(p1: Ptable; const name, more_val: PChar);
+procedure ap_table_add(p1: Ptable; const name, more_val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_table_addn(p1: Ptable; const name, more_val: PChar);
+procedure ap_table_addn(p1: Ptable; const name, more_val: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{API_EXPORT_NONSTD(void) ap_table_do(int ( *comp) (void *, const char *, const char *),
+{API_EXPORT_NONSTD(void) ap_table_do(int ( *comp) (void *, const AnsiChar *, const AnsiChar *),
                                     void *rec, const table *t,...);
 
 API_EXPORT(table * ) ap_overlay_tables(pool *p, const table *overlay, const table *base);
@@ -334,13 +334,13 @@ procedure ap_unblock_alarms;
  * the note_cleanups_for_foo routines are for 
  }
 
-{API_EXPORT(FILE *) ap_pfopen(struct pool *, const char *name, const char *fmode);
-API_EXPORT(FILE *) ap_pfdopen(struct pool *, int fd, const char *fmode);}
+{API_EXPORT(FILE *) ap_pfopen(struct pool *, const AnsiChar *name, const AnsiChar *fmode);
+API_EXPORT(FILE *) ap_pfdopen(struct pool *, int fd, const AnsiChar *fmode);}
 
-function ap_popenf(p1: Ppool; const name: PChar; flg, mode: cint): cint;
+function ap_popenf(p1: Ppool; const name: PAnsiChar; flg, mode: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_popenf_ex(p1: Ppool; const name: PChar; flg, mode, domagic: cint): cint;
+function ap_popenf_ex(p1: Ppool; const name: PAnsiChar; flg, mode, domagic: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 {API_EXPORT(void) ap_note_cleanups_for_file(pool *, FILE *);
@@ -379,7 +379,7 @@ function ap_pclosesocket(a: Ppool; sock: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 
-function ap_pregcomp(p: Ppool; const pattern: PChar; cflags: cint): Pregex_t;
+function ap_pregcomp(p: Ppool; const pattern: PAnsiChar; cflags: cint): Pregex_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 procedure ap_pregfree(p: Ppool; reg: Pregex_t);
@@ -400,7 +400,7 @@ function ap_pclosef(p1: Ppool; fd: cint): cint;
 
 { routines to deal with directories }
 
-function ap_popendir(p: Ppool; const name: PChar): PDIR;
+function ap_popendir(p: Ppool; const name: PAnsiChar): PDIR;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 procedure ap_pclosedir(p: Ppool; d: PDIR);

@@ -70,13 +70,13 @@ procedure ap_start_shutdown();
 procedure ap_start_restart(param: cint);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_hard_timeout(p: PChar; r: Prequest_rec);
+procedure ap_hard_timeout(p: PAnsiChar; r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_keepalive_timeout(p: PChar; r: Prequest_rec);
+procedure ap_keepalive_timeout(p: PAnsiChar; r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_soft_timeout(p: PChar; r: Prequest_rec);
+procedure ap_soft_timeout(p: PAnsiChar; r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 procedure ap_kill_timeout(r: Prequest_rec);
@@ -106,11 +106,11 @@ function ap_set_callback_and_alarm(fn: fn_t; x: cint): cuint;
 function ap_check_alarm(): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{ void setup_signal_names(char *prefix);}
+{ void setup_signal_names(AnsiChar *prefix);}
 
 { functions for determination and setting of accept() mutexing }
-{char *ap_default_mutex_method(void);
-char *ap_init_mutex_method(char *t);}
+{AnsiChar *ap_default_mutex_method(void);
+AnsiChar *ap_init_mutex_method(AnsiChar *t);}
 
 {$ifndef NO_OTHER_CHILD}
 {
