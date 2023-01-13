@@ -909,7 +909,7 @@ type
 
   IS_ADSPEC_BODY = record
     adspec_mh: IntServMainHdr;      // Main header
-    adspec_genparms: GenAdspecParams;// General char parm fragment
+    adspec_genparms: GenAdspecParams;// General AnsiChar parm fragment
     (*
      *  Followed by variable-length fragments for some or all
      *  services.  These can be minimal length fragments.

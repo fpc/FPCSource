@@ -250,7 +250,7 @@ const
   {$EXTERNALSYM MAXIMUM_RESERVED_MANIFEST_RESOURCE_ID}
 
 type
-  va_list = PChar;
+  va_list = PAnsiChar;
   {$EXTERNALSYM va_list}
 
 function wvsprintfA(Output: LPSTR; Format: LPCSTR; arglist: va_list): Integer; stdcall;
@@ -410,7 +410,7 @@ const
   {$EXTERNALSYM AW_BLEND}
 
 //
-// WM_KEYUP/DOWN/CHAR HIWORD(lParam) flags
+// WM_KEYUP/DOWN/AnsiChar HIWORD(lParam) flags
 //
 
   KF_EXTENDED = $0100;
@@ -4821,28 +4821,28 @@ function AnsiPrev(lpszStart: LPCSTR; lpszCurrent: LPCSTR): LPSTR;
 // Language dependent Routines
 //
 
-function IsCharAlphaA(ch: CHAR): BOOL; stdcall;
+function IsCharAlphaA(ch: AnsiChar): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlphaA}
 function IsCharAlphaW(ch: WCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlphaW}
 function IsCharAlpha(ch: TCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlpha}
 
-function IsCharAlphaNumericA(ch: CHAR): BOOL; stdcall;
+function IsCharAlphaNumericA(ch: AnsiChar): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlphaNumericA}
 function IsCharAlphaNumericW(ch: WCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlphaNumericW}
 function IsCharAlphaNumeric(ch: TCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharAlphaNumeric}
 
-function IsCharUpperA(ch: CHAR): BOOL; stdcall;
+function IsCharUpperA(ch: AnsiChar): BOOL; stdcall;
 {$EXTERNALSYM IsCharUpperA}
 function IsCharUpperW(ch: WCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharUpperW}
 function IsCharUpper(ch: TCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharUpper}
 
-function IsCharLowerA(ch: CHAR): BOOL; stdcall;
+function IsCharLowerA(ch: AnsiChar): BOOL; stdcall;
 {$EXTERNALSYM IsCharLowerA}
 function IsCharLowerW(ch: WCHAR): BOOL; stdcall;
 {$EXTERNALSYM IsCharLowerW}
@@ -4898,14 +4898,14 @@ function ToUnicode(wVirtKey, wScanCode: UINT; lpKeyState: PBYTE; pwszBuff: LPWST
 function OemKeyScan(wOemChar: WORD): DWORD; stdcall;
 {$EXTERNALSYM OemKeyScan}
 
-function VkKeyScanA(ch: CHAR): SHORT; stdcall;
+function VkKeyScanA(ch: AnsiChar): SHORT; stdcall;
 {$EXTERNALSYM VkKeyScanA}
 function VkKeyScanW(ch: WCHAR): SHORT; stdcall;
 {$EXTERNALSYM VkKeyScanW}
 function VkKeyScan(ch: TCHAR): SHORT; stdcall;
 {$EXTERNALSYM VkKeyScan}
 
-function VkKeyScanExA(ch: CHAR; dwhkl: HKL): SHORT; stdcall;
+function VkKeyScanExA(ch: AnsiChar; dwhkl: HKL): SHORT; stdcall;
 {$EXTERNALSYM VkKeyScanExA}
 function VkKeyScanExW(ch: WCHAR; dwhkl: HKL): SHORT; stdcall;
 {$EXTERNALSYM VkKeyScanExW}
@@ -8732,8 +8732,8 @@ type
   {$EXTERNALSYM LPMULTIKEYHELPA}
   tagMULTIKEYHELPA = record
     mkSize: DWORD;
-    mkKeylist: CHAR;
-    szKeyphrase: array [0..0] of CHAR;
+    mkKeylist: AnsiChar;
+    szKeyphrase: array [0..0] of AnsiChar;
   end;
   {$EXTERNALSYM tagMULTIKEYHELPA}
   MULTIKEYHELPA = tagMULTIKEYHELPA;
@@ -8779,7 +8779,7 @@ type
     dx: Integer;
     dy: Integer;
     wMax: Integer;
-    rgchMember: array [0..1] of CHAR;
+    rgchMember: array [0..1] of AnsiChar;
   end;
   {$EXTERNALSYM tagHELPWININFOA}
   HELPWININFOA = tagHELPWININFOA;
@@ -10084,7 +10084,7 @@ type
   {$EXTERNALSYM LPMONITORINFOEXA}
   tagMONITORINFOEXA = record
     MonitorInfo: MONITORINFO;
-    szDevice: array [0..CCHDEVICENAME - 1] of CHAR;
+    szDevice: array [0..CCHDEVICENAME - 1] of AnsiChar;
   end;
   {$EXTERNALSYM tagMONITORINFOEXA}
   MONITORINFOEXA = tagMONITORINFOEXA;

@@ -850,7 +850,7 @@ type
     //
     // name of the device
     //
-    name: array [0..BTH_MAX_NAME_SIZE - 1] of CHAR;
+    name: array [0..BTH_MAX_NAME_SIZE - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _BTH_DEVICE_INFO}
   BTH_DEVICE_INFO = _BTH_DEVICE_INFO;

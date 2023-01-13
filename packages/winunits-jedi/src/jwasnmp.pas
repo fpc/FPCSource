@@ -64,7 +64,7 @@ uses
 type
   PAsnOctetString = ^TAsnOctetString;
   TAsnOctetString = record
-    stream: PChar;
+    stream: PAnsiChar;
     length: UINT;
     dynamic_: BOOL;
   end;

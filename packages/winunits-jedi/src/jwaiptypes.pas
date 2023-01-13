@@ -113,7 +113,7 @@ type
   PIP_MASK_STRING = ^IP_MASK_STRING;
   {$EXTERNALSYM PIP_MASK_STRING}
   IP_ADDRESS_STRING = record
-    S: array [0..15] of Char;
+    S: array [0..15] of AnsiChar;
   end;
   {$EXTERNALSYM IP_ADDRESS_STRING}
   PIP_ADDRESS_STRING = ^IP_ADDRESS_STRING;
@@ -152,8 +152,8 @@ type
   _IP_ADAPTER_INFO = record
     Next: PIP_ADAPTER_INFO;
     ComboIndex: DWORD;
-    AdapterName: array [0..MAX_ADAPTER_NAME_LENGTH + 3] of Char;
-    Description: array [0..MAX_ADAPTER_DESCRIPTION_LENGTH + 3] of Char;
+    AdapterName: array [0..MAX_ADAPTER_NAME_LENGTH + 3] of AnsiChar;
+    Description: array [0..MAX_ADAPTER_DESCRIPTION_LENGTH + 3] of AnsiChar;
     AddressLength: UINT;
     Address: array [0..MAX_ADAPTER_ADDRESS_LENGTH - 1] of BYTE;
     Index: DWORD;
@@ -397,7 +397,7 @@ type
           IfIndex: DWORD);
     end;
     Next: PIP_ADAPTER_ADDRESSES;
-    AdapterName: PCHAR;
+    AdapterName: PAnsiChar;
     FirstUnicastAddress: PIP_ADAPTER_UNICAST_ADDRESS;
     FirstAnycastAddress: PIP_ADAPTER_ANYCAST_ADDRESS;
     FirstMulticastAddress: PIP_ADAPTER_MULTICAST_ADDRESS;
@@ -467,12 +467,12 @@ type
   PFIXED_INFO = ^FIXED_INFO;
   {$EXTERNALSYM PFIXED_INFO}
   FIXED_INFO = record
-    HostName: array [0..MAX_HOSTNAME_LEN + 3] of Char;
-    DomainName: array[0..MAX_DOMAIN_NAME_LEN + 3] of Char;
+    HostName: array [0..MAX_HOSTNAME_LEN + 3] of AnsiChar;
+    DomainName: array[0..MAX_DOMAIN_NAME_LEN + 3] of AnsiChar;
     CurrentDnsServer: PIP_ADDR_STRING;
     DnsServerList: IP_ADDR_STRING;
     NodeType: UINT;
-    ScopeId: array [0..MAX_SCOPE_ID_LEN + 3] of Char;
+    ScopeId: array [0..MAX_SCOPE_ID_LEN + 3] of AnsiChar;
     EnableRouting: UINT;
     EnableProxy: UINT;
     EnableDns: UINT;

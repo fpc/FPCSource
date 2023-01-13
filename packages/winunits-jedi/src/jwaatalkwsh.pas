@@ -226,12 +226,12 @@ const
 
 type
   WSH_NBP_NAME = record
-    ObjectNameLen: CHAR;
-    ObjectName: array [0..MAX_ENTITY - 1] of CHAR;
-    TypeNameLen: CHAR;
-    TypeName: array [0..MAX_ENTITY - 1] of CHAR;
-    ZoneNameLen: CHAR;
-    ZoneName: array [0..MAX_ENTITY - 1] of CHAR;
+    ObjectNameLen: AnsiChar;
+    ObjectName: array [0..MAX_ENTITY - 1] of AnsiChar;
+    TypeNameLen: AnsiChar;
+    TypeName: array [0..MAX_ENTITY - 1] of AnsiChar;
+    ZoneNameLen: AnsiChar;
+    ZoneName: array [0..MAX_ENTITY - 1] of AnsiChar;
   end;
   {$EXTERNALSYM WSH_NBP_NAME}
   PWSH_NBP_NAME = ^WSH_NBP_NAME;
@@ -272,7 +272,7 @@ type
   _WSH_LOOKUP_ZONES = record
     NoZones: ULONG;
     //
-    //  CHAR    Zones[] - null separated zones
+    //  AnsiChar    Zones[] - null separated zones
     //
   end;
   {$EXTERNALSYM _WSH_LOOKUP_ZONES}

@@ -172,7 +172,7 @@ function ber_peek_tag(pBerElement: PBerElement; var pLen: ULONG): ULONG; cdecl;
 // subsequent invocations of ber_next_element().
 //
 
-function ber_first_element(pBerElement: PBerElement; var pLen: ULONG; var ppOpaque: PChar): ULONG; cdecl;
+function ber_first_element(pBerElement: PBerElement; var pLen: ULONG; var ppOpaque: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ber_first_element}
 
 //
@@ -183,7 +183,7 @@ function ber_first_element(pBerElement: PBerElement; var pLen: ULONG; var ppOpaq
 // is returned.
 //
 
-function ber_next_element(pBerElement: PBerElement; var pLen: ULONG; opaque: PChar): ULONG; cdecl;
+function ber_next_element(pBerElement: PBerElement; var pLen: ULONG; opaque: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ber_next_element}
 
 //
@@ -236,21 +236,21 @@ The format string can contain the following format characters:
         If this format character is not preceded by the 't' format
         modifier, the tag 0x05U is used for the element.
         
-'o'     Octet string.  The next two arguments are a char *, followed by
+'o'     Octet string.  The next two arguments are a AnsiChar *, followed by
         a ber_len_t with the length of the string.  The string MAY con-
         tain null bytes and are do not have to be zero-terminated.   An
         octet string element is output, in primitive form.  If this for-
         mat character is not preceded by the 't' format modifier, the
         tag 0x04U is used for the element.
 
-'s'     Octet string.  The next argument is a char * pointing to a
+'s'     Octet string.  The next argument is a AnsiChar * pointing to a
         zero-terminated string.  An octet string element in primitive
         form is output, which does not include the trailing '\0' (null)
         byte. If this format character is not preceded by the 't' format
         modifier, the tag 0x04U is used for the element.
 
-'v'     Several octet strings.  The next argument is a char **, an array
-        of char * pointers to zero-terminated strings.  The last element
+'v'     Several octet strings.  The next argument is a AnsiChar **, an array
+        of AnsiChar * pointers to zero-terminated strings.  The last element
         in the array MUST be a NULL pointer. The octet strings do not
         include the trailing '\0' (null) byte.  Note that a construct
         like '{v}' is used to get an actual SEQUENCE OF octet strings.
@@ -276,7 +276,7 @@ The format string can contain the following format characters:
         be used with this format character.
 *)
 
-//WINBERAPI INT BERAPI ber_printf( BerElement *pBerElement, PCHAR fmt, ... );
+//WINBERAPI INT BERAPI ber_printf( BerElement *pBerElement, PAnsiChar fmt, ... );
 
 (*
 The ber_scanf() routine is used to decode a BER element in much the same
@@ -293,7 +293,7 @@ The format string contains conversion specifications which are used to
 direct the interpretation of the BER element.  The format string can
 contain the following characters:
 
-'a'     Octet string.  A char ** argument MUST be supplied.  Memory is
+'a'     Octet string.  A AnsiChar ** argument MUST be supplied.  Memory is
         allocated, filled with the contents of the octet string, zero-
         terminated, and the pointer to the string is stored in the argu-
         ment.  The returned value SHOULD be freed using ldap_memfree.
@@ -327,7 +327,7 @@ contain the following characters:
         ignored during the decoding.  ber_scanf() will return an error
         if the integer cannot be stored in a ber_int_t.
 
-'B'     Bitstring.  A char ** argument MUST be supplied which will point
+'B'     Bitstring.  A AnsiChar ** argument MUST be supplied which will point
         to the allocated bits, followed by a ber_len_t * argument, which
         will point to the length (in bits) of the bitstring returned.
         ldap_memfree SHOULD be called to free the bitstring.  The tag of
@@ -338,9 +338,9 @@ contain the following characters:
 'n'     Null.  No argument is needed.  The element is verified to have a
         zero-length value and is skipped.  The tag is ignored.
 
-'v'     Several octet strings.  A char *** argument MUST be supplied,
+'v'     Several octet strings.  A AnsiChar *** argument MUST be supplied,
         which upon return points to an allocated NULL-terminated array
-        of char *'s containing the octet strings.  NULL is stored if the
+        of AnsiChar *'s containing the octet strings.  NULL is stored if the
         sequence is empty.  ldap_memfree SHOULD be called to free each
         element of the array and the array itself.  The tag of the
         sequence and of the octet strings are ignored.
@@ -368,7 +368,7 @@ contain the following characters:
 
 *)
 
-//WINBERAPI ULONG BERAPI ber_scanf( BerElement *pBerElement, PCHAR fmt, ... );
+//WINBERAPI ULONG BERAPI ber_scanf( BerElement *pBerElement, PAnsiChar fmt, ... );
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 

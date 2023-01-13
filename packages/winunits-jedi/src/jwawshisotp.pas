@@ -156,7 +156,7 @@ type
   TSockAddrTP = SOCKADDR_TP;
   PSockAddrTP = LPSOCKADDR_TP;  
 
-//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PChar; portlen: u_short; node: PChar; nodelen: u_short);
+//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PAnsiChar; portlen: u_short; node: PAnsiChar; nodelen: u_short);
 //{$EXTERNALSYM ISO_SET_TP_ADDR}
 
 //
@@ -181,7 +181,7 @@ implementation
 {$IFNDEF JWA_INTERFACESECTION}
 
 // TODO
-//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PChar; portlen: u_short; node: PChar; nodelen: u_short);
+//procedure ISO_SET_TP_ADDR(var sa_tp: TSockAddrTP; port: PAnsiChar; portlen: u_short; node: PAnsiChar; nodelen: u_short);
 //begin
 //  sa_tp.tp_family := AF_ISO;
 //  sa_tp.tp_addr_type := ISO_HIERARCHICAL;
