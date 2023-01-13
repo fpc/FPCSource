@@ -289,7 +289,7 @@
    PmatDUMMY = ^TmatDUMMY;
    TmatDUMMY = record
        case longint of
-          0 : ( b : array[0..19] of char );
+          0 : ( b : array[0..19] of AnsiChar );
           1 : ( s : array[0..9] of smallint );
           2 : ( li : array[0..4] of longint );
        end;
@@ -303,7 +303,7 @@
         data_format : gushort;
         data : record
             case longint of
-               0 : ( b : array[0..19] of char );
+               0 : ( b : array[0..19] of AnsiChar );
                1 : ( s : array[0..9] of smallint );
                2 : ( l : array[0..4] of longint );
             end;
@@ -315,7 +315,7 @@
         window : PGdkWindow;
         send_event : gint8;
         action : TGdkSettingAction;
-        name : Pchar;
+        name : PAnsiChar;
      end;
 
    PGdkEventOwnerChange = ^TGdkEventOwnerChange;

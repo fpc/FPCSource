@@ -74,9 +74,9 @@ procedure set_use_markup(var a : TGtkLabel; __use_markup : guint);
 
 
 function gtk_label_get_type:TGtkType; cdecl; external gtklib;
-function gtk_label_new(str:Pchar):PGtkWidget; cdecl; external gtklib;
-function gtk_label_new_with_mnemonic(str:Pchar):PGtkWidget; cdecl; external gtklib;
-procedure gtk_label_set_text(_label:PGtkLabel; str:Pchar); cdecl; external gtklib;
+function gtk_label_new(str:PAnsiChar):PGtkWidget; cdecl; external gtklib;
+function gtk_label_new_with_mnemonic(str:PAnsiChar):PGtkWidget; cdecl; external gtklib;
+procedure gtk_label_set_text(_label:PGtkLabel; str:PAnsiChar); cdecl; external gtklib;
 function gtk_label_get_text(_label:PGtkLabel):Pgchar; cdecl; external gtklib;
 procedure gtk_label_set_attributes(_label:PGtkLabel; attrs:PPangoAttrList); cdecl; external gtklib;
 function gtk_label_get_attributes(_label:PGtkLabel):PPangoAttrList; cdecl; external gtklib;
@@ -105,8 +105,8 @@ function gtk_label_get_layout(_label:PGtkLabel):PPangoLayout; cdecl; external gt
 procedure gtk_label_get_layout_offsets(_label:PGtkLabel; x:Pgint; y:Pgint); cdecl; external gtklib;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
-procedure gtk_label_set(_label:PGtkLabel; str:Pchar);
-procedure gtk_label_get(_label:PGtkLabel; str:PPchar); cdecl; external gtklib;
+procedure gtk_label_set(_label:PGtkLabel; str:PAnsiChar);
+procedure gtk_label_get(_label:PGtkLabel; str:PPAnsiChar); cdecl; external gtklib;
 function gtk_label_parse_uline(_label:PGtkLabel; _string:Pgchar):guint; cdecl; external gtklib;
 {$endif}
 
@@ -199,7 +199,7 @@ begin
 end;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
-procedure gtk_label_set(_label:PGtkLabel; str:Pchar);
+procedure gtk_label_set(_label:PGtkLabel; str:PAnsiChar);
 begin
    gtk_label_set_text(_label,str);
 end;

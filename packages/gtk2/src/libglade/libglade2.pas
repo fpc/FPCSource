@@ -84,14 +84,14 @@ end;
 
 // glade-xml.inc ---------------------------------------------------------------
 
-function glade_xml_new_with_domain(fname:Pchar; root:Pchar;
-  domain:Pchar):PGladeXML;
+function glade_xml_new_with_domain(fname:PAnsiChar; root:PAnsiChar;
+  domain:PAnsiChar):PGladeXML;
 begin
   glade_xml_new_with_domain:=glade_xml_new(fname,root,domain);
 end;
 
-function glade_xml_new_from_memory(buffer:Pchar; size:longint; root:Pchar;
-  domain:Pchar):PGladeXML;
+function glade_xml_new_from_memory(buffer:PAnsiChar; size:longint; root:PAnsiChar;
+  domain:PAnsiChar):PGladeXML;
 begin
   glade_xml_new_from_memory:=glade_xml_new_from_buffer(buffer,size,root,domain);
 end;

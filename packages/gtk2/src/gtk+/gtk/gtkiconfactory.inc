@@ -71,7 +71,7 @@ function gtk_icon_set_copy(icon_set:PGtkIconSet):PGtkIconSet; cdecl; external gt
    necessary.
   }
 function gtk_icon_set_render_icon(icon_set:PGtkIconSet; style:PGtkStyle; direction:TGtkTextDirection; state:TGtkStateType; size:TGtkIconSize;
-           widget:PGtkWidget; detail:Pchar):PGdkPixbuf; cdecl; external gtklib;
+           widget:PGtkWidget; detail:PAnsiChar):PGdkPixbuf; cdecl; external gtklib;
 procedure gtk_icon_set_add_source(icon_set:PGtkIconSet; source:PGtkIconSource); cdecl; external gtklib;
 procedure gtk_icon_set_get_sizes(icon_set:PGtkIconSet; sizes:PPGtkIconSize; n_sizes:pgint); cdecl; external gtklib;
 function gtk_icon_source_get_type:GType; cdecl; external gtklib;

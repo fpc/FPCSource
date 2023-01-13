@@ -5,7 +5,7 @@
   }
 { Can break line in front of character  }
 { Must break line in front of character  }
-{ Can break here when doing char wrap  }
+{ Can break here when doing AnsiChar wrap  }
 { Whitespace character  }
 { cursor can appear in front of character (i.e. this is a grapheme
      boundary, or the first character in the text)
@@ -15,7 +15,7 @@
      the next sentence starts right away)
     }
 { first character in a word  }
-{ is first non-word char after a word  }
+{ is first non-word AnsiChar after a word  }
 { There are two ways to divide sentences. The first assigns all
      intersentence whitespace/control/format chars to some sentence,
      so all chars are in some sentence; is_sentence_boundary denotes
@@ -25,7 +25,7 @@
      sentences.
     }
 { first character in a sentence  }
-{ first non-sentence char after a sentence  }
+{ first non-sentence AnsiChar after a sentence  }
    PPangoLogAttr = ^TPangoLogAttr;
    TPangoLogAttr = record
         flag0 : word;
@@ -83,7 +83,7 @@ procedure set_is_sentence_end(var a : TPangoLogAttr; __is_sentence_end : guint);
 
 procedure pango_break(text:Pgchar; length:longint; analysis:PPangoAnalysis; attrs:PPangoLogAttr; attrs_len:longint); cdecl; external pangolib;
 procedure pango_find_paragraph_boundary(text:Pgchar; length:gint; paragraph_delimiter_index:Pgint; next_paragraph_start:Pgint); cdecl; external pangolib;
-procedure pango_get_log_attrs(text:Pchar; length:longint; level:longint; language:PPangoLanguage; log_attrs:PPangoLogAttr;
+procedure pango_get_log_attrs(text:PAnsiChar; length:longint; level:longint; language:PPangoLanguage; log_attrs:PPangoLogAttr;
             attrs_len:longint); cdecl; external pangolib;
 {$ifdef PANGO_ENABLE_ENGINE}
 { This is the default break algorithm, used if no language

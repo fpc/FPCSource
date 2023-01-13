@@ -33,7 +33,7 @@ const
 
 { Match STRING against the filename pattern PATTERN,
    returning zero if it matches, FNM_NOMATCH if not.   }
-function fnmatch(__pattern: char; __string: char;
+function fnmatch(__pattern: AnsiChar; __string: AnsiChar;
   __flags: gint): gint; cdecl; external gtklib;
 
 {$ENDIF read_interface_rest}
