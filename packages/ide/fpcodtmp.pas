@@ -18,6 +18,7 @@ unit FPCodTmp; { Code Templates }
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 

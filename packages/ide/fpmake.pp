@@ -143,8 +143,11 @@ begin
     end;
 end;
 
+
 procedure add_ide_comandlineoptions();
 begin
+  if SameText(Defaults.SubTarget,'unicodertl') then
+    exit;
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
   AddCustomFpmakeCommandlineOption('NoGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
@@ -166,6 +169,8 @@ Var
   llvm: boolean;
 
 begin
+  if SameText(Defaults.SubTarget,'unicodertl') then
+    exit;
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
@@ -372,9 +377,12 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_ide_comandlineoptions();
-  add_ide('');
-  Installer.Run;
+  If Assigned(Installer) then
+    begin
+    add_ide_comandlineoptions();
+    add_ide('');
+    Installer.Run;
+    end;
 end.
 {$endif ALLPACKAGES}
 

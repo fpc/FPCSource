@@ -17,6 +17,7 @@
 unit FPIntf;
 
 {$mode objfpc}
+{$H-}
 
 interface
 

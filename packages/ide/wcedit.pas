@@ -777,7 +777,7 @@ end;
 procedure TIndicator.Draw;
 var
   Color: Byte;
-  Frame: Char;
+  Frame: AnsiChar;
   L: array[0..1] of PtrInt;
   S: String[15];
   B: TDrawBuffer;
