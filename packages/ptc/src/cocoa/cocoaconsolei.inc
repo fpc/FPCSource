@@ -190,17 +190,17 @@ begin
   Result := 1;
 end;
 
-function TCocoaConsole.GetName: string;
+function TCocoaConsole.GetName: AnsiString;
 begin
   Result := 'Cocoa';
 end;
 
-function TCocoaConsole.GetTitle: string;
+function TCocoaConsole.GetTitle: AnsiString;
 begin
   Result := FTitle;
 end;
 
-function TCocoaConsole.GetInformation: string;
+function TCocoaConsole.GetInformation: AnsiString;
 begin
   Result := '';
 end;
@@ -323,7 +323,7 @@ begin
 end;
 
 function TCocoaConsole.HandleCocoaKeyEvent(theEvent: NSEvent;
-  const Method: string): Boolean;
+  const Method: AnsiString): Boolean;
 var
   evtype: NSEventType;
   kcode: cushort;
@@ -475,7 +475,7 @@ begin
 end;
 
 function TCocoaConsole.HandleCocoaMouseEvent(theEvent: NSEvent;
-  const Method: string): Boolean;
+  const Method: AnsiString): Boolean;
 begin
   //Writeln('HandleCocoaMouseEvent ', Method, ' ', theEvent.type_);
   Result := False;
@@ -662,7 +662,7 @@ begin
   FClip := AArea;
 end;
 
-function TCocoaConsole.Option(const AOption: String): Boolean;
+function TCocoaConsole.Option(const AOption: AnsiString): Boolean;
 begin
   LOG('console option', AOption);
   Result := True;
@@ -685,10 +685,10 @@ begin
   Result := FPalette;
 end;
 
-procedure TCocoaConsole.Configure(const AFileName: String);
+procedure TCocoaConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -713,18 +713,18 @@ begin
   Result := nil;
 end;
 
-procedure TCocoaConsole.Open(const ATitle: string; APages: Integer);
+procedure TCocoaConsole.Open(const ATitle: AnsiString; APages: Integer);
 begin
   Open(ATitle, TPTCFormatFactory.CreateNew(32, $FF0000, $FF00, $FF), APages);
 end;
 
-procedure TCocoaConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TCocoaConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
   APages: Integer);
 begin
   Open(ATitle, 640, 480, AFormat, APages);
 end;
 
-procedure TCocoaConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TCocoaConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
   AFormat: IPTCFormat; APages: Integer);
 var
   rct: NSRect;
@@ -802,7 +802,7 @@ begin
   end;
 end;
 
-procedure TCocoaConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TCocoaConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
   APages: Integer);
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);

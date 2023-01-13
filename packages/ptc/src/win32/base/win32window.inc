@@ -53,7 +53,7 @@ end;
 function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
 function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; forward;
 
-constructor TWin32Window.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
+constructor TWin32Window.Create(const AWndClass, ATitle: AnsiString; AExtra, AStyle, AClassStyle: DWord;
                                 AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded,
                                 ACursor, AInterceptClose: Boolean);
 var
@@ -110,7 +110,7 @@ begin
     begin
       wc.cbSize := SizeOf(wc);
       wc.hInstance := program_instance;
-      wc.lpszClassName := PChar(AWndClass);
+      wc.lpszClassName := PAnsiChar(AWndClass);
       wc.style := AClassStyle;
       wc.hIcon := 0{LoadIcon(library_instance, 'IDI_PTC_ICON')};
       wc.hIconSm := 0;
@@ -162,7 +162,7 @@ begin
       if IsUnicode then
         FWindow := CreateWindowExW(FExtra, PWideChar(AWndClassW), PWideChar(ATitleW), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self)
       else
-        FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
+        FWindow := CreateWindowExA(FExtra, PAnsiChar(FName), PAnsiChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, Self);
       if not IsWindow(FWindow) then
         raise TPTCError.Create('could not create window');
       ShowWindow(FWindow, FShow);
@@ -478,7 +478,7 @@ begin
     FEvent := 0;
     FThread := 0;
     FID := 0;
-    UnregisterClassA(PChar(FName), GetModuleHandle(Nil));
+    UnregisterClassA(PAnsiChar(FName), GetModuleHandle(Nil));
   end;
 end;
 
@@ -488,7 +488,7 @@ var
 begin
   with AOwner do
   begin
-    FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
+    FWindow := CreateWindowEx(FExtra, PAnsiChar(FName), PAnsiChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
     if IsWindow(FWindow) then
     begin
       ShowWindow(FWindow, FShow);

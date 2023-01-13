@@ -279,7 +279,7 @@ begin
   end;
 end;
 
-function ptc_surface_option(obj: TPTC_SURFACE; _option: string): Boolean;
+function ptc_surface_option(obj: TPTC_SURFACE; _option: AnsiString): Boolean;
 begin
   try
     ptc_surface_option := TPTCBaseSurface(obj).option(_option);

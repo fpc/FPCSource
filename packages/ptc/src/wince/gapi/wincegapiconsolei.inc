@@ -84,24 +84,24 @@ begin
   inherited Destroy;
 end;
 
-procedure TWinCEGAPIConsole.Open(const ATitle: string; APages: Integer = 0);
+procedure TWinCEGAPIConsole.Open(const ATitle: AnsiString; APages: Integer = 0);
 begin
   Open(ATitle, FDisplayFormat, APages);
 end;
 
-procedure TWinCEGAPIConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TWinCEGAPIConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                                  APages: Integer = 0);
 begin
   Open(ATitle, FDisplayWidth, FDisplayHeight, AFormat, APages);
 end;
 
-procedure TWinCEGAPIConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TWinCEGAPIConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
                                  APages: Integer = 0);
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
 end;
 
-procedure TWinCEGAPIConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TWinCEGAPIConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                                  AFormat: IPTCFormat; APages: Integer = 0);
 begin
   LOG('TWinCEGAPIConsole.Open');
@@ -284,10 +284,10 @@ procedure TWinCEGAPIConsole.Clear(AColor: IPTCColor;
 begin
 end;
 
-procedure TWinCEGAPIConsole.Configure(const AFileName: string);
+procedure TWinCEGAPIConsole.Configure(const AFileName: AnsiString);
 var
   F: Text;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -307,7 +307,7 @@ begin
   CloseFile(F);
 end;
 
-function TWinCEGAPIConsole.Option(const AOption: string): Boolean;
+function TWinCEGAPIConsole.Option(const AOption: AnsiString): Boolean;
 begin
   LOG('console option', AOption);
 
@@ -480,23 +480,23 @@ begin
   Result := 1; {???}
 end;
 
-function TWinCEGAPIConsole.GetName: string;
+function TWinCEGAPIConsole.GetName: AnsiString;
 begin
   Result := 'GAPI';
 end;
 
-function TWinCEGAPIConsole.GetTitle: string;
+function TWinCEGAPIConsole.GetTitle: AnsiString;
 begin
   CheckOpen('TWinCEGAPIConsole.GetTitle');
   Result := FTitle;
 end;
 
-function TWinCEGAPIConsole.GetInformation: string;
+function TWinCEGAPIConsole.GetInformation: AnsiString;
 begin
   Result := ''; // todo...
 end;
 
-procedure TWinCEGAPIConsole.CheckOpen(    AMessage: String);
+procedure TWinCEGAPIConsole.CheckOpen(    AMessage: AnsiString);
 begin
   if not FOpen then
   try
@@ -507,7 +507,7 @@ begin
   end;
 end;
 
-procedure TWinCEGAPIConsole.CheckUnlocked(AMessage: String);
+procedure TWinCEGAPIConsole.CheckUnlocked(AMessage: AnsiString);
 begin
   if FLocked then
   try

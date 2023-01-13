@@ -44,7 +44,7 @@ procedure TDosKeyboard.GetPendingEvents(queue: TEventQueue);
 
 var
   c: Integer;
-  Ch, Ex: Char;
+  Ch, Ex: AnsiChar;
 
 begin
   while KeyPressed do

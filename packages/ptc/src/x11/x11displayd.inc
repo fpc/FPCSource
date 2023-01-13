@@ -106,7 +106,7 @@ type
     constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); virtual;
     destructor Destroy; override;
 
-    procedure Open(ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); virtual; abstract;
+    procedure Open(ATitle: AnsiString; AWidth, AHeight: Integer; AFormat: IPTCFormat; const AOpenGLAttributes: IPTCOpenGLAttributes); virtual; abstract;
 
     { This will always return a windowed console. The first version
       fills the whole window, the second one has a custom size }

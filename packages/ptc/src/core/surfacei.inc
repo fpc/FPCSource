@@ -84,7 +84,7 @@ type
     function GetArea: IPTCArea;
     function Clip: IPTCArea;
     function GetFormat: IPTCFormat;
-    function Option(const AOption: string): Boolean;
+    function Option(const AOption: AnsiString): Boolean;
 
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
@@ -310,7 +310,7 @@ begin
   Result := FFormat;
 end;
 
-function TPTCSurface.Option(const AOption: string): Boolean;
+function TPTCSurface.Option(const AOption: AnsiString): Boolean;
 begin
   Result := FCopy.Option(AOption);
 end;

@@ -38,7 +38,7 @@ begin
   raise TPTCError.Create('X11 Error');
 end;
 
-procedure X11Check(AStatus: TStatus; const AMessage: string);
+procedure X11Check(AStatus: TStatus; const AMessage: AnsiString);
 begin
   try
     X11Check(AStatus);
@@ -50,7 +50,7 @@ end;
 
 procedure X11CheckSuccess(AStatus: TStatus);
 var
-  ErrStr: string;
+  ErrStr: AnsiString;
 begin
   if AStatus = Success then
     exit;
@@ -78,7 +78,7 @@ begin
   raise TPTCError.Create('X11 Error: ' + ErrStr);
 end;
 
-procedure X11CheckSuccess(AStatus: TStatus; const AMessage: String);
+procedure X11CheckSuccess(AStatus: TStatus; const AMessage: AnsiString);
 begin
   try
     X11CheckSuccess(AStatus);
