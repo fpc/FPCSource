@@ -37,13 +37,13 @@ uses
   
 type
   TRiffHeader = packed record
-    ID      : array [0..3] of char;
+    ID      : array [0..3] of AnsiChar;
     Size    : LongWord;
-    Format  : array [0..3] of char;
+    Format  : array [0..3] of AnsiChar;
   end;
 
   TWaveFormat = packed record
-    ID            : array [0..3] of char;
+    ID            : array [0..3] of AnsiChar;
     Size          : LongWord;
     Format        : Word;
     Channels      : Word;
@@ -54,7 +54,7 @@ type
   end;
 
   TDataChunk = packed record
-    Id      : array [0..3] of char;
+    Id      : array [0..3] of AnsiChar;
     Size    : LongWord;
   end;
 

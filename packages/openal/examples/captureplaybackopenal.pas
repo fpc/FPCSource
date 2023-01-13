@@ -25,11 +25,11 @@ var
 begin
 
   //- Find out which extensions are supported and print them (could error check for capture extension here)
-  writeln('OpenAL Extensions = ',PChar(alGetString(AL_EXTENSIONS)));
+  writeln('OpenAL Extensions = ',PAnsiChar(alGetString(AL_EXTENSIONS)));
 
   //- Print device specifiers for default devices
-  writeln('ALC_DEFAULT_DEVICE_SPECIFIER = ',PChar(alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER )));
-  writeln('ALC_CAPTURE_DEVICE_SPECIFIER = ',PChar(alcGetString(nil, ALC_CAPTURE_DEVICE_SPECIFIER )));
+  writeln('ALC_DEFAULT_DEVICE_SPECIFIER = ',PAnsiChar(alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER )));
+  writeln('ALC_CAPTURE_DEVICE_SPECIFIER = ',PAnsiChar(alcGetString(nil, ALC_CAPTURE_DEVICE_SPECIFIER )));
 
   //- Setup the input capture device (default device)
   writeln('Setting up alcCaptureOpenDevice to use default device');
