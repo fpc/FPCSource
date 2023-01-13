@@ -22,14 +22,14 @@ const VertexArray:array[0..11] of single=(0,-1,0,1,
 
       ShaderPrecode={$ifdef ogles}''{$else}'#version 120'#10{$endif};
 
-      VertexShaderSource:string=ShaderPrecode+'attribute vec4 position;'#10+
+      VertexShaderSource:AnsiString=ShaderPrecode+'attribute vec4 position;'#10+
                                               'varying mediump vec2 pos;'#10+ 
                                               'void main(){'#10+
                                               ' gl_Position=position;'#10+
                                               ' pos=position.xy;'#10+
                                               '}';
                                               
-      FragmentShaderSource:string=ShaderPrecode+'varying mediump vec2 pos;'#10+
+      FragmentShaderSource:AnsiString=ShaderPrecode+'varying mediump vec2 pos;'#10+
                                                 'uniform mediump float phase;'#10+
                                                 'void main(){'#10+
                                                 ' gl_FragColor=vec4(1.0,1.0,1.0,1.0)*sin(((pos.x*pos.x)+(pos.y*pos.y))*40.0+phase);'#10+
@@ -51,9 +51,9 @@ begin
  result:=(((((((((((Year*365)+Month)*31)+Day)*24)+hour)*60)+min)*60)+sec)*1000)+msec;
 end;
         
-procedure PrintShaderInfoLog(Shader:TGLUint;ShaderType:string);
+procedure PrintShaderInfoLog(Shader:TGLUint;ShaderType:AnsiString);
 var len,Success:TGLint;
-    Buffer:pchar;
+    Buffer:PAnsiChar;
 begin
  glGetShaderiv(Shader,GL_COMPILE_STATUS,@Success);
  if Success<>GL_TRUE then begin
@@ -69,7 +69,7 @@ begin
  end;
 end;
 
-function CreateShader(ShaderType:TGLenum;Source:pchar):TGLuint;
+function CreateShader(ShaderType:TGLenum;Source:PAnsiChar):TGLuint;
 begin
  result:=glCreateShader(ShaderType);
  glShaderSource(result,1,@Source,nil);
@@ -85,8 +85,8 @@ procedure Init;
 begin
  ShaderProgram:=glCreateProgram();
 
- VertexShader:=CreateShader(GL_VERTEX_SHADER,pchar(VertexShaderSource));
- FragmentShader:=CreateShader(GL_FRAGMENT_SHADER,pchar(FragmentShaderSource));
+ VertexShader:=CreateShader(GL_VERTEX_SHADER,PAnsiChar(VertexShaderSource));
+ FragmentShader:=CreateShader(GL_FRAGMENT_SHADER,PAnsiChar(FragmentShaderSource));
 
  glAttachShader(ShaderProgram,VertexShader);
  glAttachShader(ShaderProgram,FragmentShader);
@@ -147,7 +147,7 @@ const MOUSE_MASK=ButtonPressMask or ButtonReleaseMask or PointerMotionMask or Bu
                                  none);
 {$endif}
 
-     Title:string='GL test';
+     Title:AnsiString='GL test';
     
 var dpy:PXDisplay;
     win,root:TWindow;
@@ -267,7 +267,7 @@ begin
 
  XSelectInput(Dpy,Win,FocusChangeMask or KeyPressMask or KeyReleaseMask or PropertyChangeMask or StructureNotifyMask or KeymapStateMask or PointerMotionMask or EnterWindowMask or LeaveWindowMask or ButtonPressMask or ButtonReleaseMask or ExposureMask);
  
- XStoreName(dpy,win,pchar(Title));
+ XStoreName(dpy,win,PAnsiChar(Title));
  XFlush(dpy);
 
  XMoveWindow(dpy,win,0,0);
