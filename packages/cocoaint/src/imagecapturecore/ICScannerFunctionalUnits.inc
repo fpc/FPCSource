@@ -258,9 +258,9 @@ type
     function acceptsThresholdForBlackAndWhiteScanning: ObjCBOOL; message 'acceptsThresholdForBlackAndWhiteScanning';
     procedure setUsesThresholdForBlackAndWhiteScanning(newValue: ObjCBOOL); message 'setUsesThresholdForBlackAndWhiteScanning:';
     function usesThresholdForBlackAndWhiteScanning: ObjCBOOL; message 'usesThresholdForBlackAndWhiteScanning';
-    function defaultThresholdForBlackAndWhiteScanning: char; message 'defaultThresholdForBlackAndWhiteScanning';
-    procedure setThresholdForBlackAndWhiteScanning(newValue: char); message 'setThresholdForBlackAndWhiteScanning:';
-    function thresholdForBlackAndWhiteScanning: char; message 'thresholdForBlackAndWhiteScanning';
+    function defaultThresholdForBlackAndWhiteScanning: AnsiChar; message 'defaultThresholdForBlackAndWhiteScanning';
+    procedure setThresholdForBlackAndWhiteScanning(newValue: AnsiChar); message 'setThresholdForBlackAndWhiteScanning:';
+    function thresholdForBlackAndWhiteScanning: AnsiChar; message 'thresholdForBlackAndWhiteScanning';
     function state: ICScannerFunctionalUnitState; message 'state';
     function scanInProgress: ObjCBOOL; message 'scanInProgress';
     function scanProgressPercentDone: CGFloat; message 'scanProgressPercentDone';

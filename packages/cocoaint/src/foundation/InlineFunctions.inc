@@ -1,6 +1,6 @@
 
 {$ifdef INTERFACE}
-function NSSTR (inString: PChar): NSString; overload;
+function NSSTR (inString: PAnsiChar): NSString; overload;
 function NSSTR (inString: string): NSString; overload;
 function NSMakeRange (loc: NSUInteger; len: NSUInteger): NSRange;
 function NSMaxRange (range: NSRange): NSUInteger;
@@ -156,7 +156,7 @@ begin
   result.height := aSize.height;
 end;
 
-function NSSTR (inString: PChar): NSString;
+function NSSTR (inString: PAnsiChar): NSString;
 begin
   result := NSString(CFSTR(inString));
 end;

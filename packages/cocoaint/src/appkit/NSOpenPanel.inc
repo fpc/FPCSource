@@ -11,7 +11,7 @@ type
 type
   NSOpenPanel = objcclass external (NSSavePanel)
   private
-    _reservedOpenPanel:array[0..3] of char;
+    _reservedOpenPanel:array[0..3] of AnsiChar;
     _privateOpenPanel: pointer;
   public
     class function openPanel: NSOpenPanel; message 'openPanel';

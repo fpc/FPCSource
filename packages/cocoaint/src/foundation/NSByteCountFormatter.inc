@@ -41,7 +41,7 @@ type
   NSByteCountFormatter = objcclass external (NSFormatter)
   private
     _allowedUnits: cuint;
-    _countStyle: char;
+    _countStyle: AnsiChar;
     _allowsNonnumericFormatting, _includesUnit, _includesCount, _includesActualByteCount, _adaptive, _zeroPadsFractionDigits: ObjCBOOL;
     _formattingContext: cint;
     _reserved:array[0..4] of cint;

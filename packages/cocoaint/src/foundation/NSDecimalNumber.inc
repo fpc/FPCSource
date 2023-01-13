@@ -78,7 +78,7 @@ type
     function compare (decimalNumber: NSNumber): NSComparisonResult; message 'compare:';
     class procedure setDefaultBehavior (behavior: NSDecimalNumberBehaviorsProtocol); message 'setDefaultBehavior:';
     class function defaultBehavior: NSDecimalNumberBehaviorsProtocol; message 'defaultBehavior';
-    function objCType: PChar; message 'objCType';
+    function objCType: PAnsiChar; message 'objCType';
     function doubleValue: double; message 'doubleValue';
   end;
 

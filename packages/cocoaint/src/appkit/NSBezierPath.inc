@@ -85,7 +85,7 @@ type
     class procedure strokeRect (rect: NSRect); message 'strokeRect:';
     class procedure clipRect (rect: NSRect); message 'clipRect:';
     class procedure strokeLineFromPoint_toPoint (point1: NSPoint; point2: NSPoint); message 'strokeLineFromPoint:toPoint:';
-    class procedure drawPackedGlyphs_atPoint (packedGlyphs: PChar; point: NSPoint); message 'drawPackedGlyphs:atPoint:';
+    class procedure drawPackedGlyphs_atPoint (packedGlyphs: PAnsiChar; point: NSPoint); message 'drawPackedGlyphs:atPoint:';
     class procedure setDefaultMiterLimit (limit: CGFloat); message 'setDefaultMiterLimit:';
     class function defaultMiterLimit: CGFloat; message 'defaultMiterLimit';
     class procedure setDefaultFlatness (flatness: CGFloat); message 'setDefaultFlatness:';
@@ -144,7 +144,7 @@ type
     procedure appendBezierPathWithArcFromPoint_toPoint_radius (point1: NSPoint; point2: NSPoint; radius: CGFloat); message 'appendBezierPathWithArcFromPoint:toPoint:radius:';
     procedure appendBezierPathWithGlyph_inFont (glyph: NSGlyph; font: NSFont); message 'appendBezierPathWithGlyph:inFont:';
     procedure appendBezierPathWithGlyphs_count_inFont (glyphs: NSGlyphPtr; count: NSInteger; font: NSFont); message 'appendBezierPathWithGlyphs:count:inFont:';
-    procedure appendBezierPathWithPackedGlyphs (packedGlyphs: PChar); message 'appendBezierPathWithPackedGlyphs:';
+    procedure appendBezierPathWithPackedGlyphs (packedGlyphs: PAnsiChar); message 'appendBezierPathWithPackedGlyphs:';
     procedure appendBezierPathWithRoundedRect_xRadius_yRadius (rect: NSRect; xRadius: CGFloat; yRadius: CGFloat); message 'appendBezierPathWithRoundedRect:xRadius:yRadius:'; { available in 10_5 }
     function containsPoint (point: NSPoint): ObjCBOOL; message 'containsPoint:';
 

@@ -14,7 +14,7 @@ type
     _isLoadingSDEFFiles: ObjCBOOL;
     _isLoadingSecurityOverride: ObjCBOOL;
     _hasLoadedIntrinsics: ObjCBOOL;
-    _reserved1:array[0..0] of char;
+    _reserved1:array[0..0] of AnsiChar;
     _seenBundles: NSMutableSet;
     _suiteDescriptionsBeingCollected: NSMutableArray;
     _classDescriptionNeedingRegistration: NSScriptClassDescription;

@@ -56,8 +56,8 @@ type
     function initFileURLWithPath (path: NSString): instancetype; message 'initFileURLWithPath:'; { NS_DESIGNATED_INITIALIZER }
     class function fileURLWithPath_isDirectory (path: NSString; isDir: ObjCBOOL): NSURL; message 'fileURLWithPath:isDirectory:'; { available in 10_5, 2_0 }
     class function fileURLWithPath (path: NSString): NSURL; message 'fileURLWithPath:';
-    function initFileURLWithFileSystemRepresentation_isDirectory_relativeToURL (path: PChar; isDir: ObjCBOOL; baseURL: NSURL): instancetype; message 'initFileURLWithFileSystemRepresentation:isDirectory:relativeToURL:'; { available in 10_9, 7_0 }
-    class function fileURLWithFileSystemRepresentation_isDirectory_relativeToURL (path: PChar; isDir: ObjCBOOL; baseURL: NSURL): NSURL; message 'fileURLWithFileSystemRepresentation:isDirectory:relativeToURL:'; { available in 10_9, 7_0 }
+    function initFileURLWithFileSystemRepresentation_isDirectory_relativeToURL (path: PAnsiChar; isDir: ObjCBOOL; baseURL: NSURL): instancetype; message 'initFileURLWithFileSystemRepresentation:isDirectory:relativeToURL:'; { available in 10_9, 7_0 }
+    class function fileURLWithFileSystemRepresentation_isDirectory_relativeToURL (path: PAnsiChar; isDir: ObjCBOOL; baseURL: NSURL): NSURL; message 'fileURLWithFileSystemRepresentation:isDirectory:relativeToURL:'; { available in 10_9, 7_0 }
     function initWithString (URLString: NSString): instancetype; message 'initWithString:';
     function initWithString_relativeToURL (URLString: NSString; baseURL: NSURL): instancetype; message 'initWithString:relativeToURL:'; { NS_DESIGNATED_INITIALIZER }
     class function URLWithString (URLString: NSString): instancetype; message 'URLWithString:';
@@ -77,8 +77,8 @@ type
     function parameterString: NSString; message 'parameterString';
     function query: NSString; message 'query';
     function relativePath: NSString; message 'relativePath';
-    function getFileSystemRepresentation_maxLength (buffer: PChar; maxBufferLength: NSUInteger): ObjCBOOL; message 'getFileSystemRepresentation:maxLength:'; { available in 10_9, 7_0 }
-    function fileSystemRepresentation: PChar; message 'fileSystemRepresentation';
+    function getFileSystemRepresentation_maxLength (buffer: PAnsiChar; maxBufferLength: NSUInteger): ObjCBOOL; message 'getFileSystemRepresentation:maxLength:'; { available in 10_9, 7_0 }
+    function fileSystemRepresentation: PAnsiChar; message 'fileSystemRepresentation';
     function isFileURL: ObjCBOOL; message 'isFileURL';
     function standardizedURL: NSURL; message 'standardizedURL';
     function checkResourceIsReachableAndReturnError (error: NSErrorPtr): ObjCBOOL; message 'checkResourceIsReachableAndReturnError:'; { available in 10_6, 4_0 }

@@ -92,7 +92,7 @@ type
         1: (data: bitpacked record
           _unused: 0..1;
           {$if  not defined(__LP64__)}
-          _reserved:array[0..3] of char;
+          _reserved:array[0..3] of AnsiChar;
           {$endif}
         end;
       );

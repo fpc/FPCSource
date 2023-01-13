@@ -20,8 +20,8 @@ type
   WebScripting = objccategory external (NSObject)
     class function webScriptNameForSelector (selector: SEL): NSString; message 'webScriptNameForSelector:'; { available in 10_4 }
     class function isSelectorExcludedFromWebScript (selector: SEL): ObjCBOOL; message 'isSelectorExcludedFromWebScript:'; { available in 10_4 }
-    class function webScriptNameForKey (name: PChar): NSString; message 'webScriptNameForKey:'; { available in 10_4 }
-    class function isKeyExcludedFromWebScript (name: PChar): ObjCBOOL; message 'isKeyExcludedFromWebScript:'; { available in 10_4 }
+    class function webScriptNameForKey (name: PAnsiChar): NSString; message 'webScriptNameForKey:'; { available in 10_4 }
+    class function isKeyExcludedFromWebScript (name: PAnsiChar): ObjCBOOL; message 'isKeyExcludedFromWebScript:'; { available in 10_4 }
     function invokeUndefinedMethodFromWebScript_withArguments (name: NSString; arguments: NSArray): id; message 'invokeUndefinedMethodFromWebScript:withArguments:'; { available in 10_4 }
     function invokeDefaultMethodWithArguments (arguments: NSArray): id; message 'invokeDefaultMethodWithArguments:'; { available in 10_4 }
     procedure finalizeForWebScript; message 'finalizeForWebScript'; { available in 10_4 }

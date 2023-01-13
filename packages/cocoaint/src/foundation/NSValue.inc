@@ -13,8 +13,8 @@ type
   NSValue = objcclass external (NSObject, NSCopyingProtocol, NSSecureCodingProtocol)
   public
     procedure getValue (value: pointer); message 'getValue:';
-    function objCType: PChar; message 'objCType';
-    function initWithBytes_objCType (value: pointer; type_: PChar): instancetype; message 'initWithBytes:objCType:'; { NS_DESIGNATED_INITIALIZER }
+    function objCType: PAnsiChar; message 'objCType';
+    function initWithBytes_objCType (value: pointer; type_: PAnsiChar): instancetype; message 'initWithBytes:objCType:'; { NS_DESIGNATED_INITIALIZER }
     function initWithCoder (aDecoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
 
     { Adopted protocols }
@@ -26,8 +26,8 @@ type
 
 type
   NSValueCreation = objccategory external (NSValue)
-    class function valueWithBytes_objCType (value: pointer; type_: PChar): NSValue; message 'valueWithBytes:objCType:';
-    class function value_withObjCType (value: pointer; type_: PChar): NSValue; message 'value:withObjCType:';
+    class function valueWithBytes_objCType (value: pointer; type_: PAnsiChar): NSValue; message 'valueWithBytes:objCType:';
+    class function value_withObjCType (value: pointer; type_: PAnsiChar): NSValue; message 'value:withObjCType:';
   end;
 
 type
@@ -44,8 +44,8 @@ type
   NSNumber = objcclass external (NSValue)
   public
     function initWithCoder (aDecoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
-    function initWithChar (value: char): NSNumber; message 'initWithChar:'; { NS_DESIGNATED_INITIALIZER }
-    function initWithUnsignedChar (value: char): NSNumber; message 'initWithUnsignedChar:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithChar (value: AnsiChar): NSNumber; message 'initWithChar:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithUnsignedChar (value: AnsiChar): NSNumber; message 'initWithUnsignedChar:'; { NS_DESIGNATED_INITIALIZER }
     function initWithShort (value: cshort): NSNumber; message 'initWithShort:'; { NS_DESIGNATED_INITIALIZER }
     function initWithUnsignedShort (value: cushort): NSNumber; message 'initWithUnsignedShort:'; { NS_DESIGNATED_INITIALIZER }
     function initWithInt (value: cint): NSNumber; message 'initWithInt:'; { NS_DESIGNATED_INITIALIZER }
@@ -59,8 +59,8 @@ type
     function initWithBool (value: ObjCBOOL): NSNumber; message 'initWithBool:'; { NS_DESIGNATED_INITIALIZER }
     function initWithInteger (value: NSInteger): NSNumber; message 'initWithInteger:'; { available in 10_5, 2_0 }
     function initWithUnsignedInteger (value: NSUInteger): NSNumber; message 'initWithUnsignedInteger:'; { available in 10_5, 2_0 }
-    function charValue: char; message 'charValue';
-    function unsignedCharValue: char; message 'unsignedCharValue';
+    function charValue: AnsiChar; message 'charValue';
+    function unsignedCharValue: AnsiChar; message 'unsignedCharValue';
     function shortValue: cshort; message 'shortValue';
     function unsignedShortValue: cushort; message 'unsignedShortValue';
     function intValue: cint; message 'intValue';
@@ -83,8 +83,8 @@ type
 
 type
   NSNumberCreation = objccategory external (NSNumber)
-    class function numberWithChar (value: char): NSNumber; message 'numberWithChar:';
-    class function numberWithUnsignedChar (value: char): NSNumber; message 'numberWithUnsignedChar:';
+    class function numberWithChar (value: AnsiChar): NSNumber; message 'numberWithChar:';
+    class function numberWithUnsignedChar (value: AnsiChar): NSNumber; message 'numberWithUnsignedChar:';
     class function numberWithShort (value: cshort): NSNumber; message 'numberWithShort:';
     class function numberWithUnsignedShort (value: cushort): NSNumber; message 'numberWithUnsignedShort:';
     class function numberWithInt (value: cint): NSNumber; message 'numberWithInt:';

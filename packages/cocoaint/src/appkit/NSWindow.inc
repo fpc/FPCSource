@@ -152,10 +152,10 @@ type
     _level: cint;
     _backgroundColor: NSColor;
     _borderView: id;
-    _postingDisabled: char;
-    _styleMask: char;
-    _flushDisabled: char;
-    _reservedWindow1: char;
+    _postingDisabled: AnsiChar;
+    _styleMask: AnsiChar;
+    _flushDisabled: AnsiChar;
+    _reservedWindow1: AnsiChar;
     _cursorRects: pointer;
     _trectTable: pointer;
     _miniIcon: NSImage;

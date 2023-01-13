@@ -63,7 +63,7 @@ type
     {$if defined(__LP64__)}
     _reserved:array[0..1] of id;
     {$else}
-    _compatibilityPadding:array[0..191] of char;
+    _compatibilityPadding:array[0..191] of AnsiChar;
     {$endif}
   public
     class function printPanel: NSPrintPanel; message 'printPanel';

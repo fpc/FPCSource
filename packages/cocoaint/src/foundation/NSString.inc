@@ -174,8 +174,8 @@ type
     function dataUsingEncoding_allowLossyConversion (encoding: NSStringEncoding; lossy: ObjCBOOL): NSData; message 'dataUsingEncoding:allowLossyConversion:';
     function dataUsingEncoding (encoding: NSStringEncoding): NSData; message 'dataUsingEncoding:';
     function canBeConvertedToEncoding (encoding: NSStringEncoding): ObjCBOOL; message 'canBeConvertedToEncoding:';
-    function cStringUsingEncoding (encoding: NSStringEncoding): PChar; message 'cStringUsingEncoding:';
-    function getCString_maxLength_encoding (buffer: PChar; maxBufferCount: NSUInteger; encoding: NSStringEncoding): ObjCBOOL; message 'getCString:maxLength:encoding:';
+    function cStringUsingEncoding (encoding: NSStringEncoding): PAnsiChar; message 'cStringUsingEncoding:';
+    function getCString_maxLength_encoding (buffer: PAnsiChar; maxBufferCount: NSUInteger; encoding: NSStringEncoding): ObjCBOOL; message 'getCString:maxLength:encoding:';
     function getBytes_maxLength_usedLength_encoding_options_range_remainingRange (buffer: pointer; maxBufferCount: NSUInteger; usedBufferCount: NSUIntegerPtr; encoding: NSStringEncoding; options: NSStringEncodingConversionOptions; range: NSRange; leftover: NSRangePointer): ObjCBOOL; message 'getBytes:maxLength:usedLength:encoding:options:range:remainingRange:';
     function maximumLengthOfBytesUsingEncoding (enc: NSStringEncoding): NSUInteger; message 'maximumLengthOfBytesUsingEncoding:';
     function lengthOfBytesUsingEncoding (enc: NSStringEncoding): NSUInteger; message 'lengthOfBytesUsingEncoding:';
@@ -187,13 +187,13 @@ type
     function stringByReplacingOccurrencesOfString_withString_options_range (target: NSString; replacement: NSString; options: NSStringCompareOptions; searchRange: NSRange): NSString; message 'stringByReplacingOccurrencesOfString:withString:options:range:'; { available in 10_5, 2_0 }
     function stringByReplacingOccurrencesOfString_withString (target: NSString; replacement: NSString): NSString; message 'stringByReplacingOccurrencesOfString:withString:'; { available in 10_5, 2_0 }
     function stringByReplacingCharactersInRange_withString (range: NSRange; replacement: NSString): NSString; message 'stringByReplacingCharactersInRange:withString:'; { available in 10_5, 2_0 }
-    function UTF8String: PChar; message 'UTF8String';
+    function UTF8String: PAnsiChar; message 'UTF8String';
     class function defaultCStringEncoding: NSStringEncoding; message 'defaultCStringEncoding';
     class function availableStringEncodings: NSStringEncodingPtr; message 'availableStringEncodings';
     class function localizedNameOfStringEncoding (encoding: NSStringEncoding): NSString; message 'localizedNameOfStringEncoding:';
     function initWithCharactersNoCopy_length_freeWhenDone (characters: unicharPtr; length_: NSUInteger; freeBuffer: ObjCBOOL): instancetype; message 'initWithCharactersNoCopy:length:freeWhenDone:';
     function initWithCharacters_length (characters: unicharPtr; length_: NSUInteger): instancetype; message 'initWithCharacters:length:';
-    function initWithUTF8String (nullTerminatedCString: PChar): instancetype; message 'initWithUTF8String:';
+    function initWithUTF8String (nullTerminatedCString: PAnsiChar): instancetype; message 'initWithUTF8String:';
     function initWithString (aString: NSString): instancetype; message 'initWithString:';
     function initWithFormat (format: NSString): instancetype; varargs; message 'initWithFormat:';
     function initWithFormat_arguments (format: NSString; argList: va_list): instancetype; message 'initWithFormat:arguments:';
@@ -205,11 +205,11 @@ type
     class function string_: instancetype; message 'string';
     class function stringWithString (string__: NSString): instancetype; message 'stringWithString:';
     class function stringWithCharacters_length (characters: unicharPtr; length_: NSUInteger): instancetype; message 'stringWithCharacters:length:';
-    class function stringWithUTF8String (nullTerminatedCString: PChar): instancetype; message 'stringWithUTF8String:';
+    class function stringWithUTF8String (nullTerminatedCString: PAnsiChar): instancetype; message 'stringWithUTF8String:';
     class function stringWithFormat (format: NSString): instancetype; varargs; message 'stringWithFormat:';
     class function localizedStringWithFormat (format: NSString): instancetype; varargs; message 'localizedStringWithFormat:';
-    function initWithCString_encoding (nullTerminatedCString: PChar; encoding: NSStringEncoding): instancetype; message 'initWithCString:encoding:';
-    class function stringWithCString_encoding (cString: PChar; enc: NSStringEncoding): instancetype; message 'stringWithCString:encoding:';
+    function initWithCString_encoding (nullTerminatedCString: PAnsiChar; encoding: NSStringEncoding): instancetype; message 'initWithCString:encoding:';
+    class function stringWithCString_encoding (cString: PAnsiChar; enc: NSStringEncoding): instancetype; message 'stringWithCString:encoding:';
     function initWithContentsOfURL_encoding_error (url: NSURL; enc: NSStringEncoding; error: NSErrorPtr): instancetype; message 'initWithContentsOfURL:encoding:error:';
     function initWithContentsOfFile_encoding_error (path: NSString; enc: NSStringEncoding; error: NSErrorPtr): instancetype; message 'initWithContentsOfFile:encoding:error:';
     class function stringWithContentsOfURL_encoding_error (url: NSURL; enc: NSStringEncoding; error: NSErrorPtr): instancetype; message 'stringWithContentsOfURL:encoding:error:';
@@ -269,23 +269,23 @@ type
 
 type
   NSStringDeprecated = objccategory external (NSString)
-    function cString: PChar; message 'cString'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    function lossyCString: PChar; message 'lossyCString'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    function cString: PAnsiChar; message 'cString'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    function lossyCString: PAnsiChar; message 'lossyCString'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     function cStringLength: NSUInteger; message 'cStringLength'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    procedure getCString (bytes: PChar); message 'getCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    procedure getCString_maxLength (bytes: PChar; maxLength: NSUInteger); message 'getCString:maxLength:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    procedure getCString_maxLength_range_remainingRange (bytes: PChar; maxLength: NSUInteger; aRange: NSRange; leftoverRange: NSRangePointer); message 'getCString:maxLength:range:remainingRange:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    procedure getCString (bytes: PAnsiChar); message 'getCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    procedure getCString_maxLength (bytes: PAnsiChar; maxLength: NSUInteger); message 'getCString:maxLength:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    procedure getCString_maxLength_range_remainingRange (bytes: PAnsiChar; maxLength: NSUInteger; aRange: NSRange; leftoverRange: NSRangePointer); message 'getCString:maxLength:range:remainingRange:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     function writeToFile_atomically (path: NSString; useAuxiliaryFile: ObjCBOOL): ObjCBOOL; message 'writeToFile:atomically:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     function writeToURL_atomically (url: NSURL; atomically: ObjCBOOL): ObjCBOOL; message 'writeToURL:atomically:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     function initWithContentsOfFile (path: NSString): id; message 'initWithContentsOfFile:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     function initWithContentsOfURL (url: NSURL): id; message 'initWithContentsOfURL:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     class function stringWithContentsOfFile (path: NSString): id; message 'stringWithContentsOfFile:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     class function stringWithContentsOfURL (url: NSURL): id; message 'stringWithContentsOfURL:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    function initWithCStringNoCopy_length_freeWhenDone (bytes: PChar; length_: NSUInteger; freeBuffer: ObjCBOOL): id; message 'initWithCStringNoCopy:length:freeWhenDone:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    function initWithCString_length (bytes: PChar; length_: NSUInteger): id; message 'initWithCString:length:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    function initWithCString (bytes: PChar): id; message 'initWithCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    class function stringWithCString_length (bytes: PChar; length_: NSUInteger): id; message 'stringWithCString:length:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
-    class function stringWithCString (bytes: PChar): id; message 'stringWithCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    function initWithCStringNoCopy_length_freeWhenDone (bytes: PAnsiChar; length_: NSUInteger; freeBuffer: ObjCBOOL): id; message 'initWithCStringNoCopy:length:freeWhenDone:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    function initWithCString_length (bytes: PAnsiChar; length_: NSUInteger): id; message 'initWithCString:length:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    function initWithCString (bytes: PAnsiChar): id; message 'initWithCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    class function stringWithCString_length (bytes: PAnsiChar; length_: NSUInteger): id; message 'stringWithCString:length:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
+    class function stringWithCString (bytes: PAnsiChar): id; message 'stringWithCString:'; deprecated 'in 10_0, 10_4, 2_0, 2_0';
     procedure getCharacters (buffer: unicharPtr); message 'getCharacters:';
   end;
 {$endif}
@@ -305,7 +305,7 @@ const
 type
   NSSimpleCString = objcclass external (NSString)
   private
-    bytes: PChar;
+    bytes: PAnsiChar;
     numBytes: cint;
     {$if defined(__LP64__)}
     _unused: cint;

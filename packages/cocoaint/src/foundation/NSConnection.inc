@@ -21,9 +21,9 @@ type
     waitCount: cint32;
     delayedRL: id;
     statistics: id;
-    isDead: char;
-    isValid: char;
-    wantsInvalid: char;
+    isDead: AnsiChar;
+    isValid: AnsiChar;
+    wantsInvalid: AnsiChar;
     _anonStruct_NSConnection0: record
       case byte of
         0: (anonBitField_NSConnection0: cuint);

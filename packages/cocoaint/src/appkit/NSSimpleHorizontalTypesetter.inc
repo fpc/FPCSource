@@ -141,10 +141,10 @@ type
           reserved: 0..((1 shl 23)-1);
         );
       end;
-    glyphBidiLevelCache: PChar;
-    curBidiLevel: char;
-    previousBidiLevel: char;
-    _reservedChars:array[0..1] of char;
+    glyphBidiLevelCache: PAnsiChar;
+    curBidiLevel: AnsiChar;
+    previousBidiLevel: AnsiChar;
+    _reservedChars:array[0..1] of AnsiChar;
     _reserved2:array[0..5] of cuint;
   public
     class function sharedInstance: id; message 'sharedInstance';
