@@ -21,24 +21,19 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestJSONString.TestJSONStringToString"/>
+        <CommandLineParams Value="--suite=TTestJSONDeStreamer.TestDateTime"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestJSONString.TestJSONStringToString"/>
+            <CommandLineParams Value="--suite=TTestJSONDeStreamer.TestDateTime"/>
             <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="FCL"/>
-      </Item1>
-    </RequiredPackages>
     <Units Count="6">
       <Unit0>
         <Filename Value="testjson.pp"/>
@@ -77,6 +72,9 @@
         <TrashVariables Value="True"/>
       </Debugging>
     </Linking>
+    <Other>
+      <CustomOptions Value="-tunicodertl"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">

@@ -220,7 +220,7 @@ Procedure DoTestObject;
 
 Var
   J : TJSONObject;
-  I : Char;
+  I : AnsiChar;
   k : Integer;
   
 begin
