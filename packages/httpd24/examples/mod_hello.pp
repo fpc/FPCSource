@@ -21,7 +21,7 @@ exports
 *******************************************************************}
 function DefaultHandler(r: Prequest_rec): Integer; cdecl;
 var
-  RequestedHandler, onerow: string;
+  RequestedHandler, onerow: ansistring;
 
   
 begin
@@ -42,7 +42,7 @@ begin
                0,                                   //The status code from the previous command
                r^.server,                           //The server on which we are logging
                'mod_hello: %s',                     //The format string
-               [PChar('Before content is output')]); //The arguments to use to fill out fmt.
+               [PAnsiChar('Before content is output')]); //The arguments to use to fill out fmt.
 
   ap_set_content_type(r, 'text/html');
 
@@ -59,21 +59,21 @@ begin
    ap_rputs and ap_rprintf functions. More information about
    the use of these can be found in http_protocol.inc }
   onerow := '<HTML>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '<HEAD>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '<TITLE>Hello There</TITLE>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '</HEAD>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '<BODY BGCOLOR="#FFFFFF">' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '<H1>Hello world</H1>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := 'This is an Apache Module working with the binding from Free Pascal' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
   onerow := '</BODY></HTML>' + LineEnding;
-  ap_rwrite(PChar(onerow), length(onerow), r);
+  ap_rwrite(PAnsiChar(onerow), length(onerow), r);
 
   { We can either return OK or DECLINED at this point. If we return
          * OK, then no other modules will attempt to process this request }

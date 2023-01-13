@@ -105,8 +105,8 @@ type
  *                                             other flags are ignored)
  * @return Zero on success or non-zero on error
  *}
-//AP_DECLARE(int) ap_regcomp(ap_regex_t *preg, const char *regex, int cflags);
-function ap_regcomp(preg: Pap_regex_t; const regex: PChar; cflags: Integer): Integer;
+//AP_DECLARE(int) ap_regcomp(ap_regex_t *preg, const AnsiChar *regex, int cflags);
+function ap_regcomp(preg: Pap_regex_t; const regex: PAnsiChar; cflags: Integer): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_regcomp' + LibSuff12;
 
@@ -120,9 +120,9 @@ function ap_regcomp(preg: Pap_regex_t; const regex: PChar; cflags: Integer): Int
  *                                             other flags are ignored)
  * @return 0 for successful match, \p AP_REG_NOMATCH otherwise
  *}
-//AP_DECLARE(int) ap_regexec(const ap_regex_t *preg, const char *string,
+//AP_DECLARE(int) ap_regexec(const ap_regex_t *preg, const AnsiChar *string,
 //                           apr_size_t nmatch, ap_regmatch_t *pmatch, int eflags);
-function ap_regexec(const preg: Pap_regex_t; const string_: PChar;
+function ap_regexec(const preg: Pap_regex_t; const string_: PAnsiChar;
                     nmatch: apr_size_t; pmatch: Pap_regmatch_t; eflags: Integer): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_regexec' + LibSuff20;
@@ -139,10 +139,10 @@ function ap_regexec(const preg: Pap_regex_t; const string_: PChar;
  *                                             other flags are ignored)
  * @return 0 for successful match, AP_REG_NOMATCH otherwise
  *}
-//AP_DECLARE(int) ap_regexec_len(const ap_regex_t *preg, const char *buff,
+//AP_DECLARE(int) ap_regexec_len(const ap_regex_t *preg, const AnsiChar *buff,
 //                               apr_size_t len, apr_size_t nmatch,
 //                               ap_regmatch_t *pmatch, int eflags);
-function ap_regexec_len(const preg: Pap_regex_t; const buff: PChar;
+function ap_regexec_len(const preg: Pap_regex_t; const buff: PAnsiChar;
                         len, nmatch: apr_size_t;
                         pmatch: Pap_regmatch_t; eflags: Integer): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
@@ -156,9 +156,9 @@ function ap_regexec_len(const preg: Pap_regex_t; const buff: PChar;
  * @param errbuf_size The size of the buffer
  *}
 //AP_DECLARE(apr_size_t) ap_regerror(int errcode, const ap_regex_t *preg,
-//                                   char *errbuf, apr_size_t errbuf_size);
+//                                   AnsiChar *errbuf, apr_size_t errbuf_size);
 function ap_regerror(errcode: Integer; const preg: Pap_regex_t;
-                     errbuf: PChar; errbuf_size: apr_size_t): apr_size_t;
+                     errbuf: PAnsiChar; errbuf_size: apr_size_t): apr_size_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_regerror' + LibSuff16;
 
@@ -177,7 +177,7 @@ type
     rx: ap_regex_t;
     flags: apr_uint32_t;
     subs,
-    match: PChar;
+    match: PAnsiChar;
     nmatch: apr_size_t;
     pmatch: Pap_regmatch_t;
   end;{ap_rxplus_t}
@@ -197,8 +197,8 @@ type
  * @param pattern Pattern to compile
  * @return Compiled regexp, or NULL in case of compile/syntax error
  *}
-//AP_DECLARE(ap_rxplus_t*) ap_rxplus_compile(apr_pool_t *pool, const char *pattern);
-function ap_rxplus_compile(pool: Papr_pool_t; const pattern: PChar): Pap_rxplus_t;
+//AP_DECLARE(ap_rxplus_t*) ap_rxplus_compile(apr_pool_t *pool, const AnsiChar *pattern);
+function ap_rxplus_compile(pool: Papr_pool_t; const pattern: PAnsiChar): Pap_rxplus_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_rxplus_compile' + LibSuff8;
 
@@ -215,9 +215,9 @@ function ap_rxplus_compile(pool: Papr_pool_t; const pattern: PChar): Pap_rxplus_
  *         is applied with the 'g' flag.
  *}
 //AP_DECLARE(int) ap_rxplus_exec(apr_pool_t *pool, ap_rxplus_t *rx,
-//                               const char *pattern, char **newpattern);
+//                               const AnsiChar *pattern, AnsiChar **newpattern);
 function ap_rxplus_exec(pool: Papr_pool_t; rx: Pap_rxplus_t;
-                        const pattern: PChar; newpattern: PPChar): Integer;
+                        const pattern: PAnsiChar; newpattern: PPAnsiChar): Integer;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_rxplus_exec' + LibSuff16;
 
@@ -243,9 +243,9 @@ AP_DECLARE(int) ap_rxplus_nmatch(ap_rxplus_t *rx);
  * @param match Returns the match pattern
  *}
 //AP_DECLARE(void) ap_rxplus_match(ap_rxplus_t *rx, int n, int *len,
-//                                 const char **match);
+//                                 const AnsiChar **match);
 procedure ap_rxplus_match(rx: Pap_rxplus_t; len: Integer;
-                          const match: PPChar);
+                          const match: PPAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_rxplus_match' + LibSuff16;
 
@@ -258,9 +258,9 @@ procedure ap_rxplus_match(rx: Pap_rxplus_t; len: Integer;
  * @param n The match number to retrieve (must be between 0 and nmatch)
  * @return The matched string
  *}
-//AP_DECLARE(char*) ap_rxplus_pmatch(apr_pool_t *pool, ap_rxplus_t *rx, int n);
+//AP_DECLARE(AnsiChar*) ap_rxplus_pmatch(apr_pool_t *pool, ap_rxplus_t *rx, int n);
 //
-function ap_rxplus_pmatch(pool: Papr_pool_t; rx: Pap_rxplus_t; n: Integer): PChar;
+function ap_rxplus_pmatch(pool: Papr_pool_t; rx: Pap_rxplus_t; n: Integer): PAnsiChar;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_rxplus_pmatch' + LibSuff12;
 
