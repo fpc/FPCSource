@@ -1242,7 +1242,7 @@ var
   glGetPixelMapusv: procedure(map: GLenum; values: PGLushort); extdecl;
   glGetPointerv: procedure(pname: GLenum; params: Pointer); extdecl;
   glGetPolygonStipple: procedure(mask: PGLubyte); extdecl;
-  glGetString: function(name: GLenum): PChar; extdecl;
+  glGetString: function(name: GLenum): PAnsiChar; extdecl;
   glGetTexEnvfv: procedure(target, pname: GLenum; params: PGLfloat); extdecl;
   glGetTexEnviv: procedure(target, pname: GLenum; params: PGLint); extdecl;
   glGetTexGendv: procedure(coord, pname: GLenum; params: PGLdouble); extdecl;
@@ -1881,7 +1881,7 @@ end;
 var
   MethodName: string = '';
 
-  function GetGLProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
+  function GetGLProcAddress(Lib: PtrInt; ProcName: PAnsiChar): Pointer;
   begin
     MethodName:=ProcName;
     Result:=GetProcAddress(Lib, ProcName);
@@ -1891,7 +1891,7 @@ begin
 
   FreeOpenGL;
 
-  LibGL := LoadLibrary(PChar(dll));
+  LibGL := LoadLibrary(PAnsiChar(dll));
   if LibGL = 0 then raise Exception.Create('Could not load OpenGL from ' + dll);
   try
     @glAccum := GetGLProcAddress(LibGL, 'glAccum');

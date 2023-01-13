@@ -119,8 +119,8 @@ var
   // Font stuff
   glutBitmapHeight: function(font : pointer): Integer; extdecl;
   glutStrokeHeight: function(font : pointer): GLfloat; extdecl;
-  glutBitmapString: procedure(font : pointer; const str: PChar); extdecl;
-  glutStrokeString: procedure(font : pointer; const str: PChar); extdecl;
+  glutBitmapString: procedure(font : pointer; const str: PAnsiChar); extdecl;
+  glutStrokeString: procedure(font : pointer; const str: PAnsiChar); extdecl;
 
   // Geometry functions
   glutWireRhombicDodecahedron: procedure; extdecl;

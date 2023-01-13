@@ -230,7 +230,7 @@ syscall sysvbase TinyGLBase 658;
 {$ENDIF GLU_UNIT}
 
 {$IFDEF GLUT_UNIT}
-procedure _GLUTInit(gcl: pointer; argcp: PLongInt; argv: PPChar);
+procedure _GLUTInit(gcl: pointer; argcp: PLongInt; argv: PPAnsiChar);
 syscall sysvbase TinyGLBase 664;
 
 procedure _GLUTInitWindowPosition(gcl: pointer; x, y: Integer);
@@ -239,7 +239,7 @@ syscall sysvbase TinyGLBase 670;
 procedure _GLUTInitWindowSize(gcl: pointer; width, height: LongInt);
 syscall sysvbase TinyGLBase 676;
 
-function  _GLUTCreateWindow(gcl: pointer; const title: PChar): LongInt;
+function  _GLUTCreateWindow(gcl: pointer; const title: PAnsiChar): LongInt;
 syscall sysvbase TinyGLBase 682;
 
 procedure _GLUTFullScreen(gcl: pointer);
@@ -296,7 +296,7 @@ syscall sysvbase TinyGLBase 856;
 {$ENDIF GLUT_UNIT}
 
 {$IFDEF GL_UNIT}
-function _GLGetString(gcl: pointer; name: GLenum): PChar;
+function _GLGetString(gcl: pointer; name: GLenum): PAnsiChar;
 syscall sysvbase TinyGLBase 862;
 
 procedure _GLCallLists(gcl: pointer; n: GLsizei; atype: GLenum; const lists: Pointer);
@@ -448,7 +448,7 @@ begin
   _GLGetFloatv(tglContext, pname, params);
 end;
 
-function glGetString(name: GLenum): PChar; inline;
+function glGetString(name: GLenum): PAnsiChar; inline;
 begin
   glGetString:=_GLGetString(tglContext, name);
 end;
@@ -797,7 +797,7 @@ end;
 { ****************************************************************************************************** }
 
 {$IFDEF GLUT_UNIT}
-procedure GLUTInit(argcp: PLongInt; argv: PPChar); inline;
+procedure GLUTInit(argcp: PLongInt; argv: PPAnsiChar); inline;
 begin
   _GLUTInit(tglContext,argcp,argv);
 end;
@@ -832,7 +832,7 @@ begin
   _GLUTReshapeFunc(tglContext, f);
 end;
 
-function GLUTCreateWindow(const title: PChar): LongInt; inline;
+function GLUTCreateWindow(const title: PAnsiChar): LongInt; inline;
 begin
   GLUTCreateWindow:=_GLUTCreateWindow(tglContext, title);
 end;

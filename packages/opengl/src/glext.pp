@@ -37,19 +37,19 @@ SysUtils,
 {$IFDEF Windows}
 { Declared in Windows unit as well in FPC; but declared here as well, to be
   fully compatible to upstream version  - sg }
-function wglGetProcAddress(proc: PChar): Pointer; extdecl; external 'OpenGL32.dll';
+function wglGetProcAddress(proc: PAnsiChar): Pointer; extdecl; external 'OpenGL32.dll';
 {$ELSE}
-function wglGetProcAddress(proc: PChar): Pointer;
+function wglGetProcAddress(proc: PAnsiChar): Pointer;
 {$ENDIF}
 
-// Test if the given extension name is present in the given extension string.
-function glext_ExtensionSupported(const extension: String; const searchIn: String): Boolean;
+// Test if the given extension name is present in the given extension AnsiString.
+function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 
 // Load the extension with the given name.
-function glext_LoadExtension(ext: String): Boolean;
+function glext_LoadExtension(ext: AnsiString): Boolean;
 
 type
-  GLcharARB = Char;
+  GLcharARB = AnsiChar;
   TGLcharARB = GLcharARB;
   PGLcharARB = ^GLcharARB;
   PPGLchar = ^PGLchar;
@@ -70,9 +70,9 @@ type
   TGLsizeiptr = GLsizeiptr;
   PGLsizeiptr = ^GLsizeiptr;
 
-  GLchar = Char;
+  GLchar = AnsiChar;
   TGLchar = GLchar;
-  PGLchar = Pchar;
+  PGLchar = PAnsiChar;
 
   GLint64 = Int64;
   TGLint64 = GLint64;
@@ -512,7 +512,7 @@ function Load_GL_ARB_texture_env_add: Boolean;
 {$IFDEF Windows}
 //***** WGL_ARB_extensions_string *****//
 var
-  wglGetExtensionsStringARB: function(hdc: HDC): Pchar; extdecl;
+  wglGetExtensionsStringARB: function(hdc: HDC): PAnsiChar; extdecl;
 
 function Load_WGL_ARB_extensions_string: Boolean;
 
@@ -3028,7 +3028,7 @@ function Load_WGL_ARB_render_texture: Boolean;
 
 //***** WGL_EXT_extensions_string *****//
 var
-  wglGetExtensionsStringEXT: function(): Pchar; extdecl;
+  wglGetExtensionsStringEXT: function(): PAnsiChar; extdecl;
 
 function Load_WGL_EXT_extensions_string: Boolean;
 
@@ -4016,7 +4016,7 @@ var
   glFramebufferTextureLayer: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; layer: GLint); extdecl;
 
 { Using LoadAsCore = true means that we will *not* check
-  if the extension is advertised in glGetString(GL_EXTENSIONS) string.
+  if the extension is advertised in glGetString(GL_EXTENSIONS) AnsiString.
   This allows to successfully Load_GL_version_3_0 in an OpenGL 3.0
   forward-compatible context, where the "core extensions" do not have
   to be mentioned inside glGetString(GL_EXTENSIONS). }
@@ -5158,17 +5158,17 @@ function Load_GL_VERSION_4_3(): Boolean;
 implementation
 
 {$IFNDEF Windows}
-function wglGetProcAddress(proc: PChar): Pointer;
+function wglGetProcAddress(proc: PAnsiChar): Pointer;
 begin
   Result := GetProcAddress(LibGL, proc);
 end;
 {$ENDIF}
 
-function glext_ExtensionSupported(const extension: String; const searchIn: String): Boolean;
+function glext_ExtensionSupported(const extension: AnsiString; const searchIn: AnsiString): Boolean;
 var
-  extensions: PChar;
-  start: PChar;
-  where, terminator: PChar;
+  extensions: PAnsiChar;
+  start: PAnsiChar;
+  where, terminator: PAnsiChar;
 begin
 
   if (Pos(' ', extension) <> 0) or (extension = '') then
@@ -5177,15 +5177,15 @@ begin
     Exit;
   end;
 
-  if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
-  else extensions := PChar(searchIn);
+  if searchIn = '' then extensions := PAnsiChar(glGetString(GL_EXTENSIONS))
+  else extensions := PAnsiChar(searchIn);
   start := extensions;
   while TRUE do
   begin
-    where := StrPos(start, PChar(extension));
+    where := StrPos(start, PAnsiChar(extension));
     if where = nil then Break;
     terminator := Pointer(PtrUInt(where) + Length(extension));
-    if (where = start) or (PChar(PtrUInt(where) - 1)^ = ' ') then
+    if (where = start) or (PAnsiChar(PtrUInt(where) - 1)^ = ' ') then
     begin
       if (terminator^ = ' ') or (terminator^ = #0) then
       begin
@@ -5223,11 +5223,11 @@ end;
 
 function Load_GL_ARB_imaging: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
   if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
   begin
     glColorTable := wglGetProcAddress('glColorTable');
@@ -5404,11 +5404,11 @@ end;
 
 function Load_GL_ARB_multitexture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_multitexture', extstring) then
   begin
@@ -5487,11 +5487,11 @@ end;
 
 function Load_GL_ARB_transpose_matrix: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_transpose_matrix', extstring) then
   begin
@@ -5510,11 +5510,11 @@ end;
 
 function Load_GL_ARB_multisample: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_multisample', extstring) then
   begin
@@ -5527,11 +5527,11 @@ end;
 
 function Load_GL_ARB_texture_env_add: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_env_add', extstring) then
   begin
@@ -5543,13 +5543,13 @@ end;
 {$IFDEF Windows}
 function Load_WGL_ARB_extensions_string: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_extensions_string', extstring) then
   begin
@@ -5562,13 +5562,13 @@ end;
 
 function Load_WGL_ARB_buffer_region: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_buffer_region', extstring) then
   begin
@@ -5588,11 +5588,11 @@ end;
 
 function Load_GL_ARB_texture_cube_map: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_cube_map', extstring) then
   begin
@@ -5603,11 +5603,11 @@ end;
 
 function Load_GL_ARB_depth_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_depth_texture', extstring) then
   begin
@@ -5618,11 +5618,11 @@ end;
 
 function Load_GL_ARB_point_parameters: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_point_parameters', extstring) then
   begin
@@ -5637,11 +5637,11 @@ end;
 
 function Load_GL_ARB_shadow: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_shadow', extstring) then
   begin
@@ -5652,11 +5652,11 @@ end;
 
 function Load_GL_ARB_shadow_ambient: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_shadow_ambient', extstring) then
   begin
@@ -5667,11 +5667,11 @@ end;
 
 function Load_GL_ARB_texture_border_clamp: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_border_clamp', extstring) then
   begin
@@ -5682,11 +5682,11 @@ end;
 
 function Load_GL_ARB_texture_compression: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_compression', extstring) then
   begin
@@ -5711,11 +5711,11 @@ end;
 
 function Load_GL_ARB_texture_env_combine: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_env_combine', extstring) then
   begin
@@ -5726,11 +5726,11 @@ end;
 
 function Load_GL_ARB_texture_env_crossbar: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_env_crossbar', extstring) then
   begin
@@ -5741,11 +5741,11 @@ end;
 
 function Load_GL_ARB_texture_env_dot3: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_env_dot3', extstring) then
   begin
@@ -5756,11 +5756,11 @@ end;
 
 function Load_GL_ARB_texture_mirrored_repeat: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_mirrored_repeat', extstring) then
   begin
@@ -5771,11 +5771,11 @@ end;
 
 function Load_GL_ARB_vertex_blend: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_vertex_blend', extstring) then
   begin
@@ -5808,11 +5808,11 @@ end;
 
 function Load_GL_ARB_vertex_program: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_vertex_program', extstring) then
   begin
@@ -5947,11 +5947,11 @@ end;
 
 function Load_GL_ARB_window_pos: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_window_pos', extstring) then
   begin
@@ -5994,11 +5994,11 @@ end;
 
 function Load_GL_EXT_422_pixels: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_422_pixels', extstring) then
   begin
@@ -6009,11 +6009,11 @@ end;
 
 function Load_GL_EXT_abgr: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_abgr', extstring) then
   begin
@@ -6024,11 +6024,11 @@ end;
 
 function Load_GL_EXT_bgra: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_bgra', extstring) then
   begin
@@ -6039,11 +6039,11 @@ end;
 
 function Load_GL_EXT_blend_color: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_color', extstring) then
   begin
@@ -6056,11 +6056,11 @@ end;
 
 function Load_GL_EXT_blend_func_separate: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_func_separate', extstring) then
   begin
@@ -6073,11 +6073,11 @@ end;
 
 function Load_GL_EXT_blend_logic_op: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_logic_op', extstring) then
   begin
@@ -6088,11 +6088,11 @@ end;
 
 function Load_GL_EXT_blend_minmax: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_minmax', extstring) then
   begin
@@ -6105,11 +6105,11 @@ end;
 
 function Load_GL_EXT_blend_subtract: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_subtract', extstring) then
   begin
@@ -6120,11 +6120,11 @@ end;
 
 function Load_GL_EXT_clip_volume_hint: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_clip_volume_hint', extstring) then
   begin
@@ -6135,11 +6135,11 @@ end;
 
 function Load_GL_EXT_color_subtable: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_color_subtable', extstring) then
   begin
@@ -6154,11 +6154,11 @@ end;
 
 function Load_GL_EXT_compiled_vertex_array: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_compiled_vertex_array', extstring) then
   begin
@@ -6173,11 +6173,11 @@ end;
 
 function Load_GL_EXT_convolution: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_convolution', extstring) then
   begin
@@ -6214,11 +6214,11 @@ end;
 
 function Load_GL_EXT_fog_coord: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_fog_coord', extstring) then
   begin
@@ -6239,11 +6239,11 @@ end;
 
 function Load_GL_EXT_histogram: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_histogram', extstring) then
   begin
@@ -6274,11 +6274,11 @@ end;
 
 function Load_GL_EXT_multi_draw_arrays: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_multi_draw_arrays', extstring) then
   begin
@@ -6293,11 +6293,11 @@ end;
 
 function Load_GL_EXT_packed_depth_stencil: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_packed_depth_stencil', extstring) then
   begin
@@ -6308,11 +6308,11 @@ end;
 
 function Load_GL_EXT_packed_pixels: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_packed_pixels', extstring) then
   begin
@@ -6323,11 +6323,11 @@ end;
 
 function Load_GL_EXT_paletted_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_paletted_texture', extstring) then
   begin
@@ -6348,11 +6348,11 @@ end;
 
 function Load_GL_EXT_point_parameters: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_point_parameters', extstring) then
   begin
@@ -6367,11 +6367,11 @@ end;
 
 function Load_GL_EXT_polygon_offset: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_polygon_offset', extstring) then
   begin
@@ -6384,11 +6384,11 @@ end;
 
 function Load_GL_EXT_secondary_color: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_secondary_color', extstring) then
   begin
@@ -6433,11 +6433,11 @@ end;
 
 function Load_GL_EXT_separate_specular_color: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_separate_specular_color', extstring) then
   begin
@@ -6448,11 +6448,11 @@ end;
 
 function Load_GL_EXT_shadow_funcs: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_shadow_funcs', extstring) then
   begin
@@ -6463,11 +6463,11 @@ end;
 
 function Load_GL_EXT_shared_texture_palette: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_shared_texture_palette', extstring) then
   begin
@@ -6478,11 +6478,11 @@ end;
 
 function Load_GL_EXT_stencil_two_side: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_stencil_two_side', extstring) then
   begin
@@ -6495,11 +6495,11 @@ end;
 
 function Load_GL_EXT_stencil_wrap: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_stencil_wrap', extstring) then
   begin
@@ -6510,11 +6510,11 @@ end;
 
 function Load_GL_EXT_subtexture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_subtexture', extstring) then
   begin
@@ -6531,11 +6531,11 @@ end;
 
 function Load_GL_EXT_texture3D: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture3D', extstring) then
   begin
@@ -6548,11 +6548,11 @@ end;
 
 function Load_GL_EXT_texture_compression_s3tc: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_compression_s3tc', extstring) then
   begin
@@ -6563,11 +6563,11 @@ end;
 
 function Load_GL_EXT_texture_env_add: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_env_add', extstring) then
   begin
@@ -6578,11 +6578,11 @@ end;
 
 function Load_GL_EXT_texture_env_combine: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_env_combine', extstring) then
   begin
@@ -6593,11 +6593,11 @@ end;
 
 function Load_GL_EXT_texture_env_dot3: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_env_dot3', extstring) then
   begin
@@ -6608,11 +6608,11 @@ end;
 
 function Load_GL_EXT_texture_filter_anisotropic: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_filter_anisotropic', extstring) then
   begin
@@ -6623,11 +6623,11 @@ end;
 
 function Load_GL_EXT_texture_lod_bias: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_lod_bias', extstring) then
   begin
@@ -6638,11 +6638,11 @@ end;
 
 function Load_GL_EXT_texture_object: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_object', extstring) then
   begin
@@ -6665,11 +6665,11 @@ end;
 
 function Load_GL_EXT_vertex_array: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_vertex_array', extstring) then
   begin
@@ -6698,11 +6698,11 @@ end;
 
 function Load_GL_EXT_vertex_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_vertex_shader', extstring) then
   begin
@@ -6797,11 +6797,11 @@ end;
 
 function Load_GL_EXT_vertex_weighting: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_vertex_weighting', extstring) then
   begin
@@ -6818,11 +6818,11 @@ end;
 
 function Load_GL_HP_occlusion_test: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_HP_occlusion_test', extstring) then
   begin
@@ -6833,11 +6833,11 @@ end;
 
 function Load_GL_NV_blend_square: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_blend_square', extstring) then
   begin
@@ -6848,11 +6848,11 @@ end;
 
 function Load_GL_NV_copy_depth_to_color: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_copy_depth_to_color', extstring) then
   begin
@@ -6863,11 +6863,11 @@ end;
 
 function Load_GL_NV_depth_clamp: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_depth_clamp', extstring) then
   begin
@@ -6878,11 +6878,11 @@ end;
 
 function Load_GL_NV_evaluators: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_evaluators', extstring) then
   begin
@@ -6911,11 +6911,11 @@ end;
 
 function Load_GL_NV_fence: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_fence', extstring) then
   begin
@@ -6940,11 +6940,11 @@ end;
 
 function Load_GL_NV_fog_distance: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_fog_distance', extstring) then
   begin
@@ -6955,11 +6955,11 @@ end;
 
 function Load_GL_NV_light_max_exponent: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_light_max_exponent', extstring) then
   begin
@@ -6970,11 +6970,11 @@ end;
 
 function Load_GL_NV_multisample_filter_hint: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_multisample_filter_hint', extstring) then
   begin
@@ -6985,11 +6985,11 @@ end;
 
 function Load_GL_NV_occlusion_query: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_occlusion_query', extstring) then
   begin
@@ -7014,11 +7014,11 @@ end;
 
 function Load_GL_NV_packed_depth_stencil: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_packed_depth_stencil', extstring) then
   begin
@@ -7029,11 +7029,11 @@ end;
 
 function Load_GL_NV_point_sprite: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_point_sprite', extstring) then
   begin
@@ -7048,11 +7048,11 @@ end;
 
 function Load_GL_NV_register_combiners: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_register_combiners', extstring) then
   begin
@@ -7089,11 +7089,11 @@ end;
 
 function Load_GL_NV_register_combiners2: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_register_combiners2', extstring) then
   begin
@@ -7108,11 +7108,11 @@ end;
 
 function Load_GL_NV_texgen_emboss: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texgen_emboss', extstring) then
   begin
@@ -7123,11 +7123,11 @@ end;
 
 function Load_GL_NV_texgen_reflection: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texgen_reflection', extstring) then
   begin
@@ -7138,11 +7138,11 @@ end;
 
 function Load_GL_NV_texture_compression_vtc: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_compression_vtc', extstring) then
   begin
@@ -7153,11 +7153,11 @@ end;
 
 function Load_GL_NV_texture_env_combine4: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_env_combine4', extstring) then
   begin
@@ -7168,11 +7168,11 @@ end;
 
 function Load_GL_NV_texture_rectangle: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_rectangle', extstring) then
   begin
@@ -7183,11 +7183,11 @@ end;
 
 function Load_GL_NV_texture_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_shader', extstring) then
   begin
@@ -7198,11 +7198,11 @@ end;
 
 function Load_GL_NV_texture_shader2: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_shader2', extstring) then
   begin
@@ -7213,11 +7213,11 @@ end;
 
 function Load_GL_NV_texture_shader3: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_shader3', extstring) then
   begin
@@ -7228,11 +7228,11 @@ end;
 
 function Load_GL_NV_vertex_array_range: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_array_range', extstring) then
   begin
@@ -7253,11 +7253,11 @@ end;
 
 function Load_GL_NV_vertex_array_range2: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_array_range2', extstring) then
   begin
@@ -7268,11 +7268,11 @@ end;
 
 function Load_GL_NV_vertex_program: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_program', extstring) then
   begin
@@ -7407,11 +7407,11 @@ end;
 
 function Load_GL_NV_vertex_program1_1: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_program1_1', extstring) then
   begin
@@ -7422,11 +7422,11 @@ end;
 
 function Load_GL_ATI_element_array: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_element_array', extstring) then
   begin
@@ -7443,11 +7443,11 @@ end;
 
 function Load_GL_ATI_envmap_bumpmap: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_envmap_bumpmap', extstring) then
   begin
@@ -7466,11 +7466,11 @@ end;
 
 function Load_GL_ATI_fragment_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_fragment_shader', extstring) then
   begin
@@ -7509,11 +7509,11 @@ end;
 
 function Load_GL_ATI_pn_triangles: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_pn_triangles', extstring) then
   begin
@@ -7528,11 +7528,11 @@ end;
 
 function Load_GL_ATI_texture_mirror_once: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_texture_mirror_once', extstring) then
   begin
@@ -7543,11 +7543,11 @@ end;
 
 function Load_GL_ATI_vertex_array_object: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_vertex_array_object', extstring) then
   begin
@@ -7582,11 +7582,11 @@ end;
 
 function Load_GL_ATI_vertex_streams: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_vertex_streams', extstring) then
   begin
@@ -7688,13 +7688,13 @@ end;
 {$IFDEF Windows}
 function Load_WGL_I3D_image_buffer: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_image_buffer', extstring) then
   begin
@@ -7713,13 +7713,13 @@ end;
 
 function Load_WGL_I3D_swap_frame_lock: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_swap_frame_lock', extstring) then
   begin
@@ -7738,13 +7738,13 @@ end;
 
 function Load_WGL_I3D_swap_frame_usage: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_swap_frame_usage', extstring) then
   begin
@@ -7764,11 +7764,11 @@ end;
 
 function Load_GL_3DFX_texture_compression_FXT1: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_3DFX_texture_compression_FXT1', extstring) then
   begin
@@ -7779,11 +7779,11 @@ end;
 
 function Load_GL_IBM_cull_vertex: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_IBM_cull_vertex', extstring) then
   begin
@@ -7794,11 +7794,11 @@ end;
 
 function Load_GL_IBM_multimode_draw_arrays: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_IBM_multimode_draw_arrays', extstring) then
   begin
@@ -7813,11 +7813,11 @@ end;
 
 function Load_GL_IBM_raster_pos_clip: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_IBM_raster_pos_clip', extstring) then
   begin
@@ -7828,11 +7828,11 @@ end;
 
 function Load_GL_IBM_texture_mirrored_repeat: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_IBM_texture_mirrored_repeat', extstring) then
   begin
@@ -7843,11 +7843,11 @@ end;
 
 function Load_GL_IBM_vertex_array_lists: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_IBM_vertex_array_lists', extstring) then
   begin
@@ -7872,11 +7872,11 @@ end;
 
 function Load_GL_MESA_resize_buffers: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_MESA_resize_buffers', extstring) then
   begin
@@ -7889,11 +7889,11 @@ end;
 
 function Load_GL_MESA_window_pos: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_MESA_window_pos', extstring) then
   begin
@@ -7952,11 +7952,11 @@ end;
 
 function Load_GL_OML_interlace: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_OML_interlace', extstring) then
   begin
@@ -7967,11 +7967,11 @@ end;
 
 function Load_GL_OML_resample: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_OML_resample', extstring) then
   begin
@@ -7982,11 +7982,11 @@ end;
 
 function Load_GL_OML_subsample: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_OML_subsample', extstring) then
   begin
@@ -7997,11 +7997,11 @@ end;
 
 function Load_GL_SGIS_generate_mipmap: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_generate_mipmap', extstring) then
   begin
@@ -8012,11 +8012,11 @@ end;
 
 function Load_GL_SGIS_multisample: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_multisample', extstring) then
   begin
@@ -8031,11 +8031,11 @@ end;
 
 function Load_GL_SGIS_pixel_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_pixel_texture', extstring) then
   begin
@@ -8054,11 +8054,11 @@ end;
 
 function Load_GL_SGIS_texture_border_clamp: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_texture_border_clamp', extstring) then
   begin
@@ -8069,11 +8069,11 @@ end;
 
 function Load_GL_SGIS_texture_color_mask: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_texture_color_mask', extstring) then
   begin
@@ -8086,11 +8086,11 @@ end;
 
 function Load_GL_SGIS_texture_edge_clamp: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_texture_edge_clamp', extstring) then
   begin
@@ -8101,11 +8101,11 @@ end;
 
 function Load_GL_SGIS_texture_lod: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_texture_lod', extstring) then
   begin
@@ -8116,11 +8116,11 @@ end;
 
 function Load_GL_SGIS_depth_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIS_depth_texture', extstring) then
   begin
@@ -8131,11 +8131,11 @@ end;
 
 function Load_GL_SGIX_fog_offset: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIX_fog_offset', extstring) then
   begin
@@ -8146,11 +8146,11 @@ end;
 
 function Load_GL_SGIX_interlace: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIX_interlace', extstring) then
   begin
@@ -8161,11 +8161,11 @@ end;
 
 function Load_GL_SGIX_shadow_ambient: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGIX_shadow_ambient', extstring) then
   begin
@@ -8176,11 +8176,11 @@ end;
 
 function Load_GL_SGI_color_matrix: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGI_color_matrix', extstring) then
   begin
@@ -8191,11 +8191,11 @@ end;
 
 function Load_GL_SGI_color_table: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGI_color_table', extstring) then
   begin
@@ -8220,11 +8220,11 @@ end;
 
 function Load_GL_SGI_texture_color_table: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SGI_texture_color_table', extstring) then
   begin
@@ -8235,11 +8235,11 @@ end;
 
 function Load_GL_SUN_vertex: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_SUN_vertex', extstring) then
   begin
@@ -8330,11 +8330,11 @@ end;
 
 function Load_GL_ARB_fragment_program: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_fragment_program', extstring) then
   begin
@@ -8383,11 +8383,11 @@ end;
 
 function Load_GL_ATI_text_fragment_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_text_fragment_shader', extstring) then
   begin
@@ -8398,11 +8398,11 @@ end;
 
 function Load_GL_APPLE_client_storage: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_APPLE_client_storage', extstring) then
   begin
@@ -8413,11 +8413,11 @@ end;
 
 function Load_GL_APPLE_element_array: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_APPLE_element_array', extstring) then
   begin
@@ -8438,11 +8438,11 @@ end;
 
 function Load_GL_APPLE_fence: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_APPLE_fence', extstring) then
   begin
@@ -8469,11 +8469,11 @@ end;
 
 function Load_GL_APPLE_vertex_array_object: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_APPLE_vertex_array_object', extstring) then
   begin
@@ -8492,11 +8492,11 @@ end;
 
 function Load_GL_APPLE_vertex_array_range: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_APPLE_vertex_array_range', extstring) then
   begin
@@ -8514,11 +8514,11 @@ end;
 
 function load_GL_ARB_vertex_buffer_object : boolean;
 
-var extstring:string;
+var extstring:AnsiString;
 
 begin
   Result:=false;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
   if glext_ExtensionSupported('GL_ARB_vertex_buffer_object',extstring) then
     begin
       glBindBufferARB := wglGetProcAddress('glBindBufferARB');
@@ -8550,13 +8550,13 @@ end;
 {$IFDEF Windows}
 function Load_WGL_ARB_pixel_format: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_pixel_format', extstring) then
   begin
@@ -8573,13 +8573,13 @@ end;
 
 function Load_WGL_ARB_make_current_read: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_make_current_read', extstring) then
   begin
@@ -8594,13 +8594,13 @@ end;
 
 function Load_WGL_ARB_pbuffer: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_pbuffer', extstring) then
   begin
@@ -8621,13 +8621,13 @@ end;
 
 function Load_WGL_EXT_swap_control: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_EXT_swap_control', extstring) then
   begin
@@ -8642,13 +8642,13 @@ end;
 
 function Load_WGL_ARB_render_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_ARB_render_texture', extstring) then
   begin
@@ -8665,13 +8665,13 @@ end;
 
 function Load_WGL_EXT_extensions_string: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_EXT_extensions_string', extstring) then
   begin
@@ -8684,13 +8684,13 @@ end;
 
 function Load_WGL_EXT_make_current_read: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_EXT_make_current_read', extstring) then
   begin
@@ -8705,13 +8705,13 @@ end;
 
 function Load_WGL_EXT_pbuffer: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_EXT_pbuffer', extstring) then
   begin
@@ -8732,13 +8732,13 @@ end;
 
 function Load_WGL_EXT_pixel_format: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_EXT_pixel_format', extstring) then
   begin
@@ -8755,13 +8755,13 @@ end;
 
 function Load_WGL_I3D_digital_video_control: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_digital_video_control', extstring) then
   begin
@@ -8776,13 +8776,13 @@ end;
 
 function Load_WGL_I3D_gamma: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_gamma', extstring) then
   begin
@@ -8801,13 +8801,13 @@ end;
 
 function Load_WGL_I3D_genlock: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
   wglGetExtensionsStringARB := wglGetProcAddress('wglGetExtensionsStringARB');
   if not Assigned(wglGetExtensionsStringARB) then Exit;
-  extstring := String(PChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
+  extstring := AnsiString(PAnsiChar(wglGetExtensionsStringARB(wglGetCurrentDC)));
 
   if glext_ExtensionSupported('WGL_I3D_genlock', extstring) then
   begin
@@ -8843,11 +8843,11 @@ end;
 
 function Load_GL_ARB_matrix_palette: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_matrix_palette', extstring) then
   begin
@@ -8868,11 +8868,11 @@ end;
 
 function Load_GL_NV_element_array: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_element_array', extstring) then
   begin
@@ -8893,11 +8893,11 @@ end;
 
 function Load_GL_NV_float_buffer: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_float_buffer', extstring) then
   begin
@@ -8908,11 +8908,11 @@ end;
 
 function Load_GL_NV_fragment_program: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_fragment_program', extstring) then
   begin
@@ -8943,11 +8943,11 @@ end;
 
 function Load_GL_NV_primitive_restart: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_primitive_restart', extstring) then
   begin
@@ -8962,11 +8962,11 @@ end;
 
 function Load_GL_NV_vertex_program2: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_program2', extstring) then
   begin
@@ -8978,7 +8978,7 @@ end;
 {$IFDEF Windows}
 function Load_WGL_NV_render_texture_rectangle: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
@@ -8996,11 +8996,11 @@ end;
 
 function Load_GL_NV_pixel_data_range: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_pixel_data_range', extstring) then
   begin
@@ -9021,11 +9021,11 @@ end;
 
 function Load_GL_EXT_texture_rectangle: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_rectangle', extstring) then
   begin
@@ -9036,11 +9036,11 @@ end;
 
 function Load_GL_S3_s3tc: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_S3_s3tc', extstring) then
   begin
@@ -9051,11 +9051,11 @@ end;
 
 function Load_GL_ATI_draw_buffers: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_draw_buffers', extstring) then
   begin
@@ -9069,7 +9069,7 @@ end;
 {$IFDEF Windows}
 function Load_WGL_ATI_pixel_format_float: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
@@ -9087,11 +9087,11 @@ end;
 
 function Load_GL_ATI_texture_env_combine3: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_texture_env_combine3', extstring) then
   begin
@@ -9102,11 +9102,11 @@ end;
 
 function Load_GL_ATI_texture_float: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_texture_float', extstring) then
   begin
@@ -9117,11 +9117,11 @@ end;
 
 function Load_GL_NV_texture_expand_normal: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_texture_expand_normal', extstring) then
   begin
@@ -9132,11 +9132,11 @@ end;
 
 function Load_GL_NV_half_float: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_half_float', extstring) then
   begin
@@ -9239,11 +9239,11 @@ end;
 
 function Load_GL_ATI_map_object_buffer: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_map_object_buffer', extstring) then
   begin
@@ -9258,11 +9258,11 @@ end;
 
 function Load_GL_ATI_separate_stencil: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_separate_stencil', extstring) then
   begin
@@ -9277,11 +9277,11 @@ end;
 
 function Load_GL_ATI_vertex_attrib_array_object: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ATI_vertex_attrib_array_object', extstring) then
   begin
@@ -9298,11 +9298,11 @@ end;
 
 function Load_GL_ARB_occlusion_query: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_occlusion_query', extstring) then
   begin
@@ -9329,11 +9329,11 @@ end;
 
 function Load_GL_ARB_shader_objects: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_shader_objects', extstring) then
   begin
@@ -9423,11 +9423,11 @@ end;
 
 function Load_GL_ARB_vertex_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_vertex_shader', extstring) then
   begin
@@ -9530,11 +9530,11 @@ end;
 
 function Load_GL_ARB_fragment_shader: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_fragment_shader', extstring) then
   begin
@@ -9545,11 +9545,11 @@ end;
 
 function Load_GL_ARB_shading_language_100: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_shading_language_100', extstring) then
   begin
@@ -9560,11 +9560,11 @@ end;
 
 function Load_GL_ARB_texture_non_power_of_two: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_texture_non_power_of_two', extstring) then
   begin
@@ -9575,11 +9575,11 @@ end;
 
 function Load_GL_ARB_point_sprite: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_point_sprite', extstring) then
   begin
@@ -9590,11 +9590,11 @@ end;
 
 function Load_GL_EXT_depth_bounds_test: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_depth_bounds_test', extstring) then
   begin
@@ -9607,11 +9607,11 @@ end;
 
 function Load_GL_EXT_texture_mirror_clamp: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_texture_mirror_clamp', extstring) then
   begin
@@ -9622,11 +9622,11 @@ end;
 
 function Load_GL_EXT_blend_equation_separate: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_blend_equation_separate', extstring) then
   begin
@@ -9639,11 +9639,11 @@ end;
 
 function Load_GL_MESA_pack_invert: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_MESA_pack_invert', extstring) then
   begin
@@ -9654,11 +9654,11 @@ end;
 
 function Load_GL_MESA_ycbcr_texture: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_MESA_ycbcr_texture', extstring) then
   begin
@@ -9669,11 +9669,11 @@ end;
 
 function Load_GL_ARB_fragment_program_shadow: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_ARB_fragment_program_shadow', extstring) then
   begin
@@ -9684,11 +9684,11 @@ end;
 
 function Load_GL_NV_fragment_program_option: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_fragment_program_option', extstring) then
   begin
@@ -9699,11 +9699,11 @@ end;
 
 function Load_GL_EXT_pixel_buffer_object: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_pixel_buffer_object', extstring) then
   begin
@@ -9714,11 +9714,11 @@ end;
 
 function Load_GL_NV_fragment_program2: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_fragment_program2', extstring) then
   begin
@@ -9729,11 +9729,11 @@ end;
 
 function Load_GL_NV_vertex_program2_option: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_program2_option', extstring) then
   begin
@@ -9744,11 +9744,11 @@ end;
 
 function Load_GL_NV_vertex_program3: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_NV_vertex_program3', extstring) then
   begin
@@ -9759,7 +9759,7 @@ end;
 
 function Load_GL_ARB_draw_buffers: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9776,7 +9776,7 @@ end;
 
 function Load_GL_ARB_texture_rectangle: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9791,7 +9791,7 @@ end;
 
 function Load_GL_ARB_color_buffer_float: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9808,7 +9808,7 @@ end;
 
 function Load_GL_ARB_half_float_pixel: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9823,7 +9823,7 @@ end;
 
 function Load_GL_ARB_texture_float: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9838,7 +9838,7 @@ end;
 
 function Load_GL_EXT_texture_compression_dxt1: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9853,7 +9853,7 @@ end;
 
 function Load_GL_ARB_pixel_buffer_object: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9868,7 +9868,7 @@ end;
 
 function Load_GL_EXT_framebuffer_object: Boolean;
 var
-  extstring: PChar;
+  extstring: PAnsiChar;
 begin
 
   Result := FALSE;
@@ -9917,10 +9917,10 @@ end;
 
 function Load_GL_ARB_framebuffer_object(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_framebuffer_object', extstring) then
   begin
@@ -9970,10 +9970,10 @@ end;
 
 function Load_GL_ARB_map_buffer_range(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_map_buffer_range', extstring) then
   begin
@@ -9987,10 +9987,10 @@ end;
 
 function Load_GL_ARB_vertex_array_object(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_vertex_array_object', extstring) then
   begin
@@ -10008,10 +10008,10 @@ end;
 
 function Load_GL_ARB_copy_buffer(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_copy_buffer', extstring) then
   begin
@@ -10023,10 +10023,10 @@ end;
 
 function Load_GL_ARB_uniform_buffer_object(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_uniform_buffer_object', extstring) then
   begin
@@ -10057,10 +10057,10 @@ end;
 
 function Load_GL_ARB_draw_elements_base_vertex(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_draw_elements_base_vertex', extstring) then
   begin
@@ -10078,10 +10078,10 @@ end;
 
 function Load_GL_ARB_provoking_vertex(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_provoking_vertex', extstring) then
   begin
@@ -10093,10 +10093,10 @@ end;
 
 function Load_GL_ARB_sync(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_sync', extstring) then
   begin
@@ -10120,10 +10120,10 @@ end;
 
 function Load_GL_ARB_texture_multisample(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_texture_multisample', extstring) then
   begin
@@ -10141,10 +10141,10 @@ end;
 
 function Load_GL_ARB_sampler_objects(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_sampler_objects', extstring) then
   begin
@@ -10182,10 +10182,10 @@ end;
 
 function Load_GL_ARB_blend_func_extended(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_blend_func_extended', extstring) then
   begin
@@ -10199,10 +10199,10 @@ end;
 
 function Load_GL_ARB_timer_query(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_timer_query', extstring) then
   begin
@@ -10218,10 +10218,10 @@ end;
 
 function Load_GL_ARB_vertex_type_2_10_10_10_rev(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_vertex_type_2_10_10_10_rev', extstring) then
   begin
@@ -10307,10 +10307,10 @@ end;
 
 function Load_GL_ARB_gpu_shader_fp64(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_gpu_shader_fp64', extstring) then
   begin
@@ -10397,10 +10397,10 @@ end;
 
 function Load_GL_ARB_shader_subroutine(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_shader_subroutine', extstring) then
   begin
@@ -10426,10 +10426,10 @@ end;
 
 function Load_GL_ARB_tessellation_shader(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_tessellation_shader', extstring) then
   begin
@@ -10443,10 +10443,10 @@ end;
 
 function Load_GL_ARB_transform_feedback2(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_transform_feedback2', extstring) then
   begin
@@ -10470,10 +10470,10 @@ end;
 
 function Load_GL_ARB_transform_feedback3(LoadAsCore: boolean): Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if LoadAsCore or glext_ExtensionSupported('GL_ARB_transform_feedback3', extstring) then
   begin
@@ -10837,7 +10837,7 @@ begin
      Load_GL_version_2_0x(result);
 end;
 
-function glext_LoadExtension(ext: String): Boolean;
+function glext_LoadExtension(ext: AnsiString): Boolean;
 begin
   Result := FALSE;
   if ext = 'GL_version_1_2' then Result := Load_GL_version_1_2
@@ -11210,10 +11210,10 @@ end;
 
 function Load_GL_Debug_output: Boolean;
 var
-  extstring: String;
+  extstring: AnsiString;
 begin
   Result := False;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+  extstring := AnsiString(PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_KHR_debug', extstring) then
   begin

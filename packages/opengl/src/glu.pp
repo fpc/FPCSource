@@ -487,7 +487,7 @@ implementation
     end;
 
 
-  procedure Loadglu(lib : pchar);
+  procedure Loadglu(lib : PAnsiChar);
     begin
       Freeglu;
       hlib:=LoadLibrary(lib);

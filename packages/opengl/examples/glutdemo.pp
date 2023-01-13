@@ -108,10 +108,10 @@ begin
 
   WriteLn;
   WriteLn('GL info:');
-  WriteLn('  Vendor: ', PChar(glGetString(GL_VENDOR)));
-  WriteLn('  Renderer: ', PChar(glGetString(GL_RENDERER)));
-  WriteLn('  Version: ', PChar(glGetString(GL_VERSION)));
-  WriteLn('  Extensions: ', PChar(glGetString(GL_EXTENSIONS)));
+  WriteLn('  Vendor: ', PAnsiChar(glGetString(GL_VENDOR)));
+  WriteLn('  Renderer: ', PAnsiChar(glGetString(GL_RENDERER)));
+  WriteLn('  Version: ', PAnsiChar(glGetString(GL_VERSION)));
+  WriteLn('  Extensions: ', PAnsiChar(glGetString(GL_EXTENSIONS)));
 
   // Enable backface culling
   glEnable(GL_CULL_FACE);

@@ -840,7 +840,7 @@ end;
 
 procedure do_key(k:byte;x,y:integer); cdecl;
 begin
-  case Char(k) of
+  case AnsiChar(k) of
     '1' : _object:=1;
     '2' : _object:=2;
     '3' : _object:=3;
