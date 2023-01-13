@@ -407,7 +407,7 @@ const
 
 
 type
-	InetDomainName = packed array [0..255] of char;
+	InetDomainName = packed array [0..255] of AnsiChar;
 	InetHostInfoPtr = ^InetHostInfo;
 	InetHostInfo = record
 		name: InetDomainName;
@@ -416,8 +416,8 @@ type
 type
 	InetSysInfoPtr = ^InetSysInfo;
 	InetSysInfo = record
-		cpuType: packed array [0..31] of char;
-		osType: packed array [0..31] of char;
+		cpuType: packed array [0..31] of AnsiChar;
+		osType: packed array [0..31] of AnsiChar;
 	end;
 type
 	InetMailExchangePtr = ^InetMailExchange;
@@ -434,7 +434,7 @@ type
 		name: InetDomainName;
 		responseType: UInt16;           { answer, authority, or additional}
 		resourceLen: UInt16;            { actual length of array which follows}
-		resourceData: packed array [0..3] of char;        { size varies}
+		resourceData: packed array [0..3] of AnsiChar;        { size varies}
 	end;
 { DNSAddress}
 {
@@ -1741,7 +1741,7 @@ type
 	OTISDNAddress = record
 		fAddressType: OTAddressType;
 		fPhoneLength: UInt16;
-		fPhoneNumber: packed array [0..36] of char;
+		fPhoneNumber: packed array [0..36] of AnsiChar;
 	end;
 { IOCTL Calls for ISDN}
 { ISDN shares the same ioctl space as serial.}

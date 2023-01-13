@@ -246,7 +246,7 @@ const
 	soStatus = FourCharCode('stat');
 	soErrors = FourCharCode('erro');
 	soInputMode = FourCharCode('inpt');
-	soCharacterMode = FourCharCode('char');
+	soCharacterMode = FourCharCode('AnsiChar');
 	soNumberMode = FourCharCode('nmbr');
 	soRate = FourCharCode('rate');
 	soPitchBase = FourCharCode('pbas');

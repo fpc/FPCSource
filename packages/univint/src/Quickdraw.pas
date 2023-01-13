@@ -5962,7 +5962,7 @@ type
  *      enum above)
  *  
  *  Result:
- *    const char* name, or NULL if 'cursorID' is out of range
+ *    const AnsiChar* name, or NULL if 'cursorID' is out of range
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4

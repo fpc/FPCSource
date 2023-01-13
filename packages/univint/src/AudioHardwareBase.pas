@@ -255,7 +255,7 @@ type
 
 {!
     @typedef        AudioObjectPropertySelector
-    @abstract       An AudioObjectPropertySelector is a four char code that identifies, along with
+    @abstract       An AudioObjectPropertySelector is a four AnsiChar code that identifies, along with
                     the AudioObjectPropertyScope and AudioObjectPropertyElement, a specific piece of
                     information about an AudioObject.
     @discussion     The property selector specifies the general classification of the property such
@@ -268,7 +268,7 @@ type
 
 {!
     @typedef        AudioObjectPropertyScope
-    @abstract       An AudioObjectPropertyScope is a four char code that identifies, along with the
+    @abstract       An AudioObjectPropertyScope is a four AnsiChar code that identifies, along with the
                     AudioObjectPropertySelector and AudioObjectPropertyElement, a specific piece of
                     information about an AudioObject.
     @discussion     The scope specifies the section of the object in which to look for the property,

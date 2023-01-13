@@ -240,7 +240,7 @@ type
 	NumFormatString = packed record
 		fLength: UInt8;
 		fVersion: UInt8;
-		data: packed array [0..253] of char;              { private data }
+		data: packed array [0..253] of AnsiChar;              { private data }
 	end;
 type
 	NumFormatStringRec = NumFormatString;

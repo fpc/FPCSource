@@ -234,7 +234,7 @@ const
 	kTranslatorCanGenerateFilename = 4;
 
 {****************************************************************************************}
-{ better names for 4-char codes}
+{ better names for 4-AnsiChar codes}
 type
 	FileType = OSType;
 	FileTypePtr = ^FileType;

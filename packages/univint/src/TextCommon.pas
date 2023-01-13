@@ -453,7 +453,7 @@ const
 	kTextEncodingBig5 = $0A03; { Big-5 (has variants)}
 	kTextEncodingMacRomanLatin1 = $0A04; { Mac OS Roman permuted to align with ISO Latin-1}
 	kTextEncodingHZ_GB_2312 = $0A05; { HZ (RFC 1842, for Chinese mail & news)}
-	kTextEncodingBig5_HKSCS_1999 = $0A06; { Big-5 with Hong Kong special char set supplement}
+	kTextEncodingBig5_HKSCS_1999 = $0A06; { Big-5 with Hong Kong special AnsiChar set supplement}
 	kTextEncodingVISCII = $0A07; { RFC 1456, Vietnamese}
 	kTextEncodingKOI8_U = $0A08; { RFC 2319, Ukrainian}
 	kTextEncodingBig5_E = $0A09; { Taiwan Big-5E standard}
@@ -712,7 +712,7 @@ const
                                         { - An array of UTF16Char (UniChar) or UTF32Char is normally understood to use "internal" or}
                                         { platform-native byte ordering for kUnicodeUTF16Format and kUnicodeUTF32Format; the array MAY}
                                         { begin with byte-order mark (BOM), but the BOM should match the internal ordering.}
-                                        { - If an array of bytes (such as char *) that can be in various encodings is specified to be}
+                                        { - If an array of bytes (such as AnsiChar *) that can be in various encodings is specified to be}
                                         { in Unicode with kUnicodeUTF16Format or kUnicodeUTF32Format (not explicitly BE or LE), then it}
                                         { is assumed to use "external" byte ordering, which means: If there is a BOM at the beginning}
                                         { of text, the BOM specifies the byte ordering, otherwise big-endian is assumed.}
@@ -868,9 +868,9 @@ const
 const
 	kUnicodeByteOrderMark = $FEFF;
 	kUnicodeObjectReplacement = $FFFC; { placeholder for non-text object}
-	kUnicodeReplacementChar = $FFFD; { Unicode replacement for unconvertable input char}
-	kUnicodeSwappedByteOrderMark = $FFFE; { not a Unicode char; byte-swapped version of FEFF}
-	kUnicodeNotAChar = $FFFF; { not a Unicode char; may be used as a terminator}
+	kUnicodeReplacementChar = $FFFD; { Unicode replacement for unconvertable input AnsiChar}
+	kUnicodeSwappedByteOrderMark = $FFFE; { not a Unicode AnsiChar; byte-swapped version of FEFF}
+	kUnicodeNotAChar = $FFFF; { not a Unicode AnsiChar; may be used as a terminator}
 
 
 {

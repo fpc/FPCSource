@@ -318,7 +318,7 @@ type
 			finderDXInfo: DXInfo;
 			folderType: OSType;         { package type, For struct version >= 1 }
 			folderCreator: OSType;      { package creator, For struct version >= 1 }
-			reserved3:			packed array [0..205] of char;
+			reserved3:			packed array [0..205] of AnsiChar;
 		   );
 	end;
 
@@ -836,7 +836,7 @@ type
 		menuCreator: OSType;
 		menuType: OSType;
 		menuItemName: Str255;
-		reserved: packed array [0..244] of char;
+		reserved: packed array [0..244] of AnsiChar;
 	end;
 type
 	NavMenuItemSpecArray = array [0..0] of NavMenuItemSpec;

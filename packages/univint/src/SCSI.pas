@@ -631,14 +631,14 @@ type
 		scsiMaxTarget: UInt16;          { <- maximum Target number supported           }
 		scsiMaxLUN: UInt16;             { <- maximum Logical Unit number supported    }
 
-		scsiSIMVendor: packed array [0..15] of char;			{ <- Vendor ID of SIM (or XPT if bus<FF)        }
-		scsiHBAVendor: packed array [0..15] of char;			{ <- Vendor ID of the HBA                }
-		scsiControllerFamily:	packed array [0..15] of char;			{ <- Family of SCSI Controller           }
-		scsiControllerType: packed array [0..15] of char;			{ <- Specific Model of SCSI Controller used  }
+		scsiSIMVendor: packed array [0..15] of AnsiChar;			{ <- Vendor ID of SIM (or XPT if bus<FF)        }
+		scsiHBAVendor: packed array [0..15] of AnsiChar;			{ <- Vendor ID of the HBA                }
+		scsiControllerFamily:	packed array [0..15] of AnsiChar;			{ <- Family of SCSI Controller           }
+		scsiControllerType: packed array [0..15] of AnsiChar;			{ <- Specific Model of SCSI Controller used  }
 
-		scsiXPTversion: packed array [0..3] of char;			{ <- version number of XPT              }
-		scsiSIMversion: packed array [0..3] of char;			{ <- version number of SIM              }
-		scsiHBAversion: packed array [0..3] of char;			{ <- version number of HBA              }
+		scsiXPTversion: packed array [0..3] of AnsiChar;			{ <- version number of XPT              }
+		scsiSIMversion: packed array [0..3] of AnsiChar;			{ <- version number of SIM              }
+		scsiHBAversion: packed array [0..3] of AnsiChar;			{ <- version number of HBA              }
 
 		scsiHBAslotType: UInt8;        { <- type of "slot" that this HBA is in       }
 		scsiHBAslotNumber: UInt8;      { <- slot number of this HBA                  }
