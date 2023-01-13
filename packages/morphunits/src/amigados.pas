@@ -82,19 +82,19 @@ type
   TFileInfoBlock = packed record
     fib_DiskKey     : LongInt;
     fib_DirEntryType: LongInt;
-    fib_FileName    : Array[0..107] Of Char;
+    fib_FileName    : Array[0..107] Of AnsiChar;
     fib_Protection  : LongInt;
     fib_EntryType   : LongInt;
     fib_Size        : LongInt;
     fib_NumBlocks   : LongInt;
     fib_Date        : TDateStamp;
-    fib_Comment     : Array[0..79] Of Char;
+    fib_Comment     : Array[0..79] Of AnsiChar;
 
     fib_OwnerUID    : Word;
     fib_OwnerGID    : Word;
     case SmallInt of
       0: (
-        fib_Reserved    : Array[0..31] Of Char;
+        fib_Reserved    : Array[0..31] Of AnsiChar;
         );
       1: (
         // 64bit DOS extensions V51 filled by Examine64, ExNext64, ExamineFH64 with ACTION_EXAMINE_OBJECT64
@@ -297,9 +297,9 @@ type
     dat_Stamp  : TDateStamp;
     dat_Format : Byte;
     dat_Flags  : Byte;
-    dat_StrDay : PChar;
-    dat_StrDate: PChar;
-    dat_StrTime: PChar;
+    dat_StrDay : PAnsiChar;
+    dat_StrDate: PAnsiChar;
+    dat_StrTime: PAnsiChar;
   end;
 
 const
@@ -528,8 +528,8 @@ const
   ACTION_EXAMINE_NEXT64   = 26409; // dp_Arg1 - BPTR to lock to examine, dp_Arg2 - BPTR to TFileInfoBlock
   ACTION_EXAMINE_FH64     = 26410; // dp_Arg1 - LongInt fh_Arg1, dp_Arg2 - BPTR to TFileInfoBlock
 
-  FQA_MaxFileNameLength   = 0; // LongInt - Return the maximum length of a file name (in characters), excluding terminating '\0' char.
-  FQA_MaxVolumeNameLength = 1; // LongInt - Return the maximum length of the volume name (in characters), excluding terminating '\0' char
+  FQA_MaxFileNameLength   = 0; // LongInt - Return the maximum length of a file name (in characters), excluding terminating '\0' AnsiChar.
+  FQA_MaxVolumeNameLength = 1; // LongInt - Return the maximum length of the volume name (in characters), excluding terminating '\0' AnsiChar
   FQA_MaxFileSize         = 2; // Int64 - Returns maximum size of the file the filesystem supports.
   FQA_IsCaseSensitive     = 3; // LongInt - If the filesystem names are case sensitive, this attribute must return DOSTrue.
   FQA_DeviceType          = 4; // LongInt - Return the type of the medium the filesystem is using, if known. Value is one of DG_*
@@ -713,7 +713,7 @@ type
          end;
        );
     2: ( dol_assign : record
-           dol_AssignName: PChar;
+           dol_AssignName: PAnsiChar;
            dol_List      : PAssignList;
          end;
        );
@@ -822,7 +822,7 @@ type
     cdi_Future: LongWord;             // For future expansion, 0 for now
     cdi_Pri: ShortInt;                // CLI priority
     cdi_Flags: Byte;                  // If bit 0 is set cdi_command is valid
-    cdi_Command: array[0..0] of Char; // 0-terminated command being executed
+    cdi_Command: array[0..0] of AnsiChar; // 0-terminated command being executed
   end;
   PCLIDataItem = ^TCLIDataItem;
 
@@ -847,7 +847,7 @@ type
     an_Lock  : BPTR;
     an_Info  : TFileInfoBlock;
     an_Flags : ShortInt;
-    an_String: Array[0..0] Of Char;
+    an_String: Array[0..0] Of AnsiChar;
     { * an_String continues * }
   end;
 
@@ -870,7 +870,7 @@ type
           ap_Reserved  : ShortInt;
           ap_Strlen    : SmallInt;
           ap_Info      : TFileInfoBlock;
-          ap_Buf       : Array[0..1] of Char;
+          ap_Buf       : Array[0..1] of AnsiChar;
           { * an_Buf continues * }
         );
   end;
@@ -1059,14 +1059,14 @@ type
   PExAllData = ^TExAllData;
   TExAllData = packed record
     ed_Next    : PExAllData;
-    ed_Name    : PChar;
+    ed_Name    : PAnsiChar;
     ed_Type    : LongInt;
     ed_Size    : LongWord;
     ed_Prot    : LongWord;
     ed_Days    : LongWord;
     ed_Mins    : LongWord;
     ed_Ticks   : LongWord;
-    ed_Comment : PChar;
+    ed_Comment : PAnsiChar;
     ed_OwnerUID: Word;
     ed_OwnerGID: Word;
     ed_Size64: QWord;
@@ -1077,7 +1077,7 @@ type
   TexAllControl = packed record
     eac_Entries    : LongWord;
     eac_LastKey    : LongWord;
-    eac_MatchString: PChar;
+    eac_MatchString: PAnsiChar;
     eac_MatchFunc  : PHook;
 
   end;
@@ -1279,7 +1279,7 @@ const
   ADO_AN_MsgPort       = ADO_Dummy + 121; // PMsgPort
   ADO_AN_Lock          = ADO_Dummy + 122; // BPTR
   ADO_AN_Type          = ADO_Dummy + 123; // LongWord
-  ADO_AN_AssignName    = ADO_Dummy + 124; // PChar
+  ADO_AN_AssignName    = ADO_Dummy + 124; // PAnsiChar
   ADO_AN_AssignList    = ADO_Dummy + 125; // PAssignList
 
 // GetDosObjectAttr uses this to store variable size entries.
@@ -1368,7 +1368,7 @@ type
   TLocalVar = packed record
     lv_Node : TNode;
     lv_Flags: Word;
-    lv_Value: PChar;
+    lv_Value: PAnsiChar;
     lv_Len  : LongWord;
   end;
 
@@ -1406,7 +1406,7 @@ const
 type
   PCSource = ^TCSource;
   TCSource = packed record
-    CS_Buffer: PChar;
+    CS_Buffer: PAnsiChar;
     CS_Length: LongInt;
     CS_CurChr: LongInt;
   end;
@@ -1416,9 +1416,9 @@ type
   TRDArgs = packed record
     RDA_Source : TCSource;
     RDA_DAList : LongInt;
-    RDA_Buffer : PChar;
+    RDA_Buffer : PAnsiChar;
     RDA_BufSiz : LongInt;
-    RDA_ExtHelp: PChar;
+    RDA_ExtHelp: PAnsiChar;
     RDA_Flags  : LongInt;
   end;
 
@@ -1534,8 +1534,8 @@ const
 type
   PNotifyRequest = ^TNotifyRequest;
   TNotifyRequest = packed record
-    nr_Name    : PChar;
-    nr_FullName: PChar;
+    nr_Name    : PAnsiChar;
+    nr_FullName: PAnsiChar;
     nr_UserData: LongWord;
     nr_Flags   : LongWord;
     nr_stuff : record
@@ -1615,7 +1615,7 @@ type
   PSegNode = ^TSegNode;
   TSegNode = packed record
     seg_Node : TMinNode;
-    seg_Name : PChar;
+    seg_Name : PAnsiChar;
     seg_Array: Array[0..0] Of TSegArray;
   end;
 
@@ -1625,7 +1625,7 @@ type
 
 { dos.library functions }
 
-function dosOpen(fname     : PChar   location 'd1';
+function dosOpen(fname     : PAnsiChar   location 'd1';
               accessMode: LongInt location 'd2'): BPTR;
 SysCall MOS_DOSBase 30;
 
@@ -1653,14 +1653,14 @@ function dosSeek(fileh   : BPTR location 'd1';
                  posmode : LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 66;
 
-function dosDeleteFile(fname: PChar location 'd1'): LongBool;
+function dosDeleteFile(fname: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 72;
 
 function dosRename(oldName: STRPTR location 'd1';
                    newName: STRPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 78;
 
-function Lock(lname     : PChar   location 'd1';
+function Lock(lname     : PAnsiChar   location 'd1';
               accessMode: LongInt location 'd2'): BPTR;
 SysCall MOS_DOSBase 84;
 
@@ -1682,7 +1682,7 @@ function Info(lock          : BPTR   location 'd1';
               parameterBlock: PInfoData location 'd2'): LongBool;
 SysCall MOS_DOSBase 114;
 
-function dosCreateDir(dname: PChar location 'd1'): LongInt;
+function dosCreateDir(dname: PAnsiChar location 'd1'): LongInt;
 SysCall MOS_DOSBase 120;
 
 function CurrentDir(lock: BPTR location 'd1'): BPTR;
@@ -1691,7 +1691,7 @@ SysCall MOS_DOSBase 126;
 function IoErr: LongInt;
 SysCall MOS_DOSBase 132;
 
-function CreateProc(name     : PChar   location 'd1';
+function CreateProc(name     : PAnsiChar   location 'd1';
                     pri      : LongInt location 'd2';
                     segList  : BPTR location 'd3';
                     stackSize: LongInt location 'd4'): PMsgPort;
@@ -1700,20 +1700,20 @@ SysCall MOS_DOSBase 138;
 procedure dosExit(returnCode: LongInt location 'd1');
 SysCall MOS_DOSBase 144;
 
-function LoadSeg(name: PChar location 'd1'): BPTR;
+function LoadSeg(name: PAnsiChar location 'd1'): BPTR;
 SysCall MOS_DOSBase 150;
 
 procedure UnLoadSeg(seglist: BPTR location 'd1');
 SysCall MOS_DOSBase 156;
 
-function DeviceProc(name: PChar location 'd1'): PMsgPort;
+function DeviceProc(name: PAnsiChar location 'd1'): PMsgPort;
 SysCall MOS_DOSBase 174;
 
-function SetComment(name   : PChar location 'd1';
-                    comment: PChar location 'd2'): LongBool;
+function SetComment(name   : PAnsiChar location 'd1';
+                    comment: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 180;
 
-function SetProtection(name: PChar   location 'd1';
+function SetProtection(name: PAnsiChar   location 'd1';
                        mask: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 186;
 
@@ -1855,21 +1855,21 @@ function FWrite(fh      : BPTR  location 'd1';
 SysCall MOS_DOSBase 330;
 
 function FGets(fh    : BPTR  location 'd1';
-               buf   : PChar    location 'd2';
-               buflen: Cardinal location 'd3'): PChar;
+               buf   : PAnsiChar    location 'd2';
+               buflen: Cardinal location 'd3'): PAnsiChar;
 SysCall MOS_DOSBase 336;
 
 function FPuts(fh : BPTR location 'd1';
-               str: PChar   location 'd2'): LongInt;
+               str: PAnsiChar   location 'd2'): LongInt;
 SysCall MOS_DOSBase 342;
 
 procedure VFWritef(fh      : BPTR location 'd1';
-                   format  : PChar   location 'd2';
+                   format  : PAnsiChar   location 'd2';
                    argarray: Pointer location 'd3');
 SysCall MOS_DOSBase 348;
 
 function VFPrintf(fh      : BPTR location 'd1';
-                  format  : PChar   location 'd2';
+                  format  : PAnsiChar   location 'd2';
                   argarray: PLongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 354;
 
@@ -1877,7 +1877,7 @@ function dosFlush(fh: BPTR location 'd1'): LongBool;
 SysCall MOS_DOSBase 360;
 
 function SetVBuf(fh   : BPTR location 'd1';
-                 buff : PChar   location 'd2';
+                 buff : PAnsiChar   location 'd2';
                  type1: LongInt location 'd3';
                  size : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 366;
@@ -1895,23 +1895,23 @@ function ExamineFH(fh : BPTR        location 'd1';
                    fib: PFileInfoBlock location 'd2'): LongBool;
 SysCall MOS_DOSBase 390;
 
-function SetFileDate(name: PChar      location 'd1';
+function SetFileDate(name: PAnsiChar      location 'd1';
                      date: PDateStamp location 'd2'): LongBool;
 SysCall MOS_DOSBase 396;
 
 function NameFromLock(lock  : BPTR location 'd1';
-                      buffer: PChar   location 'd2';
+                      buffer: PAnsiChar   location 'd2';
                       len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 402;
 
 function NameFromFH(fh    : BPTR location 'd1';
-                    buffer: PChar   location 'd2';
+                    buffer: PAnsiChar   location 'd2';
                     len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 408;
 
-function SplitName(name     : PChar    location 'd1';
+function SplitName(name     : PAnsiChar    location 'd1';
                    separator: Cardinal location 'd2';
-                   buf      : PChar    location 'd3';
+                   buf      : PAnsiChar    location 'd3';
                    oldpos   : LongInt  location 'd4';
                    size     : LongInt  location 'd5'): SmallInt;
 SysCall MOS_DOSBase 414;
@@ -1933,12 +1933,12 @@ SysCall MOS_DOSBase 432;
 
 function ReadLink(port  : PMsgPort location 'd1';
                   lock  : BPTR  location 'd2';
-                  path  : PChar    location 'd3';
-                  buffer: PChar    location 'd4';
+                  path  : PAnsiChar    location 'd3';
+                  buffer: PAnsiChar    location 'd4';
                   size  : Cardinal location 'd5'): LongBool;
 SysCall MOS_DOSBase 438;
 
-function MakeLink(name: PChar   location 'd1';
+function MakeLink(name: PAnsiChar   location 'd1';
                   dest: LongInt location 'd2';
                   soft: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 444;
@@ -1957,13 +1957,13 @@ function SetIoErr(result: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 462;
 
 function Fault(code  : LongInt location 'd1';
-               header: PChar   location 'd2';
-               buffer: PChar   location 'd3';
+               header: PAnsiChar   location 'd2';
+               buffer: PAnsiChar   location 'd3';
                len   : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 468;
 
 function PrintFault(code  : LongInt location 'd1';
-                    header: PChar   location 'd2'): LongBool;
+                    header: PAnsiChar   location 'd2'): LongBool;
 SysCall MOS_DOSBase 474;
 
 function ErrorReport(code  : LongInt  location 'd1';
@@ -1983,7 +1983,7 @@ SysCall MOS_DOSBase 498;
 
 function RunCommand(seg     : BPTR location 'd1';
                     stack   : LongInt location 'd2';
-                    paramptr: PChar   location 'd3';
+                    paramptr: PAnsiChar   location 'd3';
                     paramlen: LongInt location 'd4'): LongInt;
 SysCall MOS_DOSBase 504;
 
@@ -1999,10 +1999,10 @@ SysCall MOS_DOSBase 522;
 function SetFileSysTask(task: PMsgPort location 'd1'): PMsgPort;
 SysCall MOS_DOSBase 528;
 
-function GetArgStr: PChar;
+function GetArgStr: PAnsiChar;
 SysCall MOS_DOSBase 534;
 
-function SetArgStr(str: PChar location 'd1'): LongBool;
+function SetArgStr(str: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 540;
 
 function FindCliProc(num: Cardinal location 'd1'): PProcess;
@@ -2011,24 +2011,24 @@ SysCall MOS_DOSBase 546;
 function MaxCli: Cardinal;
 SysCall MOS_DOSBase 552;
 
-function SetCurrentDirName(name: PChar location 'd1'): LongBool;
+function SetCurrentDirName(name: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 558;
 
-function GetCurrentDirName(buf: PChar   location 'd1';
+function GetCurrentDirName(buf: PAnsiChar   location 'd1';
                            len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 564;
 
-function SetProgramName(name: PChar location 'd1'): LongBool;
+function SetProgramName(name: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 570;
 
-function GetProgramName(buf: PChar   location 'd1';
+function GetProgramName(buf: PAnsiChar   location 'd1';
                         len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 576;
 
-function SetPrompt(name: PChar location 'd1'): LongBool;
+function SetPrompt(name: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 582;
 
-function GetPrompt(buf: PChar   location 'd1';
+function GetPrompt(buf: PAnsiChar   location 'd1';
                    len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 588;
 
@@ -2038,35 +2038,35 @@ SysCall MOS_DOSBase 594;
 function GetProgramDir: BPTR;
 SysCall MOS_DOSBase 600;
 
-function SystemTagList(command: PChar    location 'd1';
+function SystemTagList(command: PAnsiChar    location 'd1';
                        tags   : PTagItem location 'd2'): LongInt;
 SysCall MOS_DOSBase 606;
 
-function dosSystem(command: PChar    location 'd1';
+function dosSystem(command: PAnsiChar    location 'd1';
                    tags   : PTagItem location 'd2'): LongInt;
 SysCall MOS_DOSBase 606;
 
-function AssignLock(name: PChar   location 'd1';
+function AssignLock(name: PAnsiChar   location 'd1';
                     lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 612;
 
-function AssignLate(name: PChar location 'd1';
-                    path: PChar location 'd2'): LongBool;
+function AssignLate(name: PAnsiChar location 'd1';
+                    path: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 618;
 
-function AssignPath(name: PChar location 'd1';
-                    path: PChar location 'd2'): LongBool;
+function AssignPath(name: PAnsiChar location 'd1';
+                    path: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 624;
 
-function AssignAdd(name: PChar   location 'd1';
+function AssignAdd(name: PAnsiChar   location 'd1';
                    lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 630;
 
-function RemAssignList(name: PChar   location 'd1';
+function RemAssignList(name: PAnsiChar   location 'd1';
                        lock: BPTR location 'd2'): LongBool;
 SysCall MOS_DOSBase 636;
 
-function GetDeviceProc(name: PChar    location 'd1';
+function GetDeviceProc(name: PAnsiChar    location 'd1';
                        dp  : PDevProc location 'd2'): PDevProc;
 SysCall MOS_DOSBase 642;
 
@@ -2089,7 +2089,7 @@ function AddDosEntry(dlist: PDosList location 'd1'): LongBool;
 SysCall MOS_DOSBase 678;
 
 function FindDosEntry(dlist: PDosList location 'd1';
-                      name : PChar    location 'd2';
+                      name : PAnsiChar    location 'd2';
                       flags: Cardinal location 'd3'): PDosList;
 SysCall MOS_DOSBase 684;
 
@@ -2097,30 +2097,30 @@ function NextDosEntry(dlist: PDosList location 'd1';
                       flags: Cardinal location 'd2'): PDosList;
 SysCall MOS_DOSBase 690;
 
-function MakeDosEntry(name : PChar   location 'd1';
+function MakeDosEntry(name : PAnsiChar   location 'd1';
                       type1: LongInt location 'd2'): PDosList;
 SysCall MOS_DOSBase 696;
 
 procedure FreeDosEntry(dlist: PDosList location 'd1');
 SysCall MOS_DOSBase 702;
 
-function IsFileSystem(name: PChar location 'd1'): LongBool;
+function IsFileSystem(name: PAnsiChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 708;
 
-function Format(filesystem: PChar    location 'd1';
-                volumename: PChar    location 'd2';
+function Format(filesystem: PAnsiChar    location 'd1';
+                volumename: PAnsiChar    location 'd2';
                 dostype   : Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 714;
 
-function Relabel(drive  : PChar location 'd1';
-                 newname: PChar location 'd2'): LongBool;
+function Relabel(drive  : PAnsiChar location 'd1';
+                 newname: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 720;
 
-function Inhibit(name : PChar   location 'd1';
+function Inhibit(name : PAnsiChar   location 'd1';
                  onoff: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 726;
 
-function AddBuffers(name  : PChar   location 'd1';
+function AddBuffers(name  : PAnsiChar   location 'd1';
                     number: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 732;
 
@@ -2140,20 +2140,20 @@ function InternalLoadSeg(fh           : BPTR location 'd0';
                          var stack    : LongInt location 'a2'): LongInt;
 SysCall MOS_DOSBase 756;
 
-function NewLoadSeg(file1: PChar    location 'd1';
+function NewLoadSeg(file1: PAnsiChar    location 'd1';
                     tags : PTagItem location 'd2'): LongInt;
 SysCall MOS_DOSBase 768;
 
-function NewLoadSegTagList(file1: PChar    location 'd1';
+function NewLoadSegTagList(file1: PAnsiChar    location 'd1';
                            tags : PTagItem location 'd2'): LongInt;
 SysCall MOS_DOSBase 768;
 
-function AddSegment(name  : PChar   location 'd1';
+function AddSegment(name  : PAnsiChar   location 'd1';
                     seg   : BPTR location 'd2';
                     system: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 774;
 
-function FindSegment(name  : PChar    location 'd1';
+function FindSegment(name  : PAnsiChar    location 'd1';
                      seg   : PSegment location 'd2';
                      system: LongInt  location 'd3'): PSegment;
 SysCall MOS_DOSBase 780;
@@ -2164,25 +2164,25 @@ SysCall MOS_DOSBase 786;
 function CheckSignal(mask: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 792;
 
-function ReadArgs(arg_template: PChar   location 'd1';
+function ReadArgs(arg_template: PAnsiChar   location 'd1';
                   var array1  : LongInt location 'd2';
                   args        : PRDArgs location 'd3'): PRDArgs;
 SysCall MOS_DOSBase 798;
 
-function FindArg(keyword     : PChar location 'd1';
-                 arg_template: PChar location 'd2'): LongInt;
+function FindArg(keyword     : PAnsiChar location 'd1';
+                 arg_template: PAnsiChar location 'd2'): LongInt;
 SysCall MOS_DOSBase 804;
 
-function ReadItem(name    : PChar    location 'd1';
+function ReadItem(name    : PAnsiChar    location 'd1';
                   maxchars: LongInt  location 'd2';
                   cSource : PCSource location 'd3'): LongInt;
 SysCall MOS_DOSBase 810;
 
-function StrToLong(string1  : PChar   location 'd1';
+function StrToLong(string1  : PAnsiChar   location 'd1';
                    var value: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 816;
 
-function MatchFirst(pat   : PChar       location 'd1';
+function MatchFirst(pat   : PAnsiChar       location 'd1';
                     anchor: PAnchorPath location 'd2'): LongInt;
 SysCall MOS_DOSBase 822;
 
@@ -2192,26 +2192,26 @@ SysCall MOS_DOSBase 828;
 procedure MatchEnd(anchor: PAnchorPath location 'd1');
 SysCall MOS_DOSBase 834;
 
-function ParsePattern(pat   : PChar   location 'd1';
-                      buf   : PChar   location 'd2';
+function ParsePattern(pat   : PAnsiChar   location 'd1';
+                      buf   : PAnsiChar   location 'd2';
                       buflen: LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 840;
 
-function MatchPattern(pat: PChar location 'd1';
-                      str: PChar location 'd2'): LongBool;
+function MatchPattern(pat: PAnsiChar location 'd1';
+                      str: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 846;
 
 procedure FreeArgs(args: pRDArgs location 'd1');
 SysCall MOS_DOSBase 858;
 
-function FilePart(path: PChar location 'd1'): PChar;
+function FilePart(path: PAnsiChar location 'd1'): PAnsiChar;
 SysCall MOS_DOSBase 870;
 
-function PathPart(path: PChar location 'd1'): PChar;
+function PathPart(path: PAnsiChar location 'd1'): PAnsiChar;
 SysCall MOS_DOSBase 876;
 
-function AddPart(dirname: PChar    location 'd1';
-                filename: PChar    location 'd2';
+function AddPart(dirname: PAnsiChar    location 'd1';
+                filename: PAnsiChar    location 'd2';
                 size    : Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 882;
 
@@ -2221,23 +2221,23 @@ SysCall MOS_DOSBase 888;
 procedure EndNotify(notify: PNotifyRequest location 'd1');
 SysCall MOS_DOSBase 894;
 
-function SetVar(name  : PChar   location 'd1';
-                buffer: PChar   location 'd2';
+function SetVar(name  : PAnsiChar   location 'd1';
+                buffer: PAnsiChar   location 'd2';
                 size  : LongInt location 'd3';
                 flags : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 900;
 
-function GetVar(name  : PChar   location 'd1';
-                buffer: PChar   location 'd2';
+function GetVar(name  : PAnsiChar   location 'd1';
+                buffer: PAnsiChar   location 'd2';
                 size  : LongInt location 'd3';
                 flags : LongInt location 'd4'): LongInt;
 SysCall MOS_DOSBase 906;
 
-function DeleteVar(name : PChar    location 'd1';
+function DeleteVar(name : PAnsiChar    location 'd1';
                    flags: Cardinal location 'd2'): LongBool;
 SysCall MOS_DOSBase 912;
 
-function FindVar(name : PChar    location 'd1';
+function FindVar(name : PAnsiChar    location 'd1';
                  type1: Cardinal location 'd2'): PLocalVar;
 SysCall MOS_DOSBase 918;
 
@@ -2247,24 +2247,24 @@ SysCall MOS_DOSBase 930;
 function CliInitRun(dp: PDosPacket location 'a0'): LongInt;
 SysCall MOS_DOSBase 936;
 
-function WriteChars(buf   : PChar    location 'd1';
+function WriteChars(buf   : PAnsiChar    location 'd1';
                     buflen: Cardinal location 'd2'): LongInt;
 SysCall MOS_DOSBase 942;
 
-function PutStr(str: PChar location 'd1'): LongInt;
+function PutStr(str: PAnsiChar location 'd1'): LongInt;
 SysCall MOS_DOSBase 948;
 
-function VPrintf(format  : PChar   location 'd1';
+function VPrintf(format  : PAnsiChar   location 'd1';
                  argarray: Pointer location 'd2'): LongInt;
 SysCall MOS_DOSBase 954;
 
-function ParsePatternNoCase(pat   : PChar   location 'd1';
-                            buf   : PChar   location 'd2';
+function ParsePatternNoCase(pat   : PAnsiChar   location 'd1';
+                            buf   : PAnsiChar   location 'd2';
                             buflen: LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 966;
 
-function MatchPatternNoCase(pat: PChar location 'd1';
-                            str: PChar location 'd2'): LongBool;
+function MatchPatternNoCase(pat: PAnsiChar location 'd1';
+                            str: PAnsiChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 972;
 
 function SameDevice(lock1: BPTR location 'd1';
@@ -2278,7 +2278,7 @@ procedure ExAllEnd(lock   : LongInt       location 'd1';
                    control: PExAllControl location 'd5');
 SysCall MOS_DOSBase 990;
 
-function SetOwner(name      : PChar   location 'd1';
+function SetOwner(name      : PAnsiChar   location 'd1';
                   owner_info: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 996;
 
@@ -2328,12 +2328,12 @@ function MKBADDR(x: Pointer): BPTR; Inline;
   * }
 
 function ReadChar: LongInt; Inline;
-function WriteChar(ch: Char): LongInt; Inline;
-function UnReadChar(ch: Char): LongInt; Inline;
+function WriteChar(ch: AnsiChar): LongInt; Inline;
+function UnReadChar(ch: AnsiChar): LongInt; Inline;
 function ReadChars(buf: Pointer; num: LongInt): LongInt; Inline;
-function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
-function dosWriteStr(str: PChar): LongInt; Inline;
-procedure VWritef(format: PChar; argv: Pointer); Inline;
+function dosReadLn(buf: PAnsiChar; num: LongInt): PAnsiChar; Inline;
+function dosWriteStr(str: PAnsiChar): LongInt; Inline;
+procedure VWritef(format: PAnsiChar; argv: Pointer); Inline;
 
 
 { * calls with tags workarounds (should be removed later)
@@ -2342,7 +2342,7 @@ procedure VWritef(format: PChar; argv: Pointer); Inline;
 
 function CreateNewProcTags(tags: array of dword): PProcess; Inline;
 function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
-function SystemTags(command: PChar; Tags: array of DWord): LongInt; Inline;
+function SystemTags(command: PAnsiChar; Tags: array of DWord): LongInt; Inline;
 
 function SetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt; inline;
 function GetDosObjectAttrTagList(Type_: LongWord; Ptr: APTR; const Tags: array of PtrUInt): LongInt; inline;
@@ -2365,12 +2365,12 @@ begin
   ReadChar:=FGetC(dosInput);
 end;
 
-function WriteChar(ch: Char): LongInt; Inline;
+function WriteChar(ch: AnsiChar): LongInt; Inline;
 begin
   WriteChar:=FPutC(dosOutput,Byte(ch));
 end;
 
-function UnReadChar(ch: Char): LongInt; Inline;
+function UnReadChar(ch: AnsiChar): LongInt; Inline;
 begin
   UnReadChar:=UnGetC(dosInput,Byte(ch));
 end;
@@ -2380,17 +2380,17 @@ begin
   ReadChars:=FRead(dosInput,buf,1,num);
 end;
 
-function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
+function dosReadLn(buf: PAnsiChar; num: LongInt): PAnsiChar; Inline;
 begin
   dosReadLn:=FGets(dosInput,buf,num);
 end;
 
-function dosWriteStr(str: PChar): LongInt; Inline;
+function dosWriteStr(str: PAnsiChar): LongInt; Inline;
 begin
   dosWriteStr:=FPuts(dosOutput,str);
 end;
 
-procedure VWritef(format: PChar; argv: Pointer); Inline;
+procedure VWritef(format: PAnsiChar; argv: Pointer); Inline;
 begin
   VFWritef(dosOutput,format,argv);
 end;
@@ -2428,7 +2428,7 @@ begin
   AllocDosObjectTags := AllocDosObject(type1, @Tags);
 end;
 
-function SystemTags(command: PChar; Tags: array of DWord): LongInt;
+function SystemTags(command: PAnsiChar; Tags: array of DWord): LongInt;
 begin
   SystemTags := SystemTagList(Command, @Tags);
 end;

@@ -54,7 +54,7 @@ type
         io_Error        : Shortint;     { error or warning num  }
         io_Actual       : DWord;        { number of bytes transferred }
         io_Length       : DWord;        { number of bytes requested }
-        io_Data         : PChar;        { either clip stream or post port }
+        io_Data         : PAnsiChar;        { either clip stream or post port }
         io_Offset       : DWord;        { offset in clip stream }
         io_ClipID       : Longint;      { ordinal clip identifier }
     end;

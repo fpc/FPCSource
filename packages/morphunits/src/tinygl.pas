@@ -26,7 +26,7 @@ uses
   exec;
 
 const
-  TINYGLNAME : PChar = 'tinygl.library';
+  TINYGLNAME : PAnsiChar = 'tinygl.library';
 
 var
   TinyGLBase: Pointer = nil;
