@@ -48,7 +48,7 @@ Const
 {$endif}
 
 type
-  FT_Encoding = array[0..3] of char;
+  FT_Encoding = array[0..3] of AnsiChar;
 
 const
   FT_FACE_FLAG_SCALABLE = 1 shl 0;
@@ -117,9 +117,9 @@ type
   FT_Bool = boolean;
   FT_FWord = smallint;
   FT_UFWord = word;
-  FT_Char = char;
+  FT_Char = AnsiChar;
   FT_Byte = byte;
-  FT_String = char;
+  FT_String = AnsiChar;
   FT_Short = smallint;
   FT_UShort = word;
   FT_Int = longint;
@@ -207,8 +207,8 @@ type
     pitch : integer;
     buffer : pointer;
     num_grays : shortint;
-    pixel_mode : char;
-    palette_mode : char;
+    pixel_mode : AnsiChar;
+    palette_mode : AnsiChar;
     palette : pointer;
   end;
 
@@ -216,7 +216,7 @@ type
     n_contours,
     n_points : smallint;
     points : PFT_Vector;
-    tags : pchar;
+    tags : PAnsiChar;
     contours : ^smallint;
     flags : integer;
   end;
@@ -312,8 +312,8 @@ type
     face_flags : FT_Long;
     style_flags : FT_Long;
     num_glyphs : FT_Long;
-    family_name : pchar;
-    style_name : pchar;
+    family_name : PAnsiChar;
+    style_name : PAnsiChar;
     num_fixed_sizes : FT_Int;
     available_sizes : PFT_Bitmap_Size;     // is array
     num_charmaps : FT_Int;
@@ -364,7 +364,7 @@ function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_U
 function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external FreeTypeDLL Name 'FT_Init_FreeType';
 function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external FreeTypeDLL Name 'FT_Load_Char';
 function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external FreeTypeDLL Name 'FT_Load_Glyph';
-function FT_New_Face(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external FreeTypeDLL Name 'FT_New_Face';
+function FT_New_Face(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external FreeTypeDLL Name 'FT_New_Face';
 function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external FreeTypeDLL Name 'FT_Set_Char_Size';
 function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external FreeTypeDLL Name 'FT_Set_Pixel_Sizes';
 procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external FreeTypeDLL Name 'FT_Set_Transform';
@@ -393,7 +393,7 @@ Type
   TFT_Init_FreeType = function(var alibrary: PFT_Library): integer; cdecl;
   TFT_Load_Char = function(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl;
   TFT_Load_Glyph = function(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl;
-  TFT_New_Face = function(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
+  TFT_New_Face = function(alibrary: PFT_Library; filepathname: PAnsiChar; face_index: integer; var aface: PFT_Face): integer; cdecl;
   TFT_Set_Char_Size = function(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl;
   TFT_Set_Pixel_Sizes = function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
   TFT_Set_Transform = procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;

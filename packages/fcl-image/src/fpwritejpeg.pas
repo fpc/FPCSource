@@ -16,7 +16,9 @@
 }
 unit FPWriteJPEG;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H+}
+{$openstrings on}
 
 interface
 
@@ -69,7 +71,7 @@ begin
   if CurInfo=nil then exit;
 end;
 
-procedure FormatMessage(CurInfo: j_common_ptr; var buffer: string);
+procedure FormatMessage(CurInfo: j_common_ptr; var buffer: shortstring);
 begin
   if CurInfo=nil then exit;
   {$ifdef FPC_Debug_Image}

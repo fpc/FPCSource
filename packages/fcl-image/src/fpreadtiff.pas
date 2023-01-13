@@ -85,7 +85,7 @@ type
     function ReadEntryUnsigned: DWord;
     function ReadEntrySigned: Cint32;
     function ReadEntryRational: TTiffRational;
-    function ReadEntryString: string;
+    function ReadEntryString: AnsiString;
     function ReadByte: Byte;
     function ReadWord: Word;
     function ReadDWord: DWord;
@@ -1518,7 +1518,7 @@ begin
   end;
 end;
 
-function TFPReaderTiff.ReadEntryString: string;
+function TFPReaderTiff.ReadEntryString: AnsiString;
 var
   EntryType: Word;
   EntryCount: LongWord;

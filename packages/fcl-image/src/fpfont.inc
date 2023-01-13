@@ -52,7 +52,7 @@ begin
   result.DoCopyProps (self);
 end;
 
-procedure TFPCustomFont.GetTextSize (text:string; var w,h:integer);
+procedure TFPCustomFont.GetTextSize (text:AnsiString; var w,h:integer);
 begin
   if inheritsFrom (TFPCustomDrawFont) then
     TFPCustomDrawFont(self).DoGetTextSize (text,w,h)
@@ -60,7 +60,7 @@ begin
     FCanvas.DoGetTextSize (text, w,h);
 end;
 
-function TFPCustomFont.GetTextHeight (text:string) : integer;
+function TFPCustomFont.GetTextHeight (text:AnsiString) : integer;
 begin
   if inheritsFrom (TFPCustomDrawFont) then
     result := TFPCustomDrawFont(self).DoGetTextHeight (text)
@@ -71,7 +71,7 @@ begin
      result :=16; // *some* default better than none.
 end;
 
-function TFPCustomFont.GetTextWidth (text:string) : integer;
+function TFPCustomFont.GetTextWidth (text:AnsiString) : integer;
 begin
   if inheritsFrom (TFPCustomDrawFont) then
     result := TFPCustomDrawFont(self).DoGetTextWidth (text)

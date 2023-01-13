@@ -40,8 +40,8 @@ type
   public
     Property FullWidth: Boolean Read FFullWidth Write SetFullWidth; {if true write 16 bits per colour for P5, P6 formats}
     function GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
-    function GetColorDepthOfExtension(AExtension: string): TPNMColorDepth;
-    function GetFileExtension(AColorDepth: TPNMColorDepth): string;
+    function GetColorDepthOfExtension(AExtension: AnsiString): TPNMColorDepth;
+    function GetFileExtension(AColorDepth: TPNMColorDepth): AnsiString;
     constructor Create; override;
     Property BinaryFormat : Boolean Read FBinaryFormat Write FBinaryFormat;
     Property ColorDepth: TPNMColorDepth Read FColorDepth Write FColorDepth;
@@ -65,13 +65,13 @@ type
       constructor Create; override;
   end;
 
-procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: string; UseBinaryFormat: boolean = true);
+procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: AnsiString; UseBinaryFormat: boolean = true);
 
 implementation
 
-procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: string; UseBinaryFormat: boolean = true);
+procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: AnsiString; UseBinaryFormat: boolean = true);
 var writer: TFPWriterPNM;
-    curExt: string;
+    curExt: AnsiString;
 begin
   writer := TFPWriterPNM.Create;
   writer.BinaryFormat := UseBinaryFormat;
@@ -132,10 +132,10 @@ var useBitMapType: integer;
 
   function SaveHeader(stream:TStream):boolean;
     const
-      MagicWords:Array[1..6]OF String[2]=('P1','P2','P3','P4','P5','P6');
+      MagicWords:Array[1..6] OF String[2]=('P1','P2','P3','P4','P5','P6');
     var
-      PNMInfo:String;
-      strWidth,StrHeight:String[15];
+      PNMInfo:AnsiString;
+      strWidth,StrHeight: String[15];
     begin
       SaveHeader:=false;
       with Img do
@@ -157,8 +157,8 @@ var useBitMapType: integer;
     aColor:TFPColor;
     aLine:PByte;
     dLine : PWord;
-    strCol:String[3];
-    LinuxEndOfLine: char;
+    strCol: String[3];
+    LinuxEndOfLine: AnsiChar;
     UseColorDepth: TPNMColorDepth;
 
   begin
@@ -257,7 +257,7 @@ var useBitMapType: integer;
     FreeMem(aLine,nBpLine);
   end;
 
-function TFPWriterPNM.GetColorDepthOfExtension(AExtension: string
+function TFPWriterPNM.GetColorDepthOfExtension(AExtension: AnsiString
   ): TPNMColorDepth;
 begin
   if (length(AExtension) > 0) and (AExtension[1]='.') then
@@ -293,7 +293,7 @@ begin
      end;
 end;
 
-function TFPWriterPNM.GetFileExtension(AColorDepth: TPNMColorDepth): string;
+function TFPWriterPNM.GetFileExtension(AColorDepth: TPNMColorDepth): AnsiString;
 begin
   case AColorDepth of
     pcdBlackWhite: result := 'pbm';

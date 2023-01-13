@@ -23,17 +23,17 @@ type
 
   TFPWriterXPM = class (TFPCustomImageWriter)
     private
-      FPalChars : string;
-      FColorFormat : string;
+      FPalChars : AnsiString;
+      FColorFormat : AnsiString;
       FColorShift : word;
       FColorSize : byte;
       procedure SetColorSize (AValue : byte);
-      function ColorToHex (const c:TFPColor) : string;
+      function ColorToHex (const c:TFPColor) : AnsiString;
     protected
       procedure InternalWrite (Str:TStream; Img:TFPCustomImage); override;
     public
       constructor Create; override;
-      property PalChars : string read FPalChars write FPalChars;
+      property PalChars : AnsiString read FPalChars write FPalChars;
       property ColorCharSize : byte read FColorSize write SetColorSize;
       // number of characters to use for 1 colorcomponent
   end;
@@ -61,7 +61,7 @@ begin
     FColorSize := AValue;
 end;
 
-function TFPWriterXPM.ColorToHex (const c:TFPColor) : string;
+function TFPWriterXPM.ColorToHex (const c:TFPColor) : AnsiString;
 var r,g,b : word;
 begin
   with c do
@@ -79,7 +79,7 @@ var p, l : TStringList;
     TmpPalette, Palette: TFPPalette;
   procedure BuildPaletteStrings;
   var r,c,e : integer;
-    procedure MakeCodes (const head:string; charplace:integer);
+    procedure MakeCodes (const head:AnsiString; charplace:integer);
     var r : integer;
     begin
       r := 1;
@@ -109,7 +109,7 @@ var p, l : TStringList;
     MakeCodes ('',len);
   end;
   procedure InitConsts;
-  var fmt : string;
+  var fmt : AnsiString;
   begin
     fmt := inttostr(FColorSize);
     fmt := '%'+fmt+'.'+fmt+'x';
@@ -121,14 +121,14 @@ var p, l : TStringList;
       else FColorShift := 0;
     end;
   end;
-var s : string;
+var s : AnsiString;
 begin
   l := TStringList.Create;
   p := TStringList.Create;
   TmpPalette := nil;
   try
     l.Add ('/* XPM */');
-    l.Add ('static char *graphic[] = {');
+    l.Add ('static AnsiChar *graphic[] = {');
     Palette := img.palette;
     if not Assigned(Palette) then begin
       TmpPalette := TFPPalette.Create(0);

@@ -35,7 +35,7 @@ type
 
 
   TPSDHeader = packed record
-    Signature : array[0..3] of Char;   // File IDs '8BPS'
+    Signature : array[0..3] of AnsiChar;   // File IDs '8BPS'
     Version : word;                    // Version number, always 1
     Reserved : array[0..5] of Byte;    // Reserved, must be zeroed
     Channels : Word;                   // Number of color channels (1-24) including alpha channels
@@ -57,7 +57,7 @@ type
   }
 
   TColorModeDataBlock = packed record
-    Types : array[0..3] of Char;   // Always "8BIM"
+    Types : array[0..3] of AnsiChar;   // Always "8BIM"
     ID:word;                       // (See table below)
     Name:byte;                     // Even-length Pascal-format string, 2 bytes or longer
     Size : Cardinal;               // Length of resource data following, in bytes
