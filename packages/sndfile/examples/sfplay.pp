@@ -45,7 +45,7 @@ var
   ScaleData: Boolean;
 begin
   Writeln(SPlaying,FileName);
-  SoundFile:=sf_open(pChar(FileName), SFM_READ, @Info);
+  SoundFile:=sf_open(PAnsiChar(FileName), SFM_READ, @Info);
   If (SoundFile=Nil) then
     begin
       sf_perror(Nil);
