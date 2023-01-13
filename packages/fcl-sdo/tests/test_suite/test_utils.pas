@@ -682,7 +682,7 @@ end;
 procedure TUtilsProc_Test.GetNextToken_test();
 var
   buffer, x : string;
-  sep : Char;
+  sep : AnsiChar;
 begin
   sep := ';';
   buffer := '';

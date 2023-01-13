@@ -531,7 +531,7 @@ end;
 //--------------- END: Byte procs -----------------------------
 
 {$IFDEF HAS_SDO_BYTES}
-//--------------- START : Char procs -----------------------------
+//--------------- START : AnsiChar procs -----------------------------
 procedure listUndo_append_bytes(const AList : ISDODataObjectList; const AItm : TManyValuePropRecordData);
 begin
   if not AList.getCursor().MoveLast() then
@@ -574,7 +574,7 @@ end;
 {$ENDIF HAS_SDO_BYTES}
 
 {$IFDEF HAS_SDO_CHAR}
-//--------------- START : Char procs -----------------------------
+//--------------- START : AnsiChar procs -----------------------------
 procedure listUndo_append_char(const AList : ISDODataObjectList; const AItm : TManyValuePropRecordData);
 begin
   if not AList.getCursor().MoveLast() then
@@ -613,7 +613,7 @@ begin
     raise ESDOInvalidStateOperationException.Create('listUndo_change_char');
   AList.setCharacter(AItm.Index,AItm.Value.CharValue);
 end;
-//--------------- END: Char procs -----------------------------
+//--------------- END: AnsiChar procs -----------------------------
 {$ENDIF HAS_SDO_CHAR}
 
 {$IFDEF HAS_SDO_CURRENCY}

@@ -159,7 +159,7 @@ function StringToVarBytes(const AValue : string) : TSDOBytes;
 var
   c : Integer;
 begin
-  c := Length(AValue) * SizeOf(Char);
+  c := Length(AValue) * SizeOf(AnsiChar);
   SetLength(Result,c);
   if ( c > 0 ) then
     Move(AValue[1],Result[Low(Result)],c);
