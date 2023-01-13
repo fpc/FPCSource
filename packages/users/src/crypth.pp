@@ -8,7 +8,7 @@ uses BaseUnix,initc;
 
 Const libname ={$ifdef Linux}'crypt'{$else}clib{$endif};
 
-function crypt(key,salt:pchar):pchar;cdecl; external libname name 'crypt';
+function crypt(key,salt:PAnsiChar):PAnsiChar;cdecl; external libname name 'crypt';
 
 implementation
 end.
