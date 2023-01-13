@@ -177,7 +177,7 @@ Var
   FileResolver: TFileResolver;
   InputFileName : string;
   Parser: TPasParser;
-  Start, CurPos: PChar;
+  Start, CurPos: PAnsiChar;
   Scanner: TPascalScanner;
 
   procedure ProcessCmdLinePart;

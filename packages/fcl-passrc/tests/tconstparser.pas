@@ -520,7 +520,7 @@ end;
 
 procedure TTestConstParser.TestTypedNilConst;
 begin
-  Typed:='PChar';
+  Typed:='PAnsiChar';
   DoTestSimpleNilConst
 end;
 

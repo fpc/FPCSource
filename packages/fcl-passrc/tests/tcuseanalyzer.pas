@@ -1850,7 +1850,7 @@ begin
   '  a = 13;',
   '  b: longint = 14;',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  d: longint = 15;',
   'begin',
   'end;',
@@ -1873,7 +1873,7 @@ begin
   '  a = 13;',
   '  b: longint = 14;',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  d: longint = 15;',
   'begin',
   '{$Hints off}',
@@ -1954,7 +1954,7 @@ begin
   Add('const');
   Add('  a: longint = 14;');
   Add('var');
-  Add('  b: char;');
+  Add('  b: AnsiChar;');
   Add('  c: longint = 15;');
   Add('begin');
   Add('  a:=16;');
@@ -2280,7 +2280,7 @@ begin
   Add('  {#a_notused}a = 13;');
   Add('  {#b_notused}b: longint = 14;');
   Add('var');
-  Add('  {#c_notused}c: char;');
+  Add('  {#c_notused}c: AnsiChar;');
   Add('  {#d_notused}d: longint = 15;');
   Add('  procedure {#sub_notused}Sub; begin end;');
   Add('asm end;');
@@ -2305,7 +2305,7 @@ begin
   '  {#a_notused}a = 13;',
   '  {#b_notused}b: longint = 14;',
   'var',
-  '  {#c_notused}c: char;',
+  '  {#c_notused}c: AnsiChar;',
   '  {#d_notused}d: longint = 15;',
   '  procedure {#sub_notused}Sub; begin end;',
   'asm end;',

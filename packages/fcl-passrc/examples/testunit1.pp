@@ -597,12 +597,12 @@ TYpe
   msg,curtokenname : string;
   TheCustomer: Passenger;
   L: ^LongInt;
-  P: PPChar;
+  P: PPAnsiChar;
   S,T: Ar;
   M, X,Y : Double;
   Done : Boolean;
   Weather,Good: Boolean;  
-  c : char;
+  c : AnsiChar;
   j,dwarfs,i,Number,Block : integer;
   exp1,exp2,exp3,exp4,exp5,exp6,exp7,exp8,exp9 : boolean;
   o : Tobject;
@@ -820,8 +820,8 @@ TYpe
     z : tdays;
     today,tomorrow : tday;
     bs : set of byte;
-    cs : set of char;
-    cc : char;  
+    cs : set of AnsiChar;
+    cc : AnsiChar;  
     W : TShortDays;
     buffer : array[1..10] of byte;
     P : Pointer;
@@ -847,11 +847,11 @@ TYpe
  cs:= ['A'..'Z','a'..'z','0'..'9'];
 
  i:= Byte('A');
- cc:= Char(48);
+ cc:= AnsiChar(48);
  ad:= boolean(1);
  i:= longint(@Buffer);
  i:= Integer('A');
- cc:= Char(225);
+ cc:= AnsiChar(225);
  i:= Word(@Buffer);
 
  B:= Byte(C);

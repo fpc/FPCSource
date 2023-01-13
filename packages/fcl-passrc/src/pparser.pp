@@ -635,7 +635,7 @@ Function SplitCommandLine(S: String) : TStringDynArray;
   Var
     Wstart,wend : Integer;
     InLiteral : Boolean;
-    LastLiteral : Char;
+    LastLiteral : AnsiChar;
 
     Procedure AppendToResult;
 
@@ -779,7 +779,7 @@ end;
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 var
-  FPCParams: TStringDynArray;
+  FPCParams: TRTLStringDynArray;
 begin
   FPCParams:=SplitCommandLine(FPCCommandLine);
   Result:=ParseSource(AEngine, FPCParams, OSTarget, CPUTarget,[]);
@@ -789,7 +789,7 @@ end;
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String; UseStreams : Boolean): TPasModule;
 var
-  FPCParams: TStringDynArray;
+  FPCParams: TRTLStringDynArray;
 begin
   FPCParams:=SplitCommandLine(FPCCommandLine);
   if UseStreams then
@@ -3425,7 +3425,7 @@ Var
 begin
   StartPos:=CurTokenPos;
   if SkipHeader then
-    N:=ChangeFileExt(Scanner.CurFilename,'')
+    N:=ChangeFileExt(Scanner.CurFilename,RTLString(''))
   else
     begin
     N:=ExpectIdentifier;
