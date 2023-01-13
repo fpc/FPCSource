@@ -32,7 +32,7 @@ type
   regex_t = record
     re_magic: cint;
     re_nsub: size_t;		{ number of parenthesized subexpressions }
-    re_endp: PChar;     	{ end pointer for REG_PEND }
+    re_endp: PAnsiChar;     	{ end pointer for REG_PEND }
     re_g: Pre_guts;	{ none of your business :-) }
   end;
 
@@ -43,7 +43,7 @@ type
 
 
 { === regcomp.c === }
-//API_EXPORT(int) regcomp(regex_t *, const char *, int);
+//API_EXPORT(int) regcomp(regex_t *, const AnsiChar *, int);
 
 const
  	REG_BASIC	= 0000;
@@ -76,11 +76,11 @@ const
  	REG_ATOI	=255;	{ convert name to number (!) }
  	REG_ITOA	=0400;	{ convert number to name (!) }
 
-//API_EXPORT(size_t) regerror(int, const regex_t *, char *, size_t);
+//API_EXPORT(size_t) regerror(int, const regex_t *, AnsiChar *, size_t);
 
 
 { === regexec.c === }
-//API_EXPORT(int) regexec(const regex_t *, const char *, size_t, regmatch_t [], int);
+//API_EXPORT(int) regexec(const regex_t *, const AnsiChar *, size_t, regmatch_t [], int);
 
 const
  	REG_NOTBOL	= 00001;

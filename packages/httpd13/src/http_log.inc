@@ -66,15 +66,15 @@ procedure ap_open_logs(s: Pserver_rec; p: PPool);
  * like "%s", followed by the string containing the untrusted data.
  }
 procedure ap_log_error(
- const file_: PChar; line, level: Integer;
- const s: Pserver_rec; const fmt: PChar; others: array of const);
+ const file_: PAnsiChar; line, level: Integer;
+ const s: Pserver_rec; const fmt: PAnsiChar; others: array of const);
  cdecl; external LibHTTPD;
 
 //			    __attribute__((format(printf,5,6)));
 
 procedure ap_log_rerror(
- const file_: PChar; line, level: Integer;
- const s: Prequest_rec; const fmt: PChar; others: array of const);
+ const file_: PAnsiChar; line, level: Integer;
+ const s: Prequest_rec; const fmt: PAnsiChar; others: array of const);
  cdecl; external LibHTTPD;
 
 //			    __attribute__((format(printf,5,6)));
@@ -82,25 +82,25 @@ procedure ap_log_rerror(
 procedure ap_error_log2stderr(s: Pserver_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_log_pid(p: PPool; fname: PChar);
+procedure ap_log_pid(p: PPool; fname: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { These are for legacy code, new code should use ap_log_error,
  * or ap_log_rerror.
  }
-{API_EXPORT(void) ap_log_error_old(const char *err, server_rec *s);
-API_EXPORT(void) ap_log_unixerr(const char *routine, const char *file,
-			     const char *msg, server_rec *s);
-API_EXPORT_NONSTD(void) ap_log_printf(const server_rec *s, const char *fmt, ...)
+{API_EXPORT(void) ap_log_error_old(const AnsiChar *err, server_rec *s);
+API_EXPORT(void) ap_log_unixerr(const AnsiChar *routine, const AnsiChar *file,
+			     const AnsiChar *msg, server_rec *s);
+API_EXPORT_NONSTD(void) ap_log_printf(const server_rec *s, const AnsiChar *fmt, ...)
 			    __attribute__((format(printf,2,3)));
-API_EXPORT(void) ap_log_reason(const char *reason, const char *fname,
+API_EXPORT(void) ap_log_reason(const AnsiChar *reason, const AnsiChar *fname,
 			    request_rec *r);}
 
 type
   piped_log = record
     p: PPool;
 //#if !defined(NO_RELIABLE_PIPED_LOGS) || defined(TPF)
-    program_: PChar;
+    program_: PAnsiChar;
     pid: cint;
     fds: array[1..2] of cint;
 //#else
@@ -110,7 +110,7 @@ type
   
   Ppiped_log = ^piped_log;
 
-procedure ap_open_piped_log(p: PPool; const program_: PChar);
+procedure ap_open_piped_log(p: PPool; const program_: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_close_piped_log(p: Ppiped_log): Ppiped_log;

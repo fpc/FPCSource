@@ -20,18 +20,18 @@
  * Tsirigotis <panos@alumni.cs.colorado.edu> for xinetd.
  }
 
-function ap_cpystrn(param1: PChar; const param2: PChar; param3: size_t): PChar;
+function ap_cpystrn(param1: PAnsiChar; const param2: PAnsiChar; param3: size_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 {int ap_slack(int, int);
-int ap_execle(const char *, const char *, ...);
-int ap_execve(const char *, char * const argv[], char * const envp[]); }
+int ap_execle(const AnsiChar *, const AnsiChar *, ...);
+int ap_execve(const AnsiChar *, AnsiChar * const argv[], AnsiChar * const envp[]); }
 
-//function ap_getpass(const prompt: PChar; pwbuf: PChar; bufsiz: size_t): cint;
+//function ap_getpass(const prompt: PAnsiChar; pwbuf: PAnsiChar; bufsiz: size_t): cint;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 //{$ifndef ap_strtol}
-//function ap_strtol(const nptr: PChar; endptr: PPChar; base: cint): clong;
+//function ap_strtol(const nptr: PAnsiChar; endptr: PPAnsiChar; base: cint): clong;
 // {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 //{$endif}
 
@@ -98,8 +98,8 @@ int ap_execve(const char *, char * const argv[], char * const envp[]); }
 
 type
   ap_vformatter_buff = record
-    curpos: PChar;
-    endpos: PChar;
+    curpos: PAnsiChar;
+    endpos: PAnsiChar;
   end;
   
   Pap_vformatter_buff = ^ap_vformatter_buff;
@@ -107,7 +107,7 @@ type
   flush_func_t = function (param: Pap_vformatter_buff): cint;
 
 function ap_vformatter(flush_func: flush_func_t;
- param2: Pap_vformatter_buff; const fmt: PChar; ap: va_list): cint;
+ param2: Pap_vformatter_buff; const fmt: PAnsiChar; ap: va_list): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { These are snprintf implementations based on ap_vformatter().
@@ -127,12 +127,12 @@ function ap_vformatter(flush_func: flush_func_t;
  *
  * In no event does ap_snprintf return a negative number.
  }
-function ap_snprintf(buf: PChar; len: size_t; const format: PChar;
+function ap_snprintf(buf: PAnsiChar; len: size_t; const format: PAnsiChar;
  others: array of const): cint; cdecl; external LibHTTPD;
 
 //			    __attribute__((format(printf,3,4)));
 
-function ap_vsnprintf(buf: PChar; len: size_t; const format: PChar; ap: va_list): cint;
+function ap_vsnprintf(buf: PAnsiChar; len: size_t; const format: PAnsiChar; ap: va_list): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Simple BASE64 encode/decode functions.
@@ -140,7 +140,7 @@ function ap_vsnprintf(buf: PChar; len: size_t; const format: PChar; ap: va_list)
  * As we might encode binary strings, hence we require the length of
  * the incoming plain source. And return the length of what we decoded.
  *
- * The decoding function takes any non valid char (i.e. whitespace, \0
+ * The decoding function takes any non valid AnsiChar (i.e. whitespace, \0
  * or anything non A-Z,0-9 etc as terminal.
  * 
  * plain strings/binary sequences are not assumed '\0' terminated. Encoded
@@ -150,26 +150,26 @@ function ap_vsnprintf(buf: PChar; len: size_t; const format: PChar; ap: va_list)
 function ap_base64encode_len(len: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_base64encode(coded_dst: PChar; const plain_src: PChar; len_plain_src: cint): cint;
+function ap_base64encode(coded_dst: PAnsiChar; const plain_src: PAnsiChar; len_plain_src: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_base64encode_binary(coded_dst: PChar; const plain_src: PChar; len_plain_src: cint): cint;
+function ap_base64encode_binary(coded_dst: PAnsiChar; const plain_src: PAnsiChar; len_plain_src: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 
-function ap_base64decode_len(const coded_src: PChar): cint;
+function ap_base64decode_len(const coded_src: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_base64decode(plain_dst: PChar; const coded_src: PChar): cint;
+function ap_base64decode(plain_dst: PAnsiChar; const coded_src: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_base64decode_binary(plain_dst: PChar; const coded_src: PChar): cint;
+function ap_base64decode_binary(plain_dst: PAnsiChar; const coded_src: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Password validation, as used in AuthType Basic which is able to cope
  * (based on the prefix) with the SHA1, Apache's internal MD5 and (depending
  * on your platform either plain or crypt(3) passwords.
  }
-function ap_validate_password(const passwd, hash: PChar): PChar;
+function ap_validate_password(const passwd, hash: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 

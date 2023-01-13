@@ -20,7 +20,7 @@
 
 type
   schemes_t = record
-    name: PChar;
+    name: PAnsiChar;
     default_port: cushort;
   end;
 
@@ -49,15 +49,15 @@ type
   Phostent = ^hostent;
 
   uri_components = record
-    scheme: PChar;		{ scheme ("http"/"ftp"/...) }
-    hostinfo: PChar;            { combined [user[:password]@]host[:port] }
-    user: PChar;		{ user name, as in http://user:passwd@host:port/ }
-    password: PChar;		{ password, as in http://user:passwd@host:port/ }
-    hostname: PChar;		{ hostname from URI (or from Host: header) }
-    port_str: PChar;		{ port string (integer representation is in "port") }
-    path: PChar;		{ the request path (or "/" if only scheme://host was given) }
-    query: PChar;		{ Everything after a '?' in the path, if present }
-    fragment: PChar;		{ Trailing "#fragment" string, if present }
+    scheme: PAnsiChar;		{ scheme ("http"/"ftp"/...) }
+    hostinfo: PAnsiChar;            { combined [user[:password]@]host[:port] }
+    user: PAnsiChar;		{ user name, as in http://user:passwd@host:port/ }
+    password: PAnsiChar;		{ password, as in http://user:passwd@host:port/ }
+    hostname: PAnsiChar;		{ hostname from URI (or from Host: header) }
+    port_str: PAnsiChar;		{ port string (integer representation is in "port") }
+    path: PAnsiChar;		{ the request path (or "/" if only scheme://host was given) }
+    query: PAnsiChar;		{ Everything after a '?' in the path, if present }
+    fragment: PAnsiChar;		{ Trailing "#fragment" string, if present }
 
     hostent: Phostent;
 
@@ -71,14 +71,14 @@ type
   end;
 
 { util_uri.c }
-{API_EXPORT(unsigned short) ap_default_port_for_scheme(const char *scheme_str);
+{API_EXPORT(unsigned short) ap_default_port_for_scheme(const AnsiChar *scheme_str);
 API_EXPORT(unsigned short) ap_default_port_for_request(const request_rec *r);
 API_EXPORT(struct hostent *) ap_pduphostent(pool *p, const struct hostent *hp);
-API_EXPORT(struct hostent *) ap_pgethostbyname(pool *p, const char *hostname);
-API_EXPORT(char *) ap_unparse_uri_components(pool *p, const uri_components *uptr,
+API_EXPORT(struct hostent *) ap_pgethostbyname(pool *p, const AnsiChar *hostname);
+API_EXPORT(AnsiChar *) ap_unparse_uri_components(pool *p, const uri_components *uptr,
     unsigned flags);
-API_EXPORT(int) ap_parse_uri_components(pool *p, const char *uri, uri_components *uptr);
-API_EXPORT(int) ap_parse_hostinfo_components(pool *p, const char *hostinfo, uri_components *uptr);}
+API_EXPORT(int) ap_parse_uri_components(pool *p, const AnsiChar *uri, uri_components *uptr);
+API_EXPORT(int) ap_parse_hostinfo_components(pool *p, const AnsiChar *hostinfo, uri_components *uptr);}
 { called by the core in main() }
 //extern void ap_util_uri_init(void);
 

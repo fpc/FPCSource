@@ -50,7 +50,7 @@ const
  }
 
 { temporarily replace crypt }
-{ char *crypt(const char *pw, const char *salt); }
+{ AnsiChar *crypt(const AnsiChar *pw, const AnsiChar *salt); }
 //#define crypt(buf,salt)	    (buf)
 
 { Although DIR_TYPE is dirent (see nt/readdir.h) we need direct.h for
@@ -83,7 +83,7 @@ type
 { modified to match declaration in sys/stat.h }
   mode_t = cushort;
 {$endif}
-  caddr_t = PChar;
+  caddr_t = PAnsiChar;
 
 {
 Define export types. API_EXPORT_NONSTD is a nasty hack to avoid having to declare
@@ -138,7 +138,7 @@ every configuration function as __stdcall.
 {$define NO_OTHER_CHILD}
 {$define NO_RELIABLE_PIPED_LOGS}
 
-//__inline int ap_os_is_path_absolute(const char *file)
+//__inline int ap_os_is_path_absolute(const AnsiChar *file)
 {
   For now, just do the same check that http_request.c and mod_alias.c
    * do.
@@ -147,23 +147,23 @@ every configuration function as __stdcall.
 }
 
 {#define stat(f,ps)  os_stat(f,ps)
-API_EXPORT(int) os_stat(const char *szPath,struct stat *pStat);
+API_EXPORT(int) os_stat(const AnsiChar *szPath,struct stat *pStat);
 
-API_EXPORT(int) os_strftime(char *s, size_t max, const char *format, const struct tm *tm);
+API_EXPORT(int) os_strftime(AnsiChar *s, size_t max, const AnsiChar *format, const struct tm *tm);
 
 #define _spawnv(mode,cmdname,argv)	    os_spawnv(mode,cmdname,argv)
 #define spawnv(mode,cmdname,argv)	    os_spawnv(mode,cmdname,argv)
-API_EXPORT(int) os_spawnv(int mode,const char *cmdname,const char *const *argv);
+API_EXPORT(int) os_spawnv(int mode,const AnsiChar *cmdname,const AnsiChar *const *argv);
 #define _spawnve(mode,cmdname,argv,envp)    os_spawnve(mode,cmdname,argv,envp)
 #define spawnve(mode,cmdname,argv,envp)	    os_spawnve(mode,cmdname,argv,envp)
-API_EXPORT(int) os_spawnve(int mode,const char *cmdname,const char *const *argv,const char *const *envp);
+API_EXPORT(int) os_spawnve(int mode,const AnsiChar *cmdname,const AnsiChar *const *argv,const AnsiChar *const *envp);
 #define _spawnle			    os_spawnle
 #define spawnle				    os_spawnle
-API_EXPORT_NONSTD(int) os_spawnle(int mode,const char *cmdname,...);}
+API_EXPORT_NONSTD(int) os_spawnle(int mode,const AnsiChar *cmdname,...);}
 
 { OS-dependent filename routines in util_win32.c }
 
-//API_EXPORT(int) ap_os_is_filename_valid(const char *file);
+//API_EXPORT(int) ap_os_is_filename_valid(const AnsiChar *file);
 
 { Abstractions for dealing with shared object files (DLLs on Win32).
  * These are used by mod_so.c
@@ -173,8 +173,8 @@ API_EXPORT_NONSTD(int) os_spawnle(int mode,const char *cmdname,...);}
 #define ap_os_dso_unload(l) FreeLibrary(l)
 #define ap_os_dso_sym(h,s)  GetProcAddress(h,s)
 
-API_EXPORT(ap_os_dso_handle_t) ap_os_dso_load(const char *);
-API_EXPORT(const char *) ap_os_dso_error(void);}
+API_EXPORT(ap_os_dso_handle_t) ap_os_dso_load(const AnsiChar *);
+API_EXPORT(const AnsiChar *) ap_os_dso_error(void);}
 
 { Other ap_os_ routines not used by this platform }
 //#define ap_os_kill(pid, sig)                kill(pid, sig)

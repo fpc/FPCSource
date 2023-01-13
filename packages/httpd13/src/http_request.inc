@@ -34,15 +34,15 @@
  * about which was allocated in its pool elsewhere before doing this.
  }
 
-function ap_sub_req_lookup_uri(const new_file: PChar;
+function ap_sub_req_lookup_uri(const new_file: PAnsiChar;
  const r: Prequest_rec): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_sub_req_lookup_file(const new_file: PChar;
+function ap_sub_req_lookup_file(const new_file: PAnsiChar;
  const r: Prequest_rec): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_sub_req_method_uri(const method, new_file: PChar;
+function ap_sub_req_method_uri(const method, new_file: PAnsiChar;
  const r: Prequest_rec): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
@@ -59,10 +59,10 @@ procedure ap_destroy_sub_req(r: Prequest_rec);
  * If so, call this from a handler, and then immediately return OK.
  }
 
-procedure ap_internal_redirect(const new_uri: PChar; param2: Prequest_rec);
+procedure ap_internal_redirect(const new_uri: PAnsiChar; param2: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_internal_redirect_handler(const new_uri: PChar; param2: Prequest_rec);
+procedure ap_internal_redirect_handler(const new_uri: PAnsiChar; param2: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_some_auth_required(r: Prequest_rec): cint;

@@ -74,9 +74,9 @@ type rlim_t = cint;
 {$define HAVE_FLOCK_SERIALIZED_ACCEPT}
 {$define _BSD_SOURCE}
 #define EAGAIN EWOULDBLOCK
-int initgroups (char *, int);     
-char *crypt (const char *pw, const char *salt);
-int gethostname (char *name, int namelen);
+int initgroups (AnsiChar *, int);     
+AnsiChar *crypt (const AnsiChar *pw, const AnsiChar *salt);
+int gethostname (AnsiChar *name, int namelen);
 
 {$else}{$if defined(MPE)}
 #include <sys/times.h>
@@ -102,7 +102,7 @@ const
   {$define NEED_STRNCASECMP}
 //extern void GETPRIVMODE();
 //extern void GETUSERMODE();
-//extern char *inet_ntoa();
+//extern AnsiChar *inet_ntoa();
   {$define NO_SLACK}
   S_IEXEC  = S_IXUSR;
   S_IREAD  = S_IRUSR;
@@ -115,8 +115,8 @@ const
   HAVE_GMTOFF = 1;
 {$undefine NO_KILLPG}
 #undef NO_SETSID
-//char *crypt(const char *pw, const char *salt);
-//char *mktemp(char *);
+//AnsiChar *crypt(const AnsiChar *pw, const AnsiChar *salt);
+//AnsiChar *mktemp(AnsiChar *);
   HAVE_MMAP = 1;
 {$define USE_MMAP_SCOREBOARD}
 {$define USE_MMAP_FILES}
@@ -145,7 +145,7 @@ type rlim_t = cint;
 #define HAVE_MMAP 1
 #define USE_MMAP_SCOREBOARD
 #define USE_MMAP_FILES
-int gethostname(char *name, int namelen);
+int gethostname(AnsiChar *name, int namelen);
 #define HAVE_SYSLOG 1
 #define SYS_SIGLIST _sys_siglist
 #define AP_ENABLE_EXCEPTION_HOOK
@@ -523,23 +523,23 @@ const
 
 { Although SCO 5 defines these in <strings.h> (note the "s") they don't have
    consts. Sigh. }
-extern int strcasecmp(const char *, const char *);
-extern int strncasecmp(const char *, const char *, unsigned);
+extern int strcasecmp(const AnsiChar *, const AnsiChar *);
+extern int strncasecmp(const AnsiChar *, const AnsiChar *, unsigned);
 
 {$else}{$if defined(AUX3)}
 { These are to let -Wall compile more cleanly }
-extern int strcasecmp(const char *, const char *);
-extern int strncasecmp(const char *, const char *, unsigned);
+extern int strcasecmp(const AnsiChar *, const AnsiChar *);
+extern int strncasecmp(const AnsiChar *, const AnsiChar *, unsigned);
 extern int set42sig(), getopt(), getpeername(), bzero();
 extern int listen(), bind(), socket(), getsockname();
 extern int accept(), gethostname(), connect(), lstat();
 extern int select(), killpg(), shutdown();
 extern int initgroups(), setsockopt();
-extern char *shmat();
+extern AnsiChar *shmat();
 extern int shmctl();
 extern int shmget();
-extern char *sbrk();
-extern char *crypt();
+extern AnsiChar *sbrk();
+extern AnsiChar *crypt();
 #include <sys/time.h>
 #undef HAVE_GMTOFF
 #undef NO_KILLPG
@@ -724,10 +724,10 @@ typedef quad_t rlim_t;
 
 {$else}{$if defined(QNX)}
 #ifndef crypt
-char *crypt(const char *pw, const char *salt);
+AnsiChar *crypt(const AnsiChar *pw, const AnsiChar *salt);
 #endif
 #ifndef initgroups
-int initgroups(char *, int);
+int initgroups(AnsiChar *, int);
 #endif
 #ifndef strncasecmp
 #define strncasecmp strnicmp
@@ -756,7 +756,7 @@ int initgroups(char *, int);
 #undef NO_SETSID
 #undef NO_USE_SIGACTION
 #undef NO_LINGCLOSE
-extern char *crypt(char *pw, char *salt);
+extern AnsiChar *crypt(AnsiChar *pw, AnsiChar *salt);
 typedef int rlim_t;
 #define HAVE_SYSLOG 1
 
@@ -1331,7 +1331,7 @@ Sigfunc *signal(int signo, Sigfunc * func);
 #endif
 
 #ifdef ULTRIX_BRAIN_DEATH
-#define ap_fdopen(d,m) fdopen((d), (char *)(m))
+#define ap_fdopen(d,m) fdopen((d), (AnsiChar *)(m))
 #else
 #define ap_fdopen(d,m) fdopen((d), (m))
 #endif
@@ -1348,9 +1348,9 @@ Sigfunc *signal(int signo, Sigfunc * func);
  * with a HASHBANG (#!) followed by interpreter name and args, define this.
  }
 {#ifdef NEED_HASHBANG_EMUL
-extern int ap_execle(const char *filename, const char *arg,...);
-extern int ap_execve(const char *filename, char * const argv[],
-                     char * const envp[]);}
+extern int ap_execle(const AnsiChar *filename, const AnsiChar *arg,...);
+extern int ap_execve(const AnsiChar *filename, AnsiChar * const argv[],
+                     AnsiChar * const envp[]);}
 { ap_execle() is a wrapper function around ap_execve(). }
 {#define execle  ap_execle
 #define execve(path,argv,envp)  ap_execve(path,argv,envp)
@@ -1378,7 +1378,7 @@ extern int ap_execve(const char *filename, char * const argv[],
 //#else { ! (CRAY || __arm) }
 
 //#define XtOffset(p_type,field) \
-//	((long) (((char *) (&(((p_type)NULL)->field))) - ((char *) NULL)))
+//	((long) (((AnsiChar *) (&(((p_type)NULL)->field))) - ((AnsiChar *) NULL)))
 
 //#endif { !CRAY }
 
@@ -1427,42 +1427,42 @@ type NET_SIZE_T = cint;
  * currently (13Nov97) used.
  }
 
-{int getopt(int, char **, char *);
+{int getopt(int, AnsiChar **, AnsiChar *);
 
-int strcasecmp(const char *, const char *);
-int strncasecmp(const char *, const char *, int);
+int strcasecmp(const AnsiChar *, const AnsiChar *);
+int strncasecmp(const AnsiChar *, const AnsiChar *, int);
 int toupper(int);
 int tolower(int);
 
-int printf(char *,...);
-int fprintf(FILE *, char *,...);
-int fputs(char *, FILE *);
-int fread(char *, int, int, FILE *);
-int fwrite(char *, int, int, FILE *);
+int printf(AnsiChar *,...);
+int fprintf(FILE *, AnsiChar *,...);
+int fputs(AnsiChar *, FILE *);
+int fread(AnsiChar *, int, int, FILE *);
+int fwrite(AnsiChar *, int, int, FILE *);
 int fgetc(FILE *);
-char *fgets(char *s, int, FILE*);
+AnsiChar *fgets(AnsiChar *s, int, FILE*);
 int fflush(FILE *);
 int fclose(FILE *);
 int ungetc(int, FILE *);
 int _filbuf(FILE *);	}{ !!! }
-//int _flsbuf(unsigned char, FILE *);	{ !!! }
-{int sscanf(char *, char *,...);
-void setbuf(FILE *, char *);
-void perror(char *);
+//int _flsbuf(unsigned AnsiChar, FILE *);	{ !!! }
+{int sscanf(AnsiChar *, AnsiChar *,...);
+void setbuf(FILE *, AnsiChar *);
+void perror(AnsiChar *);
 
 time_t time(time_t *);
-int strftime(char *, int, const char *, struct tm *);
+int strftime(AnsiChar *, int, const AnsiChar *, struct tm *);
 
-int initgroups(char *, int);}
+int initgroups(AnsiChar *, int);}
 //int wait3(int *, int, void *);	{ Close enough for us... }
-{int lstat(const char *, struct stat *);
-int stat(const char *, struct stat *);
+{int lstat(const AnsiChar *, struct stat *);
+int stat(const AnsiChar *, struct stat *);
 int flock(int, int);
 #ifndef NO_KILLPG
 int killpg(int, int);
 #endif
 int socket(int, int, int);
-int setsockopt(int, int, int, const char *, int);
+int setsockopt(int, int, int, const AnsiChar *, int);
 int listen(int, int);
 int bind(int, struct sockaddr *, int);
 int connect(int, struct sockaddr *, int);
@@ -1471,11 +1471,11 @@ int shutdown(int, int);
 
 int getsockname(int s, struct sockaddr *name, int *namelen);
 int getpeername(int s, struct sockaddr *name, int *namelen);
-int gethostname(char *name, int namelen);
-void syslog(int, char *,...);
-char *mktemp(char *);
+int gethostname(AnsiChar *name, int namelen);
+void syslog(int, AnsiChar *,...);
+AnsiChar *mktemp(AnsiChar *);
 
-int vfprintf(FILE *, const char *, va_list);
+int vfprintf(FILE *, const AnsiChar *, va_list);
 
 #endif} { SUNOS_LIB_PROTOTYPES }
 
@@ -1484,22 +1484,22 @@ int vfprintf(FILE *, const char *, va_list);
  * Declare what is needed exactly as the replacement routines implement it.
  }
 {#ifdef NEED_STRDUP
-extern char *strdup (const char *str);
+extern AnsiChar *strdup (const AnsiChar *str);
 #endif
 #ifdef NEED_STRCASECMP
-extern int strcasecmp (const char *a, const char *b);
+extern int strcasecmp (const AnsiChar *a, const AnsiChar *b);
 #endif
 #ifdef NEED_STRNCASECMP
-extern int strncasecmp (const char *a, const char *b, int n);
+extern int strncasecmp (const AnsiChar *a, const AnsiChar *b, int n);
 #endif
 #ifdef NEED_INITGROUPS
-extern int initgroups(const char *name, gid_t basegid);
+extern int initgroups(const AnsiChar *name, gid_t basegid);
 #endif
 #ifdef NEED_WAITPID
 extern int waitpid(pid_t pid, int *statusp, int options);
 #endif
 #ifdef NEED_STRERROR
-extern char *strerror (int err);
+extern AnsiChar *strerror (int err);
 #endif
 #ifdef NEED_DIFFTIME
 extern double difftime(time_t time1, time_t time0);

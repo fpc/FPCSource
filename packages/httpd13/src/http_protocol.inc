@@ -26,7 +26,7 @@ function ap_read_request(c: Pconn_rec): Prequest_rec;
 
 { Send a single HTTP header field }
 
-function ap_send_header_field(r: Prequest_rec; const fieldname, fieldval: PChar): cint;
+function ap_send_header_field(r: Prequest_rec; const fieldname, fieldval: PAnsiChar): cint;
  cdecl; external LibHTTPD;
 
 { Send the minimal part of an HTTP response header... but modules should be
@@ -81,7 +81,7 @@ function ap_set_keepalive(r: Prequest_rec): cint;
 function ap_rationalize_mtime(r: Prequest_rec; mtime: time_t): time_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_make_etag(r: Prequest_rec; force_weak: cint): PChar;
+function ap_make_etag(r: Prequest_rec; force_weak: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 procedure ap_set_etag(r: Prequest_rec);
@@ -126,7 +126,7 @@ function ap_send_mmap(mm: Pointer; r: Prequest_rec; offset, length: size_t): siz
 function ap_rputc(c: cint; r: Prequest_rec): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_rputs(const str: PChar; r: Prequest_rec): cint;
+function ap_rputs(const str: PAnsiChar; r: Prequest_rec): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_rwrite(const buf: Pointer; nbyte: cint; r: Prequest_rec): cint;
@@ -135,10 +135,10 @@ function ap_rwrite(const buf: Pointer; nbyte: cint; r: Prequest_rec): cint;
 function ap_rvputs(r: Prequest_rec; others: array of const): cint;
  cdecl; external LibHTTPD;
 
-function ap_vrprintf(r: Prequest_rec; const fmt: PChar; vlist: va_list): cint;
+function ap_vrprintf(r: Prequest_rec; const fmt: PAnsiChar; vlist: va_list): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_rprintf(r: Prequest_rec; const fmt: PChar; others: array of const): cint;
+function ap_rprintf(r: Prequest_rec; const fmt: PAnsiChar; others: array of const): cint;
  cdecl; external LibHTTPD;
 
 {				__attribute__((format(printf,2,3)));}
@@ -162,7 +162,7 @@ function ap_setup_client_block(r: Prequest_rec; read_policy: cint): cint;
 function ap_should_client_block(r: Prequest_rec): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_client_block(r: Prequest_rec; buffer: PChar; bufsiz: cint): clong;
+function ap_get_client_block(r: Prequest_rec; buffer: PAnsiChar; bufsiz: cint): clong;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_discard_request_body(r: Prequest_rec): cint;
@@ -207,7 +207,7 @@ procedure ap_note_basic_auth_failure(r: Prequest_rec);
 procedure ap_note_digest_auth_failure(r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_basic_auth_pw(r: Prequest_rec; const pw: PPChar): cint;
+function ap_get_basic_auth_pw(r: Prequest_rec; const pw: PPAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 {
@@ -223,17 +223,17 @@ procedure ap_finalize_sub_req_protocol(sub_r: Prequest_rec);
 
 { This is also useful for putting sub_reqs and internal_redirects together }
 
-//CORE_EXPORT(void) ap_parse_uri(request_rec *r, const char *uri);
+//CORE_EXPORT(void) ap_parse_uri(request_rec *r, const AnsiChar *uri);
 
 { Get the method number associated with the given string, assumed to
  * contain an HTTP method.  Returns M_INVALID if not recognized.
  }
-function ap_method_number_of(const method: PChar): cint;
+function ap_method_number_of(const method: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_getline(s: PChar; n: cint; in_: PBUFF; fold: cint): cint;
+function ap_getline(s: PAnsiChar; n: cint; in_: PBUFF; fold: cint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_chunk_size(b: PChar): clong;
+function ap_get_chunk_size(b: PAnsiChar): clong;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
