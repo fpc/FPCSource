@@ -5,7 +5,7 @@ program httpget;
 uses
   ctypes, nds9, dswifi9;
 
-procedure getHttp(url: pchar);
+procedure getHttp(url: PAnsiChar);
 const
   // store the HTTP request for later
   request_text =  'GET /dswifi/example1.php HTTP/1.1\r\n' + 'Host: www.akkit.org\r\n' + 'User-Agent: Nintendo DS\r\n\r\n';
@@ -14,7 +14,7 @@ var
   my_socket: cint;
   sain: sockaddr_in;
   recvd_len: cint;
-  incoming_buffer: array [0..255] of char;
+  incoming_buffer: array [0..255] of AnsiChar;
 begin
   // Let's send a simple HTTP request to a server and print the results!
 
@@ -34,7 +34,7 @@ begin
   iprintf('Connected to server!'#10);
 
   // send our request
-  send(my_socket, pchar(request_text), strlen(request_text), 0);
+  send(my_socket, PAnsiChar(request_text), strlen(request_text), 0);
   iprintf('Sent our request!'#10);
 
   // Print incoming data

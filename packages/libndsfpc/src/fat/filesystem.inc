@@ -1,6 +1,6 @@
 {$ifdef NDS_INTERFACE}
 
-function nitroFSInit(basepath: ppchar): cbool; cdecl; external;
+function nitroFSInit(basepath: PPAnsiChar): cbool; cdecl; external;
 
 {$endif NDS_INTERFACE}
 

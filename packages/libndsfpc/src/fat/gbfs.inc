@@ -42,20 +42,20 @@
 {$ifdef NDS_INTERFACE}
 (* to make a 300 KB space called samples do GBFS_SPACE(samples, 300) *)
 
-{$define GBFS_SPACE(filename, kbytes) := filename: array [(kbytes)*1024 - 1] of char = 'PinEightGBFSSpace-' + filename + '-' + kbytes}
+{$define GBFS_SPACE(filename, kbytes) := filename: array [(kbytes)*1024 - 1] of AnsiChar = 'PinEightGBFSSpace-' + filename + '-' + kbytes}
 
 type
   GBFS_FILE = record
-    magic: array [0..15] of char;   // "PinEightGBFS\r\n\032\n" 
+    magic: array [0..15] of AnsiChar;   // "PinEightGBFS\r\n\032\n" 
     total_len: cuint32;              // total length of archive
     dir_off: cuint16;               // offset in bytes to directory 
     dir_nmemb: cuint16;             // number of files 
-    reserved: array [0..7] of char; // for future use 
+    reserved: array [0..7] of AnsiChar; // for future use 
   end;
   PGBFS_FILE = ^GBFS_FILE;
 
   GBFS_ENTRY = record
-    name: array [0..23] of char;      // filename, nul-padded
+    name: array [0..23] of AnsiChar;      // filename, nul-padded
     len: cuint32;                     // length of object in bytes 
     data_offset: cuint32;             // in bytes from beginning of file
   end;
@@ -66,9 +66,9 @@ procedure gbfs_search_range(gbfs_1st_limit: cuint32; gbfs_2nd_start: cuint32;
 
 function find_first_gbfs_file(const start: pointer): PGBFS_FILE; cdecl; external;
 function skip_gbfs_file(const _file: PGBFS_FILE): pointer; cdecl; external;
-function gbfs_get_obj(const _file: PGBFS_FILE; const name: pchar; len: pcuint32): pointer; cdecl; external;
-function gbfs_get_nth_obj(const _file: PGBFS_FILE; n: cint {was size_t}; name: pchar; len: pcuint32): pointer; cdecl; external;
-function gbfs_copy_obj(dst: pointer; const _file: PGBFS_FILE; const name: pchar): pointer; cdecl; external;
+function gbfs_get_obj(const _file: PGBFS_FILE; const name: PAnsiChar; len: pcuint32): pointer; cdecl; external;
+function gbfs_get_nth_obj(const _file: PGBFS_FILE; n: cint {was size_t}; name: PAnsiChar; len: pcuint32): pointer; cdecl; external;
+function gbfs_copy_obj(dst: pointer; const _file: PGBFS_FILE; const name: PAnsiChar): pointer; cdecl; external;
 function gbfs_count_objs(const _file: PGBFS_FILE): cint {was size_t}; cdecl; external;
 
 {$endif NDS_INTERFACE}

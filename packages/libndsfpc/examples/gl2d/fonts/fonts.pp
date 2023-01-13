@@ -41,9 +41,9 @@ type
     function Load(_font_sprite: pglImage; const numframes: cuint; texcoords: pcuint;
                   _type: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, param, pallette_width: cint;
                   const palette: pcuint16; const texture: pcuint8): cint;
-    procedure Print(x, y: integer; const text: pchar); overload;
+    procedure Print(x, y: integer; const text: PAnsiChar); overload;
     procedure Print(x, y: integer; value: cint); overload;
-    procedure PrintCentered(x, y: integer; const text: pchar); overload;
+    procedure PrintCentered(x, y: integer; const text: PAnsiChar); overload;
     procedure PrintCentered(x, y: integer; value: cint); overload;
   end;
 
@@ -68,7 +68,7 @@ begin
   result := textureID;
 end;
 
-procedure TglFont.Print(x, y: integer; const text: pchar);
+procedure TglFont.Print(x, y: integer; const text: PAnsiChar);
 var
   font_char: cuchar;
   i: integer;
@@ -87,11 +87,11 @@ begin
   Print(x, y, @str);
 end;
 
-procedure TglFont.PrintCentered(x, y: integer; const text: pchar); 
+procedure TglFont.PrintCentered(x, y: integer; const text: PAnsiChar); 
 var
   font_char: cuchar;
   total_width: integer;
-  o_text: pchar;
+  o_text: PAnsiChar;
   i: integer;
 begin
   total_width := 0;

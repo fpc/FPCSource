@@ -13,7 +13,7 @@ end;
 
 var
   kbd: pKeyboard;
-  myName: array [0..255] of char;
+  myName: array [0..255] of AnsiChar;
 begin
   consoleDemoInit();
 
