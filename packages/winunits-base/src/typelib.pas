@@ -59,8 +59,8 @@ To load a different type of library resource, append an integer index to 'FileNa
 Example:  C:\WINDOWS\system32\msvbvm60.dll\3
 }
 
-function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String;inreftype :TParamInputRefType  = ParamInputVar):string;
+function ImportTypelib(FileName: WideString;var sUnitName:AnsiString;var slDependencies:TStringList;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:AnsiString;inreftype :TParamInputRefType  = ParamInputVar):AnsiString;
 
 
 Type
@@ -78,8 +78,8 @@ Type
     FPackageSource: TStringList;
     FPackageRegUnitSource: TStringList;
     FInputFileName: WideString;
-    FOutputFileName: String;
-    FUnitname: string;
+    FOutputFileName: AnsiString;
+    FUnitname: AnsiString;
     FUses : TStrings;
     FHeader : TStrings;
     FInterface : TStrings;
@@ -100,32 +100,32 @@ Type
     function GetPackageRegUnitSource: TStrings;
     procedure SetActiveX(AValue: Boolean);
     procedure SetCreatePackage(AValue: Boolean);
-    procedure SetOutputFileName(AValue: String);
+    procedure SetOutputFileName(AValue: AnsiString);
     procedure SetRemoveStructTag(AValue: Boolean);
-    procedure SetUnitName(AValue: string);
+    procedure SetUnitName(AValue: AnsiString);
   Protected
     bIsCustomAutomatable,bIsInterface,bIsAutomatable,bIsExternalDecl,bIsUserDefined:boolean;
     // Construct unit from header, uses, interface,
     procedure BuildUnit; virtual;
     // Add to various parts of sources
-    Procedure AddToUses(Const AUnit : String); virtual;
-    Procedure AddToHeader(Const ALine : String; AllowDuplicate : Boolean = False);virtual;
-    Procedure AddToHeader(Const Fmt : String; Args : Array of const; AllowDuplicate : Boolean = False);
-    Procedure AddToInterface(Const ALine : String);virtual;
-    Procedure AddToInterface(Const Fmt : String; Args : Array of const);
-    Procedure AddToImplementation(Const ALine : String);virtual;
-    Procedure AddToImplementation(Const Fmt : String; Args : Array of const);
+    Procedure AddToUses(Const AUnit : AnsiString); virtual;
+    Procedure AddToHeader(Const ALine : AnsiString; AllowDuplicate : Boolean = False);virtual;
+    Procedure AddToHeader(Const Fmt : AnsiString; Args : Array of const; AllowDuplicate : Boolean = False);
+    Procedure AddToInterface(Const ALine : AnsiString);virtual;
+    Procedure AddToInterface(Const Fmt : AnsiString; Args : Array of const);
+    Procedure AddToImplementation(Const ALine : AnsiString);virtual;
+    Procedure AddToImplementation(Const Fmt : AnsiString; Args : Array of const);
     // utility functions
-    function interfacedeclaration(iName, iDoc: string; TI: ITypeInfo; TA: LPTYPEATTR;
-      bIsDispatch,bCreateEvents:boolean): string;
+    function interfacedeclaration(iName, iDoc: AnsiString; TI: ITypeInfo; TA: LPTYPEATTR;
+      bIsDispatch,bCreateEvents:boolean): AnsiString;
     function VarTypeIsAutomatable(ParamType: integer): boolean; virtual;
-    function VarTypeToStr(ParamType: integer): string; virtual;
-    function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
-    function ValidateID(id: string): boolean; virtual;
-    function ValidateIDAgainstDeclared(id: string): boolean; virtual;
-    function MakeValidId(id:string;out valid:string): boolean; virtual;
-    function MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
-    function RemoveTag(typename: string): string;
+    function VarTypeToStr(ParamType: integer): AnsiString; virtual;
+    function TypeToString(TI: ITypeInfo; TD: TYPEDESC): AnsiString; virtual;
+    function ValidateID(id: AnsiString): boolean; virtual;
+    function ValidateIDAgainstDeclared(id: AnsiString): boolean; virtual;
+    function MakeValidId(id:AnsiString;out valid:AnsiString): boolean; virtual;
+    function MakeValidIdAgainstDeclared(id:AnsiString;var valid:AnsiString): boolean;
+    function RemoveTag(typename: AnsiString): AnsiString;
     // The actual routines that do the work.
     procedure CreateCoClasses(const TL: ITypeLib; TICount: Integer); virtual;
     procedure CreateForwards(const TL: ITypeLib; TICount: Integer); virtual;
@@ -159,11 +159,11 @@ Type
     // File to read typelib from.
     Property InputFileName : WideString Read FInputFileName Write FInputFileName;
     // If set, unit source will be written to this file.
-    Property OutputFileName : String Read FOutputFileName Write SetOutputFileName;
+    Property OutputFileName : AnsiString Read FOutputFileName Write SetOutputFileName;
     // Remove tag from struct names
     Property RemoveStructTag : Boolean read FRemoveStructTag write SetRemoveStructTag Default False;
     // Set automatically by OutputFileName or by Execute
-    Property UnitName : string Read FUnitname Write SetUnitName;
+    Property UnitName : AnsiString Read FUnitname Write SetUnitName;
     // generate constref for [in] parameters instead of delphi compatible VAR, mantis 30764
     Property InParamRefStyle  : TParamInputRefType read fInParamRefStyle write FInParamRefStyle;
   end;
@@ -174,8 +174,8 @@ implementation
 Resourcestring
   SErrInvalidUnitName = 'Invalid unit name : %s';
 
-function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String;inreftype :TParamInputRefType  = ParamInputVar):string;
+function ImportTypelib(FileName: WideString;var sUnitName:AnsiString;var slDependencies:TStringList;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:AnsiString;inreftype :TParamInputRefType  = ParamInputVar):AnsiString;
 var i:integer;
 begin
   With TTypeLibImporter.Create(Nil) do
@@ -211,7 +211,7 @@ result:=ParamType in [vt_i1,vt_ui1,vt_i2,vt_ui2,vt_i4,vt_ui4,vt_uint,
             VT_LPWSTR,VT_LPSTR];
 end;
 
-function TTypeLibImporter.VarTypeToStr(ParamType:integer): string;
+function TTypeLibImporter.VarTypeToStr(ParamType:integer): AnsiString;
 
 begin
   case ParamType of
@@ -244,18 +244,18 @@ begin
     VT_INT:Result:='SYSINT';
     VT_SAFEARRAY:Result:='PSafeArray';
     VT_LPWSTR:Result:='PWideChar';
-    VT_LPSTR:Result:='PChar';
+    VT_LPSTR:Result:='PAnsiChar';
     VT_DECIMAL:Result:='TDecimal';
   else
     Result := 'Unknown (' + IntToStr(ParamType) + ')';
   end;
 end;
 
-function TTypeLibImporter.ValidateID(id:string):boolean;
+function TTypeLibImporter.ValidateID(id:AnsiString):boolean;
 
 const
   RESERVEDCNT=111;
-  RESERVED:array[1..RESERVEDCNT] of string=
+  RESERVED:array[1..RESERVEDCNT] of AnsiString=
   ('absolute','and','array','asm','begin','break','case','const',
   'constructor','continue','destructor','div','do','downto','else','end',
   'file','for','function','goto','if','implementation','in','inherited',
@@ -273,7 +273,7 @@ const
   'true','trunc','write','writeln');
 
 var
-  sl:string;
+  sl:AnsiString;
   i:integer;
 
 begin
@@ -287,7 +287,7 @@ begin
       end;
 end;
 
-function TTypeLibImporter.ValidateIDAgainstDeclared(id: string): boolean;
+function TTypeLibImporter.ValidateIDAgainstDeclared(id: AnsiString): boolean;
 var i:integer;
 begin
   id:=lowercase(id);
@@ -301,7 +301,7 @@ begin
   result:=i<0;
 end;
 
-function TTypeLibImporter.MakeValidId(id:string;out valid:string): boolean;
+function TTypeLibImporter.MakeValidId(id:AnsiString;out valid:AnsiString): boolean;
 begin
   result:= ValidateID(id);
   if result then
@@ -310,7 +310,7 @@ begin
     valid:=id+'_';
 end;
 
-function TTypeLibImporter.MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
+function TTypeLibImporter.MakeValidIdAgainstDeclared(id:AnsiString;var valid:AnsiString): boolean;
 begin
   result:= ValidateIDAgainstDeclared(id) and ValidateID(id);
   if result then
@@ -319,7 +319,7 @@ begin
     MakeValidIdAgainstDeclared(id+'_',valid);
 end;
 
-function TTypeLibImporter.RemoveTag(typename: string): string;
+function TTypeLibImporter.RemoveTag(typename: AnsiString): AnsiString;
 begin
   result:=typename;
   if FRemoveStructTag and (pos('tag',typename)>0) then
@@ -332,7 +332,7 @@ begin
 end;
 
 
-function TTypeLibImporter.TypeToString(TI:ITypeInfo; TD:TYPEDESC):string;
+function TTypeLibImporter.TypeToString(TI:ITypeInfo; TD:TYPEDESC):AnsiString;
 
 var
   TIref: ITypeInfo;
@@ -342,7 +342,7 @@ var
   BstrName : WideString;
   il:LongWord;
   i,idims:integer;
-  sl,sRefSrc,sKey:string;
+  sl,sRefSrc,sKey:AnsiString;
   Handle:HKEY;
   bWasPointer:boolean;
 begin
@@ -400,7 +400,7 @@ begin
       il:=MAX_PATH;
       SetLength(sRefSrc,il);
       sKey:=format('\TypeLib\%s\%d.%d\0\win32',[GUIDToString(LARef^.GUID),LARef^.wMajorVerNum,LARef^.wMinorVerNum]);
-      if (RegOpenKeyEx(HKEY_CLASSES_ROOT,pchar(sKey),0,KEY_READ,Handle) = ERROR_SUCCESS) then
+      if (RegOpenKeyEx(HKEY_CLASSES_ROOT,PAnsiChar(sKey),0,KEY_READ,Handle) = ERROR_SUCCESS) then
         begin
         if RegQueryValue(Handle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
           begin
@@ -446,8 +446,8 @@ begin
   bIsAutomatable:=VarTypeIsAutomatable(TD.vt) or bIsCustomAutomatable;
 end;
 
-function TTypeLibImporter.interfacedeclaration(iName,iDoc:string;TI:ITypeInfo;TA:LPTYPEATTR;
-  bIsDispatch,bCreateEvents:boolean):string;
+function TTypeLibImporter.interfacedeclaration(iName,iDoc:AnsiString;TI:ITypeInfo;TA:LPTYPEATTR;
+  bIsDispatch,bCreateEvents:boolean):AnsiString;
 
 type
   TPropertyDef=record
@@ -459,7 +459,7 @@ type
     sdoc,
     sParam,
     sDefault,
-    sPutSuffix:string;
+    sPutSuffix:AnsiString;
   end;
 
 var
@@ -467,8 +467,8 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3,tmp: string;
-  sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
+  sPropParam,sPropParam2,sPropParam3,tmp: AnsiString;
+  sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:AnsiString;
   i,j,k:integer;
   FD: lpFUNCDESC;
   BL : array[0..99] of TBstr;
@@ -478,7 +478,7 @@ var
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
   Propertycnt,iType:integer;
-  Modifier: string;
+  Modifier: AnsiString;
 
   function findProperty(ireqdispid:integer):integer;
   var i:integer;
@@ -511,7 +511,7 @@ var
       end;
   end;
 
-  function GetName(i:integer):string;  //bug in Office10\MSacc.OLB _WizHook.Key
+  function GetName(i:integer):AnsiString;  //bug in Office10\MSacc.OLB _WizHook.Key
   begin
     result:='';
     if i<integer(cnt) then
@@ -984,7 +984,7 @@ end;
 procedure TTypeLibImporter.DoBuildPackage;
 var
   i : integer;
-  sl:string;
+  sl:AnsiString;
 begin
   if FAXClasses.Count=0 then  //nothing to do
     exit;
@@ -1074,7 +1074,7 @@ Procedure TTypeLibImporter.ImportEnums(Const TL : ITypeLib; TICount : Integer);
 
 Var
   i,j : integer;
-  sl ,senum, stype: string;
+  sl ,senum, stype: AnsiString;
   BstrName, BstrDocString, BstrHelpFile : WideString;
   dwHelpContext: DWORD;
   TI:ITypeInfo;
@@ -1150,7 +1150,7 @@ Var
   TIT: TYPEKIND;
   RTIT : HREFTYPE;
   ITF:WINT;
-  sl,slref:string;
+  sl,slref:AnsiString;
 
 begin
   // Forward declarations
@@ -1227,12 +1227,12 @@ Var
   TIT: TYPEKIND;
   VD: lpVARDESC;
   slDeferredType,slDeferredPendingType,slDeferredDeclaration:TStrings;
-  sl,sldeclaration,stype,smembername,srecordname:string;
+  sl,sldeclaration,stype,smembername,srecordname:AnsiString;
   bIsDeferred:boolean;
 
-  procedure ReleasePendingType(sPen:string);
+  procedure ReleasePendingType(sPen:AnsiString);
   var k:integer;
-    sDec,sTyp:string;
+    sDec,sTyp:AnsiString;
   begin
     k:=slDeferredPendingType.IndexOf(sPen);
     while (k>=0) do
@@ -1372,13 +1372,13 @@ Var
   //TAref2 : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
-  sl: string;
+  sl: AnsiString;
   slDeclaredType,slDeferredType,slDeferredPendingType,slDeferredDeclaration: Tstrings;
   bDeferred:boolean;
 
-  procedure ReleasePendingType(sPen:string);
+  procedure ReleasePendingType(sPen:AnsiString);
   var k:integer;
-    sDec,sTyp:string;
+    sDec,sTyp:AnsiString;
   begin
     slDeclaredType.Add(sPen);
     k:=slDeferredPendingType.IndexOf(sPen);
@@ -1496,11 +1496,11 @@ Var
   TA,TARef : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
-  sDefIntf, sDefEvents : string;
+  sDefIntf, sDefEvents : AnsiString;
   ITF:WINT;
   RegHandle:HKEY;
   il,il2:LongWord;
-  sRefSrc,sKey,sl:string;
+  sRefSrc,sKey,sl:AnsiString;
   resHandle:hmodule;
   bmhandle:handle;
   pData:pByte;
@@ -1649,7 +1649,7 @@ begin
       AddToImplementation('  Result := CreateComObject(CLASS_%s) as %s;',[BstrName,sDefIntf]);
       AddToImplementation('end;');
       AddToImplementation('');
-      AddToImplementation('Class Function Co%s.CreateRemote(const MachineName: string): %s;',[BstrName,sDefIntf]);
+      AddToImplementation('Class Function Co%s.CreateRemote(const MachineName: String): %s;',[BstrName,sDefIntf]);
       AddToImplementation('begin');
       AddToImplementation('  Result := CreateRemoteComObject(MachineName,CLASS_%s) as %s;',[BstrName,sDefIntf]);
       AddToImplementation('end;');
@@ -1716,7 +1716,7 @@ begin
         SetLength(sRefSrc,il);
         sKey:=format('\CLSID\%s\ToolboxBitmap32',[GUIDToString(TA^.GUID)]);
         bmhandle:=0;
-        if (RegOpenKeyEx(HKEY_CLASSES_ROOT,pchar(sKey),0,KEY_READ,RegHandle) = ERROR_SUCCESS) then
+        if (RegOpenKeyEx(HKEY_CLASSES_ROOT,PAnsiChar(sKey),0,KEY_READ,RegHandle) = ERROR_SUCCESS) then
           begin
           if RegQueryValue(RegHandle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
             begin
@@ -1724,7 +1724,7 @@ begin
             sl:=trim(copy(sRefSrc,pos(',',sRefSrc)+1,length(sRefSrc))); //format: filename, id
             sRefSrc:=copy(sRefSrc,1,pos(',',sRefSrc)-1);
             //Load bitmap
-            ResHandle:=LoadLibraryExA(pchar(sRefSrc),0,$00000022); //LOAD_LIBRARY_AS_IMAGE_RESOURCE or LOAD_LIBRARY_AS_DATAFILE
+            ResHandle:=LoadLibraryExA(PAnsiChar(sRefSrc),0,$00000022); //LOAD_LIBRARY_AS_IMAGE_RESOURCE or LOAD_LIBRARY_AS_DATAFILE
             if (ResHandle<>0) then
               begin
               bmhandle:=FindResource(ResHandle,makeintresource(StrToIntDef(sl,0)),RT_BITMAP);
@@ -1835,7 +1835,7 @@ end;
 procedure TTypeLibImporter.BuildUnit;
 
 Var
-  l : string;
+  l : AnsiString;
   I : Integer;
 
 begin
@@ -1864,10 +1864,10 @@ end;
 
 { TTypeLibImporter }
 
-procedure TTypeLibImporter.SetOutputFileName(AValue: String);
+procedure TTypeLibImporter.SetOutputFileName(AValue: AnsiString);
 
 Var
-  UN : String;
+  UN : AnsiString;
 
 begin
   if FOutputFileName=AValue then Exit;
@@ -1884,7 +1884,7 @@ begin
   FRemoveStructTag:=AValue;
 end;
 
-procedure TTypeLibImporter.SetUnitName(AValue: string);
+procedure TTypeLibImporter.SetUnitName(AValue: AnsiString);
 begin
   if FUnitname=AValue then Exit;
   if not IsValidIdent(AVAlue) then
@@ -1894,13 +1894,13 @@ begin
     OutputFileName:=ExtractFilePath(OutputFileName)+UnitName+'.pas';
 end;
 
-procedure TTypeLibImporter.AddToUses(const AUnit: String);
+procedure TTypeLibImporter.AddToUses(const AUnit: AnsiString);
 begin
   If FUses.IndexOf(AUnit)=-1 then
     FUses.add(AUnit);
 end;
 
-procedure TTypeLibImporter.AddToHeader(const ALine: String;
+procedure TTypeLibImporter.AddToHeader(const ALine: AnsiString;
   AllowDuplicate: Boolean);
 
 begin
@@ -1908,29 +1908,29 @@ begin
     FHeader.Add(ALine);
 end;
 
-procedure TTypeLibImporter.AddToHeader(const Fmt: String; Args: array of const;
+procedure TTypeLibImporter.AddToHeader(const Fmt: AnsiString; Args: array of const;
   AllowDuplicate: Boolean);
 begin
   AddToheader(Format(Fmt,Args),AllowDuplicate)
 end;
 
-procedure TTypeLibImporter.AddToInterface(const ALine: String);
+procedure TTypeLibImporter.AddToInterface(const ALine: AnsiString);
 begin
   FInterface.Add(ALine);
 end;
 
-procedure TTypeLibImporter.AddToInterface(const Fmt: String;
+procedure TTypeLibImporter.AddToInterface(const Fmt: AnsiString;
   Args: array of const);
 begin
   FInterface.Add(Format(Fmt,Args));
 end;
 
-procedure TTypeLibImporter.AddToImplementation(const ALine: String);
+procedure TTypeLibImporter.AddToImplementation(const ALine: AnsiString);
 begin
   FImplementation.Add(ALine);
 end;
 
-procedure TTypeLibImporter.AddToImplementation(const Fmt: String;
+procedure TTypeLibImporter.AddToImplementation(const Fmt: AnsiString;
   Args: array of const);
 begin
   FImplementation.Add(Format(Fmt,Args));
