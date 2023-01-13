@@ -305,7 +305,7 @@ type
   function sem_init(__sem:Psem_t; __pshared:cint; __value:dword):cint;cdecl;external libthreads;
   function sem_destroy(__sem:Psem_t):cint;cdecl;external libthreads;
   function sem_close(__sem:Psem_t):cint;cdecl;external libthreads;
-  function sem_unlink(__name:Pchar):cint;cdecl;external libthreads;
+  function sem_unlink(__name:PAnsiChar):cint;cdecl;external libthreads;
   function sem_wait(__sem:Psem_t):cint;cdecl;external libthreads;
   function sem_trywait(__sem:Psem_t):cint;cdecl;external libthreads;
   function sem_post(__sem:Psem_t):cint;cdecl;external libthreads;
