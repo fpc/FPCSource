@@ -47,7 +47,7 @@ type
     path,
     name,
     description,
-    family: PChar;
+    family: PAnsiChar;
 
     style: StyleType;
 
@@ -59,7 +59,7 @@ type
     foundry,
     format,
     metrics,
-    glyphs: PChar;
+    glyphs: PAnsiChar;
 
     stealth: MagickBooleanType;
 
@@ -71,16 +71,16 @@ type
     signature: culong;
   end;
 
-{function GetTypeList(const char *,unsigned long *,ExceptionInfo *): PPChar; external MagickExport;
+{function GetTypeList(const AnsiChar *,unsigned long *,ExceptionInfo *): PPAnsiChar; external MagickExport;
 
 extern MagickExport MagickBooleanType
   ListTypeInfo(FILE *,ExceptionInfo *);
 
 extern MagickExport const TypeInfo
-  *GetTypeInfo(const char *,ExceptionInfo *),
-  *GetTypeInfoByFamily(const char *,const StyleType,const StretchType,
+  *GetTypeInfo(const AnsiChar *,ExceptionInfo *),
+  *GetTypeInfoByFamily(const AnsiChar *,const StyleType,const StretchType,
     const unsigned long,ExceptionInfo *),
-  **GetTypeInfoList(const char *,unsigned long *,ExceptionInfo *);
+  **GetTypeInfoList(const AnsiChar *,unsigned long *,ExceptionInfo *);
 
 MagickExport void
   DestroyTypeList(void);}
