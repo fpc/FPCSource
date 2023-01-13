@@ -1051,10 +1051,10 @@ Function RegisterMediaTypes(ctypes : UINT; const rgszTypes : LPCSTR; const rgcfT
 Function RevokeBindStatusCallback(pBC : IBindCtx; pBSCb : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function RevokeFormatEnumerator(pBC : IBindCtx; pEFetc : IEnumFormatEtc) : HResult; stdcall; external liburlmon;
 Function SetSoftwareUpdateAdvertisementState(szDistUnit : LPCWSTR;dwAdState, dwAdvertisedVersionMS, dwAdvertisedVersionLS : DWORD) : HResult; stdcall; external liburlmon;
-Function URLDownloadToCacheFile(p1 : IUnknown; p2 : PAnsiChar; p3 : PChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToCacheFileA';
+Function URLDownloadToCacheFile(p1 : IUnknown; p2 : PAnsiChar; p3 : PAnsiChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToCacheFileA';
 Function URLDownloadToCacheFileA(p1 : IUnknown; p2 : PAnsiChar; p3 : PAnsiChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLDownloadToCacheFileW(p1 : IUnknown; p2 : PWideChar; p3 : PWideChar; p4 : DWORD; p5 : DWORD; p6 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
-Function URLDownloadToFile(Caller : IUnknown; URL : PAnsiChar; FileName : PChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToFileA';
+Function URLDownloadToFile(Caller : IUnknown; URL : PAnsiChar; FileName : PAnsiChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon name 'URLDownloadToFileA';
 Function URLDownloadToFileA(Caller : IUnknown; URL : PAnsiChar; FileName : PAnsiChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLDownloadToFileW(Caller : IUnknown; URL : PWideChar; FileName : PWideChar; Reserved : DWORD; StatusCB : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function UrlMkGetSessionOption(dwOption : DWORD; pBuffer : Pointer; dwBufferLength : DWORD; pdwBufferLength : PDWORD; dwReserved : DWORD) : HResult; stdcall; external liburlmon;

@@ -1423,13 +1423,13 @@ HKCR
       end;
 
 
-    procedure SearchIDs(const DispatchInterface : IDispatch; Names: PChar;
+    procedure SearchIDs(const DispatchInterface : IDispatch; Names: PAnsiChar;
       Count: Integer; IDs: PDispIDList);
       var
       	res : HRESULT;
       	NamesArray : ^PWideChar;
       	NamesData : PWideChar;
-      	OrigNames : PChar;
+      	OrigNames : PAnsiChar;
         NameCount,
       	NameLen,
       	NewNameLen,

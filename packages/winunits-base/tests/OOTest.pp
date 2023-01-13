@@ -96,7 +96,7 @@ begin
     try
         StatusBar1.SimpleText := 'Getting database pointer ...';
         res := Sample.getDatabasePointer(Edit4.Text, Edit3.Text);
-        Application.MessageBox(PChar('the pointer: ' + res), PChar('Result'), ID_OK);
+        Application.MessageBox(PAnsiChar('the pointer: ' + res), PAnsiChar('Result'), ID_OK);
         StatusBar1.SimpleText := 'Ready';
     except
         StatusBar1.SimpleText := 'Error';
@@ -110,7 +110,7 @@ begin
     try
         StatusBar1.SimpleText := 'Getting cell content ...';
         res := Sample.getCellContent(Edit6.Text);
-        Application.MessageBox(PChar('the content: ' + res), PChar('Result'), ID_OK);
+        Application.MessageBox(PAnsiChar('the content: ' + res), PAnsiChar('Result'), ID_OK);
         StatusBar1.SimpleText := 'Ready';
     except
         StatusBar1.SimpleText := 'Error';

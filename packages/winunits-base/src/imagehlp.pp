@@ -676,7 +676,7 @@ Type
           SizeOfStruct : dword;
           Key : pointer;
           LineNumber : dword;
-          FileName : pchar;
+          FileName : PAnsiChar;
           Address : dword64;
        end;
    IMAGEHLP_LINE64 = TIMAGEHLP_LINE64;
@@ -693,7 +693,7 @@ Type
           SizeOfStruct : dword;
           Key : pointer;
           LineNumber : dword;
-          FileName : pchar;
+          FileName : PAnsiChar;
           Address : dword;
        end;
      IMAGEHLP_LINE   = TIMAGEHLP_LINE;
@@ -703,7 +703,7 @@ Type
   PSOURCEFILE = ^TSOURCEFILE;
   TSOURCEFILE = record
           ModBase : dword64;
-          FileName : pchar;
+          FileName : PAnsiChar;
        end;  
   
   PIMAGEHLP_CBA_READ_MEMORY = ^TIMAGEHLP_CBA_READ_MEMORY;
@@ -720,7 +720,7 @@ Type
   TIMAGEHLP_CBA_EVENT = record
           severity : dword;
           code : dword;
-          desc : pchar;
+          desc : PAnsiChar;
           _object : pointer;
        end;
   IMAGEHLP_CBA_EVENT = TIMAGEHLP_CBA_EVENT;
@@ -801,7 +801,7 @@ Type
   TIMAGEHLP_SYMBOL_SRC = record
           sizeofstruct : dword;
           _type : dword;
-          _file : array[0..(MAX_PATH)-1] of char;
+          _file : array[0..(MAX_PATH)-1] of AnsiChar;
        end;
   IMAGEHLP_SYMBOL_SRC = TIMAGEHLP_SYMBOL_SRC;
   LPIMAGEHLP_SYMBOL_SRC = PIMAGEHLP_SYMBOL_SRC;
@@ -1444,8 +1444,8 @@ function ImagehlpApiVersion:LPAPI_VERSION;stdcall;external External_library name
 function ImagehlpApiVersionEx(AppVersion:LPAPI_VERSION):LPAPI_VERSION;stdcall;external External_library name 'ImagehlpApiVersionEx';
 function GetTimestampForLoadedLibrary(Module:HMODULE):dword;stdcall;external External_library name 'GetTimestampForLoadedLibrary';
 function SymSetParentWindow(hwnd:HWND):bool;stdcall;external External_library name 'SymSetParentWindow';
-function SymSetHomeDirectory(dir:LPCSTR):pchar;stdcall;external External_library name 'SymSetHomeDirectory';
-function SymGetHomeDirectory(_type:dword; dir:PSTR; size:Tsize):pchar;stdcall;external External_library name 'SymGetHomeDirectory';
+function SymSetHomeDirectory(dir:LPCSTR):PAnsiChar;stdcall;external External_library name 'SymSetHomeDirectory';
+function SymGetHomeDirectory(_type:dword; dir:PSTR; size:Tsize):PAnsiChar;stdcall;external External_library name 'SymGetHomeDirectory';
 function SymSetOptions(SymOptions:dword):dword;stdcall;external External_library name 'SymSetOptions';
 function SymGetOptions:dword;stdcall;external External_library name 'SymGetOptions';
 function SymCleanup(hProcess:THANDLE):BOOL;stdcall;external External_library name 'SymCleanup';
