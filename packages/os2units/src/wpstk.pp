@@ -29,7 +29,7 @@ Uses
 const
   wpstkdll='wpstk';
 
-Function WtkQueryVersion(pszBuffer: PChar; ulBuflen: Cardinal): Cardinal; cdecl;
+Function WtkQueryVersion(pszBuffer: PAnsiChar; ulBuflen: Cardinal): Cardinal; cdecl;
   external wpstkdll name 'WtkQueryVersion';
 
 //*** handle types used by EA manager ***************************************/
@@ -45,21 +45,21 @@ Const
   WTK_EAT_ANY=-1;
 
 //*** get size of all values of an EA ***************************************/
-Function WtkQueryEaSize(pszName, pszEaName: PChar; var pulSize: Cardinal): Longint; cdecl;
+Function WtkQueryEaSize(pszName, pszEaName: PAnsiChar; var pulSize: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkQueryEaSize';
 
 //*** read complete ea into memory and scan it ******************************/
-Function WtkReadEa(pszName: PChar; pszEaName: PChar; P_HEA: PHEA): Longint; cdecl;
+Function WtkReadEa(pszName: PAnsiChar; pszEaName: PAnsiChar; P_HEA: PHEA): Longint; cdecl;
   external wpstkdll name 'WtkReadEa';
 
-Function WtkFindFirstEaValue(_HEA: HEA; var pulEaType: Cardinal; pszValue: PChar; var pulBuflen: Cardinal): Longint; cdecl;
+Function WtkFindFirstEaValue(_HEA: HEA; var pulEaType: Cardinal; pszValue: PAnsiChar; var pulBuflen: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkFindFirstEaValue';
 
-Function WtkFindNextEaValue(_HEA: HEA; var pulEaType: Cardinal; pszValue: PChar; var pulBuflen: Cardinal): Longint; cdecl;
+Function WtkFindNextEaValue(_HEA: HEA; var pulEaType: Cardinal; pszValue: PAnsiChar; var pulBuflen: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkFindNextEaValue';
 
 //*** create new EA list in memory ******************************************/
-Function WtkCreateEa(pszName: PChar; pszEaName: PChar; _PHEA: PHEA): Longint; cdecl;
+Function WtkCreateEa(pszName: PAnsiChar; pszEaName: PAnsiChar; _PHEA: PHEA): Longint; cdecl;
   external wpstkdll name 'WtkCreateEa';
 
 //*** append a value ********************************************************/
@@ -75,24 +75,24 @@ Function WtkCloseEa(_HEA: hea): Longint; cdecl;
   external wpstkdll name 'WtkCloseEa';
 
 //*** WtkGetNextFile alike API, does WtkReadEa/WtkFind*EaValue/WtkCloseEa in one API */
-Function WtkGetNextEaValue(pszName, pszEaName: PChar; var pulEaType: Cardinal; PHEA_: PHEA; pszValue: PChar; var pulBuflen: Cardinal): Longint; cdecl;
+Function WtkGetNextEaValue(pszName, pszEaName: PAnsiChar; var pulEaType: Cardinal; PHEA_: PHEA; pszValue: PAnsiChar; var pulBuflen: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkGetNextEaValue';
 
 //*** read/appendWrite EA in one step ***************************************/
-Function WtkPutEaValue(pszName, pszEaName: PChar; ulMultiType, ulEaType: Cardinal; var pbValue: Byte; ulValuelen: Cardinal; fWriteThru: Longbool; fEA: Byte): Longint; cdecl;
+Function WtkPutEaValue(pszName, pszEaName: PAnsiChar; ulMultiType, ulEaType: Cardinal; var pbValue: Byte; ulValuelen: Cardinal; fWriteThru: Longbool; fEA: Byte): Longint; cdecl;
   external wpstkdll name 'WtkPutEaValue';
 
 //*** simplified APIs to read/write exatcly one string EA********************/
-Function WtkWriteStringEa(pszName, pszEaName, pszEaValue: PChar): Longint; cdecl;
+Function WtkWriteStringEa(pszName, pszEaName, pszEaValue: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkWriteStringEa';
-Function WtkReadStringEa(pszName, pszEaName, pszEaValue: PChar; var pulBuflen: Cardinal): Longint; cdecl;
+Function WtkReadStringEa(pszName, pszEaName, pszEaValue: PAnsiChar; var pulBuflen: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkReadStringEa';
 
 Const
   WTK_CFGSYS_UPDATE_ADD=0;
   WTK_CFGSYS_UPDATE_DELETE=1;
 
-Function WtkUpdateConfigsys(pszUpdate: PChar; ulUpdateMode: Cardinal; pszBackupExtension: PChar): Longint; cdecl;
+Function WtkUpdateConfigsys(pszUpdate: PAnsiChar; ulUpdateMode: Cardinal; pszBackupExtension: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkUpdateConfigsys';
 
 //* file handle type and structures */
@@ -106,12 +106,12 @@ Type
     // specify all valid comment characters
     // - specify nil to use ';' as default and only comment character
     // - specify '/' to use "//" (c++ style comments)
-    pszCommentChars: PChar;
+    pszCommentChars: PAnsiChar;
     // specify all valid delimiter characters
     // - specify nil to use '=' as default and only delimiter character
     // - when multiple characters are specified, the first will be used
     //   for new entries
-    pszDelimiterChars: PChar;
+    pszDelimiterChars: PAnsiChar;
     // define layout for keys in new files
     // (if keys already exist, the layout of
     //  the last read key is used)
@@ -145,7 +145,7 @@ Const
   WTK_INIT_UPDATE_SOFTDELETEKEYS=$0002;
 
 //* open and close file */
-Function WtkOpenInitProfile(pszName: PChar; var phinit: HINIT; ulOpenMode: Cardinal;
+Function WtkOpenInitProfile(pszName: PAnsiChar; var phinit: HINIT; ulOpenMode: Cardinal;
                           ulUpdateMode: Cardinal; pip: PINITPARMS): Longint; cdecl;
   external wpstkdll name 'WtkOpenInitProfile';
 
@@ -156,19 +156,19 @@ const
   WTK_INIT_CLOSE_DISCARD=0;
   WTK_INIT_CLOSE_UPDATE=1;
 
-Function WtkCloseInitProfileBackup(_hinit: HINIT; fUpdateOriginal: Longbool; pszBackupFile: PChar): Longint; cdecl;
+Function WtkCloseInitProfileBackup(_hinit: HINIT; fUpdateOriginal: Longbool; pszBackupFile: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkCloseInitProfileBackup';
 Function WtkInitProfileModified(_hinit: HINIT): Longbool; cdecl;
   external wpstkdll name 'WtkInitProfileModified';
 
 //* query values */
-Function WtkQueryInitProfileString(_HINIT: hinit; pszSectionName, pszKeyName, pszDefault, pszBuffer: PChar; ulBuflen: Cardinal): Cardinal; cdecl;
+Function WtkQueryInitProfileString(_HINIT: hinit; pszSectionName, pszKeyName, pszDefault, pszBuffer: PAnsiChar; ulBuflen: Cardinal): Cardinal; cdecl;
   external wpstkdll name 'WtkQueryInitProfileString';
-Function WtkQueryInitProfileSize(_HINIT: hinit; pszSectionName, pszKeyName: PChar; var pulDataLen: Cardinal): Longbool; cdecl;
+Function WtkQueryInitProfileSize(_HINIT: hinit; pszSectionName, pszKeyName: PAnsiChar; var pulDataLen: Cardinal): Longbool; cdecl;
   external wpstkdll name 'WtkQueryInitProfileSize';
 
 //* update or delete keys and/or sections */
-Function WtkWriteInitProfileString(_HINIT: hinit; pszSectionName, pszKeyName, pszNewValue: PChar): Longint; cdecl;
+Function WtkWriteInitProfileString(_HINIT: hinit; pszSectionName, pszKeyName, pszNewValue: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkWriteInitProfileString';
 
 //* file handle type and structures */
@@ -195,21 +195,21 @@ Type
   TSYLEVELINFO = record
     cbSize : Cardinal;
     usSysId : Word;
-    szComponentId : array[0..(WTK_SYSLEVEL_MAXLEN_COMPID + 1)-1] of CHAR;
-    szName : array[0..(WTK_SYSLEVEL_MAXLEN_NAME + 1)-1] of CHAR;
+    szComponentId : array[0..(WTK_SYSLEVEL_MAXLEN_COMPID + 1)-1] of AnsiChar;
+    szName : array[0..(WTK_SYSLEVEL_MAXLEN_NAME + 1)-1] of AnsiChar;
     bVersionMajor : BYTE;
     bVersionMinor : BYTE;
     bVersionRefresh : BYTE;
-    szCsdPrefix : array[0..(WTK_SYSLEVEL_MAXLEN_PREFIX + 1)-1] of CHAR;
-    chCsdLanguage : CHAR;
-    szCurrentCsd : array[0..(WTK_SYSLEVEL_MAXLEN_CSDNUM + 1)-1] of CHAR;
-    szPreviousCsd : array[0..(WTK_SYSLEVEL_MAXLEN_CSDNUM + 1)-1] of CHAR;
+    szCsdPrefix : array[0..(WTK_SYSLEVEL_MAXLEN_PREFIX + 1)-1] of AnsiChar;
+    chCsdLanguage : AnsiChar;
+    szCurrentCsd : array[0..(WTK_SYSLEVEL_MAXLEN_CSDNUM + 1)-1] of AnsiChar;
+    szPreviousCsd : array[0..(WTK_SYSLEVEL_MAXLEN_CSDNUM + 1)-1] of AnsiChar;
     usDate : Word;
-    szAppType : array[0..(WTK_SYSLEVEL_MAXLEN_APPTYPE + 1)-1] of CHAR;
+    szAppType : array[0..(WTK_SYSLEVEL_MAXLEN_APPTYPE + 1)-1] of AnsiChar;
   end;
   PSYLEVELINFO = ^TSYLEVELINFO;
 
-Function WtkOpenSyslevel(pszName: PChar; var phsl: HSYSLEVEL): Longint; cdecl;
+Function WtkOpenSyslevel(pszName: PAnsiChar; var phsl: HSYSLEVEL): Longint; cdecl;
   external wpstkdll name 'WtkOpenSyslevel';
 Function WtkCloseSyslevel(hsl: HSYSLEVEL; ulUpdateMode: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkCloseSyslevel';
@@ -263,7 +263,7 @@ Function WtkInitializeMmf(var phmmf: THMMF; ulMaxBuffer: Cardinal): Longint; cde
   external wpstkdll name 'WtkInitializeMmf';
 Function WtkTerminateMmf(hmmf: THMMF): Longint; cdecl;
   external wpstkdll name 'WtkTerminateMmf';
-Function WtkAllocMmf(hmmf: THMMF; Var ppvdata: Pointer; pszFilename: PChar; ulOpenFlags, ulMaxSize: Cardinal): Longint; cdecl;
+Function WtkAllocMmf(hmmf: THMMF; Var ppvdata: Pointer; pszFilename: PAnsiChar; ulOpenFlags, ulMaxSize: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkAllocMmf';
 Function WtkFreeMmf(hmmf: THMMF; pvData: Pointer): Longint; cdecl;
   external wpstkdll name 'WtkFreeMmfl';
@@ -329,14 +329,14 @@ Type
 //*** data structures for callback STM_CALLBACK_QUERYVALUEINFO ********/
 //*** Note: on this callback, pvObjectInstance and pvObjectData are NULL ****/
   TCBQUERYVALUEINFO = record
-    pszName : PChar;                     //* out - name of setting                   */
+    pszName : PAnsiChar;                     //* out - name of setting                   */
     ulSettingId : Cardinal;              //* out - id of setting                     */
     ulValueIndex : Cardinal;             //* out - index of subvalue                 */
     ulValueType : Cardinal;              //* #in - type of value - see VALUETYPE_*   */
     usDialogid : Word;                   //*  in - id of dialog containing control   */
     usControlid : Word;                  //*  in - id of control                     */
     pfnwpSubclass : proc;               //*  in - subclass window proc for control  */
-    pszDetailsTitle : PChar;             //*  in - title of folderdetails view       */
+    pszDetailsTitle : PAnsiChar;             //*  in - title of folderdetails view       */
   end;
   PCBQUERYVALUEINFO = ^TCBQUERYVALUEINFO;
 
@@ -346,7 +346,7 @@ Type
 Type
   TCBQUERYTARGETBUF = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
-    pszName : PChar;            //* out - name of setting                   */
+    pszName : PAnsiChar;            //* out - name of setting                   */
     ulSettingId : Cardinal;     //* out - id of setting                     */
     ulValueIndex : Cardinal;    //* out - index of subvalue (only > 0 for multivalue settings)   */
     ulBufMax : Cardinal;        //* #in - len of target buffer              */
@@ -363,7 +363,7 @@ Type
 //*                                                                                     */
 //* type          validation target buffer possible GUI update                          */
 //* ------------- ---------- ------------- -------------------------------              */
-//* STRING        NO         CHAR[]        <all supported> except WC_*SLIDER            */
+//* STRING        NO         AnsiChar[]        <all supported> except WC_*SLIDER            */
 //*                                        - WC_COMBOBOX, WC_SPINBUTTON as listbox      */
 //* INDEX         YES        LONG          <all supported>                              */
 //* ITEM          YES        LONG          selects item with WC_LISTBOX, WC_COMBOBOX,   */
@@ -393,8 +393,8 @@ Type
   TCBVALIDATE = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
     ulSettingId : Cardinal;     //* out - id of setting                     */
-    pszName : PChar;            //* out - name of setting                   */
-    pszValue : PChar;           //* out - name of value to be validated     */
+    pszName : PAnsiChar;            //* out - name of setting                   */
+    pszValue : PAnsiChar;           //* out - name of value to be validated     */
     ulValueIndex : Cardinal;    //* out - index of subvalue                 */
     fResult : Longbool;         //*  in - result of validation              */
   end;                          //* return TRUE if your callback validates, */
@@ -405,7 +405,7 @@ Type
   TCBREPORTCHANGED = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
     ulSettingId : Cardinal;     //* out - id of setting                     */
-    pszName : PChar;            //* out - name of setting                   */
+    pszName : PAnsiChar;            //* out - name of setting                   */
   end;
   PCBREPORTCHANGED = ^TCBREPORTCHANGED;
 
@@ -413,7 +413,7 @@ Type
   TCBQUERYVALUE = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
     ulSettingId : Cardinal;     //* out - id of setting                     */
-    pszName : PChar;            //* out - name of setting                   */
+    pszName : PAnsiChar;            //* out - name of setting                   */
     ulQueryIndex : Cardinal;    //* out - index of query                    */
   end;
   PCBQUERYVALUE = ^TCBQUERYVALUE;
@@ -422,8 +422,8 @@ Type
   TCBQUERYINDEX = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
     ulSettingId : Cardinal;     //* out - id of setting                     */
-    pszName : PChar;            //* out - name of setting                   */
-    pszValue : PChar;           //* out - string value to be translated     */
+    pszName : PAnsiChar;            //* out - name of setting                   */
+    pszValue : PAnsiChar;           //* out - string value to be translated     */
     ulValueIndex : Cardinal;    //* out - index of subvalue                 */
     ulStringIndex : Cardinal;   //*  in - index to be used                  */
   end;                          //* return TRUE if processed, else FALSE    */
@@ -433,10 +433,10 @@ Type
   TCBQUERYSTRING = record
     pvObjectInstance : Pointer;                            // out - somSelf of object instance        */
     ulSettingId : Cardinal;                                // out - id of setting                     */
-    pszName : PChar;                                       // out - name of setting                   */
+    pszName : PAnsiChar;                                       // out - name of setting                   */
     ulStringIndex : Cardinal;                              // out - index to be translated            */
     ulValueIndex : Cardinal;                               // out - index of subvalue                 */
-    szValue : array[0..(_STM_MAX_SETTINGSVALUE)-1] of CHAR;// in - string value to be used      */
+    szValue : array[0..(_STM_MAX_SETTINGSVALUE)-1] of AnsiChar;// in - string value to be used      */
   end;                                                     // return TRUE if processed, else FALSE    */
   PCBQUERYSTRING = ^TCBQUERYSTRING;
 
@@ -453,7 +453,7 @@ Type
   TCBREPORTERROR = record
     pvObjectInstance : Pointer; //* out - somSelf of object instance        */
     ulSettingId : Cardinal;     //* out - id of setting                     */
-    pszName : PChar;            //* out - name of setting                   */
+    pszName : PAnsiChar;            //* out - name of setting                   */
     usDialogid : Word;          //* out - id of dialog                      */
     usControlid : Word;         //* out - id of control                     */
     hwndDialog : HWND;          //* out - handle of dialog                  */
@@ -483,7 +483,7 @@ Function WtkCreateClassSettingsTable(pvObjectClass: Pointer; pfnCallbackValue: P
   external wpstkdll name 'WtkCreateClassSettingsTable';
 Function WtkDestroyClassSettingsTable(hst: HSETTINGTABLE): Longbool; cdecl;
   external wpstkdll name 'WtkDestroyClassSettingsTable';
-Function WtkAddClassSetting(hst: HSETTINGTABLE; ulSettingId: Cardinal; pszSetting: Pchar; ulQueryCount: Cardinal): Longbool; cdecl;
+Function WtkAddClassSetting(hst: HSETTINGTABLE; ulSettingId: Cardinal; pszSetting: PAnsiChar; ulQueryCount: Cardinal): Longbool; cdecl;
   external wpstkdll name 'WtkAddClassSetting';
 Function WtkAddClassDetail(hst: HSETTINGTABLE; ulSettingId: Cardinal): Longbool; cdecl;
   external wpstkdll name 'WtkAddClassDetail';
@@ -497,9 +497,9 @@ Function WtkCreateObjectValueTable(hst: HSETTINGTABLE; pvObjectInstance, pvObjec
   external wpstkdll name 'WtkCreateObjectValueTable';
 Function WtkDestroyObjectValueTable(hvt: HVALUETABLE): Longbool; cdecl;
   external wpstkdll name 'WtkDestroyObjectValueTable';
-Function WtkEvaluateObjectSettings(hvt: HVALUETABLE; pszSetup: PChar): Longbool; cdecl;
+Function WtkEvaluateObjectSettings(hvt: HVALUETABLE; pszSetup: PAnsiChar): Longbool; cdecl;
   external wpstkdll name 'WtkEvaluateObjectSettings';
-Function WtkQueryObjectSettings(hvt: HVALUETABLE; pszBuffer: PChar; var pulMaxlen: Cardinal): Longbool; cdecl;
+Function WtkQueryObjectSettings(hvt: HVALUETABLE; pszBuffer: PAnsiChar; var pulMaxlen: Cardinal): Longbool; cdecl;
   external wpstkdll name 'WtkQueryObjectSettings';
 
 //*** prototypes for providing automatic updates to GUI controls ************/
@@ -535,9 +535,9 @@ Function WtkQueryObjectDetailsData(hvt: HVALUETABLE; var ppDetailsData: Pointer;
   external wpstkdll name 'WtkQueryObjectDetailsData';
 
 //*** prototypes for saving/restoring data in WPS repository ****************/
-Function WtkSaveObjectState(hvt: HVALUETABLE; pszClass: PChar): Longint; cdecl;
+Function WtkSaveObjectState(hvt: HVALUETABLE; pszClass: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkSaveObjectState';
-Function WtkRestoreObjectState(hvt: HVALUETABLE; pszClass: PChar): Longint; cdecl;
+Function WtkRestoreObjectState(hvt: HVALUETABLE; pszClass: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkRestoreObjectState';
 
 //*** prototypes for saving/restoring data in extern ini file ***************/
@@ -545,14 +545,14 @@ Function WtkRestoreObjectState(hvt: HVALUETABLE; pszClass: PChar): Longint; cdec
 //***       a unique place per object instance !!!            ***************/
 //*** NOTE: specify USER or SYSTEM as filename to write to    ***************/
 //***       HINI_USERPROFILE or HINI_SYSTEMPROFILE            ***************/
-Function WtkSaveObjectSettings(hvt: HVALUETABLE; pszFilename, pszApp, pszKey: PChar): Longint; cdecl;
+Function WtkSaveObjectSettings(hvt: HVALUETABLE; pszFilename, pszApp, pszKey: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkSaveObjectSettings';
-Function WtkRestoreObjectSettings(hvt: HVALUETABLE; pszFilename, pszApp, pszKey: PChar): Longint; cdecl;
+Function WtkRestoreObjectSettings(hvt: HVALUETABLE; pszFilename, pszApp, pszKey: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkRestoreObjectSettings';
 
-Function WtkGetTextMessage(var pTable: PChar; cTable: Cardinal;
+Function WtkGetTextMessage(var pTable: PAnsiChar; cTable: Cardinal;
                                    var pbBuffer: Byte; cbBuffer: Cardinal;
-                                   pszMessageName, pszFile: PChar;
+                                   pszMessageName, pszFile: PAnsiChar;
                                    var pcbMsg: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkGetTextMessage';
 
@@ -571,13 +571,13 @@ Function WtkCalcMemCRC32(pvData: Pointer; ulDatalen: Cardinal; var pulCRC32: Car
   external wpstkdll name 'WtkCalcMemCRC32';
 
 //*** prototypes for calculating CRC of files ****************************/
-Function WtkCalcFileCRC32(pszFilename: PChar; var pulCRC32: Cardinal): Longint; cdecl;
+Function WtkCalcFileCRC32(pszFilename: PAnsiChar; var pulCRC32: Cardinal): Longint; cdecl;
   external wpstkdll name 'WtkCalcFileCRC32';
 
 //*** prototypes for general functions **************************************/
-Function WtkQueryClassIndex(HWND_: hwnd): PChar; cdecl;
+Function WtkQueryClassIndex(HWND_: hwnd): PAnsiChar; cdecl;
   external wpstkdll name 'WtkQueryClassIndex';
-Function WtkIsOfPublicPmClass(HWND_: hwnd; pszClassIndex: PChar; ulPrimaryWindowStyle: Cardinal): Longbool; cdecl;
+Function WtkIsOfPublicPmClass(HWND_: hwnd; pszClassIndex: PAnsiChar; ulPrimaryWindowStyle: Cardinal): Longbool; cdecl;
   external wpstkdll name 'WtkIsOfPublicPmClass';
 
 //*** prototypes for specialized functions for certain window classes *******/
@@ -601,35 +601,35 @@ Const
   PMHERR_USE_EXISTING_ERRORINFO = -(1);
 
 //*** check existance of files & directories ********************************/
-Function WtkFileExists(pszName: PChar): Longbool;
-Function WtkDirExists(pszName: PChar): Longbool;
-Function WtkFileMaskExists(pszFileMask, pszFirstFile: PChar; ulBuflen: Cardinal): Longbool;
-Function WtkIsFile(pszName: PChar): Longbool;      (* equivalent to WtkFileExists *)
-Function WtkIsDirectory(pszName: PChar): Longbool; (* equivalent to WtkDirExists  *)
+Function WtkFileExists(pszName: PAnsiChar): Longbool;
+Function WtkDirExists(pszName: PAnsiChar): Longbool;
+Function WtkFileMaskExists(pszFileMask, pszFirstFile: PAnsiChar; ulBuflen: Cardinal): Longbool;
+Function WtkIsFile(pszName: PAnsiChar): Longbool;      (* equivalent to WtkFileExists *)
+Function WtkIsDirectory(pszName: PAnsiChar): Longbool; (* equivalent to WtkDirExists  *)
 
 //*** get fullname of directory or file *************************************/
-Function WtkQueryFullname(pszName, pszBuffer: PChar; ulBuflen: Cardinal): Longint;
+Function WtkQueryFullname(pszName, pszBuffer: PAnsiChar; ulBuflen: Cardinal): Longint;
 
 //*** extended file handling ************************************************/
-Function WtkDeleteFile(pszName: PChar): Longint;
-Function WtkMoveFile(pszOld, pszNew: PChar): Longint;
+Function WtkDeleteFile(pszName: PAnsiChar): Longint;
+Function WtkMoveFile(pszOld, pszNew: PAnsiChar): Longint;
 
 //*** query disk and directory at one time **********************************/
-Function WtkQueryCurrentDir(ulDiskNum: Cardinal; pszBuffer: PChar; ulBuflen: Cardinal): Longint;
-Function WtkSetCurrentDir(pszDirectory: PChar): Longint;
+Function WtkQueryCurrentDir(ulDiskNum: Cardinal; pszBuffer: PAnsiChar; ulBuflen: Cardinal): Longint;
+Function WtkSetCurrentDir(pszDirectory: PAnsiChar): Longint;
 
 //*** create/delete path ****************************************************/
-Function WtkCreatePath(pszPath: PChar): Longint;
-Function WtkDeletePath(pszPath: PChar): Longint;
+Function WtkCreatePath(pszPath: PAnsiChar): Longint;
+Function WtkDeletePath(pszPath: PAnsiChar): Longint;
 
 //*** easy version of DosFindFirst/DosFindNext ******************************/
-Function WtkGetNextFile(pszFileMask: PChar; phdir: PHDIR;
-                                pszNextFile: PChar; ulBuflen: Cardinal): Longint;
-Function WtkGetNextDirectory(pszFileMask: PChar; phdir: PHDIR;
-                             pszNextDirectory: PChar; ulBuflen: Cardinal): Longint;
+Function WtkGetNextFile(pszFileMask: PAnsiChar; phdir: PHDIR;
+                                pszNextFile: PAnsiChar; ulBuflen: Cardinal): Longint;
+Function WtkGetNextDirectory(pszFileMask: PAnsiChar; phdir: PHDIR;
+                             pszNextDirectory: PAnsiChar; ulBuflen: Cardinal): Longint;
 
 //*** search part of filename ***********************************************/
-Function WtkFilespec(pszName: PChar; ulPart: Cardinal): PChar;
+Function WtkFilespec(pszName: PAnsiChar; ulPart: Cardinal): PAnsiChar;
 
 Const
   WTK_FILESPEC_PATHNAME = 1;
@@ -637,21 +637,21 @@ Const
   WTK_FILESPEC_EXTENSION = 3;
 
 //*** get specific information about file ***********************************/
-Function WtkFileModified(pszName: PChar; pfs3: PFILESTATUS3): Longbool;
-Function WtkQueryFileSize(pszName: PChar): Cardinal;
+Function WtkFileModified(pszName: PAnsiChar; pfs3: PFILESTATUS3): Longbool;
+Function WtkQueryFileSize(pszName: PAnsiChar): Cardinal;
 
 //*** read file into memory  ************************************************/
-Function WtkReadFile(pszName: PChar; ppszBuffer: PPChar; pulBuflen: PCardinal): Longint;
-Function WtkWriteFile(pszName, pszBuffer: PChar; ulBuflen: Cardinal; fAppend: Longbool): Longint;
+Function WtkReadFile(pszName: PAnsiChar; ppszBuffer: PPAnsiChar; pulBuflen: PCardinal): Longint;
+Function WtkWriteFile(pszName, pszBuffer: PAnsiChar; ulBuflen: Cardinal; fAppend: Longbool): Longint;
 
 //*** create tmp file *******************************************************/
-Function WtkCreateTmpFile(pszFileMask, pszBuffer: PChar; ulBuflen: Cardinal): Longint;
+Function WtkCreateTmpFile(pszFileMask, pszBuffer: PAnsiChar; ulBuflen: Cardinal): Longint;
 
 //*** check file contents ***************************************************/
-Function WtkFileIsEmpty(pszName: PChar): Longbool;
+Function WtkFileIsEmpty(pszName: PAnsiChar): Longbool;
 
 //*** prototypes for opening devices ****************************************/
-Function WtkOpenDevice(pszName: PChar; phdevice: PHFILE; ulOpenMode: Cardinal): Longint;
+Function WtkOpenDevice(pszName: PAnsiChar; phdevice: PHFILE; ulOpenMode: Cardinal): Longint;
 
 Const
   WTK_OPENDEVICE_SHARED = $0000;
@@ -661,24 +661,24 @@ Const
   WTK_OPENDEVICE_BLOCKDEVICE = $0004;
 
 //*** prototypes for performing an I/o Control transaction ******************/
-Function WtkDevIOCtl(pszName: PChar; ulOpenMode: Cardinal;
+Function WtkDevIOCtl(pszName: PAnsiChar; ulOpenMode: Cardinal;
                              ulCategory: Cardinal; ulFunction: Cardinal;
                              pvParams: Pointer; pcbParmLen: PCardinal;
                              pvData: Pointer; pcbDataLen: PCardinal): Longint;
 
 //*** prototypes for module information functions ***************************/
-APIRET APIENTRY WtkGetPackageFilename( PFN pfn, PChar pszSubdir, PChar pszFilename,
-                              PChar pszFileext, PChar pszBuffer, ULONG ulBuflen);
-APIRET APIENTRY WtkGetModuleInfo( PFN pfn, PHMODULE phmod, PChar pszBuffer, ULONG ulBuflen);
-APIRET APIENTRY WtkGetModulePath( PFN pfn, PChar pszBuffer, ULONG ulBuflen);
+APIRET APIENTRY WtkGetPackageFilename( PFN pfn, PAnsiChar pszSubdir, PAnsiChar pszFilename,
+                              PAnsiChar pszFileext, PAnsiChar pszBuffer, ULONG ulBuflen);
+APIRET APIENTRY WtkGetModuleInfo( PFN pfn, PHMODULE phmod, PAnsiChar pszBuffer, ULONG ulBuflen);
+APIRET APIENTRY WtkGetModulePath( PFN pfn, PAnsiChar pszBuffer, ULONG ulBuflen);
 HMODULE APIENTRY WtkGetModuleHandle( PFN pfn);
 
-BOOL APIENTRY WtkIsRegularExpressionValid( PChar pszExpression);
-APIRET APIENTRY WtkMatchRegularExpression( PChar pszExpression, PChar pszText,
-                                           PChar pszBuffer, ULONG ulBuflen);
-APIRET APIENTRY WtkSubstRegularExpressionMatch( PChar pszExpression, PChar pszText,
-                                                PChar pszReplacePattern,
-                                                PChar pszBuffer, ULONG ulBuflen);
+BOOL APIENTRY WtkIsRegularExpressionValid( PAnsiChar pszExpression);
+APIRET APIENTRY WtkMatchRegularExpression( PAnsiChar pszExpression, PAnsiChar pszText,
+                                           PAnsiChar pszBuffer, ULONG ulBuflen);
+APIRET APIENTRY WtkSubstRegularExpressionMatch( PAnsiChar pszExpression, PAnsiChar pszText,
+                                                PAnsiChar pszReplacePattern,
+                                                PAnsiChar pszBuffer, ULONG ulBuflen);
 
 //*** prototypes for system configuration functions *************************/
 Function WtkIsWarp4: Longbool; cdecl;
@@ -697,9 +697,9 @@ Function WtkIsOS2: Longbool; cdecl;
 Function WtkIseComStation: Longbool; cdecl;
   external wpstkdll name 'WtkIseComStation';
 
-Function WtkQueryBootDrive: Char; cdecl;
+Function WtkQueryBootDrive: AnsiChar; cdecl;
   external wpstkdll name 'WtkQueryBootDrive';
-Function WtkQuerySysLanguage: PChar; cdecl;
+Function WtkQuerySysLanguage: PAnsiChar; cdecl;
   external wpstkdll name 'WtkQuerySysLanguage';
 
 Function WtkReboot: Cardinal; cdecl;
@@ -734,16 +734,16 @@ Const
   WTK_TIMESTAMP_NLSTIME = 5;
 
 APIRET APIENTRY WtkQueryDateTimeStamp( PDATETIME pdt, ULONG ulStampType,
-                                                                             PChar pszBuffer, ULONG ulBuflen);
+                                                                             PAnsiChar pszBuffer, ULONG ulBuflen);
 APIRET APIENTRY WtkQueryFDateTimeStamp( PFDATE pfdate, PFTIME pftime, ULONG ulStampType,
-                                        PChar pszBuffer, ULONG ulBuflen);
+                                        PAnsiChar pszBuffer, ULONG ulBuflen);
 APIRET APIENTRY WtkQueryCDateTimeStamp( PCDATE pcdate, PCTIME pctime, ULONG ulStampType,
-                                        PChar pszBuffer, ULONG ulBuflen);
+                                        PAnsiChar pszBuffer, ULONG ulBuflen);
 
 //*** prototypes for getting last write time from a file or directory ****/
-APIRET APIENTRY WtkQueryFileDateTime( PDATETIME pdt, PChar pszName);
-APIRET APIENTRY WtkQueryFileFDateTime( PFDATE pfdate, PFTIME pftime, PChar pszName);
-APIRET APIENTRY WtkQueryFileCDateTime( PCDATE pcdate, PCTIME pctime, PChar pszName);
+APIRET APIENTRY WtkQueryFileDateTime( PDATETIME pdt, PAnsiChar pszName);
+APIRET APIENTRY WtkQueryFileFDateTime( PFDATE pfdate, PFTIME pftime, PAnsiChar pszName);
+APIRET APIENTRY WtkQueryFileCDateTime( PCDATE pcdate, PCTIME pctime, PAnsiChar pszName);
 
 
 implementation

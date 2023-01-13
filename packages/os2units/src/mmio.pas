@@ -42,7 +42,7 @@ Const
 
 // MS compat defines.
 Type
-  HPSTR = PChar;
+  HPSTR = PAnsiChar;
   Hwnd = LongInt;
   PFourCC = ^FourCC;
   HMMCF = hmmIO;
@@ -73,10 +73,10 @@ Type
     pIOProc           : mmIOProc;              // Function Pointer to IOProc to use
     ulErrorRet        : LongInt;                 // Extended Error return code
     cchBuffer         : LongInt;                  // I/O buff size (if used), Fsize if MEM
-    pchBuffer         : pChar;                 // Start of I/O buff
-    pchNext           : pChar;                 // Next char to read or write in buff
-    pchEndRead        : pChar;                 // Last char in buff can be read + 1
-    pchEndWrite       : pChar;                 // Last char in buff can be written + 1
+    pchBuffer         : PAnsiChar;                 // Start of I/O buff
+    pchNext           : PAnsiChar;                 // Next AnsiChar to read or write in buff
+    pchEndRead        : PAnsiChar;                 // Last AnsiChar in buff can be read + 1
+    pchEndWrite       : PAnsiChar;                 // Last AnsiChar in buff can be written + 1
     lBufOffset        : LongInt;                  // Offset in buff to pchNext
     lDiskOffset       : LongInt;                  // Disk offset in file
     aulInfo           : Array[0..3] of LongInt;  // IOProc specific fields
@@ -180,7 +180,7 @@ Type
     ulIOProcType      : LongInt;                 // Type of IOProc
     ulMediaType       : LongInt;                 // Media Type
     ulFlags           : LongInt;                 // IOProc capability flags
-    szDefaultFormatExt : Array[0..Sizeof(FourCC)] of Char;
+    szDefaultFormatExt : Array[0..Sizeof(FourCC)] of AnsiChar;
                                                // Default extension 4 + null
     ulCodePage        : LongInt;                 // Code Page
     ulLanguage        : LongInt;                 // Language
@@ -316,13 +316,13 @@ Const
 Type
   mmIniFileInfo = record
     fccIOProc         : FourCC;                // IOProc identifier
-    szDLLName         : Array[0..DLLName_Size-1] of Char;  // DLL name string
-    szProcName        : Array[0..ProcName_Size-1] of Char; // Procedure name string
+    szDLLName         : Array[0..DLLName_Size-1] of AnsiChar;  // DLL name string
+    szProcName        : Array[0..ProcName_Size-1] of AnsiChar; // Procedure name string
     ulFlags           : LongInt;                 // Flags for Preload
     ulExtendLen       : LongInt;                 // Length of ext fields
     ulMediaType       : LongInt;                 // Media type
     ulIOProcType      : LongInt;                 // Type of IOProc
-    szDefExt          : Array[0..Max_Extension_Name] of Char;
+    szDefExt          : Array[0..Max_Extension_Name] of AnsiChar;
   end;
   pmmIniFileInfo = ^mmIniFileInfo;
 
@@ -335,14 +335,14 @@ Type
   CodecIniFileInfo = record
     ulStructLen       : LongInt;                 // length of this structure
     fcc               : FourCC;                // File Format ID
-    szDLLName         : Array[0..DLLName_Size-1] of Char;       // DLL name string
-    szProcName        : Array[0..ProcName_Size-1] of Char;      // Procedure name string
+    szDLLName         : Array[0..DLLName_Size-1] of AnsiChar;       // DLL name string
+    szProcName        : Array[0..ProcName_Size-1] of AnsiChar;      // Procedure name string
     ulCompressType    : LongInt;                 // Compression Type
     ulCompressSubType : LongInt;                 // Compression SubType
     ulMediaType       : LongInt;                 // Media type
     ulCapsFlags       : LongInt;                 // capabilities flags
     ulFlags           : LongInt;                 // flags
-    szHWID            : Array[0..Codec_HW_Name_Size-1] of Char; // specific information
+    szHWID            : Array[0..Codec_HW_Name_Size-1] of AnsiChar; // specific information
     ulMaxSrcBufLen    : LongInt;                 // max source buffer length
     ulSyncMethod      : LongInt;                 // Synchronization method
     fccPreferredFormat: LongInt;                 // Preferred output format
@@ -1305,7 +1305,7 @@ TYPE  MMTrackInfo = record
 //TYPE  pMMTrackInfo = ^MMTrackInfo;
 
 //TYPE
-//        PSZ = PChar;
+//        PSZ = PAnsiChar;
 
 TYPE _MMMOVIEHEADER=RECORD   // mmhdr */
    ulStructLen:LongInt;       // length of this structure */
@@ -1394,20 +1394,20 @@ function mmioFlush( mmIO: hmmio; usFlags: Word ): Word; cdecl;
 function mmioGetInfo( mmIO: hmmio; Info: pmmioinfo; usFlags: Word ): Word; cdecl;
 function mmioGetLastError( mmIO: hmmio ): Longint; cdecl;
 function mmioInstallIOProc( fccIOProc: FourCC; pIOProc: pMMIOProc; ulFlags: Longint ): pmmIOProc; cdecl;
-function mmioOpen( pszFileName: pChar; mmIOInfo: pmmioinfo; ulOpenFlags: Longint ): hMMIO; cdecl;
-function mmioRead( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint ): Longint; cdecl;
+function mmioOpen( pszFileName: PAnsiChar; mmIOInfo: pmmioinfo; ulOpenFlags: Longint ): hMMIO; cdecl;
+function mmioRead( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint ): Longint; cdecl;
 function mmioSeek( mmIO: hmmio; lOffset, lOrigin: Longint ): Longint; cdecl;
 function mmioSendMessage( mmIO: hmmio; usMsg: Word; lParam1, lParam2: Longint ): Longint; cdecl;
-function mmioSetBuffer( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint; usFlags: Word ): Word; cdecl;
+function mmioSetBuffer( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint; usFlags: Word ): Word; cdecl;
 function mmioSetInfo( mmIO: hmmio; mmIOInfo: pmmioinfo; usFlags: Word ): Word; cdecl;
-function mmioStringToFourCC( pszString: pChar; usFlags: Word ): FourCC; cdecl;
-function mmioWrite( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint ): Longint; cdecl;
+function mmioStringToFourCC( pszString: PAnsiChar; usFlags: Word ): FourCC; cdecl;
+function mmioWrite( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint ): Longint; cdecl;
 
 //
 // Compound File function prototypes:
 ///
 
-function mmioCFOpen( pszFileName: pChar; CfInfo, IOInfo: pmmcfinfo; ulFlags: Longint ): hMMCF; cdecl;
+function mmioCFOpen( pszFileName: PAnsiChar; CfInfo, IOInfo: pmmcfinfo; ulFlags: Longint ): hMMCF; cdecl;
 function mmioCFClose( mmCf: hmmcf; ulFlags: Longint ): Longint; cdecl;
 function mmioCFGetInfo( mmCf: hmmcf; CfInfo: pmmcfinfo; cBytes: Longint ): Longint; cdecl;
 function mmioCFSetInfo( mmCf: hmmcf; CfInfo: pmmcfinfo; cBytes: Longint ): Longint; cdecl;
@@ -1415,10 +1415,10 @@ function mmioCFFindEntry( mmCf: hmmcf; ctocEntry: mmctocentry; ulFlags: Longint 
 function mmioCFAddEntry( mmCf: hmmcf; cTocEntry: mmctocentry; ulFlags: Longint ): Longint; cdecl;
 function mmioCFChangeEntry( mmCf: hmmcf; CTocEntry: pmmctocentry; ulFlags: Longint ): Longint; cdecl;
 function mmioCFDeleteEntry( mmCf: hmmcf; CTocEntry: pmmctocentry; ulFlags: Longint ): Longint; cdecl;
-function mmioCFAddElement( mmCf: hmmcf; pszElementName: pChar; fccType: FourCC;
-  pchBuffer: pChar; cchBytes: LongInt; ulFlags: Longint ): Longint; cdecl;
+function mmioCFAddElement( mmCf: hmmcf; pszElementName: PAnsiChar; fccType: FourCC;
+  pchBuffer: PAnsiChar; cchBytes: LongInt; ulFlags: Longint ): Longint; cdecl;
 
-function mmioCFCopy( mmCfSource: hmmcf; pszDestFileName: pChar; ulFlags: Longint ): Longint; cdecl;
+function mmioCFCopy( mmCfSource: hmmcf; pszDestFileName: PAnsiChar; ulFlags: Longint ): Longint; cdecl;
 //
 // Conversion Utility function prototypes:
 ///
@@ -1430,10 +1430,10 @@ function mmioGetFormats( FormatInfo: pmmformatinfo;
   lNumFormats: LongInt; pFormatInfoList: Pointer; plFormatsRead: pLong;
   ulReserved: Longint; ulFlags: Longint ): Longint; cdecl;
 
-function mmioGetFormatName( FormatInfo: pmmformatinfo; pszFormatName: pChar;
+function mmioGetFormatName( FormatInfo: pmmformatinfo; pszFormatName: PAnsiChar;
   plBytesRead: pLong; ulReserved: Longint; ulFlags: Longint ): Longint; cdecl;
 
-function mmioIdentifyFile( pszFileName: pChar; MMIoInfo: pmmioinfo;
+function mmioIdentifyFile( pszFileName: PAnsiChar; MMIoInfo: pmmioinfo;
   FormatInfo: pmmformatinfo; pfccStorageSystem: pFourCC; ulReserved: Longint;
   ulFlags: Longint ): Longint; cdecl;
 
@@ -1448,16 +1448,16 @@ function mmioSetHeader( mmIO: hmmio; pHeader: Pointer; lHeaderLength: LongInt;
 
 function mmioIniFileHandler( IniFileInfo: pmminifileinfo; ulFlags: Longint ): Longint; cdecl;
 
-function mmioIdentifyStorageSystem( pszFileName: pChar;
+function mmioIdentifyStorageSystem( pszFileName: PAnsiChar;
   MMIoInfo: pmmioinfo; pfccStorageSystem: pFourCC ): Longint; cdecl;
 
-function mmioDetermineSSIOProc( pszFileName: pChar; MMIoInfo: pmmioinfo;
-  pfccStorageSystem: pFourCC; pszParsedRemainder: pChar ): Longint; cdecl;
+function mmioDetermineSSIOProc( pszFileName: PAnsiChar; MMIoInfo: pmmioinfo;
+  pfccStorageSystem: pFourCC; pszParsedRemainder: PAnsiChar ): Longint; cdecl;
 
 function mmioQueryIOProcModuleHandle( IOProc: pMMIOProc;
   IOProcModule: phModule ): Longint; cdecl;
 
-function mmioCFCompact( pszFileName: pChar; ulFlags: Longint ): Longint; cdecl;
+function mmioCFCompact( pszFileName: PAnsiChar; ulFlags: Longint ): Longint; cdecl;
 
 //
 // MMPMMMIO.INI file migration utility
@@ -1472,7 +1472,7 @@ function mmioMigrateIniFile( ulFlags: Longint ): Longint; cdecl;
 function mmioIniFileCODEC( IniFile: pCODECIniFileInfo; ulFlags: Longint ): Longint; cdecl;
 function mmioSet( mmIO: hmmio; ExtendInfo: pmmExtendInfo; ulFlags: Longint): Longint; cdecl;
 function mmioQueryCODECName( IniInfo: pCODECIniFileinfo;
-  pszCODECName: pChar; pulBytesRead: pLongint ): Longint; cdecl;
+  pszCODECName: PAnsiChar; pulBytesRead: pLongint ): Longint; cdecl;
 
 function mmioQueryCODECNameLength( IniInfo: pCODECIniFileinfo;
   pulNameLength: pLongint ): Longint; cdecl;
@@ -1512,10 +1512,10 @@ function mmioGetLastError( mmIO: hmmio ): Longint; cdecl;
 function mmioInstallIOProc( fccIOProc: FourCC; pIOProc: pMMIOProc; ulFlags: Longint ): pmmIOProc; cdecl;
     external LibName index 39;
 
-function mmioOpen( pszFileName: pChar; mmIOInfo: pmmioinfo; ulOpenFlags: Longint ): hMMIO; cdecl;
+function mmioOpen( pszFileName: PAnsiChar; mmIOInfo: pmmioinfo; ulOpenFlags: Longint ): hMMIO; cdecl;
     external LibName index 40;
 
-function mmioRead( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint ): Longint; cdecl;
+function mmioRead( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint ): Longint; cdecl;
     external LibName index 41;
 
 function mmioSeek( mmIO: hmmio; lOffset, lOrigin: Longint ): Longint; cdecl;
@@ -1524,19 +1524,19 @@ function mmioSeek( mmIO: hmmio; lOffset, lOrigin: Longint ): Longint; cdecl;
 function mmioSendMessage( mmIO: hmmio; usMsg: Word; lParam1, lParam2: Longint ): Longint; cdecl;
     external LibName index 54;
 
-function mmioSetBuffer( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint; usFlags: Word ): Word; cdecl;
+function mmioSetBuffer( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint; usFlags: Word ): Word; cdecl;
     external LibName index 56;
 
 function mmioSetInfo( mmIO: hmmio; mmIOInfo: pmmioinfo; usFlags: Word ): Word; cdecl;
     external LibName index 53;
 
-function mmioStringToFourCC( pszString: pChar; usFlags: Word ): FourCC; cdecl;
+function mmioStringToFourCC( pszString: PAnsiChar; usFlags: Word ): FourCC; cdecl;
     external LibName index 37;
 
-function mmioWrite( mmIO: hmmio; pchBuffer: pChar; cBytes: Longint ): Longint; cdecl;
+function mmioWrite( mmIO: hmmio; pchBuffer: PAnsiChar; cBytes: Longint ): Longint; cdecl;
     external LibName index 42;
 
-function mmioCFOpen( pszFileName: pChar; CfInfo, IOInfo: pmmcfinfo; ulFlags: Longint ): hMMCF; cdecl;
+function mmioCFOpen( pszFileName: PAnsiChar; CfInfo, IOInfo: pmmcfinfo; ulFlags: Longint ): hMMCF; cdecl;
     external LibName index 57;
 
 function mmioCFClose( mmCf: hmmcf; ulFlags: Longint ): Longint; cdecl;
@@ -1560,11 +1560,11 @@ function mmioCFChangeEntry( mmCf: hmmcf; CTocEntry: pmmctocentry; ulFlags: Longi
 function mmioCFDeleteEntry( mmCf: hmmcf; CTocEntry: pmmctocentry; ulFlags: Longint ): Longint; cdecl;
     external LibName index 60;
 
-function mmioCFAddElement( mmCf: hmmcf; pszElementName: pChar; fccType: FourCC;
-  pchBuffer: pChar; cchBytes: LongInt; ulFlags: Longint ): Longint; cdecl;
+function mmioCFAddElement( mmCf: hmmcf; pszElementName: PAnsiChar; fccType: FourCC;
+  pchBuffer: PAnsiChar; cchBytes: LongInt; ulFlags: Longint ): Longint; cdecl;
     external LibName index 63;
 
-function mmioCFCopy( mmCfSource: hmmcf; pszDestFileName: pChar; ulFlags: Longint ): Longint; cdecl;
+function mmioCFCopy( mmCfSource: hmmcf; pszDestFileName: PAnsiChar; ulFlags: Longint ): Longint; cdecl;
     external LibName index 66;
 
 function mmioQueryFormatCount( FormatInfo: pmmformatinfo;
@@ -1576,11 +1576,11 @@ function mmioGetFormats( FormatInfo: pmmformatinfo;
   ulReserved: Longint; ulFlags: Longint ): Longint; cdecl;
     external LibName index 88;
 
-function mmioGetFormatName( FormatInfo: pmmformatinfo; pszFormatName: pChar;
+function mmioGetFormatName( FormatInfo: pmmformatinfo; pszFormatName: PAnsiChar;
   plBytesRead: pLong; ulReserved: Longint; ulFlags: Longint ): Longint; cdecl;
     external LibName index 93;
 
-function mmioIdentifyFile( pszFileName: pChar; MMIoInfo: pmmioinfo;
+function mmioIdentifyFile( pszFileName: PAnsiChar; MMIoInfo: pmmioinfo;
   FormatInfo: pmmformatinfo; pfccStorageSystem: pFourCC; ulReserved: Longint;
   ulFlags: Longint ): Longint; cdecl;
     external LibName index 92;
@@ -1600,19 +1600,19 @@ function mmioSetHeader( mmIO: hmmio; pHeader: Pointer; lHeaderLength: LongInt;
 function mmioIniFileHandler( IniFileInfo: pmminifileinfo; ulFlags: Longint ): Longint; cdecl;
     external LibName index 98;
 
-function mmioIdentifyStorageSystem( pszFileName: pChar;
+function mmioIdentifyStorageSystem( pszFileName: PAnsiChar;
   MMIoInfo: pmmioinfo; pfccStorageSystem: pFourCC ): Longint; cdecl;
     external LibName index 100;
 
-function mmioDetermineSSIOProc( pszFileName: pChar; MMIoInfo: pmmioinfo;
-  pfccStorageSystem: pFourCC; pszParsedRemainder: pChar ): Longint; cdecl;
+function mmioDetermineSSIOProc( pszFileName: PAnsiChar; MMIoInfo: pmmioinfo;
+  pfccStorageSystem: pFourCC; pszParsedRemainder: PAnsiChar ): Longint; cdecl;
     external LibName index 101;
 
 function mmioQueryIOProcModuleHandle( IOProc: pMMIOProc;
   IOProcModule: phModule ): Longint; cdecl;
     external LibName index 106;
 
-function mmioCFCompact( pszFileName: pChar; ulFlags: Longint ): Longint; cdecl;
+function mmioCFCompact( pszFileName: PAnsiChar; ulFlags: Longint ): Longint; cdecl;
     external LibName index 113;
 
 //--------
@@ -1630,7 +1630,7 @@ function mmioSet( mmIO: hmmio; ExtendInfo: pmmExtendInfo; ulFlags: Longint): Lon
     external LibName index 114;
 
 function mmioQueryCODECName( IniInfo: pCODECIniFileinfo;
-  pszCODECName: pChar; pulBytesRead: pLongint ): Longint; cdecl;
+  pszCODECName: PAnsiChar; pulBytesRead: pLongint ): Longint; cdecl;
     external LibName index 115;
 
 function mmioQueryCODECNameLength( IniInfo: pCODECIniFileinfo;

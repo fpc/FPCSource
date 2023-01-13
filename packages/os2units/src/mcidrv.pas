@@ -316,10 +316,10 @@ Type
     pInstance                   : Pointer;     //  pointer to the instance structure allocated
                                                //  initialized by the driver. The MCI driver
                                                // will fill in this parameter.
-    szDevDLLName : Array[0..259] of Char;      // Character string containing the device
+    szDevDLLName : Array[0..259] of AnsiChar;      // Character string containing the device
                                                // specific DLL name to call for the open.
                                                // (ie. ACPA.DLL)
-    pszElementName              : pChar;       //   typically a file name or NULL
+    pszElementName              : PAnsiChar;       //   typically a file name or NULL
     usDevParmLen                : Integer;      // Device parameters data block length.
     pDevParm                    : Pointer;     // Device parameters data block. This data
                                                // block is unique to each type of device.

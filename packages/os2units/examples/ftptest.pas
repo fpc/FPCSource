@@ -15,10 +15,10 @@ const
  TstText = 'This is a sample test file for FTPTest'#13#10'check it for yourself.';
 
 var
- Hst, Usr, Pwd: string;
+ Hst, Usr, Pwd: shortstring;
  T: text;
  L: longint;
- S: string;
+ S: shortstring;
 
 begin
  if ParamCount < 1 then
