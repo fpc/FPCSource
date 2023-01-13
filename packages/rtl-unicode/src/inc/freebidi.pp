@@ -34,7 +34,7 @@ function LPos(const Src:TString; vp:Integer; pDir:TDirection):Cardinal;
 function VLength(const Src:TString; pDir:TDirection):Cardinal;
 {Converts a logical position to a visual position}
 function VPos(const Src:TString; lp:Integer; pDir, cDir:TDirection):Cardinal;
-function VPos(UTF8Char:PChar; Len:integer; BytePos:integer):Cardinal;
+function VPos(UTF8Char:PAnsiChar; Len:integer; BytePos:integer):Cardinal;
 {Returns character at a given visual position according to paragraph direction}
 function VCharOf(Src:TString; vp:Integer; dir:TDirection):TCharacter;
 {Inserts a string into another paying attention of RTL/LTR direction}
@@ -50,7 +50,7 @@ function VStr(const Src:TString; pDir:TDirection):TString;
 function DirectionOf(Character:TCharacter):TDirection;
 {Returns contextual direction of caracter in a string}
 function DirectionOf(Src:TString; lp:Integer; pDir:TDirection):TDirection;
-{Inserts a char as if it was typed using keyboard in the most user friendly way.
+{Inserts a AnsiChar as if it was typed using keyboard in the most user friendly way.
 Returns the new cursor position after insersion depending on the new visual text}
 function InsertChar(Src:TCharacter; var Dest:TString; vp:Integer; pDir:TDirection):Integer;
 {Returns a table mapping each visual position to its logical position in an UTF8*
@@ -68,7 +68,7 @@ begin
     Result := 1;
   end;
 end;
-function DumpStr(const Src:TString):String;
+function DumpStr(const Src:TString):AnsiString;
 var
   i:Integer;
 begin
@@ -81,11 +81,11 @@ begin
       Result := Result + '$' + HexStr(Ord(Src[i]),4);
     end;
 end;
-function ComputeCharLength(p:PChar):Cardinal;
+function ComputeCharLength(p:PAnsiChar):Cardinal;
 begin
   if ord(p^)<%11000000
   then
-{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
+{regular single byte character (#0 is a normal AnsiChar, this is UTF8Charascal ;)}
     Result:=1
   else if ((ord(p^) and %11100000) = %11000000)
   then
@@ -162,7 +162,7 @@ begin
   Result := v2l[0];
 end;
 
-function VPos(UTF8Char:PChar; Len:integer; BytePos:integer):Cardinal;
+function VPos(UTF8Char:PAnsiChar; Len:integer; BytePos:integer):Cardinal;
 begin
 end;
 
