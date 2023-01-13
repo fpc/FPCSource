@@ -53,7 +53,7 @@ var
  *
  * Macro to check the following production in the XML spec:
  *
- * [2] Char ::= #x9 | #xA | #xD | [#x20...]
+ * [2] AnsiChar ::= #x9 | #xA | #xD | [#x20...]
  * any byte character in the accepted range
  *)
 #define IS_BYTE_CHAR(c)	 xmlIsChar_ch(c)
@@ -64,7 +64,7 @@ var
  *
  * Macro to check the following production in the XML spec:
  *
- * [2] Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+ * [2] AnsiChar ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
  *                  | [#x10000-#x10FFFF]
  * any Unicode character, excluding the surrogate blocks, FFFE, and FFFF.
  *)
@@ -72,7 +72,7 @@ var
 
 (**
  * IS_CHAR_CH:
- * @c: an xmlChar (usually an unsigned char)
+ * @c: an xmlChar (usually an unsigned AnsiChar)
  *
  * Behaves like IS_CHAR on single-byte value
  *)
@@ -90,7 +90,7 @@ var
 
 (**
  * IS_BLANK_CH:
- * @c:  an xmlChar value (normally unsigned char)
+ * @c:  an xmlChar value (normally unsigned AnsiChar)
  *
  * Behaviour same as IS_BLANK
  *)
@@ -118,7 +118,7 @@ var
 
 (**
  * IS_DIGIT_CH:
- * @c:  an xmlChar value (usually an unsigned char)
+ * @c:  an xmlChar value (usually an unsigned AnsiChar)
  *
  * Behaves like IS_DIGIT but with a single byte argument
  *)
@@ -136,7 +136,7 @@ var
 
 (**
  * IS_COMBINING_CH:
- * @c:  an xmlChar (usually an unsigned char)
+ * @c:  an xmlChar (usually an unsigned AnsiChar)
  *
  * Always false (all combining chars > 0xff)
  *)
@@ -157,7 +157,7 @@ var
 
 (**
  * IS_EXTENDER_CH:
- * @c:  an xmlChar value (usually an unsigned char)
+ * @c:  an xmlChar value (usually an unsigned AnsiChar)
  *
  * Behaves like IS_EXTENDER but with a single-byte argument
  *)
@@ -187,7 +187,7 @@ var
 
 (**
  * IS_LETTER_CH:
- * @c:  an xmlChar value (normally unsigned char)
+ * @c:  an xmlChar value (normally unsigned AnsiChar)
  *
  * Macro behaves like IS_LETTER, but only check base chars
  *
@@ -226,7 +226,7 @@ var
 
 (**
  * IS_PUBIDCHAR_CH:
- * @c:  an xmlChar value (normally unsigned char)
+ * @c:  an xmlChar value (normally unsigned AnsiChar)
  *
  * Same as IS_PUBIDCHAR but for single-byte value
  *)
@@ -246,7 +246,7 @@ var
  * MOVETO_ENDTAG:
  * @p:  and UTF8 string pointer
  *
- * Skips to the next '>' char.
+ * Skips to the next '>' AnsiChar.
  *)
 #define MOVETO_ENDTAG(p)						\
     while (( *p) && ( *(p) != '>')) (p)++
@@ -255,7 +255,7 @@ var
  * MOVETO_STARTTAG:
  * @p:  and UTF8 string pointer
  *
- * Skips to the next '<' char.
+ * Skips to the next '<' AnsiChar.
  *)
 #define MOVETO_STARTTAG(p)						\
     while (( *p) && ( *(p) != '<')) (p)++
@@ -276,12 +276,12 @@ external xml2lib int EXTDECL                   xmlIsLetter     (int c);
  * Parser context.
  *)
 external xml2lib xmlParserCtxtPtr EXTDECL	
-			xmlCreateFileParserCtxt	(char *filename);
+			xmlCreateFileParserCtxt	(AnsiChar *filename);
 external xml2lib xmlParserCtxtPtr EXTDECL	
-			xmlCreateURLParserCtxt	(char *filename,
+			xmlCreateURLParserCtxt	(AnsiChar *filename,
 						 int options);
 external xml2lib xmlParserCtxtPtr EXTDECL	
-			xmlCreateMemoryParserCtxt(char *buffer,
+			xmlCreateMemoryParserCtxt(AnsiChar *buffer,
 						 int size);
 external xml2lib xmlParserCtxtPtr EXTDECL	
 			xmlCreateEntityParserCtxt(xmlChar *URL,
@@ -303,7 +303,7 @@ external xml2lib int EXTDECL
 external xml2lib void EXTDECL
 			__xmlErrEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlParserErrors xmlerr,
-						 char *msg,
+						 AnsiChar *msg,
 						 xmlChar * str1,
 						 xmlChar * str2);
 {$ENDIF}
@@ -326,7 +326,7 @@ external xml2lib void EXTDECL
 			xmlFreeInputStream	(xmlParserInputPtr input);
 external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewInputFromFile	(xmlParserCtxtPtr ctxt,
-						 char *filename);
+						 AnsiChar *filename);
 external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewInputStream	(xmlParserCtxtPtr ctxt);
 
@@ -537,8 +537,8 @@ external xml2lib void EXTDECL			xmlParserInputShrink	(xmlParserInputPtr in);
  * Actually comes from the HTML parser but launched from the init stuff.
  *)
 external xml2lib void EXTDECL			htmlInitAutoClose	(void);
-external xml2lib htmlParserCtxtPtr EXTDECL	htmlCreateFileParserCtxt(char *filename,
-	                                         char *encoding);
+external xml2lib htmlParserCtxtPtr EXTDECL	htmlCreateFileParserCtxt(AnsiChar *filename,
+	                                         AnsiChar *encoding);
 {$ENDIF}
 
 (*
@@ -598,6 +598,6 @@ external xml2lib void EXTDECL
  *)
 external xml2lib void EXTDECL
 	xmlErrMemory		(xmlParserCtxtPtr ctxt,
-				 char *extra);
+				 AnsiChar *extra);
 {$ENDIF}
 {$ENDIF}

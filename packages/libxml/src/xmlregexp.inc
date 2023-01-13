@@ -109,7 +109,7 @@ procedure xmlExpRef(expr: xmlExpNodePtr); EXTDECL; external xml2lib;
 (*
  * constructors can be either manual or from a string
  *)
-function xmlExpParse(ctxt: xmlExpCtxtPtr; expr: pchar): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpParse(ctxt: xmlExpCtxtPtr; expr: PAnsiChar): xmlExpNodePtr; EXTDECL; external xml2lib;
 function xmlExpNewAtom(ctxt: xmlExpCtxtPtr; name: xmlCharPtr; len: cint): xmlExpNodePtr; EXTDECL; external xml2lib;
 function xmlExpNewOr(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL; external xml2lib;
 function xmlExpNewSeq(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL; external xml2lib;

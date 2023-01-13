@@ -34,7 +34,7 @@
  * Callback called when a validity error is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlValidityErrorFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
 (**
  * xmlValidityWarningFunc:
@@ -47,7 +47,7 @@
  * Callback called when a validity warning is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlValidityWarningFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
 (*
  * xmlValidCtxt:
@@ -131,7 +131,7 @@ procedure xmlDumpNotationTable(buf: xmlBufferPtr; table: xmlNotationTablePtr); E
 function xmlNewDocElementContent(doc: xmlDocPtr; name: xmlCharPtr; _type: xmlElementContentType): xmlElementContentPtr; EXTDECL; external xml2lib;
 function xmlCopyDocElementContent(doc: xmlDocPtr; content: xmlElementContentPtr): xmlElementContentPtr; EXTDECL; external xml2lib;
 procedure xmlFreeDocElementContent(doc: xmlDocPtr; cur: xmlElementContentPtr); EXTDECL; external xml2lib;
-procedure xmlSnprintfElementContent(buf: pchar; size: cint; content: xmlElementContentPtr; englob: cint); EXTDECL; external xml2lib;
+procedure xmlSnprintfElementContent(buf: PAnsiChar; size: cint; content: xmlElementContentPtr; englob: cint); EXTDECL; external xml2lib;
 
 (* Element *)
 function xmlAddElementDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name: xmlCharPtr; _type: xmlElementTypeVal; content: xmlElementContentPtr): xmlElementPtr; EXTDECL; external xml2lib;

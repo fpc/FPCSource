@@ -36,8 +36,8 @@
 (**
  * A schemas validation context
  *)
-  xmlSchematronValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
-  xmlSchematronValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlSchematronValidityErrorFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
+  xmlSchematronValidityWarningFunc = procedure(ctx: pointer; msg: PAnsiChar); cdecl; varargs;
 
   xmlSchematronParserCtxt = record end;
 
@@ -48,8 +48,8 @@
 (*
  * Interfaces for parsing.
  *)
-function xmlSchematronNewParserCtxt(URL: pchar): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
-function xmlSchematronNewMemParserCtxt(buffer: pchar; size: cint): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchematronNewParserCtxt(URL: PAnsiChar): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchematronNewMemParserCtxt(buffer: PAnsiChar; size: cint): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
 function xmlSchematronNewDocParserCtxt(doc: xmlDocPtr): xmlSchematronParserCtxtPtr; EXTDECL; external xml2lib;
 procedure xmlSchematronFreeParserCtxt(ctxt: xmlSchematronParserCtxtPtr); EXTDECL; external xml2lib;
 (*****

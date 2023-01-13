@@ -36,15 +36,15 @@
  * and XHTML 1.0 (which share the same structure).
  *)
   htmlElemDesc = record
-    name        : pchar;	(* The tag name *)
-    startTag    : char;      (* Whether the start tag can be implied *)
-    endTag      : char;        (* Whether the end tag can be implied *)
-    saveEndTag  : char;    (* Whether the end tag should be saved *)
-    empty       : char;         (* Is this an empty element ? *)
-    depr        : char;          (* Is this a deprecated element ? *)
-    dtd         : char;           (* 1: only in Loose DTD, 2: only Frameset one *)
-    isinline    : char;      (* is this a block 0 or inline 1 element *)
-    desc        : pchar;   (* the description *)
+    name        : PAnsiChar;	(* The tag name *)
+    startTag    : AnsiChar;      (* Whether the start tag can be implied *)
+    endTag      : AnsiChar;        (* Whether the end tag can be implied *)
+    saveEndTag  : AnsiChar;    (* Whether the end tag should be saved *)
+    empty       : AnsiChar;         (* Is this an empty element ? *)
+    depr        : AnsiChar;          (* Is this a deprecated element ? *)
+    dtd         : AnsiChar;           (* 1: only in Loose DTD, 2: only Frameset one *)
+    isinline    : AnsiChar;      (* is this a block 0 or inline 1 element *)
+    desc        : PAnsiChar;   (* the description *)
 
 (* NRK Jan.2003
  * New fields encapsulating HTML structure
@@ -56,12 +56,12 @@
  *	are allowed.  Some element relationships are not fully represented:
  *	these are flagged with the word MODIFIER
  *)
-    subelts       : ppchar;		(* allowed sub-elements of this element *)
-    defaultsubelt : pchar;	(* subelement for suggested auto-repair
+    subelts       : PPAnsiChar;		(* allowed sub-elements of this element *)
+    defaultsubelt : PAnsiChar;	(* subelement for suggested auto-repair
 					   if necessary or NULL *)
-    attrs_opt     : ppchar;		(* Optional Attributes *)
-    attrs_depr    : ppchar;		(* Additional deprecated attributes *)
-    attrs_req     : ppchar;		(* Required attributes *)
+    attrs_opt     : PPAnsiChar;		(* Optional Attributes *)
+    attrs_depr    : PPAnsiChar;		(* Additional deprecated attributes *)
+    attrs_req     : PPAnsiChar;		(* Required attributes *)
   end;
 
 (*
@@ -69,8 +69,8 @@
  *)
   htmlEntityDesc = record
     value : cuint;	(* the UNICODE value for the character *)
-    name  : pchar;	(* The entity name *)
-    desc  : pchar;   (* the description *)
+    name  : PAnsiChar;	(* The entity name *)
+    desc  : PAnsiChar;   (* the description *)
   end;
 {$ENDIF}
 
@@ -89,13 +89,13 @@ function htmlParseEntityRef(ctxt: htmlParserCtxtPtr; str: xmlCharPtrPtr): htmlEn
 function htmlParseCharRef(ctxt: htmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
 function htmlParseElement(ctxt: htmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
 function htmlNewParserCtxt: htmlParserCtxtPtr; EXTDECL; external xml2lib;
-function htmlCreateMemoryParserCtxt(buffer: pchar; size: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
+function htmlCreateMemoryParserCtxt(buffer: PAnsiChar; size: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
 
 function htmlParseDocument(doc: htmlDocPtr; elem: htmlNodePtr): cint; EXTDECL; external xml2lib;
-function htmlSAXParseDoc(cur: xmlCharPtr; encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlParseDoc(cur: xmlCharPtr; encoding: pchar): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlSAXParseFile(filename, encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlParseFile(filename, encoding: pchar): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlSAXParseDoc(cur: xmlCharPtr; encoding: PAnsiChar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlParseDoc(cur: xmlCharPtr; encoding: PAnsiChar): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlSAXParseFile(filename, encoding: PAnsiChar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlParseFile(filename, encoding: PAnsiChar): htmlDocPtr; EXTDECL; external xml2lib;
 function UTF8ToHtml(_out: pointer; outlen: cint; _in: pointer; inlen: cint): cint; EXTDECL; external xml2lib;
 function htmlEncodeEntities(_out: pointer; outlen: cint; _in: pointer; inlen, quoteChar: cint): cint; EXTDECL; external xml2lib;
 function htmlIsScriptAttribute(name: xmlCharPtr): cint; EXTDECL; external xml2lib;
@@ -105,8 +105,8 @@ function htmlHandleOmittedElem(val: cint): cint; EXTDECL; external xml2lib;
 (**
  * Interfaces for the Push mode.
  *)
-function htmlCreatePushParserCtxt(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: pchar; size: cint; filename: pchar; enc: xmlCharEncoding): htmlParserCtxtPtr; EXTDECL; external xml2lib;
-function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: pchar; size, terminate: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
+function htmlCreatePushParserCtxt(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: PAnsiChar; size: cint; filename: PAnsiChar; enc: xmlCharEncoding): htmlParserCtxtPtr; EXTDECL; external xml2lib;
+function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: PAnsiChar; size, terminate: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_PUSH_ENABLED *)
 procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
 {$ENDIF}
@@ -136,16 +136,16 @@ procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib
 {$IFDEF FUNCTION}
 procedure htmlCtxtReset(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
 function htmlParseChunk(ctxt: htmlParserCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
-function htmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlReadFile(URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlReadFd(fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
-function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadDoc(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadFile(URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadMemory(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadFd(fd: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -176,7 +176,7 @@ function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; EXTDECL; exte
  *
  * Returns the default subelement for this element
  *)
-function htmlDefaultSubelement(elt: htmlElemDescPtr): pchar;
+function htmlDefaultSubelement(elt: htmlElemDescPtr): PAnsiChar;
 
 (**
  * htmlElementAllowedHereDesc:
@@ -196,7 +196,7 @@ function htmlElementAllowedHereDesc(parent: htmlElemDescPtr; elt: htmlElemDescPt
  *
  * Returns the attributes required for the specified element.
  *)
-function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
+function htmlRequiredAttrs(elt: htmlElemDescPtr): PPAnsiChar;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_HTML_ENABLED *)
