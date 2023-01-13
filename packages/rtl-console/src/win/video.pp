@@ -31,7 +31,7 @@ const
     LastCursorType: word = crUnderline;
     OrigScreen: PVideoBuf = nil;
     OrigScreenSize: cardinal = 0;
-    ConsoleOutDeviceName: string [8] = 'CONOUT$'#0;
+    ConsoleOutDeviceName: string[8] = 'CONOUT$'#0;
 
 var ConsoleInfo : TConsoleScreenBufferInfo;
     ConsoleCursorInfo : TConsoleCursorInfo;

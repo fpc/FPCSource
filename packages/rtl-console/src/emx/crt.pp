@@ -30,13 +30,13 @@ var
 
 implementation
 
-const   extkeycode:char=#0;
+const   extkeycode:AnsiChar=#0;
 
 var maxrows,maxcols:word;
     calibration:longint;
 
 type    Tkbdkeyinfo=record
-            charcode,scancode:char;
+            charcode,scancode:AnsiChar;
             fbstatus,bnlsshift:byte;
             fsstate:word;
             time:longint;
@@ -105,9 +105,9 @@ function viogetcurpos(var row,column:word;viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 109;
 function viosetcurpos(row,column,viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 115;
-function viowrtTTY(s:Pchar;len,viohandle:longint):word; cdecl;
+function viowrtTTY(s:PAnsiChar;len,viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 119;
-function viowrtcharstratt(s:Pchar;len,row,col:longint;var attr:byte;
+function viowrtcharstratt(s:PAnsiChar;len,row,col:longint;var attr:byte;
                           viohandle:longint):word; cdecl;
                           external 'EMXWRAP' index 148;
 function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
@@ -314,12 +314,12 @@ begin
         end;
 end;
 
-function readkey:char;
+function readkey:AnsiChar;
 
 {Reads the next character from the keyboard.}
 
 var Akeyrec:Tkbdkeyinfo;
-    c,s:char;
+    c,s:AnsiChar;
 
 begin
     if extkeycode<>#0 then
@@ -543,17 +543,17 @@ begin
 end;
 
 {$ASMMODE INTEL}
-procedure writePchar(s:Pchar;len:word);
+procedure writePchar(s:PAnsiChar;len:word);
 
 {Write a series of characters to the screen.
 
  Not very fast, but is just text-mode isn't it?}
 
 var x,y:word;
-    c:char;
+    c:AnsiChar;
     i,n:integer;
     screl:word;
-    ca:Pchar;
+    ca:PAnsiChar;
 
 begin
     i:=0;
@@ -624,8 +624,8 @@ function crtread(var f:textrec):word;
 {Read a series of characters from the console.}
 
 var max,curpos:integer;
-    c:char;
-    clist:array[0..2] of char;
+    c:AnsiChar;
+    clist:array[0..2] of AnsiChar;
 
 begin
     max:=f.bufsize-2;
@@ -671,7 +671,7 @@ function crtwrite(var f:textrec):word;
 {Write a series of characters to the console.}
 
 begin
-    writePchar(Pchar(f.bufptr),f.bufpos);
+    writePchar(PAnsiChar(f.bufptr),f.bufpos);
     f.bufpos:=0;
     crtwrite:=0;
 end;

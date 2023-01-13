@@ -27,9 +27,9 @@ unit vesamode;
 
        pwordarray = ^twordarray;
        TVESAInfoBlock = record
-         VESASignature   : ARRAY[0..3] OF CHAR;
+         VESASignature   : ARRAY[0..3] OF AnsiChar;
          VESAVersion     : WORD;
-         OEMStringPtr    : PChar;
+         OEMStringPtr    : PAnsiChar;
          Capabilities    : LONGINT;
          VideoModePtr    : pwordarray;
          TotalMemory     : WORD;
