@@ -82,7 +82,7 @@ type
    strbuf = record
         maxlen : longint;
         len : longint;
-        buf : Pchar;
+        buf : PAnsiChar;
      end;
 
    t_uscalar_t = __t_uscalar_t; // moved here from stropts.h
@@ -108,7 +108,7 @@ type
         ic_cmd : longint;
         ic_timout : longint;
         ic_len : longint;
-        ic_dp : Pchar;
+        ic_dp : PAnsiChar;
      end;
 
    Pstrrecvfd = ^strrecvfd;
@@ -116,12 +116,12 @@ type
         fd : longint;
         uid : uid_t;
         gid : gid_t;
-        __fill : array[0..7] of char;
+        __fill : array[0..7] of AnsiChar;
      end;
 
    Pstr_mlist = ^str_mlist;
    str_mlist = record
-        l_name : array[0..(FMNAMESZ + 1)-1] of char;
+        l_name : array[0..(FMNAMESZ + 1)-1] of AnsiChar;
      end;
 
    Pstr_list = ^str_list;

@@ -35,7 +35,7 @@ in define line 37 *)
  in declarator_list *)
  in declarator_list *)
 (* error
-   ({register char __result;                                                  \
+   ({register AnsiChar __result;                                                  \
 (* error
      __asm__ ____ ("btl %1,%2 ; setcb %b0"                            \
 in declaration at line 54 *)

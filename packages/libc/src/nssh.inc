@@ -9,7 +9,7 @@ type
     NSS_STATUS_RETURN := 2
   );
 
-function __nss_configure_lookup(__dbname:Pchar; __string:Pchar):longint;cdecl;external clib name '__nss_configure_lookup';
+function __nss_configure_lookup(__dbname:PAnsiChar; __string:PAnsiChar):longint;cdecl;external clib name '__nss_configure_lookup';
 
 
 { ---------------------------------------------------------------------

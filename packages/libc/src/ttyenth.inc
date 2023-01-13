@@ -9,12 +9,12 @@ const
 type
    Pttyent = ^ttyent;
    ttyent = record
-        ty_name : Pchar;
-        ty_getty : Pchar;
-        ty_type : Pchar;
+        ty_name : PAnsiChar;
+        ty_getty : PAnsiChar;
+        ty_type : PAnsiChar;
         ty_status : longint;
-        ty_window : Pchar;
-        ty_comment : Pchar;
+        ty_window : PAnsiChar;
+        ty_comment : PAnsiChar;
      end;
 
 
@@ -23,7 +23,7 @@ const
    TTY_SECURE = $02;
 
 function getttyent:Pttyent;cdecl;external clib name 'getttyent';
-function getttynam(__tty:Pchar):Pttyent;cdecl;external clib name 'getttynam';
+function getttynam(__tty:PAnsiChar):Pttyent;cdecl;external clib name 'getttynam';
 function setttyent:longint;cdecl;external clib name 'setttyent';
 function endttyent:longint;cdecl;external clib name 'endttyent';
 

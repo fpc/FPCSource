@@ -8,8 +8,8 @@ type
    Plastlog = ^lastlog;
    lastlog = record
         ll_time : __time_t;
-        ll_line : array[0..(UT_LINESIZE)-1] of char;
-        ll_host : array[0..(UT_HOSTSIZE)-1] of char;
+        ll_line : array[0..(UT_LINESIZE)-1] of AnsiChar;
+        ll_host : array[0..(UT_HOSTSIZE)-1] of AnsiChar;
      end;
 
    Pexit_status = ^exit_status;
@@ -22,15 +22,15 @@ type
    utmp = record
         ut_type : smallint;
         ut_pid : pid_t;
-        ut_line : array[0..(UT_LINESIZE)-1] of char;
-        ut_id : array[0..3] of char;
-        ut_user : array[0..(UT_NAMESIZE)-1] of char;
-        ut_host : array[0..(UT_HOSTSIZE)-1] of char;
+        ut_line : array[0..(UT_LINESIZE)-1] of AnsiChar;
+        ut_id : array[0..3] of AnsiChar;
+        ut_user : array[0..(UT_NAMESIZE)-1] of AnsiChar;
+        ut_host : array[0..(UT_HOSTSIZE)-1] of AnsiChar;
         ut_exit : exit_status;
         ut_session : longint;
         ut_tv : timeval;
         ut_addr_v6 : array[0..3] of int32_t;
-        __unused : array[0..19] of char;
+        __unused : array[0..19] of AnsiChar;
      end;
    PPutmp = ^Putmp;
 

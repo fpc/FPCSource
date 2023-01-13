@@ -16,9 +16,9 @@ type
    nr_route_struct = record
         _type : longint;
         callsign : ax25_address;
-        device : array[0..15] of char;
+        device : array[0..15] of AnsiChar;
         quality : dword;
-        mnemonic : array[0..6] of char;
+        mnemonic : array[0..6] of AnsiChar;
         neighbour : ax25_address;
         obs_count : dword;
         ndigis : dword;

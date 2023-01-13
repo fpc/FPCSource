@@ -14,7 +14,7 @@ type
     totalswap: LongWord;                { Total swap space size }
     freeswap: LongWord;                 { swap space still available }
     procs: Word;                        { Number of current processes }
-    _f: packed array[0..21] of Char;    { Pads structure to 64 bytes }
+    _f: packed array[0..21] of AnsiChar;    { Pads structure to 64 bytes }
   end;
   P_sysInfo = ^_sysInfo;
 

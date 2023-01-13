@@ -77,7 +77,7 @@ type
         arp_ha : sockaddr;
         arp_flags : longint;
         arp_netmask : sockaddr;
-        arp_dev : array[0..15] of char;
+        arp_dev : array[0..15] of AnsiChar;
      end;
 
    Parpreq_old = ^arpreq_old;

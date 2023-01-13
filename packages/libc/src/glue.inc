@@ -33,7 +33,7 @@ Type
     count: Integer;
     case { __value } Integer of
       0: (__wch: wint_t);
-      1: (__wchb: packed array[0..4 - 1] of Char);
+      1: (__wchb: packed array[0..4 - 1] of AnsiChar);
     end;
   mbstate_t = __mbstate_t;
   P__mbstate_t = ^__mbstate_t;

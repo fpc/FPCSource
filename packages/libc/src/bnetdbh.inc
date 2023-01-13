@@ -2,8 +2,8 @@
 type
    Pnetent = ^netent;
    netent = record
-        n_name : Pchar;
-        n_aliases : ^Pchar;
+        n_name : PAnsiChar;
+        n_aliases : ^PAnsiChar;
         n_addrtype : longint;
         n_net : uint32_t;
      end;

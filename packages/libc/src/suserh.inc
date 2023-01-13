@@ -65,7 +65,7 @@ type
         u_ar0 : Puser_regs_struct;
         u_fpstate : Puser_fpregs_struct;
         magic : dword;
-        u_comm : array[0..31] of char;
+        u_comm : array[0..31] of AnsiChar;
         u_debugreg : array[0..7] of longint;
      end;
 

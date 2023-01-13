@@ -24,7 +24,7 @@ const
 
   MNT_FORCE = 1;
 
-function mount(__special_file:Pchar; __dir:Pchar; __fstype:Pchar; __rwflag:dword; __data:pointer):longint;cdecl;external clib name 'mount';
-function umount(__special_file:Pchar):longint;cdecl;external clib name 'umount';
-function umount2(__special_file:Pchar; __flags:longint):longint;cdecl;external clib name 'umount2';
+function mount(__special_file:PAnsiChar; __dir:PAnsiChar; __fstype:PAnsiChar; __rwflag:dword; __data:pointer):longint;cdecl;external clib name 'mount';
+function umount(__special_file:PAnsiChar):longint;cdecl;external clib name 'umount';
+function umount2(__special_file:PAnsiChar; __flags:longint):longint;cdecl;external clib name 'umount2';
 

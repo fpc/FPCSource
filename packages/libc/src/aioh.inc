@@ -15,8 +15,8 @@ type
        __error_code : longint;
        __return_value : __ssize_t;
        aio_offset : __off_t;
-       __pad : array[0..((sizeof(__off64_t)) - (sizeof(__off_t)))-1] of char;
-       __unused : array[0..31] of char;
+       __pad : array[0..((sizeof(__off64_t)) - (sizeof(__off_t)))-1] of AnsiChar;
+       __unused : array[0..31] of AnsiChar;
     end;
   PPaiocb = ^Paiocb;
 
@@ -34,7 +34,7 @@ type
        __error_code : longint;
        __return_value : __ssize_t;
        aio_offset : __off64_t;
-       __unused : array[0..31] of char;
+       __unused : array[0..31] of AnsiChar;
     end;
   PPaiocb64 = ^Paiocb64;
 

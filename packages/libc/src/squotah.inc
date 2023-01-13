@@ -12,7 +12,7 @@ const
   GRPQUOTA = 1;
 
 const
-  INITQFNAMES: array[0..2] of PChar = ('user','group','undefined');
+  INITQFNAMES: array[0..2] of PAnsiChar = ('user','group','undefined');
 
   QUOTAFILENAME = 'quota';
   QUOTAGROUP = 'staff';
@@ -66,7 +66,7 @@ type
     end;
 
 
-function quotactl(__cmd:longint; __special:Pchar; __id:longint; __addr:caddr_t):longint;cdecl;external clib name 'quotactl';
+function quotactl(__cmd:longint; __special:PAnsiChar; __id:longint; __addr:caddr_t):longint;cdecl;external clib name 'quotactl';
 
 { ---------------------------------------------------------------------
     Borland compatibility types

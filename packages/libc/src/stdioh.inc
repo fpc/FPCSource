@@ -19,55 +19,55 @@ const
 const
    P_tmpdir = '/tmp';
 
-function remove(__filename:Pchar):longint;cdecl;external clib name 'remove';
-function __rename(__old:Pchar; __new:Pchar):longint;cdecl;external clib name 'rename';
+function remove(__filename:PAnsiChar):longint;cdecl;external clib name 'remove';
+function __rename(__old:PAnsiChar; __new:PAnsiChar):longint;cdecl;external clib name 'rename';
 
 function tmpfile:PFILE;cdecl;external clib name 'tmpfile';
 function tmpfile64:PFILE;cdecl;external clib name 'tmpfile64';
 
-function tmpnam(__s:Pchar):Pchar;cdecl;external clib name 'tmpnam';
-function tmpnam_r(__s:Pchar):Pchar;cdecl;external clib name 'tmpnam_r';
-function tempnam(dir,pfx: PChar): PChar; cdecl; external clib name 'tempnam';
+function tmpnam(__s:PAnsiChar):PAnsiChar;cdecl;external clib name 'tmpnam';
+function tmpnam_r(__s:PAnsiChar):PAnsiChar;cdecl;external clib name 'tmpnam_r';
+function tempnam(dir,pfx: PAnsiChar): PAnsiChar; cdecl; external clib name 'tempnam';
 
 function fclose(__stream:PFILE):longint;cdecl;external clib name 'fclose';
 function fflush(__stream:PFILE):longint;cdecl;external clib name 'fflush';
 function fflush_unlocked(__stream:PFILE):longint;cdecl;external clib name 'fflush_unlocked';
 function fcloseall:longint;cdecl;external clib name 'fcloseall';
 
-function fopen(__filename:Pchar; __modes:Pchar):PFILE;cdecl;external clib name 'fopen';
-function freopen(__filename:Pchar; __modes:Pchar; __stream:PFILE):PFILE;cdecl;external clib name 'freopen';
+function fopen(__filename:PAnsiChar; __modes:PAnsiChar):PFILE;cdecl;external clib name 'fopen';
+function freopen(__filename:PAnsiChar; __modes:PAnsiChar; __stream:PFILE):PFILE;cdecl;external clib name 'freopen';
 
-function fopen64(__filename:Pchar; __modes:Pchar):PFILE;cdecl;external clib name 'fopen64';
-function freopen64(__filename:Pchar; __modes:Pchar; __stream:PFILE):PFILE;cdecl;external clib name 'freopen64';
+function fopen64(__filename:PAnsiChar; __modes:PAnsiChar):PFILE;cdecl;external clib name 'fopen64';
+function freopen64(__filename:PAnsiChar; __modes:PAnsiChar; __stream:PFILE):PFILE;cdecl;external clib name 'freopen64';
 
-function fdopen(__fd:longint; __modes:Pchar):PFILE;cdecl;external clib name 'fdopen';
+function fdopen(__fd:longint; __modes:PAnsiChar):PFILE;cdecl;external clib name 'fdopen';
 
-function fopencookie(__magic_cookie:pointer; __modes:Pchar; __io_funcs:_IO_cookie_io_functions_t):PFILE;cdecl;external clib name 'fopencookie';
-function fmemopen(__s:pointer; __len:size_t; __modes:Pchar):PFILE;cdecl;external clib name 'fmemopen';
-function open_memstream(__bufloc:PPchar; __sizeloc:Psize_t):PFILE;cdecl;external clib name 'open_memstream';
+function fopencookie(__magic_cookie:pointer; __modes:PAnsiChar; __io_funcs:_IO_cookie_io_functions_t):PFILE;cdecl;external clib name 'fopencookie';
+function fmemopen(__s:pointer; __len:size_t; __modes:PAnsiChar):PFILE;cdecl;external clib name 'fmemopen';
+function open_memstream(__bufloc:PPAnsiChar; __sizeloc:Psize_t):PFILE;cdecl;external clib name 'open_memstream';
 
-procedure setbuf(__stream:PFILE; __buf:Pchar);cdecl;external clib name 'setbuf';
-function setvbuf(__stream:PFILE; __buf:Pchar; __modes:longint; __n:size_t):longint;cdecl;external clib name 'setvbuf';
+procedure setbuf(__stream:PFILE; __buf:PAnsiChar);cdecl;external clib name 'setbuf';
+function setvbuf(__stream:PFILE; __buf:PAnsiChar; __modes:longint; __n:size_t):longint;cdecl;external clib name 'setvbuf';
 
-procedure setbuffer(__stream:PFILE; __buf:Pchar; __size:size_t);cdecl;external clib name 'setbuffer';
+procedure setbuffer(__stream:PFILE; __buf:PAnsiChar; __size:size_t);cdecl;external clib name 'setbuffer';
 procedure setlinebuf(__stream:PFILE);cdecl;external clib name 'setlinebuf';
 
-function fprintf(__stream:PFILE; __format:Pchar; args:array of const):longint;cdecl;external clib name 'fprintf';
-function fprintf(__stream:PFILE; __format:Pchar):longint;cdecl;varargs;external clib name 'fprintf';
-function printf(__format:Pchar; args:array of const):longint;cdecl;external clib name 'printf';
-function printf(__format:Pchar):longint;cdecl;varargs;external clib name 'printf';
-function sprintf(__s:Pchar; __format:Pchar; args:array of const):longint;cdecl;external clib name 'sprintf';
-function sprintf(__s:Pchar; __format:Pchar):longint;varargs;cdecl;external clib name 'sprintf';
-function vfprintf(__s:PFILE; __format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vfprintf';
-function vprintf(__format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vprintf';
-function vsprintf(__s:Pchar; __format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vsprintf';
+function fprintf(__stream:PFILE; __format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'fprintf';
+function fprintf(__stream:PFILE; __format:PAnsiChar):longint;cdecl;varargs;external clib name 'fprintf';
+function printf(__format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'printf';
+function printf(__format:PAnsiChar):longint;cdecl;varargs;external clib name 'printf';
+function sprintf(__s:PAnsiChar; __format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'sprintf';
+function sprintf(__s:PAnsiChar; __format:PAnsiChar):longint;varargs;cdecl;external clib name 'sprintf';
+function vfprintf(__s:PFILE; __format:PAnsiChar; __arg:_G_va_list):longint;cdecl;external clib name 'vfprintf';
+function vprintf(__format:PAnsiChar; __arg:_G_va_list):longint;cdecl;external clib name 'vprintf';
+function vsprintf(__s:PAnsiChar; __format:PAnsiChar; __arg:_G_va_list):longint;cdecl;external clib name 'vsprintf';
 
-function fscanf(__stream:PFILE; __format:Pchar; args:array of const):longint;cdecl;external clib name 'fscanf';
-function fscanf(__stream:PFILE; __format:Pchar):longint;varargs;cdecl;external clib name 'fscanf';
-function scanf(__format:Pchar; args:array of const):longint;cdecl;external clib name 'scanf';
-function scanf(__format:Pchar):longint;cdecl;varargs;external clib name 'scanf';
-function sscanf(__s:Pchar; __format:Pchar; args:array of const):longint;cdecl;external clib name 'sscanf';
-function sscanf(__s:Pchar; __format:Pchar):longint;cdecl;varargs;external clib name 'sscanf';
+function fscanf(__stream:PFILE; __format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'fscanf';
+function fscanf(__stream:PFILE; __format:PAnsiChar):longint;varargs;cdecl;external clib name 'fscanf';
+function scanf(__format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'scanf';
+function scanf(__format:PAnsiChar):longint;cdecl;varargs;external clib name 'scanf';
+function sscanf(__s:PAnsiChar; __format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'sscanf';
+function sscanf(__s:PAnsiChar; __format:PAnsiChar):longint;cdecl;varargs;external clib name 'sscanf';
 
 function fgetc(__stream:PFILE):longint;cdecl;external clib name 'fgetc';
 function getc(__stream:PFILE):longint;cdecl;external clib name 'getc';
@@ -87,19 +87,19 @@ function putchar_unlocked(__c:longint):longint;cdecl;external clib name 'putchar
 function getw(__stream:PFILE):longint;cdecl;external clib name 'getw';
 function putw(__w:longint; __stream:PFILE):longint;cdecl;external clib name 'putw';
 
-function fgets(__s:Pchar; __n:longint; __stream:PFILE):Pchar;cdecl;external clib name 'fgets';
-function fgets_unlocked(__s:Pchar; __n:longint; __stream:PFILE):Pchar;cdecl;external clib name 'fgets_unlocked';
+function fgets(__s:PAnsiChar; __n:longint; __stream:PFILE):PAnsiChar;cdecl;external clib name 'fgets';
+function fgets_unlocked(__s:PAnsiChar; __n:longint; __stream:PFILE):PAnsiChar;cdecl;external clib name 'fgets_unlocked';
 
-function gets(__s:Pchar):Pchar;cdecl;external clib name 'gets';
+function gets(__s:PAnsiChar):PAnsiChar;cdecl;external clib name 'gets';
 
-function __getdelim(__lineptr:PPchar; __n:Psize_t; __delimiter:longint; __stream:PFILE):_IO_ssize_t;cdecl;external clib name '__getdelim';
-function getdelim(__lineptr:PPchar; __n:Psize_t; __delimiter:longint; __stream:PFILE):_IO_ssize_t;cdecl;external clib name 'getdelim';
-function getline(__lineptr:PPchar; __n:Psize_t; __stream:PFILE):_IO_ssize_t;cdecl;external clib name 'getline';
+function __getdelim(__lineptr:PPAnsiChar; __n:Psize_t; __delimiter:longint; __stream:PFILE):_IO_ssize_t;cdecl;external clib name '__getdelim';
+function getdelim(__lineptr:PPAnsiChar; __n:Psize_t; __delimiter:longint; __stream:PFILE):_IO_ssize_t;cdecl;external clib name 'getdelim';
+function getline(__lineptr:PPAnsiChar; __n:Psize_t; __stream:PFILE):_IO_ssize_t;cdecl;external clib name 'getline';
 
-function fputs(__s:Pchar; __stream:PFILE):longint;cdecl;external clib name 'fputs';
-function fputs_unlocked(__s:Pchar; __stream:PFILE):longint;cdecl;external clib name 'fputs_unlocked';
+function fputs(__s:PAnsiChar; __stream:PFILE):longint;cdecl;external clib name 'fputs';
+function fputs_unlocked(__s:PAnsiChar; __stream:PFILE):longint;cdecl;external clib name 'fputs_unlocked';
 
-function puts(__s:Pchar):longint;cdecl;external clib name 'puts';
+function puts(__s:PAnsiChar):longint;cdecl;external clib name 'puts';
 function ungetc(__c:longint; __stream:PFILE):longint;cdecl;external clib name 'ungetc';
 function fread(__ptr:pointer; __size:size_t; __n:size_t; __stream:PFILE):size_t;cdecl;external clib name 'fread';
 function fwrite(__ptr:pointer; __size:size_t; __n:size_t; __s:PFILE):size_t;cdecl;external clib name 'fwrite';
@@ -129,14 +129,14 @@ procedure clearerr_unlocked(__stream:PFILE);cdecl;external clib name 'clearerr_u
 function feof_unlocked(__stream:PFILE):longint;cdecl;external clib name 'feof_unlocked';
 function ferror_unlocked(__stream:PFILE):longint;cdecl;external clib name 'ferror_unlocked';
 
-procedure perror(__s:Pchar);cdecl;external clib name 'perror';
+procedure perror(__s:PAnsiChar);cdecl;external clib name 'perror';
 
 function fileno_unlocked(__stream:PFILE):longint;cdecl;external clib name 'fileno_unlocked';
 
-function popen(__command:PChar; __type:Pchar):PFILE;cdecl;external clib name 'popen';
+function popen(__command:PAnsiChar; __type:PAnsiChar):PFILE;cdecl;external clib name 'popen';
 function pclose(__stream:PFILE):longint;cdecl;external clib name 'pclose';
-function ctermid(__s:Pchar):Pchar;cdecl;external clib name 'ctermid';
-function cuserid(__s:Pchar):Pchar;cdecl;external clib name 'cuserid';
+function ctermid(__s:PAnsiChar):PAnsiChar;cdecl;external clib name 'ctermid';
+function cuserid(__s:PAnsiChar):PAnsiChar;cdecl;external clib name 'cuserid';
 
 type
    Pobstack = ^obstack;
@@ -144,9 +144,9 @@ type
        {undefined structure}
    end;
 
-function obstack_printf(__obstack:Pobstack; __format:Pchar; args:array of const):longint;cdecl;external clib name 'obstack_printf';
-function obstack_printf(__obstack:Pobstack; __format:Pchar):longint;varargs;cdecl;external clib name 'obstack_printf';
-function obstack_vprintf(__obstack:Pobstack; __format:Pchar; __args:_G_va_list):longint;cdecl;external clib name 'obstack_vprintf';
+function obstack_printf(__obstack:Pobstack; __format:PAnsiChar; args:array of const):longint;cdecl;external clib name 'obstack_printf';
+function obstack_printf(__obstack:Pobstack; __format:PAnsiChar):longint;varargs;cdecl;external clib name 'obstack_printf';
+function obstack_vprintf(__obstack:Pobstack; __format:PAnsiChar; __args:_G_va_list):longint;cdecl;external clib name 'obstack_vprintf';
 
 procedure flockfile(__stream:PFILE);cdecl;external clib name 'flockfile';
 function ftrylockfile(__stream:PFILE):longint;cdecl;external clib name 'ftrylockfile';

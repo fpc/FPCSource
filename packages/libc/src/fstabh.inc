@@ -11,19 +11,19 @@ const
 type
    Pfstab = ^fstab;
    fstab = record
-        fs_spec : Pchar;
-        fs_file : Pchar;
-        fs_vfstype : Pchar;
-        fs_mntops : Pchar;
-        fs_type : Pchar;
+        fs_spec : PAnsiChar;
+        fs_file : PAnsiChar;
+        fs_vfstype : PAnsiChar;
+        fs_mntops : PAnsiChar;
+        fs_type : PAnsiChar;
         fs_freq : longint;
         fs_passno : longint;
    end;
 
 
 function getfsent:Pfstab;cdecl;external clib name 'getfsent';
-function getfsspec(__name:Pchar):Pfstab;cdecl;external clib name 'getfsspec';
-function getfsfile(__name:Pchar):Pfstab;cdecl;external clib name 'getfsfile';
+function getfsspec(__name:PAnsiChar):Pfstab;cdecl;external clib name 'getfsspec';
+function getfsfile(__name:PAnsiChar):Pfstab;cdecl;external clib name 'getfsfile';
 function setfsent:longint;cdecl;external clib name 'setfsent';
 procedure endfsent;cdecl;external clib name 'endfsent';
 

@@ -17,7 +17,7 @@ type
         ripun : record
             case longint of
                0 : ( ru_nets : array[0..0] of netinfo );
-               1 : ( ru_tracefile : array[0..0] of char );
+               1 : ( ru_tracefile : array[0..0] of AnsiChar );
             end;
      end;
 
@@ -29,7 +29,7 @@ const
    RIPCMD_TRACEOFF = 4;
    RIPCMD_MAX = 5;
 
-   ripcmds : array [0..RIPCMD_MAX-1] of pchar = ( ''#0, 'REQUEST', 'RESPONSE', 'TRACEON', 'TRACEOFF' );
+   ripcmds : array [0..RIPCMD_MAX-1] of PAnsiChar = ( ''#0, 'REQUEST', 'RESPONSE', 'TRACEON', 'TRACEOFF' );
 
 const
    HOPCNT_INFINITY = 16;

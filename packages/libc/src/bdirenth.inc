@@ -6,7 +6,7 @@ type
         d_off : __off_t;
         d_reclen : word;
         d_type : byte;
-        d_name : array[0..255] of char;
+        d_name : array[0..255] of AnsiChar;
      end;
 
 type
@@ -16,7 +16,7 @@ type
         d_off : __off64_t;
         d_reclen : word;
         d_type : byte;
-        d_name : array[0..255] of char;
+        d_name : array[0..255] of AnsiChar;
      end;
 
 

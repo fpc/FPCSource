@@ -14,7 +14,7 @@ type
         rt_class : byte;
         rt_pad4 : smallint;
         rt_metric : smallint;
-        rt_dev : Pchar;
+        rt_dev : PAnsiChar;
         rt_mtu : dword;
         rt_window : dword;
         rt_irtt : word;

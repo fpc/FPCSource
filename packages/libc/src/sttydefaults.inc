@@ -1,5 +1,5 @@
 
-function CTRL(x: Char): Char;
+function CTRL(x: AnsiChar): AnsiChar;
 begin
-  Result:=Char(Ord(x) and $1F);
+  Result:=AnsiChar(Ord(x) and $1F);
 end;

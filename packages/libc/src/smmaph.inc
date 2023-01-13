@@ -21,8 +21,8 @@ function mlockall(__flags:longint):longint;cdecl;external clib name 'mlockall';
 function munlockall:longint;cdecl;external clib name 'munlockall';
 function mremap(__addr:pointer; __old_len:size_t; __new_len:size_t; __may_move:longint):pointer;cdecl;external clib name 'mremap';
 function mincore(__start:pointer; __len:size_t; __vec:Pbyte):longint;cdecl;external clib name 'mincore';
-function shm_open(__name:Pchar; __oflag:longint; __mode:mode_t):longint;cdecl;external rtlib name 'shm_open';
-function shm_unlink(__name:Pchar):longint;cdecl;external rtlib name 'shm_unlink';
+function shm_open(__name:PAnsiChar; __oflag:longint; __mode:mode_t):longint;cdecl;external rtlib name 'shm_open';
+function shm_unlink(__name:PAnsiChar):longint;cdecl;external rtlib name 'shm_unlink';
 
 
 { ---------------------------------------------------------------------

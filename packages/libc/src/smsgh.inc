@@ -3,7 +3,7 @@ Type
    Pmsgbuf = ^msgbuf;
    msgbuf = record
         mtype : longint;
-        mtext : array[0..0] of char;
+        mtext : array[0..0] of AnsiChar;
      end;
 
 

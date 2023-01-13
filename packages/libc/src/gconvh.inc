@@ -38,9 +38,9 @@ type
 
    __gconv_trans_context_fct = function (_para1:pointer; _para2:Pbyte; _para3:Pbyte; _para4:Pbyte; _para5:Pbyte):longint;cdecl;
 
-   __gconv_trans_query_fct = function (_para1:Pchar; _para2:PPPchar; _para3:Psize_t):longint;cdecl;
+   __gconv_trans_query_fct = function (_para1:PAnsiChar; _para2:PPPAnsiChar; _para3:Psize_t):longint;cdecl;
 
-   __gconv_trans_init_fct = function (_para1:Ppointer; _para2:Pchar):longint;cdecl;
+   __gconv_trans_init_fct = function (_para1:Ppointer; _para2:PAnsiChar):longint;cdecl;
 
    __gconv_trans_end_fct = procedure (_para1:pointer);cdecl;
 
@@ -54,10 +54,10 @@ type
 
    __gconv_step = record
         __shlib_handle : P__gconv_loaded_object;
-        __modname : Pchar;
+        __modname : PAnsiChar;
         __counter : longint;
-        __from_name : Pchar;
-        __to_name : Pchar;
+        __from_name : PAnsiChar;
+        __to_name : PAnsiChar;
         __fct : __gconv_fct;
         __init_fct : __gconv_init_fct;
         __end_fct : __gconv_end_fct;

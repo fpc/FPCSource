@@ -6,7 +6,7 @@ var
 {$ifdef LIBC_OLDERRNO}
   errno : error_t; cvar; external;
 {$endif}
-  program_invocation_name : Pchar;cvar;external;
+  program_invocation_name : PAnsiChar;cvar;external;
 
 {$ifndef LIBC_OLDERRNO}
   function errno : error_t;

@@ -25,13 +25,13 @@ Const
 Type
   TGlobCloseDirProc = procedure(Param: Pointer); cdecl;
   TGlobReadDirFunc = function(Param: Pointer): PDirEnt; cdecl;
-  TGlobOpenDirFunc = function(Param: PChar): __ptr_t; cdecl;
-  TGlobStatFunc = function(Param1: PChar; Param2: PStatBuf): longint; cdecl;
+  TGlobOpenDirFunc = function(Param: PAnsiChar): __ptr_t; cdecl;
+  TGlobStatFunc = function(Param1: PAnsiChar; Param2: PStatBuf): longint; cdecl;
 
    Pglob_t = ^glob_t;
    glob_t = record
      gl_pathc : size_t;
-     gl_pathv : ^Pchar;
+     gl_pathv : ^PAnsiChar;
      gl_offs : size_t;
      gl_flags : longint;
      gl_closedir : TGlobClosedirProc;
@@ -42,12 +42,12 @@ Type
    end;
 
   TGlobReadDir64Func = function(Param: Pointer): PDirEnt64; cdecl;
-  TGlobStat64Func = function(Param1: PChar; Param2: PStatBuf64): longint; cdecl;
+  TGlobStat64Func = function(Param1: PAnsiChar; Param2: PStatBuf64): longint; cdecl;
 
   Pglob64_t = ^glob64_t;
   glob64_t = record
     gl_pathc: size_t;
-    gl_pathv: PPChar;
+    gl_pathv: PPAnsiChar;
     gl_offs: size_t;
     gl_flags: longint;
     gl_closedir: TGlobCloseDirProc;
@@ -57,15 +57,15 @@ Type
     gl_stat: TGlobStat64Func;
   end;
 
-  TGlobErrFunc = function(PathName: PChar; ErrNo: longint): longint; cdecl;
+  TGlobErrFunc = function(PathName: PAnsiChar; ErrNo: longint): longint; cdecl;
 
-function glob(__pattern:Pchar; __flags:longint; __errfunc:TGlobErrFunc; __pglob:Pglob_t):longint;cdecl;external clib name 'glob';
+function glob(__pattern:PAnsiChar; __flags:longint; __errfunc:TGlobErrFunc; __pglob:Pglob_t):longint;cdecl;external clib name 'glob';
 procedure globfree(__pglob:Pglob_t);cdecl;external clib name 'globfree';
 
-function glob64(__pattern: PChar; __flags: longint; __errfunc: TGlobErrFunc; __pglob: Pglob64_t): longint; cdecl;external clib name 'glob64';
+function glob64(__pattern: PAnsiChar; __flags: longint; __errfunc: TGlobErrFunc; __pglob: Pglob64_t): longint; cdecl;external clib name 'glob64';
 procedure globfree64(__pglob: Pglob64_t); cdecl;external clib name 'globfree64';
 
-function glob_pattern_p(__pattern: PChar; __quote: longint): longint; cdecl;external clib name 'glob_pattern_p';
+function glob_pattern_p(__pattern: PAnsiChar; __quote: longint): longint; cdecl;external clib name 'glob_pattern_p';
 
 
 { ---------------------------------------------------------------------

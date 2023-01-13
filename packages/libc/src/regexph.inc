@@ -9,15 +9,15 @@ const
 {$include <stdlib.h>}
 {$include <string.h>}
   var
-     loc1 : Pchar;cvar;external;
-     loc2 : Pchar;cvar;external;
-     locs : Pchar;cvar;external;
+     loc1 : PAnsiChar;cvar;external;
+     loc2 : PAnsiChar;cvar;external;
+     locs : PAnsiChar;cvar;external;
 {$ifndef __DO_NOT_DEFINE_COMPILE}
 (* error
 {
  in declarator_list *)
   var
- : char;
+ : AnsiChar;
 (* error
   size_t __input_size = 0;
  in declarator_list *)
@@ -42,7 +42,7 @@ const
   expbuf += __req;
 in declaration at line 122 *)
 (* error
-  expbuf -= (expbuf - ((char *) 0)) % __req;
+  expbuf -= (expbuf - ((AnsiChar *) 0)) % __req;
 in declaration at line 123 *)
 (* error
   if (endbuf < expbuf + sizeof (regex_t))
@@ -56,9 +56,9 @@ in declaration at line 128 *)
   __expr_ptr->buffer = expbuf + sizeof (regex_t);
  in declarator_list *)
 (* error
-  __expr_ptr->allocated = endbuf -  (char *) __expr_ptr->buffer;
+  __expr_ptr->allocated = endbuf -  (AnsiChar *) __expr_ptr->buffer;
 (* error
-  __expr_ptr->allocated = endbuf -  (char *) __expr_ptr->buffer;
+  __expr_ptr->allocated = endbuf -  (AnsiChar *) __expr_ptr->buffer;
  in declarator_list *)
 (* error
   while ((__ch = (GETC ())) != eof)
@@ -70,13 +70,13 @@ in declaration at line 139 *)
         }
 in declaration at line 144 *)
 (* error
-          char *__new_room = (char *) alloca (__new_size);
+          AnsiChar *__new_room = (AnsiChar *) alloca (__new_size);
  in declarator_list *)
 (* error
           if (__new_room + __new_size == __input_buffer)
  in declarator_list *)
 (* error
-              __input_buffer = (char *) memcpy (__new_room, __input_buffer,
+              __input_buffer = (AnsiChar *) memcpy (__new_room, __input_buffer,
 in declaration at line 151 *)
 (* error
             }
@@ -85,7 +85,7 @@ in declaration at line 154 *)
             {
 in declaration at line 157 *)
 (* error
-              __input_buffer = (char *) memcpy (__new_room, __input_buffer,
+              __input_buffer = (AnsiChar *) memcpy (__new_room, __input_buffer,
 in declaration at line 159 *)
 (* error
             }
@@ -117,7 +117,7 @@ in declaration at line 200 *)
 {$endif}
 in declaration at line 210 *)
 
-function advance(__string:Pchar; __expbuf:Pchar):longint;cdecl;external clib name 'advance';
+function advance(__string:PAnsiChar; __expbuf:PAnsiChar):longint;cdecl;external clib name 'advance';
 {$endif}
 
 

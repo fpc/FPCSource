@@ -22,7 +22,7 @@ type
 
    P_code = ^_code;
    _code = record
-        c_name : Pchar;
+        c_name : PAnsiChar;
         c_val : longint;
      end;
    CODE = _code;
@@ -113,10 +113,10 @@ const
    LOG_PERROR = $20;
 
 procedure closelog;cdecl;external clib name 'closelog';
-procedure openlog(__ident:Pchar; __option:longint; __facility:longint);cdecl;external clib name 'openlog';
+procedure openlog(__ident:PAnsiChar; __option:longint; __facility:longint);cdecl;external clib name 'openlog';
 function setlogmask(__mask:longint):longint;cdecl;external clib name 'setlogmask';
-procedure syslog(__pri: Integer; __fmt: PChar; arg : array of const); cdecl; external clib name 'syslog';
-procedure vsyslog(__pri: Integer; Fmt: PChar; Arg: Pointer);cdecl; external clib name 'vsyslog';
+procedure syslog(__pri: Integer; __fmt: PAnsiChar; arg : array of const); cdecl; external clib name 'syslog';
+procedure vsyslog(__pri: Integer; Fmt: PAnsiChar; Arg: Pointer);cdecl; external clib name 'vsyslog';
 
 
 { ---------------------------------------------------------------------

@@ -104,12 +104,12 @@ type
 
   // The following function declarations are used anonymously in the header file.
   TCodeCvtDestrProc = procedure(p1: P_IO_codecvt); cdecl;
-  TCodeCvtDoOutFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3, p4: Pwchar_t; p5: PPwchar_t; p6, p7: PChar; p8: PPChar): __codecvt_result; cdecl;
-  TCodeCvtDoUnshiftFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PChar; p4: PChar; p5: PPChar): __codecvt_result; cdecl;
-  TCodeCvtDoInFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PChar; p4: PChar; p5: PPChar; p6: Pwchar_t; p7: Pwchar_t; p8: PPwchar_t): __codecvt_result; cdecl;
+  TCodeCvtDoOutFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3, p4: Pwchar_t; p5: PPwchar_t; p6, p7: PAnsiChar; p8: PPAnsiChar): __codecvt_result; cdecl;
+  TCodeCvtDoUnshiftFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PAnsiChar; p4: PAnsiChar; p5: PPAnsiChar): __codecvt_result; cdecl;
+  TCodeCvtDoInFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PAnsiChar; p4: PAnsiChar; p5: PPAnsiChar; p6: Pwchar_t; p7: Pwchar_t; p8: PPwchar_t): __codecvt_result; cdecl;
   TCodeCvtDoEncodingFunc = function(p1: P_IO_codecvt): Integer; cdecl;
   TCodeCvtDoAlwaysNoConvFunc = function(p1: P_IO_codecvt): Integer; cdecl;
-  TCodeCvtDoLengthFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PChar; p4: PChar; p5: _IO_size_t): Integer; cdecl;
+  TCodeCvtDoLengthFunc = function(p1: P_IO_codecvt; p2: PMultiByteState; p3: PAnsiChar; p4: PAnsiChar; p5: _IO_size_t): Integer; cdecl;
   TCodeCvtDoMaxLengthFunc = function(p1: P_IO_codecvt): Integer; cdecl;
 
   _IO_codecvt = record
@@ -155,17 +155,17 @@ type
 
   _IO_FILE = {packed} record
     _flags: Longint;
-    _IO_read_ptr: PChar;
-    _IO_read_end: PChar;
-    _IO_read_base: PChar;
-    _IO_write_base: PChar;
-    _IO_write_ptr: PChar;
-    _IO_write_end: PChar;
-    _IO_buf_base: PChar;
-    _IO_buf_end: PChar;
-    _IO_save_base: PChar;
-    _IO_backup_base: PChar;
-    _IO_save_end: PChar;
+    _IO_read_ptr: PAnsiChar;
+    _IO_read_end: PAnsiChar;
+    _IO_read_base: PAnsiChar;
+    _IO_write_base: PAnsiChar;
+    _IO_write_ptr: PAnsiChar;
+    _IO_write_end: PAnsiChar;
+    _IO_buf_base: PAnsiChar;
+    _IO_buf_end: PAnsiChar;
+    _IO_save_base: PAnsiChar;
+    _IO_backup_base: PAnsiChar;
+    _IO_save_end: PAnsiChar;
     _markers: PIOMarker;
     _chain: P_IO_File;
     _fileno: Integer;
@@ -173,7 +173,7 @@ type
     _old_offset: _IO_off_t;
     _cur_column: word;
     _vtable_offset: shortint;
-    _shortbuf: packed array[0..1-1] of Char;
+    _shortbuf: packed array[0..1-1] of AnsiChar;
     _lock: P_IO_Lock;
     _offset: _IO_off64_t;
     _codecvt: ^_IO_codecvt;
@@ -208,8 +208,8 @@ var
   _IO_stderr : P_IO_FILE;cvar;external;
 
 type
-  __io_read_fn = function(__cookie: Pointer; __buf: PChar; __nbytes: size_t): __ssize_t; cdecl;
-  __io_write_fn = function(__cookie: Pointer; __buf: PChar; __n: size_t): __ssize_t; cdecl;
+  __io_read_fn = function(__cookie: Pointer; __buf: PAnsiChar; __nbytes: size_t): __ssize_t; cdecl;
+  __io_write_fn = function(__cookie: Pointer; __buf: PAnsiChar; __n: size_t): __ssize_t; cdecl;
   __io_seek_fn = function(__cookie: Pointer; __pos: P_IO_off64_t; __w: Integer): Integer; cdecl;
   __io_close_fn = function(__cookie: Pointer): Integer; cdecl;
 
@@ -254,7 +254,7 @@ function __woverflow(_para1:P_IO_FILE; _para2:_IO_wint_t):_IO_wint_t;cdecl;exter
 
 function _IO_getc_unlocked(_fp: P_IO_File): Longint;
 function _IO_peekc_unlocked(_fp: P_IO_File): Longint;
-function _IO_putc_unlocked(_ch: Char; _fp: P_IO_File): Longint;
+function _IO_putc_unlocked(_ch: AnsiChar; _fp: P_IO_File): Longint;
 
 function _IO_getwc_unlocked(_fp: P_IO_File): Longint;
 function _IO_putwc_unlocked(_wch: wchar_t; _fp: P_IO_File): Longint;
@@ -274,8 +274,8 @@ procedure _IO_flockfile(_para1:P_IO_FILE);cdecl;external clib name '_IO_flockfil
 procedure _IO_funlockfile(_para1:P_IO_FILE);cdecl;external clib name '_IO_funlockfile';
 function _IO_ftrylockfile(_para1:P_IO_FILE):longint;cdecl;external clib name '_IO_ftrylockfile';
 
-function _IO_vfscanf(_para1:P_IO_FILE; _para2:Pchar; _para3:_IO_va_list; _para4:Plongint):longint;cdecl;external clib name '_IO_vfscanf';
-function _IO_vfprintf(_para1:P_IO_FILE; _para2:Pchar; _para3:_IO_va_list):longint;cdecl;external clib name '_IO_vfprintf';
+function _IO_vfscanf(_para1:P_IO_FILE; _para2:PAnsiChar; _para3:_IO_va_list; _para4:Plongint):longint;cdecl;external clib name '_IO_vfscanf';
+function _IO_vfprintf(_para1:P_IO_FILE; _para2:PAnsiChar; _para3:_IO_va_list):longint;cdecl;external clib name '_IO_vfprintf';
 function _IO_padn(_para1:P_IO_FILE; _para2:longint; _para3:_IO_ssize_t):_IO_ssize_t;cdecl;external clib name '_IO_padn';
 function _IO_sgetn(_para1:P_IO_FILE; _para2:pointer; _para3:_IO_size_t):_IO_size_t;cdecl;external clib name '_IO_sgetn';
 function _IO_seekoff(_para1:P_IO_FILE; _para2:_IO_off64_t; _para3:longint; _para4:longint):_IO_off64_t;cdecl;external clib name '_IO_seekoff';

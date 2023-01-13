@@ -5,13 +5,13 @@ const
 type
    Putsname = ^utsname;
    utsname = record
-        sysname : array[0..(_UTSNAME_LENGTH)-1] of char;
-        nodename : array[0..(_UTSNAME_NODENAME_LENGTH)-1] of char;
-        release : array[0..(_UTSNAME_LENGTH)-1] of char;
-        version : array[0..(_UTSNAME_LENGTH)-1] of char;
-        machine : array[0..(_UTSNAME_LENGTH)-1] of char;
-        domainname : array[0..(_UTSNAME_DOMAIN_LENGTH)-1] of char;
-        __domainname : array[0..(_UTSNAME_DOMAIN_LENGTH)-1] of char;
+        sysname : array[0..(_UTSNAME_LENGTH)-1] of AnsiChar;
+        nodename : array[0..(_UTSNAME_NODENAME_LENGTH)-1] of AnsiChar;
+        release : array[0..(_UTSNAME_LENGTH)-1] of AnsiChar;
+        version : array[0..(_UTSNAME_LENGTH)-1] of AnsiChar;
+        machine : array[0..(_UTSNAME_LENGTH)-1] of AnsiChar;
+        domainname : array[0..(_UTSNAME_DOMAIN_LENGTH)-1] of AnsiChar;
+        __domainname : array[0..(_UTSNAME_DOMAIN_LENGTH)-1] of AnsiChar;
      end;
 
 const

@@ -13,7 +13,7 @@ type
   printf_arginfo_function = function(const __info: printf_info; __n: size_t; var __argtypes: Integer): Integer; cdecl;
 
 function register_printf_function(__spec:longint; __func:printf_function; __arginfo:printf_arginfo_function):longint;cdecl;external clib name 'register_printf_function';
-function parse_printf_format(__fmt:Pchar; __n:size_t; __argtypes:Plongint):size_t;cdecl;external clib name 'parse_printf_format';
+function parse_printf_format(__fmt:PAnsiChar; __n:size_t; __argtypes:Plongint):size_t;cdecl;external clib name 'parse_printf_format';
 
 Const
   PA_INT = 0;

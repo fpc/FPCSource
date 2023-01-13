@@ -13,14 +13,14 @@ const
 function fcntl(__fd:longint; __cmd:longint; args:array of const):longint;cdecl;external clib name 'fcntl';
 function fcntl(__fd:longint; __cmd:longint):longint;cdecl;varargs;external clib name 'fcntl';
 
-function open(__file:Pchar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open';
-function open(__file:Pchar; __oflag:longint):longint;cdecl;varargs;external clib name 'open';
+function open(__file:PAnsiChar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open';
+function open(__file:PAnsiChar; __oflag:longint):longint;cdecl;varargs;external clib name 'open';
 
-function open64(__file:Pchar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open64';
-function open64(__file:Pchar; __oflag:longint):longint;cdecl;varargs;external clib name 'open64';
+function open64(__file:PAnsiChar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open64';
+function open64(__file:PAnsiChar; __oflag:longint):longint;cdecl;varargs;external clib name 'open64';
 
-function creat(__file:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'creat';
-function creat64(__file:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'creat64';
+function creat(__file:PAnsiChar; __mode:__mode_t):longint;cdecl;external clib name 'creat';
+function creat64(__file:PAnsiChar; __mode:__mode_t):longint;cdecl;external clib name 'creat64';
 
 const
   F_LOCK = 1;

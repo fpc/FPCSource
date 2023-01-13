@@ -50,13 +50,13 @@ function fstat(__fd:longint; __buf:Pstat):longint;
   end;
 
 
-function lstat(__file:Pchar; __buf:Pstat):longint;
+function lstat(__file:PAnsiChar; __buf:Pstat):longint;
   begin
     lstat:=__lxstat(_STAT_VER,__file,__buf);
   end;
 
 
-function stat(__file:Pchar; __buf:Pstat):longint;
+function stat(__file:PAnsiChar; __buf:Pstat):longint;
   begin
     stat:=__xstat(_STAT_VER,__file,__buf);
   end;
@@ -68,19 +68,19 @@ function fstat64(__fd:longint; __buf:Pstat64):longint;
   end;
 
 
-function lstat64(__file:Pchar; __buf:Pstat64):longint;
+function lstat64(__file:PAnsiChar; __buf:Pstat64):longint;
   begin
     lstat64:=__lxstat64(_STAT_VER,__file,__buf);
   end;
 
 
-function stat64(__file:Pchar; __buf:Pstat64):longint;
+function stat64(__file:PAnsiChar; __buf:Pstat64):longint;
   begin
     stat64:=__xstat64(_STAT_VER,__file,__buf);
   end;
 
 
-function stat(__file:Pchar; var __buf:_stat):longint;
+function stat(__file:PAnsiChar; var __buf:_stat):longint;
   begin
     stat:=__xstat(_STAT_VER,__file,__buf);
   end;
@@ -92,7 +92,7 @@ function fstat(__fd:longint; var __buf:_stat):longint;
   end;
 
 
-function stat64(__file:Pchar; var __buf: _stat64):longint;
+function stat64(__file:PAnsiChar; var __buf: _stat64):longint;
   begin
     stat64:=__xstat64(_STAT_VER,__file,__buf);
   end;
@@ -104,13 +104,13 @@ function fstat64(__fd:longint; var __buf: _stat64):longint;
   end;
 
 
-function lstat(__file:Pchar; var __buf:_stat):longint;
+function lstat(__file:PAnsiChar; var __buf:_stat):longint;
   begin
     lstat:=__lxstat(_STAT_VER,__file,__buf);
   end;
 
 
-function lstat64(__file:Pchar; var __buf:_stat64):longint;
+function lstat64(__file:PAnsiChar; var __buf:_stat64):longint;
   begin
     lstat64:=__lxstat64(_STAT_VER,__file,__buf);
   end;
