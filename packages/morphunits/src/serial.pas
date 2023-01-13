@@ -24,7 +24,7 @@ uses
 
 type
 
-  // array of termination char's to use,see serial.doc setparams
+  // array of termination AnsiChar's to use,see serial.doc setparams
   PIOTArray = ^TIOTArray;
   TIOTArray = record
     TermArray0: LongWord;
@@ -156,7 +156,7 @@ const
   IOSERB_ACTIVE   = 4;                     // rqst-qued-OR-current
   IOSERF_ACTIVE   = 1 shl IOSERB_ACTIVE;
 
-  SERIALNAME: PChar = 'serial.device';
+  SERIALNAME: PAnsiChar = 'serial.device';
 
 implementation
 

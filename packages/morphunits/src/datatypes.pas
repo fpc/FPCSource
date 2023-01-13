@@ -41,7 +41,7 @@ Type
  tDataTypeHeader = record
     dth_Name,                                         { Descriptive name of the data type }
     dth_BaseName,                                     { Base name of the data type }
-    dth_Pattern  : PChar;                            { Match pattern for file name. }
+    dth_Pattern  : PAnsiChar;                            { Match pattern for file name. }
     dth_Mask : Pointer;                               { Comparision mask }
     dth_GroupID,                                      { Group that the DataType is in }
     dth_ID   : longword;                                 { ID for DataType (same as IFF FORM type) }
@@ -139,7 +139,7 @@ Type
 {$WARNING FIX ME!!! IFF handle type}
 //    dthc_IFF                     : pIFFHandle;          { Pointer to an IFFHandle (may be NULL) }
     dthc_IFF                     : Pointer;          { Pointer to an IFFHandle (may be NULL) }
-    dthc_Buffer                  : PChar;              { Buffer }
+    dthc_Buffer                  : PAnsiChar;              { Buffer }
     dthc_BufferLength            : longword;               { Length of the buffer }
  end;
 
@@ -153,7 +153,7 @@ Type
  tTool = record
     tn_Which,                                      { Which tool is this }
     tn_Flags  : WORD;                              { Flags }
-    tn_Program : PChar;                           { Application to use }
+    tn_Program : PAnsiChar;                           { Application to use }
  end;
 
 const
@@ -185,7 +185,7 @@ Type
     dtn_Node2   : tNode;            { Reserved for system use }
     dtn_Header  : pDataTypeHeader;  { Pointer to the DataTypeHeader }
     dtn_ToolList: tList;            { List of tool nodes }
-    dtn_FunctionName : PChar;      { Name of comparision routine }
+    dtn_FunctionName : PAnsiChar;      { Name of comparision routine }
     dtn_AttrList : pTagItem;         { Object creation tags }
     dtn_Length : longword;             { Length of the memory block }
  end;
@@ -227,7 +227,7 @@ const
 
 {***************************************************************************}
 
-  DATATYPESCLASS        : Pchar =  'datatypesclass';
+  DATATYPESCLASS        : PAnsiChar =  'datatypesclass';
 
 {***************************************************************************}
 
@@ -396,7 +396,7 @@ const
         { (struct RastPort ) RastPort to use when printing. (V40) }
 
   DTA_ARexxPortName     =  (DTA_Dummy+404);
-        { (PChar) Pointer to base name for ARexx port (V40) }
+        { (PAnsiChar) Pointer to base name for ARexx port (V40) }
 
 
 {***************************************************************************}
@@ -457,7 +457,7 @@ Type
  pDTMethod = ^tDTMethod;
  tDTMethod = record
     dtm_Label,
-    dtm_Command  : PChar;
+    dtm_Command  : PAnsiChar;
     dtm_Method   : longword;
  end;
 
@@ -557,7 +557,7 @@ Type
  tdtGoto = record
     MethodID             : longword;
     dtg_GInfo            : pGadgetInfo;
-    dtg_NodeName         : PChar;          { Node to goto }
+    dtg_NodeName         : PAnsiChar;          { Node to goto }
     dtg_AttrList         : pTagItem;         { Additional attributes }
  end;
 
@@ -655,7 +655,7 @@ const
 
 {***************************************************************************}
 
-   PICTUREDTCLASS        : PChar =  'picture.datatype';
+   PICTUREDTCLASS        : PAnsiChar =  'picture.datatype';
 
 {***************************************************************************}
 
@@ -863,7 +863,7 @@ const
 
 {***************************************************************************}
 
-   SOUNDDTCLASS          : PChar =  'sound.datatype';
+   SOUNDDTCLASS          : PAnsiChar =  'sound.datatype';
 
 {***************************************************************************}
 
@@ -967,7 +967,7 @@ const
 
 { ***************************************************************************}
 
-   TEXTDTCLASS           : PChar =  'text.datatype';
+   TEXTDTCLASS           : PAnsiChar =  'text.datatype';
 
 { ***************************************************************************}
 
@@ -987,7 +987,7 @@ Type
  pLine = ^tLine;
  tLine = record
     ln_Link              : tMinNode;            {  to link the lines together }
-    ln_Text              : PChar;              {  pointer to the text for this line }
+    ln_Text              : PAnsiChar;              {  pointer to the text for this line }
     ln_TextLen           : longword;               {  the character length of the text for this line }
     ln_XOffset,                                 {  where in the line the text starts }
     ln_YOffset,                                 {  line the text is on }
@@ -1025,7 +1025,7 @@ const
 
 { ***************************************************************************}
 
-   ANIMATIONDTCLASS         : PChar =       'animation.datatype';
+   ANIMATIONDTCLASS         : PAnsiChar =       'animation.datatype';
 
 { ***************************************************************************}
 
@@ -1261,7 +1261,7 @@ var
   DataTypesBase : PLibrary = nil;
 
 const
-  DATATYPESNAME : PChar = 'datatypes.library';
+  DATATYPESNAME : PAnsiChar = 'datatypes.library';
 
 
 function ObtainDataTypeA(Typ: LongWord location 'd0'; Handle: POINTER location 'a0'; Attrs: PTagItem location 'a1'): PDataType; SysCall DataTypesBase 036;
@@ -1291,12 +1291,12 @@ function CopyDTMethods(Src: LongWord location 'a0'; Include: LongWord location '
 function CopyDTTriggerMethods(Src: PDTMethod location 'a0'; Include: PDTMethod location 'a1'; Exclude: PDTMethod location 'a2'): PDTMethod; SysCall DataTypesBase 276;
 procedure FreeDTMethods(m: Pointer location 'a0'); SysCall DataTypesBase 282;
 function GetDTTriggerMethodDataFlags(TriggerMethod: LongWord location 'd0'): LongWord; SysCall DataTypesBase 288;
-function SaveDTObjectA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; File_: PChar location 'a3'; Mode: LongWord location 'd0'; SaveIcon: BOOLEAN location 'd1'; Attrs: PTagItem location 'a4'): LongWord; SysCall DataTypesBase 294;
+function SaveDTObjectA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; File_: PAnsiChar location 'a3'; Mode: LongWord location 'd0'; SaveIcon: BOOLEAN location 'd1'; Attrs: PTagItem location 'a4'): LongWord; SysCall DataTypesBase 294;
 function StartDragSelect(o: PObject_ location 'a0'): LongWord; SysCall DataTypesBase 300;
 function DoDTDomainA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; RPort: PRastPort location 'a3'; Which: LongWord location 'd0'; Domain: PIBox location 'a4'; Attrs: PTagItem location 'a5'): LongWord; SysCall DataTypesBase 306;
 
 function ObtainDataType(Typ: LongWord; Handle: Pointer; const Attrs: array of LongWord): PDataType; Inline;
-function NewDTObject(Name: PChar; const attrs: array of LongWord): Pointer; Inline;
+function NewDTObject(Name: PAnsiChar; const attrs: array of LongWord): Pointer; Inline;
 function SetDTAttrs(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord): LongWord; Inline;
 function GetDTAttrs(o: PObject_; const Attrs: array of LongWord): LongWord; Inline;
 procedure RefreshDTObject(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord); Inline;
@@ -1305,7 +1305,7 @@ function ObtainDTDrawInfo(o: PObject_; const Attrs: array of LongWord): Pointer;
 function DrawDTObject(Rp: PRastPort; o: PObject_; x: LongInt; y: LongInt; w: LongInt; h: LongInt; th: LongInt; tv: LongInt; const Attrs: array of LongWord): LongInt; Inline;
 function FindToolNode(Tl: PList; const Attrs: array of LongWord): PToolNode; Inline;
 function LaunchTool(t: PTool; Project: PShortInt; const Attrs: array of LongWord): LongWord; Inline;
-function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
+function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PAnsiChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
 function DoDTDomain(o: PObject_; Win: PWindow; Req: PRequester; RPort: PRastPort; Which: LongWord; Domain: PIBox; const Attrs: array of LongWord): LongWord; Inline;
 
 function InitDatatypesLibrary: boolean;
@@ -1318,7 +1318,7 @@ begin
   ObtainDataType := ObtainDataTypeA(typ, Handle, @Attrs);
 end;
 
-function NewDTObject(Name: PChar; const Attrs: array of LongWord): Pointer; Inline;
+function NewDTObject(Name: PAnsiChar; const Attrs: array of LongWord): Pointer; Inline;
 begin
   NewDTObject := NewDTObjectA(Name, @Attrs);
 end;
@@ -1363,7 +1363,7 @@ begin
   LaunchTool:=LaunchToolA(t, Project, @Attrs);
 end;
 
-function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
+function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PAnsiChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
 begin
   SaveDTObject:=SaveDTObjectA(o, Win, Req, File_, Mode, Saveicon, @Attrs);
 end;

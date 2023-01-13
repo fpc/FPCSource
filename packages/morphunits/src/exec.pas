@@ -22,7 +22,7 @@ interface
 
 { Some types for classic Amiga and AROS compatibility }
 type
-  STRPTR    = PChar;
+  STRPTR    = PAnsiChar;
   WSTRPTR   = PWideChar;
   ULONG     = Longword;
   LONG      = Longint;
@@ -153,7 +153,7 @@ type
     ln_Pred: PNode;
     ln_Type: Byte;
     ln_Pri : ShortInt;
-    ln_Name: PChar;
+    ln_Name: PAnsiChar;
   end;
 
 type
@@ -243,8 +243,8 @@ type
     rt_Version  : Byte;
     rt_Type     : Byte;
     rt_Pri      : ShortInt;
-    rt_Name     : PChar;
-    rt_IdString : PChar;
+    rt_Name     : PAnsiChar;
+    rt_IdString : PAnsiChar;
     rt_Init     : APTR;
     // Only valid when RTF_EXTENDED is set
     rt_Revision : Word; // Revision Entry
@@ -1075,7 +1075,7 @@ type
     lib_PosSize : Word;
     lib_Version : Word;
     lib_Revision: Word;
-    lib_IdString: PChar;
+    lib_IdString: PAnsiChar;
     lib_Sum     : LongWord;
     lib_OpenCnt : Word;
   end;
@@ -1783,7 +1783,7 @@ procedure MakeFunctions(target       : Pointer location 'a0';
                         funcDispBase : Pointer location 'a2');
 SysCall MOS_ExecBase 090;
 
-function FindResident(name: PChar location 'a1'): PResident;
+function FindResident(name: PAnsiChar location 'a1'): PResident;
 SysCall MOS_ExecBase 096;
 
 function InitResident(resident: PResident location 'a1';
@@ -1893,7 +1893,7 @@ procedure Enqueue(list: PList location 'a0';
 SysCall MOS_ExecBase 270;
 
 function FindName(list: PList location 'a0';
-                  name: PChar location 'a1'): PNode;
+                  name: PAnsiChar location 'a1'): PNode;
 SysCall MOS_ExecBase 276;
 
 function AddTask(task   : PTask   location 'a1';
@@ -1904,7 +1904,7 @@ SysCall MOS_ExecBase 282;
 procedure RemTask(task: PTask location 'a1');
 SysCall MOS_ExecBase 288;
 
-function FindTask(name: PChar location 'a1'): PTask;
+function FindTask(name: PAnsiChar location 'a1'): PTask;
 SysCall MOS_ExecBase 294;
 
 function SetTaskPri(task    : PTask   location 'a1';
@@ -1957,7 +1957,7 @@ SysCall MOS_ExecBase 378;
 function WaitPort(port: PMsgPort location 'a0'): PMessage;
 SysCall MOS_ExecBase 384;
 
-function FindPort(name: PChar location 'a1'): PMsgPort;
+function FindPort(name: PAnsiChar location 'a1'): PMsgPort;
 SysCall MOS_ExecBase 390;
 
 procedure AddLibrary(libHandle: PLibrary location 'a1');
@@ -1966,7 +1966,7 @@ SysCall MOS_ExecBase 396;
 procedure RemLibrary(libHandle: PLibrary location 'a1');
 SysCall MOS_ExecBase 402;
 
-function OldOpenLibrary(libName: PChar location 'a1'): PLibrary;
+function OldOpenLibrary(libName: PAnsiChar location 'a1'): PLibrary;
 SysCall MOS_ExecBase 408;
 
 procedure CloseLibrary(libHandle: PLibrary location 'a1');
@@ -1986,7 +1986,7 @@ SysCall MOS_ExecBase 432;
 procedure RemDevice(device: PDevice location 'a1');
 SysCall MOS_ExecBase 438;
 
-function OpenDevice(devName  : PChar      location 'a0';
+function OpenDevice(devName  : PAnsiChar      location 'a0';
                     numunit  : Cardinal   location 'd0';
                     ioRequest: pIORequest location 'a1';
                     flags    : Cardinal   location 'd1'): ShortInt;
@@ -2016,19 +2016,19 @@ SysCall MOS_ExecBase 486;
 procedure RemResource(resource: Pointer location 'a1');
 SysCall MOS_ExecBase 492;
 
-function OpenResource(resName: PChar location 'a1'): Pointer;
+function OpenResource(resName: PAnsiChar location 'a1'): Pointer;
 SysCall MOS_ExecBase 498;
 
 procedure RawIOInit;
 SysCall MOS_ExecBase 504;
 
-function RawMayGetChar: Char;
+function RawMayGetChar: AnsiChar;
 SysCall MOS_ExecBase 510;
 
-procedure RawPutChar(d0arg: Char location 'd0');
+procedure RawPutChar(d0arg: AnsiChar location 'd0');
 SysCall MOS_ExecBase 516;
 
-function RawDoFmt(formatString: PChar   location 'a0';
+function RawDoFmt(formatString: PAnsiChar   location 'a0';
                   dataStream  : Pointer location 'a1';
                   putChProc   : Pointer location 'a2';
                   putChData   : Pointer location 'a3'): Pointer;
@@ -2048,7 +2048,7 @@ procedure Vacate(sigSem: PSignalSemaphore  location 'a0';
                  bidMsg: PSemaphoreMessage location 'a1');
 SysCall MOS_ExecBase 546;
 
-function OpenLibrary(libname: PChar    location 'a1';
+function OpenLibrary(libname: PAnsiChar    location 'a1';
                      libver : Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 552;
 
@@ -2070,7 +2070,7 @@ SysCall MOS_ExecBase 582;
 procedure ReleaseSemaphoreList(sigSem: PList location 'a0');
 SysCall MOS_ExecBase 588;
 
-function FindSemaphore(sigSem: PChar location 'a1'): PSignalSemaphore;
+function FindSemaphore(sigSem: PAnsiChar location 'a1'): PSignalSemaphore;
 SysCall MOS_ExecBase 594;
 
 procedure AddSemaphore(sigSem: PSignalSemaphore location 'a1');
@@ -2086,7 +2086,7 @@ procedure AddMemList(size      : Cardinal location 'd0';
                      attributes: Cardinal location 'd1';
                      pri       : LongInt  location 'd2';
                      base      : Pointer  location 'a0';
-                     name      : PChar    location 'a1');
+                     name      : PAnsiChar    location 'a1');
 SysCall MOS_ExecBase 618;
 
 procedure CopyMem(source: Pointer  location 'a0';
@@ -2213,10 +2213,10 @@ SysCall MOS_ExecBase 810;
 function ReadGayle: Cardinal;
 SysCall MOS_ExecBase 816;
 
-function VNewRawDoFmt(FmtString: PChar;
+function VNewRawDoFmt(FmtString: PAnsiChar;
                       PutChProc: Pointer;
-                      PutChData: PChar;
-                      args     : PChar): PChar;
+                      PutChData: PAnsiChar;
+                      args     : PAnsiChar): PAnsiChar;
 SysCall BaseSysV MOS_ExecBase 822;
 
 procedure CacheFlushDataArea(Address: Pointer  location 'a0';
@@ -2307,7 +2307,7 @@ procedure RemExecNotify(hook: PHook);
 SysCall BaseSysV MOS_ExecBase 954;
 
 function FindExecNode(ttype: Cardinal location 'd0';
-                      name : PChar    location 'a0'): PNode;
+                      name : PAnsiChar    location 'a0'): PNode;
 SysCall MOS_ExecBase 960;
 
 function AddExecNodeA(innode  : Pointer  location 'a0';

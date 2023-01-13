@@ -136,7 +136,7 @@ var
   MUIMasterBase : pLibrary = nil;
 
 const
-  MUIMASTER_NAME  : PChar = 'muimaster.library';
+  MUIMASTER_NAME  : PAnsiChar = 'muimaster.library';
   MUIMASTER_VMIN = 11;
   MUIMASTER_VLATEST = 19;
 
@@ -167,7 +167,7 @@ const
      plongword = ^longword;
 
      tMUI_PenSpec = record
-          buf : array[0..31] of char;
+          buf : array[0..31] of AnsiChar;
        end;
      pMUI_PenSpec = ^tMUI_PenSpec;
 
@@ -183,15 +183,15 @@ const
    }
 
   const
-     PSD_INITIAL_NAME : PChar = '(unnamed)';
-     PSD_INITIAL_TITLE : PChar = 'MUI Public Screen';
+     PSD_INITIAL_NAME : PAnsiChar = '(unnamed)';
+     PSD_INITIAL_TITLE : PAnsiChar = 'MUI Public Screen';
 
 
 
   const
-     PSD_NAME_FRONTMOST : PChar = '«Frontmost»';
-     PSD_FILENAME_SAVE : PChar = 'envarc:mui/PublicScreens.iff';
-     PSD_FILENAME_USE : PChar = 'env:mui/PublicScreens.iff';
+     PSD_NAME_FRONTMOST : PAnsiChar = '«Frontmost»';
+     PSD_FILENAME_SAVE : PAnsiChar = 'envarc:mui/PublicScreens.iff';
+     PSD_FILENAME_USE : PAnsiChar = 'env:mui/PublicScreens.iff';
      PSD_MAXLEN_NAME = 32;
      PSD_MAXLEN_TITLE = 128;
      PSD_MAXLEN_FONT = 48;
@@ -213,10 +213,10 @@ const
 
      tMUI_PubScreenDesc = record
           Version : LongInt;
-          Name : array[0..(PSD_MAXLEN_NAME)-1] of char;
-          Title : array[0..(PSD_MAXLEN_TITLE)-1] of char;
-          Font : array[0..(PSD_MAXLEN_FONT)-1] of char;
-          Background : array[0..(PSD_MAXLEN_BACKGROUND)-1] of char;
+          Name : array[0..(PSD_MAXLEN_NAME)-1] of AnsiChar;
+          Title : array[0..(PSD_MAXLEN_TITLE)-1] of AnsiChar;
+          Font : array[0..(PSD_MAXLEN_FONT)-1] of AnsiChar;
+          Background : array[0..(PSD_MAXLEN_BACKGROUND)-1] of AnsiChar;
           DisplayID : LongWord;
           DisplayWidth : WORD;
           DisplayHeight : WORD;
@@ -254,22 +254,22 @@ const
 { ************************************************************************* }
 
 const
-  MUIO_Label         = 1;    { PChar label, LongWord flags  }
-  MUIO_Button        = 2;    { PChar label  }
-  MUIO_Checkmark     = 3;    { PChar label  }
-  MUIO_Cycle         = 4;    { PChar label, PChar  entries  }
-  MUIO_Radio         = 5;    { PChar label, PChar  entries  }
-  MUIO_Slider        = 6;    { PChar label, LongInt min, LongInt max  }
-  MUIO_String        = 7;    { PChar label, LongInt maxlen  }
-  MUIO_PopButton     = 8;    { PChar imagespec  }
+  MUIO_Label         = 1;    { PAnsiChar label, LongWord flags  }
+  MUIO_Button        = 2;    { PAnsiChar label  }
+  MUIO_Checkmark     = 3;    { PAnsiChar label  }
+  MUIO_Cycle         = 4;    { PAnsiChar label, PAnsiChar  entries  }
+  MUIO_Radio         = 5;    { PAnsiChar label, PAnsiChar  entries  }
+  MUIO_Slider        = 6;    { PAnsiChar label, LongInt min, LongInt max  }
+  MUIO_String        = 7;    { PAnsiChar label, LongInt maxlen  }
+  MUIO_PopButton     = 8;    { PAnsiChar imagespec  }
   MUIO_HSpace        = 9;    { LongInt space    }
   MUIO_VSpace        = 10;   { LongInt space    }
   MUIO_HBar          = 11;   { LongInt space    }
   MUIO_VBar          = 12;   { LongInt space    }
   MUIO_MenustripNM   = 13;   { struct NewMenu  nm, LongWord flags  }
-  MUIO_Menuitem      = 14;   { PChar label, PChar shortcut, LongWord flags, LongWord data   }
-  MUIO_BarTitle      = 15;   { PChar label  }
-  MUIO_NumericButton = 16;   { PChar label, LongInt min, LongInt max, PChar format  }
+  MUIO_Menuitem      = 14;   { PAnsiChar label, PAnsiChar shortcut, LongWord flags, LongWord data   }
+  MUIO_BarTitle      = 15;   { PAnsiChar label  }
+  MUIO_NumericButton = 16;   { PAnsiChar label, LongInt min, LongInt max, PAnsiChar format  }
 
   MUIO_Menuitem_CopyStrings = 1 shl 30;
 
@@ -288,8 +288,8 @@ const
 
 type
   tMUI_Command = record
-    mc_Name : Pchar;
-    mc_Template : Pchar;
+    mc_Name : PAnsiChar;
+    mc_Template : PAnsiChar;
     mc_Parameters : LongInt;
     mc_Hook : PHook;
     mc_Reserved : array[0..4] of LongInt;
@@ -297,7 +297,7 @@ type
   pMUI_Command = ^tMUI_Command;
 
 const
-  MC_TEMPLATE_ID           = -1;   {  MC_TEMPLATE_ID : PCHar = not(0); }
+  MC_TEMPLATE_ID           = -1;   {  MC_TEMPLATE_ID : PAnsiChar = not(0); }
   MUI_RXERR_BADDEFINITION  = -1;
   MUI_RXERR_OUTOFMEMORY    = -2;
   MUI_RXERR_UNKNOWNCOMMAND = -3;
@@ -691,7 +691,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Notify : PChar = 'Notify.mui';
+  MUIC_Notify : PAnsiChar = 'Notify.mui';
 
 { ** Methods ** }
 const
@@ -778,7 +778,7 @@ type
   tMUIP_NoNotifySet = record   { ...  }
     MethodID : LongWord;
     attr : LongWord;
-    format : Pchar;
+    format : PAnsiChar;
     val : LongWord;
   end;
   pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
@@ -802,7 +802,7 @@ type
   tMUIP_SetAsString = record   { ...  }
     MethodID : LongWord;
     attr : LongWord;
-    format : Pchar;
+    format : PAnsiChar;
     val : LongWord;
   end;
   pMUIP_SetAsString = ^tMUIP_SetAsString;
@@ -832,8 +832,8 @@ type
 
   tMUIP_WriteString = record
     MethodID : LongWord;
-    str : Pchar;
-    memory : Pchar;
+    str : PAnsiChar;
+    memory : PAnsiChar;
   end;
   pMUIP_WriteString = ^tMUIP_WriteString;
 
@@ -842,7 +842,7 @@ const
   MUIA_ApplicationObject = $8042d3ee;    { V4  ..g Object             }
   MUIA_AppMessage        = $80421955;    { V5  ..g struct AppMessage  }
   MUIA_HelpLine          = $8042a825;    { V4  isg LongInt            }
-  MUIA_HelpNode          = $80420b85;    { V4  isg PChar              }
+  MUIA_HelpNode          = $80420b85;    { V4  isg PAnsiChar              }
   MUIA_NoNotify          = $804237f9;    { V7  .s. BOOL               }
   MUIA_NoNotifyMethod    = $80420a74;    { V20 .s. LongWord           }
   MUIA_ObjectID          = $8042d76e;    { V11 isg LongWord           }
@@ -857,7 +857,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Family : PChar = 'Family.mui';
+  MUIC_Family : PAnsiChar = 'Family.mui';
 
 { ** Methods ** }
 const
@@ -917,7 +917,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Menustrip : PChar = 'Menustrip.mui';
+  MUIC_Menustrip : PAnsiChar = 'Menustrip.mui';
 
 { ** Methods ** }
 const
@@ -945,12 +945,12 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Menu : PChar = 'Menu.mui';
+  MUIC_Menu : PAnsiChar = 'Menu.mui';
 
 { ** Attributes ** }
 const
   MUIA_Menu_Enabled = $8042ed48;     { V8  isg BOOL              }
-  MUIA_Menu_Title   = $8042a0e3;     { V8  isg PChar             }
+  MUIA_Menu_Title   = $8042a0e3;     { V8  isg PAnsiChar             }
 
 
 
@@ -958,7 +958,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Menuitem : PChar = 'Menuitem.mui';
+  MUIC_Menuitem : PAnsiChar = 'Menuitem.mui';
 
 { ** Methods ** }
 
@@ -969,8 +969,8 @@ const
   MUIA_Menuitem_CommandString = $8042b9cc;     { V16 isg BOOL              }
   MUIA_Menuitem_Enabled       = $8042ae0f;     { V8  isg BOOL              }
   MUIA_Menuitem_Exclude       = $80420bc6;     { V8  isg LongInt           }
-  MUIA_Menuitem_Shortcut      = $80422030;     { V8  isg PChar             }
-  MUIA_Menuitem_Title         = $804218be;     { V8  isg PChar             }
+  MUIA_Menuitem_Shortcut      = $80422030;     { V8  isg PAnsiChar             }
+  MUIA_Menuitem_Title         = $804218be;     { V8  isg PAnsiChar             }
   MUIA_Menuitem_Toggle        = $80424d5c;     { V8  isg BOOL              }
   MUIA_Menuitem_Trigger       = $80426f32;     { V8  ..g struct MenuItem   }
 
@@ -983,7 +983,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Application : PChar = 'Application.mui';
+  MUIC_Application : PAnsiChar = 'Application.mui';
 
 { ** Methods ** }
 const
@@ -1058,7 +1058,7 @@ type
 
   tMUIP_Application_Load = record
     MethodID : LongWord;
-    name : PChar;
+    name : PAnsiChar;
   end;
 
   tMUIP_Application_NewInput = record
@@ -1094,7 +1094,7 @@ type
 
   tMUIP_Application_Save = record
     MethodID : LongWord;
-    name : PChar;
+    name : PAnsiChar;
   end;
 
   tMUIP_Application_SetConfigItem = record
@@ -1121,8 +1121,8 @@ type
   tMUIP_Application_ShowHelp = record
     MethodID : LongWord;
     window : pObject_;
-    name : Pchar;
-    node : Pchar;
+    name : PAnsiChar;
+    node : PAnsiChar;
     line : LongInt;
   end;
   pMUIP_Application_ShowHelp = ^tMUIP_Application_ShowHelp;
@@ -1130,34 +1130,34 @@ type
 { ** Attributes ** }
 const
   MUIA_Application_Active         = $804260ab;    { V4  isg BOOL               }
-  MUIA_Application_Author         = $80424842;    { V4  i.g PChar              }
-  MUIA_Application_Base           = $8042e07a;    { V4  i.g PChar              }
+  MUIA_Application_Author         = $80424842;    { V4  i.g PAnsiChar              }
+  MUIA_Application_Base           = $8042e07a;    { V4  i.g PAnsiChar              }
   MUIA_Application_Broker         = $8042dbce;    { V4  ..g Broker             }
   MUIA_Application_BrokerHook     = $80428f4b;    { V4  isg struct Hook        }
   MUIA_Application_BrokerPort     = $8042e0ad;    { V6  ..g struct MsgPort     }
   MUIA_Application_BrokerPri      = $8042c8d0;    { V6  i.g LongInt            }
   MUIA_Application_Commands       = $80428648;    { V4  isg struct MUI_Command }
-  MUIA_Application_Copyright      = $8042ef4d;    { V4  i.g PChar              }
-  MUIA_Application_Description    = $80421fc6;    { V4  i.g PChar              }
+  MUIA_Application_Copyright      = $8042ef4d;    { V4  i.g PAnsiChar              }
+  MUIA_Application_Description    = $80421fc6;    { V4  i.g PAnsiChar              }
   MUIA_Application_DiskObject     = $804235cb;    { V4  isg struct DiskObject  }
   MUIA_Application_DoubleStart    = $80423bc6;    { V4  ..g BOOL               }
   MUIA_Application_DropObject     = $80421266;    { V5  is. Object             }
   MUIA_Application_ForceQuit      = $804257df;    { V8  ..g BOOL               }
-  MUIA_Application_HelpFile       = $804293f4;    { V8  isg PChar              }
+  MUIA_Application_HelpFile       = $804293f4;    { V8  isg PAnsiChar              }
   MUIA_Application_Iconified      = $8042a07f;    { V4  .sg BOOL               }
   MUIA_Application_MenuAction     = $80428961;    { V4  ..g LongWord           }
   MUIA_Application_MenuHelp       = $8042540b;    { V4  ..g LongWord           }
   MUIA_Application_Menustrip      = $804252d9;    { V8  i.. Object             }
   MUIA_Application_RexxHook       = $80427c42;    { V7  isg struct Hook        }
   MUIA_Application_RexxMsg        = $8042fd88;    { V4  ..g struct RxMsg       }
-  MUIA_Application_RexxString     = $8042d711;    { V4  .s. PChar              }
+  MUIA_Application_RexxString     = $8042d711;    { V4  .s. PAnsiChar              }
   MUIA_Application_SingleTask     = $8042a2c8;    { V4  i.. BOOL               }
   MUIA_Application_Sleep          = $80425711;    { V4  .s. BOOL               }
-  MUIA_Application_Title          = $804281b8;    { V4  i.g PChar              }
+  MUIA_Application_Title          = $804281b8;    { V4  i.g PAnsiChar              }
   MUIA_Application_UseCommodities = $80425ee5;    { V10 i.. BOOL               }
   MUIA_Application_UsedClasses    = $8042e9a7;    { V20 isg STRPTR *           }
   MUIA_Application_UseRexx        = $80422387;    { V10 i.. BOOL               }
-  MUIA_Application_Version        = $8042b33f;    { V4  i.g PChar              }
+  MUIA_Application_Version        = $8042b33f;    { V4  i.g PAnsiChar              }
   MUIA_Application_Window         = $8042bfe0;    { V4  i.. Object             }
   MUIA_Application_WindowList     = $80429abe;    { V13 ..g struct List        }
 
@@ -1167,7 +1167,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Window : PChar = 'Window.mui';
+  MUIC_Window : PAnsiChar = 'Window.mui';
 
 const
   MUIM_Window_AddEventHandler = $804203b7;    { V16  }
@@ -1289,15 +1289,15 @@ const
   MUIA_Window_NeedsMouseObject        = $8042372a;    { V10 i.. BOOL               }
   MUIA_Window_NoMenus                 = $80429df5;    { V4  is. BOOL               }
   MUIA_Window_Open                    = $80428aa0;    { V4  .sg BOOL               }
-  MUIA_Window_PublicScreen            = $804278e4;    { V6  isg PChar              }
+  MUIA_Window_PublicScreen            = $804278e4;    { V6  isg PAnsiChar              }
   MUIA_Window_RefWindow               = $804201f4;    { V4  is. Object             }
   MUIA_Window_RootObject              = $8042cba5;    { V4  isg Object             }
   MUIA_Window_Screen                  = $8042df4f;    { V4  isg struct Screen      }
-  MUIA_Window_ScreenTitle             = $804234b0;    { V5  isg PChar              }
+  MUIA_Window_ScreenTitle             = $804234b0;    { V5  isg PAnsiChar              }
   MUIA_Window_SizeGadget              = $8042e33d;    { V4  i.. BOOL               }
   MUIA_Window_SizeRight               = $80424780;    { V4  i.. BOOL               }
   MUIA_Window_Sleep                   = $8042e7db;    { V4  .sg BOOL               }
-  MUIA_Window_Title                   = $8042ad3d;    { V4  isg PChar              }
+  MUIA_Window_Title                   = $8042ad3d;    { V4  isg PAnsiChar              }
   MUIA_Window_TopEdge                 = $80427c66;    { V4  i.g LongInt            }
   MUIA_Window_UseBottomBorderScroller = $80424e79;    { V13 isg BOOL               }
   MUIA_Window_UseLeftBorderScroller   = $8042433e;    { V13 isg BOOL               }
@@ -1353,7 +1353,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Aboutmui : PChar = 'Aboutmui.mui';
+  MUIC_Aboutmui : PAnsiChar = 'Aboutmui.mui';
 
 { ** Methods ** }
 
@@ -1367,7 +1367,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Area : PChar = 'Area.mui';
+  MUIC_Area : PAnsiChar = 'Area.mui';
 
 { ** Methods ** }
 const
@@ -1446,7 +1446,7 @@ type
     MethodID : LongWord;
     x : LongInt;
     y : LongInt;
-    txt : PChar;
+    txt : PAnsiChar;
     flags : LongWord;
   end;
   pMUIP_CreateBubble = ^tMUIP_CreateBubble;
@@ -1466,7 +1466,7 @@ type
 
   tMUIP_DeleteShortHelp = record
     MethodID : LongWord;
-    help : PChar;
+    help : PAnsiChar;
   end;
   pMUIP_DeleteShortHelp = ^tMUIP_DeleteShortHelp;
 
@@ -1576,7 +1576,7 @@ const
   MUIA_BottomEdge          = $8042e552;     { V4  ..g LongInt            }
   MUIA_ContextMenu         = $8042b704;     { V11 isg Object             }
   MUIA_ContextMenuTrigger  = $8042a2c1;     { V11 ..g Object             }
-  MUIA_ControlChar         = $8042120b;     { V4  isg char               }
+  MUIA_ControlChar         = $8042120b;     { V4  isg AnsiChar               }
   MUIA_CycleChain          = $80421ce7;     { V11 isg LongInt            }
   MUIA_Disabled            = $80423661;     { V4  isg BOOL               }
   MUIA_DoubleBuffer        = $8042a9c7;     { V20 isg BOOL               }
@@ -1584,14 +1584,14 @@ const
   MUIA_Dropable            = $8042fbce;     { V11 isg BOOL               }
   MUIA_FillArea            = $804294a3;     { V4  is. BOOL               }
   MUIA_FixHeight           = $8042a92b;     { V4  i.. LongInt            }
-  MUIA_FixHeightTxt        = $804276f2;     { V4  i.. PChar              }
+  MUIA_FixHeightTxt        = $804276f2;     { V4  i.. PAnsiChar              }
   MUIA_FixWidth            = $8042a3f1;     { V4  i.. LongInt            }
-  MUIA_FixWidthTxt         = $8042d044;     { V4  i.. PChar              }
+  MUIA_FixWidthTxt         = $8042d044;     { V4  i.. PAnsiChar              }
   MUIA_Font                = $8042be50;     { V4  i.g struct TextFont    }
   MUIA_Frame               = $8042ac64;     { V4  i.. LongInt            }
   MUIA_FrameDynamic        = $804223c9;     { V20 isg BOOL               }
   MUIA_FramePhantomHoriz   = $8042ed76;     { V4  i.. BOOL               }
-  MUIA_FrameTitle          = $8042d1c7;     { V4  i.. PChar              }
+  MUIA_FrameTitle          = $8042d1c7;     { V4  i.. PAnsiChar              }
   MUIA_FrameVisible        = $80426498;     { V20 isg BOOL               }
   MUIA_Height              = $80423237;     { V4  ..g LongInt            }
   MUIA_HorizDisappear      = $80429615;     { V11 isg LongInt            }
@@ -1607,7 +1607,7 @@ const
   MUIA_Pressed             = $80423535;     { V4  ..g BOOL               }
   MUIA_RightEdge           = $8042ba82;     { V4  ..g LongInt            }
   MUIA_Selected            = $8042654b;     { V4  isg BOOL               }
-  MUIA_ShortHelp           = $80428fe3;     { V11 isg PChar              }
+  MUIA_ShortHelp           = $80428fe3;     { V11 isg PAnsiChar              }
   MUIA_ShowMe              = $80429ba8;     { V4  isg BOOL               }
   MUIA_ShowSelState        = $8042caac;     { V4  i.. BOOL               }
   MUIA_Timer               = $80426435;     { V4  ..g LongInt            }
@@ -1665,7 +1665,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Dtpic : PChar = 'Dtpic.mui';
+  MUIC_Dtpic : PAnsiChar = 'Dtpic.mui';
 
 { ** Methods ** }
 
@@ -1679,11 +1679,11 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Rectangle : PChar = 'Rectangle.mui';
+  MUIC_Rectangle : PAnsiChar = 'Rectangle.mui';
 
 { ** Attributes ** }
 const
-  MUIA_Rectangle_BarTitle = $80426689;      { V11 i.g PChar             }
+  MUIA_Rectangle_BarTitle = $80426689;      { V11 i.g PAnsiChar             }
   MUIA_Rectangle_HBar     = $8042c943;      { V7  i.g BOOL              }
   MUIA_Rectangle_VBar     = $80422204;      { V7  i.g BOOL              }
 
@@ -1693,7 +1693,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Balance : PChar = 'Balance.mui';
+  MUIC_Balance : PAnsiChar = 'Balance.mui';
 
 { ** Attributes ** }
 const
@@ -1705,7 +1705,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Image : PChar = 'Image.mui';
+  MUIC_Image : PAnsiChar = 'Image.mui';
 
 { ** Attributes ** }
 
@@ -1716,7 +1716,7 @@ const
   MUIA_Image_FreeHoriz       = $8042da84;     { V4  i.. BOOL               }
   MUIA_Image_FreeVert        = $8042ea28;     { V4  i.. BOOL               }
   MUIA_Image_OldImage        = $80424f3d;     { V4  i.. struct Image       }
-  MUIA_Image_Spec            = $804233d5;     { V4  i.. char               }
+  MUIA_Image_Spec            = $804233d5;     { V4  i.. AnsiChar               }
   MUIA_Image_State           = $8042a3ad;     { V4  is. LongInt            }
 
 
@@ -1725,7 +1725,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Menubar : PChar = 'Menubar.mui';
+  MUIC_Menubar : PAnsiChar = 'Menubar.mui';
 
 
 
@@ -1733,7 +1733,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Bitmap : PChar = 'Bitmap.mui';
+  MUIC_Bitmap : PAnsiChar = 'Bitmap.mui';
 
 { ** Attributes ** }
 const
@@ -1754,7 +1754,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Bodychunk : PChar = 'Bodychunk.mui';
+  MUIC_Bodychunk : PAnsiChar = 'Bodychunk.mui';
 
 { ** Attributes ** }
 const
@@ -1769,15 +1769,15 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Text : PChar = 'Text.mui';
+  MUIC_Text : PAnsiChar = 'Text.mui';
 
 { ** Attributes ** }
 const
-  MUIA_Text_Contents    = $8042f8dc;     { V4  isg PChar             }
-  MUIA_Text_ControlChar = $8042e6d0;     { V20 isg char              }
+  MUIA_Text_Contents    = $8042f8dc;     { V4  isg PAnsiChar             }
+  MUIA_Text_ControlChar = $8042e6d0;     { V20 isg AnsiChar              }
   MUIA_Text_Copy        = $80427727;     { V20 isg BOOL              }
-  MUIA_Text_HiChar      = $804218ff;     { V4  i.. char              }
-  MUIA_Text_PreParse    = $8042566d;     { V4  isg PChar             }
+  MUIA_Text_HiChar      = $804218ff;     { V4  i.. AnsiChar              }
+  MUIA_Text_PreParse    = $8042566d;     { V4  isg PAnsiChar             }
   MUIA_Text_SetMax      = $80424d0a;     { V4  i.. BOOL              }
   MUIA_Text_SetMin      = $80424e10;     { V4  i.. BOOL              }
   MUIA_Text_SetVMax     = $80420d8b;     { V11 i.. BOOL              }
@@ -1795,7 +1795,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Gadget : PChar = 'Gadget.mui';
+  MUIC_Gadget : PAnsiChar = 'Gadget.mui';
 
 { ** Attributes ** }
 const
@@ -1807,25 +1807,25 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_String : PChar = 'String.mui';
+  MUIC_String : PAnsiChar = 'String.mui';
 
 { ** Methods ** }
 
 { ** Attributes ** }
 const
-  MUIA_String_Accept         = $8042e3e1;     { V4  isg PChar             }
-  MUIA_String_Acknowledge    = $8042026c;     { V4  ..g PChar             }
+  MUIA_String_Accept         = $8042e3e1;     { V4  isg PAnsiChar             }
+  MUIA_String_Acknowledge    = $8042026c;     { V4  ..g PAnsiChar             }
   MUIA_String_AdvanceOnCR    = $804226de;     { V11 isg BOOL              }
   MUIA_String_AttachedList   = $80420fd2;     { V4  isg Object            }
   MUIA_String_BufferPos      = $80428b6c;     { V4  .sg LongInt           }
-  MUIA_String_Contents       = $80428ffd;     { V4  isg PChar             }
+  MUIA_String_Contents       = $80428ffd;     { V4  isg PAnsiChar             }
   MUIA_String_DisplayPos     = $8042ccbf;     { V4  .sg LongInt           }
   MUIA_String_EditHook       = $80424c33;     { V7  isg struct Hook       }
   MUIA_String_Format         = $80427484;     { V4  i.g LongInt           }
   MUIA_String_Integer        = $80426e8a;     { V4  isg LongWord          }
   MUIA_String_LonelyEditHook = $80421569;     { V11 isg BOOL              }
   MUIA_String_MaxLen         = $80424984;     { V4  i.g LongInt           }
-  MUIA_String_Reject         = $8042179c;     { V4  isg PChar             }
+  MUIA_String_Reject         = $8042179c;     { V4  isg PAnsiChar             }
   MUIA_String_Secret         = $80428769;     { V4  i.g BOOL              }
 
 const
@@ -1839,12 +1839,12 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Boopsi : PChar = 'Boopsi.mui';
+  MUIC_Boopsi : PAnsiChar = 'Boopsi.mui';
 
 { ** Attributes ** }
 const
   MUIA_Boopsi_Class       = $80426999;    { V4  isg struct IClass      }
-  MUIA_Boopsi_ClassID     = $8042bfa3;    { V4  isg char               }
+  MUIA_Boopsi_ClassID     = $8042bfa3;    { V4  isg AnsiChar               }
   MUIA_Boopsi_MaxHeight   = $8042757f;    { V4  isg LongWord           }
   MUIA_Boopsi_MaxWidth    = $8042bcb1;    { V4  isg LongWord           }
   MUIA_Boopsi_MinHeight   = $80422c93;    { V4  isg LongWord           }
@@ -1862,7 +1862,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Prop : PChar = 'Prop.mui';
+  MUIC_Prop : PAnsiChar = 'Prop.mui';
 
 { ** Methods ** }
 const
@@ -1903,7 +1903,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Gauge : PChar = 'Gauge.mui';
+  MUIC_Gauge : PAnsiChar = 'Gauge.mui';
 
 { ** Attributes ** }
 const
@@ -1911,7 +1911,7 @@ const
   MUIA_Gauge_Divide   = $8042d8df;    { V4  isg BOOL               }
   MUIA_Gauge_Horiz    = $804232dd;    { V4  i.. BOOL               }
   MUIA_Gauge_InfoRate = $804253c8;    { V4  isg LONG               }
-  MUIA_Gauge_InfoText = $8042bf15;    { V7  isg PChar              }
+  MUIA_Gauge_InfoText = $8042bf15;    { V7  isg PAnsiChar              }
   MUIA_Gauge_Max      = $8042bcdb;    { V4  isg LongInt            }
 
 
@@ -1920,7 +1920,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Scale : PChar = 'Scale.mui';
+  MUIC_Scale : PAnsiChar = 'Scale.mui';
 
 { ** Attributes ** }
 const
@@ -1932,7 +1932,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_Colorfield : PChar = 'Colorfield.mui';
+  MUIC_Colorfield : PAnsiChar = 'Colorfield.mui';
 
 { ** Attributes ** }
 const
@@ -1948,7 +1948,7 @@ const
 { ************************************************************************* }
 
 const
-  MUIC_List : PChar = 'List.mui';
+  MUIC_List : PAnsiChar = 'List.mui';
 
     { Methods  }
     { V4   }
@@ -2111,7 +2111,7 @@ const
        MUIA_List_Entries = $80421654;
     { V4  ..g LongInt               }
        MUIA_List_First = $804238d4;
-    { V4  isg PChar             }
+    { V4  isg PAnsiChar             }
        MUIA_List_Format = $80423c0a;
     { V9  ..g LongInt               }
        MUIA_List_InsertPosition = $8042d0cd;
@@ -2131,7 +2131,7 @@ const
        MUIA_List_ShowDropMarks = $8042c6f3;
     { V4  i.. Pointer               }
        MUIA_List_SourceArray = $8042c0a0;
-    { V6  isg char               }
+    { V6  isg AnsiChar               }
        MUIA_List_Title = $80423e66;
     { V4  ..g LongInt               }
        MUIA_List_Visible = $8042191f;
@@ -2154,18 +2154,18 @@ const
 
 
     const
-       MUIC_Floattext : PChar = 'Floattext.mui';
+       MUIC_Floattext : PAnsiChar = 'Floattext.mui';
 
     { Attributes  }
     { V4  isg BOOL               }
 
     const
        MUIA_Floattext_Justify = $8042dc03;
-    { V4  is. PChar             }
+    { V4  is. PAnsiChar             }
        MUIA_Floattext_SkipChars = $80425c7d;
     { V4  is. LongInt               }
        MUIA_Floattext_TabSize = $80427d17;
-    { V4  isg PChar             }
+    { V4  isg PAnsiChar             }
        MUIA_Floattext_Text = $8042d16a;
     {                                                                           }
     {  Volumelist                                                               }
@@ -2173,14 +2173,14 @@ const
 
 
     const
-       MUIC_Volumelist : PChar = 'Volumelist.mui';
+       MUIC_Volumelist : PAnsiChar = 'Volumelist.mui';
 
     {                                                                           }
     {  Scrmodelist                                                              }
     {                                                                           }
 
     const
-       MUIC_Scrmodelist : PChar = 'Scrmodelist.mui';
+       MUIC_Scrmodelist : PAnsiChar = 'Scrmodelist.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2189,7 +2189,7 @@ const
 
 
     const
-       MUIC_Dirlist : PChar = 'Dirlist.mui';
+       MUIC_Dirlist : PAnsiChar = 'Dirlist.mui';
 
     { Methods  }
     { V4   }
@@ -2203,11 +2203,11 @@ const
          end;
 
     { Attributes  }
-    { V4  is. PChar             }
+    { V4  is. PAnsiChar             }
 
     const
        MUIA_Dirlist_AcceptPattern = $8042760a;
-    { V4  isg PChar             }
+    { V4  isg PAnsiChar             }
        MUIA_Dirlist_Directory = $8042ea41;
     { V4  is. BOOL               }
        MUIA_Dirlist_DrawersOnly = $8042b379;
@@ -2225,11 +2225,11 @@ const
        MUIA_Dirlist_NumDrawers = $80429cb8;
     { V4  ..g LongInt               }
        MUIA_Dirlist_NumFiles = $8042a6f0;
-    { V4  ..g PChar             }
+    { V4  ..g PAnsiChar             }
        MUIA_Dirlist_Path = $80426176;
     { V4  is. BOOL               }
        MUIA_Dirlist_RejectIcons = $80424808;
-    { V4  is. PChar             }
+    { V4  is. PAnsiChar             }
        MUIA_Dirlist_RejectPattern = $804259c7;
     { V4  is. LongInt               }
        MUIA_Dirlist_SortDirs = $8042bbb9;
@@ -2253,7 +2253,7 @@ const
     {                                                                           }
 
     const
-       MUIC_Numeric : PChar = 'Numeric.mui';
+       MUIC_Numeric : PAnsiChar = 'Numeric.mui';
 
     { Methods  }
     { V11  }
@@ -2317,7 +2317,7 @@ const
        MUIA_Numeric_CheckAllSizes = $80421594;
     { V11 isg LongInt               }
        MUIA_Numeric_Default = $804263e8;
-    { V11 isg PChar             }
+    { V11 isg PAnsiChar             }
        MUIA_Numeric_Format = $804263e9;
     { V11 isg LongInt               }
        MUIA_Numeric_Max = $8042d78a;
@@ -2337,7 +2337,7 @@ const
 
 
     const
-       MUIC_Knob : PChar = 'Knob.mui';
+       MUIC_Knob : PAnsiChar = 'Knob.mui';
 
     {                                                                           }
     {  Levelmeter                                                               }
@@ -2345,10 +2345,10 @@ const
 
 
     const
-       MUIC_Levelmeter : PChar = 'Levelmeter.mui';
+       MUIC_Levelmeter : PAnsiChar = 'Levelmeter.mui';
 
     { Attributes  }
-    { V11 isg PChar             }
+    { V11 isg PAnsiChar             }
 
     const
        MUIA_Levelmeter_Label = $80420dd5;
@@ -2358,7 +2358,7 @@ const
 
 
     const
-       MUIC_Numericbutton : PChar = 'Numericbutton.mui';
+       MUIC_Numericbutton : PAnsiChar = 'Numericbutton.mui';
 
     {                                                                           }
     {  Slider                                                                   }
@@ -2366,7 +2366,7 @@ const
 
 
     const
-       MUIC_Slider : PChar = 'Slider.mui';
+       MUIC_Slider : PAnsiChar = 'Slider.mui';
 
     { Attributes  }
     { V11 isg BOOL               }
@@ -2385,7 +2385,7 @@ const
 
 
     const
-       MUIC_Framedisplay : PChar = 'Framedisplay.mui';
+       MUIC_Framedisplay : PAnsiChar = 'Framedisplay.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2394,14 +2394,14 @@ const
 
 
     const
-       MUIC_Popframe : PChar = 'Popframe.mui';
+       MUIC_Popframe : PAnsiChar = 'Popframe.mui';
 
     {                                                                           }
     {  Imagedisplay                                                             }
     {                                                                           }
 
     const
-       MUIC_Imagedisplay : PChar = 'Imagedisplay.mui';
+       MUIC_Imagedisplay : PAnsiChar = 'Imagedisplay.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2410,7 +2410,7 @@ const
 
 
     const
-       MUIC_Popimage : PChar = 'Popimage.mui';
+       MUIC_Popimage : PAnsiChar = 'Popimage.mui';
 
     {                                                                           }
     {  Pendisplay                                                               }
@@ -2418,7 +2418,7 @@ const
 
 
     const
-       MUIC_Pendisplay : PChar = 'Pendisplay.mui';
+       MUIC_Pendisplay : PAnsiChar = 'Pendisplay.mui';
 
     { Methods  }
     { V13  }
@@ -2465,7 +2465,7 @@ const
 
 
     const
-       MUIC_Poppen : PChar = 'Poppen.mui';
+       MUIC_Poppen : PAnsiChar = 'Poppen.mui';
 
     {                                                                           }
     {  Group                                                                    }
@@ -2473,7 +2473,7 @@ const
 
 
     const
-       MUIC_Group : PChar = 'Group.mui';
+       MUIC_Group : PAnsiChar = 'Group.mui';
 
     { Methods  }
     { V11  }
@@ -2544,21 +2544,21 @@ const
 
 
     const
-       MUIC_Mccprefs : PChar = 'Mccprefs.mui';
+       MUIC_Mccprefs : PAnsiChar = 'Mccprefs.mui';
 
     {                                                                           }
     {  Register                                                                 }
     {                                                                           }
 
     const
-       MUIC_Register : PChar = 'Register.mui';
+       MUIC_Register : PAnsiChar = 'Register.mui';
 
     { Attributes  }
     { V7  i.g BOOL               }
 
     const
        MUIA_Register_Frame = $8042349b;
-    { V7  i.g PChar             }
+    { V7  i.g PAnsiChar             }
        MUIA_Register_Titles = $804297ec;
     {                                                                           }
     {  Penadjust                                                                }
@@ -2566,7 +2566,7 @@ const
 
 
     const
-       MUIC_Penadjust : PChar= 'Penadjust.mui';
+       MUIC_Penadjust : PAnsiChar= 'Penadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2580,7 +2580,7 @@ const
 
 
     const
-       MUIC_Settingsgroup : PChar = 'Settingsgroup.mui';
+       MUIC_Settingsgroup : PAnsiChar = 'Settingsgroup.mui';
 
     { Methods  }
     { V11  }
@@ -2609,7 +2609,7 @@ const
     {                                                                           }
 
     const
-       MUIC_Settings : PChar = 'Settings.mui';
+       MUIC_Settings : PAnsiChar = 'Settings.mui';
 
     { Methods  }
     { Attributes  }
@@ -2619,7 +2619,7 @@ const
 
 
     const
-       MUIC_Frameadjust : PChar = 'Frameadjust.mui';
+       MUIC_Frameadjust : PAnsiChar = 'Frameadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2629,7 +2629,7 @@ const
 
 
     const
-       MUIC_Imageadjust : PChar = 'Imageadjust.mui';
+       MUIC_Imageadjust : PAnsiChar = 'Imageadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2645,7 +2645,7 @@ const
 
 
     const
-       MUIC_Virtgroup : PChar = 'Virtgroup.mui';
+       MUIC_Virtgroup : PAnsiChar = 'Virtgroup.mui';
 
     { Methods  }
     { Attributes  }
@@ -2667,7 +2667,7 @@ const
 
 
     const
-       MUIC_Scrollgroup : PChar = 'Scrollgroup.mui';
+       MUIC_Scrollgroup : PAnsiChar = 'Scrollgroup.mui';
 
     { Methods  }
     { Attributes  }
@@ -2691,7 +2691,7 @@ const
 
 
     const
-       MUIC_Scrollbar : PChar = 'Scrollbar.mui';
+       MUIC_Scrollbar : PAnsiChar = 'Scrollbar.mui';
 
     { Attributes  }
     { V11 i.. LongInt               }
@@ -2708,7 +2708,7 @@ const
 
 
     const
-       MUIC_Listview : PChar = 'Listview.mui';
+       MUIC_Listview : PAnsiChar = 'Listview.mui';
 
     { Attributes  }
     { V7  ..g LongInt               }
@@ -2747,14 +2747,14 @@ const
 
 
     const
-       MUIC_Radio : PChar = 'Radio.mui';
+       MUIC_Radio : PAnsiChar = 'Radio.mui';
 
     { Attributes  }
     { V4  isg LongInt               }
 
     const
        MUIA_Radio_Active = $80429b41;
-    { V4  i.. PChar             }
+    { V4  i.. PAnsiChar             }
        MUIA_Radio_Entries = $8042b6a1;
     {                                                                           }
     {  Cycle                                                                    }
@@ -2762,14 +2762,14 @@ const
 
 
     const
-       MUIC_Cycle : PChar = 'Cycle.mui';
+       MUIC_Cycle : PAnsiChar = 'Cycle.mui';
 
     { Attributes  }
     { V4  isg LongInt               }
 
     const
        MUIA_Cycle_Active = $80421788;
-    { V4  i.. PChar             }
+    { V4  i.. PAnsiChar             }
        MUIA_Cycle_Entries = $80420629;
        MUIV_Cycle_Active_Next = -(1);
        MUIV_Cycle_Active_Prev = -(2);
@@ -2779,7 +2779,7 @@ const
 
 
     const
-       MUIC_Coloradjust : PChar = 'Coloradjust.mui';
+       MUIC_Coloradjust : PAnsiChar = 'Coloradjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2801,7 +2801,7 @@ const
 
 
     const
-       MUIC_Palette : PChar = 'Palette.mui';
+       MUIC_Palette : PAnsiChar = 'Palette.mui';
 
     { Attributes  }
     { V6  i.g struct MUI_Palette_Entry    }
@@ -2810,7 +2810,7 @@ const
        MUIA_Palette_Entries = $8042a3d8;
     { V6  isg BOOL               }
        MUIA_Palette_Groupable = $80423e67;
-    { V6  isg char               }
+    { V6  isg AnsiChar               }
        MUIA_Palette_Names = $8042c3a2;
     {                                                                           }
     {  Popstring                                                                }
@@ -2818,7 +2818,7 @@ const
 
 
     const
-       MUIC_Popstring : PChar = 'Popstring.mui';
+       MUIC_Popstring : PAnsiChar = 'Popstring.mui';
 
     { Methods  }
     { V7   }
@@ -2859,7 +2859,7 @@ const
 
 
     const
-       MUIC_Popobject : PChar = 'Popobject.mui';
+       MUIC_Popobject : PAnsiChar = 'Popobject.mui';
 
     { Attributes  }
     { V7  isg BOOL               }
@@ -2884,10 +2884,10 @@ const
 
 
     const
-       MUIC_Poplist : PChar = 'Poplist.mui';
+       MUIC_Poplist : PAnsiChar = 'Poplist.mui';
 
     { Attributes  }
-    { V8  i.. char               }
+    { V8  i.. AnsiChar               }
 
     const
        MUIA_Poplist_Array = $8042084c;
@@ -2897,7 +2897,7 @@ const
 
 
     const
-       MUIC_Popscreen : PChar = 'Popscreen.mui';
+       MUIC_Popscreen : PAnsiChar = 'Popscreen.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2905,7 +2905,7 @@ const
     {                                                                           }
 
     const
-       MUIC_Popasl : PChar = 'Popasl.mui';
+       MUIC_Popasl : PAnsiChar = 'Popasl.mui';
 
     { Attributes  }
     { V7  ..g BOOL               }
@@ -2924,7 +2924,7 @@ const
 
 
     const
-       MUIC_Semaphore : PChar = 'Semaphore.mui';
+       MUIC_Semaphore : PAnsiChar = 'Semaphore.mui';
 
     { Methods  }
     { V11  }
@@ -2971,7 +2971,7 @@ const
     {                                                                           }
 
     const
-       MUIC_Applist : PChar = 'Applist.mui';
+       MUIC_Applist : PAnsiChar = 'Applist.mui';
     { Methods  }
     {                                                                           }
     {  Cclist                                                                   }
@@ -2979,7 +2979,7 @@ const
 
 
     const
-       MUIC_Cclist : PChar = 'Cclist.mui';
+       MUIC_Cclist : PAnsiChar = 'Cclist.mui';
 
     { Methods  }
     {                                                                           }
@@ -2988,7 +2988,7 @@ const
 
 
     const
-       MUIC_Dataspace : PChar = 'Dataspace.mui';
+       MUIC_Dataspace : PAnsiChar = 'Dataspace.mui';
 
     { Methods  }
     { V11  }
@@ -3065,7 +3065,7 @@ const
 
 
     const
-       MUIC_Configdata : PChar = 'Configdata.mui';
+       MUIC_Configdata : PAnsiChar = 'Configdata.mui';
 
     { Methods  }
     { Attributes  }
@@ -3306,7 +3306,7 @@ const
          end;
        pMUI_CustomClass = ^tMUI_CustomClass;
 
-function MUI_NewObjectA(class_ : pChar location 'a0'; tags : pTagItem location 'a1') : pObject_;
+function MUI_NewObjectA(class_ : PAnsiChar location 'a0'; tags : pTagItem location 'a1') : pObject_;
 syscall legacy MUIMasterBase 30;
 
 procedure MUI_DisposeObject(obj : pObject_ location 'a0');
@@ -3315,9 +3315,9 @@ syscall legacy MUIMasterBase 36;
 function MUI_RequestA(app : POINTER location 'd0';
                       win : POINTER location 'd1';
                       flags : LongWord location 'd2';
-                      title : pChar location 'a0';
-                      gadgets : pChar location 'a1';
-                      format : pChar location 'a2';
+                      title : PAnsiChar location 'a0';
+                      gadgets : PAnsiChar location 'a1';
+                      format : PAnsiChar location 'a2';
                       params : POINTER location 'a3') : longint;
 syscall legacy MUIMasterBase 42;
 
@@ -3336,7 +3336,7 @@ syscall legacy MUIMasterBase 66;
 function MUI_SetError(errnum : LONGINT location 'd0') : LONGINT;
 syscall legacy MUIMasterBase 72;
 
-function MUI_GetClass(name : pChar location 'a0') : pIClass;
+function MUI_GetClass(name : PAnsiChar location 'a0') : pIClass;
 syscall legacy MUIMasterBase 78;
 
 procedure MUI_FreeClass(cl : pIClass location 'a0');
@@ -3352,7 +3352,7 @@ procedure MUI_Redraw(obj : pObject_ location 'a0'; flags : LongWord location 'd0
 syscall legacy MUIMasterBase 102;
 
 function MUI_CreateCustomClass(base : pLibrary location 'a0';
-                               supername : pChar location 'a1';
+                               supername : PAnsiChar location 'a1';
                                supermcc : pMUI_CustomClass location 'a2';
                                datasize : LONGINT location 'd0';
                                dispatcher : POINTER location 'a3') : pMUI_CustomClass;
@@ -3475,7 +3475,7 @@ function MUIV_Window_Width_Visible(p : longint) : longint;     inline;
 function MUIV_Window_Width_Screen(p : longint) : longint;      inline;
 
 
-function MAKE_ID(a,b,c,d : char): longword; inline;
+function MAKE_ID(a,b,c,d : AnsiChar): longword; inline;
 function MUIget(obj: pObject_; attr: longword; store: longword): longword; inline;
 function MUIset(obj: pObject_; attr: longword; value: longword): longword; inline;
 
@@ -3485,8 +3485,8 @@ function MUIset(obj: pObject_; attr: longword; value: longword): longword; inlin
 function MUI_AllocAslRequestTags(_type : longword; tags : array Of LongWord) : POINTER;
 function MUI_AslRequestTags(req : POINTER; tags : array Of LongWord) : BOOLEAN;
 function MUI_MakeObject(_type : LONGINT; params : array of LongWord) : pLongWord; inline;
-function MUI_NewObject(a0arg : pCHAR; tags : array of LongWord) : pLongWord; inline;
-function MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; params : array of LongWord) : LONGINT;
+function MUI_NewObject(a0arg : PAnsiChar; tags : array of LongWord) : pLongWord; inline;
+function MUI_Request(app : POINTER; win : POINTER; flags : longword; title : PAnsiChar; gadgets : PAnsiChar; format : PAnsiChar; params : array of LongWord) : LONGINT;
 
 
 function InitMUIMasterLibrary : boolean;
@@ -3784,17 +3784,17 @@ begin
     MUI_MakeObject := MUI_MakeObjectA(_type , @params);
 end;
 
-function MUI_NewObject(a0arg : PChar; tags : array of LongWord) : pLongWord; inline;
+function MUI_NewObject(a0arg : PAnsiChar; tags : array of LongWord) : pLongWord; inline;
 begin
     MUI_NewObject := MUI_NewObjectA(a0arg, @tags);
 end;
 
-function MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; params : array of LongWord) : LONGINT;
+function MUI_Request(app : POINTER; win : POINTER; flags : longword; title : PAnsiChar; gadgets : PAnsiChar; format : PAnsiChar; params : array of LongWord) : LONGINT;
 begin
     MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , @params);
 end;
 
-function MAKE_ID(a,b,c,d : char): longword;
+function MAKE_ID(a,b,c,d : AnsiChar): longword;
 begin
   MAKE_ID:=(byte(a) shl 24)+(byte(b) shl 16)+(byte(c) shl 8)+byte(d);
 end;

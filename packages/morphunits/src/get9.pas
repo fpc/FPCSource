@@ -25,7 +25,7 @@ var
   Get9Base: Pointer = nil;
 
 const
-  GET9NAME : PChar = 'get9.library';
+  GET9NAME : PAnsiChar = 'get9.library';
 
 procedure DNetCheck(force: boolean);
 SysCall BaseSysV Get9Base 28;

@@ -234,7 +234,7 @@ var
   LocaleBase: PLocaleBase = nil;
 
 const
-  LOCALENAME: PChar = 'locale.library';
+  LOCALENAME: PAnsiChar = 'locale.library';
 
 procedure CloseCatalog(Catalog: PCatalog location 'a0'); syscall LocaleBase 36;
 procedure CloseLocale(Locale: PLocale location 'a0'); syscall LocaleBase 42;

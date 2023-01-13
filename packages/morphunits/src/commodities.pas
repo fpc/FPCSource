@@ -124,7 +124,7 @@ var
  CxBase: PLibrary = nil;
 
 const
-  COMMODITIESNAME: PChar = 'commodities.library';
+  COMMODITIESNAME: PAnsiChar = 'commodities.library';
 
 function CreateCxObj(Typ: LongWord location 'd0'; Arg1: LongInt location 'a0'; Arg2: LongInt location 'a1'): PCxObj; syscall CxBase 30;
 function CxBroker(Nb: PNewBroker location 'a0'; var Error: LongInt location 'd0'): PCxObj; syscall CxBase 36;
