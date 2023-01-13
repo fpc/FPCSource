@@ -59,7 +59,7 @@ begin
   finally
     F.Free;
   end;
-  CheckError(wasmtime_wat2wasm(pchar(wat.data), wat.size, @bytes),
+  CheckError(wasmtime_wat2wasm(PAnsiChar(wat.data), wat.size, @bytes),
             'failed to parse wat file '+aFile);
   wasm_byte_vec_delete(@wat);
 end;
@@ -116,7 +116,7 @@ begin
   wasi_config_inherit_stdin(wasi_config);
   wasi_config_inherit_stdout(wasi_config);
   wasi_config_inherit_stderr(wasi_config);
-  wasi_config_preopen_dir(wasi_config,pchar('.'),pchar('.'));
+  wasi_config_preopen_dir(wasi_config,PAnsiChar('.'),PAnsiChar('.'));
   CheckError(wasmtime_context_set_wasi(context, wasi_config),
              'failed to instantiate WASI');
 
@@ -129,7 +129,7 @@ begin
   CheckError(wasmtime_linker_instantiate(linker, context, linking2_module, @linking2, @trap),Trap,
              'failed to instantiate linking2');
   // Register our new `linking2` instance with the linker
-  CheckError(wasmtime_linker_define_instance(linker, context, PChar('linking2'), Length('linking2'), @linking2),
+  CheckError(wasmtime_linker_define_instance(linker, context, PAnsiChar('linking2'), Length('linking2'), @linking2),
             'failed to link linking2');
 
   // Instantiate `linking1` with the linker now that `linking2` is defined
@@ -137,7 +137,7 @@ begin
               'failed to instantiate linking1');
 
   Writeln('Extracting export...');
-  ok:=wasmtime_instance_export_get(context, @linking1, PChar('run'), 3, @run) ;
+  ok:=wasmtime_instance_export_get(context, @linking1, PAnsiChar('run'), 3, @run) ;
   if OK=0 then
     exit_with_error('failed to get run export', nil, nil);
   if run.kind<>WASMTIME_EXTERN_FUNC then
