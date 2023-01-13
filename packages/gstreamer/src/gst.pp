@@ -171,8 +171,8 @@ Type
 {$i gsttypefindfactory.inc}
 
 
-procedure gst_init(argc:Plongint; argv:PPPchar);cdecl;external gstreamerlib name 'gst_init';
-function gst_init_check(argc:Plongint; argv:PPPchar; err:PPGError):Tgboolean;cdecl;external gstreamerlib name 'gst_init_check';
+procedure gst_init(argc:Plongint; argv:PPPAnsiChar);cdecl;external gstreamerlib name 'gst_init';
+function gst_init_check(argc:Plongint; argv:PPPAnsiChar; err:PPGError):Tgboolean;cdecl;external gstreamerlib name 'gst_init_check';
 function gst_is_initialized:Tgboolean;cdecl;external gstreamerlib name 'gst_is_initialized';
 function gst_init_get_option_group:PGOptionGroup;cdecl;external gstreamerlib name 'gst_init_get_option_group';
 procedure gst_deinit;cdecl;external gstreamerlib name 'gst_deinit';

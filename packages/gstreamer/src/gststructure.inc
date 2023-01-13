@@ -147,13 +147,13 @@
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_structure_get_valist(structure:PGstStructure; first_fieldname:Pchar; args:Tva_list):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get_valist';
+  function gst_structure_get_valist(structure:PGstStructure; first_fieldname:PAnsiChar; args:Tva_list):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get_valist';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_structure_get(structure:PGstStructure; first_fieldname:Pchar; args:array of const):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get';
+  function gst_structure_get(structure:PGstStructure; first_fieldname:PAnsiChar; args:array of const):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get';
 
-  function gst_structure_get(structure:PGstStructure; first_fieldname:Pchar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get';
+  function gst_structure_get(structure:PGstStructure; first_fieldname:PAnsiChar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_get';
 
 (* Const before type ignored *)
   function gst_structure_id_get_valist(structure:PGstStructure; first_field_id:TGQuark; args:Tva_list):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_id_get_valist';
@@ -283,25 +283,25 @@
   function gst_structure_from_string(_string:Pgchar; end_:PPgchar):PGstStructure;cdecl;external gstreamerlib name 'gst_structure_from_string';
 
 (* Const before type ignored *)
-  function gst_structure_fixate_field_nearest_int(structure:PGstStructure; field_name:Pchar; target:longint):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_int';
+  function gst_structure_fixate_field_nearest_int(structure:PGstStructure; field_name:PAnsiChar; target:longint):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_int';
 
 (* Const before type ignored *)
-  function gst_structure_fixate_field_nearest_double(structure:PGstStructure; field_name:Pchar; target:double):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_double';
+  function gst_structure_fixate_field_nearest_double(structure:PGstStructure; field_name:PAnsiChar; target:double):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_double';
 
 (* Const before type ignored *)
-  function gst_structure_fixate_field_boolean(structure:PGstStructure; field_name:Pchar; target:Tgboolean):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_boolean';
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function gst_structure_fixate_field_string(structure:PGstStructure; field_name:Pchar; target:Pgchar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_string';
+  function gst_structure_fixate_field_boolean(structure:PGstStructure; field_name:PAnsiChar; target:Tgboolean):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_boolean';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-(* Const before type ignored *)
-  function gst_structure_fixate_field_nearest_fraction(structure:PGstStructure; field_name:Pchar; target_numerator:Tgint; target_denominator:Tgint):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_fraction';
+  function gst_structure_fixate_field_string(structure:PGstStructure; field_name:PAnsiChar; target:Pgchar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_string';
 
 (* Const before type ignored *)
-  function gst_structure_fixate_field(structure:PGstStructure; field_name:Pchar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field';
+(* Const before type ignored *)
+(* Const before type ignored *)
+  function gst_structure_fixate_field_nearest_fraction(structure:PGstStructure; field_name:PAnsiChar; target_numerator:Tgint; target_denominator:Tgint):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field_nearest_fraction';
+
+(* Const before type ignored *)
+  function gst_structure_fixate_field(structure:PGstStructure; field_name:PAnsiChar):Tgboolean;cdecl;external gstreamerlib name 'gst_structure_fixate_field';
 
   procedure gst_structure_fixate(structure:PGstStructure);cdecl;external gstreamerlib name 'gst_structure_fixate';
 

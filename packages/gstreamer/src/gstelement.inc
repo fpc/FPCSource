@@ -71,8 +71,8 @@ Type
   TGstElement_queueautoptr = PGQueue;
 
 
-  function gst_make_element_message_details(name:Pchar; args:array of const):PGstStructure;cdecl;external gstreamerlib name 'gst_make_element_message_details';
-  function gst_make_element_message_details(name:Pchar):PGstStructure;cdecl;external gstreamerlib name 'gst_make_element_message_details';
+  function gst_make_element_message_details(name:PAnsiChar; args:array of const):PGstStructure;cdecl;external gstreamerlib name 'gst_make_element_message_details';
+  function gst_make_element_message_details(name:PAnsiChar):PGstStructure;cdecl;external gstreamerlib name 'gst_make_element_message_details';
 
 
   procedure gst_element_class_add_pad_template(klass:PGstElementClass; templ:PGstPadTemplate);cdecl;external gstreamerlib name 'gst_element_class_add_pad_template';
