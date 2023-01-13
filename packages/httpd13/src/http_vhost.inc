@@ -23,11 +23,11 @@ procedure ap_fini_vhost_config(p: PPool; main_server: Pserver_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { handle addresses in <VirtualHost> statement }
-function ap_parse_vhost_addrs(p: PPool; const hostname: PChar; s: Pserver_rec): PChar;
+function ap_parse_vhost_addrs(p: PPool; const hostname: PAnsiChar; s: Pserver_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { handle NameVirtualHost directive }
-//function ap_set_name_virtual_host(cmd: Pcmd_parms; dummy: Pointer; arg: PChar): PChar;
+//function ap_set_name_virtual_host(cmd: Pcmd_parms; dummy: Pointer; arg: PAnsiChar): PAnsiChar;
 // cdecl; external LibHTTPD;
 
 { given an ip address only, give our best guess as to what vhost it is }
@@ -43,7 +43,7 @@ procedure ap_update_vhost_from_headers(r: Prequest_rec);
 { return 1 if the host:port matches any of the aliases of r->server
  * return 0 otherwise
  }
-function ap_matches_request_vhost(r: Prequest_rec; const host: PChar;
+function ap_matches_request_vhost(r: Prequest_rec; const host: PAnsiChar;
  port: cuint): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 

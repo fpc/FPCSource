@@ -79,10 +79,10 @@ function ap_allow_options(r: Prequest_rec): cint;
 function ap_allow_overrides(r: Prequest_rec): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_default_type(r: Prequest_rec): PChar;
+function ap_default_type(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_document_root(r: Prequest_rec): PChar;
+function ap_document_root(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
                                       { Don't use this!  If your request went
 				      * through a Userdir, or something like
@@ -90,19 +90,19 @@ function ap_document_root(r: Prequest_rec): PChar;
 				      * back-compatible...
                                       }
                                       
-function ap_get_remote_host(conn: Pconn_rec; dir_config: Pointer; type_: cint): PChar;
+function ap_get_remote_host(conn: Pconn_rec; dir_config: Pointer; type_: cint): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_remote_logname(r: Prequest_rec): PChar;
+function ap_get_remote_logname(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Used for constructing self-referencing URLs, and things like SERVER_PORT,
  * and SERVER_NAME.
  }
-function ap_construct_url(p: Ppool; const uri: PChar; r: Prequest_rec): PChar;
+function ap_construct_url(p: Ppool; const uri: PAnsiChar; r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_get_server_name(r: Prequest_rec): PChar;
+function ap_get_server_name(r: Prequest_rec): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 function ap_get_server_port(const r: Prequest_rec): cuint;
@@ -111,10 +111,10 @@ function ap_get_server_port(const r: Prequest_rec): cuint;
 function ap_get_limit_req_body(const r: Prequest_rec): culong;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-procedure ap_custom_response(r: Prequest_rec; status: cint; string_: PChar);
+procedure ap_custom_response(r: Prequest_rec; status: cint; string_: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_exists_config_define(name: PChar): cint;
+function ap_exists_config_define(name: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { Check if the current request is beyond the configured max. number of redirects or subrequests
@@ -134,12 +134,12 @@ function ap_is_recursion_limit_exceeded(const r: Prequest_rec): cint;
 type
   require_line = record
     method_mask: cint;
-    requirement: PChar;
+    requirement: PAnsiChar;
   end;
      
-{API_EXPORT(const char *) ap_auth_type (request_rec *);
-API_EXPORT(const char *) ap_auth_name (request_rec *);     
-API_EXPORT(const char *) ap_auth_nonce (request_rec *);
+{API_EXPORT(const AnsiChar *) ap_auth_type (request_rec *);
+API_EXPORT(const AnsiChar *) ap_auth_name (request_rec *);     
+API_EXPORT(const AnsiChar *) ap_auth_nonce (request_rec *);
 API_EXPORT(int) ap_satisfies (request_rec *r);
 API_EXPORT(const array_header *) ap_requires (request_rec *);    }
 
@@ -153,7 +153,7 @@ type
   interpreter_source_e = ( INTERPRETER_SOURCE_UNSET, INTERPRETER_SOURCE_REGISTRY,
    INTERPRETER_SOURCE_SHEBANG );
 
-function ap_get_win32_interpreter(const param1: Prequest_rec; param2: PPChar): file_type_e;
+function ap_get_win32_interpreter(const param1: Prequest_rec; param2: PPAnsiChar): file_type_e;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 {$endif}
 
@@ -165,19 +165,19 @@ function ap_get_win32_interpreter(const param1: Prequest_rec; param2: PPChar): f
  * the code that cares really is in http_core.c.  Also, another accessor.
  }
 
-//API_EXPORT(char *) ap_response_code_string (request_rec *r, int error_index);
+//API_EXPORT(AnsiChar *) ap_response_code_string (request_rec *r, int error_index);
 
 //extern API_VAR_EXPORT module core_module;
 
 { Per-directory configuration }
 
 type
-  allow_options_t = Char;
-  overrides_t = Char
+  allow_options_t = AnsiChar;
+  overrides_t = AnsiChar
   ;
 {
  * Bits of info that go into making an ETag for a file
- * document.  Why a long?  Because char historically
+ * document.  Why a long?  Because AnsiChar historically
  * proved too short for Options, and int can be different
  * sizes on different platforms.
  }
@@ -238,7 +238,7 @@ type
 
   core_dir_config = record
     { path of the directory/regex/etc.  see also d_is_fnmatch below }
-    d: PChar;
+    d: PAnsiChar;
     { the number of slashes in d }
     d_components: cuint;
 
@@ -259,22 +259,22 @@ type
      * goes untyped by other mechanisms before it slips out the door...
      }
     
-    ap_default_type: PChar;
+    ap_default_type: PAnsiChar;
   
     { Authentication stuff.  Groan... }
     
     satisfy: cint;
-    ap_auth_type: PChar;
-    ap_auth_name: PChar;
+    ap_auth_type: PAnsiChar;
+    ap_auth_name: PAnsiChar;
     ap_requires: Parray_header;
 
     { Custom response config. These can contain text or a URL to redirect to.
      * if response_code_strings is NULL then there are none in the config,
-     * if it's not null then it's allocated to sizeof(char*)*RESPONSE_CODES.
+     * if it's not null then it's allocated to sizeof(AnsiChar*)*RESPONSE_CODES.
      * This lets us do quick merges in merge_core_dir_configs().
      }
   
-    response_code_strings: PPChar; { from ErrorDocument, not from
+    response_code_strings: PPAnsiChar; { from ErrorDocument, not from
                                    * ap_custom_response()
                                    }
 
@@ -305,7 +305,7 @@ type
     { Moved up }
 
 //    unsigned add_default_charset : 2;
-    add_default_charset_name: PChar;
+    add_default_charset_name: PAnsiChar;
 
     { System Resource Control }
 {$ifdef RLIMIT_CPU}
@@ -367,7 +367,7 @@ type
     cgi_command_args: ap_flag_e;
 
     { Digest auth. }
-    ap_auth_nonce: PChar;
+    ap_auth_nonce: PAnsiChar;
 
   end;
 
@@ -377,18 +377,18 @@ type
   core_server_config = record
   
 {$ifdef GPROF}
-    gprof_dir: PChar;
+    gprof_dir: PAnsiChar;
 {$endif}
 
     { Name translations --- we want the core to be able to do *something*
      * so it's at least a minimally functional web server on its own (and
      * can be tested that way).  But let's keep it to the bare minimum:
      }
-    ap_document_root: PChar;
+    ap_document_root: PAnsiChar;
   
     { Access control }
 
-    access_name: PChar;
+    access_name: PAnsiChar;
     sec: Parray_header;
     sec_url: Parray_header;
 
@@ -416,7 +416,7 @@ const
 //CORE_EXPORT(void) ap_add_per_dir_conf (server_rec *s, void *dir_config);
 //CORE_EXPORT(void) ap_add_per_url_conf (server_rec *s, void *url_config);
 //CORE_EXPORT(void) ap_add_file_conf(core_dir_config *conf, void *url_config);
-//CORE_EXPORT_NONSTD(const char *) ap_limit_section (cmd_parms *cmd, void *dummy, const char *arg);
+//CORE_EXPORT_NONSTD(const AnsiChar *) ap_limit_section (cmd_parms *cmd, void *dummy, const AnsiChar *arg);
 
 {.$endif}
 
