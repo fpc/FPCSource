@@ -16,7 +16,7 @@ uses tcl80, SysUtils;
 {*
  * Function for testing that string is correct number
  *}
-function is_num(const src: PChar): Boolean;
+function is_num(const src: PAnsiChar): Boolean;
 var
    i: integer;
 begin
@@ -34,7 +34,7 @@ function Test_max(clientData: Tcl_ClientData;  {* Some user defined data. *}
                   argv: Tcl_Argv): longint;    {* Remeber! *NIX `integer` type is 16 bit! *}
                   cdecl;                       {* C calling convention *}
 var
-   arg    : PChar;
+   arg    : PAnsiChar;
    idx,
    value,
    maxVal : LongInt;
@@ -64,15 +64,15 @@ begin
                Test_max:=TCL_ERROR;    {* Error has occurred *}
                exit;                   {* leave *}
           end;
-          Value:=StrToInt(arg);        {* Convert PChar->Integer *}
+          Value:=StrToInt(arg);        {* Convert PAnsiChar->Integer *}
           if (value > maxVal) then
              maxVal := value;          {* Calculate maximum number *}
      end;
 
      {* Set the result for the our function.
-      * result type always is PChar
+      * result type always is PAnsiChar
       *}
-     Tcl_SetResult(interp, PChar(IntToStr(maxVal)), nil);
+     Tcl_SetResult(interp, PAnsiChar(IntToStr(maxVal)), nil);
 
      {* exit successful *}
      Test_max:=TCL_OK;
@@ -84,7 +84,7 @@ end;
 function Test_writeln(clientData: Tcl_ClientData; interp: pTcl_Interp; argc: integer; argv: Tcl_Argv): longint; cdecl;
 var
    i: integer;
-   Buff: string;
+   Buff: Ansistring;
 begin
      Buff := '';
      for i:=1 to argc-1 do

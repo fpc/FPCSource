@@ -560,13 +560,13 @@ const
 
 
 type
-    Tcl_Argv        = PPChar;
+    Tcl_Argv        = PPAnsiChar;
     Tcl_ClientData  = pointer;
     Tcl_FreeProc    = procedure(block : pointer); cdecl;
     PTcl_Interp     = ^Tcl_Interp;
 
     Tcl_Interp = packed record
-        result  : PChar; {* Do not access this directly. Use
+        result  : PAnsiChar; {* Do not access this directly. Use
                           * Tcl_GetStringResult since result
                           * may be pointing to an object
                           *}
@@ -606,15 +606,15 @@ type
         tablePtr   : PTcl_HashTable;
         bucketPtr  : PPTcl_HashEntry;
         clientData : Tcl_ClientData;
-        key        : array[0..3] of Char;
+        key        : array[0..3] of AnsiChar;
     end;
 {      case key: integer of
-        0: (oneWordValue: pChar);
+        0: (oneWordValue: PAnsiChar);
          1: (words      : pInteger);
-         2: (str        : pChar);
+         2: (str        : PAnsiChar);
 }
-    Tcl_HashFindProc   = function(tablePtr: PTcl_HashTable; key: PChar): PTcl_HashEntry; cdecl;
-    Tcl_HashCreateProc = function(tablePtr: PTcl_HashTable; key: PChar; newPtr: PInteger): PTcl_HashEntry; cdecl;
+    Tcl_HashFindProc   = function(tablePtr: PTcl_HashTable; key: PAnsiChar): PTcl_HashEntry; cdecl;
+    Tcl_HashCreateProc = function(tablePtr: PTcl_HashTable; key: PAnsiChar; newPtr: PInteger): PTcl_HashEntry; cdecl;
 
     PHashTable = ^Tcl_HashTable;
     Tcl_HashTable = packed record
@@ -641,7 +641,7 @@ type
     TTclPackageInitProc     = function(interp: pTcl_Interp): integer; cdecl;
     TTclCmdProc             = function(clientData : Tcl_ClientData; interp : pTcl_Interp; argc: integer; argv : Tcl_Argv): integer; cdecl;
     TTclVarTraceProc        = function (clientData: Tcl_ClientData; interp: pTcl_Interp;
-                                        varName: PChar; elemName: PChar; flags: integer): PChar; cdecl;
+                                        varName: PAnsiChar; elemName: PAnsiChar; flags: integer): PAnsiChar; cdecl;
     TTclFreeProc            = procedure(block: pointer); cdecl;
     TTclInterpDeleteProc    = procedure(clientData: Tcl_ClientData; interp: pTcl_Interp); cdecl;
     TTclCmdDeleteProc       = procedure(clientData: Tcl_ClientData); cdecl;
@@ -654,10 +654,10 @@ const
 type
     PTcl_DString = ^Tcl_DString;
     Tcl_DString = packed record
-        str        : PChar;
+        str        : PAnsiChar;
         length     : integer;
         spaceAvl   : integer;
-        staticSpace: array[0..TCL_DSTRING_STATIC_SIZE - 1] of char;
+        staticSpace: array[0..TCL_DSTRING_STATIC_SIZE - 1] of AnsiChar;
     end;
 
     PTcl_Channel = ^Tcl_Channel;
@@ -666,22 +666,22 @@ type
 
     TTclDriverBlockModeProc     = function(instanceData: Tcl_ClientData; mode: integer): integer; cdecl;
     TTclDriverCloseProc         = function(instanceData: Tcl_ClientData; interp: PTcl_Interp): integer; cdecl;
-    TTclDriverInputProc         = function(instanceData: Tcl_ClientData; buf: PChar; toRead: integer;
+    TTclDriverInputProc         = function(instanceData: Tcl_ClientData; buf: PAnsiChar; toRead: integer;
                                            errorCodePtr: PInteger): integer; cdecl;
-    TTclDriverOutputProc        = function(instanceData: Tcl_ClientData; buf: PChar; toWrite: integer;
+    TTclDriverOutputProc        = function(instanceData: Tcl_ClientData; buf: PAnsiChar; toWrite: integer;
                                            errorCodePtr: PInteger): integer; cdecl;
     TTclDriverSeekProc          = function(instanceData: Tcl_ClientData; offset: longint; mode: integer;
                                            errorCodePtr: PInteger): integer; cdecl;
-    TTclDriverSetOptionProc     = function(instanceData: Tcl_ClientData; interp: PTcl_Interp; optionName: PChar;
-                                           value: PChar): integer; cdecl;
-    TTclDriverGetOptionProc     = function(instanceData: Tcl_ClientData; interp: pTcl_Interp; optionName: PChar;
+    TTclDriverSetOptionProc     = function(instanceData: Tcl_ClientData; interp: PTcl_Interp; optionName: PAnsiChar;
+                                           value: PAnsiChar): integer; cdecl;
+    TTclDriverGetOptionProc     = function(instanceData: Tcl_ClientData; interp: pTcl_Interp; optionName: PAnsiChar;
                                            dsPtr: PTcl_DString): integer; cdecl;
     TTclDriverWatchProc         = procedure(instanceData: Tcl_ClientData; mask: integer); cdecl;
     TTclDriverGetHandleProc     = function(instanceData: Tcl_ClientData; direction: integer;
                                            var handlePtr: Tcl_ClientData): integer; cdecl;
     PTcl_ChannelType = ^Tcl_ChannelType;
     Tcl_ChannelType  = packed record
-        typeName     : PChar;
+        typeName     : PAnsiChar;
         blockModeProc: TTclDriverBlockModeProc;
         closeProc    : TTclDriverCloseProc;
         inputProc    : TTclDriverInputProc;
@@ -706,8 +706,8 @@ type
 
     PTcl_Namespace = ^Tcl_Namespace;
     Tcl_Namespace = packed record
-        name      : pchar;
-        fullName  : PChar;
+        name      : PAnsiChar;
+        fullName  : PAnsiChar;
         clientData: Tcl_ClientData;
         deleteProc: TTclNamespaceDeleteProc;
         parentPtr : PTcl_Namespace;
@@ -718,14 +718,14 @@ type
         nsPtr  : PTcl_Namespace;
         dummy1 : integer;
         dummy2 : integer;
-        dummy3 : PChar;
-        dummy4 : PChar;
-        dummy5 : PChar;
+        dummy3 : PAnsiChar;
+        dummy4 : PAnsiChar;
+        dummy5 : PAnsiChar;
         dummy6 : integer;
-        dummy7 : PChar;
-        dummy8 : PChar;
+        dummy7 : PAnsiChar;
+        dummy8 : PAnsiChar;
         dummy9 : integer;
-        dummy10: PChar;
+        dummy10: PAnsiChar;
     end;
 
     PTcl_CmdInfo = ^Tcl_CmdInfo;
@@ -764,7 +764,7 @@ type
     uint       = integer;
     bool       = longbool;
 
-    TTclPanicProc          = procedure(fmt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8: PChar); cdecl; // 1/15/97 orig. Tcl style
+    TTclPanicProc          = procedure(fmt, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8: PAnsiChar); cdecl; // 1/15/97 orig. Tcl style
     TTclClientDataProc     = procedure (clientData: Tcl_ClientData); cdecl;
     TTclIdleProc           = procedure (clientData: Tcl_ClientData); cdecl;
     TTclTimerProc          = TTclIdleProc;
@@ -772,50 +772,50 @@ type
     TTclDeleteCloseHandler = TTclCreateCloseHandler;
     TTclEventDeleteProc    = function(evPtr: pTcl_Event; clientData: Tcl_ClientData): integer; cdecl;
 
-    function Tcl_Alloc(size: Cardinal): PChar; cdecl; external TCL_LIBRARY;
+    function Tcl_Alloc(size: Cardinal): PAnsiChar; cdecl; external TCL_LIBRARY;
     function Tcl_CreateInterp : pTcl_Interp; cdecl; external TCL_LIBRARY;
     procedure Tcl_DeleteInterp(interp: pTcl_Interp); cdecl; external TCL_LIBRARY;
     procedure Tcl_ResetResult(interp: pTcl_Interp); cdecl; external TCL_LIBRARY;
-    function Tcl_Eval(interp: pTcl_Interp; script : PChar):integer; cdecl; external TCL_LIBRARY;
-    function Tcl_EvalFile(interp: pTcl_Interp; filename: PChar):integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_AddErrorInfo(interp: pTcl_Interp; message: PChar); cdecl; external TCL_LIBRARY;
+    function Tcl_Eval(interp: pTcl_Interp; script : PAnsiChar):integer; cdecl; external TCL_LIBRARY;
+    function Tcl_EvalFile(interp: pTcl_Interp; filename: PAnsiChar):integer; cdecl; external TCL_LIBRARY;
+    procedure Tcl_AddErrorInfo(interp: pTcl_Interp; message: PAnsiChar); cdecl; external TCL_LIBRARY;
     procedure Tcl_BackgroundError(interp: pTcl_Interp); cdecl; external TCL_LIBRARY;
-    function Tcl_CreateCommand(interp: pTcl_Interp; name: PChar; cmdProc: TTclCmdProc;
+    function Tcl_CreateCommand(interp: pTcl_Interp; name: PAnsiChar; cmdProc: TTclCmdProc;
                                clientData: Tcl_ClientData; deleteProc: TTclCmdDeleteProc): pTcl_Command; cdecl; external TCL_LIBRARY;
 
-    function  Tcl_DeleteCommand(interp: pTcl_Interp; name: PChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_DeleteCommand(interp: pTcl_Interp; name: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
     procedure Tcl_CallWhenDeleted(interp: pTcl_Interp; proc: TTclInterpDeleteProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     procedure Tcl_DontCallWhenDeleted(interp: pTcl_Interp; proc: TTclInterpDeleteProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
-    function  Tcl_CommandComplete(cmd: PChar): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_LinkVar(interp: pTcl_Interp; varName: PChar; var addr; typ: integer): integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_UnlinkVar(interp: pTcl_Interp; varName: PChar); cdecl; external TCL_LIBRARY;
-    function  Tcl_TraceVar(interp: pTcl_Interp; varName: PChar; flags: integer; proc: TTclVarTraceProc;
+    function  Tcl_CommandComplete(cmd: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_LinkVar(interp: pTcl_Interp; varName: PAnsiChar; var addr; typ: integer): integer; cdecl; external TCL_LIBRARY;
+    procedure Tcl_UnlinkVar(interp: pTcl_Interp; varName: PAnsiChar); cdecl; external TCL_LIBRARY;
+    function  Tcl_TraceVar(interp: pTcl_Interp; varName: PAnsiChar; flags: integer; proc: TTclVarTraceProc;
                            clientData: Tcl_ClientData): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_TraceVar2(interp: pTcl_Interp; varName: PChar; elemName: PChar; flags : integer; proc: TTclVarTraceProc;
+    function  Tcl_TraceVar2(interp: pTcl_Interp; varName: PAnsiChar; elemName: PAnsiChar; flags : integer; proc: TTclVarTraceProc;
                             clientData: Tcl_ClientData): integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_UntraceVar(interp: pTcl_Interp; varName: PChar; flags: integer;
+    procedure Tcl_UntraceVar(interp: pTcl_Interp; varName: PAnsiChar; flags: integer;
                              proc: TTclVarTraceProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
-    procedure Tcl_UntraceVar2(interp: pTcl_Interp; varName: PChar; elemName: PChar; flags: integer;
+    procedure Tcl_UntraceVar2(interp: pTcl_Interp; varName: PAnsiChar; elemName: PAnsiChar; flags: integer;
                               proc: TTclVarTraceProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
-    function  Tcl_GetVar(interp: pTcl_Interp; varName: PChar; flags: integer): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_GetVar2(interp: pTcl_Interp; varName: PChar; elemName: PChar; flags: integer): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_SetVar(interp: pTcl_Interp; varName: PChar; newValue: PChar; flags: integer): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_SetVar2(interp: pTcl_Interp; varName: PChar; elemName: PChar; newValue: PChar; flags: integer): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_UnsetVar(interp: pTcl_Interp; varName: PChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_UnsetVar2(interp: pTcl_Interp; varName: PChar; elemName: PChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_SetResult(interp: pTcl_Interp; newValue: PChar; freeProc: TTclFreeProc); cdecl; external TCL_LIBRARY;
+    function  Tcl_GetVar(interp: pTcl_Interp; varName: PAnsiChar; flags: integer): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_GetVar2(interp: pTcl_Interp; varName: PAnsiChar; elemName: PAnsiChar; flags: integer): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_SetVar(interp: pTcl_Interp; varName: PAnsiChar; newValue: PAnsiChar; flags: integer): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_SetVar2(interp: pTcl_Interp; varName: PAnsiChar; elemName: PAnsiChar; newValue: PAnsiChar; flags: integer): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_UnsetVar(interp: pTcl_Interp; varName: PAnsiChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_UnsetVar2(interp: pTcl_Interp; varName: PAnsiChar; elemName: PAnsiChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
+    procedure Tcl_SetResult(interp: pTcl_Interp; newValue: PAnsiChar; freeProc: TTclFreeProc); cdecl; external TCL_LIBRARY;
     function  Tcl_FirstHashEntry(hashTbl: pTcl_HashTable; var searchInfo: Tcl_HashSearch): pTcl_HashEntry; cdecl; external TCL_LIBRARY;
     function  Tcl_NextHashEntry(var searchInfo: Tcl_HashSearch): pTcl_HashEntry; cdecl; external TCL_LIBRARY;
     procedure Tcl_InitHashTable(hashTbl: pTcl_HashTable; keyType: integer); cdecl; external TCL_LIBRARY;
-    function  Tcl_StringMatch(str: PChar; pattern: PChar): integer; cdecl; external TCL_LIBRARY;
-    function  _Tcl_GetHashKey(hashTbl: pTcl_HashTable; hashEntry: pTcl_HashEntry): PChar; cdecl;
+    function  Tcl_StringMatch(str: PAnsiChar; pattern: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    function  _Tcl_GetHashKey(hashTbl: pTcl_HashTable; hashEntry: pTcl_HashEntry): PAnsiChar; cdecl;
     function  Tcl_GetErrno:integer; cdecl; external TCL_LIBRARY;
     procedure Tcl_SetErrno(val: integer); cdecl; external TCL_LIBRARY;
 
 
     procedure Tcl_SetPanicProc(proc: TTclPanicProc); cdecl; external TCL_LIBRARY;
-    function  Tcl_PkgProvide(interp: pTcl_Interp; name: PChar; version: PChar): integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_StaticPackage(interp: pTcl_Interp; pkgName: PChar; initProc: TTclPackageInitProc;
+    function  Tcl_PkgProvide(interp: pTcl_Interp; name: PAnsiChar; version: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    procedure Tcl_StaticPackage(interp: pTcl_Interp; pkgName: PAnsiChar; initProc: TTclPackageInitProc;
                                 safeInitProc: TTclPackageInitProc); cdecl; external TCL_LIBRARY;
     procedure Tcl_CreateEventSource(setupProc: TTcl_EventSetupProc;
                                     checkProc: TTcl_EventCheckProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
@@ -836,47 +836,47 @@ type
 //    procedure Tcl_CreateModalTimeout(milliseconds: integer; proc: TTclTimerProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
 //    procedure Tcl_DeleteModalTimeout(proc: TTclTimerProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
 
-    function  Tcl_SplitList(interp: pTcl_Interp; list: PChar; var argcPtr: integer; var argvPtr: Tcl_Argv): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_Merge(argc: integer; argv: Tcl_Argv):PChar; cdecl; external TCL_LIBRARY;
-    procedure Tcl_Free( ptr: PChar ); cdecl; external TCL_LIBRARY;
+    function  Tcl_SplitList(interp: pTcl_Interp; list: PAnsiChar; var argcPtr: integer; var argvPtr: Tcl_Argv): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_Merge(argc: integer; argv: Tcl_Argv):PAnsiChar; cdecl; external TCL_LIBRARY;
+    procedure Tcl_Free( ptr: PAnsiChar ); cdecl; external TCL_LIBRARY;
     function  Tcl_Init(interp: pTcl_Interp): integer; cdecl; external TCL_LIBRARY;
 //    procedure Tcl_InterpDeleteProc(clientData: Tcl_ClientData; interp: pTcl_Interp); cdecl; external TCL_LIBRARY;
-    function  Tcl_GetAssocData(interp:pTcl_Interp; key: PChar; var proc: TTclInterpDeleteProc): Tcl_ClientData; cdecl; external TCL_LIBRARY;
-    procedure Tcl_DeleteAssocData(interp: pTcl_Interp; key: PChar); cdecl; external TCL_LIBRARY;
-    procedure Tcl_SetAssocData(interp: pTcl_Interp; key: PChar; proc: TTclInterpDeleteProc;
+    function  Tcl_GetAssocData(interp:pTcl_Interp; key: PAnsiChar; var proc: TTclInterpDeleteProc): Tcl_ClientData; cdecl; external TCL_LIBRARY;
+    procedure Tcl_DeleteAssocData(interp: pTcl_Interp; key: PAnsiChar); cdecl; external TCL_LIBRARY;
+    procedure Tcl_SetAssocData(interp: pTcl_Interp; key: PAnsiChar; proc: TTclInterpDeleteProc;
                                clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     function  Tcl_IsSafe(interp: pTcl_Interp): integer; cdecl; external TCL_LIBRARY;
     function  Tcl_MakeSafe(interp: pTcl_Interp): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_CreateSlave(interp: pTcl_Interp; slaveName: PChar; isSafe: integer): pTcl_Interp; cdecl; external TCL_LIBRARY;
-    function  Tcl_GetSlave(interp: pTcl_Interp; slaveName: PChar): pTcl_Interp; cdecl; external TCL_LIBRARY;
+    function  Tcl_CreateSlave(interp: pTcl_Interp; slaveName: PAnsiChar; isSafe: integer): pTcl_Interp; cdecl; external TCL_LIBRARY;
+    function  Tcl_GetSlave(interp: pTcl_Interp; slaveName: PAnsiChar): pTcl_Interp; cdecl; external TCL_LIBRARY;
     function  Tcl_GetMaster(interp: pTcl_Interp): pTcl_Interp; cdecl; external TCL_LIBRARY;
     function  Tcl_GetInterpPath(askingInterp: pTcl_Interp; slaveInterp: pTcl_Interp): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_CreateAlias(slaveInterp: pTcl_Interp; srcCmd: PChar; targetInterp: pTcl_Interp; targetCmd: PChar;
+    function  Tcl_CreateAlias(slaveInterp: pTcl_Interp; srcCmd: PAnsiChar; targetInterp: pTcl_Interp; targetCmd: PAnsiChar;
                              argc: integer; argv: Tcl_Argv): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_GetAlias(interp: pTcl_Interp; srcCmd: PChar; var targetInterp: pTcl_Interp; var targetCmd: PChar;
+    function  Tcl_GetAlias(interp: pTcl_Interp; srcCmd: PAnsiChar; var targetInterp: pTcl_Interp; var targetCmd: PAnsiChar;
                           var argc: integer; var argv: Tcl_Argv): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_ExposeCommand(interp: pTcl_Interp; hiddenCmdName: PChar; cmdName: PChar): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_HideCommand(interp: pTcl_Interp; cmdName: PChar; hiddenCmdName: PChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_ExposeCommand(interp: pTcl_Interp; hiddenCmdName: PAnsiChar; cmdName: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_HideCommand(interp: pTcl_Interp; cmdName: PAnsiChar; hiddenCmdName: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
 
 
     procedure Tcl_EventuallyFree(clientData: Tcl_ClientData; freeProc: TTclFreeProc); cdecl; external TCL_LIBRARY;
     procedure Tcl_Preserve(clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     procedure Tcl_Release(clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     function  Tcl_InterpDeleted(interp: pTcl_Interp): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_GetCommandInfo(interp: pTcl_Interp; cmdName: PChar; var info: Tcl_CmdInfo): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_SetCommandInfo(interp: pTcl_Interp; cmdName: PChar; var info: Tcl_CmdInfo): integer; cdecl; external TCL_LIBRARY;
-    procedure Tcl_FindExecutable(path: PChar); cdecl; external TCL_LIBRARY;
-    function  Tcl_GetStringResult(interp: pTcl_Interp): PChar; cdecl; external TCL_LIBRARY; //v1.0
-    function  Tcl_FindCommand(interp: pTcl_Interp; cmdName: PChar;
+    function  Tcl_GetCommandInfo(interp: pTcl_Interp; cmdName: PAnsiChar; var info: Tcl_CmdInfo): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_SetCommandInfo(interp: pTcl_Interp; cmdName: PAnsiChar; var info: Tcl_CmdInfo): integer; cdecl; external TCL_LIBRARY;
+    procedure Tcl_FindExecutable(path: PAnsiChar); cdecl; external TCL_LIBRARY;
+    function  Tcl_GetStringResult(interp: pTcl_Interp): PAnsiChar; cdecl; external TCL_LIBRARY; //v1.0
+    function  Tcl_FindCommand(interp: pTcl_Interp; cmdName: PAnsiChar;
                              contextNsPtr: pTcl_Namespace; flags: integer): Tcl_Command; cdecl; external TCL_LIBRARY; //v1.0
     function  Tcl_DeleteCommandFromToken(interp: pTcl_Interp; cmd: pTcl_Command): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_CreateNamespace(interp: pTcl_Interp; name: PChar; clientData: Tcl_ClientData;
+    function  Tcl_CreateNamespace(interp: pTcl_Interp; name: PAnsiChar; clientData: Tcl_ClientData;
                                   deleteProc: TTclNamespaceDeleteProc): pTcl_Namespace; cdecl; external TCL_LIBRARY; //v1.0
     procedure Tcl_DeleteNamespace(namespacePtr: pTcl_Namespace); cdecl; external TCL_LIBRARY;
-    function  Tcl_FindNamespace(interp: pTcl_Interp; name: PChar; contextNsPtr: pTcl_Namespace; flags: integer): pTcl_Namespace; cdecl; external TCL_LIBRARY;
-    function  Tcl_Export(interp: pTcl_Interp; namespacePtr: pTcl_Namespace; pattern: PChar;
+    function  Tcl_FindNamespace(interp: pTcl_Interp; name: PAnsiChar; contextNsPtr: pTcl_Namespace; flags: integer): pTcl_Namespace; cdecl; external TCL_LIBRARY;
+    function  Tcl_Export(interp: pTcl_Interp; namespacePtr: pTcl_Namespace; pattern: PAnsiChar;
                          resetListFirst: integer): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_Import(interp: pTcl_Interp; namespacePtr: pTcl_Namespace; pattern: PChar;
+    function  Tcl_Import(interp: pTcl_Interp; namespacePtr: pTcl_Namespace; pattern: PAnsiChar;
                          allowOverwrite: integer): integer; cdecl; external TCL_LIBRARY;
     function  Tcl_GetCurrentNamespace(interp: pTcl_Interp): pTcl_Namespace; cdecl; external TCL_LIBRARY;
     function  Tcl_GetGlobalNamespace(interp: pTcl_Interp): pTcl_Namespace; cdecl; external TCL_LIBRARY;
@@ -887,47 +887,47 @@ type
     function  Tcl_VarEval(interp: pTcl_Interp; args: array of const):integer; cdecl; external TCL_LIBRARY;
 
 {* For TkConsole.c *}
-    function  Tcl_RecordAndEval(interp: pTcl_Interp; cmd: PChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_GlobalEval(interp: pTcl_Interp; command: PChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_RecordAndEval(interp: pTcl_Interp; cmd: PAnsiChar; flags: integer): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_GlobalEval(interp: pTcl_Interp; command: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
     procedure Tcl_DStringFree(dsPtr: pTcl_DString); cdecl; external TCL_LIBRARY;
-    function  Tcl_DStringAppend(dsPtr: pTcl_DString; str: PChar; len: integer): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_DStringAppendElement(dsPtr: pTcl_DString; str: PChar): PChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_DStringAppend(dsPtr: pTcl_DString; str: PAnsiChar; len: integer): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_DStringAppendElement(dsPtr: pTcl_DString; str: PAnsiChar): PAnsiChar; cdecl; external TCL_LIBRARY;
     procedure Tcl_DStringInit(dsPtr: pTcl_DString); cdecl; external TCL_LIBRARY;
     procedure Tcl_AppendResult(interp: pTcl_Interp; args: array of const); cdecl; external TCL_LIBRARY; // actually a "C" var array
     procedure Tcl_SetStdChannel(channel: pTcl_Channel; typ: integer); cdecl; external TCL_LIBRARY;
-    function  Tcl_SetChannelOption(interp: pTcl_Interp; chan: pTcl_Channel; optionName: PChar; newValue: PChar): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_GetChannelOption(interp: pTcl_Interp; chan: pTcl_Channel; optionName: PChar; dsPtr: pTcl_DString): integer; cdecl; external TCL_LIBRARY;
-    function  Tcl_CreateChannel(typePtr: pTcl_ChannelType; chanName: PChar;
+    function  Tcl_SetChannelOption(interp: pTcl_Interp; chan: pTcl_Channel; optionName: PAnsiChar; newValue: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_GetChannelOption(interp: pTcl_Interp; chan: pTcl_Channel; optionName: PAnsiChar; dsPtr: pTcl_DString): integer; cdecl; external TCL_LIBRARY;
+    function  Tcl_CreateChannel(typePtr: pTcl_ChannelType; chanName: PAnsiChar;
                                 instanceData: Tcl_ClientData; mask: integer):pTcl_Channel; cdecl; external TCL_LIBRARY;
     procedure Tcl_RegisterChannel(interp: pTcl_Interp; channel: pTcl_Channel); cdecl; external TCL_LIBRARY;
     function  Tcl_UnregisterChannel(interp: pTcl_Interp; channel: pTcl_Channel): integer; cdecl; external TCL_LIBRARY;
 
     procedure Tcl_CreateChannelHandler(chan: pTcl_Channel; mask: integer; proc: TTclChannelProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
-    function Tcl_GetChannel(interp: pTcl_Interp; chanName: PChar; modePtr: pInteger): pTcl_Channel; cdecl; external TCL_LIBRARY;
+    function Tcl_GetChannel(interp: pTcl_Interp; chanName: PAnsiChar; modePtr: pInteger): pTcl_Channel; cdecl; external TCL_LIBRARY;
     function Tcl_GetStdChannel(typ: integer): pTcl_Channel; cdecl; external TCL_LIBRARY;
     function Tcl_Gets(chan: pTcl_Channel; dsPtr: pTcl_DString): integer; cdecl; external TCL_LIBRARY;
-    function Tcl_Write(chan: pTcl_Channel; s: PChar; slen: integer): integer; cdecl; external TCL_LIBRARY;
+    function Tcl_Write(chan: pTcl_Channel; s: PAnsiChar; slen: integer): integer; cdecl; external TCL_LIBRARY;
     function Tcl_Flush(chan: pTcl_Channel): integer; cdecl; external TCL_LIBRARY;
-//    TclWinLoadLibrary      = function(name: PChar): HMODULE; cdecl; external TCL_LIBRARY;
+//    TclWinLoadLibrary      = function(name: PAnsiChar): HMODULE; cdecl; external TCL_LIBRARY;
     procedure Tcl_CreateExitHandler(proc: TTclClientDataProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
     procedure Tcl_DeleteExitHandler(proc: TTclClientDataProc; clientData: Tcl_ClientData); cdecl; external TCL_LIBRARY;
-    function  Tcl_GetStringFromObj(pObj: pTcl_Obj; pLen: pInteger): PChar; cdecl; external TCL_LIBRARY;
-    function  Tcl_CreateObjCommand(interp: pTcl_Interp; name: PChar; cmdProc: TTclObjCmdProc;
+    function  Tcl_GetStringFromObj(pObj: pTcl_Obj; pLen: pInteger): PAnsiChar; cdecl; external TCL_LIBRARY;
+    function  Tcl_CreateObjCommand(interp: pTcl_Interp; name: PAnsiChar; cmdProc: TTclObjCmdProc;
                                    clientData: Tcl_ClientData; deleteProc: TTclCmdDeleteProc): pTcl_Command; cdecl; external TCL_LIBRARY;
-    function  Tcl_NewStringObj(bytes: PChar; len: integer): pTcl_Obj; cdecl; external TCL_LIBRARY;
+    function  Tcl_NewStringObj(bytes: PAnsiChar; len: integer): pTcl_Obj; cdecl; external TCL_LIBRARY;
 //    procedure TclFreeObj(pObj: pTcl_Obj); cdecl; external TCL_LIBRARY;
     function  Tcl_EvalObj(interp: pTcl_Interp; pObj: pTcl_Obj): integer; cdecl; external TCL_LIBRARY;
     function  Tcl_GlobalEvalObj(interp: pTcl_Interp; pObj: pTcl_Obj): integer; cdecl; external TCL_LIBRARY;
-    function  TclRegComp(exp: PChar): pointer; cdecl; external TCL_LIBRARY;
-    function  TclRegExec(prog: pointer; str: PChar; start: PChar): integer; cdecl; external TCL_LIBRARY;
-    procedure TclRegError(msg: PChar); cdecl; external TCL_LIBRARY;
-    function  TclGetRegError: PChar; cdecl; external TCL_LIBRARY;
-    procedure Tcl_RegExpRange(prog: pointer; index: integer; var head: PChar; var tail: PChar); cdecl; external TCL_LIBRARY;
+    function  TclRegComp(exp: PAnsiChar): pointer; cdecl; external TCL_LIBRARY;
+    function  TclRegExec(prog: pointer; str: PAnsiChar; start: PAnsiChar): integer; cdecl; external TCL_LIBRARY;
+    procedure TclRegError(msg: PAnsiChar); cdecl; external TCL_LIBRARY;
+    function  TclGetRegError: PAnsiChar; cdecl; external TCL_LIBRARY;
+    procedure Tcl_RegExpRange(prog: pointer; index: integer; var head: PAnsiChar; var tail: PAnsiChar); cdecl; external TCL_LIBRARY;
 
 // C Macro Emulation
     function  Tcl_GetCommandTable(interp: pTcl_Interp): pHashTable;
-    function  Tcl_CreateHashEntry(tablePtr: pTcl_HashTable; key: PChar; newPtr: pInteger): pTcl_HashEntry;
-    function  Tcl_FindHashEntry(tablePtr: pTcl_HashTable; key: PChar): pTcl_HashEntry;
+    function  Tcl_CreateHashEntry(tablePtr: pTcl_HashTable; key: PAnsiChar; newPtr: pInteger): pTcl_HashEntry;
+    function  Tcl_FindHashEntry(tablePtr: pTcl_HashTable; key: PAnsiChar): pTcl_HashEntry;
     procedure Tcl_SetHashValue(h: pTcl_HashEntry; clientData: Tcl_ClientData);
     function  Tcl_GetHashValue(h: pTcl_HashEntry): Tcl_ClientData;
     procedure Tcl_IncrRefCount(pObj: pTcl_Obj); cdecl;
@@ -935,9 +935,9 @@ type
     function  Tcl_IsShared(pObj: pTcl_Obj): integer; cdecl;
 
 {$IFDEF USE_C}
-    function ArgvItem(argv: PPChar; idx: integer): PChar; cdecl; external; // argv.c must be compiled by GCC
+    function ArgvItem(argv: PPAnsiChar; idx: integer): PAnsiChar; cdecl; external; // argv.c must be compiled by GCC
 {$ELSE}
-    function ArgvItem(argv: PPChar; idx: integer): PChar; cdecl;
+    function ArgvItem(argv: PPAnsiChar; idx: integer): PAnsiChar; cdecl;
 {$ENDIF}
 
 
@@ -946,12 +946,12 @@ uses SysUtils {, Classes};
 
 
 // Macro emulation
-function Tcl_CreateHashEntry(tablePtr: pTcl_HashTable; key: PChar; newPtr: pInteger): pTcl_HashEntry;
+function Tcl_CreateHashEntry(tablePtr: pTcl_HashTable; key: PAnsiChar; newPtr: pInteger): pTcl_HashEntry;
 begin
      result := pHashTable(tablePtr)^.createProc(tablePtr, key, newPtr);
 end;
 
-function Tcl_FindHashEntry(tablePtr: pTcl_HashTable; key: PChar): pTcl_HashEntry;
+function Tcl_FindHashEntry(tablePtr: pTcl_HashTable; key: PAnsiChar): pTcl_HashEntry;
 begin
      result := pHashTable(tablePtr)^.findProc(tablePtr, key);
 end;
@@ -967,12 +967,12 @@ begin
 end;
 
 
-function _Tcl_GetHashKey(hashTbl: pTcl_HashTable; hashEntry: pTcl_HashEntry): PChar; cdecl;
+function _Tcl_GetHashKey(hashTbl: pTcl_HashTable; hashEntry: pTcl_HashEntry): PAnsiChar; cdecl;
 begin
      if (hashTbl = nil) or (hashEntry = nil) then
         result := nil
      else if pHashTable(hashTbl)^.keyType = 1 then
-        result :=  PChar(pptrInt(@(hashEntry^.key[0]))^)
+        result :=  PAnsiChar(pptrInt(@(hashEntry^.key[0]))^)
      else
         result := hashEntry^.key;
 end;
@@ -1015,20 +1015,20 @@ end;
  *  the Intel platform.
  *  Otherwise define `USE_C` macro.
  *}
-function ArgvItem(argv: PPChar; idx: integer): PChar; cdecl;
+function ArgvItem(argv: PPAnsiChar; idx: integer): PAnsiChar; cdecl;
 var
    Buf: LongWord;
 begin
      asm
         MOV   EAX,idx             //* index please
         MOV   EDX,[argv]          //* gotcha argv^
-        MOV   EAX,[EDX + EAX*4]   //* PChar is 32bit pointer, so EAX*4 its offset for
+        MOV   EAX,[EDX + EAX*4]   //* PAnsiChar is 32bit pointer, so EAX*4 its offset for
                                   //* one item in array.
                                   //* gotcha something like this: (argv^)^[idx]
                                   //*
         MOV   Buf,EAX
      end;
-     ArgvItem:=PChar(Buf);
+     ArgvItem:=PAnsiChar(Buf);
 end;
 {$ENDIF}
 
