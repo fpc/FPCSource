@@ -127,7 +127,7 @@ type
     * \retval ::XQP0019_INTERNAL_ERROR
     * \retval An XQuery static or type error (e.g. XPST*, XPTY* )
     *)
-    prepare: function(impl: XQC_Implementation; query_string: pchar; context: XQC_StaticContext;
+    prepare: function(impl: XQC_Implementation; query_string: PAnsiChar; context: XQC_StaticContext;
       handler: XQC_ErrorHandler; out query: XQC_Query): XQUERY_ERROR; extdecl;
 
     (**
@@ -429,7 +429,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    declare_ns: function(context: XQC_StaticContext; const prefix: pchar; const uri: ppchar): XQUERY_ERROR; extdecl;
+    declare_ns: function(context: XQC_StaticContext; const prefix: PAnsiChar; const uri: PPAnsiChar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -442,7 +442,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_ns_by_prefix: function(context: XQC_StaticContext; const prefix: pchar; out result_ns: ppchar): XQUERY_ERROR; extdecl;
+    get_ns_by_prefix: function(context: XQC_StaticContext; const prefix: PAnsiChar; out result_ns: PPAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -454,7 +454,7 @@ type
   	 * \retval ::XQC_NO_ERROR
   	 * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_default_element_and_type_ns: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
+    set_default_element_and_type_ns: function(context: XQC_StaticContext; const uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -466,7 +466,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_default_element_and_type_ns: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
+    get_default_element_and_type_ns: function(context: XQC_StaticContext; out uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -478,7 +478,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    set_default_function_ns: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
+    set_default_function_ns: function(context: XQC_StaticContext; const uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -490,7 +490,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_default_function_ns: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
+    get_default_function_ns: function(context: XQC_StaticContext; out uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -515,7 +515,7 @@ type
      * \retval ::XQST0038
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    add_collation: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
+    add_collation: function(context: XQC_StaticContext; const uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -529,7 +529,7 @@ type
      * \retval ::XQST0038
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_default_collation: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
+    set_default_collation: function(context: XQC_StaticContext; const uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -539,7 +539,7 @@ type
      * \param context The XQC_StaticContext that this function pointer is a member of
      * \param[out] uri The URI of the default collation that is currently set in the given context.
      *)
-    get_default_collation: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
+    get_default_collation: function(context: XQC_StaticContext; out uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -724,7 +724,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    set_base_uri: function(context: XQC_StaticContext; const base_uri: pchar): XQUERY_ERROR; extdecl;
+    set_base_uri: function(context: XQC_StaticContext; const base_uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -738,7 +738,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_base_uri: function(context: XQC_StaticContext; out base_uri: pchar): XQUERY_ERROR; extdecl;
+    get_base_uri: function(context: XQC_StaticContext; out base_uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -761,7 +761,7 @@ type
      * \retval ::API0019_FUNCTION_ALREADY_REGISTERED,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    register_external_function: function(context: XQC_StaticContext; const uri, localname: pchar; init: external_function_init;
+    register_external_function: function(context: XQC_StaticContext; const uri, localname: PAnsiChar; init: external_function_init;
       next: external_function_next; release: external_function_release; global_user_data: pointer): XQUERY_ERROR; extdecl;
 
 
@@ -813,7 +813,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_context_document: function(context: XQC_DynamicContext; const doc_uri: pchar; document: pfile): XQUERY_ERROR; extdecl;
+    set_context_document: function(context: XQC_DynamicContext; const doc_uri: PAnsiChar; document: pfile): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -826,7 +826,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_item: function(context: XQC_DynamicContext; const qname: pchar; value: XQC_Item): XQUERY_ERROR; extdecl;
+    set_variable_item: function(context: XQC_DynamicContext; const qname: PAnsiChar; value: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -839,7 +839,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_sequence: function(context: XQC_DynamicContext; const qname: pchar; value: XQC_Sequence): XQUERY_ERROR; extdecl;
+    set_variable_sequence: function(context: XQC_DynamicContext; const qname: PAnsiChar; value: XQC_Sequence): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -855,7 +855,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_document: function(context: XQC_DynamicContext; const var_qname, doc_uri: pchar; document: pfile): XQUERY_ERROR; extdecl;
+    set_variable_document: function(context: XQC_DynamicContext; const var_qname, doc_uri: PAnsiChar; document: pfile): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -927,7 +927,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    string_value: function(item: XQC_Item; out string_value: pchar): XQUERY_ERROR; extdecl;
+    string_value: function(item: XQC_Item; out string_value: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -942,7 +942,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    prefix: function(item: XQC_Item; out prefix: pchar): XQUERY_ERROR; extdecl;
+    prefix: function(item: XQC_Item; out prefix: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -957,7 +957,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    ns: function(item: XQC_Item; out ns: pchar): XQUERY_ERROR; extdecl;
+    ns: function(item: XQC_Item; out ns: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -972,7 +972,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    localname: function(item: XQC_Item; out local_name: pchar): XQUERY_ERROR; extdecl;
+    localname: function(item: XQC_Item; out local_name: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1047,7 +1047,7 @@ type
      * Creates a String Item see [http://www.w3.org/TR/xmlschema-2/#string].
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param str The string as a char pointer.
+     * \param str The string as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1055,14 +1055,14 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_string: function(factory: XQC_ItemFactory; const str: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_string: function(factory: XQC_ItemFactory; const str: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
      * Creates an AnyURI Item see [http://www.w3.org/TR/xmlschema-2/#anyURI]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param str The uri as a char pointer.
+     * \param str The uri as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1070,15 +1070,15 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_anyuri: function(factory: XQC_ItemFactory; const str: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_anyuri: function(factory: XQC_ItemFactory; const str: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
      * Creates a QName Item see [http://www.w3.org/TR/xmlschema-2/#QName]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param str The uri as a char pointer.
-     * \param localname The localname as a char pointer.
+     * \param str The uri as a AnsiChar pointer.
+     * \param localname The localname as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1086,16 +1086,16 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_qname2: function(factory: XQC_ItemFactory; const uri, localname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_qname2: function(factory: XQC_ItemFactory; const uri, localname: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
      * Creates a QName Item see [http://www.w3.org/TR/xmlschema-2/#QName]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param str The uri as a char pointer.
-     * \param prefix The prefix as a char pointer.
-     * \param localname The localname as a char pointer.
+     * \param str The uri as a AnsiChar pointer.
+     * \param prefix The prefix as a AnsiChar pointer.
+     * \param localname The localname as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1103,7 +1103,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_qname3: function(factory: XQC_ItemFactory; const uri, prefix, localname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_qname3: function(factory: XQC_ItemFactory; const uri, prefix, localname: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1125,7 +1125,7 @@ type
      * Creates a NCName Item see [http://www.w3.org/TR/xmlschema-2/#NCName]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param ncname The NCName as a char pointer.
+     * \param ncname The NCName as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1133,14 +1133,14 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_ncname: function(factory: XQC_ItemFactory; const ncname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_ncname: function(factory: XQC_ItemFactory; const ncname: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
      * Creates a Base64Binary Item see [http://www.w3.org/TR/xmlschema-2/#base64Binary]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param binary_data The binary data as a char pointer.
+     * \param binary_data The binary data as a AnsiChar pointer.
      * \param letter The length of the binary data.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
@@ -1149,7 +1149,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_base64binary: function(factory: XQC_ItemFactory; const binary_data: pchar; length: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_base64binary: function(factory: XQC_ItemFactory; const binary_data: PAnsiChar; length: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1171,7 +1171,7 @@ type
      * Creates a Decimal Item see [http://www.w3.org/TR/xmlschema-2/#decimal]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The value as a char pointer.
+     * \param value The value as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1179,7 +1179,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_decimal_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_decimal_char: function(factory: XQC_ItemFactory; const value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1201,7 +1201,7 @@ type
      * Creates an Integer Item see [http://www.w3.org/TR/xmlschema-2/#integer]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param integer_value The value as a char pointer.
+     * \param integer_value The value as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1209,7 +1209,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_integer_char: function(factory: XQC_ItemFactory; const integer_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_integer_char: function(factory: XQC_ItemFactory; const integer_value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1261,7 +1261,7 @@ type
      * Creates a Byte Item see [http://www.w3.org/TR/xmlschema-2/#byte]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param byte_value The byte value as a char.
+     * \param byte_value The byte value as a AnsiChar.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1276,7 +1276,7 @@ type
      * Creates a Date Item see [http://www.w3.org/TR/xmlschema-2/#date]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param date_value The date value as a char pointer.
+     * \param date_value The date value as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1284,7 +1284,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_date_char: function(factory: XQC_ItemFactory; const date_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_date_char: function(factory: XQC_ItemFactory; const date_value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1330,7 +1330,7 @@ type
      * Creates a DateTime Item see [http://www.w3.org/TR/xmlschema-2/#dateTime]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param datetime_value The string representation of the datetime value as a char pointer
+     * \param datetime_value The string representation of the datetime value as a AnsiChar pointer
      *                       (for example, 2002-10-10T12:00:00-05:00).
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
@@ -1339,7 +1339,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_datetime_char: function(factory: XQC_ItemFactory; const datetime_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_datetime_char: function(factory: XQC_ItemFactory; const datetime_value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1360,7 +1360,7 @@ type
      * Creates a Double Item see [http://www.w3.org/TR/xmlschema-2/#double]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The value as a char pointer.
+     * \param value The value as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1368,7 +1368,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_double_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_double_char: function(factory: XQC_ItemFactory; const value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1396,7 +1396,7 @@ type
      * Creates a Float Item see [http://www.w3.org/tr/xmlschema-2/#float]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The float value as a char pointer.
+     * \param value The float value as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1404,7 +1404,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_float: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_float: function(factory: XQC_ItemFactory; const value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1488,7 +1488,7 @@ type
      * Creates a HexBinary Item see [http://www.w3.org/TR/xmlschema-2/#hexBinary]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param hex_data The hex data as a char pointer.
+     * \param hex_data The hex data as a AnsiChar pointer.
      * \param size The size of the hex data.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
@@ -1497,7 +1497,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_hexbinary: function(factory: XQC_ItemFactory; const hex_data: pchar; size: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_hexbinary: function(factory: XQC_ItemFactory; const hex_data: PAnsiChar; size: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1564,7 +1564,7 @@ type
      * Creates a Time Item see [http://www.w3.org/TR/xmlschema-2/#time]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The time as a char pointer.
+     * \param value The time as a AnsiChar pointer.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1572,7 +1572,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_time_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_time_char: function(factory: XQC_ItemFactory; const value: PAnsiChar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1615,7 +1615,7 @@ type
      * Creates an Unsigned Byte Item see [http://www.w3.org/TR/xmlschema-2/#unsignedByte]
      *
      * \param factory The XQC_ItemFactory that this function pointer is a member of
-     * \param value The unsigned byte value as an unsigned char.
+     * \param value The unsigned byte value as an unsigned AnsiChar.
      * \param[out] item The item to create. This can either be a wrapper created using
      *                 ::XQC_ItemFactory::create_item or a pointer initialized to 0.
      *
@@ -1796,17 +1796,17 @@ type
 
 
     (**
-     * Adds a document given by the char pointer to this collection.
+     * Adds a document given by the AnsiChar pointer to this collection.
      *
      * \param collection the XQC_Collection_s that this function pointer is a member of
-     * \param doc The document to add as a char pointer.
+     * \param doc The document to add as a AnsiChar pointer.
      *
      * \retval ::XQC_NO_ERROR
      * \retval ::XQP0016_LOADER_IO_ERROR,
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    add_document_char: function(collection: XQC_Collection; const doc: pchar): XQUERY_ERROR; extdecl;
+    add_document_char: function(collection: XQC_Collection; const doc: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1844,7 +1844,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    load_document: function(data_manager: XQC_DataManager; const doc_uri: pchar; document: pfile): XQUERY_ERROR; extdecl;
+    load_document: function(data_manager: XQC_DataManager; const doc_uri: PAnsiChar; document: pfile): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1859,7 +1859,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    load_document_uri: function(data_manager: XQC_DataManager; const location: pchar): XQUERY_ERROR; extdecl;
+    load_document_uri: function(data_manager: XQC_DataManager; const location: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1873,7 +1873,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    get_document: function(data_manager: XQC_DataManager; const document_uri: pchar; out doc: XQC_Item): XQUERY_ERROR; extdecl;
+    get_document: function(data_manager: XQC_DataManager; const document_uri: PAnsiChar; out doc: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (*
@@ -1885,7 +1885,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    delete_document: function(data_manager: XQC_DataManager; const document_uri: pchar): XQUERY_ERROR; extdecl;
+    delete_document: function(data_manager: XQC_DataManager; const document_uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1899,7 +1899,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    create_collection: function(data_manager: XQC_DataManager; const collection_uri: pchar; out col: XQC_Collection): XQUERY_ERROR; extdecl;
+    create_collection: function(data_manager: XQC_DataManager; const collection_uri: PAnsiChar; out col: XQC_Collection): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1913,7 +1913,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    get_collection: function(data_manager: XQC_DataManager; const collection_uri: pchar; out col: XQC_Collection): XQUERY_ERROR; extdecl;
+    get_collection: function(data_manager: XQC_DataManager; const collection_uri: PAnsiChar; out col: XQC_Collection): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1925,7 +1925,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    delete_collection: function(data_manager: XQC_DataManager; const collection_uri: pchar): XQUERY_ERROR; extdecl;
+    delete_collection: function(data_manager: XQC_DataManager; const collection_uri: PAnsiChar): XQUERY_ERROR; extdecl;
 
     (**
      * Called to free the resources associated with the XQC_DataManager.
@@ -1955,7 +1955,7 @@ type
      * \param buf The buffer that contains the data
      * \param length The length of the contents in the buffer
      *)
-    write: procedure(stream: XQC_OutputStream; const buf: pchar; length: cuint); extdecl;
+    write: procedure(stream: XQC_OutputStream; const buf: PAnsiChar; length: cuint); extdecl;
 
 
     (**
@@ -1993,7 +1993,7 @@ type
       *         or -1 if an error occurred
       *
       *)
-    read: function(stream: XQC_InputStream; const buf: pchar; length: cuint): cint; extdecl;
+    read: function(stream: XQC_InputStream; const buf: PAnsiChar; length: cuint): cint; extdecl;
 
 
     (**
@@ -2039,7 +2039,7 @@ type
      * \param components The column number in the line in the query where the error occurred.
      *)
     error: procedure(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name, description,
-      query_uri: pchar; line, column: cuint); extdecl;
+      query_uri: PAnsiChar; line, column: cuint); extdecl;
 
 
     (**
@@ -2051,7 +2051,7 @@ type
 
 (* helper functions *)
 procedure xqc_errorhandler_error(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name,
-  description, query_uri: pchar; line, column: cuint); extdecl;
+  description, query_uri: PAnsiChar; line, column: cuint); extdecl;
 
 const
   XQC_Console_ErrorHandler_impl: XQC_ErrorHandler_s = (error:@xqc_errorhandler_error; data: nil);
@@ -2063,7 +2063,7 @@ function XQC_OutputStream_create(const Stream: TStream; const Owned: Boolean): X
 implementation
 
 procedure xqc_errorhandler_error(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name,
-  description, query_uri: pchar; line, column: cuint); extdecl;
+  description, query_uri: PAnsiChar; line, column: cuint); extdecl;
 begin
   WriteLn(query_uri, '(', line, ',', column, ') ', local_name, ': ', description);
 end;
@@ -2076,7 +2076,7 @@ type
     Owned: Boolean;
   end;
 
-function xqc_inputstream_read(stream: XQC_InputStream; const buf: pchar; length: cuint): cint; extdecl;
+function xqc_inputstream_read(stream: XQC_InputStream; const buf: PAnsiChar; length: cuint): cint; extdecl;
 begin
   if Assigned(buf) and (length > 0) then
     Result := PStreamData(stream^.data)^.Stream.Read(buf^, length)
@@ -2099,12 +2099,12 @@ begin
   GetMem(Result, Sizeof(XQC_InputStream_s)+Sizeof(TStreamData));
   Result^.read := @xqc_inputstream_read;
   Result^.free := @xqc_inputstream_free;
-  Result^.data := PChar(Result) + Sizeof(XQC_InputStream_s);
+  Result^.data := PAnsiChar(Result) + Sizeof(XQC_InputStream_s);
   PStreamData(Result^.data)^.Owned := Owned;
   PStreamData(Result^.data)^.Stream := Stream;
 end;
 
-procedure xqc_outputstream_write(stream: XQC_OutputStream; const buf: pchar; length: cuint); extdecl;
+procedure xqc_outputstream_write(stream: XQC_OutputStream; const buf: PAnsiChar; length: cuint); extdecl;
 begin
   if Assigned(buf) and (length > 0) then
     PStreamData(stream^.data)^.Stream.Write(buf^, length);
@@ -2125,7 +2125,7 @@ begin
   GetMem(Result, Sizeof(XQC_OutputStream_s)+Sizeof(TStreamData));
   Result^.write := @xqc_outputstream_write;
   Result^.free := @xqc_outputstream_free;
-  Result^.data := PChar(Result) + Sizeof(XQC_OutputStream_s);
+  Result^.data := PAnsiChar(Result) + Sizeof(XQC_OutputStream_s);
   PStreamData(Result^.data)^.Owned := Owned;
   PStreamData(Result^.data)^.Stream := Stream;
 end;
