@@ -777,7 +777,7 @@ end;
 
 Function TStrings.GetTextStr: string;
 
-Var P : PAnsiChar;
+Var P : PChar;
     I,L,NLS : SizeInt;
     S,NL : String;
 
@@ -797,8 +797,8 @@ begin
     S:=Strings[I];
     L:=Length(S);
     if L<>0 then
-      System.Move(Pointer(S)^,P^,L);
-    P:=P+L;
+      System.Move(Pointer(S)^,P^,L*SizeOf(Char));
+    Inc(P,L);
     if (I<Count-1) or Not SkipLastLineBreak then
       For L:=1 to NLS do
         begin
@@ -862,7 +862,7 @@ begin
     System.Delete(S, FuturePos, High(FuturePos))
   else
     begin
-    SetString(S, @Value[StartPos], FuturePos - StartPos);
+    SetString(S, PChar(@Value[StartPos]), FuturePos - StartPos);
     if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #13) then
       Inc(FuturePos);
     if (FuturePos <= LengthOfValue) and (Value[FuturePos] = #10) then
@@ -1617,14 +1617,22 @@ begin
     end;
 
   NL := GetLineBreakCharLBS;
+{$if sizeof(char)=1}
   BNL:=AEncoding.GetAnsiBytes(NL);
+{$else}
+  BNL:=AEncoding.GetBytes(NL);
+{$endif}
   BNLS:=Length(BNL);
   For i:=0 To count-1 do
     begin
     S:=Strings[I];
     if S<>'' then
       begin
+      {$if sizeof(char)=1}
       B:=AEncoding.GetAnsiBytes(S);
+      {$else}
+      B:=AEncoding.GetBytes(S);
+      {$endif}
       Stream.WriteBuffer(B[0],Length(B));
       end;
     if (I<Count-1) or Not SkipLastLineBreak then
