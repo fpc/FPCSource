@@ -96,7 +96,7 @@ const
 
 
 {$ifdef FIFO_RIGOROUS_ERROR_CHECKING}
-	function fifoError(value: pchar; array of const): integer; cdecl; external;// expected to be defined externally.
+	function fifoError(value: PAnsiChar; array of const): integer; cdecl; external;// expected to be defined externally.
 {$endif}
 
 type  // FUNCTION(...):POINTER or PROCEDURE?!?

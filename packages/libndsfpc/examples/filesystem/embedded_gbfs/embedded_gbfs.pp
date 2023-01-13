@@ -120,10 +120,10 @@ begin
 end;
 
 var
- Myfile: pchar;
+ Myfile: PAnsiChar;
 
 
-procedure myGetStr(buff: pchar; size: integer);
+procedure myGetStr(buff: PAnsiChar; size: integer);
 begin
   buff^ := Myfile^;
   inc(MyFile);
@@ -139,7 +139,7 @@ begin
   buff[1] := #0;
 end;
 
-procedure readstr(str: pchar);
+procedure readstr(str: PAnsiChar);
 begin
   repeat
     myGetStr(str, 255);
@@ -151,7 +151,7 @@ procedure SetupWorld();
 var
   x, y, z, u, v: cfloat;
   numtriangles: integer;
-  oneline: array [0..254] of char;
+  oneline: array [0..254] of AnsiChar;
   loop, vert: integer;
 begin
   Myfile := gbfs_get_obj(@data_gbfs, 'World.txt', nil);
@@ -181,7 +181,7 @@ end;
 function LoadGLTextures(): boolean;
 var
   pcx: sImage;
-  pcx_file: pchar;
+  pcx_file: PAnsiChar;
 begin
   //load our texture
   pcx_file := gbfs_get_obj(@data_gbfs, 'Mud.pcx', nil);

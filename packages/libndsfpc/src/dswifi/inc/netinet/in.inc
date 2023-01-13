@@ -59,7 +59,7 @@ type
   end;
 
 
-function inet_addr(const cp: pchar): culong; cdecl; external;
-function inet_aton(const cp: pchar; inp: pin_addr): cint; cdecl; external;
+function inet_addr(const cp: PAnsiChar): culong; cdecl; external;
+function inet_aton(const cp: PAnsiChar; inp: pin_addr): cint; cdecl; external;
 function inet_ntoa(_in: in_addr): pcchar; cdecl; external;
 {$endif NDS_INTERFACE}
