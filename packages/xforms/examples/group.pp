@@ -46,7 +46,7 @@ procedure init_gui(fd : PFD_objsform);
 const
     x : array[0..5] of real = ( 0.0, 1.0, 2.0, 3.0, 4.0, 5.0 );
     y : array[0..5] of real = ( 5.5, 4.0, 4.5, 3.8, 4.0, 5.0 );
-    labels: array[0..5] of pchar = ('Mon','Tue','Wed', 'Thur','Fri','Sat');
+    labels: array[0..5] of PAnsiChar = ('Mon','Tue','Wed', 'Thur','Fri','Sat');
 
 var
     i : integer;
@@ -57,8 +57,8 @@ begin
 
     fl_set_pixmapbutton_data(fd^.pixbutton,porsche);
     fl_set_pixmap_data(fd^.pix, porsche);
-    fl_set_bitmapbutton_data(fd^.bitbutton, bm1_width, bm1_height,pchar(@bm1_bits));
-    fl_set_bitmap_data(fd^.bit, nomail_width, nomail_height, pchar(@nomail_bits));
+    fl_set_bitmapbutton_data(fd^.bitbutton, bm1_width, bm1_height,PAnsiChar(@bm1_bits));
+    fl_set_bitmap_data(fd^.bit, nomail_width, nomail_height, PAnsiChar(@nomail_bits));
 
     fl_set_browser_fontsize(fd^.browser,FL_NORMAL_SIZE);
     fl_addto_browser(fd^.browser,'browser line 1'#10'browser line 2');

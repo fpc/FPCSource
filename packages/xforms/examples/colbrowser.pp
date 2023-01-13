@@ -184,7 +184,7 @@ end;
 { change database }
 procedure db_cb(ob : PFL_OBJECT; q : longint);cdecl;
 
-var p: pchar;
+var p: PAnsiChar;
     buf : string;
 
 begin

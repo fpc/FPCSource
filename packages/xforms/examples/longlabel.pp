@@ -4,13 +4,13 @@ program longlabel;
 uses xforms;
 
 Const
-label1 : pchar = 'This demo shows the use of some very'#10+
+label1 : PAnsiChar = 'This demo shows the use of some very'#10+
               'long labels. The dynamic storage allocation'#10+
               'for such long labels should guarantee that'#10+
               'all of this works without any problem.';
 { This shows a funny bug in FPK 0.9.1 :) MVC.}
 
-label2 : pchar ='This is the second string that should again'#10+
+label2 : PAnsiChar ='This is the second string that should again'#10+
              'be a bit larger such that a new, larger amount'#10+
              'of storage has to be allocated for the label.'#10+
              'This is of course no problem. By the way,'#10+
@@ -20,7 +20,7 @@ label2 : pchar ='This is the second string that should again'#10+
              'allocated for it in the previous version of'#10+
              'the Forms Library';
 
-label3 : pchar ='And now back to the first one:'#10#10+
+label3 : PAnsiChar ='And now back to the first one:'#10#10+
              'This demo shows the use of some very'#10+
              'long labels. The dynamic storage allocation'#10+
              'for such long labels should guarantee that'#10+

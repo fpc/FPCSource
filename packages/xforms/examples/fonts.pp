@@ -41,7 +41,7 @@ begin
   end;
 end;
 
-procedure addit(st : pchar);
+procedure addit(st : PAnsiChar);
 begin
    fl_add_browser_line(ui^.fontobj,st);
 end;

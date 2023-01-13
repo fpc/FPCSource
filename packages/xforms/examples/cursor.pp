@@ -31,7 +31,7 @@ procedure setbitmapcursor_cb(ob : PFL_OBJECT ; data : Longint);cdecl;
 
 begin
   if bitmapcur<>0 then
-     bitmapcur := longint(fl_create_bitmap_cursor(Pchar(@bm1_bits), Pchar(@bm2_bits),
+     bitmapcur := longint(fl_create_bitmap_cursor(PAnsiChar(@bm1_bits), PAnsiChar(@bm2_bits),
                   16, 16, 8 ,8 ));
                   {bm1_width, bm1_height,  bm1_width/2, bm1_height/2);}
   fl_set_cursor(FL_ObjWin(ob), bitmapcur);

@@ -10,7 +10,7 @@ exitobj, readout : PFL_OBJECT;
 
 
 const
-bnames : array[0..3] of pchar =
+bnames : array[0..3] of PAnsiChar =
 (
     'NORMAL_BROWSER', 'SELECT_BROWSER', 'HOLD_BROWSER', 'MULTI_BROWSER'
 );
@@ -45,7 +45,7 @@ procedure br_callback(ob : PFL_OBJECT; arg : longint);cdecl;
 var
     buf : string[255];
 const
-    mb : array[0..3] of pchar = ('','left','middle','right');
+    mb : array[0..3] of PAnsiChar = ('','left','middle','right');
 
 var i,b : longint;
 

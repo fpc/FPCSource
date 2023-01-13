@@ -10,7 +10,7 @@ br : PFL_OBJECT;
 
 procedure load_file(ob : PFL_OBJECT; arg : longint);cdecl;
 var
-  fname : pchar;
+  fname : PAnsiChar;
 
 begin
   fname := fl_show_fselector ('File To Load','','*.*','');

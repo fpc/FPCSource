@@ -10,7 +10,7 @@ const border = FL_TRANSIENT;
 
 type TVN_Struct = record
      theval : longint;
-     name : pchar;
+     name : PAnsiChar;
      end;
 
 const gmode : array[0..5] of TVN_Struct =
@@ -170,7 +170,7 @@ end;
 
 {************** Main Routine **********************}
 
-const browserlines : array [0..21] of pchar = (
+const browserlines : array [0..21] of PAnsiChar = (
    ' ', '@C1@c@l@bObjects Demo',   ' ',
    'This demo shows you all',      'objects that currently',
    'exist in the Forms Library.',  ' ',
@@ -186,7 +186,7 @@ const browserlines : array [0..21] of pchar = (
 var
   ob : PFL_OBJECT;
   c : TFL_COLOR;
-  p : ppchar;
+  p : PPAnsiChar;
   vn : ^TVN_struct;
   i : longint;
 
@@ -194,7 +194,7 @@ begin
   c := FL_BLACK;
   fl_initialize(@argc, argv, 'FormDemo', nil, 0);
   create_the_forms ();
-  fl_set_bitmap_data (tobj[2], sorceress_width, sorceress_height, pchar(@sorceress_bits));
+  fl_set_bitmap_data (tobj[2], sorceress_width, sorceress_height, PAnsiChar(@sorceress_bits));
   fl_add_chart_value (tobj[3], 15, 'item 1', c);inc(c);
   fl_add_chart_value (tobj[3], 5, 'item 2', c);inc(c);
   fl_add_chart_value (tobj[3], -10, 'item 3', c);inc(c);
