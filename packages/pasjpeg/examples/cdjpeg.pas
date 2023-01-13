@@ -110,8 +110,8 @@ procedure enable_signal_catcher (cinfo : j_common_ptr);
   minchars is length of minimum legal abbreviation. }
 
 {GLOBAL}
-function keymatch (arg : string;
-                   const keyword : string;
+function keymatch (arg : ansistring;
+                   const keyword : ansistring;
                    minchars : int) : boolean;
 
 {$ifdef PROGRESS_REPORT}
@@ -203,7 +203,7 @@ function keymatch (arg : string;
                    minchars : int) : boolean;
 var
   {register} i : int;
-  ca, ck : char;
+  ca, ck : AnsiChar;
   {register} nmatched : int;
 begin
   nmatched := 0;

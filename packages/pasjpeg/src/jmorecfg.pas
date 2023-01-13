@@ -83,24 +83,24 @@ const
 
 { Basic data types.
   You may need to change these if you have a machine with unusual data
-  type sizes; for example, "char" not 8 bits, "short" not 16 bits,
+  type sizes; for example, "AnsiChar" not 8 bits, "short" not 16 bits,
   or "long" not 32 bits.  We don't care whether "int" is 16 or 32 bits,
   but it had better be at least 16. }
 
 
 { Representation of a single sample (pixel element value).
   We frequently allocate large arrays of these, so it's important to keep
-  them small.  But if you have memory to burn and access to char or short
+  them small.  But if you have memory to burn and access to AnsiChar or short
   arrays is very slow on your hardware, you might want to change these. }
 
 
 {$ifdef BITS_IN_JSAMPLE_IS_8}
 { JSAMPLE should be the smallest type that will hold the values 0..255.
-  You can use a signed char by having GETJSAMPLE mask it with $FF. }
+  You can use a signed AnsiChar by having GETJSAMPLE mask it with $FF. }
 
 { CHAR_IS_UNSIGNED }
 type
-  JSAMPLE = byte; { Pascal unsigned char }
+  JSAMPLE = byte; { Pascal unsigned AnsiChar }
   GETJSAMPLE = int;
 
 const
