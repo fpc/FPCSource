@@ -68,9 +68,18 @@ type
   TQWordDynArray = array of QWord;
   TShortIntDynArray = array of ShortInt;
   TSmallIntDynArray = array of SmallInt;
-  TStringDynArray = array of AnsiString;
-  TObjectDynArray = array of TObject;
+
+  TRTLStringDynArray = array of RTLString;
+  TAnsiStringDynArray = Array of AnsiString;
   TWideStringDynArray   = array of WideString;
+  TUnicodeStringDynArray = array of UnicodeString;
+{$if SIZEOF(CHAR)=2}  
+  TStringDynArray = Array of UnicodeString;
+{$ELSE}
+  TStringDynArray = Array of AnsiString;
+{$ENDIF}
+
+  TObjectDynArray = array of TObject;
   TWordDynArray = array of Word;
   TCurrencyArray = Array of currency;
 {$ifndef FPUNONE}
