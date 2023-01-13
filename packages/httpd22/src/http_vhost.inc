@@ -43,7 +43,7 @@ procedure ap_fini_vhost_config(p: Papr_pool_t; main_server: Pserver_rec);
  * @param hostname The hostname in the VirtualHost statement
  * @param s The list of Virtual Hosts.
  }
-//const char *ap_parse_vhost_addrs(apr_pool_t *p, const char *hostname, server_rec *s);
+//const AnsiChar *ap_parse_vhost_addrs(apr_pool_t *p, const AnsiChar *hostname, server_rec *s);
 
 {
  * handle NameVirtualHost directive
@@ -51,8 +51,8 @@ procedure ap_fini_vhost_config(p: Papr_pool_t; main_server: Pserver_rec);
  * @param dummy NOT USED
  * @param arg a host of the form "<address>[:port]"
  }
-//const char *ap_set_name_virtual_host (cmd_parms *cmd, void *dummy,
-//				      const char *arg);
+//const AnsiChar *ap_set_name_virtual_host (cmd_parms *cmd, void *dummy,
+//				      const AnsiChar *arg);
 
 {
  * Callback function for every Name Based Virtual Host.
@@ -105,9 +105,9 @@ procedure ap_update_vhost_from_headers(r: Prequest_rec);
  * @param port The port from the headers
  * @return return 1 if the host:port matches any of the aliases of r->server,
  * return 0 otherwise
- * @deffunc int ap_matches_request_vhost(request_rec *r, const char *host, apr_port_t port)
+ * @deffunc int ap_matches_request_vhost(request_rec *r, const AnsiChar *host, apr_port_t port)
  }
-function ap_matches_request_vhost(r: Prequest_rec; const host: PChar;
+function ap_matches_request_vhost(r: Prequest_rec; const host: PAnsiChar;
  port: apr_port_t): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_matches_request_vhost' + LibSuff12;

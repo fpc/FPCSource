@@ -94,13 +94,13 @@ type
 
 { __BEGIN_DECLS }
 
-function apr_iconv_open(const param1, param2: PChar;
+function apr_iconv_open(const param1, param2: PAnsiChar;
  param3: Papr_pool_t; param4: Papr_iconv_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRIconv name LibNamePrefix + 'apr_iconv_open' + LibSuff16;
 
-function apr_iconv(param1: apr_iconv_t; const param2: PPChar;
- param3: Papr_pool_t; param4: PPchar;
+function apr_iconv(param1: apr_iconv_t; const param2: PPAnsiChar;
+ param3: Papr_pool_t; param4: PPAnsiChar;
  param5, param6: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRIconv name LibNamePrefix + 'apr_iconv' + LibSuff24;
