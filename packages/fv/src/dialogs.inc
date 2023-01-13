@@ -273,7 +273,7 @@ TYPE
       PROCEDURE MovedTo (Item: Sw_Integer); Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE DrawMultiBox (Const Icon, Marker: Sw_String);
-      PROCEDURE DrawBox (Const Icon: String; Marker: Char);
+      PROCEDURE DrawBox (Const Icon: String; Marker: AnsiChar);
       PROCEDURE SetButtonState (AMask: Longint; Enable: Boolean);
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
@@ -1080,7 +1080,7 @@ CONST
 {---------------------------------------------------------------------------}
 {  IsBlank -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION IsBlank (Ch: Char): Boolean;
+FUNCTION IsBlank (Ch: AnsiChar): Boolean;
 BEGIN
    IsBlank := (Ch = ' ') OR (Ch = #13) OR (Ch = #10); { Check for characters }
 END;
@@ -1088,7 +1088,7 @@ END;
 {---------------------------------------------------------------------------}
 {  HotKey -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION HotKey (Const S: String): Char;
+FUNCTION HotKey (Const S: String): AnsiChar;
 VAR I: Sw_Word;
 BEGIN
    HotKey := #0;                                      { Preset fail }
@@ -1815,7 +1815,7 @@ BEGIN
          Event.KeyCode := CtrlToArrow(Event.KeyCode); { Convert keycode }
          If (Event.ScanCode IN PadKeys) AND
          (GetShiftState AND $03 <> 0) Then Begin      { Mark selection active }
-           Event.CharCode := #0;                      { Clear char code }
+           Event.CharCode := #0;                      { Clear AnsiChar code }
            If (CurPos = SelEnd) Then                  { Find if at end }
              Anchor := SelStart Else                  { Anchor from start }
              Anchor := SelEnd;                        { Anchor from end }
@@ -1836,7 +1836,7 @@ BEGIN
            End;
            kbBack: If (Data <> Sw_PString_Empty) AND (CurPos > 0)  { Not at line start }
            Then Begin
-             Delete(Data Sw_PString_DeRef, CurPos, 1);  { Backspace over char }
+             Delete(Data Sw_PString_DeRef, CurPos, 1);  { Backspace over AnsiChar }
              Dec(CurPos);                             { Move cursor back one }
              If (FirstPos > 0) Then Dec(FirstPos);    { Move first position }
              CheckValid(True);                        { Check if valid }
@@ -1913,7 +1913,7 @@ BEGIN
          If (Data <> Sw_PString_Empty) Then OldData := Copy(Data Sw_PString_DeRef,
            FirstPos+1, CurPos-FirstPos)               { Text area string }
            Else OldData := '';                        { Empty string }
-         Delta := 1;                          { Safety = 1 char }
+         Delta := 1;                          { Safety = 1 AnsiChar }
          While (TextWidth(OldData) > (Size.X-Delta)
          - TextWidth(LeftArr) - TextWidth(RightArr))  { Check text fits }
          Do Begin
@@ -2182,7 +2182,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Sep99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.HandleEvent (Var Event: TEvent);
-VAR Down: Boolean; C: Char; ButRect: TRect;
+VAR Down: Boolean; C: AnsiChar; ButRect: TRect;
     Mouse : TPoint;
 BEGIN
    ButRect.A.X := 0;                            { Get origin point }
@@ -2221,7 +2221,7 @@ BEGIN
      evKeyDown: Begin
        If Title <> Sw_PString_Empty Then C := HotKey(Title Sw_PString_DeRef)     { Key title hotkey }
          Else C := #0;                                { Invalid title }
-       If (Event.KeyCode = GetAltCode(C)) OR          { Alt char }
+       If (Event.KeyCode = GetAltCode(C)) OR          { Alt AnsiChar }
        (Owner^.Phase = phPostProcess) AND (C <> #0)
        AND (Upcase(Event.CharCode) = C) OR            { Matches hotkey }
        (State AND sfFocused <> 0) AND                 { View focused }
@@ -2469,7 +2469,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  DrawBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TCluster.DrawBox (Const Icon: String; Marker: Char);
+PROCEDURE TCluster.DrawBox (Const Icon: String; Marker: AnsiChar);
 BEGIN
    DrawMultiBox(Icon, ' '+Marker);                    { Call draw routine }
 END;
@@ -2537,7 +2537,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Jun98 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.HandleEvent (Var Event: TEvent);
-VAR C: Char; I, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
+VAR C: AnsiChar; I, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
 
    PROCEDURE MoveSel;
    BEGIN
@@ -3245,11 +3245,11 @@ BEGIN
     if P <= L then
     begin
       Just := 0;                                       { Default left justify }
-      If (S[P] = #2) Then Begin                        { Right justify char }
+      If (S[P] = #2) Then Begin                        { Right justify AnsiChar }
         Just := 2;                                     { Set right justify }
         Inc(P);                                        { Next character }
       End;
-      If (S[P] = #3) Then Begin                        { Centre justify char }
+      If (S[P] = #3) Then Begin                        { Centre justify AnsiChar }
         Just := 1;                                     { Set centre justify }
         Inc(P);                                        { Next character }
       End;
@@ -3445,7 +3445,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TLabel.HandleEvent (Var Event: TEvent);
-VAR C: Char;
+VAR C: AnsiChar;
 
    PROCEDURE FocusLink;
    BEGIN
@@ -3464,7 +3464,7 @@ BEGIN
          if text<>Sw_PString_Empty then
            begin
              C := HotKey(Text Sw_PString_DeRef);            { Check for hotkey }
-             If (GetAltCode(C) = Event.KeyCode) OR          { Alt plus char }
+             If (GetAltCode(C) = Event.KeyCode) OR          { Alt plus AnsiChar }
                ((C <> #0) AND (Owner^.Phase = phPostProcess)  { Post process phase }
                 AND (UpCase(Event.CharCode) = C)) Then         { Upper case match }
                FocusLink;                                   { Focus link view }
@@ -3688,8 +3688,8 @@ BEGIN
       End;
      RecordHistory(Link^.Data Sw_PString_DeRef);      { Record current data }
      Link^.GetBounds(R);                              { Get view bounds }
-     Dec(R.A.X);                                      { One char in from us }
-     Inc(R.B.X);                                      { One char short of us }
+     Dec(R.A.X);                                      { One AnsiChar in from us }
+     Inc(R.B.X);                                      { One AnsiChar short of us }
      Inc(R.B.Y, 7);                                   { Seven lines down }
      Dec(R.A.Y,1);                                    { One line below us }
      Owner^.GetExtent(P);                             { Get owner extents }

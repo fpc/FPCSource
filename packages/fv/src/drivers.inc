@@ -288,12 +288,12 @@ TYPE
             1: (
 {$ifdef ENDIAN_BIG}
                 ScanCode: Byte;
-                CharCode: Char;
+                CharCode: AnsiChar;
 {$else not ENDIAN_BIG}
-                CharCode: Char;                       { Char code }
+                CharCode: AnsiChar;                       { AnsiChar code }
                 ScanCode: Byte;                       { Scan code }
 {$endif not ENDIAN_BIG}
-                UnicodeChar: WideChar;                { Unicode char code.
+                UnicodeChar: WideChar;                { Unicode AnsiChar code.
                           Code points from the Supplementary Planes (U+010000 to
                           U+10FFFF) are encoded as 2 consecutive key events,
                           forming an UTF-16 surrogate pair. }
@@ -308,7 +308,7 @@ TYPE
             2: (InfoWord: Word);                      { Message Sw_Word }
             3: (InfoInt: SmallInt);                   { Message Sw_Integer }
             4: (InfoByte: Byte);                      { Message byte }
-            5: (InfoChar: Char));                     { Message character }
+            5: (InfoChar: AnsiChar));                     { Message character }
    END;
    PEvent = ^TEvent;
 
@@ -397,7 +397,7 @@ set to Attr, or remain unchanged if Attr is zero.
 {$ifdef FV_UNICODE}
 PROCEDURE MoveChar (Var Dest; C: UnicodeString; Attr: Byte; Count: Sw_Word);
 {$else FV_UNICODE}
-PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
+PROCEDURE MoveChar (Var Dest; C: AnsiChar; Attr: Byte; Count: Sw_Word);
 {$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -408,25 +408,25 @@ PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
 Returns the scancode corresponding to Alt+Ch key that is given.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION GetAltCode (Ch: Char): Word;
+FUNCTION GetAltCode (Ch: AnsiChar): Word;
 
 {-GetCtrlCode--------------------------------------------------------
 Returns the scancode corresponding to Alt+Ch key that is given.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION GetCtrlCode (Ch: Char): Word;
+FUNCTION GetCtrlCode (Ch: AnsiChar): Word;
 
 {-GetAltChar---------------------------------------------------------
 Returns the ascii character for the Alt+Key scancode that was given.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION GetAltChar (KeyCode: Word): Char;
+FUNCTION GetAltChar (KeyCode: Word): AnsiChar;
 
 {-GetCtrlChar--------------------------------------------------------
 Returns the ascii character for the Ctrl+Key scancode that was given.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION GetCtrlChar (KeyCode: Word): Char;
+FUNCTION GetCtrlChar (KeyCode: Word): AnsiChar;
 
 {-CtrlToArrow--------------------------------------------------------
 Converts a WordStar-compatible control key code to the corresponding
@@ -1003,7 +1003,7 @@ BEGIN
    for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(Str) do
      begin
        If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
-       P^.ExtendedGraphemeCluster := EGC;               { Copy string char }
+       P^.ExtendedGraphemeCluster := EGC;               { Copy string AnsiChar }
        Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
      end;
 END;
@@ -1014,7 +1014,7 @@ BEGIN
    For I := 1 To Length(Str) Do Begin                 { For each character }
      P := @TWordArray(Dest)[I-1];                     { Pointer to Sw_Word }
      If (Attr <> 0) Then WordRec(P^).Hi := Attr;      { Copy attribute }
-     WordRec(P^).Lo := Byte(Str[I]);                  { Copy string char }
+     WordRec(P^).Lo := Byte(Str[I]);                  { Copy string AnsiChar }
    End;
 END;
 {$endif FV_UNICODE}
@@ -1034,7 +1034,7 @@ BEGIN
          begin
            If (Lo(Attrs) <> 0) Then
              P^.Attribute := Lo(Attrs);                   { Copy attribute }
-           P^.ExtendedGraphemeCluster:=EGC;               { Copy string char }
+           P^.ExtendedGraphemeCluster:=EGC;               { Copy string AnsiChar }
            Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));  { Next position }
          end
        else
@@ -1055,7 +1055,7 @@ BEGIN
        P := @TWordArray(Dest)[J];                     { Pointer to Sw_Word }
        If (Lo(Attrs) <> 0) Then
          WordRec(P^).Hi := Lo(Attrs);                 { Copy attribute }
-       WordRec(P^).Lo := Byte(Str[I]);                { Copy string char }
+       WordRec(P^).Lo := Byte(Str[I]);                { Copy string AnsiChar }
        Inc(J);                                        { Next position }
      End Else Begin
        B := Hi(Attrs);                                { Hold attribute }
@@ -1101,7 +1101,7 @@ BEGIN
           exit;
         end;
       If (Attr <> 0) Then P^.Attribute := Attr;        { Copy attribute }
-      P^.ExtendedGraphemeCluster := EGC;               { Copy string char }
+      P^.ExtendedGraphemeCluster := EGC;               { Copy string AnsiChar }
       Inc(P, Video.ExtendedGraphemeClusterDisplayWidth(EGC));
     end;
 END;
@@ -1135,7 +1135,7 @@ BEGIN
    End;
 END;
 {$else FV_UNICODE}
-PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
+PROCEDURE MoveChar (Var Dest; C: AnsiChar; Attr: Byte; Count: Sw_Word);
 VAR I: Word; P: PWord;
 BEGIN
    For I := 1 To Count Do Begin
@@ -1153,7 +1153,7 @@ END;
 {---------------------------------------------------------------------------}
 {  GetAltCode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION GetAltCode (Ch: Char): Word;
+FUNCTION GetAltCode (Ch: AnsiChar): Word;
 BEGIN
    GetAltCode := 0;                                   { Preset zero return }
    Ch := UpCase(Ch);                                  { Convert upper case }
@@ -1166,7 +1166,7 @@ END;
 {---------------------------------------------------------------------------}
 {  GetCtrlCode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION GetCtrlCode (Ch: Char): Word;
+FUNCTION GetCtrlCode (Ch: AnsiChar): Word;
 BEGIN
    GetCtrlCode := GetAltCode(Ch) OR (Ord(Ch) - $40);  { Ctrl+key code }
 END;
@@ -1174,7 +1174,7 @@ END;
 {---------------------------------------------------------------------------}
 {  GetAltChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION GetAltChar (KeyCode: Word): Char;
+FUNCTION GetAltChar (KeyCode: Word): AnsiChar;
 VAR I: Sw_Integer;
 BEGIN
    GetAltChar := #0;                                  { Preset fail return }
@@ -1185,19 +1185,19 @@ BEGIN
          Do Inc(I);                                   { Search for match }
        If (I < 128) Then GetAltChar := Chr(I);        { Return character }
      End Else
-       If (Hi(KeyCode)=$02) Then GetAltChar := #240;  { Return char }
+       If (Hi(KeyCode)=$02) Then GetAltChar := #240;  { Return AnsiChar }
    End;
 END;
 
 {---------------------------------------------------------------------------}
 {  GetCtrlChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION GetCtrlChar (KeyCode: Word): Char;
-VAR C: Char;
+FUNCTION GetCtrlChar (KeyCode: Word): AnsiChar;
+VAR C: AnsiChar;
 BEGIN
   C := #0;                                            { Preset #0 return }
   If (Lo(KeyCode) > 0) AND (Lo(KeyCode) <= 26) Then   { Between 1-26 }
-    C := Chr(Lo(KeyCode) + $40);                      { Return char A-Z }
+    C := Chr(Lo(KeyCode) + $40);                      { Return AnsiChar A-Z }
   GetCtrlChar := C;                                   { Return result }
 END;
 
@@ -1206,7 +1206,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION CtrlToArrow (KeyCode: Word): Word;
 CONST NumCodes = 11;
-      CtrlCodes : Array [0..NumCodes-1] Of Char =
+      CtrlCodes : Array [0..NumCodes-1] Of AnsiChar =
         (#19, #4, #5, #24, #1, #6, #7, #22, #18, #3, #8);
       ArrowCodes: Array [0..NumCodes-1] Of Sw_Word =
        (kbLeft, kbRight, kbUp, kbDown, kbHome, kbEnd, kbDel, kbIns,
@@ -1620,10 +1620,10 @@ procedure FormatStr (Var Result: Sw_String; CONST Format: Sw_String; Var Params)
 TYPE TLongArray = Array[0..0] Of PtrInt;
 VAR W, ResultLength : SmallInt;
     FormatIndex, Justify, Wth: Byte;
-    Fill: Char; S: Sw_String;
+    Fill: AnsiChar; S: Sw_String;
 
    FUNCTION LongToStr (L: Longint; Radix: Byte): Sw_String;
-   CONST HexChars: Array[0..15] Of Char =
+   CONST HexChars: Array[0..15] Of AnsiChar =
     ('0', '1', '2', '3', '4', '5', '6', '7',
      '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
    VAR I: LongInt; S: Sw_String; Sign: String[1];
@@ -1636,7 +1636,7 @@ VAR W, ResultLength : SmallInt;
      S := '';                                         { Preset empty string }
      Repeat
        I := L MOD Radix;                              { Radix mod of value }
-       S := HexChars[I] + S;                          { Add char to string }
+       S := HexChars[I] + S;                          { Add AnsiChar to string }
        L := L DIV Radix;                              { Divid by radix }
      Until (L = 0);                                   { Until no remainder }
      LongToStr := Sign + S;                           { Return result }
@@ -1650,24 +1650,24 @@ VAR W, ResultLength : SmallInt;
          exit;
 {$endif FV_UNICODE}
        While (FormatIndex <= Length(Format)) and
-             (Format[FormatIndex] <> '%')          { Param char not found }
+             (Format[FormatIndex] <> '%')          { Param AnsiChar not found }
         Do begin
 {$ifdef FV_UNICODE}
          SetLength(Result,ResultLength+1);
 {$endif FV_UNICODE}
          Result[ResultLength+1] := Format[FormatIndex]; { Transfer character }
          Inc(ResultLength);                           { One character added }
-         Inc(FormatIndex);                            { Next param char }
+         Inc(FormatIndex);                            { Next param AnsiChar }
        end;
-       If (FormatIndex < Length(Format)) and          { Not last char and }
-       (Format[FormatIndex] = '%') Then begin         { '%' char found }
-         Fill := ' ';                                 { Default fill char }
+       If (FormatIndex < Length(Format)) and          { Not last AnsiChar and }
+       (Format[FormatIndex] = '%') Then begin         { '%' AnsiChar found }
+         Fill := ' ';                                 { Default fill AnsiChar }
          Justify := 0;                                { Default justify }
          Wth := 0;                                    { Default 0=no width }
          Inc(FormatIndex);                            { Next character }
          If (Format[FormatIndex] = '0') Then
-           Fill := '0';                               { Fill char to zero }
-         If (Format[FormatIndex] = '-') Then begin    { Optional just char }
+           Fill := '0';                               { Fill AnsiChar to zero }
+         If (Format[FormatIndex] = '-') Then begin    { Optional just AnsiChar }
            Justify := 1;                              { Right justify }
            Inc(FormatIndex);                          { Next character }
          end;
@@ -1697,7 +1697,7 @@ VAR W, ResultLength : SmallInt;
              Inc(ResultLength,Length(S));
              Continue;
            end;
-           'c': S := Char(TLongArray(Params)[I]);  { Character parameter }
+           'c': S := AnsiChar(TLongArray(Params)[I]);  { Character parameter }
              'd': S := LongToStr(TLongArray(Params)[I],
                10);                                   { Decimal parameter }
              's': S := PString(TLongArray(Params)[I])^;{ String parameter }

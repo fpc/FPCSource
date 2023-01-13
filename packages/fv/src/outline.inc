@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$H-}
 {$ifdef FV_UNICODE}
 unit uoutline;
 {$else FV_UNICODE}

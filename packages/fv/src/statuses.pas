@@ -732,7 +732,7 @@ end;
 { TArrowGauge.Draw                                                           }
 {****************************************************************************}
 procedure TArrowGauge.Draw;
-const Arrows : array[0..1] of Char = '<>';
+const Arrows : array[0..1] of AnsiChar = '<>';
 var
   B : TDrawBuffer;
   C : Word;

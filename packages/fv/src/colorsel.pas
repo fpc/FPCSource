@@ -22,7 +22,8 @@
  ****************************************************************************}
 }
 unit ColorSel;
-
+{$mode fpc}
+{$h-}
 interface
 
 uses Objects, Dialogs, Views;

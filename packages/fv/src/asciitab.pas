@@ -34,13 +34,14 @@ UNIT AsciiTab;
 {====================================================================}
 
 {==== Compiler directives ===========================================}
-
+{$H-}
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
 {$S-} { Disable Stack Checking }
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
+
 {====================================================================}
 
 USES FVConsts, Objects, Drivers, Views, App;      { Standard GFV units }
@@ -64,7 +65,7 @@ type
   end;
 
 {---------------------------------------------------------------------------}
-{                  TREPORT OBJECT - View with details of current char       }
+{                  TREPORT OBJECT - View with details of current AnsiChar       }
 {---------------------------------------------------------------------------}
   PReport = ^TReport;
   TReport = object(TView)
@@ -243,7 +244,7 @@ begin
   while length(stDec)<3 do
     stDec:=' '+stDec;
   stHex:=hexstr(AsciiChar,2);
-  s:='Char "'+chr(AsciiChar)+'" Decimal: '+
+  s:='AnsiChar "'+chr(AsciiChar)+'" Decimal: '+
      StDec+' Hex: $'+StHex+
      '  '; // //{!ss:fill gap. FormatStr function using be better}
   WriteStr(0,0,S,1);

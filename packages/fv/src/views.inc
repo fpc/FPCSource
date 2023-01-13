@@ -352,7 +352,7 @@ TYPE
          HoldLimit: PComplexArea;                     { Hold limit values }
 
          RevCol    : Boolean;
-         BackgroundChar : Char;
+         BackgroundChar : AnsiChar;
 
       CONSTRUCTOR Init (Var Bounds: TRect);
       CONSTRUCTOR Load (Var S: TStream);
@@ -431,7 +431,7 @@ TYPE
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: UnicodeString; Color: Byte;
         Count: Sw_Integer);
 {$else FV_UNICODE}
-      PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
+      PROCEDURE WriteChar (X, Y: Sw_Integer; C: AnsiChar; Color: Byte;
         Count: Sw_Integer);
 {$endif FV_UNICODE}
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
@@ -542,7 +542,7 @@ TYPE
 {$ifdef FV_UNICODE}
    TScrollChars = Array [0..4] of WideChar;
 {$else FV_UNICODE}
-   TScrollChars = Array [0..4] of Char;
+   TScrollChars = Array [0..4] of AnsiChar;
 {$endif FV_UNICODE}
 
    TScrollBar = OBJECT (TView)
@@ -729,7 +729,7 @@ CONST
 {$ifdef FV_UNICODE}
    SpecialChars: Array [0..5] Of WideChar = (#$00BB, #$00AB, #$2192, #$2190, ' ', ' ');
 {$else FV_UNICODE}
-   SpecialChars: Array [0..5] Of Char = (#175, #174, #26, #27, ' ', ' ');
+   SpecialChars: Array [0..5] Of AnsiChar = (#175, #174, #26, #27, ' ', ' ');
 {$endif FV_UNICODE}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2745,9 +2745,9 @@ const
     #$0020#$0020#$0020#$255A#$0020#$2551#$2554#$255F+
     #$0020#$255D#$2550#$2567#$2557#$2562#$2564#$256C;
 {$else FV_UNICODE}
-  FrameChars_437: array[0..31] of Char =
+  FrameChars_437: array[0..31] of AnsiChar =
     '   '#192' '#179#218#195' '#217#196#193#191#180#194#197'   '#200' '#186#201#199' '#188#205#207#187#182#209#206;
-  FrameChars_850: array[0..31] of Char =
+  FrameChars_850: array[0..31] of AnsiChar =
     '   '#192' '#179#218#195' '#217#196#193#191#180#194#197'   '#200' '#186#201#186' '#188#205#205#187#186#205#206;
 {$endif FV_UNICODE}
 var
@@ -2758,7 +2758,7 @@ var
   i,j,k     : {Sw_  lo and hi are used !! }SmallInt;
   CurrView  : PView;
 {$ifndef FV_UNICODE}
-  p         : Pchar;
+  p         : PAnsiChar;
 {$endif FV_UNICODE}
 begin
   FrameMask[0]:=InitFrame[n];
@@ -2841,9 +2841,9 @@ const
   RestoreC:array[boolean] of widechar=('|',#$2195);
   ClickC:array[boolean] of widechar=('*',#$263C);
 {$else FV_UNICODE}
-  LargeC:array[boolean] of char=('^',#24);
-  RestoreC:array[boolean] of char=('|',#18);
-  ClickC:array[boolean] of char=('*',#15);
+  LargeC:array[boolean] of AnsiChar=('^',#24);
+  RestoreC:array[boolean] of AnsiChar=('|',#18);
+  ClickC:array[boolean] of AnsiChar=('*',#15);
 {$endif FV_UNICODE}
 var
   CFrame, CTitle: Word;
@@ -4473,7 +4473,7 @@ end;
 {$ifdef FV_UNICODE}
 procedure TView.WriteChar(X,Y:Sw_Integer; C:UnicodeString; Color:Byte; Count:Sw_Integer);
 {$else FV_UNICODE}
-procedure TView.WriteChar(X,Y:Sw_Integer; C:Char; Color:Byte; Count:Sw_Integer);
+procedure TView.WriteChar(X,Y:Sw_Integer; C:AnsiChar; Color:Byte; Count:Sw_Integer);
 {$endif FV_UNICODE}
 var
   B : TDrawBuffer;

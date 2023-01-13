@@ -16,7 +16,7 @@
 
 type standard_string=record
        nr:word;
-       text:Pchar;
+       text:PAnsiChar;
      end;
 
 const standard_string_count=107;

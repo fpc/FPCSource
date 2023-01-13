@@ -445,7 +445,7 @@ end;
 function TMemStringList.LoadStrings: Sw_Integer;
   procedure MakeEditableString (var Str: string);
   const
-    SpecialChars: array[1..3] of Char = #3#10#13;
+    SpecialChars: array[1..3] of AnsiChar = #3#10#13;
   var
     i, j: Byte;
   begin
@@ -542,7 +542,7 @@ var
           Inc(j,Byte(S[Succ(j)] in Numbers));
         Val(Copy(S,i,j-i+1),N,ErrorCode);
         System.Delete(S,Pred(i),j-i+2);
-        System.Insert(Char(N),S,Pred(i));
+        System.Insert(AnsiChar(N),S,Pred(i));
       end;
       StrList^.Put(Value,Text)
     end;
