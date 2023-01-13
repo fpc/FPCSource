@@ -20,9 +20,9 @@ type
 {****************************Conversion routines*******************************}
 {Converts an UCS 16/32 bits charcater to UTF8 character}
 function UnicodeToUTF8(aChar:TUCS32Char):TUTF8Char;
-{Converts a wide char UCS 16 bits chcarcter to UTF8 character}
+{Converts a wide AnsiChar UCS 16 bits chcarcter to UTF8 character}
 function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
-{Converts a wide char UCS 16 bits string to UTF8 character}
+{Converts a wide AnsiChar UCS 16 bits string to UTF8 character}
 function UnicodeToUTF8(const Src:TString):TUTF8String;
 {Converts an UTF8 character to UCS 32 bits character}
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
@@ -31,8 +31,8 @@ function UTF8ToUCS16(const UTF8Char:TUTF8Char):TUCS16Char;
 {Converts an UTF8 string to UCS 16 bits string}
 function UTF8ToUnicode(const Src:TUTF8String):TString;
 {Converts an UTF8 string to a double byte string}
-function UTF8ToDoubleByteString(const UTF8Str:TUTF8String):String;
-function UTF8ToDoubleByte(UTF8Str:PChar; Len:Cardinal; DBStr:PByte):Cardinal;
+function UTF8ToDoubleByteString(const UTF8Str:TUTF8String):AnsiString;
+function UTF8ToDoubleByte(UTF8Str:PAnsiChar; Len:Cardinal; DBStr:PByte):Cardinal;
 {****************************Logical aspects***********************************}
 {Returns the number of logical characters}
 function LLength(const UTF8Str:TUTF8String):Cardinal;
@@ -56,7 +56,7 @@ procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 function DirectionOf(Character:TUTF8Char):TDirection;
 {Returns contextual direction of caracter in a string}
 function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
-{Inserts a char as if it was typed using keyboard in the most user friendly way.
+{Inserts a AnsiChar as if it was typed using keyboard in the most user friendly way.
 Returns the new cursor position after insersion depending on the new visual text}
 function InsertChar(Src:TUTF8Char; var Dest:TUTF8String; vp:Integer; pDir:TDirection):Integer;
 {Returns a table mapping each visual position to its logical position in an UTF8*
@@ -65,7 +65,7 @@ function VisualToLogical(const UTF8String:TUTF8String; pDir:TDirection):TVisualT
 
 implementation
 
-function DumpStr(const s:TUTF8String):String;
+function DumpStr(const s:TUTF8String):AnsiString;
 var
   i:Integer;
 begin
@@ -78,11 +78,11 @@ begin
       Result := Result + '$' + HexStr(Ord(s[i]),2);
     end;
 end;
-function ComputeCharLength(p:PChar):Cardinal;
+function ComputeCharLength(p:PAnsiChar):Cardinal;
 begin
   if ord(p^)<%11000000
   then
-{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
+{regular single byte character (#0 is a normal AnsiChar, this is UTF8Charascal ;)}
     Result:=1
   else if ((ord(p^) and %11100000) = %11000000)
   then
@@ -117,29 +117,29 @@ begin
   case aChar of
     0..$7f:
       begin
-        Result[1]:=char(aChar);
+        Result[1]:=AnsiChar(aChar);
         SetLength(UnicodeToUTF8,1);
       end;
     $80..$7ff:
       begin
-        Result[1]:=char($c0 or (aChar shr 6));
-        Result[2]:=char($80 or (aChar and $3f));
+        Result[1]:=AnsiChar($c0 or (aChar shr 6));
+        Result[2]:=AnsiChar($80 or (aChar and $3f));
         SetLength(UnicodeToUTF8,2);
       end;
     $800..$ffff:
       begin
         SetLength(Result,3);
-        Result[1]:=char($e0 or (aChar shr 12));
-        Result[2]:=char($80 or ((aChar shr 6) and $3f));
-        Result[3]:=char($80 or (aChar and $3f));
+        Result[1]:=AnsiChar($e0 or (aChar shr 12));
+        Result[2]:=AnsiChar($80 or ((aChar shr 6) and $3f));
+        Result[3]:=AnsiChar($80 or (aChar and $3f));
       end;
     $10000..$1fffff:
       begin
         SetLength(UnicodeToUTF8,4);
-        Result[1]:=char($f0 or (aChar shr 18));
-        Result[2]:=char($80 or ((aChar shr 12) and $3f));
-        Result[3]:=char($80 or ((aChar shr 6) and $3f));
-        Result[4]:=char($80 or (aChar and $3f));
+        Result[1]:=AnsiChar($f0 or (aChar shr 18));
+        Result[2]:=AnsiChar($80 or ((aChar shr 12) and $3f));
+        Result[3]:=AnsiChar($80 or ((aChar shr 6) and $3f));
+        Result[4]:=AnsiChar($80 or (aChar and $3f));
       end;
   else
     SetLength(UnicodeToUTF8, 0);
@@ -153,13 +153,13 @@ begin
   case c of
     0..$7f:
       begin
-        Result[1]:=char(c);
+        Result[1]:=AnsiChar(c);
         SetLength(UnicodeToUTF8,1);
       end;
     $80..$7ff:
       begin
-        Result[1]:=char($c0 or (c shr 6));
-        Result[2]:=char($80 or (c and $3f));
+        Result[1]:=AnsiChar($c0 or (c shr 6));
+        Result[2]:=AnsiChar($80 or (c and $3f));
         SetLength(UnicodeToUTF8,2);
       end;
   else
@@ -180,7 +180,7 @@ end;
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
 begin
   case ComputeCharLength(@UTF8Char[1]) of
-    1:{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
+    1:{regular single byte character (#0 is a normal AnsiChar, this is UTF8Charascal ;)}
       Result := ord(UTF8Char[1]);
     2:
       Result := ((ord(UTF8Char[1]) and %00011111) shl 6)
@@ -202,7 +202,7 @@ end;
 function UTF8ToUCS16(const UTF8Char:TUTF8Char):TUCS16Char;
 begin
   case Length(UTF8Char) of
-    1:{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
+    1:{regular single byte character (#0 is a normal AnsiChar, this is UTF8Charascal ;)}
       Result := ord(UTF8Char[1]);
     2:
       Result := ((ord(UTF8Char[1]) and %00011111) shl 6)
@@ -231,19 +231,19 @@ begin
   SetLength(Result, vp);
 end;
 
-function UTF8ToDoubleByteString(const UTF8Str: TUTF8String): string;
+function UTF8ToDoubleByteString(const UTF8Str: TUTF8String): Ansistring;
 var
   Len: Integer;
 begin
   Len:=VLength(UTF8Str, drLTR);
   SetLength(Result,Len*2);
   if Len=0 then exit;
-  UTF8ToDoubleByte(PChar(UTF8Str),length(UTF8Str),PByte(Result));
+  UTF8ToDoubleByte(PAnsiChar(UTF8Str),length(UTF8Str),PByte(Result));
 end;
 
-function UTF8ToDoubleByte(UTF8Str: PChar; Len:Cardinal; DBStr: PByte):Cardinal;
+function UTF8ToDoubleByte(UTF8Str: PAnsiChar; Len:Cardinal; DBStr: PByte):Cardinal;
 var
-  SrcPos: PChar;
+  SrcPos: PAnsiChar;
   CharLen: LongInt;
   DestPos: PByte;
   u: Cardinal;
@@ -318,7 +318,7 @@ begin
   Result := v2l[0];
 end;
 
-function VPos(UTF8Char:PChar; Len:integer; BytePos:integer):Cardinal;
+function VPos(UTF8Char:PAnsiChar; Len:integer; BytePos:integer):Cardinal;
 begin
 end;
 
