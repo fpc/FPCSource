@@ -32,7 +32,7 @@ type
    Pip_opts = ^ip_opts;
    ip_opts = record
         ip_dst : in_addr;
-        ip_opts : array[0..39] of char;
+        ip_opts : array[0..39] of AnsiChar;
      end;
 
    Pip_mreq = ^ip_mreq;

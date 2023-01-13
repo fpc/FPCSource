@@ -48,7 +48,7 @@ type
 type
 
    Ps8 = ^s8;
-   s8 = char;
+   s8 = AnsiChar;
 
    Pu8 = ^u8;
    u8 = byte;
@@ -628,7 +628,7 @@ Function DEFLATE_MAKE_OPT(w: longint): longint;
             sat_family : sa_family_t;
             sat_port : __u8;
             sat_addr : at_addr;
-            sat_zero : array[0..7] of char;
+            sat_zero : array[0..7] of AnsiChar;
          end;
 
        Pnetrange = ^netrange;

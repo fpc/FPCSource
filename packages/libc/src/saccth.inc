@@ -9,7 +9,7 @@ type
 
   Pacct = ^_acct;
   _acct = record
-    ac_flag : char;
+    ac_flag : AnsiChar;
     ac_uid : u_int16_t;
     ac_gid : u_int16_t;
     ac_tty : u_int16_t;
@@ -24,8 +24,8 @@ type
     ac_majflt : comp_t;
     ac_swaps : comp_t;
     ac_exitcode : u_int32_t;
-    ac_comm : array[0..(ACCT_COMM + 1)-1] of char;
-    ac_pad : array[0..9] of char;
+    ac_comm : array[0..(ACCT_COMM + 1)-1] of AnsiChar;
+    ac_pad : array[0..9] of AnsiChar;
   end;
   P_acct = ^_acct;
 
@@ -38,7 +38,7 @@ Const
   AHZ   = 100;
 
 // Already defined in unistdh.inc
-//function acct(__filename:Pchar):longint;cdecl;external clib name 'acct';
+//function acct(__filename:PAnsiChar):longint;cdecl;external clib name 'acct';
 
 { ---------------------------------------------------------------------
     Borland compatibility types

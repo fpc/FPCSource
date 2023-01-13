@@ -15,9 +15,9 @@ type
         addr : osockaddr;
         ctl_addr : osockaddr;
         pid : int32_t;
-        l_name : array[0..(NAME_SIZE)-1] of char;
-        r_name : array[0..(NAME_SIZE)-1] of char;
-        r_tty : array[0..(TTY_SIZE)-1] of char;
+        l_name : array[0..(NAME_SIZE)-1] of AnsiChar;
+        r_name : array[0..(NAME_SIZE)-1] of AnsiChar;
+        r_tty : array[0..(TTY_SIZE)-1] of AnsiChar;
      end;
 
    PCTL_RESPONSE = ^CTL_RESPONSE;
