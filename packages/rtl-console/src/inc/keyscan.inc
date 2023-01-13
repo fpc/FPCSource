@@ -1,4 +1,4 @@
-{ list of all dos scancode for key giving 0 as char }
+{ list of all dos scancode for key giving 0 as AnsiChar }
 Const
    kbNoKey       = $00;
    kbAltEsc      = $01;  {Alt+Esc = scancode 01, ascii code 0.}

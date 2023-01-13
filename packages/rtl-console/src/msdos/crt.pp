@@ -344,7 +344,7 @@ End;
 var
    keyboard_type: byte;  { 0=83/84-key keyboard, $10=101/102+ keyboard }
    is_last : boolean;
-   last    : char;
+   last    : AnsiChar;
 
 procedure DetectKeyboard;
 var
@@ -360,10 +360,10 @@ begin
     end;
 end;
 
-function readkey : char;
+function readkey : AnsiChar;
 var
-  char2 : char;
-  char1 : char;
+  char2 : AnsiChar;
+  char1 : AnsiChar;
   regs : registers;
 begin
   if is_last then
@@ -659,7 +659,7 @@ no_snow:
 done:
 end;
 
-Procedure WriteChar(c:char);
+Procedure WriteChar(c:AnsiChar);
 var
   regs : registers;
 begin
@@ -721,7 +721,7 @@ Procedure CrtRead(Var F: TextRec);
   end;
 
 var
-  ch : Char;
+  ch : AnsiChar;
 Begin
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;

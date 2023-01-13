@@ -400,9 +400,9 @@ begin
     end;
 end;
 
-function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString; CodePage: TSystemCodePage): Char;
+function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString; CodePage: TSystemCodePage): AnsiChar;
 
-  function GenConvert: Char;
+  function GenConvert: AnsiChar;
     var
       tmpS: RawByteString;
     begin
@@ -415,7 +415,7 @@ function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString; CodePage: 
     end;
 
 var
-  Ch: Char;
+  Ch: AnsiChar;
 begin
   if (Length(EGC) = 1) then
     begin
@@ -438,7 +438,7 @@ begin
     Result:=GenConvert;
 end;
 
-function LegacyChar2ExtendedGraphemeCluster(const Ch: Char): UnicodeString;
+function LegacyChar2ExtendedGraphemeCluster(const Ch: AnsiChar): UnicodeString;
 var
   tmpS: RawByteString;
 begin
