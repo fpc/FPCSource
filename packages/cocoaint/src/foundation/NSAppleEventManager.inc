@@ -24,7 +24,7 @@ type
   NSAppleEventManager = objcclass external (NSObject)
   private
     _isPreparedForDispatch: ObjCBOOL;
-    _padding:array[0..2] of char;
+    _padding:array[0..2] of AnsiChar;
   public
     class function sharedAppleEventManager: NSAppleEventManager; message 'sharedAppleEventManager';
     procedure setEventHandler_andSelector_forEventClass_andEventID (handler: id; handleEventSelector: SEL; eventClass: AEEventClass; eventID: AEEventID); message 'setEventHandler:andSelector:forEventClass:andEventID:';

@@ -107,15 +107,15 @@ type
     _properties: id;
   public
     function initWithFocusedViewRect (rect: NSRect): instancetype; message 'initWithFocusedViewRect:';
-    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel (planes: PChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: ObjCBOOL; isPlanar: ObjCBOOL; colorSpaceName_: NSString; rBytes: NSInteger; pBits: NSInteger): instancetype; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bytesPerRow:bitsPerPixel:';
-    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bitmapFormat_bytesPerRow_bitsPerPixel (planes: PChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: ObjCBOOL; isPlanar: ObjCBOOL; colorSpaceName_: NSString; bitmapFormat: NSBitmapFormat; rBytes: NSInteger; pBits: NSInteger): instancetype; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:';
+    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel (planes: PAnsiChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: ObjCBOOL; isPlanar: ObjCBOOL; colorSpaceName_: NSString; rBytes: NSInteger; pBits: NSInteger): instancetype; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bytesPerRow:bitsPerPixel:';
+    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bitmapFormat_bytesPerRow_bitsPerPixel (planes: PAnsiChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: ObjCBOOL; isPlanar: ObjCBOOL; colorSpaceName_: NSString; bitmapFormat: NSBitmapFormat; rBytes: NSInteger; pBits: NSInteger): instancetype; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:';
     function initWithCGImage (cgImage: CGImageRef): instancetype; message 'initWithCGImage:'; { available in 10_5 }
     function initWithCIImage (ciImage_: CIImage): instancetype; message 'initWithCIImage:'; { available in 10_5 }
     class function imageRepsWithData (data: NSData): NSArray; message 'imageRepsWithData:';
     class function imageRepWithData (data: NSData): instancetype; message 'imageRepWithData:';
     function initWithData (data: NSData): instancetype; message 'initWithData:';
-    function bitmapData: PChar; message 'bitmapData';
-    procedure getBitmapDataPlanes (data: PChar); message 'getBitmapDataPlanes:';
+    function bitmapData: PAnsiChar; message 'bitmapData';
+    procedure getBitmapDataPlanes (data: PAnsiChar); message 'getBitmapDataPlanes:';
     function isPlanar: ObjCBOOL; message 'isPlanar';
     function samplesPerPixel: NSInteger; message 'samplesPerPixel';
     function bitsPerPixel: NSInteger; message 'bitsPerPixel';
