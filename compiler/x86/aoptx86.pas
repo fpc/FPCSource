@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
