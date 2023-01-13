@@ -15,7 +15,7 @@
  **********************************************************************}
 {
     History:
-    Added overlay functions for Pchar->Strings, functions
+    Added overlay functions for PAnsiChar->Strings, functions
     and procedures.
     14 Jul 2000.
 
@@ -227,7 +227,7 @@ CONST
 VAR CxBase : pLibrary = nil;
 
 const
-    COMMODITIESNAME : PChar = 'commodities.library';
+    COMMODITIESNAME : PAnsiChar = 'commodities.library';
 
 
 FUNCTION ActivateCxObj(co : pCxObj location 'a0'; tru : LONGINT location 'd0') : LONGINT; syscall CxBase 042;
@@ -249,11 +249,11 @@ PROCEDURE EnqueueCxObj(headObj : pCxObj location 'a0'; co : pCxObj location 'a1'
 PROCEDURE InsertCxObj(headObj : pCxObj location 'a0'; co : pCxObj location 'a1'; pred : pCxObj location 'a2'); syscall CxBase 096;
 FUNCTION InvertKeyMap(ansiCode : ULONG location 'd0'; event : pInputEvent location 'a0'; km : pKeyMap location 'a1') : LongBool; syscall CxBase 174;
 FUNCTION MatchIX(event : pInputEvent location 'a0'; ix : pInputXpression location 'a1') : LongBool; syscall CxBase 204;
-FUNCTION ParseIX(description : pCHAR location 'a0'; ix : pInputXpression location 'a1') : LONGINT; syscall CxBase 132;
+FUNCTION ParseIX(description : PAnsiChar location 'a0'; ix : pInputXpression location 'a1') : LONGINT; syscall CxBase 132;
 PROCEDURE RemoveCxObj(co : pCxObj location 'a0'); syscall CxBase 102;
 PROCEDURE RouteCxMsg(cxm : pCxMsg location 'a0'; co : pCxObj location 'a1'); syscall CxBase 162;
 FUNCTION SetCxObjPri(co : pCxObj location 'a0'; pri : LONGINT location 'd0') : LONGINT; syscall CxBase 078;
-PROCEDURE SetFilter(filter : pCxObj location 'a0'; text : pCHAR location 'a1'); syscall CxBase 120;
+PROCEDURE SetFilter(filter : pCxObj location 'a0'; text : PAnsiChar location 'a1'); syscall CxBase 120;
 PROCEDURE SetFilterIX(filter : pCxObj location 'a0'; ix : pInputXpression location 'a1'); syscall CxBase 126;
 PROCEDURE SetTranslate(translator : pCxObj location 'a0'; events : pInputEvent location 'a1'); syscall CxBase 114;
 
@@ -275,12 +275,12 @@ IMPLEMENTATION
 
 FUNCTION ParseIX(description : rawbytestring; ix : pInputXpression) : LONGINT;
 begin
-  ParseIX := ParseIX(pchar(description),ix);
+  ParseIX := ParseIX(PAnsiChar(description),ix);
 end;
 
 PROCEDURE SetFilter(filter : pCxObj; text : rawbytestring);
 begin
-  SetFilter(filter,pchar(text));
+  SetFilter(filter,PAnsiChar(text));
 end;
 
 procedure FreeIEvents(Events: PInputEvent);

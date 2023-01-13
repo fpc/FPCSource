@@ -37,7 +37,7 @@ INTERFACE
 USES exec, configvars, amigados;
 
 Const
-    EXPANSIONNAME       : PChar = 'expansion.library';
+    EXPANSIONNAME       : PAnsiChar = 'expansion.library';
 
 { flags for the AddDosNode() call }
     ADNB_STARTPROC      = 0;

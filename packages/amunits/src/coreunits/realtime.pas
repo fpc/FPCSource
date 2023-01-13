@@ -235,12 +235,12 @@ const
 VAR RealTimeBase : pRealTimeBase = nil;
 
 const
-    REALTIMENAME : PChar = 'realtime.library';
+    REALTIMENAME : PAnsiChar = 'realtime.library';
 
 FUNCTION CreatePlayerA(const tagList : pTagItem location 'a0') : pPlayer; syscall RealTimeBase 042;
 PROCEDURE DeletePlayer(player : pPlayer location 'a0'); syscall RealTimeBase 048;
 FUNCTION ExternalSync(player : pPlayer location 'a0'; minTime : LONGINT location 'd0'; maxTime : LONGINT location 'd1') : WordBool; syscall RealTimeBase 066;
-FUNCTION FindConductor(const name : pCHAR location 'a0') : pConductor; syscall RealTimeBase 078;
+FUNCTION FindConductor(const name : PAnsiChar location 'a0') : pConductor; syscall RealTimeBase 078;
 FUNCTION GetPlayerAttrsA(const player : pPlayer location 'a0'; const tagList : pTagItem location 'a1') : ULONG; syscall RealTimeBase 084;
 FUNCTION LockRealTime(lockType : ULONG location 'd0') : POINTER; syscall RealTimeBase 030;
 FUNCTION NextConductor(const previousConductor : pConductor location 'a0') : pConductor; syscall RealTimeBase 072;

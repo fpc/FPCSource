@@ -21,10 +21,10 @@ uses exec, amigados, agraphics, picasso96api, utility;
 
 Const
 
-    template    :   pchar  =    'Width=W/N,Height=H/N,Depth=D/N';
+    template    :   PAnsiChar  =    'Width=W/N,Height=H/N,Depth=D/N';
     vecarray    :   Array[0..2] of long = (0,0,0);
 
-    fmtstrings  :   Array [1..(Ord(RGBFB_MaxFormats)-2)] OF pchar = (
+    fmtstrings  :   Array [1..(Ord(RGBFB_MaxFormats)-2)] OF PAnsiChar = (
                     'RGBFB_NONE',
                     'RGBFB_CLUT',
                     'RGBFB_R8G8B8',

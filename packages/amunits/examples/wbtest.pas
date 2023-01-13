@@ -18,12 +18,12 @@ uses wbargs, amsgbox;
 
 var
    i : integer;
-   dummy : string;
+   dummy : ShortString;
 
 
-Function IntToStr (I : Longint) : String;
+Function IntToStr (I : Longint) : ShortString;
 Var
-    S : String;
+    S : ShortString;
 begin
     Str (I,S);
     IntToStr:=S;

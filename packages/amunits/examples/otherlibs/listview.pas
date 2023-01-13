@@ -16,7 +16,7 @@ uses exec, triton, tritonmacros, linklist, utility;
 
 const
 
-     weekday : array [0..6] of pchar =  (
+     weekday : array [0..6] of PAnsiChar =  (
                 'Monday',
                 'Tuesday',
                 'Wendsday',

@@ -113,7 +113,7 @@ var
   ConsoleDevice: PDevice = nil;
 
 function CDInputHandler(Events: PInputEvent location 'a0'; ConsoleDev: PLibrary location 'a1'): PInputEvent; syscall ConsoleDevice 042;
-function RawKeyConvert(Events: PInputEvent location 'a0'; Buffer: PCHAR location 'a1'; Length: LongInt location 'd1'; KeyMap: PKeyMap location 'a2'): LongInt; syscall ConsoleDevice 048;
+function RawKeyConvert(Events: PInputEvent location 'a0'; Buffer: PAnsiChar location 'a1'; Length: LongInt location 'd1'; KeyMap: PKeyMap location 'a2'): LongInt; syscall ConsoleDevice 048;
 
 implementation
 

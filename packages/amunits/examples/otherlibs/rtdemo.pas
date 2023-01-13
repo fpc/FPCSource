@@ -37,17 +37,17 @@ VAR
     fontreq         : prtFontRequester;
     scrnreq         : prtScreenModeRequester;
     filelist        : prtFileList;
-    buffer          : PChar;
-    filename        : PChar;
-    dummy           : PChar;
-    dummy2          : PChar;
+    buffer          : PAnsiChar;
+    filename        : PAnsiChar;
+    dummy           : PAnsiChar;
+    dummy2          : PAnsiChar;
     longnum         : Longword;
     ret             : Longint;
     color           : Longint;
     undertag        : Array [0..1] of tTagItem;
     Param           : array of PtrUInt;
 
-FUNCTION GetScrollValue(value : INTEGER): STRING;
+FUNCTION GetScrollValue(value : INTEGER): ShortString;
 BEGIN
     IF value = 0 THEN GetScrollValue := 'Off'
     ELSE GetScrollValue := 'On';
@@ -400,7 +400,7 @@ BEGIN
             Param[2] := scrnreq^.DisplayHeight;
             Param[3] := scrnreq^.DisplayDepth;
             Param[4] := scrnreq^.OverscanType;
-            Param[5] := AsTag(PChar(AnsiString(GetScrollValue(scrnreq^.AutoScroll))));
+            Param[5] := AsTag(PAnsiChar(AnsiString(GetScrollValue(scrnreq^.AutoScroll))));
             rtEZRequestA('You picked this mode:' + #10 +
                          'ModeID  : 0x%lx' + #10 +
                          'Size    : %ld x %ld' + #10 +

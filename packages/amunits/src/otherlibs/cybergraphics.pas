@@ -36,7 +36,7 @@ USES Exec,agraphics,utility;
 VAR CyberGfxBase : pLibrary = nil;
 
 const
-    CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
+    CYBERGRAPHICSNAME : PAnsiChar = 'cybergraphics.library';
 
 {
         $VER: cybergraphics.h 41.18 (21.02.1998)
@@ -58,7 +58,7 @@ const
      PCyberModeNode = ^tCyberModeNode;
      tCyberModeNode = record
           Node : tNode;
-          ModeText : array[0..(DISPLAYNAMELEN)-1] of char; { name for this mode  }
+          ModeText : array[0..(DISPLAYNAMELEN)-1] of AnsiChar; { name for this mode  }
           DisplayID : ULONG;                               { display id associated with the node  }
           Width : UWORD;                                   { visible width  }
           Height : UWORD;                                  { visible height  }

@@ -19,7 +19,7 @@ Program ModeList;
 
 uses exec, amigados, picasso96api, utility;
 Const
-    template    :   pchar  =   'Width=W/N,Height=H/N,Depth=D/N';
+    template    :   PAnsiChar  =   'Width=W/N,Height=H/N,Depth=D/N';
     vecarray    :   Array[0..2] of long = (0,0,0);
 
 Var

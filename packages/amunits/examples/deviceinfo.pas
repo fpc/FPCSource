@@ -30,8 +30,8 @@ Var
   MyLock          : longint;
   Inf             : pInfoData;
   Ok              : Boolean;
-  Myfile          : string;
-  S, S1           : String;
+  Myfile          : ShortString;
+  S, S1           : ShortString;
   Size, Used, Bpb : Integer;
 
 Procedure Cls;
@@ -41,7 +41,7 @@ Begin
 
 End;
 
-Procedure AsdaLaVista(warum : String ; code : longint);
+Procedure AsdaLaVista(warum : ShortString ; code : longint);
 
 Begin
   If Inf   <> Nil Then FreeMem(Inf);

@@ -78,7 +78,7 @@ const
 VAR ColorWheelBase : pLibrary = nil;
 
 const
-    COLORWHEELNAME : Pchar = 'colorwheel.library';
+    COLORWHEELNAME : PAnsiChar = 'colorwheel.library';
 
 PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB location 'a0'; rgb : pColorWheelRGB location 'a1'); syscall ColorWheelBase 030;
 PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB location 'a0'; hsb : pColorWheelHSB location 'a1'); syscall ColorWheelBase 036;

@@ -45,7 +45,7 @@ uses exec, intuition, agraphics, utility;
 {* library name and version                                                       *}
 {* ------------------------------------------------------------------------------ *}
 
-CONST   TRITONNAME        : PChar = 'triton.library';
+CONST   TRITONNAME        : PAnsiChar = 'triton.library';
         TRITON10VERSION   = 1;
         TRITON11VERSION   = 2;
         TRITON12VERSION   = 3;
@@ -693,35 +693,35 @@ PROCEDURE TR_DeleteApp(app : pTR_App location 'a1'); syscall TritonBase 102;
 FUNCTION TR_DoMethod(obj : pTROD_Object location 'a0'; messageid : ULONG location 'd0'; data : POINTER location 'a1') : ULONG; syscall TritonBase 216;
 FUNCTION TR_DoMethodClass(obj : pTROD_Object location 'a0'; messageid : ULONG location 'd0'; data : POINTER location 'a1'; trclass : pTR_Class location 'a2') : ULONG; syscall TritonBase 222;
 PROCEDURE TR_DrawFrame(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; left : WORD location 'd1'; top : WORD location 'd2'; width : WORD location 'd3'; height : WORD location 'd4'; typ : WORD location 'd0'; inverted : BOOLEAN location 'd5'); syscall TritonBase 174;
-FUNCTION TR_EasyRequest(app : pTR_App location 'a1'; bodyfmt : pCHAR location 'a2'; gadfmt : pCHAR location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall TritonBase 90;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; taglist : pTagItem) : ULONG;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; taglist : pTagItem) : ULONG;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : String; taglist : pTagItem) : ULONG;
-FUNCTION TR_FirstOccurance(ch : BYTE location 'd0'; str : pCHAR location 'a0') : LONGINT; syscall TritonBase 42;
-FUNCTION TR_FirstOccurance(ch : BYTE; str : String) : LONGINT;
+FUNCTION TR_EasyRequest(app : pTR_App location 'a1'; bodyfmt : PAnsiChar location 'a2'; gadfmt : PAnsiChar location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall TritonBase 90;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : ShortString; taglist : pTagItem) : ULONG;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : ShortString; gadfmt : PAnsiChar; taglist : pTagItem) : ULONG;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : ShortString; gadfmt : ShortString; taglist : pTagItem) : ULONG;
+FUNCTION TR_FirstOccurance(ch : BYTE location 'd0'; str : PAnsiChar location 'a0') : LONGINT; syscall TritonBase 42;
+FUNCTION TR_FirstOccurance(ch : BYTE; str : ShortString) : LONGINT;
 FUNCTION TR_FrameBorderHeight(project : pTR_Project location 'a0'; typ : WORD location 'd0') : ULONG; syscall TritonBase 186;
 FUNCTION TR_FrameBorderWidth(project : pTR_Project location 'a0'; typ : WORD location 'd0') : ULONG; syscall TritonBase 180;
 FUNCTION TR_GetAttribute(project : pTR_Project location 'a0'; ID : ULONG location 'd0'; attribute : ULONG location 'd1') : ULONG; syscall TritonBase 66;
-FUNCTION TR_GetErrorString(num : WORD location 'd0') : pCHAR; syscall TritonBase 54;
+FUNCTION TR_GetErrorString(num : WORD location 'd0') : PAnsiChar; syscall TritonBase 54;
 FUNCTION TR_GetLastError(app : pTR_App location 'a1') : WORD; syscall TritonBase 132;
 FUNCTION TR_GetMsg(app : pTR_App location 'a1') : pTR_Message; syscall TritonBase 108;
 FUNCTION TR_GetPen(project : pTR_Project location 'a0'; pentype : ULONG location 'd0'; pendata : ULONG location 'd1') : ULONG; syscall TritonBase 210;
 PROCEDURE TR_LockProject(project : pTR_Project location 'a0'); syscall TritonBase 72;
 FUNCTION TR_LockScreen(project : pTR_Project location 'a0') : pScreen; syscall TritonBase 138;
-FUNCTION TR_NumOccurances(ch : BYTE location 'd0'; str : pCHAR location 'a0') : LONGINT; syscall TritonBase 48;
-FUNCTION TR_NumOccurances(ch : BYTE; str : String) : LONGINT;
+FUNCTION TR_NumOccurances(ch : BYTE location 'd0'; str : PAnsiChar location 'a0') : LONGINT; syscall TritonBase 48;
+FUNCTION TR_NumOccurances(ch : BYTE; str : ShortString) : LONGINT;
 FUNCTION TR_ObtainWindow(project : pTR_Project location 'a0') : pWindow; syscall TritonBase 150;
 FUNCTION TR_OpenProject(app : pTR_App location 'a1'; taglist : pTagItem location 'a0') : pTR_Project; syscall TritonBase 30;
-PROCEDURE TR_PrintText(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; txt : pCHAR location 'a2'; x : ULONG location 'd1'; y : ULONG location 'd2'; width : ULONG location 'd3'; flags : ULONG location 'd0'); syscall TritonBase 204;
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG; y : ULONG; width : ULONG; flags : ULONG);
+PROCEDURE TR_PrintText(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; txt : PAnsiChar location 'a2'; x : ULONG location 'd1'; y : ULONG location 'd2'; width : ULONG location 'd3'; flags : ULONG location 'd0'); syscall TritonBase 204;
+PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : ShortString; x : ULONG; y : ULONG; width : ULONG; flags : ULONG);
 PROCEDURE TR_ReleaseWindow(window : pWindow location 'a0'); syscall TritonBase 156;
 PROCEDURE TR_ReplyMsg(message : pTR_Message location 'a1'); syscall TritonBase 114;
 FUNCTION TR_SendMessage(project : pTR_Project location 'a0'; objectid : ULONG location 'd0'; messageid : ULONG location 'd1'; messagedata : POINTER location 'a1') : ULONG; syscall TritonBase 162;
 PROCEDURE TR_SetAttribute(project : pTR_Project location 'a0'; ID : ULONG location 'd0'; attribute : ULONG location 'd1'; value: ULONG location 'd2'); syscall TritonBase 60;
-FUNCTION TR_TextHeight(project : pTR_Project location 'a0'; txt : pCHAR location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 198;
-FUNCTION TR_TextHeight(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
-FUNCTION TR_TextWidth(project : pTR_Project location 'a0'; txt : pCHAR location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 192;
-FUNCTION TR_TextWidth(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
+FUNCTION TR_TextHeight(project : pTR_Project location 'a0'; txt : PAnsiChar location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 198;
+FUNCTION TR_TextHeight(project : pTR_Project; txt : ShortString; flags : ULONG) : ULONG;
+FUNCTION TR_TextWidth(project : pTR_Project location 'a0'; txt : PAnsiChar location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 192;
+FUNCTION TR_TextWidth(project : pTR_Project; txt : ShortString; flags : ULONG) : ULONG;
 PROCEDURE TR_UnlockProject(project : pTR_Project location 'a0'); syscall TritonBase 78;
 PROCEDURE TR_UnlockScreen(screen : pScreen location 'a0'); syscall TritonBase 144;
 FUNCTION TR_Wait(app : pTR_App location 'a1'; otherbits : ULONG location 'd0') : ULONG; syscall TritonBase 120;
@@ -734,10 +734,10 @@ defaultmethod : LONGINT; datasize : longword; const tags : array of PtrUInt) : B
 FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : array of PtrUInt) : pTR_Project;
 FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : array of PtrUInt): ULONG;
 FUNCTION TR_CreateAppTags(const apptags : array of PtrUInt) : pTR_App;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : array of PtrUInt) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : array of PtrUInt) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : PAnsiChar; const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : ShortString; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : ShortString; gadfmt : PAnsiChar; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : ShortString; gadfmt : ShortString; Const taglist : array of PtrUInt) : ULONG;
 
 {  This are a few support functions for triton.
    Could be handy.
@@ -746,17 +746,17 @@ FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Co
 procedure TR_Disable(p : pTR_Project; id : Longint);
 procedure TR_Enable(p : pTR_Project; id : Longint);
 function TR_GetCheckBox(p : pTR_Project; id : Longint): boolean;
-function TR_GetSTRPTR(p : pTR_Project; id : Longint): PChar;
-function TR_GetString(p : pTR_Project; id : Longint): String;
+function TR_GetSTRPTR(p : pTR_Project; id : Longint): PAnsiChar;
+function TR_GetString(p : pTR_Project; id : Longint): ShortString;
 function TR_GetValue(p : pTR_Project; gadid : Longint): Longint;
 procedure TR_SetCheckBox(p : pTR_Project; id : Longint; onoff : boolean);
-procedure TR_SetString(p : pTR_Project; id : Longint; txt : String);
-procedure TR_SetString(p : pTR_Project; id : Longint; txt : PChar);
-procedure TR_SetText(p : pTR_Project; id : Longint; txt : string);
-procedure TR_SetText(p : pTR_Project; id : Longint; txt : PChar);
+procedure TR_SetString(p : pTR_Project; id : Longint; txt : ShortString);
+procedure TR_SetString(p : pTR_Project; id : Longint; txt : PAnsiChar);
+procedure TR_SetText(p : pTR_Project; id : Longint; txt : ShortString);
+procedure TR_SetText(p : pTR_Project; id : Longint; txt : PAnsiChar);
 procedure TR_SetValue(p : pTR_Project; id : Longint; value : Longint);
-procedure TR_SetWindowTitle(p : pTR_Project; thetitle : string);
-procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PChar);
+procedure TR_SetWindowTitle(p : pTR_Project; thetitle : ShortString);
+procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PAnsiChar);
 procedure TR_UpdateListView(p : pTR_Project; gadid : Longint; thelist: pList);
 
 IMPLEMENTATION
@@ -783,20 +783,20 @@ begin
     else TR_GetCheckBox := true;
 end;
 
-function TR_GetSTRPTR(p : pTR_Project; id : Longint): PChar;
+function TR_GetSTRPTR(p : pTR_Project; id : Longint): PAnsiChar;
 var
     temp : Longint;
 begin
     temp := TR_GetAttribute(p,id,0);
-    TR_GetSTRPTR := PChar(Pointer(temp));
+    TR_GetSTRPTR := PAnsiChar(Pointer(temp));
 end;
 
-function TR_GetString(p : pTR_Project; id : Longint): String;
+function TR_GetString(p : pTR_Project; id : Longint): ShortString;
 var
     temp : Longint;
 begin
     temp := TR_GetAttribute(p,id,0);
-    TR_GetString := strpas(PChar(Pointer(temp)));
+    TR_GetString := strpas(PAnsiChar(Pointer(temp)));
 end;
 
 function TR_GetValue(p : pTR_Project; gadid : Longint): Longint;
@@ -809,22 +809,22 @@ begin
     TR_SetAttribute(p,id,TRAT_Value,Longint(byte(onoff)));
 end;
 
-procedure TR_SetString(p : pTR_Project; id : Longint; txt : String);
+procedure TR_SetString(p : pTR_Project; id : Longint; txt : ShortString);
 begin
     TR_SetAttribute(p,id,0,Longint(pas2c(txt)));
 end;
 
-procedure TR_SetString(p : pTR_Project; id : Longint; txt : PChar);
+procedure TR_SetString(p : pTR_Project; id : Longint; txt : PAnsiChar);
 begin
     TR_SetAttribute(p,id,0,Longint(txt));
 end;
 
-procedure TR_SetText(p : pTR_Project; id : Longint; txt : string);
+procedure TR_SetText(p : pTR_Project; id : Longint; txt : ShortString);
 begin
     TR_SetAttribute(p,id,TRAT_Text,Longint(pas2c(txt)));
 end;
 
-procedure TR_SetText(p : pTR_Project; id : Longint; txt : PChar);
+procedure TR_SetText(p : pTR_Project; id : Longint; txt : PAnsiChar);
 begin
     TR_SetAttribute(p,id,TRAT_Text,Longint(txt));
 end;
@@ -834,12 +834,12 @@ begin
     TR_SetAttribute(p,id,TRAT_Value,value);
 end;
 
-procedure TR_SetWindowTitle(p : pTR_Project; thetitle : string);
+procedure TR_SetWindowTitle(p : pTR_Project; thetitle : ShortString);
 begin
     TR_SetAttribute(p,0,TRWI_Title,Longint(pas2c(thetitle)));
 end;
 
-procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PChar);
+procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PAnsiChar);
 begin
     TR_SetAttribute(p,0,TRWI_Title,Longint(thetitle));
 end;
@@ -850,46 +850,46 @@ begin
 end;
 
 
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : PChar; gadfmt : String; taglist :
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : ShortString; taglist :
 pTagItem) : ULONG;
 begin
     TR_EasyRequest := TR_EasyRequest(app,bodyfmt,pas2c(gadfmt),taglist);
 end;
 
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : PChar; taglist :
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : ShortString; gadfmt : PAnsiChar; taglist :
 pTagItem) : ULONG;
 begin
     TR_EasyRequest := TR_EasyRequest(app,pas2c(bodyfmt),gadfmt,taglist);
 end;
 
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : String; taglist :
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : ShortString; gadfmt : ShortString; taglist :
 pTagItem) : ULONG;
 begin
     TR_EasyRequest := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt),taglist);
 end;
 
-FUNCTION TR_FirstOccurance(ch : BYTE; str : String) : LONGINT;
+FUNCTION TR_FirstOccurance(ch : BYTE; str : ShortString) : LONGINT;
 BEGIN
     TR_FirstOccurance := TR_FirstOccurance(ch, pas2c(str));
 END;
 
-FUNCTION TR_NumOccurances(ch : BYTE; str : String) : LONGINT;
+FUNCTION TR_NumOccurances(ch : BYTE; str : ShortString) : LONGINT;
 BEGIN
     TR_NumOccurances := TR_NumOccurances(ch, pas2c(str));
 END;
 
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG;
+PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : ShortString; x : ULONG;
 y : ULONG; width : ULONG; flags : ULONG);
 BEGIN
     TR_PrintText(project,rp,pas2c(txt),x,y,width,flags);
 END;
 
-FUNCTION TR_TextHeight(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
+FUNCTION TR_TextHeight(project : pTR_Project; txt : ShortString; flags : ULONG) : ULONG;
 BEGIN
     TR_TextHeight :=  TR_TextHeight(project,pas2c(txt),flags);
 END;
 
-FUNCTION TR_TextWidth(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
+FUNCTION TR_TextWidth(project : pTR_Project; txt : ShortString; flags : ULONG) : ULONG;
 BEGIN
     TR_TextWidth := TR_TextWidth(project,pas2c(txt),flags);
 END;
@@ -905,7 +905,7 @@ begin
     TR_AddClassTags := TR_AddClass(app , d0arg , supertag , defaultmethod , datasize , @tags);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : array of PtrUInt) : Ulong;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : PAnsiChar; const taglist : array of PtrUInt) : Ulong;
 begin
     TR_EasyRequestTags := TR_EasyRequest(app , bodyfmt , gadfmt , @taglist);
 end;
@@ -925,17 +925,17 @@ begin
     TR_CreateAppTags := TR_CreateApp(@apptags);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : PAnsiChar; gadfmt : ShortString; Const taglist : array of PtrUInt) : ULONG;
 begin
     TR_EasyRequestTags := TR_EasyRequest(app,bodyfmt,pas2c(gadfmt), @taglist);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : ShortString; gadfmt : PAnsiChar; Const taglist : array of PtrUInt) : ULONG;
 begin
     TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),gadfmt, @taglist);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : ShortString; gadfmt : ShortString; Const taglist : array of PtrUInt) : ULONG;
 begin
     TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt), @taglist);
 end;

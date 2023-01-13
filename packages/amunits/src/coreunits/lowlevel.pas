@@ -50,7 +50,7 @@ Type
 
 Const
 
- LOWLEVELNAME : PChar = 'lowlevel.library';
+ LOWLEVELNAME : PAnsiChar = 'lowlevel.library';
 
 { bits in the return value of GetKey() }
  LLKB_LSHIFT     = 16;

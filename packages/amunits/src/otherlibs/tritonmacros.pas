@@ -20,11 +20,11 @@
 
     Some time the compiler tell you that it can't pick the
     right overlay function, well the only one so far is TextId.
-    Why I don't know, the fix is just to use a pchar if there
-    is a problem (TextId(pchar('your text'#0)).
+    Why I don't know, the fix is just to use a PAnsiChar if there
+    is a problem (TextId(PAnsiChar('your text'#0)).
 
     A few fixes, overlay should work with fpc 1.0.7
-    Added overlay for SetTRTag, pchar, string ,boolean and
+    Added overlay for SetTRTag, PAnsiChar, string ,boolean and
     pointer.
     09 Jan 2003.
 
@@ -49,15 +49,15 @@ var
 
 PROCEDURE ProjectStart;
 PROCEDURE EndProject;
-PROCEDURE WindowTitle(t : STRING);
-PROCEDURE WindowTitle(t : PChar);
-PROCEDURE ScreenTitle(t : STRING);
-PROCEDURE ScreenTitle(t : PChar);
+PROCEDURE WindowTitle(t : ShortString);
+PROCEDURE WindowTitle(t : PAnsiChar);
+PROCEDURE ScreenTitle(t : ShortString);
+PROCEDURE ScreenTitle(t : PAnsiChar);
 PROCEDURE WindowID(gadid : longint);
 PROCEDURE WindowFlags(f : longint);
 PROCEDURE WindowPosition(pos : longint);
-PROCEDURE WindowUnderscore(und : STRING);
-PROCEDURE WindowUnderscore(und : PChar);
+PROCEDURE WindowUnderscore(und : ShortString);
+PROCEDURE WindowUnderscore(und : PAnsiChar);
 PROCEDURE WindowDimensions(dim : pTR_Dimensions);
 PROCEDURE WindowBackfillWin;
 PROCEDURE WindowBackfillReq;
@@ -73,31 +73,31 @@ PROCEDURE WindowBackfillF;
 PROCEDURE WindowBackfillFB;
 PROCEDURE CustomScreen(scr : Pointer);
 PROCEDURE PubScreen(scr : Pointer);
-PROCEDURE PubScreenName(wname : STRING);
-PROCEDURE PubScreenName(wname : PChar);
+PROCEDURE PubScreenName(wname : ShortString);
+PROCEDURE PubScreenName(wname : PAnsiChar);
 PROCEDURE QuickHelpOn(onn : smallint);
 { Menus }
-PROCEDURE BeginMenu(t : STRING);
-PROCEDURE BeginMenu(t : PChar);
+PROCEDURE BeginMenu(t : ShortString);
+PROCEDURE BeginMenu(t : PAnsiChar);
 PROCEDURE MenuFlags(f : longint);
-PROCEDURE MenuItem(t : STRING ;gadid : longint);
-PROCEDURE MenuItem(t : PChar ;gadid : longint);
-PROCEDURE MenuItemC(t : STRING; gadid : longint);
-PROCEDURE MenuItemC(t : PChar; gadid : longint);
-PROCEDURE MenuItemCC(t : STRING; gadid : longint);
-PROCEDURE MenuItemCC(t : PChar; gadid : longint);
-PROCEDURE BeginSub(t : STRING);
-PROCEDURE BeginSub(t : PChar);
-PROCEDURE MenuItemD(t : STRING; gadid : longint);
-PROCEDURE MenuItemD(t : PChar; gadid : longint);
-PROCEDURE SubItem(t : STRING; gadid : longint);
-PROCEDURE SubItem(t : PChar; gadid : longint);
-PROCEDURE SubItemC(t : STRING; gadid : longint);
-PROCEDURE SubItemC(t : PChar; gadid : longint);
-PROCEDURE SubItemCC(t : STRING; gadid : longint);
-PROCEDURE SubItemCC(t : PChar; gadid : longint);
-PROCEDURE SubItemD(t : STRING ;gadid : longint);
-PROCEDURE SubItemD(t : PChar ;gadid : longint);
+PROCEDURE MenuItem(t : ShortString ;gadid : longint);
+PROCEDURE MenuItem(t : PAnsiChar ;gadid : longint);
+PROCEDURE MenuItemC(t : ShortString; gadid : longint);
+PROCEDURE MenuItemC(t : PAnsiChar; gadid : longint);
+PROCEDURE MenuItemCC(t : ShortString; gadid : longint);
+PROCEDURE MenuItemCC(t : PAnsiChar; gadid : longint);
+PROCEDURE BeginSub(t : ShortString);
+PROCEDURE BeginSub(t : PAnsiChar);
+PROCEDURE MenuItemD(t : ShortString; gadid : longint);
+PROCEDURE MenuItemD(t : PAnsiChar; gadid : longint);
+PROCEDURE SubItem(t : ShortString; gadid : longint);
+PROCEDURE SubItem(t : PAnsiChar; gadid : longint);
+PROCEDURE SubItemC(t : ShortString; gadid : longint);
+PROCEDURE SubItemC(t : PAnsiChar; gadid : longint);
+PROCEDURE SubItemCC(t : ShortString; gadid : longint);
+PROCEDURE SubItemCC(t : PAnsiChar; gadid : longint);
+PROCEDURE SubItemD(t : ShortString ;gadid : longint);
+PROCEDURE SubItemD(t : PAnsiChar ;gadid : longint);
 PROCEDURE ItemBarlabel;
 PROCEDURE SubBarlabel;
 { Groups }
@@ -138,54 +138,54 @@ PROCEDURE EndColumn;
 PROCEDURE EndLine;
 PROCEDURE EndArray;
 { DisplayObject }
-PROCEDURE QuickHelp(Str : STRING);
-PROCEDURE QuickHelp(Str : PChar);
+PROCEDURE QuickHelp(Str : ShortString);
+PROCEDURE QuickHelp(Str : PAnsiChar);
 { Space }
 PROCEDURE SpaceB;
 PROCEDURE Space;
 PROCEDURE SpaceS;
 PROCEDURE SpaceN;
 { Text }
-PROCEDURE TextN(ttext : STRING);
-PROCEDURE TextN(ttext : PChar);
+PROCEDURE TextN(ttext : ShortString);
+PROCEDURE TextN(ttext : PAnsiChar);
 
-PROCEDURE TextH(ttext : STRING);
-PROCEDURE TextH(ttext : PChar);
+PROCEDURE TextH(ttext : ShortString);
+PROCEDURE TextH(ttext : PAnsiChar);
 
-PROCEDURE Text3(ttext : STRING);
-PROCEDURE Text3(ttext : PChar);
-PROCEDURE TextB(ttext : STRING);
-PROCEDURE TextB(ttext : PChar);
-PROCEDURE TextT(ttext : STRING);
-PROCEDURE TextT(ttext : PChar);
-PROCEDURE TextID(ttext : STRING ; gadid : longint);
-PROCEDURE TextID(ttext : PChar ; gadid : longint);
-PROCEDURE TextNR(t : STRING);
-PROCEDURE TextNR(t : PChar);
-PROCEDURE ClippedText(t : STRING);
-PROCEDURE ClippedText(t : PChar);
-PROCEDURE ClippedTextID(t : STRING; gadid : longint);
-PROCEDURE ClippedTextID(t : PChar; gadid : longint);
-PROCEDURE CenteredText(ttext : STRING);
-PROCEDURE CenteredText(ttext : PChar);
-PROCEDURE CenteredTextH(ttext : STRING);
-PROCEDURE CenteredTextH(ttext : PChar);
-PROCEDURE CenteredText3(ttext : STRING);
-PROCEDURE CenteredText3(ttext : PChar);
-PROCEDURE CenteredTextB(ttext : STRING);
-PROCEDURE CenteredTextB(ttext : PChar);
-PROCEDURE CenteredTextID(ttext : STRING ; gadid : longint);
-PROCEDURE CenteredTextID(ttext : PChar ; gadid : longint);
-PROCEDURE CenteredText_BS(ttext : STRING);
-PROCEDURE CenteredText_BS(ttext : PChar);
-PROCEDURE TextBox(ttext : STRING ; gadid : longint ; mwid : longint);
-PROCEDURE TextBox(ttext : PChar ; gadid : longint ; mwid : longint);
-PROCEDURE ClippedTextBox(ttext : STRING ; gadid : longint);
-PROCEDURE ClippedTextBox(ttext : PChar ; gadid : longint);
-PROCEDURE ClippedTextBoxMW(ttext : STRING ; gadid : longint ; mwid : longint);
-PROCEDURE ClippedTextBoxMW(ttext : PChar ; gadid : longint ; mwid : longint);
-PROCEDURE TextRIGHT(t : STRING ;gadid : longint);
-PROCEDURE TextRIGHT(t : PChar ;gadid : longint);
+PROCEDURE Text3(ttext : ShortString);
+PROCEDURE Text3(ttext : PAnsiChar);
+PROCEDURE TextB(ttext : ShortString);
+PROCEDURE TextB(ttext : PAnsiChar);
+PROCEDURE TextT(ttext : ShortString);
+PROCEDURE TextT(ttext : PAnsiChar);
+PROCEDURE TextID(ttext : ShortString ; gadid : longint);
+PROCEDURE TextID(ttext : PAnsiChar ; gadid : longint);
+PROCEDURE TextNR(t : ShortString);
+PROCEDURE TextNR(t : PAnsiChar);
+PROCEDURE ClippedText(t : ShortString);
+PROCEDURE ClippedText(t : PAnsiChar);
+PROCEDURE ClippedTextID(t : ShortString; gadid : longint);
+PROCEDURE ClippedTextID(t : PAnsiChar; gadid : longint);
+PROCEDURE CenteredText(ttext : ShortString);
+PROCEDURE CenteredText(ttext : PAnsiChar);
+PROCEDURE CenteredTextH(ttext : ShortString);
+PROCEDURE CenteredTextH(ttext : PAnsiChar);
+PROCEDURE CenteredText3(ttext : ShortString);
+PROCEDURE CenteredText3(ttext : PAnsiChar);
+PROCEDURE CenteredTextB(ttext : ShortString);
+PROCEDURE CenteredTextB(ttext : PAnsiChar);
+PROCEDURE CenteredTextID(ttext : ShortString ; gadid : longint);
+PROCEDURE CenteredTextID(ttext : PAnsiChar ; gadid : longint);
+PROCEDURE CenteredText_BS(ttext : ShortString);
+PROCEDURE CenteredText_BS(ttext : PAnsiChar);
+PROCEDURE TextBox(ttext : ShortString ; gadid : longint ; mwid : longint);
+PROCEDURE TextBox(ttext : PAnsiChar ; gadid : longint ; mwid : longint);
+PROCEDURE ClippedTextBox(ttext : ShortString ; gadid : longint);
+PROCEDURE ClippedTextBox(ttext : PAnsiChar ; gadid : longint);
+PROCEDURE ClippedTextBoxMW(ttext : ShortString ; gadid : longint ; mwid : longint);
+PROCEDURE ClippedTextBoxMW(ttext : PAnsiChar ; gadid : longint ; mwid : longint);
+PROCEDURE TextRIGHT(t : ShortString ;gadid : longint);
+PROCEDURE TextRIGHT(t : PAnsiChar ;gadid : longint);
 PROCEDURE IntegerS(i : longint);
 PROCEDURE IntegerH(i : longint);
 PROCEDURE Integer3(i : longint);
@@ -196,48 +196,48 @@ PROCEDURE CenteredInteger3(i : longint);
 PROCEDURE CenteredIntegerB(i : longint);
 PROCEDURE IntegerBox(def,gadid,mwid : longint);
 { Button }
-PROCEDURE Button(ttext : STRING ; gadid : longint);
-PROCEDURE Button(ttext : PChar ; gadid : longint);
-PROCEDURE ButtonR(ttext : STRING ; gadid : longint);
-PROCEDURE ButtonR(ttext : PChar ; gadid : longint);
-PROCEDURE ButtonE(ttext : STRING ;gadid : longint);
-PROCEDURE ButtonE(ttext : PChar ;gadid : longint);
-PROCEDURE ButtonRE(ttext : STRING ;gadid : longint);
-PROCEDURE ButtonRE(ttext : PChar ;gadid : longint);
-PROCEDURE CenteredButton(t : STRING;i : longint);
-PROCEDURE CenteredButton(t : PChar;i : longint);
-PROCEDURE CenteredButtonR(t : STRING ;i : longint);
-PROCEDURE CenteredButtonR(t : PChar ;i : longint);
-PROCEDURE CenteredButtonE(t : STRING;i : longint);
-PROCEDURE CenteredButtonE(t : PChar;i : longint);
-PROCEDURE CenteredButtonRE(t : STRING ;i : longint);
-PROCEDURE CenteredButtonRE(t : PChar ;i : longint);
+PROCEDURE Button(ttext : ShortString ; gadid : longint);
+PROCEDURE Button(ttext : PAnsiChar ; gadid : longint);
+PROCEDURE ButtonR(ttext : ShortString ; gadid : longint);
+PROCEDURE ButtonR(ttext : PAnsiChar ; gadid : longint);
+PROCEDURE ButtonE(ttext : ShortString ;gadid : longint);
+PROCEDURE ButtonE(ttext : PAnsiChar ;gadid : longint);
+PROCEDURE ButtonRE(ttext : ShortString ;gadid : longint);
+PROCEDURE ButtonRE(ttext : PAnsiChar ;gadid : longint);
+PROCEDURE CenteredButton(t : ShortString;i : longint);
+PROCEDURE CenteredButton(t : PAnsiChar;i : longint);
+PROCEDURE CenteredButtonR(t : ShortString ;i : longint);
+PROCEDURE CenteredButtonR(t : PAnsiChar ;i : longint);
+PROCEDURE CenteredButtonE(t : ShortString;i : longint);
+PROCEDURE CenteredButtonE(t : PAnsiChar;i : longint);
+PROCEDURE CenteredButtonRE(t : ShortString ;i : longint);
+PROCEDURE CenteredButtonRE(t : PAnsiChar ;i : longint);
 PROCEDURE EmptyButton(gadid : longint);
 PROCEDURE GetFileButton(gadid : longint);
 PROCEDURE GetDrawerButton(gadid : longint);
 PROCEDURE GetEntryButton(gadid : longint);
-PROCEDURE GetFileButtonS(s : STRING ;gadid : longint);
-PROCEDURE GetFileButtonS(s : PChar ;gadid : longint);
-PROCEDURE GetDrawerButtonS(s : STRING;gadid : longint);
-PROCEDURE GetDrawerButtonS(s : PChar;gadid : longint);
-PROCEDURE GetEntryButtonS(s : STRING ;gadid : longint);
-PROCEDURE GetEntryButtonS(s : PChar ;gadid : longint);
+PROCEDURE GetFileButtonS(s : ShortString ;gadid : longint);
+PROCEDURE GetFileButtonS(s : PAnsiChar ;gadid : longint);
+PROCEDURE GetDrawerButtonS(s : ShortString;gadid : longint);
+PROCEDURE GetDrawerButtonS(s : PAnsiChar;gadid : longint);
+PROCEDURE GetEntryButtonS(s : ShortString ;gadid : longint);
+PROCEDURE GetEntryButtonS(s : PAnsiChar ;gadid : longint);
 { Line }
 PROCEDURE Line(flags : longint);
 PROCEDURE HorizSeparator;
 PROCEDURE VertSeparator;
-PROCEDURE NamedSeparator(ttext : STRING);
-PROCEDURE NamedSeparator(ttext : PChar);
-PROCEDURE NamedSeparatorI(te : STRING ;gadid : longint);
-PROCEDURE NamedSeparatorI(te : PChar ;gadid : longint);
-PROCEDURE NamedSeparatorN(ttext : STRING);
-PROCEDURE NamedSeparatorN(ttext : PChar);
-PROCEDURE NamedSeparatorIN(te : STRING ;gadid : longint);
-PROCEDURE NamedSeparatorIN(te : PChar ;gadid : longint);
+PROCEDURE NamedSeparator(ttext : ShortString);
+PROCEDURE NamedSeparator(ttext : PAnsiChar);
+PROCEDURE NamedSeparatorI(te : ShortString ;gadid : longint);
+PROCEDURE NamedSeparatorI(te : PAnsiChar ;gadid : longint);
+PROCEDURE NamedSeparatorN(ttext : ShortString);
+PROCEDURE NamedSeparatorN(ttext : PAnsiChar);
+PROCEDURE NamedSeparatorIN(te : ShortString ;gadid : longint);
+PROCEDURE NamedSeparatorIN(te : PAnsiChar ;gadid : longint);
 { FrameBox }
 PROCEDURE GroupBox;
-PROCEDURE NamedFrameBox(t : STRING);
-PROCEDURE NamedFrameBox(t : PChar);
+PROCEDURE NamedFrameBox(t : ShortString);
+PROCEDURE NamedFrameBox(t : PAnsiChar);
 PROCEDURE TTextBox;
 { DropBox }
 PROCEDURE DropBox(gadid : longint);
@@ -248,12 +248,12 @@ PROCEDURE CheckBoxC(gadid : longint);
 PROCEDURE CheckBoxLEFT(gadid : longint);
 PROCEDURE CheckBoxCLEFT(gadid : longint);
 { String gadget }
-PROCEDURE StringGadget(def : STRING;gadid : longint);
-PROCEDURE StringGadget(def : PChar;gadid : longint);
-PROCEDURE StringGadgetNR(def : STRING ;gadid : longint);
-PROCEDURE StringGadgetNR(def : PChar ;gadid : longint);
-PROCEDURE PasswordGadget(def : STRING ;gadid : longint);
-PROCEDURE PasswordGadget(def : PChar ;gadid : longint);
+PROCEDURE StringGadget(def : ShortString;gadid : longint);
+PROCEDURE StringGadget(def : PAnsiChar;gadid : longint);
+PROCEDURE StringGadgetNR(def : ShortString ;gadid : longint);
+PROCEDURE StringGadgetNR(def : PAnsiChar ;gadid : longint);
+PROCEDURE PasswordGadget(def : ShortString ;gadid : longint);
+PROCEDURE PasswordGadget(def : PAnsiChar ;gadid : longint);
 { Cycle gadget }
 PROCEDURE CycleGadget(ent : Pointer ; val,gadid : longint);
 PROCEDURE MXGadget(ent : Pointer ; val,gadid : longint);
@@ -313,13 +313,13 @@ PROCEDURE ObjectBackfillAB;
 PROCEDURE ObjectBackfillF;
 PROCEDURE ObjectBackfillFB;
 { Requester support }
-PROCEDURE BeginRequester(t : STRING; p : longint);
-PROCEDURE BeginRequester(t : PChar; p : longint);
+PROCEDURE BeginRequester(t : ShortString; p : longint);
+PROCEDURE BeginRequester(t : PAnsiChar; p : longint);
 PROCEDURE BeginRequesterGads;
 PROCEDURE EndRequester;
 PROCEDURE SetTRTag( thetag, thedata : longint);
-PROCEDURE SetTRTag( thetag : longint; thedata : string);
-PROCEDURE SetTRTag( thetag : longint; thedata : pchar);
+PROCEDURE SetTRTag( thetag : longint; thedata : ShortString);
+PROCEDURE SetTRTag( thetag : longint; thedata : PAnsiChar);
 PROCEDURE SetTRTag( thetag : longint; thedata : boolean);
 PROCEDURE SetTRTag( thetag : longint; thedata : pointer);
 
@@ -338,26 +338,26 @@ BEGIN
     tritontags[tindex].ti_Tag := TAG_DONE;
 END;
 
-PROCEDURE WindowTitle(t : STRING);
+PROCEDURE WindowTitle(t : ShortString);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_Title;
     tritontags[tindex].ti_Data := longint(pas2c(t));
     Inc(tindex);
 END;
 
-PROCEDURE WindowTitle(t : PChar);
+PROCEDURE WindowTitle(t : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_Title;
     tritontags[tindex].ti_Data := longint(t);
     Inc(tindex);
 END;
 
-PROCEDURE ScreenTitle(t : STRING);
+PROCEDURE ScreenTitle(t : ShortString);
 BEGIN
     ScreenTitle(pas2c(t));
 END;
 
-PROCEDURE ScreenTitle(t : PChar);
+PROCEDURE ScreenTitle(t : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_ScreenTitle;
     tritontags[tindex].ti_Data := longint(t);
@@ -385,12 +385,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE WindowUnderscore(und : STRING);
+PROCEDURE WindowUnderscore(und : ShortString);
 BEGIN
     WindowUnderscore(pas2c(und));
 END;
 
-PROCEDURE WindowUnderscore(und : PChar);
+PROCEDURE WindowUnderscore(und : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_Underscore;
     tritontags[tindex].ti_Data := longint(und);
@@ -501,12 +501,12 @@ BEGIN
     tritontags[tindex].ti_Data := longint(scr);
 END;
 
-PROCEDURE PubScreenName(wname : STRING);
+PROCEDURE PubScreenName(wname : ShortString);
 BEGIN
     PubScreenName(pas2c(wname));
 END;
 
-PROCEDURE PubScreenName(wname : PChar);
+PROCEDURE PubScreenName(wname : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRWI_PubScreenName;
     tritontags[tindex].ti_Data := longint(wname);
@@ -521,12 +521,12 @@ BEGIN
 END;
 
 { Menus }
-PROCEDURE BeginMenu(t : STRING);
+PROCEDURE BeginMenu(t : ShortString);
 BEGIN
     BeginMenu(pas2c(t));
 END;
 
-PROCEDURE BeginMenu(t : PChar);
+PROCEDURE BeginMenu(t : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Title;
     tritontags[tindex].ti_Data := longint(t);
@@ -540,12 +540,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE MenuItem(t : STRING ;gadid : longint);
+PROCEDURE MenuItem(t : ShortString ;gadid : longint);
 BEGIN
     MenuItem(pas2c(t),gadid);
 END;
 
-PROCEDURE MenuItem(t : PChar ;gadid : longint);
+PROCEDURE MenuItem(t : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Item;
     tritontags[tindex].ti_Data := longint(t);
@@ -555,12 +555,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE MenuItemC(t : STRING; gadid : longint);
+PROCEDURE MenuItemC(t : ShortString; gadid : longint);
 BEGIN
     MenuItemC(pas2c(t),gadid);
 END;
 
-PROCEDURE MenuItemC(t : PChar; gadid : longint);
+PROCEDURE MenuItemC(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Item;
     tritontags[tindex].ti_Data := longint(t);
@@ -573,12 +573,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE MenuItemCC(t : STRING; gadid : longint);
+PROCEDURE MenuItemCC(t : ShortString; gadid : longint);
 BEGIN
     MenuItemCC(pas2c(t),gadid);
 END;
 
-PROCEDURE MenuItemCC(t : PChar; gadid : longint);
+PROCEDURE MenuItemCC(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Item;
     tritontags[tindex].ti_Data := longint(t);
@@ -591,24 +591,24 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE BeginSub(t : STRING);
+PROCEDURE BeginSub(t : ShortString);
 BEGIN
     BeginSub(pas2c(t));
 END;
 
-PROCEDURE BeginSub(t : PChar);
+PROCEDURE BeginSub(t : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Item;
     tritontags[tindex].ti_Data := longint(t);
     Inc(tindex);
 END;
 
-PROCEDURE MenuItemD(t : STRING; gadid : longint);
+PROCEDURE MenuItemD(t : ShortString; gadid : longint);
 BEGIN
     MenuItemD(pas2c(t),gadid);
 END;
 
-PROCEDURE MenuItemD(t : PChar; gadid : longint);
+PROCEDURE MenuItemD(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Item;
     tritontags[tindex].ti_Data := longint(t);
@@ -619,12 +619,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE SubItem(t : STRING; gadid : longint);
+PROCEDURE SubItem(t : ShortString; gadid : longint);
 BEGIN
     SubItem(pas2c(t),gadid);
 END;
 
-PROCEDURE SubItem(t : PChar; gadid : longint);
+PROCEDURE SubItem(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Sub;
     tritontags[tindex].ti_Data := longint(t);
@@ -634,12 +634,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE SubItemC(t : STRING; gadid : longint);
+PROCEDURE SubItemC(t : ShortString; gadid : longint);
 BEGIN
     SubItemC(pas2c(t),gadid);
 END;
 
-PROCEDURE SubItemC(t : PChar; gadid : longint);
+PROCEDURE SubItemC(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Sub;
     tritontags[tindex].ti_Data := longint(t);
@@ -652,12 +652,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE SubItemCC(t : STRING; gadid : longint);
+PROCEDURE SubItemCC(t : ShortString; gadid : longint);
 BEGIN
     SubItemCC(pas2c(t),gadid);
 END;
 
-PROCEDURE SubItemCC(t : PChar; gadid : longint);
+PROCEDURE SubItemCC(t : PAnsiChar; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Sub;
     tritontags[tindex].ti_Data := longint(t);
@@ -670,12 +670,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE SubItemD(t : STRING ;gadid : longint);
+PROCEDURE SubItemD(t : ShortString ;gadid : longint);
 BEGIN
     SubItemD(pas2c(t),gadid);
 END;
 
-PROCEDURE SubItemD(t : PChar ;gadid : longint);
+PROCEDURE SubItemD(t : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TRMN_Sub;
     tritontags[tindex].ti_Data := longint(t);
@@ -950,12 +950,12 @@ BEGIN
 END;
 
 { DisplayObject }
-PROCEDURE QuickHelp(Str : STRING);
+PROCEDURE QuickHelp(Str : ShortString);
 BEGIN
     QuickHelp(pas2c(Str));
 END;
 
-PROCEDURE QuickHelp(Str : PChar);
+PROCEDURE QuickHelp(Str : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TRDO_QuickHelpString;
     tritontags[tindex].ti_Data := longint(Str);
@@ -992,12 +992,12 @@ begin
 END;
 
 { Text }
-PROCEDURE TextN(ttext : STRING);
+PROCEDURE TextN(ttext : ShortString);
 BEGIN
     TextN(pas2c(ttext));
 END;
 
-PROCEDURE TextN(ttext : PChar);
+PROCEDURE TextN(ttext : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1008,12 +1008,12 @@ BEGIN
 END;
 
 
-PROCEDURE TextH(ttext : STRING);
+PROCEDURE TextH(ttext : ShortString);
 BEGIN
     TextH(pas2c(ttext));
 END;
 
-PROCEDURE TextH(ttext : PChar);
+PROCEDURE TextH(ttext : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1027,12 +1027,12 @@ BEGIN
 END;
 
 
-PROCEDURE Text3(ttext : STRING);
+PROCEDURE Text3(ttext : ShortString);
 BEGIN
     Text3(pas2c(ttext));
 END;
 
-PROCEDURE Text3(ttext : PChar);
+PROCEDURE Text3(ttext : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1045,12 +1045,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE TextB(ttext : STRING);
+PROCEDURE TextB(ttext : ShortString);
 BEGIN
     TextB(pas2c(ttext));
 END;
 
-PROCEDURE TextB(ttext : PChar);
+PROCEDURE TextB(ttext : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1063,12 +1063,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE TextT(ttext : STRING);
+PROCEDURE TextT(ttext : ShortString);
 BEGIN
     TextT(pas2c(ttext));
 END;
 
-PROCEDURE TextT(ttext : PChar);
+PROCEDURE TextT(ttext : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1081,12 +1081,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE TextID(ttext : STRING ; gadid : longint);
+PROCEDURE TextID(ttext : ShortString ; gadid : longint);
 BEGIN
     TextID(pas2c(ttext),gadid);
 END;
 
-PROCEDURE TextID(ttext : PChar ; gadid : longint);
+PROCEDURE TextID(ttext : PAnsiChar ; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Text;
     tritontags[tindex].ti_Data := longint(0);
@@ -1099,12 +1099,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE TextNR(t : STRING);
+PROCEDURE TextNR(t : ShortString);
 BEGIN
     TextNR(pas2c(t));
 END;
 
-PROCEDURE TextNR(t : PChar);
+PROCEDURE TextNR(t : PAnsiChar);
 BEGIN
     TextN(t);
     tritontags[tindex].ti_Tag := TRAT_Flags;
@@ -1112,12 +1112,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE ClippedText(t : STRING);
+PROCEDURE ClippedText(t : ShortString);
 BEGIN
     ClippedText(pas2c(t));
 END;
 
-PROCEDURE ClippedText(t : PChar);
+PROCEDURE ClippedText(t : PAnsiChar);
 BEGIN
     TextN(t);
     tritontags[tindex].ti_Tag := TRAT_Flags;
@@ -1125,12 +1125,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE ClippedTextID(t : STRING; gadid : longint);
+PROCEDURE ClippedTextID(t : ShortString; gadid : longint);
 BEGIN
     ClippedTextID(pas2c(t),gadid);
 END;
 
-PROCEDURE ClippedTextID(t : PChar; gadid : longint);
+PROCEDURE ClippedTextID(t : PAnsiChar; gadid : longint);
 BEGIN
     TextN(t);
     tritontags[tindex].ti_Tag := TRAT_Flags;
@@ -1141,72 +1141,72 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE CenteredText(ttext : STRING);
+PROCEDURE CenteredText(ttext : ShortString);
 BEGIN
     CenteredText(pas2c(ttext));
 END;
 
-PROCEDURE CenteredText(ttext : PChar);
+PROCEDURE CenteredText(ttext : PAnsiChar);
 BEGIN
     HorizGroupSC; Space; TextN(ttext);Space; EndGroup;
 END;
 
-PROCEDURE CenteredTextH(ttext : STRING);
+PROCEDURE CenteredTextH(ttext : ShortString);
 BEGIN
     CenteredTextH(pas2c(ttext));
 END;
 
-PROCEDURE CenteredTextH(ttext : PChar);
+PROCEDURE CenteredTextH(ttext : PAnsiChar);
 BEGIN
     HorizGroupSC; Space; TextH(ttext); Space; EndGroup;
 END;
 
-PROCEDURE CenteredText3(ttext : STRING);
+PROCEDURE CenteredText3(ttext : ShortString);
 BEGIN
     CenteredText3(pas2c(ttext));
 END;
 
-PROCEDURE CenteredText3(ttext : PChar);
+PROCEDURE CenteredText3(ttext : PAnsiChar);
 BEGIN
     HorizGroupSC; Space; Text3(ttext); Space; EndGroup;
 END;
 
-PROCEDURE CenteredTextB(ttext : STRING);
+PROCEDURE CenteredTextB(ttext : ShortString);
 BEGIN
     CenteredTextB(pas2c(ttext));
 END;
 
-PROCEDURE CenteredTextB(ttext : PChar);
+PROCEDURE CenteredTextB(ttext : PAnsiChar);
 BEGIN
     HorizGroupSC; Space; TextB(ttext); Space; EndGroup;
 END;
 
-PROCEDURE CenteredTextID(ttext : STRING ; gadid : longint);
+PROCEDURE CenteredTextID(ttext : ShortString ; gadid : longint);
 BEGIN
     CenteredTextID(pas2c(ttext),gadid);
 END;
 
-PROCEDURE CenteredTextID(ttext : PChar ; gadid : longint);
+PROCEDURE CenteredTextID(ttext : PAnsiChar ; gadid : longint);
 BEGIN
     HorizGroupSC; Space; TextID(ttext,gadid); Space; EndGroup;
 END;
 
-PROCEDURE CenteredText_BS(ttext : STRING);
+PROCEDURE CenteredText_BS(ttext : ShortString);
 BEGIN
     CenteredText_BS(pas2c(ttext));
 END;
 
-PROCEDURE CenteredText_BS(ttext : PChar);
+PROCEDURE CenteredText_BS(ttext : PAnsiChar);
 BEGIN
     HorizGroupSC; SpaceB; TextN(ttext); SpaceB; EndGroup;
 END;
 
-PROCEDURE TextBox(ttext : STRING ; gadid : longint ; mwid : longint);
+PROCEDURE TextBox(ttext : ShortString ; gadid : longint ; mwid : longint);
 BEGIN
     TextBox(pas2c(ttext),gadid,mwid);
 END;
 
-PROCEDURE TextBox(ttext : PChar ; gadid : longint ; mwid : longint);
+PROCEDURE TextBox(ttext : PAnsiChar ; gadid : longint ; mwid : longint);
 BEGIN
     TTextBox; ObjectBackfillB; VertGroup; SpaceS;
     HorizGroupSC; Space; TextN(ttext);
@@ -1219,23 +1219,23 @@ BEGIN
     Space; EndGroup; SpaceS; EndGroup;
 END;
 
-PROCEDURE ClippedTextBox(ttext : STRING ; gadid : longint);
+PROCEDURE ClippedTextBox(ttext : ShortString ; gadid : longint);
 BEGIN
     ClippedTextBox(pas2c(ttext),gadid);
 END;
 
-PROCEDURE ClippedTextBox(ttext : PChar ; gadid : longint);
+PROCEDURE ClippedTextBox(ttext : PAnsiChar ; gadid : longint);
 BEGIN
     TTextBox; ObjectBackfillB; VertGroupAC; SpaceS; HorizGroupAC; Space;
     ClippedTextID(ttext,gadid); Space; EndGroup; SpaceS; EndGroup;
 END;
 
-PROCEDURE ClippedTextBoxMW(ttext : STRING ; gadid : longint ; mwid : longint);
+PROCEDURE ClippedTextBoxMW(ttext : ShortString ; gadid : longint ; mwid : longint);
 BEGIN
     ClippedTextBoxMW(pas2c(ttext),gadid,mwid);
 END;
 
-PROCEDURE ClippedTextBoxMW(ttext : PChar ; gadid : longint ; mwid : longint);
+PROCEDURE ClippedTextBoxMW(ttext : PAnsiChar ; gadid : longint ; mwid : longint);
 BEGIN
     TTextBox; ObjectBackfillB; VertGroupAC; SpaceS; HorizGroupAC; Space;
     ClippedTextID(ttext,gadid);
@@ -1245,12 +1245,12 @@ BEGIN
     Space; EndGroup; SpaceS; EndGroup;
 END;
 
-PROCEDURE TextRIGHT(t : STRING ;gadid : longint);
+PROCEDURE TextRIGHT(t : ShortString ;gadid : longint);
 BEGIN
     TextRIGHT(pas2c(t),gadid);
 END;
 
-PROCEDURE TextRIGHT(t : PChar ;gadid : longint);
+PROCEDURE TextRIGHT(t : PAnsiChar ;gadid : longint);
 BEGIN
     HorizGroupS; Space; TextN(t); ID(gadid); EndGroup;
 END;
@@ -1338,12 +1338,12 @@ BEGIN
 END;
 
 { Button }
-PROCEDURE Button(ttext : STRING ; gadid : longint);
+PROCEDURE Button(ttext : ShortString ; gadid : longint);
 BEGIN
     Button(pas2c(ttext),gadid);
 END;
 
-PROCEDURE Button(ttext : PChar ; gadid : longint);
+PROCEDURE Button(ttext : PAnsiChar ; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := longint(0);
@@ -1356,12 +1356,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE ButtonR(ttext : STRING ; gadid : longint);
+PROCEDURE ButtonR(ttext : ShortString ; gadid : longint);
 BEGIN
     ButtonR(pas2c(ttext),gadid);
 END;
 
-PROCEDURE ButtonR(ttext : PChar ; gadid : longint);
+PROCEDURE ButtonR(ttext : PAnsiChar ; gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := longint(0);
@@ -1377,12 +1377,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE ButtonE(ttext : STRING ;gadid : longint);
+PROCEDURE ButtonE(ttext : ShortString ;gadid : longint);
 BEGIN
     ButtonE(pas2c(ttext),gadid);
 END;
 
-PROCEDURE ButtonE(ttext : PChar ;gadid : longint);
+PROCEDURE ButtonE(ttext : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := longint(0);
@@ -1398,12 +1398,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE ButtonRE(ttext : STRING ;gadid : longint);
+PROCEDURE ButtonRE(ttext : ShortString ;gadid : longint);
 BEGIN
     ButtonRE(pas2c(ttext),gadid);
 END;
 
-PROCEDURE ButtonRE(ttext : PChar ;gadid : longint);
+PROCEDURE ButtonRE(ttext : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := longint(0);
@@ -1419,12 +1419,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE CenteredButton(t : STRING;i : longint);
+PROCEDURE CenteredButton(t : ShortString;i : longint);
 BEGIN
     CenteredButton(pas2c(t),i);
 END;
 
-PROCEDURE CenteredButton(t : PChar;i : longint);
+PROCEDURE CenteredButton(t : PAnsiChar;i : longint);
 BEGIN
     HorizGroupSC; Space;
     tritontags[tindex].ti_Tag := TROB_Button;
@@ -1439,12 +1439,12 @@ BEGIN
     Space; EndGroup;
 END;
 
-PROCEDURE CenteredButtonR(t : STRING ;i : longint);
+PROCEDURE CenteredButtonR(t : ShortString ;i : longint);
 BEGIN
     CenteredButtonR(pas2c(t),i);
 END;
 
-PROCEDURE CenteredButtonR(t : PChar ;i : longint);
+PROCEDURE CenteredButtonR(t : PAnsiChar ;i : longint);
 BEGIN
     HorizGroupSC; Space;
     tritontags[tindex].ti_Tag := TROB_Button;
@@ -1462,12 +1462,12 @@ BEGIN
     Space; EndGroup;
 END;
 
-PROCEDURE CenteredButtonE(t : STRING;i : longint);
+PROCEDURE CenteredButtonE(t : ShortString;i : longint);
 BEGIN
     CenteredButtonE(pas2c(t),i);
 END;
 
-PROCEDURE CenteredButtonE(t : PChar;i : longint);
+PROCEDURE CenteredButtonE(t : PAnsiChar;i : longint);
 BEGIN
     HorizGroupSC; Space;
     tritontags[tindex].ti_Tag := TROB_Button;
@@ -1485,12 +1485,12 @@ BEGIN
     Space; EndGroup;
 END;
 
-PROCEDURE CenteredButtonRE(t : STRING ;i : longint);
+PROCEDURE CenteredButtonRE(t : ShortString ;i : longint);
 BEGIN
     CenteredButtonRE(pas2c(t),i);
 END;
 
-PROCEDURE CenteredButtonRE(t : PChar ;i : longint);
+PROCEDURE CenteredButtonRE(t : PAnsiChar ;i : longint);
 BEGIN
     HorizGroupSC; Space;
     tritontags[tindex].ti_Tag := TROB_Button;
@@ -1569,12 +1569,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE GetFileButtonS(s : STRING ;gadid : longint);
+PROCEDURE GetFileButtonS(s : ShortString ;gadid : longint);
 BEGIN
     GetFileButtonS(pas2c(s),gadid);
 END;
 
-PROCEDURE GetFileButtonS(s : PChar ;gadid : longint);
+PROCEDURE GetFileButtonS(s : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := TRBT_GETFILE;
@@ -1590,12 +1590,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE GetDrawerButtonS(s : STRING;gadid : longint);
+PROCEDURE GetDrawerButtonS(s : ShortString;gadid : longint);
 BEGIN
     GetDrawerButtonS(pas2c(s),gadid);
 END;
 
-PROCEDURE GetDrawerButtonS(s : PChar;gadid : longint);
+PROCEDURE GetDrawerButtonS(s : PAnsiChar;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := TRBT_GETDRAWER;
@@ -1611,12 +1611,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE GetEntryButtonS(s : STRING ;gadid : longint);
+PROCEDURE GetEntryButtonS(s : ShortString ;gadid : longint);
 BEGIN
     GetEntryButtonS(pas2c(s),gadid);
 END;
 
-PROCEDURE GetEntryButtonS(s : PChar ;gadid : longint);
+PROCEDURE GetEntryButtonS(s : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_Button;
     tritontags[tindex].ti_Data := TRBT_GETENTRY;
@@ -1650,23 +1650,23 @@ BEGIN
     VertGroupEC; Space; Line(TROF_VERT); Space; EndGroup;
 end;
 
-PROCEDURE NamedSeparator(ttext : STRING);
+PROCEDURE NamedSeparator(ttext : ShortString);
 BEGIN
     NamedSeparator(pas2c(ttext));
 END;
 
-PROCEDURE NamedSeparator(ttext : PChar);
+PROCEDURE NamedSeparator(ttext : PAnsiChar);
 BEGIN
     HorizGroupEC; Space; Line(TROF_HORIZ); Space; TextT(ttext);
     Space; Line(TROF_HORIZ); Space; EndGroup;
 END;
 
-PROCEDURE NamedSeparatorI(te : STRING ;gadid : longint);
+PROCEDURE NamedSeparatorI(te : ShortString ;gadid : longint);
 BEGIN
     NamedSeparatorI(pas2c(te),gadid);
 END;
 
-PROCEDURE NamedSeparatorI(te : PChar ;gadid : longint);
+PROCEDURE NamedSeparatorI(te : PAnsiChar ;gadid : longint);
 BEGIN
     HorizGroupEC; Space; Line(TROF_HORIZ); Space; TextT(te);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -1675,23 +1675,23 @@ BEGIN
     Space; Line(TROF_HORIZ); Space; EndGroup;
 END;
 
-PROCEDURE NamedSeparatorN(ttext : STRING);
+PROCEDURE NamedSeparatorN(ttext : ShortString);
 BEGIN
     NamedSeparator(pas2c(ttext));
 END;
 
-PROCEDURE NamedSeparatorN(ttext : PChar);
+PROCEDURE NamedSeparatorN(ttext : PAnsiChar);
 BEGIN
     HorizGroupEC; Line(TROF_HORIZ); Space; TextT(ttext); Space; Line(TROF_HORIZ);
 EndGroup;
 END;
 
-PROCEDURE NamedSeparatorIN(te : STRING ;gadid : longint);
+PROCEDURE NamedSeparatorIN(te : ShortString ;gadid : longint);
 BEGIN
     NamedSeparatorIN(pas2c(te),gadid);
 END;
 
-PROCEDURE NamedSeparatorIN(te : PChar ;gadid : longint);
+PROCEDURE NamedSeparatorIN(te : PAnsiChar ;gadid : longint);
 BEGIN
     HorizGroupEC; Line(TROF_HORIZ); Space; TextT(te);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -1708,12 +1708,12 @@ begin
     Inc(tindex);
 END;
 
-PROCEDURE NamedFrameBox(t : STRING);
+PROCEDURE NamedFrameBox(t : ShortString);
 BEGIN
     NamedFrameBox(pas2c(t));
 END;
 
-PROCEDURE NamedFrameBox(t : PChar);
+PROCEDURE NamedFrameBox(t : PAnsiChar);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_FrameBox;
     tritontags[tindex].ti_Data := TRFB_FRAMING;
@@ -1789,12 +1789,12 @@ BEGIN
 END;
 
 { String gadget }
-PROCEDURE StringGadget(def : STRING;gadid : longint);
+PROCEDURE StringGadget(def : ShortString;gadid : longint);
 BEGIN
     StringGadget(pas2c(def),gadid);
 END;
 
-PROCEDURE StringGadget(def : PChar;gadid : longint);
+PROCEDURE StringGadget(def : PAnsiChar;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_String;
     tritontags[tindex].ti_Data := longint(def);
@@ -1804,12 +1804,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE StringGadgetNR(def : STRING ;gadid : longint);
+PROCEDURE StringGadgetNR(def : ShortString ;gadid : longint);
 BEGIN
     StringGadgetNR(pas2c(def),gadid);
 END;
 
-PROCEDURE StringGadgetNR(def : PChar ;gadid : longint);
+PROCEDURE StringGadgetNR(def : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_String;
     tritontags[tindex].ti_Data := longint(def);
@@ -1822,12 +1822,12 @@ BEGIN
     Inc(tindex);
 END;
 
-PROCEDURE PasswordGadget(def : STRING ;gadid : longint);
+PROCEDURE PasswordGadget(def : ShortString ;gadid : longint);
 BEGIN
     PassWordGadget(pas2c(def),gadid);
 END;
 
-PROCEDURE PasswordGadget(def : PChar ;gadid : longint);
+PROCEDURE PasswordGadget(def : PAnsiChar ;gadid : longint);
 BEGIN
     tritontags[tindex].ti_Tag := TROB_String;
     tritontags[tindex].ti_Data := longint(def);
@@ -2612,12 +2612,12 @@ begin
 END;
 
 { Requester support }
-PROCEDURE BeginRequester(t : STRING; p : longint);
+PROCEDURE BeginRequester(t : ShortString; p : longint);
 BEGIN
     BeginRequester(pas2c(t),p);
 END;
 
-PROCEDURE BeginRequester(t : PChar; p : longint);
+PROCEDURE BeginRequester(t : PAnsiChar; p : longint);
 BEGIN
     WindowTitle(t);WindowPosition(p);WindowBackfillReq;
     WindowFlags(TRWF_NOZIPGADGET OR TRWF_NOSIZEGADGET OR TRWF_NOCLOSEGADGET OR
@@ -2642,13 +2642,13 @@ begin
     Inc(tindex);
 end;
 
-PROCEDURE SetTRTag( thetag : longint; thedata : string);
+PROCEDURE SetTRTag( thetag : longint; thedata : ShortString);
 begin
     tritontags[tindex].ti_Tag := thetag;
     tritontags[tindex].ti_Data := longint(pas2c(thedata));
     Inc(tindex);
 end;
-PROCEDURE SetTRTag( thetag : longint; thedata : pchar);
+PROCEDURE SetTRTag( thetag : longint; thedata : PAnsiChar);
 begin
     tritontags[tindex].ti_Tag := thetag;
     tritontags[tindex].ti_Data := longint(thedata);

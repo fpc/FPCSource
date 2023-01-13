@@ -89,7 +89,7 @@ BEGIN
 END;
 
 
-PROCEDURE CleanUp(str:string; code : Longint);
+PROCEDURE CleanUp(str:ShortString; code : Longint);
 
 BEGIN
   If assigned(Win) Then

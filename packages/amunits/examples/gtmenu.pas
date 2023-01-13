@@ -142,9 +142,9 @@ begin
     {
       make the barlabels
     }
-    mynewmenu[3].nm_Label := PChar(NM_BARLABEL);
-    mynewmenu[7].nm_Label := PChar(NM_BARLABEL);
-    mynewmenu[13].nm_Label := PChar(NM_BARLABEL);
+    mynewmenu[3].nm_Label := PAnsiChar(NM_BARLABEL);
+    mynewmenu[7].nm_Label := PAnsiChar(NM_BARLABEL);
+    mynewmenu[13].nm_Label := PAnsiChar(NM_BARLABEL);
 
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
         MenuStrip := CreateMenus(@mynewmenu, [

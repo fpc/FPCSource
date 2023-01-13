@@ -22,7 +22,7 @@ Program easter;
 
 uses amigados;
 
-const version : pchar = '$VER: easter v1.0 (3-Nov-95) by Andreas Tetzl';
+const version : PAnsiChar = '$VER: easter v1.0 (3-Nov-95) by Andreas Tetzl';
 
 VAR i,a,b,c,d,e,m,n : Integer;
     year, month, day : longint;

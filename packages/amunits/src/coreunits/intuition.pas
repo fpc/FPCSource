@@ -21,7 +21,7 @@
    from Word to Integer.
    30 May 2000.
 
-   Added overlay functions for Pchar->Strings, functions
+   Added overlay functions for PAnsiChar->Strings, functions
    and procedures.
    14 Jul 2000.
 
@@ -130,7 +130,7 @@ Type
 
         SelectFill      : Pointer;      { points to Image, IntuiText, or NULL }
 
-        Command         : Char;         { only if appliprog sets the COMMSEQ flag }
+        Command         : AnsiChar;         { only if appliprog sets the COMMSEQ flag }
 
         SubItem         : pMenuItem;    { if non-zero, DrawMenu shows "->" }
 
@@ -2437,7 +2437,7 @@ Type
 
     { printer configurations }
         PrinterType     : Word;        { printer type                     }
-        PrinterFilename : Array [0..FILENAME_SIZE-1] of Char;
+        PrinterFilename : Array [0..FILENAME_SIZE-1] of AnsiChar;
                                         { file for printer         }
 
     { print format and quality configurations }
@@ -2470,7 +2470,7 @@ Type
         LaceWB          : Byte;         { if workbench is to be interlaced      }
 
         Pad             : array[0..11] of Byte;
-        PrtDevName      : array [0..DEVNAME_SIZE-1] of Char;
+        PrtDevName      : array [0..DEVNAME_SIZE-1] of AnsiChar;
                                         { temp file for printer         }
         DefaultPrtUnit: Byte;
         DefaultSerUnit: Byte;
@@ -2780,21 +2780,21 @@ typedef struct
  * to list the names of the built-in classes.
  }
 CONST
- ROOTCLASS      : PChar = 'rootclass'    ;         { classusr.h   }
- IMAGECLASS     : PChar = 'imageclass'   ;         { imageclass.h }
- FRAMEICLASS    : PChar = 'frameiclass'  ;
- SYSICLASS      : PChar = 'sysiclass'    ;
- FILLRECTCLASS  : PChar = 'fillrectclass';
- GADGETCLASS    : PChar = 'gadgetclass'  ;         { gadgetclass.h }
- PROPGCLASS     : PChar = 'propgclass'   ;
- STRGCLASS      : PChar = 'strgclass'    ;
- BUTTONGCLASS   : PChar = 'buttongclass' ;
- FRBUTTONCLASS  : PChar = 'frbuttonclass';
- GROUPGCLASS    : PChar = 'groupgclass'  ;
- ICCLASS        : PChar = 'icclass'      ;         { icclass.h    }
- MODELCLASS     : PChar = 'modelclass'   ;
- ITEXTICLASS    : PChar = 'itexticlass'  ;
- POINTERCLASS   : PChar = 'pointerclass' ;         { pointerclass.h }
+ ROOTCLASS      : PAnsiChar = 'rootclass'    ;         { classusr.h   }
+ IMAGECLASS     : PAnsiChar = 'imageclass'   ;         { imageclass.h }
+ FRAMEICLASS    : PAnsiChar = 'frameiclass'  ;
+ SYSICLASS      : PAnsiChar = 'sysiclass'    ;
+ FILLRECTCLASS  : PAnsiChar = 'fillrectclass';
+ GADGETCLASS    : PAnsiChar = 'gadgetclass'  ;         { gadgetclass.h }
+ PROPGCLASS     : PAnsiChar = 'propgclass'   ;
+ STRGCLASS      : PAnsiChar = 'strgclass'    ;
+ BUTTONGCLASS   : PAnsiChar = 'buttongclass' ;
+ FRBUTTONCLASS  : PAnsiChar = 'frbuttonclass';
+ GROUPGCLASS    : PAnsiChar = 'groupgclass'  ;
+ ICCLASS        : PAnsiChar = 'icclass'      ;         { icclass.h    }
+ MODELCLASS     : PAnsiChar = 'modelclass'   ;
+ ITEXTICLASS    : PAnsiChar = 'itexticlass'  ;
+ POINTERCLASS   : PAnsiChar = 'pointerclass' ;         { pointerclass.h }
 
 
 { Dispatched method ID's
@@ -3954,7 +3954,7 @@ CONST
  EO_REPLACECHAR=  ($0007);
         { replaced one character and (maybe) advanced cursor           }
  EO_INSERTCHAR =  ($0008);
-        { inserted one char into string or added one at end            }
+        { inserted one AnsiChar into string or added one at end            }
  EO_BADFORMAT  =  ($0009);
         { didn't like the text data, e.g., Bad LONGINT                 }
  EO_BIGCHANGE  =  ($000A);        { unused by Intuition  }
@@ -3984,7 +3984,7 @@ CONST
 { These Mode Flags are for internal use only                           }
  SGM_NOCHANGE   = (8);       { no edit changes yet          }
  SGM_NOWORKB    = (16);       { Buffer == PrevBuffer         }
- SGM_CONTROL    = (32);       { control char escape mode     }
+ SGM_CONTROL    = (32);       { control AnsiChar escape mode     }
  SGM_LONGINT    = (64);       { an intuition longint gadget  }
 
 { String Gadget Action Flags (put in SGWork.Actions by EditHook)       }
@@ -4074,7 +4074,7 @@ FUNCTION ModifyIDCMP(window : pWindow location 'a0'; flags : ULONG location 'd0'
 PROCEDURE MoveWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 168;
 FUNCTION OpenWindow(const newWindow : pNewWindow location 'a0') : pWindow; syscall _IntuitionBase 204;
 PROCEDURE RefreshWindowFrame(window : pWindow location 'a0'); syscall _IntuitionBase 456;
-PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : pCHAR location 'a1';const screenTitle : pCHAR location 'a2'); syscall _IntuitionBase 276;
+PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : PAnsiChar location 'a1';const screenTitle : PAnsiChar location 'a2'); syscall _IntuitionBase 276;
 PROCEDURE SizeWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 288;
 FUNCTION WindowLimits(window : pWindow location 'a0'; widthMin : LONGINT location 'd0'; heightMin : LONGINT location 'd1'; widthMax : ULONG location 'd2'; heightMax : ULONG location 'd3') : LongBool; syscall _IntuitionBase 318;
 PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 306;
@@ -4101,7 +4101,7 @@ FUNCTION SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1'
 FUNCTION AutoRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; pFlag : ULONG location 'd0'; nFlag : ULONG location 'd1'; width : ULONG location 'd2'; height : ULONG location 'd3') : LongBool; syscall _IntuitionBase 348;
 FUNCTION BuildSysRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; flags : ULONG location 'd0'; width : ULONG location 'd1'; height : ULONG location 'd2') : pWindow; syscall _IntuitionBase 360;
 FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
-FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
+FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : PAnsiChar location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
 PROCEDURE EndRequest(requester : pRequester location 'a0'; window : pWindow location 'a1'); syscall _IntuitionBase 120;
 PROCEDURE FreeSysRequest(window : pWindow location 'a0'); syscall _IntuitionBase 372;
 PROCEDURE InitRequester(requester : pRequester location 'a0'); syscall _IntuitionBase 138;
@@ -4175,7 +4175,7 @@ function CloseScreen(screen : pScreen location 'a0'): LongBool; syscall _Intuiti
 PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
 FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
 PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
-FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
+FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : PAnsiChar location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
 PROCEDURE DisplayBeep(screen : pScreen location 'a0'); syscall _IntuitionBase 096;
 PROCEDURE DisposeObject(obj : POINTER location 'a0'); syscall _IntuitionBase 642;
 FUNCTION DoGadgetMethodA(gad : pGadget location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; message : tMsg location 'a3') : ULONG; syscall _IntuitionBase 810;
@@ -4195,7 +4195,7 @@ PROCEDURE FreeSysRequest(window : pWindow location 'a0'); syscall _IntuitionBase
 PROCEDURE GadgetMouse(gadget : pGadget location 'a0'; gInfo : pGadgetInfo location 'a1'; mousePoint : psmallint location 'a2'); syscall _IntuitionBase 570;
 FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; storagePtr : pULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
 FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; var storage : ULONG location 'a1') : ULONG; overload; syscall _IntuitionBase 654;
-PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR location 'a0'); syscall _IntuitionBase 582;
+PROCEDURE GetDefaultPubScreen(nameBuffer : PAnsiChar location 'a0'); syscall _IntuitionBase 582;
 FUNCTION GetDefPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 126;
 FUNCTION GetPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 132;
 FUNCTION GetScreenData(buffer : POINTER location 'a0'; size : ULONG location 'D0'; type_ : ULONG location 'd1';const screen : pScreen location 'a1') : LongBool; syscall _IntuitionBase 426;
@@ -4206,9 +4206,9 @@ FUNCTION IntuiTextLength(const iText : pIntuiText location 'a0') : LONGINT; sysc
 FUNCTION ItemAddress(const menuStrip : pMenu location 'a0'; menuNumber : ULONG location 'd0') : pMenuItem; syscall _IntuitionBase 144;
 PROCEDURE LendMenus(fromwindow : pWindow location 'a0'; towindow : pWindow location 'a1'); syscall _IntuitionBase 804;
 FUNCTION LockIBase(dontknow : ULONG location 'd0') : ULONG; syscall _IntuitionBase 414;
-FUNCTION LockPubScreen(const name : pCHAR location 'a0') : pScreen; syscall _IntuitionBase 510;
+FUNCTION LockPubScreen(const name : PAnsiChar location 'a0') : pScreen; syscall _IntuitionBase 510;
 FUNCTION LockPubScreenList : pList; syscall _IntuitionBase 522;
-FUNCTION MakeClass(const classID : pCHAR location 'a0';const superClassID : pCHAR location 'a1';const superClassPtr : pIClass location 'a2'; instanceSize : ULONG location 'd0'; flags : ULONG location 'd1') : pIClass; syscall _IntuitionBase 678;
+FUNCTION MakeClass(const classID : PAnsiChar location 'a0';const superClassID : PAnsiChar location 'a1';const superClassPtr : pIClass location 'a2'; instanceSize : ULONG location 'd0'; flags : ULONG location 'd1') : pIClass; syscall _IntuitionBase 678;
 FUNCTION MakeScreen(screen : pScreen location 'a0') : LONGINT; syscall _IntuitionBase 378;
 FUNCTION ModifyIDCMP(window : pWindow location 'a0'; flags : ULONG location 'd0') : LongBool; syscall _IntuitionBase 150;
 PROCEDURE ModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : ULONG location 'd0'; horizPot : ULONG location 'd1'; vertPot : ULONG location 'd2'; horizBody : ULONG location 'd3'; vertBody : ULONG location 'd4'); syscall _IntuitionBase 156;
@@ -4216,9 +4216,9 @@ PROCEDURE MoveScreen(screen : pScreen location 'a0'; dx : LONGINT location 'd0';
 PROCEDURE MoveWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 168;
 PROCEDURE MoveWindowInFrontOf(window : pWindow location 'a0'; behindWindow : pWindow location 'a1'); syscall _IntuitionBase 480;
 PROCEDURE NewModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : ULONG location 'd0'; horizPot : ULONG location 'd1'; vertPot : ULONG location 'd2'; horizBody : ULONG location 'd3'; vertBody : ULONG location 'd4'; numGad : LONGINT location 'd5'); syscall _IntuitionBase 468;
-FUNCTION NewObjectA(classPtr : pIClass location 'a0';const classID : pCHAR location 'a1';const tagList : pTagItem location 'a2') : POINTER; syscall _IntuitionBase 636;
+FUNCTION NewObjectA(classPtr : pIClass location 'a0';const classID : PAnsiChar location 'a1';const tagList : pTagItem location 'a2') : POINTER; syscall _IntuitionBase 636;
 FUNCTION NextObject(objectPtrPtr : POINTER location 'a0') : POINTER; syscall _IntuitionBase 666;
-FUNCTION NextPubScreen(const screen : pScreen location 'a0'; namebuf : pCHAR location 'a1') : pCHAR; syscall _IntuitionBase 534;
+FUNCTION NextPubScreen(const screen : pScreen location 'a0'; namebuf : PAnsiChar location 'a1') : PAnsiChar; syscall _IntuitionBase 534;
 FUNCTION ObtainGIRPort(gInfo : pGadgetInfo location 'a0') : pRastPort; syscall _IntuitionBase 558;
 PROCEDURE OffGadget(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'); syscall _IntuitionBase 174;
 PROCEDURE OffMenu(window : pWindow location 'a0'; menuNumber : ULONG location 'd0'); syscall _IntuitionBase 180;
@@ -4251,7 +4251,7 @@ PROCEDURE ScreenToBack(screen : pScreen location 'a0'); syscall _IntuitionBase 2
 PROCEDURE ScreenToFront(screen : pScreen location 'a0'); syscall _IntuitionBase 252;
 PROCEDURE ScrollWindowRaster(win : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'; xMin : LONGINT location 'd2'; yMin : LONGINT location 'd3'; xMax : LONGINT location 'd4'; yMax : LONGINT location 'd5'); syscall _IntuitionBase 798;
 FUNCTION SetAttrsA(obj : POINTER location 'a0';const tagList : pTagItem location 'a1') : ULONG; syscall _IntuitionBase 648;
-PROCEDURE SetDefaultPubScreen(const name : pCHAR location 'a0'); syscall _IntuitionBase 540;
+PROCEDURE SetDefaultPubScreen(const name : PAnsiChar location 'a0'); syscall _IntuitionBase 540;
 FUNCTION SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : LongBool; syscall _IntuitionBase 258;
 FUNCTION SetEditHook(hook : pHook location 'a0') : pHook; syscall _IntuitionBase 492;
 FUNCTION SetGadgetAttrsA(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2';const tagList : pTagItem location 'a3') : ULONG; syscall _IntuitionBase 660;
@@ -4261,13 +4261,13 @@ PROCEDURE SetPointer(window : pWindow location 'a0'; pointer_ : pword location '
 FUNCTION SetPrefs(const   preferences : pPreferences location 'a0'; size : LONGINT location 'd0'; inform : LONGINT location 'd1') : pPreferences; syscall _IntuitionBase 324;
 FUNCTION SetPubScreenModes(modes : ULONG location 'd0') : WORD; syscall _IntuitionBase 546;
 PROCEDURE SetWindowPointerA(win : pWindow location 'a0';const taglist : pTagItem location 'a1'); syscall _IntuitionBase 816;
-PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : pCHAR location 'a1';const screenTitle : pCHAR location 'a2'); syscall _IntuitionBase 276;
+PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : PAnsiChar location 'a1';const screenTitle : PAnsiChar location 'a2'); syscall _IntuitionBase 276;
 PROCEDURE ShowTitle(screen : pScreen location 'a0'; showIt : LONGINT location 'd0'); syscall _IntuitionBase 282;
 PROCEDURE SizeWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 288;
 FUNCTION SysReqHandler(window : pWindow location 'a0'; idcmpPtr : pULONG location 'a1'; waitInput : LONGINT location 'd0') : LONGINT; syscall _IntuitionBase 600;
-FUNCTION TimedDisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1'; time : ULONG location 'a1') : LongBool; syscall _IntuitionBase 822;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG location 'd0';const string_ : PAnsiChar location 'a0'; height : ULONG location 'd1'; time : ULONG location 'a1') : LongBool; syscall _IntuitionBase 822;
 PROCEDURE UnlockIBase(ibLock : ULONG location 'a0'); syscall _IntuitionBase 420;
-PROCEDURE UnlockPubScreen(const name : pCHAR location 'a0'; screen : pScreen location 'a1'); syscall _IntuitionBase 516;
+PROCEDURE UnlockPubScreen(const name : PAnsiChar location 'a0'; screen : pScreen location 'a1'); syscall _IntuitionBase 516;
 PROCEDURE UnlockPubScreenList; syscall _IntuitionBase 528;
 FUNCTION ViewAddress : pView; syscall _IntuitionBase 294;
 FUNCTION ViewPortAddress(const window : pWindow location 'a0') : pViewPort; syscall _IntuitionBase 300;
@@ -4283,8 +4283,8 @@ function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pS
 function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
 
 {$if not defined(AMIGA_V1_2_ONLY)}
-function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
-function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
+function NewObject(classPtr : pIClass; classID : ShortString; Const argv : array of PtrUInt ) : POINTER;
+function NewObject(classPtr : pIClass; classID : PAnsiChar; Const argv : array of PtrUInt) : POINTER;
 function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
 function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
 procedure SetWindowPointer(win : pWindow; tags: array of DWord);
@@ -4313,17 +4313,17 @@ function ITEMNUM( n : Word): Word;
 function MENUNUM( n : Word): Word;
 function SUBNUM( n : Word): Word;
 
-FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN;
-FUNCTION LockPubScreen(const name : string) : pScreen;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : ShortString; height : ULONG) : BOOLEAN;
+FUNCTION LockPubScreen(const name : ShortString) : pScreen;
 {$if not defined(AMIGA_V1_2_ONLY)}
-FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
+FUNCTION MakeClass(const classID : ShortString;const superClassID : PAnsiChar;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : PAnsiChar;const superClassID : ShortString;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : ShortString;const superClassID : ShortString;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : ShortString;const tagList : pTagItem) : POINTER;
 {$endif}
-PROCEDURE SetDefaultPubScreen(const name : string);
-FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
-PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
+PROCEDURE SetDefaultPubScreen(const name : ShortString);
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : ShortString; height : ULONG; time : ULONG) : BOOLEAN;
+PROCEDURE UnlockPubScreen(const name : ShortString; screen : pScreen);
 
 {$if not defined(AMIGA_V1_2_ONLY)}
 function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
@@ -4343,8 +4343,8 @@ function OpenWindowTagList(NewWindow: PNewWindow; TagList: PTagItem):PWindow;
 var
   Nw: TNewWindow;
   Scr: PScreen;
-  LockedScreenName: PChar;
-  ScreenTitle: PChar;
+  LockedScreenName: PAnsiChar;
+  ScreenTitle: PAnsiChar;
   Win: PWindow;
   ILock: LongWord;
 begin
@@ -4390,8 +4390,8 @@ begin
       WA_PubScreenName:
       begin
         ILock := LockIBase(0);
-        LockedScreenName := PChar(TagList^.ti_Data);
-        if (LowerCase(string(LockedScreenName)) = 'workbench') or (LockedScreenName = nil) then
+        LockedScreenName := PAnsiChar(TagList^.ti_Data);
+        if (LowerCase(ShortString(LockedScreenName)) = 'workbench') or (LockedScreenName = nil) then
         begin
           NewWindow^.WType := WBENCHSCREEN_F;
           NewWindow^.Screen := nil;
@@ -4401,7 +4401,7 @@ begin
           Scr := pIntuitionBase(_IntuitionBase)^.FirstScreen;
         while Assigned(Scr) do
         begin
-          if LowerCase(string(scr^.Title)) = LowerCase(string(LockedScreenName)) then
+          if LowerCase(ShortString(scr^.Title)) = LowerCase(ShortString(LockedScreenName)) then
           begin
             NewWindow^.Screen := Scr;
             NewWindow^.WType := CUSTOMSCREEN_F;
@@ -4414,7 +4414,7 @@ begin
       end;
       WA_ReportMouse: NewWindow^.Flags := NewWindow^.Flags or WFLG_REPORTMOUSE;
       WA_RMBTrap: NewWindow^.Flags := NewWindow^.Flags or WFLG_RMBTRAP;
-      WA_ScreenTitle: ScreenTitle := PChar(TagList^.ti_Data);
+      WA_ScreenTitle: ScreenTitle := PAnsiChar(TagList^.ti_Data);
       WA_SimpleRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIMPLE_REFRESH;
       WA_SizeBBottom: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEBBOTTOM;
       WA_SizeBRight: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEBRIGHT;
@@ -4423,7 +4423,7 @@ begin
       WA_Activate: NewWindow^.Flags := NewWindow^.Flags or WFLG_ACTIVATE;
       WA_Borderless: NewWindow^.Flags := NewWindow^.Flags or WFLG_BORDERLESS;
       WA_SuperBitMap: NewWindow^.BitMap := Pointer(TagList^.ti_Data);
-      WA_Title: NewWindow^.Title := PChar(TagList^.ti_Data);
+      WA_Title: NewWindow^.Title := PAnsiChar(TagList^.ti_Data);
       WA_Top: NewWindow^.TopEdge := TagList^.ti_Data;
       WA_InnerWidth,WA_Width: NewWindow^.Width := TagList^.ti_Data;
     end;
@@ -4502,7 +4502,7 @@ begin
       //SA_PubName: TODO: hmmm, not really possible
       SA_Quiet: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or SCREENQUIET_F else NewScreen^.SType := NewScreen^.SType and not SCREENQUIET_F;
       SA_ShowTitle: if TagList^.ti_Data <> 0 then NewScreen^.SType := NewScreen^.SType or SHOWTITLE_F else NewScreen^.SType := NewScreen^.SType and not SHOWTITLE_F;
-      SA_Title: NewScreen^.DefaultTitle := PChar(TagList^.ti_Data);
+      SA_Title: NewScreen^.DefaultTitle := PAnsiChar(TagList^.ti_Data);
       SA_Top: NewScreen^.TopEdge := TagList^.ti_Data;
       SA_Type: NewScreen^.SType := NewScreen^.SType or (TagList^.ti_Data) and not PUBLICSCREEN_F;
       SA_DisplayID: NewScreen^.ViewModes := TagList^.ti_Data;
@@ -4521,7 +4521,7 @@ var
   pText, NText, s: AnsiString;
   Found: Boolean;
   i: Integer;
-  Target: array[0..255] of Char;
+  Target: array[0..255] of AnsiChar;
   Magic: LongWord;
 begin
   Magic := $16c04e75; // move.b d0,(a3)+ rts
@@ -4542,7 +4542,7 @@ begin
   PText := '';
   if Assigned(easyStruct^.es_GadgetFormat) then
   begin
-    s := string(easyStruct^.es_GadgetFormat);
+    s := ShortString(easyStruct^.es_GadgetFormat);
     Found := False;
     for i := 1 to Length(s) do
     begin
@@ -4566,7 +4566,7 @@ begin
     BackPen := 1;
     FrontPen := 2;
     DrawMode := JAM1;
-    IText := PChar(PText);
+    IText := PAnsiChar(PText);
     LeftEdge := 7;
     TopEdge := 4;
     ITextFont := nil;
@@ -4578,7 +4578,7 @@ begin
     BackPen := 1;
     FrontPen := 2;
     DrawMode := JAM1;
-    IText := PChar(NText);
+    IText := PAnsiChar(NText);
     LeftEdge := 7;
     TopEdge := 4;
     ITextFont := nil;
@@ -4612,14 +4612,14 @@ begin
 end;
 
 {$if not defined(AMIGA_V1_2_ONLY)}
-function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
+function NewObject(classPtr : pIClass; classID : PAnsiChar; Const argv : array of PtrUInt) : POINTER;
 begin
     NewObject := NewObjectA(classPtr,classID, @argv);
 end;
 
-function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
+function NewObject(classPtr : pIClass; classID : ShortString; Const argv : array of PtrUInt ) : POINTER;
 begin
-      NewObject := NewObjectA(classPtr,PChar(RawByteString(classID)),@argv);
+      NewObject := NewObjectA(classPtr,PAnsiChar(RawByteString(classID)),@argv);
 end;
 
 function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
@@ -4745,51 +4745,51 @@ begin
     SUBNUM := (n shr 11) and $1f
 end;
 
-FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN; inline;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : ShortString; height : ULONG) : BOOLEAN; inline;
 begin
-      DisplayAlert := DisplayAlert(alertNumber,PChar(RawByteString(string_)),height);
+      DisplayAlert := DisplayAlert(alertNumber,PAnsiChar(RawByteString(string_)),height);
 end;
 
-FUNCTION LockPubScreen(const name : string) : pScreen; inline;
+FUNCTION LockPubScreen(const name : ShortString) : pScreen; inline;
 begin
-      LockPubScreen := LockPubScreen(PChar(RawByteString(name)));
+      LockPubScreen := LockPubScreen(PAnsiChar(RawByteString(name)));
 end;
 
 {$if not defined(AMIGA_V1_2_ONLY)}
-FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : ShortString;const superClassID : PAnsiChar;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(PChar(RawByteString(classID)),superClassID,superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(PAnsiChar(RawByteString(classID)),superClassID,superClassPtr,instanceSize,flags);
 end;
 
-FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : PAnsiChar;const superClassID : ShortString;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(classID,PChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(classID,PAnsiChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
 end;
 
-FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : ShortString;const superClassID : ShortString;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
-      MakeClass := MakeClass(PChar(RawByteString(classID)),PChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
+      MakeClass := MakeClass(PAnsiChar(RawByteString(classID)),PAnsiChar(RawByteString(superClassID)),superClassPtr,instanceSize,flags);
 end;
 
-FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : ShortString;const tagList : pTagItem) : POINTER;
 begin
-      NewObjectA := NewObjectA(classPtr,PChar(RawByteString(classID)),taglist);
+      NewObjectA := NewObjectA(classPtr,PAnsiChar(RawByteString(classID)),taglist);
 end;
 {$endif}
 
-PROCEDURE SetDefaultPubScreen(const name : string);
+PROCEDURE SetDefaultPubScreen(const name : ShortString);
 begin
-      SetDefaultPubScreen(PChar(RawByteString(name)));
+      SetDefaultPubScreen(PAnsiChar(RawByteString(name)));
 end;
 
-FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : ShortString; height : ULONG; time : ULONG) : BOOLEAN;
 begin
-      TimedDisplayAlert := TimedDisplayAlert(alertNumber,PChar(RawByteString(string_)),height,time);
+      TimedDisplayAlert := TimedDisplayAlert(alertNumber,PAnsiChar(RawByteString(string_)),height,time);
 end;
 
-PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
+PROCEDURE UnlockPubScreen(const name : ShortString; screen : pScreen);
 begin
-      UnlockPubScreen(PChar(RawByteString(name)),screen);
+      UnlockPubScreen(PAnsiChar(RawByteString(name)),screen);
 end;
 
 {$if not defined(AMIGA_V1_2_ONLY)}

@@ -14,9 +14,9 @@ uses exec,easyasl, linklist, strings, amigautils;
 
 VAR
 
-  pdummy   : array [0..108] of char;
+  pdummy   : array [0..108] of AnsiChar;
 
-  path     : PChar;
+  path     : PAnsiChar;
   dummy    : boolean;
   mylist   : pList;
   mynode   : pFPCNode;

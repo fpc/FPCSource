@@ -126,13 +126,13 @@ type
 
     { drive identification }
 
-        rdb_DiskVendor  : Array [0..7] of Char;
-        rdb_DiskProduct : Array [0..15] of Char;
-        rdb_DiskRevision : Array [0..3] of Char;
-        rdb_ControllerVendor : Array [0..7] of Char;
-        rdb_ControllerProduct : Array [0..15] of Char;
-        rdb_ControllerRevision : Array [0..3] of Char;
-        rdb_DriveInitName : array[0..39] of char;
+        rdb_DiskVendor  : Array [0..7] of AnsiChar;
+        rdb_DiskProduct : Array [0..15] of AnsiChar;
+        rdb_DiskRevision : Array [0..3] of AnsiChar;
+        rdb_ControllerVendor : Array [0..7] of AnsiChar;
+        rdb_ControllerProduct : Array [0..15] of AnsiChar;
+        rdb_ControllerRevision : Array [0..3] of AnsiChar;
+        rdb_DriveInitName : array[0..39] of AnsiChar;
     end;
 
 const
@@ -196,7 +196,7 @@ type
         pb_Flags        : ULONG;      { see below for defines }
         pb_Reserved1    : Array [0..1] of ULONG;
         pb_DevFlags     : ULONG;      { preferred flags for OpenDevice }
-        pb_DriveName    : Array [0..31] of Char; { preferred DOS device name: BSTR form }
+        pb_DriveName    : Array [0..31] of AnsiChar; { preferred DOS device name: BSTR form }
                                         { (not used if this name is in use) }
         pb_Reserved2    : Array [0..14] of ULONG; { filler to 32 longwords }
         pb_Environment  : Array [0..19] of ULONG; { environment vector for this partition }
@@ -244,7 +244,7 @@ type
                                 {   processing before substitution }
         fhb_GlobalVec   : Longint;      { BCPL global vector when starting task }
         fhb_Reserved2   : Array [0..22] of ULONG; { (those reserved by PatchFlags) }
-        fhb_FileSysName : array[0..83] of char;  { File system file name as loaded. }
+        fhb_FileSysName : array[0..83] of AnsiChar;  { File system file name as loaded. }
     end;
 
 const

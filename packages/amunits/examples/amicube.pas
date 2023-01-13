@@ -164,7 +164,7 @@ begin
 end;
 
 const
-  win_info: array[0..63] of char = '';
+  win_info: array[0..63] of AnsiChar = '';
 
 var
   win: PWindow;

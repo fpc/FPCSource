@@ -36,10 +36,10 @@ BEGIN
         if dummy then begin
            MessageBox('Test of Asl',
                       ' The path is:" ' +
-                      string(fr^.rf_Dir) + '"' +
+                      ShortString(fr^.rf_Dir) + '"' +
                       chr(10) +
                       'And the file is: "' +
-                      string(fr^.rf_File) + '"', 
+                      ShortString(fr^.rf_File) + '"',
                       'OK');
         end else MessageBox('Test of Asl','You canceled','OK');
         FreeAslRequest(fr);

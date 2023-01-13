@@ -19,7 +19,7 @@ USES Intuition, Exec, AGraphics, GadTools, Utility;
 
 CONST
 
-     strarray : array[0..4] of PChar = ('A cycle',
+     strarray : array[0..4] of PAnsiChar = ('A cycle',
                                         'test',
                                         'for',
                                         'FPC Pascal',
@@ -38,7 +38,7 @@ VAR
   HG                : word;
   attr              : pTextAttr;
 
-function NewGadget(left,top,width,height : Integer; txt : PChar; txtattr: pTextAttr;
+function NewGadget(left,top,width,height : Integer; txt : PAnsiChar; txtattr: pTextAttr;
                    id : word; flags: Longint; visinfo, userdata : Pointer): tNewGadget;
 var
     ng : tNewGadget;
@@ -58,7 +58,7 @@ begin
     NewGadget := ng;
 end;
 
-PROCEDURE CleanUp(why : string; rc : BYTE);
+PROCEDURE CleanUp(why : ShortString; rc : BYTE);
 BEGIN
   IF assigned(wp) THEN CloseWindow(wp);
   IF assigned(glist) THEN FreeGadgets(glist);
@@ -83,7 +83,7 @@ BEGIN
   END;
 END;
 
-function ButtonGadget(id,left,top,width,height:word; txt:pchar): pGadget;
+function ButtonGadget(id,left,top,width,height:word; txt:PAnsiChar): pGadget;
 begin
    ng := NewGadget(left,top,width,height,txt,attr,id,PLACETEXT_IN,vi,nil);
    gad := CreateGadgetA(BUTTON_KIND,gad,@ng,nil);
@@ -92,10 +92,10 @@ end;
 
 function ButtonGadget(id,left,top,width,height:word; txt: AnsiString): pGadget;
 begin
-   ButtonGadget := ButtonGadget(id,left,top,width,height,PChar(txt));
+   ButtonGadget := ButtonGadget(id,left,top,width,height,PAnsiChar(txt));
 end;
 
-function CycleGadget(id,left,top,width,height:word; txt:pchar ; thearr : Pointer): pGadget;
+function CycleGadget(id,left,top,width,height:word; txt:PAnsiChar ; thearr : Pointer): pGadget;
 begin
    ng := NewGadget(left,top,width,height,txt,attr,id,PLACETEXT_LEFT,vi,nil);
    gad := CreateGadget(CYCLE_KIND,gad,@ng,[

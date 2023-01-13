@@ -79,7 +79,7 @@ type
     fp_BackPen,
     fp_DrawMode     : Byte;
     fp_TextAttr     : tTextAttr;
-    fp_Name         : Array[0..FONTNAMESIZE-1] of Char;
+    fp_Name         : Array[0..FONTNAMESIZE-1] of AnsiChar;
  end;
 
 const
@@ -137,7 +137,7 @@ const
 Type
  pInputPrefs = ^tInputPrefs;
  tInputPrefs = record
-    ip_Keymap      : Array[0..15] of Char;
+    ip_Keymap      : Array[0..15] of AnsiChar;
     ip_PointerTicks : WORD;
     ip_DoubleClick,
     ip_KeyRptDelay,
@@ -160,25 +160,25 @@ Type
     cp_TelephoneCode: ULONG;
     cp_MeasuringSystem : Byte;
 
-    cp_DateTimeFormat  : Array[0..79] of Char;
-    cp_DateFormat      : Array[0..39] of Char;
-    cp_TimeFormat      : Array[0..39] of Char;
+    cp_DateTimeFormat  : Array[0..79] of AnsiChar;
+    cp_DateFormat      : Array[0..39] of AnsiChar;
+    cp_TimeFormat      : Array[0..39] of AnsiChar;
 
-    cp_ShortDateTimeFormat  : Array[0..79] of Char;
-    cp_ShortDateFormat      : Array[0..39] of Char;
-    cp_ShortTimeFormat      : Array[0..39] of Char;
+    cp_ShortDateTimeFormat  : Array[0..79] of AnsiChar;
+    cp_ShortDateFormat      : Array[0..39] of AnsiChar;
+    cp_ShortTimeFormat      : Array[0..39] of AnsiChar;
 
     { for numeric values }
     cp_DecimalPoint,
     cp_GroupSeparator,
-    cp_FracGroupSeparator   : Array[0..9] of Char;
+    cp_FracGroupSeparator   : Array[0..9] of AnsiChar;
     cp_Grouping,
     cp_FracGrouping         : Array[0..9] of Byte;
 
     { for monetary values }
     cp_MonDecimalPoint,
     cp_MonGroupSeparator,
-    cp_MonFracGroupSeparator   : Array[0..9] of Char;
+    cp_MonFracGroupSeparator   : Array[0..9] of AnsiChar;
     cp_MonGrouping,
     cp_MonFracGrouping         : Array[0..9] of Byte;
     cp_MonFracDigits,
@@ -187,16 +187,16 @@ Type
     { for currency symbols }
     cp_MonCS,
     cp_MonSmallCS,
-    cp_MonIntCS                : Array[0..9] of Char;
+    cp_MonIntCS                : Array[0..9] of AnsiChar;
 
     { for positive monetary values }
-    cp_MonPositiveSign         : Array[0..9] of Char;
+    cp_MonPositiveSign         : Array[0..9] of AnsiChar;
     cp_MonPositiveSpaceSep,
     cp_MonPositiveSignPos,
     cp_MonPositiveCSPos        : Byte;
 
     { for negative monetary values }
-    cp_MonNegativeSign         : Array[0..9] of Char;
+    cp_MonNegativeSign         : Array[0..9] of AnsiChar;
     cp_MonNegativeSpaceSep,
     cp_MonNegativeSignPos,
     cp_MonNegativeCSPos        : Byte;
@@ -207,8 +207,8 @@ Type
  pLocalePrefs = ^tLocalePrefs;
  tLocalePrefs = record
     lp_Reserved         : Array[0..3] of ULONG;
-    lp_CountryName      : Array[0..31] of Char;
-    lp_PreferredLanguages : Array[0..9] of Array[0..29] of Char;
+    lp_CountryName      : Array[0..31] of AnsiChar;
+    lp_PreferredLanguages : Array[0..9] of Array[0..29] of AnsiChar;
     lp_GMTOffset        : Longint;
     lp_Flags            : ULONG;
     lp_CountryData      : tCountryPrefs;
@@ -536,7 +536,7 @@ Type
  pPrinterTxtPrefs = ^tPrinterTxtPrefs;
  tPrinterTxtPrefs = record
     pt_Reserved     : Array[0..3] of Longint;               { System reserved            }
-    pt_Driver       : Array[0..DRIVERNAMESIZE-1] of Char;   { printer driver filename    }
+    pt_Driver       : Array[0..DRIVERNAMESIZE-1] of AnsiChar;   { printer driver filename    }
     pt_Port         : Byte;                                 { printer port connection    }
 
     pt_PaperType,
@@ -599,7 +599,7 @@ Type
     pu_Reserved         : Array[0..3] of Longint;              { System reserved              }
     pu_UnitNum          : Longint;                             { Unit number for OpenDevice() }
     pu_OpenDeviceFlags  : ULONG;                               { Flags for OpenDevice()       }
-    pu_DeviceName       : Array[0..DEVICENAMESIZE-1] of Char;  { Name for OpenDevice()        }
+    pu_DeviceName       : Array[0..DEVICENAMESIZE-1] of AnsiChar;  { Name for OpenDevice()        }
  end;
 
 
@@ -714,7 +714,7 @@ Type
     sop_AudioVolume,                { Volume of sound, 0..64     }
     sop_AudioPeriod,                { Period of sound, 127..2500 }
     sop_AudioDuration   : WORD;     { Length of simple beep      }
-    sop_AudioFileName   : Array[0..255] of Char;     { Filename of 8SVX file      }
+    sop_AudioFileName   : Array[0..255] of AnsiChar;     { Filename of 8SVX file      }
  end;
 
 const
@@ -807,7 +807,7 @@ const
 
      PWorkbenchHiddenDevicePrefs = ^tWorkbenchHiddenDevicePrefs;
      tWorkbenchHiddenDevicePrefs = record
-          whdp_Name : array[0..0] of UBYTE;  { C String including NULL char  }
+          whdp_Name : array[0..0] of UBYTE;  { C String including NULL AnsiChar  }
        end;
 
 const

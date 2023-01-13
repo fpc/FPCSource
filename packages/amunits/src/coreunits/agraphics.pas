@@ -23,12 +23,12 @@
     ReadPixelArray8,
     ReadPixelLine8,
     WriteChunkyPixels.
-    They all had one argument(array_) defined as pchar,
+    They all had one argument(array_) defined as PAnsiChar,
     should be pointer, fixed.
     20 Aug 2000.
 
     InitTmpRas had wrong define for the buffer arg.
-    Changed from pchar to PLANEPTR.
+    Changed from PAnsiChar to PLANEPTR.
     23 Aug 2000.
 
     Compiler had problems with Text, changed to GText.
@@ -265,7 +265,7 @@ Type
         tf_Style        : Byte;         { font style      |    match a font }
         tf_Flags        : Byte;         { preferences and flags /    request. }
         tf_XSize        : Word;        { nominal font width }
-        tf_Baseline     : Word; { distance from the top of char to baseline }
+        tf_Baseline     : Word; { distance from the top of AnsiChar to baseline }
         tf_BoldSmear    : Word;        { smear to affect a bold enhancement }
 
         tf_Accessors    : Word;        { access count }
@@ -309,7 +309,7 @@ CONST
  CT_COLORFONT  =  $0001;  { color map contains designer's colors }
  CT_GREYFONT   =  $0002;  { color map describes even-stepped }
                                 { brightnesses from low to high }
- CT_ANTIALIAS  =  $0004;  { zero background thru fully saturated char }
+ CT_ANTIALIAS  =  $0004;  { zero background thru fully saturated AnsiChar }
 
  CTB_MAPCOLOR  =  0;      { map ctf_FgColor to the rp_FgPen IF it's }
  CTF_MAPCOLOR  =  $0001;  { is a valid color within ctf_Low..ctf_High }
@@ -1007,9 +1007,9 @@ const
   REQUEST_SPECIAL       =  4;
   REQUEST_A2024         =  8;
 
-  DEFAULT_MONITOR_NAME  : PChar =  'default.monitor';
-  NTSC_MONITOR_NAME     : PChar =  'ntsc.monitor';
-  PAL_MONITOR_NAME      : PChar =  'pal.monitor';
+  DEFAULT_MONITOR_NAME  : PAnsiChar =  'default.monitor';
+  NTSC_MONITOR_NAME     : PAnsiChar =  'ntsc.monitor';
+  PAL_MONITOR_NAME      : PAnsiChar =  'pal.monitor';
   STANDARD_MONITOR_MASK =  ( REQUEST_NTSC OR REQUEST_PAL ) ;
 
   STANDARD_NTSC_ROWS    =  262;
@@ -1048,7 +1048,7 @@ const
   VGA_VSSTOP      = $0235;
   VGA_VBSTOP      = $0CCD;
 
-  VGA_MONITOR_NAME  : PChar    =  'vga.monitor';
+  VGA_MONITOR_NAME  : PAnsiChar    =  'vga.monitor';
 
 { NOTE: VGA70 definitions are obsolete - a VGA70 monitor has never been
  * implemented.
@@ -1067,7 +1067,7 @@ const
   VGA70_VBSTOP      = $0F73;
 
   VGA70_BEAMCON     = (SPECIAL_BEAMCON XOR VSYNCTRUE);
-  VGA70_MONITOR_NAME  : PChar  =      'vga70.monitor';
+  VGA70_MONITOR_NAME  : PAnsiChar  =      'vga70.monitor';
 
   BROADCAST_HBSTRT  =      $01  ;
   BROADCAST_HSSTRT  =      $06  ;
@@ -1874,7 +1874,7 @@ Type
  pNameInfo = ^tNameInfo;
  tNameInfo = record
   Header : tQueryHeader;
-  Name   : Array[0..DISPLAYNAMELEN-1] of Char;
+  Name   : Array[0..DISPLAYNAMELEN-1] of AnsiChar;
   reserved : Array[0..1] of ULONG;          { terminator }
  END;
 
@@ -2244,7 +2244,7 @@ const
 { GfxFlags (private) }
    NEW_DATABASE   = 1;
 
-   GRAPHICSNAME   : PChar  = 'graphics.library';
+   GRAPHICSNAME   : PAnsiChar  = 'graphics.library';
 
 
 var
@@ -2269,8 +2269,8 @@ PROCEDURE gfxMove(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : L
 PROCEDURE PolyDraw(rp : pRastPort location 'a1'; count : LONGINT location 'd0';const polyTable : PSmallInt location 'a0'); syscall GfxBase 336;
 FUNCTION ReadPixel(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : ULONG; syscall GfxBase 318;
 PROCEDURE ScrollRaster(rp : pRastPort location 'a1'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'; xMin : LONGINT location 'd2'; yMin : LONGINT location 'd3'; xMax : LONGINT location 'd4'; yMax : LONGINT location 'd5'); syscall GfxBase 396;
-FUNCTION GfxText(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : LONGINT; syscall GfxBase 060;
-FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : smallint; syscall GfxBase 054;
+FUNCTION GfxText(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; count : ULONG location 'd0') : LONGINT; syscall GfxBase 060;
+FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; count : ULONG location 'd0') : smallint; syscall GfxBase 054;
 FUNCTION WritePixel(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LONGINT; syscall GfxBase 324;
 
 FUNCTION AreaDraw(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : LONGINT; syscall GfxBase 258;
@@ -2289,11 +2289,11 @@ PROCEDURE LoadRGB4(vp : pViewPort location 'a0';const colors : pWord location 'a
 PROCEDURE SetRGB4(vp : pViewPort location 'a0'; index : LONGINT location 'd0'; red : ULONG location 'd1'; green : ULONG location 'd2'; blue : ULONG location 'd3'); syscall GfxBase 288;
 PROCEDURE SetRGB4CM(colorMap : pColorMap location 'a0'; index : LONGINT location 'd0'; red : ULONG location 'd1'; green : ULONG location 'd2'; blue : ULONG location 'd3'); syscall GfxBase 630;
 
-FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : pCHAR location 'a2') : LONGINT; syscall GfxBase 030;
+FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : PAnsiChar location 'a2') : LONGINT; syscall GfxBase 030;
 PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 606;
 PROCEDURE BltClear(memBlock : pointer location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
-PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : pCHAR location 'a2'); syscall GfxBase 636;
-PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : pCHAR location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
+PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : PAnsiChar location 'a2'); syscall GfxBase 636;
+PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : PAnsiChar location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
 PROCEDURE BltTemplate(const source : pWORD location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
 PROCEDURE ClipBlit(srcRP : pRastPort location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 552;
 PROCEDURE DisownBlitter; syscall GfxBase 462;
@@ -2385,11 +2385,11 @@ FUNCTION AttachPalExtra(cm : pColorMap location 'a0'; vp : pViewPort location 'a
 FUNCTION AttemptLockLayerRom(layer : pLayer location 'a5') : LongBool; syscall GfxBase 654;
 FUNCTION BestModeIDA(const tags : pTagItem location 'a0') : ULONG; syscall GfxBase 1050;
 PROCEDURE BitMapScale(bitScaleArgs : pBitScaleArgs location 'a0'); syscall GfxBase 678;
-FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : pCHAR location 'a2') : LONGINT; syscall GfxBase 030;
+FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : PAnsiChar location 'a2') : LONGINT; syscall GfxBase 030;
 PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 606;
 PROCEDURE BltClear(memBlock : pointer location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
-PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : pCHAR location 'a2'); syscall GfxBase 636;
-PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : pCHAR location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
+PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : PAnsiChar location 'a2'); syscall GfxBase 636;
+PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : PAnsiChar location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
 PROCEDURE BltTemplate(const source : pWORD location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
 FUNCTION CalcIVG(v : pView location 'a0'; vp : pViewPort location 'a1') : WORD; syscall GfxBase 828;
 PROCEDURE CBump(copList : pUCopList location 'a1'); syscall GfxBase 366;
@@ -2433,7 +2433,7 @@ FUNCTION GetAPen(rp : pRastPort location 'a0') : ULONG; syscall GfxBase 858;
 FUNCTION GetBitMapAttr(const bm : pBitMap location 'a0'; attrnum : ULONG location 'd1') : ULONG; syscall GfxBase 960;
 FUNCTION GetBPen(rp : pRastPort location 'a0') : ULONG; syscall GfxBase 864;
 FUNCTION GetColorMap(entries : LONGINT location 'd0') : pColorMap; syscall GfxBase 570;
-FUNCTION GetDisplayInfoData(const handle : POINTER location 'a0'; buf : pCHAR location 'a1'; size : ULONG location 'd0'; tagID : ULONG location 'd1'; displayID : ULONG location 'd2') : ULONG; syscall GfxBase 756;
+FUNCTION GetDisplayInfoData(const handle : POINTER location 'a0'; buf : PAnsiChar location 'a1'; size : ULONG location 'd0'; tagID : ULONG location 'd1'; displayID : ULONG location 'd2') : ULONG; syscall GfxBase 756;
 FUNCTION GetDrMd(rp : pRastPort location 'a0') : ULONG; syscall GfxBase 870;
 FUNCTION GetExtSpriteA(ss : pExtSprite location 'a2';const tags : pTagItem location 'a1') : LONGINT; syscall GfxBase 930;
 FUNCTION GetGBuffers(anOb : pAnimOb location 'a0'; rp : pRastPort location 'a1'; flag : LONGINT location 'd0') : LongBool; syscall GfxBase 168;
@@ -2470,7 +2470,7 @@ FUNCTION NextDisplayInfo(displayID : ULONG location 'd0') : ULONG; syscall GfxBa
 FUNCTION ObtainBestPenA(cm : pColorMap location 'a0'; r : ULONG location 'd1'; g : ULONG location 'd2'; b : ULONG location 'd3';const tags : pTagItem location 'a1') : LONGINT; syscall GfxBase 840;
 FUNCTION ObtainPen(cm : pColorMap location 'a0'; n : ULONG location 'd0'; r : ULONG location 'd1'; g : ULONG location 'd2'; b : ULONG location 'd3'; f : LONGINT location 'd4') : ULONG; syscall GfxBase 954;
 FUNCTION OpenFont(textAttr : pTextAttr location 'a0') : pTextFont; syscall GfxBase 072;
-FUNCTION OpenMonitor(const monitorName : pCHAR location 'a1'; displayID : ULONG location 'd0') : pMonitorSpec; syscall GfxBase 714;
+FUNCTION OpenMonitor(const monitorName : PAnsiChar location 'a1'; displayID : ULONG location 'd0') : pMonitorSpec; syscall GfxBase 714;
 FUNCTION OrRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1') : LongBool; syscall GfxBase 510;
 FUNCTION OrRegionRegion(const srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool; syscall GfxBase 612;
 PROCEDURE OwnBlitter; syscall GfxBase 456;
@@ -2509,10 +2509,10 @@ FUNCTION SetWriteMask(rp : pRastPort location 'a0'; msk : ULONG location 'd0') :
 PROCEDURE SortGList(rp : pRastPort location 'a1'); syscall GfxBase 150;
 PROCEDURE StripFont(font : pTextFont location 'a0'); syscall GfxBase 822;
 PROCEDURE SyncSBitMap(layer : pLayer location 'a0'); syscall GfxBase 444;
-FUNCTION GfxText(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : LONGINT; syscall GfxBase 060;
-FUNCTION TextExtent(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : LONGINT location 'd0'; _textExtent : pTextExtent location 'a2') : smallint; syscall GfxBase 690;
-FUNCTION TextFit(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; strLen : ULONG location 'd0'; textExtent : pTextExtent location 'a2'; constrainingExtent : pTextExtent location 'a3'; strDirection : LONGINT location 'd1'; constrainingBitWidth : ULONG location 'd2'; constrainingBitHeight : ULONG location 'd3') : ULONG; syscall GfxBase 696;
-FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : pCHAR location 'a0'; count : ULONG location 'd0') : smallint; syscall GfxBase 054;
+FUNCTION GfxText(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; count : ULONG location 'd0') : LONGINT; syscall GfxBase 060;
+FUNCTION TextExtent(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; count : LONGINT location 'd0'; _textExtent : pTextExtent location 'a2') : smallint; syscall GfxBase 690;
+FUNCTION TextFit(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; strLen : ULONG location 'd0'; textExtent : pTextExtent location 'a2'; constrainingExtent : pTextExtent location 'a3'; strDirection : LONGINT location 'd1'; constrainingBitWidth : ULONG location 'd2'; constrainingBitHeight : ULONG location 'd3') : ULONG; syscall GfxBase 696;
+FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : PAnsiChar location 'a0'; count : ULONG location 'd0') : smallint; syscall GfxBase 054;
 FUNCTION UCopperListInit(uCopList : pUCopList location 'a0'; n : LONGINT location 'd0') : pCopList; syscall GfxBase 594;
 PROCEDURE UnlockLayerRom(layer : pLayer location 'a5'); syscall GfxBase 438;
 FUNCTION VBeamPos : LONGINT; syscall GfxBase 384;

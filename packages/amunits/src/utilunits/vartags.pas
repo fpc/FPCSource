@@ -74,7 +74,7 @@ const
 var
    argbuff : array[0..30] of tTagItem;
 
-function LongStr(const s : string) : Longint;
+function LongStr(const s : ShortString) : Longint;
 
 procedure SetTags(ti : pTagItem; item, data : Longint);
 function TagItem(item, data : Longint): tTagItem;
@@ -136,7 +136,7 @@ begin
    TagItem := temp;
 end;
 
-function LongStr(const s : string) : Longint;
+function LongStr(const s : ShortString) : Longint;
 begin
    LongStr := Longint(Pas2C(s));
 end;

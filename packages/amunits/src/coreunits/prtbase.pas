@@ -300,7 +300,7 @@ type
             pdp_Version : UWORD;   { PRIVATE! driver specific version }
             { PRIVATE! driver specific id }
             pdp_PrinterID : array[0..31] of UBYTE;
-            pdp_PrefName : array[0..(FILENAME_SIZE - 16)-1] of char;
+            pdp_PrefName : array[0..(FILENAME_SIZE - 16)-1] of AnsiChar;
             { size of this structure }
             pdp_Length : ULONG;
          end;

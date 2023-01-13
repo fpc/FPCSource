@@ -37,7 +37,7 @@
     Rewrote Createport and DeletePort.
     06 Sep 2000.
 
-    Added two printf, one with pchar and one with string.
+    Added two printf, one with PAnsiChar and one with string.
     They use array of const so this unit compiles with
     mode objfpc.
     05 Nov 2002.
@@ -65,7 +65,7 @@ function CreateExtIO (port: pMsgPort; size: Longint): pIORequest; inline;
 procedure DeleteExtIO (ioReq: pIORequest); inline;
 function CreateStdIO (port: pMsgPort): pIOStdReq; inline;
 procedure DeleteStdIO (ioReq: pIOStdReq); inline;
-function CreatePort (name: PChar; pri: longint): pMsgPort; inline;
+function CreatePort (name: PAnsiChar; pri: longint): pMsgPort; inline;
 procedure DeletePort (port: pMsgPort); inline;
 function CreateTask (name: STRPTR; pri: longint;
                      initPC : Pointer;
@@ -165,8 +165,8 @@ procedure HookEntryPas;
 
 }
 
-procedure printf(Fmtstr : pchar; const Args : array of const);
-procedure printf(Fmtstr : string; const Args : array of const);
+procedure printf(Fmtstr : PAnsiChar; const Args : array of const);
+procedure printf(Fmtstr : ShortString; const Args : array of const);
 
 IMPLEMENTATION
 
@@ -197,7 +197,7 @@ begin
     Exec.DeleteStdIO(ioReq)
 end;
 
-function Createport(name : PChar; pri : longint): pMsgPort; inline;
+function Createport(name : PAnsiChar; pri : longint): pMsgPort; inline;
 begin
   Createport := Exec.Createport(name, pri);
 end;
@@ -313,7 +313,7 @@ asm
   move.l (a7)+,a2
 end;
 
-procedure printf(Fmtstr : pchar; const Args : array of const);
+procedure printf(Fmtstr : PAnsiChar; const Args : array of const);
 var
   i,j : longint;
   argarray : array of longint;
@@ -331,7 +331,7 @@ begin
         vtpointer : argarray[i] := longint(args[i].vpointer);
         vtstring  : begin
             strarray[j]:=RawByteString(args[i].vstring^);
-            argarray[i]:=longint(PChar(strarray[j]));
+            argarray[i]:=longint(PAnsiChar(strarray[j]));
             inc(j);
           end;
       end;
@@ -341,9 +341,9 @@ begin
   {$endif}
 end;
 
-procedure printf(Fmtstr : string; const Args : array of const);
+procedure printf(Fmtstr : ShortString; const Args : array of const);
 begin
-  printf(PChar(RawByteString(Fmtstr)), Args);
+  printf(PAnsiChar(RawByteString(Fmtstr)), Args);
 end;
 
 

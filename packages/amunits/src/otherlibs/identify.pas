@@ -56,7 +56,7 @@ CONST  _IDTAGS      = $CD450000;
 { Generic library informations }
 
 CONST  IDENTIFYVERSION = 13;
-       IDENTIFYNAME    : PChar = 'identify.library';
+       IDENTIFYNAME    : PAnsiChar = 'identify.library';
 
 TYPE   pIdentifyBase = ^tIdentifyBase;
        TIdentifyBase  = Record
@@ -406,13 +406,13 @@ CONST  IDENTIFYBUFLEN = 50;  { default buffer length }
 VAR IdentifyBase : pLibrary = nil;
 
 FUNCTION IdExpansion(TagList : pTagItem location 'a0') : LONGINT; syscall IdentifyBase 30;
-FUNCTION IdHardware(Type_ : Ulong location 'd0'; TagList : pTagItem location 'a0') : pCHAR; syscall IdentifyBase 36;
+FUNCTION IdHardware(Type_ : Ulong location 'd0'; TagList : pTagItem location 'a0') : PAnsiChar; syscall IdentifyBase 36;
 FUNCTION IdAlert(ID : Ulong location 'd0'; TagList : pTagItem location 'a0') : LONGINT; syscall IdentifyBase 42;
-FUNCTION IdFunction(LibName : pCHAR location 'a0'; Offset : LONGINT location 'd0'; TagList : pTagItem location 'a1') : LONGINT; syscall IdentifyBase 48;
+FUNCTION IdFunction(LibName : PAnsiChar location 'a0'; Offset : LONGINT location 'd0'; TagList : pTagItem location 'a1') : LONGINT; syscall IdentifyBase 48;
 FUNCTION IdHardwareNum(Type_ : Ulong location 'd0'; TagList : pTagItem location 'a0') : Ulong; syscall IdentifyBase 54;
 PROCEDURE IdHardwareUpdate; syscall IdentifyBase 60;
-FUNCTION IdFormatString(String_ : pCHAR location 'a0'; Buffer : pCHAR location 'a1'; Length : Ulong location 'd0'; Tags : pTagItem location 'a2') : Ulong; syscall IdentifyBase 66;
-FUNCTION IdEstimateFormatSize(String_ : pCHAR location 'a0'; Tags : pTagItem location 'a1') : Ulong; syscall IdentifyBase 72;
+FUNCTION IdFormatString(String_ : PAnsiChar location 'a0'; Buffer : PAnsiChar location 'a1'; Length : Ulong location 'd0'; Tags : pTagItem location 'a2') : Ulong; syscall IdentifyBase 66;
+FUNCTION IdEstimateFormatSize(String_ : PAnsiChar location 'a0'; Tags : pTagItem location 'a1') : Ulong; syscall IdentifyBase 72;
 
 {
      This is functions and procedures with array of PtrUInt.
@@ -420,23 +420,23 @@ FUNCTION IdEstimateFormatSize(String_ : pCHAR location 'a0'; Tags : pTagItem loc
 }
 
 FUNCTION IdExpansionTags(const TagList : array of PtrUInt) : LONGINT;
-FUNCTION IdHardwareTags(Type_ : longword; const TagList : array of PtrUInt) : pCHAR;
+FUNCTION IdHardwareTags(Type_ : longword; const TagList : array of PtrUInt) : PAnsiChar;
 FUNCTION IdAlertTags(ID : longword; const TagList : array of PtrUInt) : LONGINT;
-FUNCTION IdFunctionTags(LibName : pCHAR; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
+FUNCTION IdFunctionTags(LibName : PAnsiChar; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
 FUNCTION IdHardwareNumTags(Type_ : longword; const TagList : array of PtrUInt) : longword;
-FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : longword; const Tags : array of PtrUInt) : longword;
-FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : array of PtrUInt) : longword;
+FUNCTION IdFormatStringTags(String_ : PAnsiChar; Buffer : PAnsiChar; Length : longword; const Tags : array of PtrUInt) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : PAnsiChar; const Tags : array of PtrUInt) : longword;
 
 {
      Overlay functions
 }
 
-FUNCTION IdFunction(LibName : string; Offset : LONGINT; TagList : pTagItem) : LONGINT;
-FUNCTION IdFormatString(String_ : string; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
-FUNCTION IdEstimateFormatSize(String_ : string; Tags : pTagItem) : Ulong;
-FUNCTION IdFunctionTags(LibName : string; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
-FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : longword; const Tags : array of PtrUInt) : longword;
-FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : array of PtrUInt) : longword;
+FUNCTION IdFunction(LibName : ShortString; Offset : LONGINT; TagList : pTagItem) : LONGINT;
+FUNCTION IdFormatString(String_ : ShortString; Buffer : PAnsiChar; Length : Ulong; Tags : pTagItem) : Ulong;
+FUNCTION IdEstimateFormatSize(String_ : ShortString; Tags : pTagItem) : Ulong;
+FUNCTION IdFunctionTags(LibName : ShortString; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
+FUNCTION IdFormatStringTags(String_ : ShortString; Buffer : PAnsiChar; Length : longword; const Tags : array of PtrUInt) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : ShortString; const Tags : array of PtrUInt) : longword;
 
 IMPLEMENTATION
 
@@ -451,7 +451,7 @@ begin
     IdExpansionTags := IdExpansion(@TagList);
 end;
 
-FUNCTION IdHardwareTags(Type_ : longword; const TagList : array of PtrUInt) : pCHAR;
+FUNCTION IdHardwareTags(Type_ : longword; const TagList : array of PtrUInt) : PAnsiChar;
 begin
     IdHardwareTags := IdHardware(Type_ , @TagList);
 end;
@@ -461,7 +461,7 @@ begin
     IdAlertTags := IdAlert(ID , @TagList);
 end;
 
-FUNCTION IdFunctionTags(LibName : pCHAR; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
+FUNCTION IdFunctionTags(LibName : PAnsiChar; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
 begin
     IdFunctionTags := IdFunction(LibName , Offset , @TagList);
 end;
@@ -471,12 +471,12 @@ begin
     IdHardwareNumTags := IdHardwareNum(Type_ , @TagList);
 end;
 
-FUNCTION IdFormatStringTags(String_ : pCHAR; Buffer : pCHAR; Length : longword; const Tags : array of PtrUInt) : longword;
+FUNCTION IdFormatStringTags(String_ : PAnsiChar; Buffer : PAnsiChar; Length : longword; const Tags : array of PtrUInt) : longword;
 begin
     IdFormatStringTags := IdFormatString(String_ , Buffer , Length , @Tags);
 end;
 
-FUNCTION IdEstimateFormatSizeTags(String_ : pCHAR; const Tags : array of PtrUInt) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : PAnsiChar; const Tags : array of PtrUInt) : longword;
 begin
     IdEstimateFormatSizeTags := IdEstimateFormatSize(String_ , @Tags);
 end;
@@ -485,32 +485,32 @@ end;
      Overlay functions
 }
 
-FUNCTION IdFunction(LibName : string; Offset : LONGINT; TagList : pTagItem) : LONGINT;
+FUNCTION IdFunction(LibName : ShortString; Offset : LONGINT; TagList : pTagItem) : LONGINT;
 begin
     IdFunction := IdFunction(pas2c(LibName),Offset,TagList);
 end;
 
-FUNCTION IdFormatString(String_ : string; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
+FUNCTION IdFormatString(String_ : ShortString; Buffer : PAnsiChar; Length : Ulong; Tags : pTagItem) : Ulong;
 begin
     IdFormatString := IdFormatString(pas2c(String_),Buffer,Length,Tags);
 end;
 
-FUNCTION IdEstimateFormatSize(String_ : string; Tags : pTagItem) : Ulong;
+FUNCTION IdEstimateFormatSize(String_ : ShortString; Tags : pTagItem) : Ulong;
 begin
     IdEstimateFormatSize := IdEstimateFormatSize(pas2c(String_),Tags);
 end;
 
-FUNCTION IdFunctionTags(LibName : string; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
+FUNCTION IdFunctionTags(LibName : ShortString; Offset : LONGINT; const TagList : array of PtrUInt) : LONGINT;
 begin
     IdFunctionTags := IdFunction(pas2c(LibName),Offset,@TagList);
 end;
 
-FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : longword; const Tags : array of PtrUInt) : longword;
+FUNCTION IdFormatStringTags(String_ : ShortString; Buffer : PAnsiChar; Length : longword; const Tags : array of PtrUInt) : longword;
 begin
     IdFormatStringTags := IdFormatString(pas2c(String_),Buffer,Length,@Tags);
 end;
 
-FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : array of PtrUInt) : longword;
+FUNCTION IdEstimateFormatSizeTags(String_ : ShortString; const Tags : array of PtrUInt) : longword;
 begin
     IdEstimateFormatSizeTags := IdEstimateFormatSize(pas2c(String_),@Tags);
 end;

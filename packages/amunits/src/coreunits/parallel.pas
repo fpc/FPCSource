@@ -96,7 +96,7 @@ Const
 
 { Note: previous versions of this include files had bits 0 and 2 swapped }
 
-    PARALLELNAME        : PChar = 'parallel.device';
+    PARALLELNAME        : PAnsiChar = 'parallel.device';
 
     PDCMD_QUERY         = CMD_NONSTD;
     PDCMD_SETPARAMS     = CMD_NONSTD + 1;

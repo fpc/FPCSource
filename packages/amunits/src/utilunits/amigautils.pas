@@ -30,10 +30,10 @@ interface
 
 uses strings;
 
-function ExtractFilePath(FileName: PChar): PChar;
-function FileType(thefile :  PChar): Longint;
-Function PathAndFile(Path,FName : PChar): PChar;
-FUNCTION PathOf(Name : PChar): PChar;
+function ExtractFilePath(FileName: PAnsiChar): PAnsiChar;
+function FileType(thefile :  PAnsiChar): Longint;
+Function PathAndFile(Path,FName : PAnsiChar): PAnsiChar;
+FUNCTION PathOf(Name : PAnsiChar): PAnsiChar;
 
 Function LongToStr (I : Longint) : String;
 
@@ -58,7 +58,7 @@ Type
         fib_DirEntryType : Longint;
                         { Type of Directory. If < 0, then a plain file.
                           If > 0 a directory }
-        fib_FileName     : Array [0..107] of Char;
+        fib_FileName     : Array [0..107] of AnsiChar;
                         { Null terminated. Max 30 chars used for now }
         fib_Protection   : Longint;
                         { bit mask of protection, rwxd are 3-0. }
@@ -66,22 +66,22 @@ Type
         fib_Size         : Longint;      { Number of bytes in file }
         fib_NumBlocks    : Longint;      { Number of blocks in file }
         fib_Date         : tDateStamp;   { Date file last changed }
-        fib_Comment      : Array [0..79] of Char;
+        fib_Comment      : Array [0..79] of AnsiChar;
                         { Null terminated comment associated with file }
         fib_OwnerUID     : Word;
         fib_OwnerGID     : Word;
-        fib_Reserved     : Array [0..31] of Char;
+        fib_Reserved     : Array [0..31] of AnsiChar;
     end;
 
 {$PACKRECORDS 2}
 
 FUNCTION Examine(lock : LONGINT location 'd1'; fileInfoBlock : pFileInfoBlock location 'd2') : LongBool; syscall _DOSBase 102;
-FUNCTION Lock(name : pCHAR location 'd1'; type_ : LONGINT location 'd2') : LONGINT; syscall _DOSBase 084;
+FUNCTION Lock(name : PAnsiChar location 'd1'; type_ : LONGINT location 'd2') : LONGINT; syscall _DOSBase 084;
 PROCEDURE UnLock(lock : LONGINT location 'd1'); syscall _DOSBase 090;
 
-FUNCTION PCharCopy(s: PChar; thepos , len : Longint): PChar;
+FUNCTION PCharCopy(s: PAnsiChar; thepos , len : Longint): PAnsiChar;
 VAR
-    dummy : PChar;
+    dummy : PAnsiChar;
 BEGIN
     getmem(dummy,len+1);
     dummy := strlcopy(dummy,@s[thepos],len);
@@ -89,7 +89,7 @@ BEGIN
 END;
 
 
-function ExtractFilePath(FileName: PChar): PChar;
+function ExtractFilePath(FileName: PAnsiChar): PAnsiChar;
 var
   I: Longint;
 begin
@@ -98,7 +98,7 @@ begin
   ExtractFilePath := PCharCopy(FileName, 0, I+1);
 end;
 
-function FileType(thefile :  PChar): Longint;
+function FileType(thefile :  PAnsiChar): Longint;
 VAR
    fib  :  pFileInfoBlock;
    mylock : Longint;
@@ -117,18 +117,18 @@ begin
     FileType := mytype
 END;
 
-Function PathAndFile(Path,FName : PChar): PChar;
+Function PathAndFile(Path,FName : PAnsiChar): PAnsiChar;
 var
-    LastChar : CHAR;
-    Temparray : ARRAY [0..255] OF CHAR;
-    Temp     : PChar;
+    LastChar : AnsiChar;
+    Temparray : ARRAY [0..255] OF AnsiChar;
+    Temp     : PAnsiChar;
 BEGIN
     Temp := @Temparray;
     if strlen(Path) > 0 then begin
         strcopy(Temp, Path);
         LastChar := Temp[Pred(strlen(Temp))];
         if (LastChar <> '/') and (LastChar <> ':') then
-            strcat(Temp, PChar('/'#0));
+            strcat(Temp, PAnsiChar('/'#0));
         if strlen(FName) > 0 then
             strcat(Temp,FName);
     end;
@@ -139,7 +139,7 @@ BEGIN
     end;
 end;
 
-FUNCTION PathOf(Name : PChar): PChar;
+FUNCTION PathOf(Name : PAnsiChar): PAnsiChar;
 begin
     PathOf := ExtractFilePath(Name);
 end;

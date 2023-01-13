@@ -146,7 +146,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
   const
-     MUIMASTER_NAME  : PChar = 'muimaster.library';
+     MUIMASTER_NAME  : PAnsiChar = 'muimaster.library';
      MUIMASTER_VMIN = 11;
      MUIMASTER_VLATEST = 19;
   {
@@ -169,7 +169,7 @@ uses exec, intuition,utility,agraphics,iffparse;
      plongword = ^longword;
 
      tMUI_PenSpec = record
-          buf : array[0..31] of char;
+          buf : array[0..31] of AnsiChar;
        end;
      pMUI_PenSpec = ^tMUI_PenSpec;
 
@@ -185,15 +185,15 @@ uses exec, intuition,utility,agraphics,iffparse;
    }
 
   const
-     PSD_INITIAL_NAME : PChar = '(unnamed)';
-     PSD_INITIAL_TITLE : PChar = 'MUI Public Screen';
+     PSD_INITIAL_NAME : PAnsiChar = '(unnamed)';
+     PSD_INITIAL_TITLE : PAnsiChar = 'MUI Public Screen';
 
 
 
   const
-     PSD_NAME_FRONTMOST : PChar = '«Frontmost»';
-     PSD_FILENAME_SAVE : PChar = 'envarc:mui/PublicScreens.iff';
-     PSD_FILENAME_USE : PChar = 'env:mui/PublicScreens.iff';
+     PSD_NAME_FRONTMOST : PAnsiChar = '«Frontmost»';
+     PSD_FILENAME_SAVE : PAnsiChar = 'envarc:mui/PublicScreens.iff';
+     PSD_FILENAME_USE : PAnsiChar = 'env:mui/PublicScreens.iff';
      PSD_MAXLEN_NAME = 32;
      PSD_MAXLEN_TITLE = 128;
      PSD_MAXLEN_FONT = 48;
@@ -215,10 +215,10 @@ uses exec, intuition,utility,agraphics,iffparse;
 
      tMUI_PubScreenDesc = record
           Version : LONG;
-          Name : array[0..(PSD_MAXLEN_NAME)-1] of char;
-          Title : array[0..(PSD_MAXLEN_TITLE)-1] of char;
-          Font : array[0..(PSD_MAXLEN_FONT)-1] of char;
-          Background : array[0..(PSD_MAXLEN_BACKGROUND)-1] of char;
+          Name : array[0..(PSD_MAXLEN_NAME)-1] of AnsiChar;
+          Title : array[0..(PSD_MAXLEN_TITLE)-1] of AnsiChar;
+          Font : array[0..(PSD_MAXLEN_FONT)-1] of AnsiChar;
+          Background : array[0..(PSD_MAXLEN_BACKGROUND)-1] of AnsiChar;
           DisplayID : ULONG;
           DisplayWidth : WORD;
           DisplayHeight : WORD;
@@ -302,8 +302,8 @@ uses exec, intuition,utility,agraphics,iffparse;
 
   type
      tMUI_Command = record
-          mc_Name : Pchar;
-          mc_Template : Pchar;
+          mc_Name : PAnsiChar;
+          mc_Template : PAnsiChar;
           mc_Parameters : LONG;
           mc_Hook : PHook;
           mc_Reserved : array[0..4] of LONG;
@@ -313,7 +313,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-     {  MC_TEMPLATE_ID : PCHar = not(0); }
+     {  MC_TEMPLATE_ID : PAnsiChar = not(0); }
        MC_TEMPLATE_ID  = -1;
        MUI_RXERR_BADDEFINITION = -(1);
        MUI_RXERR_OUTOFMEMORY = -(2);
@@ -656,7 +656,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Notify : PChar = 'Notify.mui';
+       MUIC_Notify : PAnsiChar = 'Notify.mui';
 
     { Methods  }
     { V4   }
@@ -764,7 +764,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        tMUIP_NoNotifySet = record
             MethodID : ULONG;
             attr : ULONG;
-            format : Pchar;
+            format : PAnsiChar;
             val : ULONG;
          end;
        pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
@@ -790,7 +790,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        tMUIP_SetAsString = record
             MethodID : ULONG;
             attr : ULONG;
-            format : Pchar;
+            format : PAnsiChar;
             val : ULONG;
          end;
        pMUIP_SetAsString = ^tMUIP_SetAsString;
@@ -820,8 +820,8 @@ uses exec, intuition,utility,agraphics,iffparse;
 
        tMUIP_WriteString = record
             MethodID : ULONG;
-            str : Pchar;
-            memory : Pchar;
+            str : PAnsiChar;
+            memory : PAnsiChar;
          end;
        pMUIP_WriteString = ^tMUIP_WriteString;
 
@@ -854,7 +854,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Family : PChar = 'Family.mui';
+       MUIC_Family : PAnsiChar = 'Family.mui';
 
     { Methods  }
     { V8   }
@@ -923,7 +923,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Menustrip : PChar = 'Menustrip.mui';
+       MUIC_Menustrip : PAnsiChar = 'Menustrip.mui';
 
     { Methods  }
     { Attributes  }
@@ -937,7 +937,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Menu : PChar = 'Menu.mui';
+       MUIC_Menu : PAnsiChar = 'Menu.mui';
 
     { Methods  }
     { Attributes  }
@@ -953,7 +953,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Menuitem : PChar = 'Menuitem.mui';
+       MUIC_Menuitem : PAnsiChar = 'Menuitem.mui';
 
     { Methods  }
     { Attributes  }
@@ -984,7 +984,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Application : PChar = 'Application.mui';
+       MUIC_Application : PAnsiChar = 'Application.mui';
 
     { Methods  }
     { V14  }
@@ -1130,8 +1130,8 @@ uses exec, intuition,utility,agraphics,iffparse;
        tMUIP_Application_ShowHelp = record
             MethodID : ULONG;
             window : pObject_;
-            name : Pchar;
-            node : Pchar;
+            name : PAnsiChar;
+            node : PAnsiChar;
             line : LONG;
          end;
        pMUIP_Application_ShowHelp = ^tMUIP_Application_ShowHelp;
@@ -1209,7 +1209,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Window : PChar = 'Window.mui';
+       MUIC_Window : PAnsiChar = 'Window.mui';
 
     { V16  }
 
@@ -1437,7 +1437,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Aboutmui : PChar = 'Aboutmui.mui';
+       MUIC_Aboutmui : PAnsiChar = 'Aboutmui.mui';
 
     { Methods  }
     { Attributes  }
@@ -1451,7 +1451,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Area : PChar = 'Area.mui';
+       MUIC_Area : PAnsiChar = 'Area.mui';
 
     { Methods  }
     { Custom Class  }
@@ -1549,7 +1549,7 @@ uses exec, intuition,utility,agraphics,iffparse;
             MethodID : ULONG;
             x : LONG;
             y : LONG;
-            txt : Pchar;
+            txt : PAnsiChar;
             flags : ULONG;
          end;
        pMUIP_CreateBubble = ^tMUIP_CreateBubble;
@@ -1673,7 +1673,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_ContextMenu = $8042b704;
     { V11 ..g Object             }
        MUIA_ContextMenuTrigger = $8042a2c1;
-    { V4  isg char               }
+    { V4  isg AnsiChar               }
        MUIA_ControlChar = $8042120b;
     { V11 isg LONG               }
        MUIA_CycleChain = $80421ce7;
@@ -1786,7 +1786,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Rectangle : PChar = 'Rectangle.mui';
+       MUIC_Rectangle : PAnsiChar = 'Rectangle.mui';
 
     { Attributes  }
     { V11 i.g STRPTR             }
@@ -1803,7 +1803,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Balance : PChar = 'Balance.mui';
+       MUIC_Balance : PAnsiChar = 'Balance.mui';
 
     {                                                                           }
     {  Image                                                                    }
@@ -1811,7 +1811,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Image : PChar = 'Image.mui';
+       MUIC_Image : PAnsiChar = 'Image.mui';
 
     { Attributes  }
     { V4  i.. BOOL               }
@@ -1828,7 +1828,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_Image_FreeVert = $8042ea28;
     { V4  i.. struct Image       }
        MUIA_Image_OldImage = $80424f3d;
-    { V4  i.. char               }
+    { V4  i.. AnsiChar               }
        MUIA_Image_Spec = $804233d5;
     { V4  is. LONG               }
        MUIA_Image_State = $8042a3ad;
@@ -1838,7 +1838,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Bitmap : PChar = 'Bitmap.mui';
+       MUIC_Bitmap : PAnsiChar = 'Bitmap.mui';
 
     { Attributes  }
     { V8  isg struct BitMap      }
@@ -1867,7 +1867,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Bodychunk : PChar = 'Bodychunk.mui';
+       MUIC_Bodychunk : PAnsiChar = 'Bodychunk.mui';
 
     { Attributes  }
     { V8  isg UBYTE              }
@@ -1885,14 +1885,14 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Text : PChar = 'Text.mui';
+       MUIC_Text : PAnsiChar = 'Text.mui';
 
     { Attributes  }
     { V4  isg STRPTR             }
 
     const
        MUIA_Text_Contents = $8042f8dc;
-    { V4  i.. char               }
+    { V4  i.. AnsiChar               }
        MUIA_Text_HiChar = $804218ff;
     { V4  isg STRPTR             }
        MUIA_Text_PreParse = $8042566d;
@@ -1907,7 +1907,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Gadget : PChar = 'Gadget.mui';
+       MUIC_Gadget : PAnsiChar = 'Gadget.mui';
 
     { Attributes  }
     { V11 ..g struct Gadget      }
@@ -1920,7 +1920,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_String : PChar = 'String.mui';
+       MUIC_String : PAnsiChar = 'String.mui';
 
     { Methods  }
     { Attributes  }
@@ -1963,14 +1963,14 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Boopsi : PChar = 'Boopsi.mui';
+       MUIC_Boopsi : PAnsiChar = 'Boopsi.mui';
 
     { Attributes  }
     { V4  isg struct IClass      }
 
     const
        MUIA_Boopsi_Class = $80426999;
-    { V4  isg char               }
+    { V4  isg AnsiChar               }
        MUIA_Boopsi_ClassID = $8042bfa3;
     { V4  isg ULONG              }
        MUIA_Boopsi_MaxHeight = $8042757f;
@@ -1998,7 +1998,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Prop : PChar = 'Prop.mui';
+       MUIC_Prop : PAnsiChar = 'Prop.mui';
 
     { Methods  }
     { V16  }
@@ -2046,7 +2046,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Gauge : PChar = 'Gauge.mui';
+       MUIC_Gauge : PAnsiChar = 'Gauge.mui';
 
     { Attributes  }
     { V4  isg LONG               }
@@ -2067,7 +2067,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Scale : PChar = 'Scale.mui';
+       MUIC_Scale : PAnsiChar = 'Scale.mui';
 
     { Attributes  }
     { V4  isg BOOL               }
@@ -2080,7 +2080,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Colorfield : PChar = 'Colorfield.mui';
+       MUIC_Colorfield : PAnsiChar = 'Colorfield.mui';
 
     { Attributes  }
     { V4  isg ULONG              }
@@ -2101,7 +2101,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_List : PChar = 'List.mui';
+       MUIC_List : PAnsiChar = 'List.mui';
 
     { Methods  }
     { V4   }
@@ -2284,7 +2284,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_List_ShowDropMarks = $8042c6f3;
     { V4  i.. APTR               }
        MUIA_List_SourceArray = $8042c0a0;
-    { V6  isg char               }
+    { V6  isg AnsiChar               }
        MUIA_List_Title = $80423e66;
     { V4  ..g LONG               }
        MUIA_List_Visible = $8042191f;
@@ -2307,7 +2307,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Floattext : PChar = 'Floattext.mui';
+       MUIC_Floattext : PAnsiChar = 'Floattext.mui';
 
     { Attributes  }
     { V4  isg BOOL               }
@@ -2326,14 +2326,14 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Volumelist : PChar = 'Volumelist.mui';
+       MUIC_Volumelist : PAnsiChar = 'Volumelist.mui';
 
     {                                                                           }
     {  Scrmodelist                                                              }
     {                                                                           }
 
     const
-       MUIC_Scrmodelist : PChar = 'Scrmodelist.mui';
+       MUIC_Scrmodelist : PAnsiChar = 'Scrmodelist.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2342,7 +2342,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Dirlist : PChar = 'Dirlist.mui';
+       MUIC_Dirlist : PAnsiChar = 'Dirlist.mui';
 
     { Methods  }
     { V4   }
@@ -2406,7 +2406,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Numeric : PChar = 'Numeric.mui';
+       MUIC_Numeric : PAnsiChar = 'Numeric.mui';
 
     { Methods  }
     { V11  }
@@ -2490,7 +2490,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Knob : PChar = 'Knob.mui';
+       MUIC_Knob : PAnsiChar = 'Knob.mui';
 
     {                                                                           }
     {  Levelmeter                                                               }
@@ -2498,7 +2498,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Levelmeter : PChar = 'Levelmeter.mui';
+       MUIC_Levelmeter : PAnsiChar = 'Levelmeter.mui';
 
     { Attributes  }
     { V11 isg STRPTR             }
@@ -2511,7 +2511,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Numericbutton : PChar = 'Numericbutton.mui';
+       MUIC_Numericbutton : PAnsiChar = 'Numericbutton.mui';
 
     {                                                                           }
     {  Slider                                                                   }
@@ -2519,7 +2519,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Slider : PChar = 'Slider.mui';
+       MUIC_Slider : PAnsiChar = 'Slider.mui';
 
     { Attributes  }
     { V11 isg BOOL               }
@@ -2538,7 +2538,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Framedisplay : PChar = 'Framedisplay.mui';
+       MUIC_Framedisplay : PAnsiChar = 'Framedisplay.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2547,14 +2547,14 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Popframe : PChar = 'Popframe.mui';
+       MUIC_Popframe : PAnsiChar = 'Popframe.mui';
 
     {                                                                           }
     {  Imagedisplay                                                             }
     {                                                                           }
 
     const
-       MUIC_Imagedisplay : PChar = 'Imagedisplay.mui';
+       MUIC_Imagedisplay : PAnsiChar = 'Imagedisplay.mui';
 
     { Attributes  }
     {                                                                           }
@@ -2563,7 +2563,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Popimage : PChar = 'Popimage.mui';
+       MUIC_Popimage : PAnsiChar = 'Popimage.mui';
 
     {                                                                           }
     {  Pendisplay                                                               }
@@ -2571,7 +2571,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Pendisplay : PChar = 'Pendisplay.mui';
+       MUIC_Pendisplay : PAnsiChar = 'Pendisplay.mui';
 
     { Methods  }
     { V13  }
@@ -2618,7 +2618,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Poppen : PChar = 'Poppen.mui';
+       MUIC_Poppen : PAnsiChar = 'Poppen.mui';
 
     {                                                                           }
     {  Group                                                                    }
@@ -2626,7 +2626,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Group : PChar = 'Group.mui';
+       MUIC_Group : PAnsiChar = 'Group.mui';
 
     { Methods  }
     { V11  }
@@ -2697,14 +2697,14 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Mccprefs : PChar = 'Mccprefs.mui';
+       MUIC_Mccprefs : PAnsiChar = 'Mccprefs.mui';
 
     {                                                                           }
     {  Register                                                                 }
     {                                                                           }
 
     const
-       MUIC_Register : PChar = 'Register.mui';
+       MUIC_Register : PAnsiChar = 'Register.mui';
 
     { Attributes  }
     { V7  i.g BOOL               }
@@ -2719,7 +2719,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Penadjust : PChar= 'Penadjust.mui';
+       MUIC_Penadjust : PAnsiChar= 'Penadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2733,7 +2733,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Settingsgroup : PChar = 'Settingsgroup.mui';
+       MUIC_Settingsgroup : PAnsiChar = 'Settingsgroup.mui';
 
     { Methods  }
     { V11  }
@@ -2762,7 +2762,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Settings : PChar = 'Settings.mui';
+       MUIC_Settings : PAnsiChar = 'Settings.mui';
 
     { Methods  }
     { Attributes  }
@@ -2772,7 +2772,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Frameadjust : PChar = 'Frameadjust.mui';
+       MUIC_Frameadjust : PAnsiChar = 'Frameadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2782,7 +2782,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Imageadjust : PChar = 'Imageadjust.mui';
+       MUIC_Imageadjust : PAnsiChar = 'Imageadjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2798,7 +2798,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Virtgroup : PChar = 'Virtgroup.mui';
+       MUIC_Virtgroup : PAnsiChar = 'Virtgroup.mui';
 
     { Methods  }
     { Attributes  }
@@ -2820,7 +2820,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Scrollgroup : PChar = 'Scrollgroup.mui';
+       MUIC_Scrollgroup : PAnsiChar = 'Scrollgroup.mui';
 
     { Methods  }
     { Attributes  }
@@ -2844,7 +2844,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Scrollbar : PChar = 'Scrollbar.mui';
+       MUIC_Scrollbar : PAnsiChar = 'Scrollbar.mui';
 
     { Attributes  }
     { V11 i.. LONG               }
@@ -2861,7 +2861,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Listview : PChar = 'Listview.mui';
+       MUIC_Listview : PAnsiChar = 'Listview.mui';
 
     { Attributes  }
     { V7  ..g LONG               }
@@ -2900,7 +2900,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Radio : PChar = 'Radio.mui';
+       MUIC_Radio : PAnsiChar = 'Radio.mui';
 
     { Attributes  }
     { V4  isg LONG               }
@@ -2915,7 +2915,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Cycle : PChar = 'Cycle.mui';
+       MUIC_Cycle : PAnsiChar = 'Cycle.mui';
 
     { Attributes  }
     { V4  isg LONG               }
@@ -2932,7 +2932,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Coloradjust : PChar = 'Coloradjust.mui';
+       MUIC_Coloradjust : PAnsiChar = 'Coloradjust.mui';
 
     { Methods  }
     { Attributes  }
@@ -2954,7 +2954,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Palette : PChar = 'Palette.mui';
+       MUIC_Palette : PAnsiChar = 'Palette.mui';
 
     { Attributes  }
     { V6  i.g struct MUI_Palette_Entry    }
@@ -2963,7 +2963,7 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_Palette_Entries = $8042a3d8;
     { V6  isg BOOL               }
        MUIA_Palette_Groupable = $80423e67;
-    { V6  isg char               }
+    { V6  isg AnsiChar               }
        MUIA_Palette_Names = $8042c3a2;
     {                                                                           }
     {  Popstring                                                                }
@@ -2971,7 +2971,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Popstring : PChar = 'Popstring.mui';
+       MUIC_Popstring : PAnsiChar = 'Popstring.mui';
 
     { Methods  }
     { V7   }
@@ -3012,7 +3012,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Popobject : PChar = 'Popobject.mui';
+       MUIC_Popobject : PAnsiChar = 'Popobject.mui';
 
     { Attributes  }
     { V7  isg BOOL               }
@@ -3037,10 +3037,10 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Poplist : PChar = 'Poplist.mui';
+       MUIC_Poplist : PAnsiChar = 'Poplist.mui';
 
     { Attributes  }
-    { V8  i.. char               }
+    { V8  i.. AnsiChar               }
 
     const
        MUIA_Poplist_Array = $8042084c;
@@ -3050,7 +3050,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Popscreen : PChar = 'Popscreen.mui';
+       MUIC_Popscreen : PAnsiChar = 'Popscreen.mui';
 
     { Attributes  }
     {                                                                           }
@@ -3058,7 +3058,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Popasl : PChar = 'Popasl.mui';
+       MUIC_Popasl : PAnsiChar = 'Popasl.mui';
 
     { Attributes  }
     { V7  ..g BOOL               }
@@ -3077,7 +3077,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Semaphore : PChar = 'Semaphore.mui';
+       MUIC_Semaphore : PAnsiChar = 'Semaphore.mui';
 
     { Methods  }
     { V11  }
@@ -3124,7 +3124,7 @@ uses exec, intuition,utility,agraphics,iffparse;
     {                                                                           }
 
     const
-       MUIC_Applist : PChar = 'Applist.mui';
+       MUIC_Applist : PAnsiChar = 'Applist.mui';
     { Methods  }
     {                                                                           }
     {  Cclist                                                                   }
@@ -3132,7 +3132,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Cclist : PChar = 'Cclist.mui';
+       MUIC_Cclist : PAnsiChar = 'Cclist.mui';
 
     { Methods  }
     {                                                                           }
@@ -3141,7 +3141,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Dataspace : PChar = 'Dataspace.mui';
+       MUIC_Dataspace : PAnsiChar = 'Dataspace.mui';
 
     { Methods  }
     { V11  }
@@ -3218,7 +3218,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Configdata : PChar = 'Configdata.mui';
+       MUIC_Configdata : PAnsiChar = 'Configdata.mui';
 
     { Methods  }
     { Attributes  }
@@ -3228,7 +3228,7 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 
     const
-       MUIC_Dtpic : PChar = 'Dtpic.mui';
+       MUIC_Dtpic : PAnsiChar = 'Dtpic.mui';
     { Attributes  }
     {                                        }
     { End of automatic header file creation  }
@@ -3470,20 +3470,20 @@ uses exec, intuition,utility,agraphics,iffparse;
 
 VAR MUIMasterBase : pLibrary = nil;
 
-FUNCTION MUI_NewObjectA(class_ : pCHar location 'a0'; tags : pTagItem location 'a1') : pObject_; syscall MUIMasterBase 030;
+FUNCTION MUI_NewObjectA(class_ : PAnsiChar location 'a0'; tags : pTagItem location 'a1') : pObject_; syscall MUIMasterBase 030;
 PROCEDURE MUI_DisposeObject(obj : pObject_ location 'a0'); syscall MUIMasterBase 036;
-FUNCTION MUI_RequestA(app : POINTER location 'd0'; win : POINTER location 'd1'; flags : LONGBITS location 'd2'; title : pCHar location 'a0'; gadgets : pChar location 'a1'; format : pChar location 'a2'; params : POINTER location 'a3') : LONGINT; syscall MUIMasterBase 042;
+FUNCTION MUI_RequestA(app : POINTER location 'd0'; win : POINTER location 'd1'; flags : LONGBITS location 'd2'; title : PAnsiChar location 'a0'; gadgets : PAnsiChar location 'a1'; format : PAnsiChar location 'a2'; params : POINTER location 'a3') : LONGINT; syscall MUIMasterBase 042;
 FUNCTION MUI_AllocAslRequest(typ : ULONG location 'd0'; tags : pTagItem location 'a0') : POINTER; syscall MUIMasterBase 048;
 FUNCTION MUI_AslRequest(req : POINTER location 'a0'; tags : pTagItem location 'a1') : WordBool; syscall MUIMasterBase 054;
 PROCEDURE MUI_FreeAslRequest(req : POINTER location 'a0'); syscall MUIMasterBase 060;
 FUNCTION MUI_Error : LONGINT; syscall MUIMasterBase 066;
 FUNCTION MUI_SetError(errnum : LONGINT location 'd0') : LONGINT; syscall MUIMasterBase 072;
-FUNCTION MUI_GetClass(name : pChar location 'a0') : pIClass; syscall MUIMasterBase 078;
+FUNCTION MUI_GetClass(name : PAnsiChar location 'a0') : pIClass; syscall MUIMasterBase 078;
 PROCEDURE MUI_FreeClass(cl : pIClass location 'a0'); syscall MUIMasterBase 084;
 PROCEDURE MUI_RequestIDCMP(obj : pObject_ location 'a0'; flags : ULONG location 'd0'); syscall MUIMasterBase 090;
 PROCEDURE MUI_RejectIDCMP(obj : pObject_ location 'a0'; flags : ULONG location 'd0'); syscall MUIMasterBase 096;
 PROCEDURE MUI_Redraw(obj : pObject_ location 'a0'; flags : ULONG location 'd0'); syscall MUIMasterBase 102;
-FUNCTION MUI_CreateCustomClass(base : pLibrary location 'a0'; supername : pChar location 'a1'; supermcc : pMUI_CustomClass location 'a2'; datasize : LONGINT location 'd0'; dispatcher : POINTER location 'a3') : pMUI_CustomClass; syscall MUIMasterBase 108;
+FUNCTION MUI_CreateCustomClass(base : pLibrary location 'a0'; supername : PAnsiChar location 'a1'; supermcc : pMUI_CustomClass location 'a2'; datasize : LONGINT location 'd0'; dispatcher : POINTER location 'a3') : pMUI_CustomClass; syscall MUIMasterBase 108;
 FUNCTION MUI_DeleteCustomClass(mcc : pMUI_CustomClass location 'a0') : WordBool; syscall MUIMasterBase 114;
 FUNCTION MUI_MakeObjectA(typ : LONGINT location 'd0'; params : pULONG location 'a0') : pObject_; syscall MUIMasterBase 120;
 FUNCTION MUI_Layout(obj : pObject_ location 'a0'; l : LONGINT location 'd0'; t : LONGINT location 'd1'; w : LONGINT location 'd2'; h : LONGINT location 'd3'; flags : ULONG location 'd4') : WordBool; syscall MUIMasterBase 126;
@@ -3570,8 +3570,8 @@ function MUIV_Window_Width_Screen(p : longint) : longint;
 FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
 FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
 FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
+FUNCTION MUI_NewObject(a0arg : PAnsiChar; const tags : array of PtrUInt) : pULONG;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : PAnsiChar; gadgets : PAnsiChar; format : PAnsiChar; const params : array of PtrUInt) : LONGINT;
 
 
 implementation
@@ -3865,12 +3865,12 @@ begin
     MUI_MakeObject := MUI_MakeObjectA(_type , @params);
 end;
 
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
+FUNCTION MUI_NewObject(a0arg : PAnsiChar; const tags : array of PtrUInt) : pULONG;
 begin
     MUI_NewObject := MUI_NewObjectA(a0arg , @tags);
 end;
 
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : PAnsiChar; gadgets : PAnsiChar; format : PAnsiChar; const params : array of PtrUInt) : LONGINT;
 begin
     MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , @params);
 end;

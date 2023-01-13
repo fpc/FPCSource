@@ -134,7 +134,7 @@ USES Exec, ahi, utility;
 VAR AHIsubBase : pLibrary = nil;
 
 const
-    AHI_SUBNAME : PChar = 'ahi_sub.library';
+    AHI_SUBNAME : PAnsiChar = 'ahi_sub.library';
 
 
 FUNCTION AHIsub_AllocAudio(tagList : pTagItem location 'a1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 30;

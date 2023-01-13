@@ -48,7 +48,7 @@ Const
     aNEL        = 3;            { ESCE  return,lf               ISO }
     aRI         = 4;            { ESCM  reverse lf              ISO }
 
-    aSGR0       = 5;            { ESC[0m normal char set        ISO }
+    aSGR0       = 5;            { ESC[0m normal AnsiChar set        ISO }
     aSGR3       = 6;            { ESC[3m italics on             ISO }
     aSGR23      = 7;            { ESC[23m italics off           ISO }
     aSGR4       = 8;            { ESC[4m underline on           ISO }
@@ -81,17 +81,17 @@ Const
     aPLU        = 32;           { ESCL  partial line up         ISO }
     aPLD        = 33;           { ESCK  partial line down       ISO }
 
-    aFNT0       = 34;           { ESC(B US char set or Typeface  0 (default) }
-    aFNT1       = 35;           { ESC(R French char set or Typeface  1 }
-    aFNT2       = 36;           { ESC(K German char set or Typeface  2 }
-    aFNT3       = 37;           { ESC(A UK char set or Typeface  3 }
-    aFNT4       = 38;           { ESC(E Danish I char set or Typeface  4 }
-    aFNT5       = 39;           { ESC(H Sweden char set or Typeface  5 }
-    aFNT6       = 40;           { ESC(Y Italian char set or Typeface  6 }
-    aFNT7       = 41;           { ESC(Z Spanish char set or Typeface  7 }
-    aFNT8       = 42;           { ESC(J Japanese char set or Typeface  8 }
-    aFNT9       = 43;           { ESC(6 Norweign char set or Typeface  9 }
-    aFNT10      = 44;           { ESC(C Danish II char set or Typeface 10 }
+    aFNT0       = 34;           { ESC(B US AnsiChar set or Typeface  0 (default) }
+    aFNT1       = 35;           { ESC(R French AnsiChar set or Typeface  1 }
+    aFNT2       = 36;           { ESC(K German AnsiChar set or Typeface  2 }
+    aFNT3       = 37;           { ESC(A UK AnsiChar set or Typeface  3 }
+    aFNT4       = 38;           { ESC(E Danish I AnsiChar set or Typeface  4 }
+    aFNT5       = 39;           { ESC(H Sweden AnsiChar set or Typeface  5 }
+    aFNT6       = 40;           { ESC(Y Italian AnsiChar set or Typeface  6 }
+    aFNT7       = 41;           { ESC(Z Spanish AnsiChar set or Typeface  7 }
+    aFNT8       = 42;           { ESC(J Japanese AnsiChar set or Typeface  8 }
+    aFNT9       = 43;           { ESC(6 Norweign AnsiChar set or Typeface  9 }
+    aFNT10      = 44;           { ESC(C Danish II AnsiChar set or Typeface 10 }
 
 {
         Suggested typefaces are:

@@ -20,7 +20,7 @@ Program RequestModeID;
 uses exec, amigados, agraphics, intuition, picasso96api, utility;
 
 Const
-    template    :   pchar = 'Width=W/N,Height=H/N,Depth=D/N';
+    template    :   PAnsiChar = 'Width=W/N,Height=H/N,Depth=D/N';
 
     vecarray    :   Array[0..2] of longint = (0,0,0);
 

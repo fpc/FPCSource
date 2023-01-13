@@ -46,7 +46,7 @@ USES Exec, utility, agraphics, intuition;
     }
 
  const
-       PICASSO96APINAME  : PChar = 'Picasso96API.library';
+       PICASSO96APINAME  : PAnsiChar = 'Picasso96API.library';
 {************************************************************************}
 { Types for RGBFormat used
  }
@@ -227,7 +227,7 @@ USES Exec, utility, agraphics, intuition;
      PP96Mode = ^TP96Mode;
      TP96Mode = record
           Node : tNode;
-          Description : array[0..(MODENAMELENGTH)-1] of char;
+          Description : array[0..(MODENAMELENGTH)-1] of AnsiChar;
           Width : UWORD;
           Height : UWORD;
           Depth : UWORD;
@@ -405,7 +405,7 @@ VAR P96Base : pLibrary = nil;
 FUNCTION p96AllocBitMap(SizeX : Ulong location 'd0'; SizeY : Ulong location 'd1'; Depth : Ulong location 'd2'; Flags : Ulong location 'd3'; Friend : pBitMap location 'a0'; RGBFormat : RGBFTYPE location 'd7') : pBitMap; syscall P96Base 030;
 PROCEDURE p96FreeBitMap(BitMap : pBitMap location 'a0'); syscall P96Base 036;
 FUNCTION p96GetBitMapAttr(BitMap : pBitMap location 'a0'; Attribute : Ulong location 'd0') : Ulong; syscall P96Base 042;
-FUNCTION p96LockBitMap(BitMap : pBitMap location 'a0'; Buffer : pCHAR location 'a1'; Size : Ulong location 'd0') : LONGINT; syscall P96Base 048;
+FUNCTION p96LockBitMap(BitMap : pBitMap location 'a0'; Buffer : PAnsiChar location 'a1'; Size : Ulong location 'd0') : LONGINT; syscall P96Base 048;
 PROCEDURE p96UnlockBitMap(BitMap : pBitMap location 'a0'; Lock : LONGINT location 'd0'); syscall P96Base 054;
 FUNCTION p96BestModeIDTagList(Tags : pTagItem location 'a0') : Ulong; syscall P96Base 060;
 FUNCTION p96RequestModeIDTagList(Tags : pTagItem location 'a0') : Ulong; syscall P96Base 066;

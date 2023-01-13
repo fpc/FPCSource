@@ -18,7 +18,7 @@ uses
     MyNode   : pFPCNode;
     i        : Longint;
     temp     : Longint;
-    buffer   : PChar;
+    buffer   : PAnsiChar;
     bufsize  : Longint;
     templist : pList;
 

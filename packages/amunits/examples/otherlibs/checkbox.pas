@@ -20,7 +20,7 @@ VAR
      trmsg    : pTR_Message;
      dummy    : Longint;
 
-procedure CleanUp(why : string; err : longint);
+procedure CleanUp(why : ShortString; err : longint);
 begin
     if assigned(Project) then TR_CloseProject(Project);
     if assigned(App) then TR_DeleteApp(App);
