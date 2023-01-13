@@ -4,7 +4,7 @@ type
    qelem = record
         q_forw : Pqelem;
         q_back : Pqelem;
-        q_data : array[0..0] of char;
+        q_data : array[0..0] of AnsiChar;
      end;
 
 procedure insque(__elem:pointer; __prev:pointer);cdecl;external clib name 'insque';
@@ -23,7 +23,7 @@ type
 
 {   Pentry = ^entry;
    entry = record
-        key : Pchar;
+        key : PAnsiChar;
         data : pointer;
      end;
 }

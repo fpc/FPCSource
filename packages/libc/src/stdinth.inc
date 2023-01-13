@@ -6,7 +6,7 @@ type
   uint16_t = word;
   uint32_t = dword;
   uint64_t = qword;
-  int_least8_t = char;
+  int_least8_t = AnsiChar;
   int_least16_t = smallint;
   int_least32_t = longint;
   int_least64_t = int64;

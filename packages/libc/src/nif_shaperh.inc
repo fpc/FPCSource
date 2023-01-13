@@ -13,7 +13,7 @@ type
   Pshaperconf = ^shaperconf;
   shaperconf_u = record
     case Integer of
-      0: (ssu_name: packed array[0..14-1] of Char);
+      0: (ssu_name: packed array[0..14-1] of AnsiChar);
       1: (ssu_speed: u_int32_t);
   end;
 

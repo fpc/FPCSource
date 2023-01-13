@@ -33,7 +33,7 @@ Type
   ulong = dword;
   ushort = word;
   uint = dword;
-  int8_t = char;
+  int8_t = AnsiChar;
   int16_t = smallint;
   int32_t = longint;
   u_int8_t = byte;
