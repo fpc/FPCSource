@@ -7,7 +7,7 @@ unit my4_sys;
 
     type
       st_dynamic_array = record
-        buffers : pchar;
+        buffers : PAnsiChar;
         elements : cuint;
         max_elements : cuint;
         alloc_increment : cuint;

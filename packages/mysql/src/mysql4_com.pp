@@ -56,13 +56,13 @@ Type
   function net_flush(net:PNET):longint;extdecl;external External_library name 'net_flush';
 
 (* Const before type ignored *)
-  function my_net_write(net:PNET; packet:Pchar; len:dword):longint;extdecl;external External_library name 'my_net_write';
+  function my_net_write(net:PNET; packet:PAnsiChar; len:dword):longint;extdecl;external External_library name 'my_net_write';
 
 (* Const before type ignored *)
-  function net_write_command(net:PNET; command:byte; packet:Pchar; len:dword):longint;extdecl;external External_library name 'net_write_command';
+  function net_write_command(net:PNET; command:byte; packet:PAnsiChar; len:dword):longint;extdecl;external External_library name 'net_write_command';
 
 (* Const before type ignored *)
-  function net_real_write(net:PNET; packet:Pchar; len:dword):longint;extdecl;external External_library name 'net_real_write';
+  function net_real_write(net:PNET; packet:PAnsiChar; len:dword):longint;extdecl;external External_library name 'net_real_write';
 
   function my_net_read(net:PNET):dword;extdecl;external External_library name 'my_net_read';
 
@@ -79,32 +79,32 @@ Type
   function rnd(_para1:Prand_struct):double;extdecl;external External_library name 'rnd';
 
 (* Const before type ignored *)
-  procedure make_scrambled_password(_to:Pchar; password:Pchar);extdecl;external External_library name 'make_scrambled_password';
+  procedure make_scrambled_password(_to:PAnsiChar; password:PAnsiChar);extdecl;external External_library name 'make_scrambled_password';
 
 (* Const before type ignored *)
-  procedure get_salt_from_password(res:Pdword; password:Pchar);extdecl;external External_library name 'get_salt_from_password';
+  procedure get_salt_from_password(res:Pdword; password:PAnsiChar);extdecl;external External_library name 'get_salt_from_password';
 
-  procedure make_password_from_salt(_to:Pchar; hash_res:Pdword);extdecl;external External_library name 'make_password_from_salt';
-
-(* Const before type ignored *)
-(* Const before type ignored *)
-  function scramble(_to:Pchar; message:Pchar; password:Pchar; old_ver:my_bool):Pchar;extdecl;external External_library name 'scramble';
+  procedure make_password_from_salt(_to:PAnsiChar; hash_res:Pdword);extdecl;external External_library name 'make_password_from_salt';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function check_scramble(_para1:Pchar; message:Pchar; salt:Pdword; old_ver:my_bool):my_bool;extdecl;external External_library name 'check_scramble';
-
-  function get_tty_password(opt_message:Pchar):Pchar;extdecl;external External_library name 'get_tty_password';
+  function scramble(_to:PAnsiChar; message:PAnsiChar; password:PAnsiChar; old_ver:my_bool):PAnsiChar;extdecl;external External_library name 'scramble';
 
 (* Const before type ignored *)
-  procedure hash_password(result:Pdword; password:Pchar);extdecl;external External_library name 'hash_password';
+(* Const before type ignored *)
+  function check_scramble(_para1:PAnsiChar; message:PAnsiChar; salt:Pdword; old_ver:my_bool):my_bool;extdecl;external External_library name 'check_scramble';
+
+  function get_tty_password(opt_message:PAnsiChar):PAnsiChar;extdecl;external External_library name 'get_tty_password';
+
+(* Const before type ignored *)
+  procedure hash_password(result:Pdword; password:PAnsiChar);extdecl;external External_library name 'hash_password';
 
   { Some other useful functions  }
   procedure my_init;extdecl;external External_library name 'my_init';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure load_defaults(conf_file:Pchar; groups:PPchar; argc:Plongint; argv:PPPchar);extdecl;external External_library name 'load_defaults';
+  procedure load_defaults(conf_file:PAnsiChar; groups:PPAnsiChar; argc:Plongint; argv:PPPAnsiChar);extdecl;external External_library name 'load_defaults';
 
   function my_thread_init:my_bool;extdecl;external External_library name 'my_thread_init';
 
