@@ -87,7 +87,7 @@ type
         color_ctx : PGdkColorContext;
         colors : array[0..17] of gulong;
         ic : PGdkIC;
-        pixmap_filename : Pchar;
+        pixmap_filename : PAnsiChar;
         background : record
              pix : PGdkPixmap;
              x : longint;
@@ -151,8 +151,8 @@ type
    TZvtTermClass = record
         parent_class : TGtkWidgetClass;
         child_died : procedure (term:PZvtTerm);cdecl;
-        title_changed : procedure (term:PZvtTerm; thetype:TVTTITLE_TYPE; newtitle:Pchar);
-        match_clicked : procedure (term:PZvtTerm; event:PGdkEventButton; match:Pchar; data:pointer);
+        title_changed : procedure (term:PZvtTerm; thetype:TVTTITLE_TYPE; newtitle:PAnsiChar);
+        match_clicked : procedure (term:PZvtTerm; event:PGdkEventButton; match:PAnsiChar; data:pointer);
      end;
    ZVT_TERM_CLASS = PZvtTermClass;
 
@@ -179,8 +179,8 @@ function ZVT_GDK_TOPWIN(t : PGTKWidget) : PGDKWindow;
 function zvt_term_new:PGtkWidget;cdecl;external libzvtdll name 'zvt_term_new';
 function zvt_term_new_with_size(cols:longint; rows:longint):PGtkWidget;cdecl;external libzvtdll name 'zvt_term_new_with_size';
 procedure zvt_term_reset(term:PZvtTerm; hard:longint);cdecl;external libzvtdll name 'zvt_term_reset';
-procedure zvt_term_feed(term:PZvtTerm; thetext:Pchar; len:longint);cdecl;external libzvtdll name 'zvt_term_feed';
-function zvt_term_writechild(term:PZvtTerm; data:Pchar; len:longint):longint;cdecl;external libzvtdll name 'zvt_term_writechild';
+procedure zvt_term_feed(term:PZvtTerm; thetext:PAnsiChar; len:longint);cdecl;external libzvtdll name 'zvt_term_feed';
+function zvt_term_writechild(term:PZvtTerm; data:PAnsiChar; len:longint):longint;cdecl;external libzvtdll name 'zvt_term_writechild';
 function zvt_term_forkpty(term:PZvtTerm; do_uwtmp_log:longint):longint;cdecl;external libzvtdll name 'zvt_term_forkpty';
 function zvt_term_closepty(term:PZvtTerm):longint;cdecl;external libzvtdll name 'zvt_term_closepty';
 function zvt_term_killchild(term:PZvtTerm; signal:longint):longint;cdecl;external libzvtdll name 'zvt_term_killchild';
@@ -188,8 +188,8 @@ procedure zvt_term_bell(zvt_term:pointer);cdecl;external libzvtdll name 'zvt_ter
 function zvt_term_get_type:guint;cdecl;external libzvtdll name 'zvt_term_get_type';
 procedure zvt_term_set_scrollback(term:PZvtTerm; lines:longint);cdecl;external libzvtdll name 'zvt_term_set_scrollback';
 function zvt_term_get_buffer(term:PZvtTerm; len:Plongint; thetype:longint; sx:longint; sy:longint;
-           ex:longint; ey:longint):Pchar;cdecl;external libzvtdll name 'zvt_term_get_buffer';
-procedure zvt_term_set_font_name(term:PZvtTerm; thename:Pchar);cdecl;external libzvtdll name 'zvt_term_set_font_name';
+           ex:longint; ey:longint):PAnsiChar;cdecl;external libzvtdll name 'zvt_term_get_buffer';
+procedure zvt_term_set_font_name(term:PZvtTerm; thename:PAnsiChar);cdecl;external libzvtdll name 'zvt_term_set_font_name';
 procedure zvt_term_set_fonts(term:PZvtTerm; font:PGdkFont; font_bold:PGdkFont);cdecl;external libzvtdll name 'zvt_term_set_fonts';
 procedure zvt_term_hide_pointer(term:PZvtTerm);cdecl;external libzvtdll name 'zvt_term_hide_pointer';
 procedure zvt_term_show_pointer(term:PZvtTerm);cdecl;external libzvtdll name 'zvt_term_show_pointer';
@@ -203,10 +203,10 @@ procedure zvt_term_set_default_color_scheme(term:PZvtTerm);cdecl;external libzvt
 procedure zvt_term_set_del_key_swap(term:PZvtTerm; state:longint);cdecl;external libzvtdll name 'zvt_term_set_del_key_swap';
 procedure zvt_term_set_del_is_del(term:PZvtTerm; state:longint);cdecl;external libzvtdll name 'zvt_term_set_del_is_del';
 procedure zvt_term_set_wordclass(term:PZvtTerm; klass:Pbyte);cdecl;external libzvtdll name 'zvt_term_set_wordclass';
-function zvt_term_match_add(term:PZvtTerm; regex:Pchar; highlight_mask:uint32; data:pointer):longint;cdecl;external libzvtdll name 'zvt_term_match_add';
-procedure zvt_term_match_clear(term:PZvtTerm; regex:Pchar);cdecl;external libzvtdll name 'zvt_term_match_clear';
-function zvt_term_match_check(term:PZvtTerm; x:longint; y:longint; user_data_ptr:Ppointer):Pchar;cdecl;external libzvtdll name 'zvt_term_match_check';
-procedure zvt_term_set_background(terminal:PZvtTerm; pixmap_file:Pchar; transparent:gboolean; flags:longint);cdecl;external libzvtdll name 'zvt_term_set_background';
+function zvt_term_match_add(term:PZvtTerm; regex:PAnsiChar; highlight_mask:uint32; data:pointer):longint;cdecl;external libzvtdll name 'zvt_term_match_add';
+procedure zvt_term_match_clear(term:PZvtTerm; regex:PAnsiChar);cdecl;external libzvtdll name 'zvt_term_match_clear';
+function zvt_term_match_check(term:PZvtTerm; x:longint; y:longint; user_data_ptr:Ppointer):PAnsiChar;cdecl;external libzvtdll name 'zvt_term_match_check';
+procedure zvt_term_set_background(terminal:PZvtTerm; pixmap_file:PAnsiChar; transparent:gboolean; flags:longint);cdecl;external libzvtdll name 'zvt_term_set_background';
 procedure zvt_term_set_shadow_type(term:PZvtTerm; thetype:TGtkShadowType);cdecl;external libzvtdll name 'zvt_term_set_shadow_type';
 procedure zvt_term_set_size(term:PZvtTerm; width:guint; height:guint);cdecl;external libzvtdll name 'zvt_term_set_size';
 procedure zvt_term_set_open_im(term:PZvtTerm; state:gboolean);cdecl;external libzvtdll name 'zvt_term_set_open_im';

@@ -234,7 +234,7 @@ procedure gnome_canvas_w2c_d(canvas:PGnomeCanvas; wx:double; wy:double; cx:Pdoub
 procedure gnome_canvas_c2w(canvas:PGnomeCanvas; cx:longint; cy:longint; wx:Pdouble; wy:Pdouble);cdecl;external libgnomeuidll name 'gnome_canvas_c2w';
 procedure gnome_canvas_window_to_world(canvas:PGnomeCanvas; winx:double; winy:double; worldx:Pdouble; worldy:Pdouble);cdecl;external libgnomeuidll name 'gnome_canvas_window_to_world';
 procedure gnome_canvas_world_to_window(canvas:PGnomeCanvas; worldx:double; worldy:double; winx:Pdouble; winy:Pdouble);cdecl;external libgnomeuidll name 'gnome_canvas_world_to_window';
-function gnome_canvas_get_color(canvas:PGnomeCanvas; spec:Pchar; color:PGdkColor):longint;cdecl;external libgnomeuidll name 'gnome_canvas_get_color';
+function gnome_canvas_get_color(canvas:PGnomeCanvas; spec:PAnsiChar; color:PGdkColor):longint;cdecl;external libgnomeuidll name 'gnome_canvas_get_color';
 function gnome_canvas_get_color_pixel(canvas:PGnomeCanvas; rgba:guint):gulong;cdecl;external libgnomeuidll name 'gnome_canvas_get_color_pixel';
 procedure gnome_canvas_set_stipple_origin(canvas:PGnomeCanvas; gc:PGdkGC);cdecl;external libgnomeuidll name 'gnome_canvas_set_stipple_origin';
 procedure gnome_canvas_set_dither(canvas:PGnomeCanvas; dither:TGdkRgbDither);cdecl;external libgnomeuidll name 'gnome_canvas_set_dither';

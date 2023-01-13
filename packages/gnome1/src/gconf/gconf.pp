@@ -131,7 +131,7 @@ type
 
 function gconf_string_to_enum(lookup_table:array of TGConfEnumStringPair; str:Pgchar; enum_value_retloc:Pgint):gboolean;cdecl;external gconfdll name 'gconf_string_to_enum';
 function gconf_enum_to_string(lookup_table:array of TGConfEnumStringPair; enum_value:gint):pgchar;cdecl;external gconfdll name 'gconf_enum_to_string';
-function gconf_init(argc:longint; argv:PPchar; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_init';
+function gconf_init(argc:longint; argv:PPAnsiChar; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_init';
 
 implementation
 
