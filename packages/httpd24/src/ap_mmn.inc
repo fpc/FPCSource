@@ -232,7 +232,7 @@
  * 20100609.1 (2.3.7-dev)  Introduce ap_log_cserror()
  * 20100609.2 (2.3.7-dev)  Add deferred write pool to core_output_filter_ctx
  * 20100625.0 (2.3.7-dev)  Add 'userctx' to socache iterator callback prototype
- * 20100630.0 (2.3.7-dev)  make module_levels vector of char instead of int
+ * 20100630.0 (2.3.7-dev)  make module_levels vector of AnsiChar instead of int
  * 20100701.0 (2.3.7-dev)  re-order struct members to improve alignment
  * 20100701.1 (2.3.7-dev)  add note_auth_failure hook
  * 20100701.2 (2.3.7-dev)  add ap_proxy_*_wid() functions
