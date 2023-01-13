@@ -86,7 +86,7 @@ const
   LR_RenderList           = LR_Dummy + 6; // PPLayer. a nil terminated list of PLayer pointers to render if they are within given bounds
   LR_IgnoreList           = LR_Dummy + 7; // PPLayer. a nil terminated list of PLayer pointers to ommit when rendering the layerinfo. mutually exclusive with LR_RenderList!
 
-  LAYERSNAME: PChar = 'layers.library';
+  LAYERSNAME: PAnsiChar = 'layers.library';
 
 var
   LayersBase: PLibrary = nil;

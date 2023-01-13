@@ -186,8 +186,8 @@ function UDivMod32(Dividend: LongWord location 'd0'; Divisor: LongWord location 
 
 function Stricmp(String1: STRPTR location 'a0'; String2: STRPTR location 'a1'): LongInt; SysCall MOS_UtilityBase 162;
 function Strnicmp(String1: STRPTR location 'a0'; String2: STRPTR location 'a1'; Length: LongInt location 'd0'): LongInt; SysCall MOS_UtilityBase 168;
-function ToUpper(Character: LongWord location 'd0'): Char; SysCall MOS_UtilityBase 174;
-function ToLower(character: LongWord location 'd0'): Char; SysCall MOS_UtilityBase 180;
+function ToUpper(Character: LongWord location 'd0'): AnsiChar; SysCall MOS_UtilityBase 174;
+function ToLower(character: LongWord location 'd0'): AnsiChar; SysCall MOS_UtilityBase 180;
 
 procedure ApplyTagChanges(List: PTagItem location 'a0'; ChangeList: PTagItem location 'a1'); SysCall MOS_UtilityBase 186;
 
@@ -212,13 +212,13 @@ function GetUniqueID: LongWord; SysCall MOS_UtilityBase 270;
 function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 
 function TAG_(Value: Pointer): PtrUInt; overload; inline;
-function TAG_(Value: PChar): PtrUInt; overload; inline;
+function TAG_(Value: PAnsiChar): PtrUInt; overload; inline;
 function TAG_(Value: Boolean): PtrUInt; overload; inline;
 function TAG_(Value: LongInt): PtrUInt; overload; inline;
 function TAG_(Value: LongWord): PtrUInt; overload; inline;
 
 function AsTag(Value: Pointer): PtrUInt; overload; inline;
-function AsTag(Value: PChar): PtrUInt; overload; inline;
+function AsTag(Value: PAnsiChar): PtrUInt; overload; inline;
 function AsTag(Value: Boolean): PtrUInt; overload; inline;
 function AsTag(Value: LongInt): PtrUInt; overload; inline;
 function AsTag(Value: LongWord): PtrUInt; overload; inline;
@@ -240,7 +240,7 @@ begin
   TAG_ := PtrUInt(Value);
 end;
 
-function TAG_(Value: PChar): PtrUInt; inline;
+function TAG_(Value: PAnsiChar): PtrUInt; inline;
 begin
   TAG_ := PtrUInt(Value);
 end;
@@ -268,7 +268,7 @@ begin
   AsTag := LongWord(Value);
 end;
 
-function AsTag(Value: PChar): PtrUInt; inline;
+function AsTag(Value: PAnsiChar): PtrUInt; inline;
 begin
   AsTag := PtrUInt(Value);
 end;
