@@ -128,10 +128,10 @@ const
   function LOG_UPTO(pri : longint) : longint;
 
   procedure closelog;cdecl;external;
-  procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;external;
+  procedure openlog(__ident:PAnsiChar; __option:longint; __facilit:longint);cdecl;external;
   function setlogmask(__mask:longint):longint;cdecl;external;
-  procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;external;
-//   procedure vsyslog(__pri:longint; __fmt:pchar; __ap:_BSD_VA_LIST_);cdecl;external;
+  procedure syslog(__pri:longint; __fmt:PAnsiChar; args:array of const);cdecl;external;
+//   procedure vsyslog(__pri:longint; __fmt:PAnsiChar; __ap:_BSD_VA_LIST_);cdecl;external;
 
 
   implementation
