@@ -31,7 +31,7 @@ uses exec;
 
 const
 
-    AUDIONAME           : PChar = 'audio.device';
+    AUDIONAME           : PAnsiChar = 'audio.device';
 
     ADHARD_CHANNELS     = 4;
 

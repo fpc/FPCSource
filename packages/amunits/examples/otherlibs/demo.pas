@@ -48,9 +48,9 @@ VAR
 const
     NULL : longint = longint(nil);
 
-Function IntToStr (I : Longint) : String;
+Function IntToStr (I : Longint) : ShortString;
 
-     Var S : String;
+     Var S : ShortString;
 
      begin
       Str (I,S);
@@ -115,7 +115,7 @@ VAR
 
 BEGIN
     ProjectStart;
-    WindowTitle('Groups'); WindowPosition(TRWP_CENTERDISPLAY); WindowUnderscore(string('~')); WindowID(1);
+    WindowTitle('Groups'); WindowPosition(TRWP_CENTERDISPLAY); WindowUnderscore(ShortString('~')); WindowID(1);
 
     HorizGroupA; Space; VertGroupA;
     Space;
@@ -280,7 +280,7 @@ END;
 
 PROCEDURE do_gadgets;
 CONST
-  cycle_entries : ARRAY [0..10] OF PChar = (
+  cycle_entries : ARRAY [0..10] OF PAnsiChar = (
                   'Entry 0',
                   '1',
                   '2',
@@ -294,7 +294,7 @@ CONST
                   NIL);
 
 
-  mx_entries : ARRAY [0..3] OF PChar = (
+  mx_entries : ARRAY [0..3] OF PAnsiChar = (
                   'Choice 0',
                   'Choice 1',
                   'Choice 2',
@@ -815,7 +815,7 @@ END;
 PROCEDURE do_lists;
 CONST
 
-    LVList1Strings : ARRAY[0..18] OF PChar = (
+    LVList1Strings : ARRAY[0..18] OF PAnsiChar = (
                        'This is a' ,
                        'READ ONLY' ,
                        'Listview' ,
@@ -838,7 +838,7 @@ CONST
 
 
 
-    LVList2Strings : ARRAY [0..8] OF PChar = (
+    LVList2Strings : ARRAY [0..8] OF PAnsiChar = (
                        'This is a' ,
                        'SELECT' ,
                        'Listview' ,
@@ -851,7 +851,7 @@ CONST
 
 
 
-    LVList3Strings : ARRAY [0..12] OF PChar = (
+    LVList3Strings : ARRAY [0..12] OF PAnsiChar = (
                        'This is a' ,
                        'SHOW' ,
                        'SELECTED' ,
@@ -951,8 +951,8 @@ VAR
     close_me          : BOOLEAN;
     trmsg             : pTR_Message;
     appwindow_project : pTR_Project;
-    chararray         : ARRAY [0..100] OF Char;
-    dirname           : PChar;
+    chararray         : ARRAY [0..100] OF AnsiChar;
+    dirname           : PAnsiChar;
     temp              : BOOLEAN;
     reqstr            : STRING[200];
 
@@ -1017,7 +1017,7 @@ VAR
     trmsg      : pTR_Message;
     quit       : BOOLEAN;
     reqstr     : string[255];
-    helpstring : PChar;
+    helpstring : PAnsiChar;
     abouttags  : Pointer;
 
 BEGIN
@@ -1111,7 +1111,7 @@ BEGIN
                                        END;
                                     END;
                  TRMS_HELP        : BEGIN
-                                      helpstring := PChar(TR_GetAttribute(Main_Project,trmsg^.trm_ID,TRDO_QuickHelpString));
+                                      helpstring := PAnsiChar(TR_GetAttribute(Main_Project,trmsg^.trm_ID,TRDO_QuickHelpString));
                                       IF helpstring <> NIL THEN BEGIN
                                          reqstr := 'Help for object ' + IntToStr(trmsg^.trm_ID) + ':' + #10 + '%h' + strpas(helpstring);
                                       END ELSE BEGIN

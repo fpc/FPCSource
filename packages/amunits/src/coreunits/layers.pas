@@ -82,7 +82,7 @@ const
  LAYERS_NOBACKFILL      = 1;
  LAYERS_BACKFILL        = 0;
 
- LAYERSNAME : PChar = 'layers.library';
+ LAYERSNAME : PAnsiChar = 'layers.library';
 
 VAR LayersBase : pLibrary = nil;
 

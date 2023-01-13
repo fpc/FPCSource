@@ -50,7 +50,7 @@ Type
 
     pFontContents = ^tFontContents;
     tFontContents = record
-        fc_FileName     : Array [0..MAXFONTPATH-1] of Char;
+        fc_FileName     : Array [0..MAXFONTPATH-1] of AnsiChar;
         fc_YSize        : Word;
         fc_Style        : Byte;
         fc_Flags        : Byte;
@@ -59,7 +59,7 @@ Type
 
    pTFontContents = ^tTFontContents;
    tTFontContents = record
-    tfc_FileName  : Array[0..MAXFONTPATH-3] of Char;
+    tfc_FileName  : Array[0..MAXFONTPATH-3] of AnsiChar;
     tfc_TagCount  : Word;
 
     tfc_YSize     : Word;
@@ -97,7 +97,7 @@ Type
         dfh_FileID      : Word;
         dfh_Revision    : Word;
         dfh_Segment     : Longint;
-        dfh_Name        : Array [0..MAXFONTNAME-1] of Char;
+        dfh_Name        : Array [0..MAXFONTNAME-1] of AnsiChar;
         dfh_TF          : tTextFont;
     end;
 
@@ -135,13 +135,13 @@ Type
     end;
 
 const
-    DISKFONTNAME : PChar = 'diskfont.library';
+    DISKFONTNAME : PAnsiChar = 'diskfont.library';
 
 VAR DiskfontBase : pLibrary = nil;
 
-FUNCTION AvailFonts(buffer : pCHAR location 'a0'; bufBytes : LONGINT location 'd0'; flags : LONGINT location 'd1') : LONGINT; syscall DiskfontBase 036;
+FUNCTION AvailFonts(buffer : PAnsiChar location 'a0'; bufBytes : LONGINT location 'd0'; flags : LONGINT location 'd1') : LONGINT; syscall DiskfontBase 036;
 PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader location 'a1'); syscall DiskfontBase 048;
-FUNCTION NewFontContents(fontsLock : BPTR location 'a0'; fontName : pCHAR location 'a1') : pFontContentsHeader; syscall DiskfontBase 042;
+FUNCTION NewFontContents(fontsLock : BPTR location 'a0'; fontName : PAnsiChar location 'a1') : pFontContentsHeader; syscall DiskfontBase 042;
 FUNCTION NewScaledDiskFont(sourceFont : pTextFont location 'a0'; destTextAttr : pTextAttr location 'a1') : pDiskFontHeader; syscall DiskfontBase 054;
 FUNCTION OpenDiskFont(textAttr : pTextAttr location 'a0') : pTextFont; syscall DiskfontBase 030;
 FUNCTION GetDiskFontCtrl(tagid : LONGINT location 'd0') : LONGINT; syscall DiskfontBase 060;

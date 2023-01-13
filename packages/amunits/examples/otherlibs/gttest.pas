@@ -34,7 +34,7 @@ var
     msggadget : pGadget;
     done : boolean;
 
-procedure CleanUp(why : string; rc : integer);
+procedure CleanUp(why : ShortString; rc : integer);
 begin
     LT_DeleteHandle(handle);
     if why <> '' then MessageBox('GTLayout Report',why,'OK');

@@ -15,7 +15,7 @@
  **********************************************************************}
 {
     History:
-    Added overlay functions for Pchar->Strings, functions
+    Added overlay functions for PAnsiChar->Strings, functions
     and procedures.
     14 Jul 2000.
 
@@ -375,10 +375,10 @@ Const
 
 Const
 
-    RXSNAME    : PChar = 'rexxsyslib.library';
-    RXSID      : PChar = 'rexxsyslib 1.06 (07 MAR 88)';
-    RXSDIR     : PChar = 'REXX';
-    RXSTNAME   : PChar = 'ARexx';
+    RXSNAME    : PAnsiChar = 'rexxsyslib.library';
+    RXSID      : PAnsiChar = 'rexxsyslib 1.06 (07 MAR 88)';
+    RXSDIR     : PAnsiChar = 'REXX';
+    RXSTNAME   : PAnsiChar = 'ARexx';
 
 { The REXX systems library structure.  This should be considered as    }
 { semi-private and read-only, except for documented exceptions.        }
@@ -481,26 +481,26 @@ Const
 VAR RexxSysBase : pLibrary = nil;
 
 const
-    REXXSYSLIBNAME : PChar = 'rexxsyslib.library';
+    REXXSYSLIBNAME : PAnsiChar = 'rexxsyslib.library';
 
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'); syscall RexxSysBase 156;
-FUNCTION CreateArgstring(const argstring : pCHAR location 'a0'; length : ULONG location 'd0') : pCHAR; syscall RexxSysBase 126;
-FUNCTION CreateRexxMsg(const port : pMsgPort location 'a0'; const extension : pCHAR location 'a1'; host : pCHAR location 'd0') : pRexxMsg; syscall RexxSysBase 144;
-PROCEDURE DeleteArgstring(argstring : pCHAR location 'a0'); syscall RexxSysBase 132;
+FUNCTION CreateArgstring(const argstring : PAnsiChar location 'a0'; length : ULONG location 'd0') : PAnsiChar; syscall RexxSysBase 126;
+FUNCTION CreateRexxMsg(const port : pMsgPort location 'a0'; const extension : PAnsiChar location 'a1'; host : PAnsiChar location 'd0') : pRexxMsg; syscall RexxSysBase 144;
+PROCEDURE DeleteArgstring(argstring : PAnsiChar location 'a0'); syscall RexxSysBase 132;
 PROCEDURE DeleteRexxMsg(packet : pRexxMsg location 'a0'); syscall RexxSysBase 150;
 FUNCTION FillRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'; mask : ULONG location 'd1') : LongBool; syscall RexxSysBase 162;
 FUNCTION IsRexxMsg(const msgptr : pRexxMsg location 'a0') : LongBool; syscall RexxSysBase 168;
-FUNCTION LengthArgstring(const argstring : pCHAR location 'a0') : ULONG; syscall RexxSysBase 138;
+FUNCTION LengthArgstring(const argstring : PAnsiChar location 'a0') : ULONG; syscall RexxSysBase 138;
 PROCEDURE LockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 450;
 PROCEDURE UnlockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 456;
 
-FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
+FUNCTION CreateArgstring(const argstring : ShortString; length : ULONG) : PAnsiChar;
 
 IMPLEMENTATION
 
-FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
+FUNCTION CreateArgstring(const argstring : ShortString; length : ULONG) : PAnsiChar;
 begin
-       CreateArgstring := CreateArgstring(PChar(RawByteString(argstring)),length);
+       CreateArgstring := CreateArgstring(PAnsiChar(RawByteString(argstring)),length);
 end;
 
 const

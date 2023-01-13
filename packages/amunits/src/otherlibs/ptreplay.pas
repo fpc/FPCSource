@@ -38,20 +38,20 @@ INTERFACE
 USES Exec;
 
  const
-     PTREPLAYNAME : PChar = 'ptreplay.library';
+     PTREPLAYNAME : PAnsiChar = 'ptreplay.library';
   { The rest is private for now, but more details may be released later.  }
 
   type
      PModule = ^TModule;
      TModule = record
-          mod_Name : PChar;
+          mod_Name : PAnsiChar;
      { The rest is private for now, but more details may be released later.  }
      end;
 
      { This structure is returned by GetSample function  }
      PPTSample = ^TPTSample;
      TPTSample = record
-          Name     : array[0..21] of Char; { Null terminated string with samplename  }
+          Name     : array[0..21] of AnsiChar; { Null terminated string with samplename  }
           Length   :  WORD;                { Sample length in words  }
           FineTune : BYTE;                 { FineTune of sample in lower 4 bits  }
           Volume   : BYTE;                 { Volume of sample  }
@@ -61,7 +61,7 @@ USES Exec;
 
 VAR PTReplayBase : pLibrary = nil;
 
-FUNCTION PTLoadModule(name : pCHAR location 'a0') : pModule; syscall PTReplayBase 030;
+FUNCTION PTLoadModule(name : PAnsiChar location 'a0') : pModule; syscall PTReplayBase 030;
 PROCEDURE PTUnloadModule(module : pModule location 'a0'); syscall PTReplayBase 036;
 FUNCTION PTPlay(module : pModule location 'a0') : ULONG; syscall PTReplayBase 042;
 FUNCTION PTStop(module : pModule location 'a0') : ULONG; syscall PTReplayBase 048;
@@ -86,16 +86,16 @@ FUNCTION PTGetPri : SHORTINT; syscall PTReplayBase 156;
 FUNCTION PTGetChan : SHORTINT; syscall PTReplayBase 162;
 FUNCTION PTGetSample(Module : pModule location 'a0'; Nr : smallint location 'd0') : pPTSample; syscall PTReplayBase 168;
 
-FUNCTION PTLoadModule(const name : String) : pModule;
+FUNCTION PTLoadModule(const name : ShortString) : pModule;
 
 IMPLEMENTATION
 
-FUNCTION PTLoadModule(const name : string) : pModule;
+FUNCTION PTLoadModule(const name : ShortString) : pModule;
 var
   s: RawByteString;
 begin
   s:=name;
-  PTLoadModule := PTLoadModule(PChar(s));
+  PTLoadModule := PTLoadModule(PAnsiChar(s));
 end;
 
 const

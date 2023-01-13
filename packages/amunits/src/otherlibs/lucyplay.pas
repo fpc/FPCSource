@@ -36,7 +36,7 @@ USES Exec;
 VAR LucyPlayBase : pLibrary = nil;
 
 const
-    LUCYPLAYNAME : PChar = 'lucyplay.library';
+    LUCYPLAYNAME : PAnsiChar = 'lucyplay.library';
 
   type
 
@@ -93,7 +93,7 @@ const
 PROCEDURE lucAudioFree(smp : pLucyPlaySample location 'a0'); syscall LucyPlayBase 48;
 FUNCTION lucAudioInit : LONGINT; syscall LucyPlayBase 30;
 PROCEDURE lucAudioKill; syscall LucyPlayBase 36;
-FUNCTION lucAudioLoad(fname : pCHAR location 'a0') : pLucyPlaySample; syscall LucyPlayBase 42;
+FUNCTION lucAudioLoad(fname : PAnsiChar location 'a0') : pLucyPlaySample; syscall LucyPlayBase 42;
 PROCEDURE lucAudioPlay(smp : pLucyPlaySample location 'a0'); syscall LucyPlayBase 54;
 PROCEDURE lucAudioStop; syscall LucyPlayBase 60;
 PROCEDURE lucAudioWait; syscall LucyPlayBase 66;

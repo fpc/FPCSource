@@ -22,7 +22,7 @@ program ShowDevs;
 
 uses exec,amigados;
 
-CONST   Device_Types : Array [0..2] OF pchar = (('DEVICE     '),
+CONST   Device_Types : Array [0..2] OF PAnsiChar = (('DEVICE     '),
                                                  ('DIRECTORY  '),
                                                  ('VOLUME     '));
 
@@ -31,8 +31,8 @@ VAR
     myrootptr    : pRootNode;
     myinfoptr    : pDosInfo;
     mydeviceptr  : pDeviceNode;
-    mystr        : pchar;
-    eingabe      : CHAR;
+    mystr        : PAnsiChar;
+    eingabe      : AnsiChar;
     mystartup    : pFileSysStartupMsg;
     myenvec      : pDOSEnvec;
     i            : longint;

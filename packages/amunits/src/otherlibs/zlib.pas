@@ -36,7 +36,7 @@ USES Exec;
 VAR ZLibBase : pLibrary = nil;
 
 const
-    ZLIBNAME : PChar = 'zlib.library';
+    ZLIBNAME : PAnsiChar = 'zlib.library';
 
   { Version 1.0  }
   { Compression strategy  }
@@ -54,9 +54,9 @@ FUNCTION GZ_Close(handle : POINTER location 'a0') : LONGINT; syscall ZLibBase 04
 FUNCTION GZ_CompressMem(srcbuf : POINTER location 'a0'; srclen : longword location 'd0'; destbuf : POINTER location 'a1'; destlen : longword location 'd1'; strategy : longword location 'd2'; level : longword location 'd3'; VAR poutlen : longword location 'a2') : LONGINT; syscall ZLibBase 114;
 FUNCTION GZ_DecompressMem(srcbuf : POINTER location 'a0'; srclen : longword location 'd0'; destbuf : POINTER location 'a1'; destlen : longword location 'd1') : LONGINT; syscall ZLibBase 120;
 FUNCTION GZ_FGetC(handle : POINTER location 'a0') : pLONGINT; syscall ZLibBase 060;
-FUNCTION GZ_FGetS(handle : POINTER location 'a0'; buf : pCHAR location 'a1'; len : longword location 'd0') : pCHAR; syscall ZLibBase 054;
+FUNCTION GZ_FGetS(handle : POINTER location 'a0'; buf : PAnsiChar location 'a1'; len : longword location 'd0') : PAnsiChar; syscall ZLibBase 054;
 FUNCTION GZ_FileLength(handle : POINTER location 'a0') : longword; syscall ZLibBase 138;
-FUNCTION GZ_Open(filename : pCHAR location 'a0'; openmode : longword location 'd0'; strategy : longword location 'd1'; level : longword location 'd2') : POINTER; syscall ZLibBase 030;
+FUNCTION GZ_Open(filename : PAnsiChar location 'a0'; openmode : longword location 'd0'; strategy : longword location 'd1'; level : longword location 'd2') : POINTER; syscall ZLibBase 030;
 FUNCTION GZ_OpenFromFH(fh : LONGINT location 'a0'; openmode : longword location 'd0'; strategy : longword location 'd1'; level : longword location 'd2') : POINTER; syscall ZLibBase 036;
 FUNCTION GZ_Read(handle : POINTER location 'a0'; buf : POINTER location 'a1'; len : longword location 'd0') : LONGINT; syscall ZLibBase 048;
 FUNCTION GZ_Write(handle : POINTER location 'a0'; buf : POINTER location 'a1'; len : longword location 'd0') : LONGINT; syscall ZLibBase 066;

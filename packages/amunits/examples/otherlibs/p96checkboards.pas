@@ -29,8 +29,8 @@ var
    LargestFreeMemory,
    MemoryClock,
    MoniSwitch  : Longint;
-   BoardName   : Pchar;
-   boardtmp    : array[0..200] of char;
+   BoardName   : PAnsiChar;
+   boardtmp    : array[0..200] of AnsiChar;
 
 FUNCTION GetMonitorValue(value : longint): STRING;
 BEGIN

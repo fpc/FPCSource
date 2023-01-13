@@ -265,16 +265,16 @@ Type
 VAR LocaleBase : pLocaleBase = nil;
 
 const
-    LOCALENAME : PChar = 'locale.library';
+    LOCALENAME : PAnsiChar = 'locale.library';
 
 PROCEDURE CloseCatalog(catalog : pCatalog location 'a0'); syscall LocaleBase 036;
 PROCEDURE CloseLocale(locale : pLocale location 'a0'); syscall LocaleBase 042;
 FUNCTION ConvToLower(locale : pLocale location 'a0'; character : ULONG location 'd0') : ULONG; syscall LocaleBase 048;
 FUNCTION ConvToUpper(locale : pLocale location 'a0'; character : ULONG location 'd0') : ULONG; syscall LocaleBase 054;
-PROCEDURE FormatDate(locale : pLocale location 'a0'; fmtTemplate : pCHAR location 'a1'; date : pDateStamp location 'a2'; putCharFunc : pHook location 'a3'); syscall LocaleBase 060;
-FUNCTION FormatString(locale : pLocale location 'a0'; fmtTemplate : pCHAR location 'a1'; dataStream : POINTER location 'a2'; putCharFunc : pHook location 'a3') : POINTER; syscall LocaleBase 066;
-FUNCTION GetCatalogStr(catalog : pCatalog location 'a0'; stringNum : LONGINT location 'd0'; defaultString : pCHAR location 'a1') : pCHAR; syscall LocaleBase 072;
-FUNCTION GetLocaleStr(locale : pLocale location 'a0'; stringNum : ULONG location 'd0') : pCHAR; syscall LocaleBase 078;
+PROCEDURE FormatDate(locale : pLocale location 'a0'; fmtTemplate : PAnsiChar location 'a1'; date : pDateStamp location 'a2'; putCharFunc : pHook location 'a3'); syscall LocaleBase 060;
+FUNCTION FormatString(locale : pLocale location 'a0'; fmtTemplate : PAnsiChar location 'a1'; dataStream : POINTER location 'a2'; putCharFunc : pHook location 'a3') : POINTER; syscall LocaleBase 066;
+FUNCTION GetCatalogStr(catalog : pCatalog location 'a0'; stringNum : LONGINT location 'd0'; defaultString : PAnsiChar location 'a1') : PAnsiChar; syscall LocaleBase 072;
+FUNCTION GetLocaleStr(locale : pLocale location 'a0'; stringNum : ULONG location 'd0') : PAnsiChar; syscall LocaleBase 078;
 FUNCTION IsAlNum(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 084;
 FUNCTION IsAlpha(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 090;
 FUNCTION IsCntrl(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 096;
@@ -286,17 +286,17 @@ FUNCTION IsPunct(locale : pLocale location 'a0'; character : ULONG location 'd0'
 FUNCTION IsSpace(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 132;
 FUNCTION IsUpper(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 138;
 FUNCTION IsXDigit(locale : pLocale location 'a0'; character : ULONG location 'd0') : LongBool; syscall LocaleBase 144;
-FUNCTION OpenCatalogA(locale : pLocale location 'a0'; name : pCHAR location 'a1'; tags : pTagItem location 'a2') : pCatalog; syscall LocaleBase 150;
-FUNCTION OpenLocale(name : pCHAR location 'a0') : pLocale; syscall LocaleBase 156;
-FUNCTION ParseDate(locale : pLocale location 'a0'; date : pDateStamp location 'a1'; fmtTemplate : pCHAR location 'a2'; getCharFunc : pHook location 'a3') : LongBool; syscall LocaleBase 162;
-FUNCTION StrConvert(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; buffer : POINTER location 'a2'; bufferSize : ULONG location 'd0'; typ : ULONG location 'd1') : ULONG; syscall LocaleBase 174;
-FUNCTION StrnCmp(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; string2 : pCHAR location 'a2'; length : LONGINT location 'd0'; typ : ULONG location 'd1') : LONGINT; syscall LocaleBase 180;
+FUNCTION OpenCatalogA(locale : pLocale location 'a0'; name : PAnsiChar location 'a1'; tags : pTagItem location 'a2') : pCatalog; syscall LocaleBase 150;
+FUNCTION OpenLocale(name : PAnsiChar location 'a0') : pLocale; syscall LocaleBase 156;
+FUNCTION ParseDate(locale : pLocale location 'a0'; date : pDateStamp location 'a1'; fmtTemplate : PAnsiChar location 'a2'; getCharFunc : pHook location 'a3') : LongBool; syscall LocaleBase 162;
+FUNCTION StrConvert(locale : pLocale location 'a0'; string1 : PAnsiChar location 'a1'; buffer : POINTER location 'a2'; bufferSize : ULONG location 'd0'; typ : ULONG location 'd1') : ULONG; syscall LocaleBase 174;
+FUNCTION StrnCmp(locale : pLocale location 'a0'; string1 : PAnsiChar location 'a1'; string2 : PAnsiChar location 'a2'; length : LONGINT location 'd0'; typ : ULONG location 'd1') : LONGINT; syscall LocaleBase 180;
 
-function OpenCatalog(locale : pLocale; name : pCHAR; Const argv : array of PtrUInt) : pCatalog;
+function OpenCatalog(locale : pLocale; name : PAnsiChar; Const argv : array of PtrUInt) : pCatalog;
 
 IMPLEMENTATION
 
-function OpenCatalog(locale : pLocale; name : pCHAR; Const argv : array of PtrUInt) : pCatalog;
+function OpenCatalog(locale : pLocale; name : PAnsiChar; Const argv : array of PtrUInt) : pCatalog;
 begin
     OpenCatalog := OpenCatalogA(locale,name,@argv);
 end;
