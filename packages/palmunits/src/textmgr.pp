@@ -83,7 +83,7 @@ const
 
 // Custom transliteration operations (defined in CharXXXX.h encoding-specific
 // header files.
-  translitOpCustomBase    = 1000;  // Beginning of char-encoding specific ops.
+  translitOpCustomBase    = 1000;  // Beginning of AnsiChar-encoding specific ops.
 
   translitOpPreprocess    = $8000; // Mask for pre-process option, where
                                    // no transliteration actually is done.
@@ -108,9 +108,9 @@ const
 // Various byte attribute flags. Note that multiple flags can be
 // set, thus a byte could be both a single-byte character, or the first
 // byte of a multi-byte character.
-  byteAttrFirst  = $80; // First byte of multi-byte char.
-  byteAttrLast   = $40; // Last byte of multi-byte char.
-  byteAttrMiddle = $20; // Middle byte of muli-byte char.
+  byteAttrFirst  = $80; // First byte of multi-byte AnsiChar.
+  byteAttrLast   = $40; // Last byte of multi-byte AnsiChar.
+  byteAttrMiddle = $20; // Middle byte of muli-byte AnsiChar.
   byteAttrSingle = $01; // Single byte.
 
 // Character attribute flags. These replace the old flags defined in
@@ -139,7 +139,7 @@ const
 // same is true of sizeof('a'), sizeof('\0'), and sizeof(chrNull). For this
 // reason it's safest to use the sizeOf7BitChar macro to document buffer size
 // and string length calcs. Note that this can only be used with low-ascii
-// characters, as anything else might be the high byte of a double-byte char.
+// characters, as anything else might be the high byte of a double-byte AnsiChar.
 
 //!!! sizeOf7BitChar(c) = 1;
 
@@ -184,8 +184,8 @@ function TxtCharIsHardKey(m, c: UInt16): Boolean;
 // in PalmOSGlue.lib
 function TxtCharIsVirtual(m, c: UInt16): Boolean;
 
-function TxtPreviousCharSize(const inText: PChar; inOffset: UInt32): UInt16;
-function TxtNextCharSize(const inText: PChar; inOffset: UInt32): UInt16;
+function TxtPreviousCharSize(const inText: PAnsiChar; inOffset: UInt32): UInt16;
+function TxtNextCharSize(const inText: PAnsiChar; inOffset: UInt32): UInt16;
 
 (***********************************************************************
  * Public routines
@@ -218,21 +218,21 @@ function TxtCharWidth(inChar: WChar): Int16; syscall sysTrapIntlDispatch, intlTx
 // Load the character before offset <inOffset> in the <inText> text. Return
 // back the size of the character.
 
-function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetPreviousChar;
+function TxtGetPreviousChar(const inText: PAnsiChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetPreviousChar;
 
 // Load the character at offset <inOffset> in the <inText> text. Return
 // back the size of the character.
 
-function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetNextChar;
+function TxtGetNextChar(const inText: PAnsiChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetNextChar;
 
 // Return the character at offset <inOffset> in the <inText> text.
 
-function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtGetChar;
+function TxtGetChar(const inText: PAnsiChar; inOffset: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtGetChar;
 
 // Set the character at offset <inOffset> in the <inText> text, and
 // return back the size of the character.
 
-function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtSetNextChar;
+function TxtSetNextChar(ioText: PAnsiChar; inOffset: UInt32; inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtSetNextChar;
 
 // Replace the substring "^X" (where X is 0..9, as specified by <inParamNum>)
 // with the string <inParamStr>. If <inParamStr> is NULL then don't modify <ioStr>.
@@ -240,38 +240,38 @@ function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
 // excluding the terminating null. Return back the number of occurances of
 // the substring found in <ioStr>.
 
-function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16; syscall sysTrapIntlDispatch, intlTxtReplaceStr;
+function TxtReplaceStr(ioStr: PAnsiChar; inMaxLen: UInt16; const inParamStr: PAnsiChar; inParamNum: UInt16): UInt16; syscall sysTrapIntlDispatch, intlTxtReplaceStr;
 
 // Allocate a handle containing the result of substituting param0...param3
 // for ^0...^3 in <inTemplate>, and return the locked result. If a parameter
 // is NULL, replace the corresponding substring in the template with "".
 
-function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar; syscall sysTrapIntlDispatch, intlTxtParamString;
+function TxtParamString(const inTemplate, param0, param1, param2, param3: PAnsiChar): PAnsiChar; syscall sysTrapIntlDispatch, intlTxtParamString;
 
 // Return the bounds of the character at <inOffset> in the <inText>
 // text, via the <outStart> & <outEnd> offsets, and also return the
 // actual value of character at or following <inOffset>.
 
-function TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtCharBounds;
+function TxtCharBounds(const inText: PAnsiChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtCharBounds;
 
 // Return the appropriate byte position for truncating <inText> such that it is
 // at most <inOffset> bytes long.
 
-function TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetTruncationOffset;
+function TxtGetTruncationOffset(const inText: PAnsiChar; inOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetTruncationOffset;
 
 // Search for <inTargetStr> in <inSourceStr>. If found return true and pass back
 // the found position (byte offset) in <outPos>, and the length of the matched
 // text in <outLength>.
 
-function TxtFindString(const inSourceStr, inTargetStr: PChar;
+function TxtFindString(const inSourceStr, inTargetStr: PAnsiChar;
                        var outPos: UInt32; var outLength: UInt16): Boolean; syscall sysTrapIntlDispatch, intlTxtFindString;
 
 // Find the bounds of the word that contains the character at <inOffset>.
 // Return the offsets in <*outStart> and <*outEnd>. Return true if the
-// word we found was not empty & not a delimiter (attribute of first char
+// word we found was not empty & not a delimiter (attribute of first AnsiChar
 // in word not equal to space or punct).
 
-function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
+function TxtWordBounds(const inText: PAnsiChar; inLength, inOffset: UInt32;
                        var outStart, outEnd: UInt32): Boolean; syscall sysTrapIntlDispatch, intlTxtWordBounds;
 
 // Return the offset of the first break position (for text wrapping) that
@@ -279,7 +279,7 @@ function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
 // also add trailing spaces and a trailing linefeed to the break position,
 // thus the result could be greater than <iOffset>.
 
-function TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetWordWrapOffset;
+function TxtGetWordWrapOffset(const iTextP: PAnsiChar; iOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetWordWrapOffset;
 
 // Return the minimum (lowest) encoding required for <inChar>. If we
 // don't know about the character, return encoding_Unknown.
@@ -290,7 +290,7 @@ function TxtCharEncoding(inChar: WChar): CharEncodingType; syscall sysTrapIntlDi
 // This is the maximum encoding of any character in the string, where
 // highest is unknown, and lowest is ascii.
 
-function TxtStrEncoding(const inStr: PChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtStrEncoding;
+function TxtStrEncoding(const inStr: PAnsiChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtStrEncoding;
 
 // Return the higher (max) encoding of <a> and <b>.
 
@@ -299,12 +299,12 @@ function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType; syscall sysTr
 // Return a pointer to the 'standard' name for <inEncoding>. If the
 // encoding is unknown, return a pointer to an empty string.
 
-function TxtEncodingName(inEncoding: CharEncodingType): PChar; syscall sysTrapIntlDispatch, intlTxtEncodingName;
+function TxtEncodingName(inEncoding: CharEncodingType): PAnsiChar; syscall sysTrapIntlDispatch, intlTxtEncodingName;
 
 // Map from a character set name <iEncodingName> to a CharEncodingType.
 // If the character set name is unknown, return charEncodingUnknown.
 
-function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtNameToEncoding;
+function TxtNameToEncoding(const iEncodingName: PAnsiChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtNameToEncoding;
 
 // Transliterate <inSrcLength> bytes of text found in <inSrcText>, based
 // on the requested <inOp> operation. Place the results in <outDstText>,
@@ -316,7 +316,7 @@ function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType; syscal
 // <ioDstLength> will contain the total space required in the destination
 // buffer in order to perform the operation.
 
-function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstText: PChar;
+function TxtTransliterate(const inSrcText: PAnsiChar; inSrcLength: UInt16; outDstText: PAnsiChar;
                           var ioDstLength: UInt16; inOp: TranslitOpType): Err; syscall sysTrapIntlDispatch, intlTxtTransliterate;
 
 // Convert <*ioSrcBytes> of text from <srcTextP> between the <srcEncoding>
@@ -351,9 +351,9 @@ function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstTex
 // Note that the substitution string must use the destination character encoding.
 
 function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;
-         const srcTextP: PChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
-         dstTextP: PChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
-         const substitutionStr: PChar; substitutionLen: UInt16): Err; syscall sysTrapIntlDispatch, intlTxtConvertEncoding;
+         const srcTextP: PAnsiChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
+         dstTextP: PAnsiChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
+         const substitutionStr: PAnsiChar; substitutionLen: UInt16): Err; syscall sysTrapIntlDispatch, intlTxtConvertEncoding;
 
 // Return true if <inChar> is a valid (drawable) character. Note that we'll
 // return false if it is a virtual character code.
@@ -368,8 +368,8 @@ function TxtCharIsValid(inChar: WChar): Boolean; syscall sysTrapIntlDispatch, in
 // This comparison is "caseless", in the same manner as a find operation,
 // thus case, character size, etc. don't matter.
 
-function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCaselessCompare;
+function TxtCaselessCompare(const s1: PAnsiChar; s1Len: UInt16; var s1MatchLen: UInt16;
+                            const s2: PAnsiChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCaselessCompare;
 
 // Compare the first <s1Len> bytes of <s1> with the first <s2Len> bytes
 // of <s2>. Return the results of the comparison: < 0 if <s1> sorts before
@@ -377,8 +377,8 @@ function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt
 // the number of bytes that matched in <s1MatchLen> and <s2MatchLen>
 // (either one of which can be NULL if the match length is not needed).
 
-function TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCompare;
+function TxtCompare(const s1: PAnsiChar; s1Len: UInt16; var s1MatchLen: UInt16;
+                    const s2: PAnsiChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCompare;
 
 implementation
 
@@ -455,12 +455,12 @@ begin
   TxtCharIsVirtual := (m and commandKeyMask) <> 0;
 end;
 
-function TxtPreviousCharSize(const inText: PChar; inOffset: UInt32): UInt16;
+function TxtPreviousCharSize(const inText: PAnsiChar; inOffset: UInt32): UInt16;
 begin
   TxtPreviousCharSize := TxtGetPreviousChar(inText, inOffset, nil);
 end;
 
-function TxtNextCharSize(const inText: PChar; inOffset: UInt32): UInt16;
+function TxtNextCharSize(const inText: PAnsiChar; inOffset: UInt32): UInt16;
 begin
  TxtNextCharSize := TxtGetNextChar(inText, inOffset, nil);
 end;

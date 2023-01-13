@@ -84,8 +84,8 @@ type
                                                   // false otherwise.
     canProcP: MdmUserCanProcPtr;                  // ptr to user-cancel function
     userRef: UInt32;                              // parameter for canProcP()
-    cmdBuf: array [0..mdmCmdBufSize-1] of Char;   // build all commands here
-    respBuf: array [0..mdmRespBufSize-1] of Char; // response buffer
+    cmdBuf: array [0..mdmCmdBufSize-1] of AnsiChar;   // build all commands here
+    respBuf: array [0..mdmRespBufSize-1] of AnsiChar; // response buffer
     connectBaud: UInt32;                          // baud at which connection was established
                                                   // (0 = unknown)
     curStage: UInt8;                              // set by ModemMgr to report current MdmStageEnum
@@ -131,7 +131,7 @@ const
 // API
 //-------------------------------------------------------------------
 
-function MdmDial(modemP: MdmInfoPtr; okDialP, userInitP, phoneNumP: PChar): Err; syscall sysTrapMdmDial;
+function MdmDial(modemP: MdmInfoPtr; okDialP, userInitP, phoneNumP: PAnsiChar): Err; syscall sysTrapMdmDial;
 
 function MdmHangUp(modemP: MdmInfoPtr): Err; syscall sysTrapMdmHangUp;
 

@@ -230,7 +230,7 @@ const
 function DmInit: Err; syscall sysTrapDmInit;
 
 // Directory Lists
-function DmCreateDatabase(cardNo: UInt16; const nameP: PChar;
+function DmCreateDatabase(cardNo: UInt16; const nameP: PAnsiChar;
                           creator, type_: UInt32; resDB: Boolean): Err; syscall sysTrapDmCreateDatabase;
 
 function DmCreateDatabaseFromImage(bufferP: MemPtr): Err; syscall sysTrapDmCreateDatabaseFromImage;
@@ -242,18 +242,18 @@ function DmNumDatabases(cardNo: UInt16): UInt16; syscall sysTrapDmNumDatabases;
 
 function DmGetDatabase(cardNo, index: UInt16): LocalID; syscall sysTrapDmGetDatabase;
 
-function DmFindDatabase(cardNo: UInt16; const nameP: PChar): LocalID; syscall sysTrapDmFindDatabase;
+function DmFindDatabase(cardNo: UInt16; const nameP: PAnsiChar): LocalID; syscall sysTrapDmFindDatabase;
 
 function DmGetNextDatabaseByTypeCreator(newSearch: Boolean; stateInfoP: DmSearchStatePtr;
                                         type_, creator: UInt32; onlyLatestVers: Boolean;
                                         var cardNoP: UInt16; var dbIDP: LocalID): Err; syscall sysTrapDmGetNextDatabaseByTypeCreator;
 
 // Database info
-function DmDatabaseInfo(cardNo: UInt16; dbID: LocalID; nameP: PChar;
+function DmDatabaseInfo(cardNo: UInt16; dbID: LocalID; nameP: PAnsiChar;
                         var attributesP, versionP: UInt16; var crDateP, modDateP, bckUpDateP, modNumP: UInt32;
                         var appInfoIDP, sortInfoIDP: LocalID; var typeP, creatorP: UInt32): Err; syscall sysTrapDmDatabaseInfo;
 
-function DmSetDatabaseInfo(cardNo: UInt16; dbID: LocalID; const nameP: PChar;
+function DmSetDatabaseInfo(cardNo: UInt16; dbID: LocalID; const nameP: PAnsiChar;
                            var attributesP, versionP: UInt16; var crDateP, modDateP, bckUpDateP, modNumP: UInt32;
                            var appInfoIDP, sortInfoIDP: LocalID; var typeP, creatorP: UInt32): Err; syscall sysTrapDmSetDatabaseInfo;
 
@@ -359,7 +359,7 @@ function DmWriteCheck(recordP: Pointer; offset, bytes: UInt32): Err; syscall sys
 // Writing
 function DmWrite(recordP: Pointer; offset: UInt32; const srcP: Pointer; bytes: UInt32): Err; syscall sysTrapDmWrite;
 
-function DmStrCopy(recordP: Pointer; offset: UInt32; const srcP: PChar): Err; syscall sysTrapDmStrCopy;
+function DmStrCopy(recordP: Pointer; offset: UInt32; const srcP: PAnsiChar): Err; syscall sysTrapDmStrCopy;
 
 function DmSet(recordP: Pointer; offset, bytes: UInt32; value: UInt8): Err; syscall sysTrapDmSet;
 

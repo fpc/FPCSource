@@ -75,9 +75,9 @@ type
     UInt16  noStatus:1;      // Do not display status dialogs
     UInt16  reserved:12;     // reserved system flags
 }
-    description: PChar;      // text description of object (for user)
-    type_: PChar;            // Mime type of object (optional)
-    name: PChar;             // name of object, generally a file name (optional)
+    description: PAnsiChar;      // text description of object (for user)
+    type_: PAnsiChar;            // Mime type of object (optional)
+    name: PAnsiChar;             // name of object, generally a file name (optional)
   end;
 
   ExgSocketPtr = ^ExgSocketType;
@@ -109,7 +109,7 @@ type
   end;
 
 const
-  exgSeparatorChar    = #9;    // '\t' char used to separate multiple registry entries
+  exgSeparatorChar    = #9;    // '\t' AnsiChar used to separate multiple registry entries
 
   exgRegLibraryID     = $fffc; // library register thier presence
   exgRegExtensionID   = $fffd; // filename extenstion registry
@@ -123,7 +123,7 @@ const
 
 type
   ExgDBReadProc = function(dataP: Pointer; var sizeP: UInt32; userDataP: Pointer): Err;
-  ExgDBDeleteProc = function(const nameP: PChar; version, cardNo: UInt16; dbID: LocalID; userDataP: Pointer): Boolean;
+  ExgDBDeleteProc = function(const nameP: PAnsiChar; version, cardNo: UInt16; dbID: LocalID; userDataP: Pointer): Boolean;
   ExgDBWriteProc = function(const dataP: Pointer; var sizeP: UInt32; userDataP: Pointer): Err;
 
 function ExgInit: Err; syscall sysTrapExgInit;
@@ -142,7 +142,7 @@ function ExgSend(socketP: ExgSocketPtr; const bufP: Pointer; const bufLen: UInt3
 
 function ExgReceive(socketP: ExgSocketPtr; bufP: Pointer; const bufLen: UInt32; var err: Err): UInt32; syscall sysTrapExgReceive;
 
-function ExgRegisterData(const creatorID: UInt32; const id: UInt16; const dataTypesP: PChar): Err; syscall sysTrapExgRegisterData;
+function ExgRegisterData(const creatorID: UInt32; const id: UInt16; const dataTypesP: PAnsiChar): Err; syscall sysTrapExgRegisterData;
 
 function ExgNotifyReceive(socketP: ExgSocketPtr): Err; syscall sysTrapExgNotifyReceive;
 
@@ -152,7 +152,7 @@ function ExgDBRead(readProcP: ExgDBReadProc; deleteProcP: ExgDBDeleteProc;
                    var needResetP: Boolean; keepDates: Boolean): Err; syscall sysTrapExgDBRead;
 
 function ExgDBWrite(writeProcP: ExgDBWriteProc;
-                    userDataP: Pointer; const nameP: PChar; dbID: LocalID; cardNo: UInt16): Err; syscall sysTrapExgDBWrite;
+                    userDataP: Pointer; const nameP: PAnsiChar; dbID: LocalID; cardNo: UInt16): Err; syscall sysTrapExgDBWrite;
 
 
 function ExgDoDialog(socketP: ExgSocketPtr; var infoP: ExgDialogInfoType; var errP: Err): Boolean; syscall sysTrapExgDoDialog;

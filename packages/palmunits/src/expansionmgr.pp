@@ -39,10 +39,10 @@ const
 type
   ExpCardInfoTag = record
     capabilityFlags: UInt32;                                       // bits for different stuff the card supports
-    manufacturerStr: array [0..expCardInfoStringMaxLen] of Char;   // Manufacturer, e.g., "Palm", "Motorola", etc...
-    productStr: array [0..expCardInfoStringMaxLen] of Char;        // Name of product, e.g., "SafeBackup 32MB"
-    deviceClassStr: array [0..expCardInfoStringMaxLen] of Char;    // Type of product, e.g., "Backup", "Ethernet", etc.
-    deviceUniqueIDStr: array [0..expCardInfoStringMaxLen] of Char; // Unique identifier for product, e.g., a serial number.  Set to "" if no such identifier exists.
+    manufacturerStr: array [0..expCardInfoStringMaxLen] of AnsiChar;   // Manufacturer, e.g., "Palm", "Motorola", etc...
+    productStr: array [0..expCardInfoStringMaxLen] of AnsiChar;        // Name of product, e.g., "SafeBackup 32MB"
+    deviceClassStr: array [0..expCardInfoStringMaxLen] of AnsiChar;    // Type of product, e.g., "Backup", "Ethernet", etc.
+    deviceUniqueIDStr: array [0..expCardInfoStringMaxLen] of AnsiChar; // Unique identifier for product, e.g., a serial number.  Set to "" if no such identifier exists.
   end;
   ExpCardInfoType = ExpCardInfoTag;
   ExpCardInfoPtr = ^ExpCardInfoType;

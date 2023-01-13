@@ -107,13 +107,13 @@ const
 
 type
   AddrLookupParamsType = record
-    title: PChar;
+    title: PAnsiChar;
       // Title to appear in the title bar.  If NULL the default is used.
 
-    pasteButtonText: PChar;
+    pasteButtonText: PAnsiChar;
       // Text to appear in paste button.  If NULL "paste" is used.
 
-    lookupString: array [0..addrLookupStringLength-1] of Char;
+    lookupString: array [0..addrLookupStringLength-1] of AnsiChar;
       // Buffer containing string to lookup.  If the string matches
       // only one record then that record is used without
       // presenting the user with the lookup dialog.
@@ -143,7 +143,7 @@ type
       // lookups.  False means a non unique and complete lookup
       // returns resultStringH set to 0 and recordID set to 0;
 
-    formatStringP: PChar;
+    formatStringP: PAnsiChar;
       // When the user selects the paste button a string is generated
       // to return data from the record.  The format of the result string
       // is controlled by this string.  All characters which appear
@@ -226,25 +226,25 @@ type
 
     padding: UInt8;
 
-    subject: PChar;
+    subject: PAnsiChar;
       // Message's subject, a null-terminated string (optional).
 
-    from: PChar;
+    from: PAnsiChar;
       // Message's send, a null-terminated string (not currently used).
 
-    to_: PChar;
+    to_: PAnsiChar;
       // Address the the recipient, a null-terminated string (required).
 
-    cc: PChar;
+    cc: PAnsiChar;
       // Copy Addresses, a null-terminated string (required).
 
-    bcc: PChar;
+    bcc: PAnsiChar;
       // Blind copy Addresses, a null-terminated string (required).
 
-    replyTo: PChar;
+    replyTo: PAnsiChar;
       // Reply to address, a null-terminated string (required).
 
-    body: PChar;
+    body: PAnsiChar;
       // The text of the message, a null-terminated string (required).
   end;
 
@@ -276,19 +276,19 @@ type
       // True means that signature from the Mail application's preferences
       // should be attached to the message.
 
-    subject: PChar;
+    subject: PAnsiChar;
       // Message's subject, a null-terminated string (optional).
 
-    from: PChar;
+    from: PAnsiChar;
       // Message's send, a null-terminated string (not currently used).
 
-    to_: PChar;
+    to_: PAnsiChar;
       // Address the the recipient, a null-terminated string (required).
 
-    replyTo: PChar;
+    replyTo: PAnsiChar;
       // Reply to address, a null-terminated string (required).
 
-    body: PChar;
+    body: PAnsiChar;
       // The text of the message, a null-terminated string (required).
   end;
 

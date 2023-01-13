@@ -125,7 +125,7 @@ type
     searchState: DmSearchStateType;
     systemDBRef: DmOpenRef;
     systemDBCard: UInt16;
-    systemDBName: array [0..dmDBNameLength-1] of Char;
+    systemDBName: array [0..dmDBNameLength-1] of AnsiChar;
     systemDBNameLen: Int16;
     curLocale: LmLocaleType;
     didNoOverlaySystem: Boolean;
@@ -142,14 +142,14 @@ type
 // <targetLocale> param in NULL, use the current locale. The <overlayDBName>
 // buffer must be at least dmDBNameLength bytes.
 
-function OmLocaleToOverlayDBName(const baseDBName: PChar; {const} var targetLocale: LmLocaleType;
-                                 overlayDBName: PChar): Err; syscall sysTrapOmDispatch, omLocaleToOverlayDBName_;
+function OmLocaleToOverlayDBName(const baseDBName: PAnsiChar; {const} var targetLocale: LmLocaleType;
+                                 overlayDBName: PAnsiChar): Err; syscall sysTrapOmDispatch, omLocaleToOverlayDBName_;
 
 // Given the name of an overlay database in <overlayDBName>, return back
 // the overlay in overlayLocale. If the name isn't an overlay name,
 // return omErrBadOverlayDBName.
 
-function OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err; syscall sysTrapOmDispatch, omOverlayDBNameToLocale_;
+function OmOverlayDBNameToLocale(const overlayDBName: PAnsiChar; var overlayLocale: LmLocaleType): Err; syscall sysTrapOmDispatch, omOverlayDBNameToLocale_;
 
 // Return the current locale in <currentLocale>. This may not be the same as
 // the system locale, which will take effect after the next reset.

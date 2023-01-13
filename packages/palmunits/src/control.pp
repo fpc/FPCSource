@@ -81,7 +81,7 @@ type
 {$ifdef ALLOW_ACCESS_TO_INTERNALS_OF_CONTROLS} // These fields will not be available in the next OS release!
     id: UInt16;
     bounds: RectangleType;
-    text: PChar;
+    text: PAnsiChar;
     attr: ControlAttrType;
     style: ControlStyleType;
     font: FontID;
@@ -153,9 +153,9 @@ function CtlGetValue(const controlP: ControlPtr): Int16; syscall sysTrapCtlGetVa
 
 procedure CtlSetValue(controlP: ControlPtr; newValue: Int16); syscall sysTrapCtlSetValue;
 
-function CtlGetLabel(const controlP: ControlPtr): PChar; syscall sysTrapCtlGetLabel;
+function CtlGetLabel(const controlP: ControlPtr): PAnsiChar; syscall sysTrapCtlGetLabel;
 
-procedure CtlSetLabel(controlP: ControlPtr; const newLabel: PChar); syscall sysTrapCtlSetLabel;
+procedure CtlSetLabel(controlP: ControlPtr; const newLabel: PAnsiChar); syscall sysTrapCtlSetLabel;
 
 procedure CtlSetGraphics(ctlP: ControlPtr; newBitmapID, newSelectedBitmapID: DmResID); syscall sysTrapCtlSetGraphics;
 
@@ -172,7 +172,7 @@ function CtlHandleEvent(controlP: ControlPtr; pEvent: EventPtr): Boolean; syscal
 
 function CtlValidatePointer(const controlP: ControlPtr): Boolean; syscall sysTrapCtlValidatePointer;
 
-function CtlNewControl(formPP: PointerPtr; ID: UInt16; style: ControlStyleType; const textP: PChar;
+function CtlNewControl(formPP: PointerPtr; ID: UInt16; style: ControlStyleType; const textP: PAnsiChar;
                        x, y, width, height: Coord; font: FontID; group: UInt8; leftAnchor: Boolean): ControlPtr; syscall sysTrapCtlNewControl;
 
 function CtlNewGraphicControl(formPP: PointerPtr; ID: UInt16; style: ControlStyleType; bitmapID, selectedBitmapID: DmResID;

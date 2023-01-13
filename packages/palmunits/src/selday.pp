@@ -28,9 +28,9 @@ const
   daySelectorMinYear = firstYear;
   daySelectorMaxYear = lastYear;
 
-function SelectDayV10(var month, day, year: Int16; const title: PChar): Boolean; syscall sysTrapSelectDayV10;
+function SelectDayV10(var month, day, year: Int16; const title: PAnsiChar): Boolean; syscall sysTrapSelectDayV10;
 
-function SelectDay(const selectDayBy: SelectDayType; var month, day, year: Int16; const title: PChar): Boolean; syscall sysTrapSelectDay;
+function SelectDay(const selectDayBy: SelectDayType; var month, day, year: Int16; const title: PAnsiChar): Boolean; syscall sysTrapSelectDay;
 
 implementation
 

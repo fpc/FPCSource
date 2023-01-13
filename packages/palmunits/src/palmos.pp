@@ -52,7 +52,7 @@ type
   UInt32Ptr = ^UInt32;
   PointerPtr = ^Pointer;
 
-  PCharPtr = ^PChar;
+  PCharPtr = ^PAnsiChar;
   MemPtrPtr = ^MemPtr;
   WCharPtr = ^WChar;
   Smallint = Integer;

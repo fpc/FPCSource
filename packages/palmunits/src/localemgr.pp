@@ -79,12 +79,12 @@ type
 const
   lmChoiceLocale = LmLocaleSettingChoice(1);
 
-// Char[kMaxLanguageNameLen+1] - Name of the language spoken there (localized)
+// AnsiChar[kMaxLanguageNameLen+1] - Name of the language spoken there (localized)
 
 const
   lmChoiceLanguageName = LmLocaleSettingChoice(4);
 
-// Char[kMaxCountryNameLen+1] - Name of the country (localized)
+// AnsiChar[kMaxCountryNameLen+1] - Name of the country (localized)
 
   lmChoiceCountryName = LmLocaleSettingChoice(5);
 
@@ -112,15 +112,15 @@ const
 
   lmChoiceNumberFormat = LmLocaleSettingChoice(11);
 
-// Char[kMaxCurrencyNameLen+1] - Name of local currency (e.g., "US Dollar")
+// AnsiChar[kMaxCurrencyNameLen+1] - Name of local currency (e.g., "US Dollar")
 
   lmChoiceCurrencyName = LmLocaleSettingChoice(12);
 
-// Char[kMaxCurrencySymbolLen+1] - Currency symbol (e.g., "$")
+// AnsiChar[kMaxCurrencySymbolLen+1] - Currency symbol (e.g., "$")
 
   lmChoiceCurrencySymbol = LmLocaleSettingChoice(13);
 
-// Char[kMaxCurrencySymbolLen+1] - Unique currency symbol (e.g., "US$")
+// AnsiChar[kMaxCurrencySymbolLen+1] - Unique currency symbol (e.g., "US$")
 
   lmChoiceUniqueCurrencySymbol = LmLocaleSettingChoice(14);
 

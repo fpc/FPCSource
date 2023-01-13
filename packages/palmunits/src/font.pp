@@ -105,26 +105,26 @@ function FntLineHeight: Int16; syscall sysTrapFntLineHeight;
 
 function FntAverageCharWidth: Int16; syscall sysTrapFntAverageCharWidth;
 
-function FntCharWidth(ch: Char): Int16; syscall sysTrapFntCharWidth;
+function FntCharWidth(ch: AnsiChar): Int16; syscall sysTrapFntCharWidth;
 
 function FntWCharWidth(iChar: WChar): Int16; syscall sysTrapFntWCharWidth;
 
-function FntCharsWidth(const chars: PChar; len: Int16): Int16; syscall sysTrapFntCharsWidth;
+function FntCharsWidth(const chars: PAnsiChar; len: Int16): Int16; syscall sysTrapFntCharsWidth;
 
-function FntWidthToOffset(const pChars: PChar; length: UInt16; pixelWidth: Int16; var leadingEdge: Boolean; var truncWidth: Int16): Int16; syscall sysTrapFntWidthToOffset;
+function FntWidthToOffset(const pChars: PAnsiChar; length: UInt16; pixelWidth: Int16; var leadingEdge: Boolean; var truncWidth: Int16): Int16; syscall sysTrapFntWidthToOffset;
 
-procedure FntCharsInWidth(const AString: PChar; var stringWidthP, stringLengthP: Int16;
+procedure FntCharsInWidth(const AString: PAnsiChar; var stringWidthP, stringLengthP: Int16;
                           var fitWithinWidth: Boolean); syscall sysTrapFntCharsInWidth;
 
 function FntDescenderHeight: Int16; syscall sysTrapFntDescenderHeight;
 
-function FntLineWidth(const pChars: PChar; length: UInt16): Int16; syscall sysTrapFntLineWidth;
+function FntLineWidth(const pChars: PAnsiChar; length: UInt16): Int16; syscall sysTrapFntLineWidth;
 
-function FntWordWrap(const chars: PChar; maxWidth: UInt16): UInt16; syscall sysTrapFntWordWrap;
+function FntWordWrap(const chars: PAnsiChar; maxWidth: UInt16): UInt16; syscall sysTrapFntWordWrap;
 
-procedure FntWordWrapReverseNLines(const chars: PChar; maxWidth: UInt16; var linesToScrollP, scrollPosP: UInt16); syscall sysTrapFntWordWrapReverseNLines;
+procedure FntWordWrapReverseNLines(const chars: PAnsiChar; maxWidth: UInt16; var linesToScrollP, scrollPosP: UInt16); syscall sysTrapFntWordWrapReverseNLines;
 
-procedure FntGetScrollValues(const chars: PChar; width, scrollPos: UInt16; var linesP, topLine: UInt16); syscall sysTrapFntGetScrollValues;
+procedure FntGetScrollValues(const chars: PAnsiChar; width, scrollPos: UInt16; var linesP, topLine: UInt16); syscall sysTrapFntGetScrollValues;
 
 function FntDefineFont(font: FontID; fontP: FontPtr): Err; syscall sysTrapFntDefineFont;
 

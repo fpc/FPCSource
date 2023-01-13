@@ -96,9 +96,9 @@ function MemInitHeapTable(cardNo: UInt16): Err; syscall sysTrapMemInitHeapTable;
 
 function MemNumCards: UInt16; syscall sysTrapMemNumCards;
 
-function MemCardFormat(cardNo: UInt16; const cardNameP, manufNameP, ramStoreNameP: PChar): Err; syscall sysTrapMemCardFormat;
+function MemCardFormat(cardNo: UInt16; const cardNameP, manufNameP, ramStoreNameP: PAnsiChar): Err; syscall sysTrapMemCardFormat;
 
-function MemCardInfo(cardNo: UInt16; cardNameP, manufNameP: PChar; var versionP: UInt16;
+function MemCardInfo(cardNo: UInt16; cardNameP, manufNameP: PAnsiChar; var versionP: UInt16;
                      var crDateP, romSizeP, ramSizeP, freeBytesP: UInt32): Err; syscall sysTrapMemCardInfo;
 
 //-------------------------------------------------------------------
@@ -106,11 +106,11 @@ function MemCardInfo(cardNo: UInt16; cardNameP, manufNameP: PChar; var versionP:
 //-------------------------------------------------------------------
 
 function MemStoreInfo(cardNo, storeNumber: UInt16; var versionP, flagsP: UInt16;
-                      nameP: PChar; var crDateP, bckUpDateP, heapListOffsetP, initCodeOffset1P,
+                      nameP: PAnsiChar; var crDateP, bckUpDateP, heapListOffsetP, initCodeOffset1P,
                       initCodeOffset2P: UInt32; var databaseDirIDP: LocalID): Err; syscall sysTrapMemStoreInfo;
 
 function MemStoreSetInfo(cardNo, storeNumber: UInt16; var versionP, flagsP: UInt16;
-                      nameP: PChar; var crDateP, bckUpDateP, heapListOffsetP, initCodeOffset1P,
+                      nameP: PAnsiChar; var crDateP, bckUpDateP, heapListOffsetP, initCodeOffset1P,
                       initCodeOffset2P: UInt32; var databaseDirIDP: LocalID): Err; syscall sysTrapMemStoreSetInfo;
 
 //-------------------------------------------------------------------
