@@ -85,7 +85,7 @@ Function IntToBarcodeParams(I : Int64; aEncoding : TBarcodeEncoding; aWidth : In
 Function BarTypeToBarParams(aType : TBarType) : TBarParams;
 Function BarTypeArrayToBarParamsArray(anArray : TBarTypeArray) : TBarParamsArray;
 Function CalcBarWidths(aEncoding : TBarcodeEncoding; aUnit : Integer; AWeight : Double) : TBarWidthArray;
-Function CalcStringWidthInBarCodeEncoding(S : String;aEncoding : TBarcodeEncoding; aUnit : Integer; AWeight : Double) : Cardinal;
+Function CalcStringWidthInBarCodeEncoding(S : AnsiString;aEncoding : TBarcodeEncoding; aUnit : Integer; AWeight : Double) : Cardinal;
 
 // Check with barcode unit
 
@@ -543,7 +543,7 @@ Const
 
 var
   L,i, P, Idx, CC, CK, WC, WK  : integer;
-  C : Char;
+  C : AnsiChar;
 
 begin
   L:=Length(S);
@@ -599,7 +599,7 @@ begin
 end;
 
 
-function Encode93Extended(S: string) : TBarTypeArray;
+function Encode93Extended(S: AnsiString) : TBarTypeArray;
 
 const
   CharEncoding: array[0..127] of string[2] = (
@@ -1010,7 +1010,7 @@ begin
     Result:=-1;
 end;
 
-Function AllowEncode128A(S : String) : Boolean;
+Function AllowEncode128A(S : AnsiString) : Boolean;
 
 Var
   I,L : integer;
@@ -1061,7 +1061,7 @@ begin
     Result:=-1;
 end;
 
-Function AllowEncode128B(S : String) : Boolean;
+Function AllowEncode128B(S : AnsiString) : Boolean;
 
 Var
   I,L : integer;
@@ -1237,7 +1237,7 @@ Const
 
 var
   P,I,J : integer;
-  C : Char;
+  C : AnsiChar;
 begin
   // Length of AnsiString * 2 + StartCode+StopCode
   SetLength(Result,Length(S)*10+6+6);
@@ -1262,7 +1262,7 @@ Const
 
 var
   P,I,J : integer;
-  C : Char;
+  C : AnsiChar;
   BT : TBarType;
 begin
   // Length of AnsiString  + StartCode+StopCode
@@ -1423,7 +1423,7 @@ begin
   Result[bw200]:=Result[bwWeighted]*2;
 end;
 
-function CalcStringWidthInBarCodeEncoding(S : String;aEncoding: TBarcodeEncoding; aUnit: Integer; AWeight: Double): Cardinal;
+function CalcStringWidthInBarCodeEncoding(S : AnsiString;aEncoding: TBarcodeEncoding; aUnit: Integer; AWeight: Double): Cardinal;
 
 Var
   BP : TBarParams;

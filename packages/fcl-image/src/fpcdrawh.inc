@@ -58,22 +58,22 @@ end;
 
 { TFPCustomDrawFont }
 
-procedure TFPCustomDrawFont.DrawText (x,y:integer; text:string);
+procedure TFPCustomDrawFont.DrawText (x,y:integer; text:ansistring);
 begin
   DoDrawText (x,y, text);
 end;
 
-procedure TFPCustomDrawFont.GetTextSize (text:string; var w,h:integer);
+procedure TFPCustomDrawFont.GetTextSize (text:ansistring; var w,h:integer);
 begin
   DoGetTextSize (text, w,h);
 end;
 
-function TFPCustomDrawFont.GetTextHeight (text:string) : integer;
+function TFPCustomDrawFont.GetTextHeight (text:ansistring) : integer;
 begin
   result := DoGetTextHeight (Text);
 end;
 
-function TFPCustomDrawFont.GetTextWidth (text:string) : integer;
+function TFPCustomDrawFont.GetTextWidth (text:ansistring) : integer;
 begin
   result := DoGetTextWidth (Text);
 end;

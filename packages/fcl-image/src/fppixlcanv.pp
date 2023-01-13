@@ -41,10 +41,10 @@ type
     function DoCreateDefaultPen : TFPCustomPen; override;
     function DoCreateDefaultBrush : TFPCustomBrush; override;
     procedure DoDraw(x, y: integer; const image: TFPCustomImage); override;
-    procedure DoTextOut (x,y:integer;text:string); override;
-    procedure DoGetTextSize (text:string; var w,h:integer); override;
-    function  DoGetTextHeight (text:string) : integer; override;
-    function  DoGetTextWidth (text:string) : integer; override;
+    procedure DoTextOut (x,y:integer;text:AnsiString); override;
+    procedure DoGetTextSize (text:AnsiString; var w,h:integer); override;
+    function  DoGetTextHeight (text:AnsiString) : integer; override;
+    function  DoGetTextWidth (text:AnsiString) : integer; override;
     procedure DoRectangle (const Bounds:TRect); override;
     procedure DoRectangleFill (const Bounds:TRect); override;
     procedure DoEllipseFill (const Bounds:TRect); override;
@@ -64,8 +64,8 @@ type
 const
   PenPatterns : array[psDash..psDashDotDot] of TPenPattern =
     ($EEEEEEEE, $AAAAAAAA, $E4E4E4E4, $EAEAEAEA);
-  sErrNoImage:string = 'No brush image specified';
-  sErrNotAvailable:string = 'Not available';
+  sErrNoImage:AnsiString = 'No brush image specified';
+  sErrNotAvailable:AnsiString = 'Not available';
 
 implementation
 
@@ -139,23 +139,23 @@ begin
       Colors[x+w,y+h]:=Image.Colors[W,H];
 end;
 
-procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:string);
+procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:AnsiString);
 begin
   NotImplemented;
 end;
 
-procedure TFPPixelCanvas.DoGetTextSize (text:string; var w,h:integer);
+procedure TFPPixelCanvas.DoGetTextSize (text:AnsiString; var w,h:integer);
 begin
   NotImplemented;
 end;
 
-function  TFPPixelCanvas.DoGetTextHeight (text:string) : integer;
+function  TFPPixelCanvas.DoGetTextHeight (text:AnsiString) : integer;
 begin
   result := -1;
   NotImplemented;
 end;
 
-function  TFPPixelCanvas.DoGetTextWidth (text:string) : integer;
+function  TFPPixelCanvas.DoGetTextWidth (text:AnsiString) : integer;
 begin
   result := -1;
   NotImplemented;
