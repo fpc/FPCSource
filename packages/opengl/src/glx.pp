@@ -257,9 +257,9 @@ var
   glXUseXFont: procedure(font: XFont; first, count, list: cint); cdecl;
 
   // GLX 1.1 and later
-  glXQueryExtensionsString: function(dpy: PDisplay; screen: cint): PChar; cdecl;
-  glXQueryServerString: function(dpy: PDisplay; screen, name: cint): PChar; cdecl;
-  glXGetClientString: function(dpy: PDisplay; name: cint): PChar; cdecl;
+  glXQueryExtensionsString: function(dpy: PDisplay; screen: cint): PAnsiChar; cdecl;
+  glXQueryServerString: function(dpy: PDisplay; screen, name: cint): PAnsiChar; cdecl;
+  glXGetClientString: function(dpy: PDisplay; name: cint): PAnsiChar; cdecl;
 
   // GLX 1.2 and later
   glXGetCurrentDisplay: function: PDisplay; cdecl;
@@ -284,12 +284,12 @@ var
   glXGetSelectedEvent: procedure (dpy: PDisplay; drawable: TGLXDrawable; mask: Pculong); cdecl;
 
   // GLX 1.4 and later
-  glXGetProcAddress: function(procname: PChar): Pointer; cdecl;
+  glXGetProcAddress: function(procname: PAnsiChar): Pointer; cdecl;
 
   // Extensions:
 
   // GLX_ARB_get_proc_address
-  glXGetProcAddressARB: function(procname: PChar): Pointer; cdecl;
+  glXGetProcAddressARB: function(procname: PAnsiChar): Pointer; cdecl;
 
   // GLX_ARB_create_context
   //glXCreateContextAttribsARB -> internal_glXCreateContextAttribsARB in implementation
@@ -502,7 +502,7 @@ end;
 
 function GLX_ARB_get_proc_address(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -515,7 +515,7 @@ end;
 
 function GLX_ARB_create_context(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -528,7 +528,7 @@ end;
 
 function GLX_ARB_create_context_profile(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -540,7 +540,7 @@ end;
 
 function GLX_ARB_create_context_robustness(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -552,7 +552,7 @@ end;
 
 function GLX_ARB_multisample(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -564,7 +564,7 @@ end;
 
 function GLX_EXT_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -577,7 +577,7 @@ end;
 
 function GLX_EXT_visual_info(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -589,7 +589,7 @@ end;
 
 function GLX_MESA_pixmap_colormap(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -602,7 +602,7 @@ end;
 
 function GLX_MESA_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -616,7 +616,7 @@ end;
 
 function GLX_SGI_swap_control(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -629,7 +629,7 @@ end;
 
 function GLX_SGI_video_sync(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -643,7 +643,7 @@ end;
 
 function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 var
-  GlxExtensions: PChar;
+  GlxExtensions: PAnsiChar;
 begin
   Result := GLX_version_1_1(Display);
   if Result then
@@ -653,7 +653,7 @@ begin
   end;
 end;
 
-function GetProc(handle: PtrInt; name: PChar): Pointer;
+function GetProc(handle: PtrInt; name: PAnsiChar): Pointer;
 begin
   if Assigned(glXGetProcAddress) then
     Result := glXGetProcAddress(name)
