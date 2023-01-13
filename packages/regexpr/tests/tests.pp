@@ -43,12 +43,12 @@ type
   protected
     procedure RunRETest(aIndex: Integer);
     procedure CompileRE(const AExpression: RegExprString);
-    procedure IsNotNull(AErrorMessage: string; AObjectToCheck: TObject);
-    procedure IsTrue(AErrorMessage: string; AConditionToCheck: boolean);
-    procedure IsFalse(AErrorMessage: string; AConditionToCheck: boolean);
-    procedure AreEqual(AErrorMessage: string; s1, s2: string); overload;
-    procedure AreEqual(AErrorMessage: string; i1, i2: integer); overload;
-    procedure TestBadRegex(const AErrorMessage: string; const AExpression: RegExprString);
+    procedure IsNotNull(AErrorMessage: AnsiString; AObjectToCheck: TObject);
+    procedure IsTrue(AErrorMessage: AnsiString; AConditionToCheck: boolean);
+    procedure IsFalse(AErrorMessage: AnsiString; AConditionToCheck: boolean);
+    procedure AreEqual(AErrorMessage: AnsiString; s1, s2: AnsiString); overload;
+    procedure AreEqual(AErrorMessage: AnsiString; i1, i2: integer); overload;
+    procedure TestBadRegex(const AErrorMessage: AnsiString; const AExpression: RegExprString);
   published
     procedure TestEmpty;
     procedure TestNotFound;
@@ -144,10 +144,10 @@ Type
     MatchStart: integer;
   end;
 
-function PrintableString(const S: RegExprString): string;
+function PrintableString(const S: RegExprString): AnsiString;
 var
-  buf: string;
-  ch: char;
+  buf: AnsiString;
+  ch: AnsiChar;
   i: integer;
 begin
   Result := '';
@@ -719,12 +719,12 @@ const
     )
   );
 
-procedure TTestRegexpr.IsFalse(AErrorMessage: string; AConditionToCheck: boolean);
+procedure TTestRegexpr.IsFalse(AErrorMessage: AnsiString; AConditionToCheck: boolean);
 begin
   IsTrue(AErrorMessage, not AConditionToCheck)
 end;
 
-procedure TTestRegexpr.IsTrue(AErrorMessage: string; AConditionToCheck: boolean);
+procedure TTestRegexpr.IsTrue(AErrorMessage: AnsiString; AConditionToCheck: boolean);
 begin
   {$IFDEF FPC}
   AssertTrue(AErrorMessage, AConditionToCheck);
@@ -733,7 +733,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TTestRegexpr.IsNotNull(AErrorMessage: string; AObjectToCheck: TObject
+procedure TTestRegexpr.IsNotNull(AErrorMessage: AnsiString; AObjectToCheck: TObject
   );
 begin
   {$IFDEF FPC}
@@ -743,7 +743,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TTestRegexpr.AreEqual(AErrorMessage: string; s1, s2: string);
+procedure TTestRegexpr.AreEqual(AErrorMessage: AnsiString; s1, s2: AnsiString);
 begin
   {$IFDEF FPC}
   AssertEquals(AErrorMessage, s1,s2);
@@ -752,7 +752,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TTestRegexpr.AreEqual(AErrorMessage: string; i1, i2: integer);
+procedure TTestRegexpr.AreEqual(AErrorMessage: AnsiString; i1, i2: integer);
 begin
   {$IFDEF FPC}
   AssertEquals(AErrorMessage, i1,i2);
@@ -761,7 +761,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TTestRegexpr.TestBadRegex(const AErrorMessage: string;
+procedure TTestRegexpr.TestBadRegex(const AErrorMessage: AnsiString;
   const AExpression: RegExprString);
 var
   ok: boolean;
@@ -793,7 +793,7 @@ end;
 {$IFDEF OverMeth}
 procedure TTestRegexpr.TestReplaceOverload;
 var
-  act: string;
+  act: AnsiString;
 begin
   CompileRE('A\r(\n)'); // just to print compiled re - it will be recompiled below
   act:=ReplaceRegExpr('A\r(\n)', 'a'#$d#$a, '\n', [rroModifierI, rroUseSubstitution]);
