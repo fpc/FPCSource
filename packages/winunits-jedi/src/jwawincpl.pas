@@ -141,9 +141,9 @@ type
     dwHelpContext: DWORD;                // help context to use
     lData: LONG_PTR;                     // user defined data
     hIcon: HICON; // icon to use, this is owned by CONTROL.EXE (may be deleted)
-    szName: array [0..31] of CHAR;       // short name
-    szInfo: array [0..63] of CHAR;       // long name (status line)
-    szHelpFile: array [0..127] of CHAR;  // path to help file to use
+    szName: array [0..31] of AnsiChar;       // short name
+    szInfo: array [0..63] of AnsiChar;       // long name (status line)
+    szHelpFile: array [0..127] of AnsiChar;  // path to help file to use
   end;
   {$EXTERNALSYM tagNEWCPLINFOA}
   NEWCPLINFOA = tagNEWCPLINFOA;

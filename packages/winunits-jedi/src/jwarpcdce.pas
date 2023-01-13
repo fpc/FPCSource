@@ -336,7 +336,7 @@ function RpcBindingInqOption(hBinding: RPC_BINDING_HANDLE; option: Cardinal;
   var pOptionValue: ULONG_PTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqOption}
 
-function RpcBindingFromStringBindingA(StringBinding: PChar;
+function RpcBindingFromStringBindingA(StringBinding: PAnsiChar;
   var Binding: RPC_BINDING_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingFromStringBindingA}
 function RpcBindingFromStringBindingW(StringBinding: PWideChar;
@@ -365,7 +365,7 @@ function RpcMgmtInqDefaultProtectLevel(AuthnSvc: Cardinal; var AuthnLevel: Cardi
 {$EXTERNALSYM RpcMgmtInqDefaultProtectLevel}
 
 function RpcBindingToStringBindingA(Binding: RPC_BINDING_HANDLE;
-  var StringBinding: PChar): RPC_STATUS; stdcall;
+  var StringBinding: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingToStringBindingA}
 function RpcBindingToStringBindingW(Binding: RPC_BINDING_HANDLE;
   var StringBinding: PWideChar): RPC_STATUS; stdcall;
@@ -378,7 +378,7 @@ function RpcBindingVectorFree(var BindingVector: PRPC_BINDING_VECTOR): RPC_STATU
 {$EXTERNALSYM RpcBindingVectorFree}
 
 function RpcStringBindingComposeA(ObjUuid, Protseq, NetworkAddr, Endpoint,
-  Options: PChar; var StringBinding: PChar): RPC_STATUS; stdcall;
+  Options: PAnsiChar; var StringBinding: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringBindingComposeA}
 function RpcStringBindingComposeW(ObjUuid, Protseq, NetworkAddr, Endpoint,
   Options: PWideChar; var StringBinding: PWideChar): RPC_STATUS; stdcall;
@@ -387,8 +387,8 @@ function RpcStringBindingCompose(ObjUuid, Protseq, NetworkAddr, Endpoint,
   Options: PTSTR; var StringBinding: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringBindingCompose}
 
-function RpcStringBindingParseA(StringBinding: PChar; ObjUuid, Protseq,
-  NetworkAddr, Endpoint, NetworkOptions: PPChar): RPC_STATUS; stdcall;
+function RpcStringBindingParseA(StringBinding: PAnsiChar; ObjUuid, Protseq,
+  NetworkAddr, Endpoint, NetworkOptions: PPAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringBindingParseA}
 function RpcStringBindingParseW(StringBinding: PWideChar; ObjUuid, Protseq,
   NetworkAddr, Endpoint, NetworkOptions: PPWideChar): RPC_STATUS; stdcall;
@@ -397,7 +397,7 @@ function RpcStringBindingParse(StringBinding: PTSTR; ObjUuid, Protseq,
   NetworkAddr, Endpoint, NetworkOptions: PPTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringBindingParse}
 
-function RpcStringFreeA(var S: PChar): RPC_STATUS; stdcall;
+function RpcStringFreeA(var S: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringFreeA}
 function RpcStringFreeW(var S: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcStringFreeW}
@@ -407,7 +407,7 @@ function RpcStringFree(var S: PTSTR): RPC_STATUS; stdcall;
 function RpcIfInqId(RpcIfHandle: RPC_IF_HANDLE; var RpcIfId: RPC_IF_ID): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcIfInqId}
 
-function RpcNetworkIsProtseqValidA(Protseq: PChar): RPC_STATUS; stdcall;
+function RpcNetworkIsProtseqValidA(Protseq: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNetworkIsProtseqValidA}
 
 function RpcNetworkIsProtseqValidW(Protseq: PWideChar): RPC_STATUS; stdcall;
@@ -491,7 +491,7 @@ function RpcServerUseAllProtseqsIfEx(MaxCalls: Cardinal; IfSpec: RPC_IF_HANDLE;
   SecurityDescriptor: Pointer; Policy: PRPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseAllProtseqsIfEx}
 
-function RpcServerUseProtseqA(Protseq: PChar; MaxCalls: Cardinal;
+function RpcServerUseProtseqA(Protseq: PAnsiChar; MaxCalls: Cardinal;
   SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqA}
 function RpcServerUseProtseqW(Protseq: PWideChar; MaxCalls: Cardinal;
@@ -501,7 +501,7 @@ function RpcServerUseProtseq(Protseq: PTSTR; MaxCalls: Cardinal;
   SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseq}
 
-function RpcServerUseProtseqExA(Protseq: PChar; MaxCalls: Cardinal;
+function RpcServerUseProtseqExA(Protseq: PAnsiChar; MaxCalls: Cardinal;
   SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqExA}
 function RpcServerUseProtseqExW(Protseq: PWideChar; MaxCalls: Cardinal;
@@ -511,8 +511,8 @@ function RpcServerUseProtseqEx(Protseq: PTSTR; MaxCalls: Cardinal;
   SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqEx}
 
-function RpcServerUseProtseqEpA(Protseq: PChar; MaxCalls: Cardinal;
-  Endpoint: PChar; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
+function RpcServerUseProtseqEpA(Protseq: PAnsiChar; MaxCalls: Cardinal;
+  Endpoint: PAnsiChar; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqEpA}
 function RpcServerUseProtseqEpW(Protseq: PWideChar; MaxCalls: Cardinal;
   Endpoint: PWideChar; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
@@ -521,8 +521,8 @@ function RpcServerUseProtseqEp(Protseq: PTSTR; MaxCalls: Cardinal;
   Endpoint: PTSTR; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqEp}
 
-function RpcServerUseProtseqEpExA(Protseq: PChar; MaxCalls: Cardinal;
-  Endpoint: PChar; SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
+function RpcServerUseProtseqEpExA(Protseq: PAnsiChar; MaxCalls: Cardinal;
+  Endpoint: PAnsiChar; SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqEpExA}
 function RpcServerUseProtseqEpExW(Protseq: PWideChar; MaxCalls: Cardinal;
   Endpoint: PWideChar; SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
@@ -531,14 +531,14 @@ function RpcServerUseProtseqEpEx(Protseq: PTSTR; MaxCalls: Cardinal;
   Endpoint: PTSTR; SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqEpEx}
 
-function RpcServerUseProtseqIfA(Protseq: PChar; MaxCalls: Cardinal;
+function RpcServerUseProtseqIfA(Protseq: PAnsiChar; MaxCalls: Cardinal;
   IfSpec: RPC_IF_HANDLE; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqIfA}
 function RpcServerUseProtseqIfW(Protseq: PWideChar; MaxCalls: Cardinal;
   IfSpec: RPC_IF_HANDLE; SecurityDescriptor: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqIfW}
 
-function RpcServerUseProtseqIfExA(Protseq: PChar; MaxCalls: Cardinal;
+function RpcServerUseProtseqIfExA(Protseq: PAnsiChar; MaxCalls: Cardinal;
   IfSpec: RPC_IF_HANDLE; SecurityDescriptor: Pointer; const Policy: RPC_POLICY): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerUseProtseqIfExA}
 function RpcServerUseProtseqIfExW(Protseq: PWideChar; MaxCalls: Cardinal;
@@ -583,7 +583,7 @@ function RpcIfIdVectorFree(var IfIdVector: PRPC_IF_ID_VECTOR): RPC_STATUS; stdca
 {$EXTERNALSYM RpcIfIdVectorFree}
 
 function RpcMgmtInqServerPrincNameA(Binding: RPC_BINDING_HANDLE;
-  AuthnSvc: Cardinal; var ServerPrincName: PChar): RPC_STATUS; stdcall;
+  AuthnSvc: Cardinal; var ServerPrincName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcMgmtInqServerPrincNameA}
 function RpcMgmtInqServerPrincNameW(Binding: RPC_BINDING_HANDLE;
   AuthnSvc: Cardinal; var ServerPrincName: PWideChar): RPC_STATUS; stdcall;
@@ -592,7 +592,7 @@ function RpcMgmtInqServerPrincName(Binding: RPC_BINDING_HANDLE;
   AuthnSvc: Cardinal; var ServerPrincName: PTSTR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcMgmtInqServerPrincName}
 
-function RpcServerInqDefaultPrincNameA(AuthnSvc: Cardinal; var PrincName: PChar): RPC_STATUS; stdcall;
+function RpcServerInqDefaultPrincNameA(AuthnSvc: Cardinal; var PrincName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerInqDefaultPrincNameA}
 function RpcServerInqDefaultPrincNameW(AuthnSvc: Cardinal; var PrincName: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerInqDefaultPrincNameW}
@@ -603,7 +603,7 @@ function RpcEpResolveBinding(Binding: RPC_BINDING_HANDLE; IfSpe: RPC_IF_HANDLE):
 {$EXTERNALSYM RpcEpResolveBinding}
 
 function RpcNsBindingInqEntryNameA(Binding: RPC_BINDING_HANDLE;
-  EntryNameSyntax: Cardinal; var EntryName: PChar): RPC_STATUS; stdcall;
+  EntryNameSyntax: Cardinal; var EntryName: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingInqEntryNameA}
 function RpcNsBindingInqEntryNameW(Binding: RPC_BINDING_HANDLE;
   EntryNameSyntax: Cardinal; var EntryName: PWideChar): RPC_STATUS; stdcall;
@@ -760,11 +760,11 @@ type
   PSecWinNTAuthIdentityW = PSEC_WINNT_AUTH_IDENTITY_W;
 
   _SEC_WINNT_AUTH_IDENTITY_A = record
-    User: PChar;
+    User: PAnsiChar;
     UserLength: Longint;
-    Domain: PChar;
+    Domain: PAnsiChar;
     DomainLength: Longint;
-    Password: PChar;
+    Password: PAnsiChar;
     PasswordLength: Longint;
     Flags: Longint;
   end;
@@ -1025,7 +1025,7 @@ function RpcRevertToSelf: RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcRevertToSelf}
 
 function RpcBindingInqAuthClientA(ClientBinding: RPC_BINDING_HANDLE;
-  Privs: PRPC_AUTHZ_HANDLE; ServerPrincName: PPChar; AuthnLevel, AuthnSvc,
+  Privs: PRPC_AUTHZ_HANDLE; ServerPrincName: PPAnsiChar; AuthnLevel, AuthnSvc,
   AuthzSvc: PCardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthClientA}
 function RpcBindingInqAuthClientW(ClientBinding: RPC_BINDING_HANDLE;
@@ -1034,7 +1034,7 @@ function RpcBindingInqAuthClientW(ClientBinding: RPC_BINDING_HANDLE;
 {$EXTERNALSYM RpcBindingInqAuthClientW}
 
 function RpcBindingInqAuthClientExA(ClientBinding: RPC_BINDING_HANDLE;
-  Privs: PRPC_AUTHZ_HANDLE; ServerPrincName: PPChar; AuthnLevel, AuthnSvc,
+  Privs: PRPC_AUTHZ_HANDLE; ServerPrincName: PPAnsiChar; AuthnLevel, AuthnSvc,
   AuthzSvc: PCardinal; Flags: Cardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthClientExA}
 function RpcBindingInqAuthClientExW(ClientBinding: RPC_BINDING_HANDLE;
@@ -1042,7 +1042,7 @@ function RpcBindingInqAuthClientExW(ClientBinding: RPC_BINDING_HANDLE;
   AuthzSvc: PCardinal; Flags: Cardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthClientExW}
 
-function RpcBindingInqAuthInfoA(Binding: RPC_BINDING_HANDLE; ServerPrincName: PPChar;
+function RpcBindingInqAuthInfoA(Binding: RPC_BINDING_HANDLE; ServerPrincName: PPAnsiChar;
   AuthnLevel, AuthnSvc: PCardinal; AuthIdentity: PRPC_AUTH_IDENTITY_HANDLE;
   AuthzSvc: PCardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthInfoA}
@@ -1051,7 +1051,7 @@ function RpcBindingInqAuthInfoW(Binding: RPC_BINDING_HANDLE; ServerPrincName: PP
   AuthzSvc: PCardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthInfoW}
 
-function RpcBindingSetAuthInfoA(Binding: RPC_BINDING_HANDLE; ServerPrincName: PChar;
+function RpcBindingSetAuthInfoA(Binding: RPC_BINDING_HANDLE; ServerPrincName: PAnsiChar;
   AuthnLevel, AuthnSvc: Cardinal; AuthIdentity: RPC_AUTH_IDENTITY_HANDLE;
   AuthzSvc: Cardinal): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingSetAuthInfoA}
@@ -1061,7 +1061,7 @@ function RpcBindingSetAuthInfoW(Binding: RPC_BINDING_HANDLE; ServerPrincName: PW
 {$EXTERNALSYM RpcBindingSetAuthInfoW}
 
 function RpcBindingSetAuthInfoExA(Binding: RPC_BINDING_HANDLE;
-  ServerPrincName: PChar; AuthnLevel, AuthnSvc: Cardinal;
+  ServerPrincName: PAnsiChar; AuthnLevel, AuthnSvc: Cardinal;
   AuthIdentity: RPC_AUTH_IDENTITY_HANDLE; AuthzSvc: Cardinal;
   const SecurityQOS: RPC_SECURITY_QOS): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingSetAuthInfoExA}
@@ -1072,7 +1072,7 @@ function RpcBindingSetAuthInfoExW(Binding: RPC_BINDING_HANDLE;
 {$EXTERNALSYM RpcBindingSetAuthInfoExW}
 
 function RpcBindingInqAuthInfoExA(Binding: RPC_BINDING_HANDLE;
-  ServerPrincName: PPChar; AuthnLevel, AuthnSvc: PCardinal;
+  ServerPrincName: PPAnsiChar; AuthnLevel, AuthnSvc: PCardinal;
   AuthIdentity: PRPC_AUTH_IDENTITY_HANDLE; AuthzSvc: PCardinal;
   RpcQosVersion: Cardinal; var SecurityQOS: RPC_SECURITY_QOS): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcBindingInqAuthInfoExA}
@@ -1088,7 +1088,7 @@ type
   {$EXTERNALSYM RPC_AUTH_KEY_RETRIEVAL_FN}
   TRpcAuthKeyRetrievalFn = RPC_AUTH_KEY_RETRIEVAL_FN;
 
-function RpcServerRegisterAuthInfoA(ServerPrincName: PChar; AuthnSvc: Cardinal;
+function RpcServerRegisterAuthInfoA(ServerPrincName: PAnsiChar; AuthnSvc: Cardinal;
   GetKeyFn: RPC_AUTH_KEY_RETRIEVAL_FN; Arg: Pointer): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcServerRegisterAuthInfoA}
 function RpcServerRegisterAuthInfoW(ServerPrincName: PWideChar; AuthnSvc: Cardinal;
@@ -1126,8 +1126,8 @@ function RpcServerRegisterAuthInfo(ServerPrincName: PTSTR; AuthnSvc: Cardinal;
 
 type
   RPC_CLIENT_INFORMATION1 = record
-    UserName: PChar;
-    ComputerName: PChar;
+    UserName: PAnsiChar;
+    ComputerName: PAnsiChar;
     Privilege: Word;
     AuthFlags: Longword;
   end;
@@ -1162,14 +1162,14 @@ function UuidCreate(var Uuid: UUID): RPC_STATUS; stdcall;
 function UuidCreateSequential(out Uuid: UUID): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidCreateSequential}
 
-function UuidFromStringA(StringUuid: PChar; var Uuid: UUID): RPC_STATUS; stdcall;
+function UuidFromStringA(StringUuid: PAnsiChar; var Uuid: UUID): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidFromStringA}
 function UuidFromStringW(StringUuid: PWideChar; var Uuid: UUID): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidFromStringW}
 function UuidFromString(StringUuid: PTSTR; var Uuid: UUID): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidFromString}
 
-function UuidToStringA(const Uuid: UUID; var StringUuid: PChar): RPC_STATUS; stdcall;
+function UuidToStringA(const Uuid: UUID; var StringUuid: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidToStringA}
 function UuidToStringW(const Uuid: UUID; var StringUuid: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM UuidToStringW}
@@ -1193,7 +1193,7 @@ function UuidIsNil(const Uuid: UUID; var Status: RPC_STATUS): Integer; stdcall;
 
 function RpcEpRegisterNoReplaceA(IfSpec: RPC_IF_HANDLE;
   BindingVector: PRPC_BINDING_VECTOR; UuidVector: PUUID_VECTOR;
-  Annotation: PChar): RPC_STATUS; stdcall;
+  Annotation: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcEpRegisterNoReplaceA}
 function RpcEpRegisterNoReplaceW(IfSpec: RPC_IF_HANDLE;
   BindingVector: PRPC_BINDING_VECTOR; UuidVector: PUUID_VECTOR;
@@ -1205,7 +1205,7 @@ function RpcEpRegisterNoReplace(IfSpec: RPC_IF_HANDLE;
 {$EXTERNALSYM RpcEpRegisterNoReplace}
 
 function RpcEpRegisterA(IfSpec: RPC_IF_HANDLE; BindingVector: PRPC_BINDING_VECTOR;
-  UuidVector: PUUID_VECTOR; Annotation: PChar): RPC_STATUS; stdcall;
+  UuidVector: PUUID_VECTOR; Annotation: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcEpRegisterA}
 function RpcEpRegisterW(IfSpec: RPC_IF_HANDLE; BindingVector: PRPC_BINDING_VECTOR;
   UuidVector: PUUID_VECTOR; Annotation: PWideChar): RPC_STATUS; stdcall;
@@ -1219,7 +1219,7 @@ function RpcEpUnregister(IfSpec: RPC_IF_HANDLE; BindingVector: PRPC_BINDING_VECT
   UuidVector: UUID_VECTOR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcEpUnregister}
 
-function DceErrorInqTextA(RpcStatus: RPC_STATUS; ErrorText: PChar): RPC_STATUS; stdcall;
+function DceErrorInqTextA(RpcStatus: RPC_STATUS; ErrorText: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM DceErrorInqTextA}
 function DceErrorInqTextW(RpcStatus: RPC_STATUS; ErrorText: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM DceErrorInqTextW}
@@ -1264,7 +1264,7 @@ function RpcMgmtEpEltInqDone(var InquiryContext: RPC_EP_INQ_HANDLE): RPC_STATUS;
 {$EXTERNALSYM RpcMgmtEpEltInqDone}
 
 function RpcMgmtEpEltInqNextA(InquiryContext: RPC_EP_INQ_HANDLE; var IfId: RPC_IF_ID;
-  Binding: PRPC_BINDING_HANDLE; ObjectUuid: PUUID; var Annotation: PChar): RPC_STATUS; stdcall;
+  Binding: PRPC_BINDING_HANDLE; ObjectUuid: PUUID; var Annotation: PAnsiChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcMgmtEpEltInqNextA}
 function RpcMgmtEpEltInqNextW(InquiryContext: RPC_EP_INQ_HANDLE; var IfId: RPC_IF_ID;
   Binding: PRPC_BINDING_HANDLE; ObjectUuid: PUUID; var Annotation: PWideChar): RPC_STATUS; stdcall;

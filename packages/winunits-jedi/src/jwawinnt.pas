@@ -2769,7 +2769,7 @@ type
   PTOKEN_SOURCE = ^TOKEN_SOURCE;
   {$EXTERNALSYM PTOKEN_SOURCE}
   _TOKEN_SOURCE = record
-    SourceName: array [0..TOKEN_SOURCE_LENGTH - 1] of CHAR;
+    SourceName: array [0..TOKEN_SOURCE_LENGTH - 1] of AnsiChar;
     SourceIdentifier: LUID;
   end;
   {$EXTERNALSYM _TOKEN_SOURCE}
@@ -4594,8 +4594,8 @@ type
   {$EXTERNALSYM PIMAGE_OS2_HEADER}
   _IMAGE_OS2_HEADER = record
     ne_magic: Word;        // Magic number
-    ne_ver: CHAR;          // Version number
-    ne_rev: CHAR;          // Revision number
+    ne_ver: AnsiChar;          // Version number
+    ne_rev: AnsiChar;          // Revision number
     ne_enttab: Word;       // Offset of Entry Table
     ne_cbenttab: Word;     // Number of bytes in Entry Table
     ne_crc: Longint;       // Checksum of whole file
@@ -6597,7 +6597,7 @@ type
   {$EXTERNALSYM PIMAGE_RESOURCE_DIRECTORY_STRING}
   _IMAGE_RESOURCE_DIRECTORY_STRING = record
     Length: Word;
-    NameString: array [0..0] of CHAR;
+    NameString: array [0..0] of AnsiChar;
   end;
   {$EXTERNALSYM _IMAGE_RESOURCE_DIRECTORY_STRING}
   IMAGE_RESOURCE_DIRECTORY_STRING = _IMAGE_RESOURCE_DIRECTORY_STRING;
@@ -7351,7 +7351,7 @@ type
     dwMinorVersion: DWORD;
     dwBuildNumber: DWORD;
     dwPlatformId: DWORD;
-    szCSDVersion: array [0..127] of CHAR; // Maintenance string for PSS usage
+    szCSDVersion: array [0..127] of AnsiChar; // Maintenance string for PSS usage
   end;
   {$EXTERNALSYM _OSVERSIONINFOA}
   OSVERSIONINFOA = _OSVERSIONINFOA;
@@ -7402,7 +7402,7 @@ type
     dwMinorVersion: DWORD;
     dwBuildNumber: DWORD;
     dwPlatformId: DWORD;
-    szCSDVersion: array [0..127] of CHAR;     // Maintenance string for PSS usage
+    szCSDVersion: array [0..127] of AnsiChar;     // Maintenance string for PSS usage
     wServicePackMajor: WORD;
     wServicePackMinor: WORD;
     wSuiteMask: WORD;
@@ -7611,7 +7611,7 @@ type
   PRTL_VERIFIER_THUNK_DESCRIPTOR = ^RTL_VERIFIER_THUNK_DESCRIPTOR;
   {$EXTERNALSYM PRTL_VERIFIER_THUNK_DESCRIPTOR}
   _RTL_VERIFIER_THUNK_DESCRIPTOR = record
-    ThunkName: PCHAR;
+    ThunkName: PAnsiChar;
     ThunkOldAddress: PVOID;
     ThunkNewAddress: PVOID;
   end;
@@ -7859,11 +7859,11 @@ const
 VOID NTAPI
 RtlApplicationVerifierStop (
     ULONG_PTR Code,
-    PCHAR Message,
-    ULONG_PTR Param1, PCHAR Description1,
-    ULONG_PTR Param2, PCHAR Description2,
-    ULONG_PTR Param3, PCHAR Description3,
-    ULONG_PTR Param4, PCHAR Description4
+    PAnsiChar Message,
+    ULONG_PTR Param1, PAnsiChar Description1,
+    ULONG_PTR Param2, PAnsiChar Description2,
+    ULONG_PTR Param3, PAnsiChar Description3,
+    ULONG_PTR Param4, PAnsiChar Description4
     );
 *)
 
@@ -8197,7 +8197,7 @@ type
     // SID   UserSid
     // WCHAR Strings[]
     // BYTE  Data[]
-    // CHAR  Pad[]
+    // AnsiChar  Pad[]
     // DWORD Length;
     //
   end;

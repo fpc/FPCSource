@@ -138,7 +138,7 @@ const
 // Microsoft extended APIs.
 //
 
-function WSARecvEx(s: TSocket; buf: PChar; len: Integer; var flags: Integer): Integer; stdcall;
+function WSARecvEx(s: TSocket; buf: PAnsiChar; len: Integer; var flags: Integer): Integer; stdcall;
 {$EXTERNALSYM WSARecvEx}
 
 type
@@ -372,15 +372,15 @@ type
     case Integer of
       0: (
         // header.type -> NLA_RAW_DATA
-        rawData: array [0..0] of CHAR);
+        rawData: array [0..0] of AnsiChar);
       1: (
         // header.type -> NLA_INTERFACE
         dwType: DWORD;
         dwSpeed: DWORD;
-        adapterName: array [0..0] of CHAR);
+        adapterName: array [0..0] of AnsiChar);
       2: (
         // header.type -> NLA_802_1X_LOCATION
-        information: array [0..0] of CHAR);
+        information: array [0..0] of AnsiChar);
       3: (
         // header.type -> NLA_CONNECTIVITY
         type_: NLA_CONNECTIVITY_TYPE;

@@ -140,7 +140,7 @@ type
     dwEventType: DWORD;                // Type of Event - Begin or End
     dwRestorePtType: DWORD;            // Type of Restore Point - App install/uninstall
     llSequenceNumber: Int64;           // Sequence Number - 0 for begin
-    szDescription: array [0..MAX_DESC - 1] of Char;    // Description - Name of Application / Operation
+    szDescription: array [0..MAX_DESC - 1] of AnsiChar;    // Description - Name of Application / Operation
   end;
   {$EXTERNALSYM _RESTOREPTINFOA}
   RESTOREPOINTINFOA = _RESTOREPTINFOA;

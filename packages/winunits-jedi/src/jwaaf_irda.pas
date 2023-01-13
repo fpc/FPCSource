@@ -241,7 +241,7 @@ type
   _SOCKADDR_IRDA = record
     irdaAddressFamily: u_short;
     irdaDeviceID: array [0..3] of u_char;
-    irdaServiceName: array [0..24] of Char;
+    irdaServiceName: array [0..24] of AnsiChar;
   end;
   {$EXTERNALSYM _SOCKADDR_IRDA}
   SOCKADDR_IRDA = _SOCKADDR_IRDA;
@@ -255,7 +255,7 @@ type
 
   _WINDOWS_IRDA_DEVICE_INFO = record
     irdaDeviceID: array [0..3] of u_char;
-    irdaDeviceName: array [0..21] of Char;
+    irdaDeviceName: array [0..21] of AnsiChar;
     irdaDeviceHints1: u_char;
     irdaDeviceHints2: u_char;
     irdaCharSet: u_char;
@@ -272,7 +272,7 @@ type
 
   _WCE_IRDA_DEVICE_INFO = record
     irdaDeviceID: array [0..3] of u_char;
-    irdaDeviceName: array [0..21] of Char;
+    irdaDeviceName: array [0..21] of AnsiChar;
     Reserved: array [0..1] of u_char;
   end;
   {$EXTERNALSYM _WCE_IRDA_DEVICE_INFO}
@@ -327,8 +327,8 @@ type
   TDeviceList = DEVICELIST;
 
   _WINDOWS_IAS_SET = record
-    irdaClassName: array [0..IAS_MAX_CLASSNAME - 1] of Char;
-    irdaAttribName: array [0..IAS_MAX_ATTRIBNAME - 1] of Char;
+    irdaClassName: array [0..IAS_MAX_CLASSNAME - 1] of AnsiChar;
+    irdaAttribName: array [0..IAS_MAX_ATTRIBNAME - 1] of AnsiChar;
     irdaAttribType: u_long;
     case Integer of
       0: (
@@ -353,8 +353,8 @@ type
 
   _WINDOWS_IAS_QUERY = record
     irdaDeviceID: array [0..3] of u_char;
-    irdaClassName: array [0..IAS_MAX_CLASSNAME - 1] of Char;
-    irdaAttribName: array [0..IAS_MAX_ATTRIBNAME - 1] of Char;
+    irdaClassName: array [0..IAS_MAX_CLASSNAME - 1] of AnsiChar;
+    irdaAttribName: array [0..IAS_MAX_ATTRIBNAME - 1] of AnsiChar;
     irdaAttribType: u_long;
     case Integer of
       0: (
@@ -378,8 +378,8 @@ type
   PWindowsIasQuery = LPWINDOWS_IAS_QUERY;
 
   _WCE_IAS_SET = record
-    irdaClassName: array [0..60] of Char;
-    irdaAttribName: array [0..60] of Char;
+    irdaClassName: array [0..60] of AnsiChar;
+    irdaAttribName: array [0..60] of AnsiChar;
     irdaAttribType: u_short;
     case Integer of
       0: (
@@ -404,8 +404,8 @@ type
 
   _WCE_IAS_QUERY = record
     irdaDeviceID: array [0..3] of u_char;
-    irdaClassName: array [0..60] of Char;
-    irdaAttribName: array [0..60] of Char;
+    irdaClassName: array [0..60] of AnsiChar;
+    irdaAttribName: array [0..60] of AnsiChar;
     irdaAttribType: u_short;
     case Integer of
       0: (irdaAttribInt: Integer);

@@ -169,12 +169,12 @@ type
 type
   NTSTATUS = Longword;
 
-  PCSZ = PChar;
+  PCSZ = PAnsiChar;
 
   _STRING = record
     Length: USHORT;
     MaximumLength: USHORT;
-    Buffer: PChar;
+    Buffer: PAnsiChar;
   end;
   TString = _STRING;
   PString = ^TString;

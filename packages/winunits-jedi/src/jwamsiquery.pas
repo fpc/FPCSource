@@ -719,7 +719,7 @@ function MsiRecordSetStream(hRecord: MSIHANDLE; iField: UINT; szFilePath: LPCTST
 // The number of bytes transferred is returned through the argument
 // If no more bytes are available, ERROR_SUCCESS is still returned
 
-function MsiRecordReadStream(hRecord: MSIHANDLE; iField: UINT; szDataBuf: PChar;
+function MsiRecordReadStream(hRecord: MSIHANDLE; iField: UINT; szDataBuf: PAnsiChar;
   var pcbDataBuf: DWORD): UINT; stdcall;
 {$EXTERNALSYM MsiRecordReadStream}
 

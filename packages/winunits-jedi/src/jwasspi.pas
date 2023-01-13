@@ -90,7 +90,7 @@ type
   PSecWChar = ^TSecWChar;
   TSecWChar = SEC_WCHAR;
 
-  SEC_CHAR = CHAR;
+  SEC_CHAR = AnsiChar;
   {$EXTERNALSYM SEC_CHAR}
   PSEC_CHAR = ^SEC_CHAR;
   {$NODEFINE PSEC_CHAR}
@@ -1158,7 +1158,7 @@ type
 
   _SecPkgContext_AuthzID = record
     AuthzIDLength: Cardinal;
-    AuthzID: PChar;
+    AuthzID: PAnsiChar;
   end;
   {$EXTERNALSYM _SecPkgContext_AuthzID}
   SecPkgContext_AuthzID = _SecPkgContext_AuthzID;
@@ -1170,7 +1170,7 @@ type
 
   _SecPkgContext_Target = record
     TargetLength: Cardinal;
-    Target: PChar;
+    Target: PAnsiChar;
   end;
   {$EXTERNALSYM _SecPkgContext_Target}
   SecPkgContext_Target = _SecPkgContext_Target;
@@ -2135,11 +2135,11 @@ type
   PSecWinNTAuthIdentityW = PSEC_WINNT_AUTH_IDENTITY_W;
 
   _SEC_WINNT_AUTH_IDENTITY_A = record
-    User: PChar;
+    User: PAnsiChar;
     UserLength: Cardinal;
-    Domain: PChar;
+    Domain: PAnsiChar;
     DomainLength: Cardinal;
-    Password: PChar;
+    Password: PAnsiChar;
     PasswordLength: Cardinal;
     Flags: Cardinal;
   end;
@@ -2204,14 +2204,14 @@ type
   _SEC_WINNT_AUTH_IDENTITY_EXA = record
     Version: Cardinal;
     Length: Cardinal;
-    User: PChar;
+    User: PAnsiChar;
     UserLength: Cardinal;
-    Domain: PChar;
+    Domain: PAnsiChar;
     DomainLength: Cardinal;
-    Password: PChar;
+    Password: PAnsiChar;
     PasswordLength: Cardinal;
     Flags: Cardinal;
-    PackageList: PChar;
+    PackageList: PAnsiChar;
     PackageListLength: Cardinal;
   end;
   {$EXTERNALSYM _SEC_WINNT_AUTH_IDENTITY_EXA}

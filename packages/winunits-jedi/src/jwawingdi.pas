@@ -1088,7 +1088,7 @@ type
     lcsGammaRed: DWORD;
     lcsGammaGreen: DWORD;
     lcsGammaBlue: DWORD;
-    lcsFilename: array [0..MAX_PATH - 1] of CHAR;
+    lcsFilename: array [0..MAX_PATH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM tagLOGCOLORSPACEA}
   LOGCOLORSPACEA = tagLOGCOLORSPACEA;
@@ -1882,7 +1882,7 @@ type
     lfClipPrecision: BYTE;
     lfQuality: BYTE;
     lfPitchAndFamily: BYTE;
-    lfFaceName: array [0..LF_FACESIZE - 1] of CHAR;
+    lfFaceName: array [0..LF_FACESIZE - 1] of AnsiChar;
   end;
   {$EXTERNALSYM tagLOGFONTA}
   LOGFONTA = tagLOGFONTA;
@@ -3830,11 +3830,11 @@ type
   PDisplayDeviceA = ^TDisplayDeviceA;
   _DISPLAY_DEVICEA = record
     cb: DWORD;
-    DeviceName: array [0..32 - 1] of CHAR;
-    DeviceString: array [0..128 - 1] of CHAR;
+    DeviceName: array [0..32 - 1] of AnsiChar;
+    DeviceString: array [0..128 - 1] of AnsiChar;
     StateFlags: DWORD;
-    DeviceID: array [0..128 - 1] of CHAR;
-    DeviceKey: array [0..128 - 1] of CHAR;
+    DeviceID: array [0..128 - 1] of AnsiChar;
+    DeviceKey: array [0..128 - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _DISPLAY_DEVICEA}
   DISPLAY_DEVICEA = _DISPLAY_DEVICEA;
@@ -3932,7 +3932,7 @@ type
   PRgnData = ^TRgnData;
   _RGNDATA = record
     rdh: RGNDATAHEADER;
-    Buffer: array [0..0] of Char;
+    Buffer: array [0..0] of AnsiChar;
   end;
   {$EXTERNALSYM _RGNDATA}
   RGNDATA = _RGNDATA;

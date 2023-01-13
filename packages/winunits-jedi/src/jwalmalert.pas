@@ -251,7 +251,7 @@ implementation
 
 function ALERT_OTHER_INFO(x: Pointer): Pointer;
 begin
-  Result := Pointer(PChar(x) + SizeOf(STD_ALERT));
+  Result := Pointer(PAnsiChar(x) + SizeOf(STD_ALERT));
 end;
 
 {$IFDEF DYNAMIC_LINK}

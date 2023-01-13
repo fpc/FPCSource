@@ -124,9 +124,9 @@ const
 
 //
 //   Enable extended addressing.  On sends, adds the element
-//   "unsigned char sa_ptype" to the SOCKADDR_IPX structure,
+//   "unsigned AnsiChar sa_ptype" to the SOCKADDR_IPX structure,
 //   making the total length 15 bytes.  On receives, add both
-//   the sa_ptype and "unsigned char sa_flags" to the SOCKADDR_IPX
+//   the sa_ptype and "unsigned AnsiChar sa_flags" to the SOCKADDR_IPX
 //   structure, making the total length 16 bytes.  The current
 //   bits defined in sa_flags are:
 //

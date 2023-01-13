@@ -400,7 +400,7 @@ type
     Flags: UCHAR;
     EaNameLength: UCHAR;
     EaValueLength: USHORT;
-    EaName: array[0..0] of CHAR;
+    EaName: array[0..0] of AnsiChar;
   end;
   FILE_FULL_EA_INFORMATION = _FILE_FULL_EA_INFORMATION;
   PFILE_FULL_EA_INFORMATION = ^FILE_FULL_EA_INFORMATION;
@@ -982,7 +982,7 @@ type
     Unknown: USHORT;
     LoadCount: USHORT;
     ModuleNameOffset: USHORT;
-    ImageName: array[0..255] of CHAR;
+    ImageName: array[0..255] of AnsiChar;
   end;
   SYSTEM_MODULE_INFORMATION = _SYSTEM_MODULE_INFORMATION;
   PSYSTEM_MODULE_INFORMATION = ^SYSTEM_MODULE_INFORMATION;
@@ -1123,7 +1123,7 @@ type
   PSystemCacheInformation = ^TSystemCacheInformation;
 
   _SYSTEM_POOL_TAG_INFORMATION = record // Information Class 22
-    Tag: array[0..3] of CHAR;
+    Tag: array[0..3] of AnsiChar;
     PagedPoolAllocs: ULONG;
     PagedPoolFrees: ULONG;
     PagedPoolUsage: ULONG;
@@ -1345,7 +1345,7 @@ type
     Allocated: ByteBool;
     Unknown: USHORT;
     Size: ULONG;
-    Tag: array[0..3] of CHAR;
+    Tag: array[0..3] of AnsiChar;
   end;
   SYSTEM_POOL_BLOCK = _SYSTEM_POOL_BLOCK;
   PSYSTEM_POOL_BLOCK = ^SYSTEM_POOL_BLOCK;
@@ -1659,7 +1659,7 @@ type
     Unknown: USHORT;
     LoadCount: USHORT;
     ModuleNameOffset: USHORT;
-    ImageName: array[0..255] of CHAR;
+    ImageName: array[0..255] of AnsiChar;
   end;
   DEBUG_MODULE_INFORMATION = _DEBUG_MODULE_INFORMATION;
   PDEBUG_MODULE_INFORMATION = ^DEBUG_MODULE_INFORMATION;
@@ -1850,7 +1850,7 @@ type
   _FILE_GET_EA_INFORMATION = record
     NextEntryOffset: ULONG;
     EaNameLength: UCHAR;
-    EaName: array[0..0] of CHAR;
+    EaName: array[0..0] of AnsiChar;
   end;
   FILE_GET_EA_INFORMATION = _FILE_GET_EA_INFORMATION;
   PFILE_GET_EA_INFORMATION = ^FILE_GET_EA_INFORMATION;
@@ -2474,7 +2474,7 @@ type
     Flags: UCHAR;
     EaNameLength: UCHAR;
     EaValueLength: USHORT;
-    EaName: array[0..0] of CHAR;
+    EaName: array[0..0] of AnsiChar;
     // UCHAR EaData[];
   end;
   EA_ATTRIBUTE = _EA_ATTRIBUTE;
@@ -3187,7 +3187,7 @@ type
   (*000*)CallBx86Eip: PULONG;
   (*004*)DeallocationCpu: PVOID;
   (*008*)UseKnownWx86Dll: BOOLEAN;
-  (*009*)OleStubInvoked: CHAR;
+  (*009*)OleStubInvoked: AnsiChar;
   end;
   Wx86ThreadState = _Wx86ThreadState;
   PWx86ThreadState = ^_Wx86ThreadState;
@@ -3196,7 +3196,7 @@ type
 // Verified in XP using WinDbg
   _TEB_ACTIVE_FRAME_CONTEXT = record // not packed!
   (*000*)Flags: ULONG;
-  (*004*)FrameName: PCHAR;
+  (*004*)FrameName: PAnsiChar;
   end;
   TEB_ACTIVE_FRAME_CONTEXT = _TEB_ACTIVE_FRAME_CONTEXT;
   PTEB_ACTIVE_FRAME_CONTEXT = ^_TEB_ACTIVE_FRAME_CONTEXT;
@@ -6319,7 +6319,7 @@ function  RtlAllocateHeap(
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlAnsiCharToUnicodeChar(
-    AnsiChar : CHAR
+    AnsiChar : AnsiChar
   ): WCHAR; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Documented in the DDK.
@@ -6404,7 +6404,7 @@ procedure RtlAssert(
     FailedAssertion : PVOID;
     FileName : PVOID;
     LineNumber : ULONG;
-    Message : PCHAR
+    Message : PAnsiChar
   ); stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 {$IFNDEF JWA_INCLUDEMODE}
 // The function RtlCaptureContext() from Kernel32.dll is an export
@@ -6625,7 +6625,7 @@ function  RtlCreateUnicodeString(
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlCreateUnicodeStringFromAsciiz(
     DestinationString : PUNICODE_STRING;
-    SourceString : PCHAR
+    SourceString : PAnsiChar
   ): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -7358,7 +7358,7 @@ function  RtlIntegerToChar(
     Value : ULONG;
     Base : ULONG;
     Length : ULONG;
-    Str : PCHAR
+    Str : PAnsiChar
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Documented in the DDK.
@@ -7496,7 +7496,7 @@ function  RtlLargeIntegerToChar(
     Value : PLARGE_INTEGER;
     Base : ULONG;
     BufferLength : ULONG;
-    Buffer : PCHAR
+    Buffer : PAnsiChar
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // The function LeaveCriticalSection() from Kernel32.dll is an export
@@ -7633,7 +7633,7 @@ function  RtlOemToUnicodeN(
     UnicodeString : PWSTR;
     UnicodeSize : ULONG;
     var ResultSize : ULONG;
-    OemString : PCHAR;
+    OemString : PAnsiChar;
     OemSize : ULONG
   ): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
@@ -8142,7 +8142,7 @@ function  RtlUpcaseUnicodeStringToOemString(
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUpcaseUnicodeToMultiByteN(
-    MbString : PCHAR;
+    MbString : PAnsiChar;
     MbSize : ULONG;
     var ResultSize : ULONG;
     UnicodeString : PWSTR;
@@ -8151,7 +8151,7 @@ function  RtlUpcaseUnicodeToMultiByteN(
 
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUpcaseUnicodeToOemN(
-    OemString : PCHAR;
+    OemString : PAnsiChar;
     OemSize : ULONG;
     var ResultSize : ULONG;
     UnicodeString : PWSTR;
@@ -8161,8 +8161,8 @@ function  RtlUpcaseUnicodeToOemN(
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
 function  RtlUpperChar(
-    Character : CHAR
-  ): CHAR; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
+    Character : AnsiChar
+  ): AnsiChar; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Documented in the DDK.
 // Compatibility: NT3, NT4, W2K, WXP, 2K3
@@ -8769,7 +8769,7 @@ type
   TFNRtlAllocateAndInitializeSid = function (pIdentifierAuthority: PSID_IDENTIFIER_AUTHORITY; SubAuthorityCount: BYTE; nSubAuthority0: DWORD; nSubAuthority1: DWORD; nSubAuthority2: DWORD; nSubAuthority3: DWORD; nSubAuthority4: DWORD;
     nSubAuthority5: DWORD; nSubAuthority6: DWORD; nSubAuthority7: DWORD; var pSid: PSID): BOOL; stdcall;
   TFNRtlAllocateHeap = function (hHeap: HANDLE; dwFlags: ULONG; Size: ULONG): PVOID; stdcall;
-  TFNRtlAnsiCharToUnicodeChar = function (AnsiChar: CHAR): WCHAR; stdcall;
+  TFNRtlAnsiCharToUnicodeChar = function (AnsiChar: AnsiChar): WCHAR; stdcall;
   TFNRtlAnsiStringToUnicodeSize = function (AnsiString: PANSI_STRING): ULONG; stdcall;
   TFNRtlAnsiStringToUnicodeString = function (DestinationString: PUNICODE_STRING; SourceString: PANSI_STRING; AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
   TFNRtlAppendAsciizToString = function (DestinationString: PSTRING; AppendThisString: LPCSTR): NTSTATUS; stdcall;
@@ -8780,7 +8780,7 @@ type
   TFNRtlAreAnyAccessesGranted = function (GrantedAccess: ACCESS_MASK; WantedAccess: ACCESS_MASK): BOOLEAN; stdcall;
   TFNRtlAreBitsClear = function (BitMapHeader: PRTL_BITMAP; StartingIndex: ULONG; Length: ULONG): BOOLEAN; stdcall;
   TFNRtlAreBitsSet = function (BitMapHeader: PRTL_BITMAP; StartingIndex: ULONG; Length: ULONG): BOOLEAN; stdcall;
-  TFNRtlAssert = procedure(FailedAssertion: PVOID; FileName: PVOID; LineNumber: ULONG; Message: PCHAR); stdcall;
+  TFNRtlAssert = procedure(FailedAssertion: PVOID; FileName: PVOID; LineNumber: ULONG; Message: PAnsiChar); stdcall;
   TFNRtlCaptureContext = procedure(ContextRecord: PCONTEXT); stdcall;
   TFNRtlCharToInteger = function (Str: PCSZ; Base: ULONG; Value: PULONG): NTSTATUS; stdcall;
   TFNRtlCheckForOrphanedCriticalSections = procedure(hThread: HANDLE); stdcall;
@@ -8809,7 +8809,7 @@ type
   TFNRtlCreateRegistryKey = function (RelativeTo: ULONG; Path: PWSTR): NTSTATUS; stdcall;
   TFNRtlCreateSecurityDescriptor = function (SecurityDescriptor: PSECURITY_DESCRIPTOR; Revision: ULONG): NTSTATUS; stdcall;
   TFNRtlCreateUnicodeString = function (DestinationString: PUNICODE_STRING; SourceString: PWSTR): BOOLEAN; stdcall;
-  TFNRtlCreateUnicodeStringFromAsciiz = function (DestinationString: PUNICODE_STRING; SourceString: PCHAR): BOOLEAN; stdcall;
+  TFNRtlCreateUnicodeStringFromAsciiz = function (DestinationString: PUNICODE_STRING; SourceString: PAnsiChar): BOOLEAN; stdcall;
   TFNRtlCreateUserProcess = function (ImageFileName: PUNICODE_STRING; Attributes: ULONG; ProcessParameters: PRTL_USER_PROCESS_PARAMETERS; ProcessSecurityDescriptor: PSECURITY_DESCRIPTOR; ThreadSecurityDescriptor: PSECURITY_DESCRIPTOR;
     ParentProcess: HANDLE; InheritHandles: BOOLEAN; DebugPort: HANDLE; ExceptionPort: HANDLE; ProcessInfo: PRTL_PROCESS_INFORMATION): NTSTATUS; stdcall;
   TFNRtlCreateUserThread = function (hProcess: HANDLE; SecurityDescriptor: PSECURITY_DESCRIPTOR; CreateSuspended: BOOLEAN; StackZeroBits: ULONG; StackReserve: ULONG; StackCommit: ULONG; lpStartAddress: PTHREAD_START_ROUTINE;
@@ -8910,7 +8910,7 @@ type
   TFNRtlInitializeSListHead = procedure(ListHead: PSLIST_HEADER); stdcall;
   TFNRtlInitializeSid = function (pSid: PSID; pIdentifierAuthority: PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount: UCHAR): NTSTATUS; stdcall;
   TFNRtlInt64ToUnicodeString = function (Value: ULONGLONG; Base: ULONG; Str: PUNICODE_STRING): NTSTATUS; stdcall;
-  TFNRtlIntegerToChar = function (Value: ULONG; Base: ULONG; Length: ULONG; Str: PCHAR): NTSTATUS; stdcall;
+  TFNRtlIntegerToChar = function (Value: ULONG; Base: ULONG; Length: ULONG; Str: PAnsiChar): NTSTATUS; stdcall;
   TFNRtlIntegerToUnicodeString = function (Value: ULONG; Base: ULONG; Str: PUNICODE_STRING): NTSTATUS; stdcall;
   TFNRtlInterlockedFlushSList = function (ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
   TFNRtlInterlockedPopEntrySList = function (ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
@@ -8930,7 +8930,7 @@ type
   TFNRtlLargeIntegerShiftLeft = function (LargeInteger: LARGE_INTEGER; ShiftCount: CCHAR): LARGE_INTEGER; stdcall;
   TFNRtlLargeIntegerShiftRight = function (LargeInteger: LARGE_INTEGER; ShiftCount: CCHAR): LARGE_INTEGER; stdcall;
   TFNRtlLargeIntegerSubtract = function (Number: LARGE_INTEGER; Subtrahend: LARGE_INTEGER): LARGE_INTEGER; stdcall;
-  TFNRtlLargeIntegerToChar = function (Value: PLARGE_INTEGER; Base: ULONG; BufferLength: ULONG; Buffer: PCHAR): NTSTATUS; stdcall;
+  TFNRtlLargeIntegerToChar = function (Value: PLARGE_INTEGER; Base: ULONG; BufferLength: ULONG; Buffer: PAnsiChar): NTSTATUS; stdcall;
   TFNRtlLeaveCriticalSection = procedure(lpCriticalSection: PRTL_CRITICAL_SECTION); stdcall;
   TFNRtlLengthRequiredSid = function (nSubAuthorityCount: ULONG): ULONG; stdcall;
   TFNRtlLengthSecurityDescriptor = function (SecurityDescriptor: PSECURITY_DESCRIPTOR): ULONG; stdcall;
@@ -8949,7 +8949,7 @@ type
   TFNRtlNumberOfSetBits = function (BitMapHeader: PRTL_BITMAP): ULONG; stdcall;
   TFNRtlOemStringToUnicodeSize = function (AnsiString: POEM_STRING): ULONG; stdcall;
   TFNRtlOemStringToUnicodeString = function (DestinationString: PUNICODE_STRING; SourceString: POEM_STRING; AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
-  TFNRtlOemToUnicodeN = function (UnicodeString: PWSTR; UnicodeSize: ULONG; var ResultSize: ULONG; OemString: PCHAR; OemSize: ULONG): NTSTATUS; stdcall;
+  TFNRtlOemToUnicodeN = function (UnicodeString: PWSTR; UnicodeSize: ULONG; var ResultSize: ULONG; OemString: PAnsiChar; OemSize: ULONG): NTSTATUS; stdcall;
   TFNRtlOpenCurrentUser = function (samDesired: ACCESS_MASK; phkResult: PHKEY): NTSTATUS; stdcall;
   TFNRtlPrefixString = function (String1: PANSI_STRING; String2: PANSI_STRING; CaseInsensitive: BOOLEAN): BOOLEAN; stdcall;
   TFNRtlPrefixUnicodeString = function (String1: PUNICODE_STRING; String2: PUNICODE_STRING; CaseInsensitive: BOOLEAN): BOOLEAN; stdcall;
@@ -9009,9 +9009,9 @@ type
   TFNRtlUpcaseUnicodeStringToAnsiString = function (DestinationString: PSTRING; SourceString: PUNICODE_STRING; AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
   TFNRtlUpcaseUnicodeStringToCountedOemString = function (DestinationString: PSTRING; SourceString: PUNICODE_STRING; AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
   TFNRtlUpcaseUnicodeStringToOemString = function (DestinationString: PSTRING; SourceString: PUNICODE_STRING; AllocateDestinationString: BOOLEAN): NTSTATUS; stdcall;
-  TFNRtlUpcaseUnicodeToMultiByteN = function (MbString: PCHAR; MbSize: ULONG; var ResultSize: ULONG; UnicodeString: PWSTR; UnicodeSize: ULONG): NTSTATUS; stdcall;
-  TFNRtlUpcaseUnicodeToOemN = function (OemString: PCHAR; OemSize: ULONG; var ResultSize: ULONG; UnicodeString: PWSTR; UnicodeSize: ULONG): NTSTATUS; stdcall;
-  TFNRtlUpperChar = function (Character: CHAR): CHAR; stdcall;
+  TFNRtlUpcaseUnicodeToMultiByteN = function (MbString: PAnsiChar; MbSize: ULONG; var ResultSize: ULONG; UnicodeString: PWSTR; UnicodeSize: ULONG): NTSTATUS; stdcall;
+  TFNRtlUpcaseUnicodeToOemN = function (OemString: PAnsiChar; OemSize: ULONG; var ResultSize: ULONG; UnicodeString: PWSTR; UnicodeSize: ULONG): NTSTATUS; stdcall;
+  TFNRtlUpperChar = function (Character: AnsiChar): AnsiChar; stdcall;
   TFNRtlUpperString = procedure(DestinationString: PSTRING; SourceString: PSTRING); stdcall;
   TFNRtlValidAcl = function (Acl: PACL): BOOLEAN; stdcall;
   TFNRtlValidRelativeSecurityDescriptor = function (SecurityDescriptorInput: PSECURITY_DESCRIPTOR; SecurityDescriptorLength: ULONG; RequiredInformation: SECURITY_INFORMATION): BOOLEAN; stdcall;
@@ -17487,7 +17487,7 @@ end;
 
 // Dynamic version of RtlAnsiCharToUnicodeChar
 function  RtlAnsiCharToUnicodeChar(
-    AnsiChar : CHAR
+    AnsiChar : AnsiChar
   ): WCHAR; stdcall;
 begin
   GetProcedureAddress(_RtlAnsiCharToUnicodeChar, ntdll, 'RtlAnsiCharToUnicodeChar');
@@ -17625,7 +17625,7 @@ procedure RtlAssert(
     FailedAssertion : PVOID;
     FileName : PVOID;
     LineNumber : ULONG;
-    Message : PCHAR
+    Message : PAnsiChar
   ); stdcall;
 begin
   GetProcedureAddress(_RtlAssert, ntdll, 'RtlAssert');
@@ -17982,7 +17982,7 @@ end;
 // Dynamic version of RtlCreateUnicodeStringFromAsciiz
 function  RtlCreateUnicodeStringFromAsciiz(
     DestinationString : PUNICODE_STRING;
-    SourceString : PCHAR
+    SourceString : PAnsiChar
   ): BOOLEAN; stdcall;
 begin
   GetProcedureAddress(_RtlCreateUnicodeStringFromAsciiz, ntdll, 'RtlCreateUnicodeStringFromAsciiz');
@@ -19188,7 +19188,7 @@ function  RtlIntegerToChar(
     Value : ULONG;
     Base : ULONG;
     Length : ULONG;
-    Str : PCHAR
+    Str : PAnsiChar
   ): NTSTATUS; stdcall;
 begin
   GetProcedureAddress(_RtlIntegerToChar, ntdll, 'RtlIntegerToChar');
@@ -19430,7 +19430,7 @@ function  RtlLargeIntegerToChar(
     Value : PLARGE_INTEGER;
     Base : ULONG;
     BufferLength : ULONG;
-    Buffer : PCHAR
+    Buffer : PAnsiChar
   ): NTSTATUS; stdcall;
 begin
   GetProcedureAddress(_RtlLargeIntegerToChar, ntdll, 'RtlLargeIntegerToChar');
@@ -19657,7 +19657,7 @@ function  RtlOemToUnicodeN(
     UnicodeString : PWSTR;
     UnicodeSize : ULONG;
     var ResultSize : ULONG;
-    OemString : PCHAR;
+    OemString : PAnsiChar;
     OemSize : ULONG
   ): NTSTATUS; stdcall;
 begin
@@ -20396,7 +20396,7 @@ end;
 
 // Dynamic version of RtlUpcaseUnicodeToMultiByteN
 function  RtlUpcaseUnicodeToMultiByteN(
-    MbString : PCHAR;
+    MbString : PAnsiChar;
     MbSize : ULONG;
     var ResultSize : ULONG;
     UnicodeString : PWSTR;
@@ -20411,7 +20411,7 @@ end;
 
 // Dynamic version of RtlUpcaseUnicodeToOemN
 function  RtlUpcaseUnicodeToOemN(
-    OemString : PCHAR;
+    OemString : PAnsiChar;
     OemSize : ULONG;
     var ResultSize : ULONG;
     UnicodeString : PWSTR;
@@ -20426,8 +20426,8 @@ end;
 
 // Dynamic version of RtlUpperChar
 function  RtlUpperChar(
-    Character : CHAR
-  ): CHAR; stdcall;
+    Character : AnsiChar
+  ): AnsiChar; stdcall;
 begin
   GetProcedureAddress(_RtlUpperChar, ntdll, 'RtlUpperChar');
   Result := TFNRtlUpperChar(_RtlUpperChar)(

@@ -13,7 +13,7 @@ uses
     const mHandle : HMODULE)
     : string;
   var
-    name : array [0..1023] of char;
+    name : array [0..1023] of AnsiChar;
   begin
     result := 'ERROR';
     if GetModuleFileNameEx(pHandle,mHandle,LPTSTR(@name[0]),sizeof(name)) > 0 then begin

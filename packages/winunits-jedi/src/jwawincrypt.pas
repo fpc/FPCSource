@@ -1056,7 +1056,7 @@ type
     aiAlgid: ALG_ID;
     dwBitLen: DWORD;
     dwNameLen: DWORD;
-    szName: array [0..19] of CHAR;
+    szName: array [0..19] of AnsiChar;
   end;
   {$EXTERNALSYM _PROV_ENUMALGS}
   PROV_ENUMALGS = _PROV_ENUMALGS;
@@ -1073,9 +1073,9 @@ type
     dwMaxLen: DWORD;
     dwProtocols: DWORD;
     dwNameLen: DWORD;
-    szName: array [0..19] of CHAR;
+    szName: array [0..19] of AnsiChar;
     dwLongNameLen: DWORD;
-    szLongName: array [0..39] of CHAR;
+    szLongName: array [0..39] of AnsiChar;
   end;
   {$EXTERNALSYM _PROV_ENUMALGS_EX}
   PROV_ENUMALGS_EX = _PROV_ENUMALGS_EX;
@@ -2061,7 +2061,7 @@ const
 //  These UNICODE characters are encoded as UTF8 8 bit characters.
 //
 //  For CertDecodeName, two 0 bytes are always appended to the end of the
-//  string (ensures a CHAR or WCHAR string is null terminated).
+//  string (ensures a AnsiChar or WCHAR string is null terminated).
 //  These added 0 bytes are't included in the BLOB.cbData.
 //--------------------------------------------------------------------------
 
@@ -12813,15 +12813,15 @@ function CryptHashPublicKeyInfo(hCryptProv: HCRYPTPROV; Algid: ALG_ID;
 {$EXTERNALSYM CryptHashPublicKeyInfo}
 
 //+-------------------------------------------------------------------------
-//  Convert a Name Value to a null terminated char string
+//  Convert a Name Value to a null terminated AnsiChar string
 //
 //  Returns the number of characters converted including the terminating null
 //  character. If psz is NULL or csz is 0, returns the required size of the
-//  destination string (including the terminating null char).
+//  destination string (including the terminating null AnsiChar).
 //
 //  If psz != NULL && csz != 0, returned psz is always NULL terminated.
 //
-//  Note: csz includes the NULL char.
+//  Note: csz includes the NULL AnsiChar.
 //--------------------------------------------------------------------------
 
 function CertRDNValueToStrA(dwValueType: DWORD; pValue: PCERT_RDN_VALUE_BLOB;
@@ -12829,15 +12829,15 @@ function CertRDNValueToStrA(dwValueType: DWORD; pValue: PCERT_RDN_VALUE_BLOB;
 {$EXTERNALSYM CertRDNValueToStrA}
 
 //+-------------------------------------------------------------------------
-//  Convert a Name Value to a null terminated char string
+//  Convert a Name Value to a null terminated AnsiChar string
 //
 //  Returns the number of characters converted including the terminating null
 //  character. If psz is NULL or csz is 0, returns the required size of the
-//  destination string (including the terminating null char).
+//  destination string (including the terminating null AnsiChar).
 //
 //  If psz != NULL && csz != 0, returned psz is always NULL terminated.
 //
-//  Note: csz includes the NULL char.
+//  Note: csz includes the NULL AnsiChar.
 //--------------------------------------------------------------------------
 
 function CertRDNValueToStrW(dwValueType: DWORD; pValue: PCERT_RDN_VALUE_BLOB;
@@ -12848,7 +12848,7 @@ function CertRDNValueToStr(dwValueType: DWORD; pValue: PCERT_RDN_VALUE_BLOB;
 {$EXTERNALSYM CertRDNValueToStr}
 
 //+-------------------------------------------------------------------------
-//  Convert the certificate name blob to a null terminated char string.
+//  Convert the certificate name blob to a null terminated AnsiChar string.
 //
 //  Follows the string representation of distinguished names specified in
 //  RFC 1779. (Note, added double quoting "" for embedded quotes, quote
@@ -12902,11 +12902,11 @@ function CertRDNValueToStr(dwValueType: DWORD; pValue: PCERT_RDN_VALUE_BLOB;
 //
 //  Returns the number of characters converted including the terminating null
 //  character. If psz is NULL or csz is 0, returns the required size of the
-//  destination string (including the terminating null char).
+//  destination string (including the terminating null AnsiChar).
 //
 //  If psz != NULL && csz != 0, returned psz is always NULL terminated.
 //
-//  Note: csz includes the NULL char.
+//  Note: csz includes the NULL AnsiChar.
 //--------------------------------------------------------------------------
 
 //+-------------------------------------------------------------------------
@@ -13132,13 +13132,13 @@ function CertStrToName(dwCertEncodingType: DWORD; pszX500: LPCTSTR;
 //  Returns the number of characters converted including the terminating null
 //  character. If pwszNameString is NULL or cchNameString is 0, returns the
 //  required size of the destination string (including the terminating null
-//  char). If the specified name type isn't found. returns an empty string
+//  AnsiChar). If the specified name type isn't found. returns an empty string
 //  with a returned character count of 1.
 //
 //  If pwszNameString != NULL && cwszNameString != 0, returned pwszNameString
 //  is always NULL terminated.
 //
-//  Note: cchNameString includes the NULL char.
+//  Note: cchNameString includes the NULL AnsiChar.
 //--------------------------------------------------------------------------
 
 //+-------------------------------------------------------------------------
@@ -16059,9 +16059,9 @@ const
 // CRYPT_STRING_BASE64X509CRLHEADER - base64 format with x509 crl begin
 //                                    and end headers
 // CRYPT_STRING_HEX - only hex format
-// CRYPT_STRING_HEXASCII - hex format with ascii char display
+// CRYPT_STRING_HEXASCII - hex format with ascii AnsiChar display
 // CRYPT_STRING_HEXADDR - hex format with address display
-// CRYPT_STRING_HEXASCIIADDR - hex format with ascii char and address display
+// CRYPT_STRING_HEXASCIIADDR - hex format with ascii AnsiChar and address display
 //
 // CryptBinaryToString accepts CRYPT_STRING_NOCR or'd into one of the above.
 // When set, line breaks contain only LF, instead of CR-LF pairs.

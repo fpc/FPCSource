@@ -97,7 +97,7 @@ type
   TCharUnion = record
     case Integer of
       0: (UnicodeChar: WCHAR);
-      1: (AsciiChar: CHAR);
+      1: (AsciiChar: AnsiChar);
   end;
 
   PKEY_EVENT_RECORD = ^KEY_EVENT_RECORD;
@@ -523,7 +523,7 @@ function WriteConsoleOutputAttribute(hConsoleOutput: HANDLE; lpAttribute: PWORD;
   nLength: DWORD; dwWriteCoord: COORD; var lpNumberOfAttrsWritten: DWORD): BOOL; stdcall;
 {$EXTERNALSYM WriteConsoleOutputAttribute}
 
-function FillConsoleOutputCharacterA(hConsoleOutput: HANDLE; cCharacter: CHAR;
+function FillConsoleOutputCharacterA(hConsoleOutput: HANDLE; cCharacter: AnsiChar;
   nLength: DWORD; dwWriteCoord: COORD; var lpNumberOfCharsWritten: DWORD): BOOL; stdcall;
 {$EXTERNALSYM FillConsoleOutputCharacterA}
 function FillConsoleOutputCharacterW(hConsoleOutput: HANDLE; cCharacter: WCHAR;

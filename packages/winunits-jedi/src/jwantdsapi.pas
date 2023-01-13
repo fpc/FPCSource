@@ -2953,7 +2953,7 @@ Description
 
         Whitespace trailing the last quote is discarded.
 
-        Escapes are removed and the char following the escape is kept.
+        Escapes are removed and the AnsiChar following the escape is kept.
 
     The following actions are taken when psQuotedRdnValue is unquoted:
 
