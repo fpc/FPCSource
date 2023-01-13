@@ -42,9 +42,9 @@ interface
 var
 
 yyinput, yyoutput : Text;        (* input and output file *)
-yyline            : String;      (* current input line *)
+yyline            : ShortString;      (* current input line *)
 yylineno, yycolno : Integer;     (* current input position *)
-yytext            : String;      (* matched text (should be considered r/o) *)
+yytext            : ShortString;      (* matched text (should be considered r/o) *)
 yyleng            : Byte         (* length of matched text *)
   absolute yytext;
 
@@ -70,15 +70,15 @@ yyleng            : Byte         (* length of matched text *)
    put_char by another suitable set of routines, e.g. if you want to read
    from/write to memory, etc. *)
 
-var get_char: function  : Char;
+var get_char: function  : AnsiChar;
   (* obtain one character from the input file (null character at end-of-
      file) *)
 
-var unget_char : procedure ( c : Char );
+var unget_char : procedure ( c : AnsiChar );
   (* return one character to the input file to be reread in subsequent calls
      to get_char *)
 
-var put_char: procedure ( c : Char );
+var put_char: procedure ( c : AnsiChar );
   (* write one character to the output file *)
 
 (* Utility routines: *)
@@ -102,7 +102,7 @@ procedure reject;
      when rejecting a match. *)
 
 procedure return ( n : Integer );
-procedure returnc ( c : Char );
+procedure returnc ( c : AnsiChar );
   (* sets the return value of yylex *)
 
 procedure start ( state : Integer );
@@ -130,8 +130,8 @@ var
 var
 
 yystate    : Integer; (* current state of lexical analyzer *)
-yyactchar  : Char;    (* current character *)
-yylastchar : Char;    (* last matched character (#0 if none) *)
+yyactchar  : AnsiChar;    (* current character *)
+yylastchar : AnsiChar;    (* last matched character (#0 if none) *)
 yyrule     : Integer; (* matched rule *)
 yyreject   : Boolean; (* current match rejected? *)
 yydone     : Boolean; (* yylex return value set? *)
@@ -167,7 +167,7 @@ procedure yyclear;
 
 implementation
 
-procedure fatal ( msg : String );
+procedure fatal ( msg : ShortString );
   (* writes a fatal error message and halts program *)
   begin
     writeln('LexLib: ', msg);
@@ -183,9 +183,9 @@ const max_chars = 2048;
 var
 
 bufptr : Integer;
-buf    : array [1..max_chars] of Char;
+buf    : array [1..max_chars] of AnsiChar;
 
-function lexlib_get_char : Char;
+function lexlib_get_char : AnsiChar;
   var i : Integer;
   begin
     if (bufptr=0) and not eof(yyinput) then
@@ -207,7 +207,7 @@ function lexlib_get_char : Char;
       lexlib_get_char := #0;
   end(*get_char*);
 
-procedure lexlib_unget_char ( c : Char );
+procedure lexlib_unget_char ( c : AnsiChar );
   begin
     if bufptr=max_chars then fatal('input buffer overflow');
     inc(bufptr);
@@ -215,7 +215,7 @@ procedure lexlib_unget_char ( c : Char );
     buf[bufptr] := c;
   end(*unget_char*);
 
-procedure lexlib_put_char ( c : Char );
+procedure lexlib_put_char ( c : AnsiChar );
   begin
     if c=#0 then
       { ignore }
@@ -251,7 +251,7 @@ max_rules   = 256;
 
 var
 
-yystext            : String;
+yystext            : ShortString;
 yysstate, yylstate : Integer;
 yymatches          : Integer;
 yystack            : array [1..max_matches] of Integer;
@@ -295,7 +295,7 @@ procedure return ( n : Integer );
     yydone := true;
   end(*return*);
 
-procedure returnc ( c : Char );
+procedure returnc ( c : AnsiChar );
   begin
     yyretval := ord(c);
     yydone := true;
