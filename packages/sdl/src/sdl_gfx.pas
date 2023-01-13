@@ -364,19 +364,19 @@ cdecl; external {$IFDEF __GPC__}name 'bezierRGBA'{$ELSE} SDLgfxLibName{$ENDIF __
 
 // Characters/Strings
 
-function characterColor( dst : PSDL_Surface; x : Sint16; y : Sint16; c : char; color : Uint32 ) : integer;
+function characterColor( dst : PSDL_Surface; x : Sint16; y : Sint16; c : AnsiChar; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'characterColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM characterColor}
 
-function characterRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; c : char; r : Uint8; g : Uint8; b : Uint8; a : Uint8 ) : integer;
+function characterRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; c : AnsiChar; r : Uint8; g : Uint8; b : Uint8; a : Uint8 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'characterRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM characterRGBA}
 
-function stringColor( dst : PSDL_Surface; x : Sint16; y : Sint16; const c : PChar; color : Uint32 ) : integer;
+function stringColor( dst : PSDL_Surface; x : Sint16; y : Sint16; const c : PAnsiChar; color : Uint32 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'stringColor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM stringColor}
 
-function stringRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; const c : PChar; r : Uint8; g : Uint8; b : Uint8; a : Uint8 ) : integer;
+function stringRGBA( dst : PSDL_Surface; x : Sint16; y : Sint16; const c : PAnsiChar; r : Uint8; g : Uint8; b : Uint8; a : Uint8 ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'stringRGBA'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM stringRGBA}
 
@@ -419,145 +419,145 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMMXon'{$ELSE} SDLgfxLibName
 //
 
 //  SDL_imageFilterAdd: D = saturation255(S1 + S2)
-function SDL_imageFilterAdd(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterAdd(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imaSDL_imageFilterAddgeFilterMMXon'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterAdd}
 
 //  SDL_imageFilterMean: D = S1/2 + S2/2
-function SDL_imageFilterMean(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterMean(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMean'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMean}
 
 //  SDL_imageFilterSub: D = saturation0(S1 - S2)
-function SDL_imageFilterSub(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterSub(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterSub'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterSub}
 
 //  SDL_imageFilterAbsDiff: D = | S1 - S2 |
-function SDL_imageFilterAbsDiff(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterAbsDiff(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterAbsDiff'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterAbsDiff}
 
 //  SDL_imageFilterMult: D = saturation(S1 * S2)
-function SDL_imageFilterMult(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterMult(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMult'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMult}
 
 //  SDL_imageFilterMultNor: D = S1 * S2   (non-MMX)
-function SDL_imageFilterMultNor(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterMultNor(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMultNor'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMultNor}
 
 //  SDL_imageFilterMultDivby2: D = saturation255(S1/2 * S2)
-function SDL_imageFilterMultDivby2(Src1 : PChar; Src2 : PChar; Dest : PChar;
+function SDL_imageFilterMultDivby2(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar;
 					       length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMultDivby2'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMultDivby2}
 
 //  SDL_imageFilterMultDivby4: D = saturation255(S1/2 * S2/2)
-function SDL_imageFilterMultDivby4(Src1 : PChar; Src2 : PChar; Dest : PChar;
+function SDL_imageFilterMultDivby4(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar;
 					       length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMultDivby4'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMultDivby4}
 
 //  SDL_imageFilterBitAnd: D = S1 & S2
-function SDL_imageFilterBitAnd(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterBitAnd(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterBitAnd'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterBitAnd}
 
 //  SDL_imageFilterBitOr: D = S1 | S2
-function SDL_imageFilterBitOr(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterBitOr(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterBitOr'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterBitOr}
 
 //  SDL_imageFilterDiv: D = S1 / S2   (non-MMX)
-function SDL_imageFilterDiv(Src1 : PChar; Src2 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterDiv(Src1 : PAnsiChar; Src2 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterDiv'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterDiv}
 
 //  SDL_imageFilterBitNegation: D = !S
-function SDL_imageFilterBitNegation(Src1 : PChar; Dest : PChar; length : integer ) : integer;
+function SDL_imageFilterBitNegation(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterBitNegation'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterBitNegation}
 
 //  SDL_imageFilterAddByte: D = saturation255(S + C)
-function SDL_imageFilterAddByte(Src1 : PChar; Dest : PChar; length : integer; C : char ) : integer;
+function SDL_imageFilterAddByte(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; C : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterAddByte'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterAddByte}
 
 //  SDL_imageFilterAddUint: D = saturation255(S + (uint)C)
-function SDL_imageFilterAddUint(Src1 : PChar; Dest : PChar; length : integer; C : Cardinal ) : integer;
+function SDL_imageFilterAddUint(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; C : Cardinal ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterAddUint'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterAddUint}
 
 //  SDL_imageFilterAddByteToHalf: D = saturation255(S/2 + C)
-function SDL_imageFilterAddByteToHalf(Src1 : PChar; Dest : PChar; length : integer;
-						  C : char ) : integer;
+function SDL_imageFilterAddByteToHalf(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
+						  C : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterAddByteToHalf'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterAddByteToHalf}
 
 //  SDL_imageFilterSubByte: D = saturation0(S - C)
-function SDL_imageFilterSubByte(Src1 : PChar; Dest : PChar; length : integer; C : char ) : integer;
+function SDL_imageFilterSubByte(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; C : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterSubByte'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterSubByte}
 
 //  SDL_imageFilterSubUint: D = saturation0(S - (uint)C)
-function SDL_imageFilterSubUint(Src1 : PChar; Dest : PChar; length : integer; C : Cardinal ) : integer;
+function SDL_imageFilterSubUint(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; C : Cardinal ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterSubUint'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterSubUint}
 
 //  SDL_imageFilterShiftRight: D = saturation0(S >> N)
-function SDL_imageFilterShiftRight(Src1 : PChar; Dest : PChar; length : integer;  N : char ) : integer;
+function SDL_imageFilterShiftRight(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;  N : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftRight}
 
 //  SDL_imageFilterShiftRightUint: D = saturation0((uint)S >> N)
-function SDL_imageFilterShiftRightUint(Src1 : PChar; Dest : PChar; length : integer;  N : char ) : integer;
+function SDL_imageFilterShiftRightUint(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;  N : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftRightUint'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftRightUint}
 
 //  SDL_imageFilterMultByByte: D = saturation255(S * C)
-function SDL_imageFilterMultByByte(Src1 : PChar; Dest : PChar; length : integer; C : char ) : integer;
+function SDL_imageFilterMultByByte(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; C : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterMultByByte'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterMultByByte}
 
 //  SDL_imageFilterShiftRightAndMultByByte: D = saturation255((S >> N) * C)
-function SDL_imageFilterShiftRightAndMultByByte(Src1 : PChar; Dest : PChar; length : integer;
-							     N : char; C : char ) : integer;
+function SDL_imageFilterShiftRightAndMultByByte(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
+							     N : AnsiChar; C : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftRightAndMultByByte'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftRightAndMultByByte}
 
 //  SDL_imageFilterShiftLeftByte: D = (S << N)
-function SDL_imageFilterShiftLeftByte(Src1 : PChar; Dest : PChar; length : integer;
-						   N : char ) : integer;
+function SDL_imageFilterShiftLeftByte(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
+						   N : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftLeftByte'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftLeftByte}
 
 //  SDL_imageFilterShiftLeftUint: D = ((uint)S << N)
-function SDL_imageFilterShiftLeftUint(Src1 : PChar; Dest : PChar; length : integer;
-						   N : char ) : integer;
+function SDL_imageFilterShiftLeftUint(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
+						   N : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftLeftUint'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftLeftUint}
 
 //  SDL_imageFilterShiftLeft: D = saturation255(S << N)
-function SDL_imageFilterShiftLeft(Src1 : PChar; Dest : PChar; length : integer;  N : char ) : integer;
+function SDL_imageFilterShiftLeft(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;  N : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterShiftLeft'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterShiftLeft}
 
 //  SDL_imageFilterBinarizeUsingThreshold: D = S >= T ? 255:0
-function SDL_imageFilterBinarizeUsingThreshold(Src1 : PChar; Dest : PChar; length : integer;
-							   T : char ) : integer;
+function SDL_imageFilterBinarizeUsingThreshold(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
+							   T : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterBinarizeUsingThreshold'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterBinarizeUsingThreshold}
 
 //  SDL_imageFilterClipToRange: D = (S >= Tmin) & (S <= Tmax) 255:0
-function SDL_imageFilterClipToRange(Src1 : PChar; Dest : PChar; length : integer;
+function SDL_imageFilterClipToRange(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer;
 						Tmin : Byte; Tmax : Byte ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterClipToRange'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterClipToRange}
 
 //  SDL_imageFilterNormalizeLinear: D = saturation255((Nmax - Nmin)/(Cmax - Cmin)*(S - Cmin) + Nmin)
-function SDL_imageFilterNormalizeLinear(Src1 : PChar; Dest : PChar; length : integer; Cmin : integer;
+function SDL_imageFilterNormalizeLinear(Src1 : PAnsiChar; Dest : PAnsiChar; length : integer; Cmin : integer;
 						    Cmax : integer; Nmin : integer; Nmax : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterClipToRange'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterClipToRange}
@@ -565,65 +565,65 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterClipToRange'{$ELSE} SDLgfxL
 { !!! NO C-ROUTINE FOR THESE FUNCTIONS YET !!! }
 
 //  SDL_imageFilterConvolveKernel3x3Divide: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel3x3Divide(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel3x3Divide(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 							    columns : integer; Kernel : PShortInt; Divisor : Byte ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel3x3Divide'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel3x3Divide}
 
 //  SDL_imageFilterConvolveKernel5x5Divide: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel5x5Divide(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel5x5Divide(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 							    columns : integer; Kernel : PShortInt; Divisor : Byte ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel5x5Divide'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel5x5Divide}
 
 //  SDL_imageFilterConvolveKernel7x7Divide: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel7x7Divide(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel7x7Divide(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 							    columns : integer; Kernel : PShortInt; Divisor : Byte ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel7x7Divide'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel7x7Divide}
 
 //  SDL_imageFilterConvolveKernel9x9Divide: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel9x9Divide(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel9x9Divide(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 							    columns : integer; Kernel : PShortInt; Divisor : Byte ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel9x9Divide'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel9x9Divide}
 
 //  SDL_imageFilterConvolveKernel3x3ShiftRight: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel3x3ShiftRight(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel3x3ShiftRight(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 								columns : integer; Kernel : PShortInt;
-								 NRightShift : char ) : integer;
+								 NRightShift : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel3x3ShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel3x3ShiftRight}
 
 //  SDL_imageFilterConvolveKernel5x5ShiftRight: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel5x5ShiftRight(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel5x5ShiftRight(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 								columns : integer; Kernel : PShortInt;
-								 NRightShift : char ) : integer;
+								 NRightShift : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel5x5ShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel5x5ShiftRight}
 
 //  SDL_imageFilterConvolveKernel7x7ShiftRight: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel7x7ShiftRight(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel7x7ShiftRight(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 								columns : integer; Kernel : PShortInt;
-								 NRightShift : char ) : integer;
+								 NRightShift : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel7x7ShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel7x7ShiftRight}
 
 //  SDL_imageFilterConvolveKernel9x9ShiftRight: Dij = saturation0and255( ... )
-function SDL_imageFilterConvolveKernel9x9ShiftRight(Src : PChar; Dest : PChar; rows : integer;
+function SDL_imageFilterConvolveKernel9x9ShiftRight(Src : PAnsiChar; Dest : PAnsiChar; rows : integer;
 								columns : integer; Kernel : PShortInt;
-								 NRightShift : char ) : integer;
+								 NRightShift : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterConvolveKernel9x9ShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterConvolveKernel9x9ShiftRight}
 
 //  SDL_imageFilterSobelX: Dij = saturation255( ... )
-function SDL_imageFilterSobelX(Src : PChar; Dest : PChar; rows : integer; columns : integer ) : integer;
+function SDL_imageFilterSobelX(Src : PAnsiChar; Dest : PAnsiChar; rows : integer; columns : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterSobelX'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterSobelX}
 
 //  SDL_imageFilterSobelXShiftRight: Dij = saturation255( ... )
-function SDL_imageFilterSobelXShiftRight(Src : PChar; Dest : PChar; rows : integer; columns : integer;
-						      NRightShift : char ) : integer;
+function SDL_imageFilterSobelXShiftRight(Src : PAnsiChar; Dest : PAnsiChar; rows : integer; columns : integer;
+						      NRightShift : AnsiChar ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_imageFilterSobelXShiftRight'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_imageFilterSobelXShiftRight}
 

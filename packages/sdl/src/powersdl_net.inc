@@ -2,13 +2,13 @@
 var PowerSDLNetBase : pLibrary;
 
 const
-    POWERSDL_NETNAME : PChar = 'powersdl_net.library';
+    POWERSDL_NETNAME : PAnsiChar = 'powersdl_net.library';
 
 
 function SDLNet_Init : LongInt; syscall r12base PowerSDLNetBase 028;
 procedure SDLNet_Quit; syscall r12base PowerSDLNetBase 034;
-function SDLNet_ResolveHost(address : pIPaddress; const host : pChar; port : Word) : LongInt; syscall r12base PowerSDLNetBase 040;
-function SDLNet_ResolveIP(ip : pIPaddress) : pChar; syscall r12base PowerSDLNetBase 046;
+function SDLNet_ResolveHost(address : pIPaddress; const host : PAnsiChar; port : Word) : LongInt; syscall r12base PowerSDLNetBase 040;
+function SDLNet_ResolveIP(ip : pIPaddress) : PAnsiChar; syscall r12base PowerSDLNetBase 046;
 function SDLNet_TCP_Open(ip : pIPaddress) : Pointer; syscall r12base PowerSDLNetBase 052;
 function SDLNet_TCP_Accept(server : Pointer) : Pointer; syscall r12base PowerSDLNetBase 058;
 function SDLNet_TCP_GetPeerAddress(sock : Pointer) : pIPaddress; syscall r12base PowerSDLNetBase 064;

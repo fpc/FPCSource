@@ -248,7 +248,7 @@ type
     height: Integer;
     current_frame: Integer;
     current_fps: double;
-    audio_string: array[0..79] of char;
+    audio_string: array[0..79] of AnsiChar;
     audio_current_frame: Integer;
     current_offset: UInt32;
     total_size: UInt32;
@@ -290,7 +290,7 @@ type
   The sdl_audio parameter indicates if SMPEG should initialize the SDL audio
   subsystem. If not, you will have to use the SMPEG_playaudio() function below
   to extract the decoded data. }
-function SMPEG_new(const _file: PChar; info: PSMPEG_Info; sdl_audio: Integer): PSMPEG;
+function SMPEG_new(const _file: PAnsiChar; info: PSMPEG_Info; sdl_audio: Integer): PSMPEG;
 cdecl; external {$IFDEF __GPC__}name 'SMPEG_new'{$ELSE} SmpegLibName{$ENDIF __GPC__};
 
 { The same as above for a file descriptor }
@@ -394,7 +394,7 @@ cdecl; external {$IFDEF __GPC__}name 'SMPEG_filter'{$ELSE} SmpegLibName{$ENDIF _
 
 { Return NULL if there is no error in the MPEG stream, or an error message
    if there was a fatal error in the MPEG stream for the SMPEG object. }
-function SMPEG_error(mpeg: PSMPEG): PChar;
+function SMPEG_error(mpeg: PSMPEG): PAnsiChar;
 cdecl; external {$IFDEF __GPC__}name 'SMPEG_error'{$ELSE} SmpegLibName{$ENDIF __GPC__};
 
 { Exported callback function for audio playback.

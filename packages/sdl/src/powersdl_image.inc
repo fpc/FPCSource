@@ -2,10 +2,10 @@
 var PowerSDLImageBase : pLibrary;
 
 const
-    POWERSDL_IMAGENAME : PChar = 'powersdl_image.library';
+    POWERSDL_IMAGENAME : PAnsiChar = 'powersdl_image.library';
 
-function IMG_LoadTyped_RW(src : pSDL_RWops; freesrc : LongInt; type_ : pChar) : pSDL_Surface; syscall r12base PowerSDLImageBase 028;
-function IMG_Load(const file_ : pChar) : pSDL_Surface; syscall r12base PowerSDLImageBase 034;
+function IMG_LoadTyped_RW(src : pSDL_RWops; freesrc : LongInt; type_ : PAnsiChar) : pSDL_Surface; syscall r12base PowerSDLImageBase 028;
+function IMG_Load(const file_ : PAnsiChar) : pSDL_Surface; syscall r12base PowerSDLImageBase 034;
 function IMG_Load_RW(src : pSDL_RWops; freesrc : LongInt) : pSDL_Surface; syscall r12base PowerSDLImageBase 040;
 function IMG_InvertAlpha(on : LongInt) : LongInt; syscall r12base PowerSDLImageBase 046;
 function IMG_isBMP(src : pSDL_RWops) : LongInt; syscall r12base PowerSDLImageBase 052;

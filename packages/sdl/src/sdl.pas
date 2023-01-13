@@ -255,9 +255,9 @@ unit sdl;
       SDL_GL_MULTISAMPLESAMPLES
 
   Add DLL/Shared object functions
-  function SDL_LoadObject( const sofile : PChar ) : Pointer;
+  function SDL_LoadObject( const sofile : PAnsiChar ) : Pointer;
 
-  function SDL_LoadFunction( handle : Pointer; const name : PChar ) : Pointer;
+  function SDL_LoadFunction( handle : Pointer; const name : PAnsiChar ) : Pointer;
 
   procedure SDL_UnloadObject( handle : Pointer );
 
@@ -1631,7 +1631,7 @@ type
   PSDL_Joystick = ^TSDL_Joystick;
   TSDL_Joystick = record
     index: UInt8; // Device index
-    name: PChar; // Joystick name - system dependent
+    name: PAnsiChar; // Joystick name - system dependent
 
     naxes: Integer; // Number of axis controls on the joystick
     axes: PUInt16; // Current axis states
@@ -2333,7 +2333,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Quit'{$ELSE} SDLLibName{$
 
 {$IFDEF WINDOWS}
 // This should be called from your WinMain() function, if any
-function SDL_RegisterApp(name: PChar; style: UInt32; h_Inst: Pointer): Integer;
+function SDL_RegisterApp(name: PAnsiChar; style: UInt32; h_Inst: Pointer): Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_RegisterApp'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_RegisterApp}
 {$ENDIF}
@@ -2350,7 +2350,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_InitQuickDraw'{$ELSE} SDL
 { types }
 {------------------------------------------------------------------------------}
 // The number of elements in a table
-function SDL_TableSize( table: PChar ): Integer;
+function SDL_TableSize( table: PAnsiChar ): Integer;
 {$EXTERNALSYM SDL_TABLESIZE}
 
 
@@ -2358,10 +2358,10 @@ function SDL_TableSize( table: PChar ): Integer;
 { error-handling }
 {------------------------------------------------------------------------------}
 // Public functions
-function SDL_GetError: PChar;
+function SDL_GetError: PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GetError'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GetError}
-procedure SDL_SetError(fmt: PChar);
+procedure SDL_SetError(fmt: PAnsiChar);
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_SetError'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_SetError}
 procedure SDL_ClearError;
@@ -2382,7 +2382,7 @@ procedure SDL_OutOfMemory;
 {------------------------------------------------------------------------------}
 // Functions to create SDL_RWops structures from various data sources
 
-function SDL_RWFromFile(filename, mode: PChar): PSDL_RWops;
+function SDL_RWFromFile(filename, mode: PAnsiChar): PSDL_RWops;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_RWFromFile'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_RWFromFile}
 procedure SDL_FreeRW(area: PSDL_RWops);
@@ -2453,7 +2453,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_SetTimer'{$ELSE} SDLLibNa
   have a specific need to specify the audio driver you want to use.
   You should normally use SDL_Init() or SDL_InitSubSystem(). }
 
-function SDL_AudioInit(driver_name: PChar): Integer;
+function SDL_AudioInit(driver_name: PAnsiChar): Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_AudioInit'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_AudioInit}
 procedure SDL_AudioQuit;
@@ -2464,7 +2464,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_AudioQuit'{$ELSE} SDLLibN
   current audio driver, and returns a Pointer to it if the audio driver has
   been initialized.  It returns NULL if no driver has been initialized. }
 
-function SDL_AudioDriverName(namebuf: PChar; maxlen: Integer): PChar;
+function SDL_AudioDriverName(namebuf: PAnsiChar; maxlen: Integer): PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_AudioDriverName'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_AudioDriverName}
 
@@ -2549,7 +2549,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_LoadWAV_RW'{$ELSE} SDLLib
 {$EXTERNALSYM SDL_LoadWAV_RW}
 
 // Compatibility convenience function -- loads a WAV from a file
-function SDL_LoadWAV(filename: PChar; spec: PSDL_AudioSpec; audio_buf:
+function SDL_LoadWAV(filename: PAnsiChar; spec: PSDL_AudioSpec; audio_buf:
   PUInt8; audiolen: PUInt32): PSDL_AudioSpec;
 {$EXTERNALSYM SDL_LoadWAV}
 
@@ -2625,7 +2625,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_CDNumDrives'{$ELSE} SDLLi
    "E:"
    "/dev/disk/ide/1/master" }
 
-function SDL_CDName(drive: Integer): PChar;
+function SDL_CDName(drive: Integer): PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_CDName'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_CDName}
 
@@ -2730,7 +2730,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_NumJoysticks'{$ELSE} SDLL
 { Get the implementation dependent name of a joystick.
   This can be called before any joysticks are opened.
   If no name can be found, this function returns NULL. }
-function SDL_JoystickName(index: Integer): PChar;
+function SDL_JoystickName(index: Integer): PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_JoystickName'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_JoystickName}
 
@@ -2960,7 +2960,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Linked_Version'{$ELSE} SD
   SDL_Init() before opening the sound device, otherwise under Win32 DirectX,
   you won't be able to set full-screen display modes. }
 
-function SDL_VideoInit(driver_name: PChar; flags: UInt32): Integer;
+function SDL_VideoInit(driver_name: PAnsiChar; flags: UInt32): Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_VideoInit'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_VideoInit}
 procedure SDL_VideoQuit;
@@ -2971,7 +2971,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_VideoQuit'{$ELSE} SDLLibN
   video driver, and returns a pointer to it if the video driver has
   been initialized.  It returns NULL if no driver has been initialized. }
 
-function SDL_VideoDriverName(namebuf: PChar; maxlen: Integer): PChar;
+function SDL_VideoDriverName(namebuf: PAnsiChar; maxlen: Integer): PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_VideoDriverName'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_VideoDriverName}
 
@@ -3273,7 +3273,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_LoadBMP_RW'{$ELSE} SDLLib
 {$EXTERNALSYM SDL_LoadBMP_RW}
 
 // Convenience macro -- load a surface from a file
-function SDL_LoadBMP(filename: PChar): PSDL_Surface;
+function SDL_LoadBMP(filename: PAnsiChar): PSDL_Surface;
 {$EXTERNALSYM SDL_LoadBMP}
 
 { Save a surface to a seekable SDL data source (memory or file.)
@@ -3285,7 +3285,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_SaveBMP_RW'{$ELSE} SDLLib
 {$EXTERNALSYM SDL_SaveBMP_RW}
 
 // Convenience macro -- save a surface to a file
-function SDL_SaveBMP(surface: PSDL_Surface; filename: PChar): Integer;
+function SDL_SaveBMP(surface: PSDL_Surface; filename: PAnsiChar): Integer;
 {$EXTERNALSYM SDL_SaveBMP}
 
 { Sets the color key (transparent pixel) in a blittable surface.
@@ -3533,12 +3533,12 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_FreeYUVOverlay'{$ELSE} SD
   This is disabled in default builds of SDL. }
 
 
-function SDL_GL_LoadLibrary(filename: PChar): Integer;
+function SDL_GL_LoadLibrary(filename: PAnsiChar): Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_LoadLibrary'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_LoadLibrary}
 
 { Get the address of a GL function (for extension functions) }
-function SDL_GL_GetProcAddress(procname: PChar) : Pointer;
+function SDL_GL_GetProcAddress(procname: PAnsiChar) : Pointer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_GetProcAddress'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_GetProcAddress}
 
@@ -3583,10 +3583,10 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_Unlock'{$ELSE} SDLLibN
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 
 { Sets/Gets the title and icon text of the display window }
-procedure SDL_WM_GetCaption(var title : PChar; var icon : PChar);
+procedure SDL_WM_GetCaption(var title : PAnsiChar; var icon : PAnsiChar);
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_WM_GetCaption'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_WM_GetCaption}
-procedure SDL_WM_SetCaption( const title : PChar; const icon : PChar);
+procedure SDL_WM_SetCaption( const title : PAnsiChar; const icon : PAnsiChar);
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_WM_SetCaption'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_WM_SetCaption}
 
@@ -3747,7 +3747,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_SetModState'{$ELSE} SDLLi
 {$EXTERNALSYM SDL_SetModState}
 
 { Get the name of an SDL virtual keysym }
-function SDL_GetKeyName(key: TSDLKey): PChar;
+function SDL_GetKeyName(key: TSDLKey): PAnsiChar;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GetKeyName'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GetKeyName}
 
@@ -3936,41 +3936,41 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_KillThread'{$ELSE} SDLLib
 { Get Environment Routines                                                     }
 {------------------------------------------------------------------------------}
 {$IFDEF WINDOWS}
-function _putenv( const variable : Pchar ): integer;
+function _putenv( const variable : PAnsiChar ): integer;
 cdecl;
 {$ENDIF}
 
 {$IFDEF Unix}
 {$IFDEF FPC}
-function _putenv( const variable : Pchar ): integer;
+function _putenv( const variable : PAnsiChar ): integer;
 cdecl; external 'libc.so' name 'putenv';
 {$ENDIF}
 {$ENDIF}
 
 { Put a variable of the form "name=value" into the environment }
-//function SDL_putenv(const variable: PChar): integer; cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Init'{$ELSE} SDLLibName{$ENDIF __GPC__}SDLLibName name '';
-function SDL_putenv(const variable: PChar): integer;
+//function SDL_putenv(const variable: PAnsiChar): integer; cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Init'{$ELSE} SDLLibName{$ENDIF __GPC__}SDLLibName name '';
+function SDL_putenv(const variable: PAnsiChar): integer;
 {$EXTERNALSYM SDL_putenv}
 
 // The following function has been commented out to encourage developers to use
 // SDL_putenv as it it more portable
-//function putenv(const variable: PChar): integer;
+//function putenv(const variable: PAnsiChar): integer;
 //{$EXTERNALSYM putenv}
 
 {$IFDEF WINDOWS}
 {$IFNDEF __GPC__}
-function getenv( const name : Pchar ): PChar; cdecl;
+function getenv( const name : PAnsiChar ): PAnsiChar; cdecl;
 {$ENDIF}
 {$ENDIF}
 
 {* Retrieve a variable named "name" from the environment }
-//function SDL_getenv(const name: PChar): PChar; cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Init'{$ELSE} SDLLibName{$ENDIF __GPC__}SDLLibName name '';
-function SDL_getenv(const name: PChar): PChar;
+//function SDL_getenv(const name: PAnsiChar): PAnsiChar; cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_Init'{$ELSE} SDLLibName{$ENDIF __GPC__}SDLLibName name '';
+function SDL_getenv(const name: PAnsiChar): PAnsiChar;
 {$EXTERNALSYM SDL_getenv}
 
 // The following function has been commented out to encourage developers to use
 // SDL_getenv as it it more portable
-//function getenv(const name: PChar): PChar;
+//function getenv(const name: PAnsiChar): PAnsiChar;
 //{$EXTERNALSYM getenv}
 
 {*
@@ -3990,7 +3990,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GetWMInfo'{$ELSE} SDLLibN
  * to the object handle (or NULL if there was an error).
  * The 'sofile' parameter is a system dependent name of the object file.
  *}
-function SDL_LoadObject( const sofile : PChar ) : Pointer;
+function SDL_LoadObject( const sofile : PAnsiChar ) : Pointer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_LoadObject'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_LoadObject}
 
@@ -3998,7 +3998,7 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_LoadObject'{$ELSE} SDLLib
  * named function in the shared object and returns it.  This address
  * is no longer valid after calling SDL_UnloadObject().
  *}
-function SDL_LoadFunction( handle : Pointer; const name : PChar ) : Pointer;
+function SDL_LoadFunction( handle : Pointer; const name : PAnsiChar ) : Pointer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_LoadFunction'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_LoadFunction}
 
@@ -4041,7 +4041,7 @@ implementation
   {$L 'sdl'}  { link sdl.dll.a or libsdl.so or libsdl.a }
 {$ENDIF}
 
-function SDL_TABLESIZE(table: PChar): Integer;
+function SDL_TABLESIZE(table: PAnsiChar): Integer;
 begin
   Result := SizeOf(table) div SizeOf(table[0]);
 end;
@@ -4078,7 +4078,7 @@ begin
   Result := context^.close(context);
 end;
 
-function SDL_LoadWAV(filename: PChar; spec: PSDL_AudioSpec; audio_buf: PUInt8; audiolen: PUInt32): PSDL_AudioSpec;
+function SDL_LoadWAV(filename: PAnsiChar; spec: PSDL_AudioSpec; audio_buf: PUInt8; audiolen: PUInt32): PSDL_AudioSpec;
 begin
   Result := SDL_LoadWAV_RW(SDL_RWFromFile(filename, 'rb'), 1, spec, audio_buf, audiolen);
 end;
@@ -4129,12 +4129,12 @@ begin
   Result := (SDL_COMPILEDVERSION >= SDL_VERSIONNUM(X, Y, Z));
 end;
 
-function SDL_LoadBMP(filename: PChar): PSDL_Surface;
+function SDL_LoadBMP(filename: PAnsiChar): PSDL_Surface;
 begin
   Result := SDL_LoadBMP_RW(SDL_RWFromFile(filename, 'rb'), 1);
 end;
 
-function SDL_SaveBMP(surface: PSDL_Surface; filename: PChar): Integer;
+function SDL_SaveBMP(surface: PSDL_Surface; filename: PAnsiChar): Integer;
 begin
   Result := SDL_SaveBMP_RW(surface, SDL_RWFromFile(filename, 'wb'), 1);
 end;
@@ -4170,12 +4170,12 @@ begin
 end;
 
 {$IFDEF WINDOWS}
-function _putenv( const variable : Pchar ): Integer;
+function _putenv( const variable : PAnsiChar ): Integer;
 cdecl; external {$IFDEF __GPC__}name '_putenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF __GPC__};
 {$ENDIF}
 
 
-function SDL_putenv(const variable: PChar): Integer;
+function SDL_putenv(const variable: PAnsiChar): Integer;
 begin
   {$IFDEF WINDOWS}
   Result := _putenv(variable);
@@ -4192,12 +4192,12 @@ end;
 
 {$IFDEF WINDOWS}
 {$IFNDEF __GPC__}
-function getenv( const name : Pchar ): PChar;
+function getenv( const name : PAnsiChar ): PAnsiChar;
 cdecl; external {$IFDEF __GPC__}name 'getenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF};
 {$ENDIF}
 {$ENDIF}
 
-function SDL_getenv(const name: PChar): PChar;
+function SDL_getenv(const name: PAnsiChar): PAnsiChar;
 begin
   {$IFDEF WINDOWS}
 
