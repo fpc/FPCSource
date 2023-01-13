@@ -72,4 +72,6 @@ function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  F
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
 function StringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
+// Needed to avoid "cannot determine overload"
+function StringReplace(const S : UnicodeString; OldPattern, NewPattern: WideChar;  Flags: TReplaceFlags): UnicodeString;
 

@@ -565,6 +565,15 @@ begin
   Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
 end;
 
+Function StringReplace(const S : UnicodeString; OldPattern, NewPattern: WideChar;  Flags: TReplaceFlags): Unicodestring;
+
+Var
+  C : Integer;
+
+begin
+  Result:=UnicodeStringReplace(S,OldPattern,NewPattern,Flags,C);
+end;
+
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags; Out aCount : Integer): UnicodeString;
 {$i syssr.inc}
 
