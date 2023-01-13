@@ -143,7 +143,7 @@ const
   LCM_COMPOSE = 0;
   LCM_DAMAGE  = 1;
 
-  LAYERSNAME: PChar = 'layers.library';
+  LAYERSNAME: PAnsiChar = 'layers.library';
 var
   LayersBase: PLibrary = nil;
   ILayers: PInterface = nil;

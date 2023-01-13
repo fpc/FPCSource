@@ -21,7 +21,7 @@ uses
   exec, utility, workbench, agraphics;
 
 const
-  ASLNAME: PChar = 'asl.library';
+  ASLNAME: PAnsiChar = 'asl.library';
   ASL_Dummy = TAG_USER + $80000;
 
 // Types of requesters known to ASL, used as arguments to AllocAslRequest()
@@ -369,7 +369,7 @@ const
   defaults for the window size and the file requester sort order. The name
   of the semaphore is given below; it exists only with asl.library V45 and
   IPrefs V45 and beyond.}
-  ASL_SEMAPHORE_NAME: PChar = 'asl.library';
+  ASL_SEMAPHORE_NAME: PAnsiChar = 'asl.library';
 
 type
   PASLSemaphore = ^TASLSemaphore;
