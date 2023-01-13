@@ -276,7 +276,7 @@ var
   ILocale: PInterface = nil;
 
 const
-  LOCALENAME: PChar = 'locale.library';
+  LOCALENAME: PAnsiChar = 'locale.library';
 
 function LocaleObtain(): LongWord; syscall ILocale 60;
 function LocaleRelease(): LongWord; syscall ILocale 64;
@@ -289,8 +289,8 @@ function ConvToLower(Locale: PLocale; Character: LongWord): LongWord; syscall IL
 function ConvToUpper(Locale: PLocale; Character: LongWord): LongWord; syscall ILocale 92;
 procedure FormatDate(Locale: PLocale; FmtTemplate: STRPTR; Date: PDateStamp; PutCharFunc: PHook); syscall ILocale 96;
 function FormatString(Locale: PLocale; FmtTemplate: STRPTR; DataStream: APTR; PutCharFunc: PHook): POINTER; syscall ILocale 100;
-function GetCatalogStr(Catalog: PCatalog; StringNum: LongInt; DefaultString: STRPTR): PChar; syscall ILocale 104;
-function GetLocaleStr(Locale: PLocale; StringNum: LongWord): PChar; syscall ILocale 108;
+function GetCatalogStr(Catalog: PCatalog; StringNum: LongInt; DefaultString: STRPTR): PAnsiChar; syscall ILocale 104;
+function GetLocaleStr(Locale: PLocale; StringNum: LongWord): PAnsiChar; syscall ILocale 108;
 function IsAlNum(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 112;
 function IsAlpha(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 116;
 function IsCntrl(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 120;
@@ -302,7 +302,7 @@ function IsPunct(Locale: PLocale; Character: LongWord): LongBool; syscall ILocal
 function IsSpace(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 144;
 function IsUpper(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 148;
 function IsXDigit(Locale: PLocale; Character: LongWord): LongBool; syscall ILocale 152;
-function OpenCatalogA(Locale: PLocale; Name: PChar; Tags: PTagItem): PCatalog; syscall ILocale 156;
+function OpenCatalogA(Locale: PLocale; Name: PAnsiChar; Tags: PTagItem): PCatalog; syscall ILocale 156;
 // 160 OpenCatalog
 function OpenLocale(Name: STRPTR): PLocale; syscall ILocale 164;
 function ParseDate(Locale: PLocale; Date: PDateStamp; FmtTemplate: STRPTR; GetCharFunc: PHook): LongBool; syscall ILocale 168;
