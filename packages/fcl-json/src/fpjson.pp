@@ -56,7 +56,7 @@ type
   TFPJSStream = TMemoryStream;
   TJSONLargeInt = Int64;
   {$else}
-  TJSONCharType = char;
+  TJSONCharType = AnsiChar;
   TJSONVariant = jsvalue;
   TFPJSStream = TJSArray;
   TJSONLargeInt = NativeInt;
@@ -547,7 +547,7 @@ Type
     {$ELSE}
     function Add(I : NativeInt): Integer;
     {$ENDIF}
-    function Add(const S : String): Integer;
+    function Add(const S : AnsiString): Integer;
     function Add: Integer;
     function Add(F : TJSONFloat): Integer;
     function Add(B : Boolean): Integer;
@@ -567,7 +567,7 @@ Type
     {$ELSE}
     procedure Insert(Index: Integer; I : NativeInt);
     {$ENDIF}
-    procedure Insert(Index: Integer; const S : String);
+    procedure Insert(Index: Integer; const S : AnsiString);
     procedure Insert(Index: Integer; F : TJSONFloat);
     procedure Insert(Index: Integer; B : Boolean);
     procedure Insert(Index: Integer; AnArray : TJSONArray);
@@ -767,7 +767,9 @@ Function SetJSONInstanceType(AType : TJSONInstanceType; AClass : TJSONDataClass)
 Function GetJSONInstanceType(AType : TJSONInstanceType) : TJSONDataClass;
 
 Function StringToJSONString(const S : TJSONStringType; Strict : Boolean = False) : TJSONStringType;
+Function StringToJSONString(const S : UnicodeString; Strict : Boolean = False) : TJSONStringType;
 Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
+Function JSONStringToString(const S : UnicodeString) : TJSONStringType;
 Function JSONTypeName(JSONType : TJSONType) : String;
 
 // These functions create JSONData structures, taking into account the instance types
@@ -805,7 +807,7 @@ Uses typinfo;
 
 {$IFNDEF Pas2js}
 const
-  HexDigits: array[0..15] of char = '0123456789ABCDEF';
+  HexDigits: array[0..15] of AnsiChar = '0123456789ABCDEF';
 {$ENDIF}
 
 Resourcestring
@@ -892,19 +894,19 @@ begin
 end;
 {$ELSE}
 var
-  ResultPos: PChar;
+  ResultPos: PAnsiChar;
 
-  procedure W(p: PChar; Count: SizeInt);
+  procedure W(p: PAnsiChar; Count: SizeInt);
   begin
     Move(p^,ResultPos^,Count);
     inc(ResultPos,Count);
   end;
 
 var
-  hex : array[0..5] of char;
-  C : Char;
+  hex : array[0..5] of AnsiChar;
+  C : AnsiChar;
   i, ResultLen, SLen: SizeInt;
-  SPos, SEnd, SLastPos: PChar;
+  SPos, SEnd, SLastPos: PAnsiChar;
 
 begin
   SLen:=length(S);
@@ -934,10 +936,10 @@ begin
     exit(S);
 
   SetLength(Result,ResultLen);
-  ResultPos:=PChar(Result);
+  ResultPos:=PAnsiChar(Result);
 
   hex:='\u00';
-  SPos:=PChar(S);
+  SPos:=PAnsiChar(S);
   SEnd:=SPos+SLen;
   SLastPos:=SPos;
   While SPos<SEnd do
@@ -975,6 +977,12 @@ begin
 end;
 {$ENDIF}
 
+function StringToJSONString(const S: UnicodeString; Strict: Boolean
+  ): TJSONStringType;
+begin
+  Result:=StringToJSONString(UTF8Encode(S),Strict);
+end;
+
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;
 
 {$IFDEF PAS2JS}
@@ -1001,7 +1009,7 @@ end;
     function BufferHexToInt(P : PAnsiChar): integer;
     var
       N, i: integer;
-      ch: char;
+      ch: AnsiChar;
     begin
       Result:= 0;
       for i:= 1 to 4 do
@@ -1105,6 +1113,11 @@ begin
   Result:=Result+Copy(S,J,I-J+1);
 end;
 {$ENDIF}
+
+function JSONStringToString(const S: UnicodeString): TJSONStringType;
+begin
+  Result:=JSONStringToString(UTF8Encode(S));
+end;
 
 function JSONTypeName(JSONType: TJSONType): String;
 begin
@@ -1481,7 +1494,7 @@ procedure TJSONData.DumpJSON(S: TFPJSStream);
     {$IFDEF PAS2JS}
     S.push(T);
     {$else}
-    S.WriteBuffer(T[1],Length(T)*SizeOf(Char));
+    S.WriteBuffer(T[1],Length(T)*SizeOf(AnsiChar));
     {$ENDIF}
   end;
 
@@ -3027,7 +3040,7 @@ end;
 
 {$ENDIF}
 
-function TJSONArray.Add(const S: String): Integer;
+function TJSONArray.Add(const S: AnsiString): Integer;
 begin
   Result:=Add(CreateJSON(S));
 end;
@@ -3097,7 +3110,7 @@ begin
 end;
 
 
-procedure TJSONArray.Insert(Index: Integer; const S: String);
+procedure TJSONArray.Insert(Index: Integer; const S: AnsiString);
 begin
   FList.Insert(Index, CreateJSON(S));
 end;
