@@ -62,26 +62,26 @@ Type
 
   TJSONMinifier = Class(TComponent)
   Private
-    FA : char;
-    FB : char;
+    FA : AnsiChar;
+    FB : AnsiChar;
     FFileHeader: TStrings;
-    FLookahead : char;
-    FX : char;
-    FY : char ;
+    FLookahead : AnsiChar;
+    FX : AnsiChar;
+    FY : AnsiChar ;
     Fin : TStream;
     Fout : TStream;
     procedure SetFileHeader(AValue: TStrings);
   Protected
     // Token reading routines
-    function Peek : char;
-    function Get : char;inline;
-    function Next : char;
+    function Peek : AnsiChar;
+    function Get : AnsiChar;inline;
+    function Next : AnsiChar;
     // Token writing routines
-    procedure Putc(c: char);inline;
+    procedure Putc(c: AnsiChar);inline;
     Procedure Reset;
     procedure DoHeader; virtual;
     procedure Error(Const Msg: string);
-    Class Function isAlphaNum(c: char): boolean;
+    Class Function isAlphaNum(c: AnsiChar): boolean;
     Class Function iif(B : Boolean; Const ifTrue,ifFalse : integer) : integer; inline;
     procedure Action(d: Byte);
     procedure Minify;
@@ -136,14 +136,14 @@ begin
   FY:=EOS;
 end;
 
-class function TJSONMinifier.isAlphaNum(c: char): boolean;
+class function TJSONMinifier.isAlphaNum(c: AnsiChar): boolean;
 
 begin
   Result:= (C in ['a'..'z']) or (c in ['0'..'9']) or (c in ['A'..'Z']) or (C in ['_','$','\']) or (c > #126);
 end;
 
 
-function TJSONMinifier.Get: char;
+function TJSONMinifier.Get: AnsiChar;
 
 begin
   Result:=FLookahead;
@@ -159,16 +159,16 @@ begin
 end;
 
 
-function TJSONMinifier.Peek: char;
+function TJSONMinifier.Peek: AnsiChar;
 begin
   FLookahead := get();
   result:=FLookahead;
 end;
 
-function TJSONMinifier.Next: char;
+function TJSONMinifier.Next: AnsiChar;
 
 var
- c : char;
+ c : AnsiChar;
 
 begin
   c:= get();
@@ -200,7 +200,7 @@ begin
   Result:=c;
 end;
 
-procedure TJSONMinifier.Putc(c: char);
+procedure TJSONMinifier.Putc(c: AnsiChar);
 
 begin
   Fout.writebuffer(c,sizeof(c));
