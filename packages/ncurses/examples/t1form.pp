@@ -3,7 +3,7 @@ program form_basic;
   Example 25. Forms Basics
   from ncurses howto
 
-  Possible bug: moving cursors before first char doesn't seem to work.
+  Possible bug: moving cursors before first AnsiChar doesn't seem to work.
 }
 {$MODE OBJFPC}
 

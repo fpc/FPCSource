@@ -6,7 +6,7 @@ uses
   ncurses, form, initc;
 
 
-procedure setlocale(cat : integer; p : pchar); cdecl; external clib;
+procedure setlocale(cat : integer; p : PAnsiChar); cdecl; external clib;
 
 
 const

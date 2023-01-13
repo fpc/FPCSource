@@ -32,7 +32,7 @@ type
    { doubly linked list of strings to edit }
    pLine = ^tLine;
    tLine = Record
-      s : ^string;
+      s : ^shortstring;
       next,
       prev : pLine;
    End;
@@ -43,7 +43,7 @@ var
    line,                           { current position in list }
    line1 : pLine;                  { first list item of current page }
    ss : array[1..MAXLINES] of s80; { a sliding screen buffer }
-   xp,yp : string;                 { x & y positions for the status line }
+   xp,yp : shortstring;                 { x & y positions for the status line }
    EdWin,                          { main edit window }
    StatWin : tnWindow;             { status line }
    mnu0 : tnMenu;                  { main menu }
@@ -57,11 +57,11 @@ var
    mactive,                        { is the menu active? }
    Finished : boolean;             { exit when finished }
    tf : text;                      { the text file we are reading/writing }
-   fnam : string;                  { name of the current file, tf }
+   fnam : shortstring;                  { name of the current file, tf }
 
 
 { replace the old string with a new one }
-Procedure ReallocateLine(var p : pLine; s : string);
+Procedure ReallocateLine(var p : pLine; s : shortstring);
 Begin
    If p = Nil Then Exit;
    If p^.s^ <> s Then Begin
@@ -72,7 +72,7 @@ Begin
 End;
 
 { insert a new pline into the edit list before p }
-Procedure InsertLine(var p : pLine; s : string);
+Procedure InsertLine(var p : pLine; s : shortstring);
 Var
    tmp : pLine;
 Begin
@@ -159,7 +159,7 @@ Begin
    h^.s := nil;
 End;
 
-Function PromptFile(hs : string; var s : string) : integer;
+Function PromptFile(hs : shortstring; var s : shortstring) : integer;
 Var
    win : pnWindow;
    ret : integer;
@@ -180,7 +180,7 @@ End;
 { prompt for, and open a text file }
 Function OpenFile(var f : text; prompt : boolean) : boolean;
 Var
-   s : string;
+   s : shortstring;
    tst : text;
    ret : integer;
 Begin
@@ -213,7 +213,7 @@ End;
 Procedure ReadFile(var f : text; prompt : boolean);
 Var
    err : boolean;
-   s : string;
+   s : shortstring;
    win : pnWindow;
 Begin
    If Not OpenFile(f,prompt) Then Exit;
@@ -244,7 +244,7 @@ Procedure SaveFile(var f : text);
 Var
    tmp : text;
    s,
-   tnam : string;
+   tnam : shortstring;
    cur : pLine;
    win : pnWindow;
 Begin
