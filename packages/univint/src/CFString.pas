@@ -384,16 +384,16 @@ since it is the default choice with Mac OS X developer tools.
 {
 	CFSTR Must only be called with a constant CString
 }
-function CFSTR( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTR( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 {
 	CFSTRP Must only be called with a constant Pascal String
 }
-function CFSTRP( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTRP( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 
 {
 	CFSTRP0 Must only be called with a constant Pascal String terminated with a chr(0)
 }
-function CFSTRP0( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString';
+function CFSTRP0( c: PAnsiChar ): CFStringRef; external name '___CFStringMakeConstantString';
 
 {** Immutable string creation functions **}
 

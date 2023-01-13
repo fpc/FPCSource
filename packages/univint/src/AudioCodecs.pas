@@ -624,7 +624,7 @@ const
 						This property can be set on an initialized encoder object without having to uninitialize and re-intialize it
 						and allows to adjust the encoder quality level for every packet. This is useful for packets streamed over
 						unreliable IP networks where the encoder needs to adapt immediately to network condition changes.
-						Escape property ID's start with a '^' symbol as the first char code. This bypasses the initilization check.
+						Escape property ID's start with a '^' symbol as the first AnsiChar code. This bypasses the initilization check.
     @constant		kAudioCodecPropertyProgramTargetLevel
 						A Float32 specifying the program target level in dB FS for decoders.
 						Supported target levels are in the range of -31.0 to -20.0dB.

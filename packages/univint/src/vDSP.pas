@@ -3880,7 +3880,7 @@ procedure vDSP_vfixru32D( __vDSP_A: Float64Ptr; __vDSP_I: vDSP_Stride; __vDSP_C:
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-procedure vDSP_vflt8( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8';
+procedure vDSP_vflt8( var A: AnsiChar; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 
@@ -3893,7 +3893,7 @@ procedure vDSP_vflt8( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float32Ptr; 
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-procedure vDSP_vflt8D( var A: char; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8D';
+procedure vDSP_vflt8D( var A: AnsiChar; __vDSP_I: vDSP_Stride; __vDSP_C: Float64Ptr; __vDSP_K: vDSP_Stride; __vDSP_N: vDSP_Length ); external name '_vDSP_vflt8D';
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_4_0) *)
 
 

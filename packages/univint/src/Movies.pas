@@ -858,8 +858,8 @@ type
 		dataRefIndex: SInt16;
 
 		displayFlags: UInt32;
-		horizontalJustification: char;
-		verticalJustification: char;
+		horizontalJustification: AnsiChar;
+		verticalJustification: AnsiChar;
 		backgroundColor: Tx3gRGBAColor;
 		defaultTextBox: Rect;
 		defaultStyle: Tx3gStyleRecord;
@@ -1342,7 +1342,7 @@ const
 	kOperandQTVRViewState = 4104; { long viewStateType }
 	kOperandMouseLocalHLoc = 5120; { [TargetAtoms aTrack] }
 	kOperandMouseLocalVLoc = 5121; { [TargetAtoms aTrack] }
-	kOperandKeyIsDown = 5122; { [short modKeys, char asciiValue] }
+	kOperandKeyIsDown = 5122; { [short modKeys, AnsiChar asciiValue] }
 	kOperandRandom = 5123; { [short min, short max] }
 	kOperandCanHaveFocus = 5124; { [(TargetAtoms theObject)] }
 	kOperandHasFocus = 5125; { [(TargetAtoms theObject)] }
@@ -15759,7 +15759,7 @@ function QTSampleTableSetProperty( sampleTable: QTSampleTableRef; inPropClass: Q
 * enumerate all items or only items with a particular key.                  *
 *                                                                           *
 * Because a QTMetaDataRef may provide access to different native metadata   *
-* containers with differing key structures (a four-char-code for one, a     *
+* containers with differing key structures (a four-AnsiChar-code for one, a     *
 * string for another, etc.), the key structure is also specified. A         *
 * QTMetaDataKeyFormat indicates the key structure in APIs accepting keys.   *
 * This is also done because some container formats allow multiple key       *

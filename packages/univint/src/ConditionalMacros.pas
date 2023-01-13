@@ -280,7 +280,7 @@ interface
     This conditional is deprecated.  It was used to work around a bug in one obscure compiler that did not pack multiple characters in single quotes rationally.
     It was never intended for endian swapping.
 
-        FourCharCode('abcd')  - Convert a four-char-code to the correct 32-bit value
+        FourCharCode('abcd')  - Convert a four-AnsiChar-code to the correct 32-bit value
 
 
     TYPE_*

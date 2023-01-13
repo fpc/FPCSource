@@ -400,7 +400,7 @@ uses MacTypes, macgl;
 {***********************************************************}
 {$ifc not undefined GL_ARB_shader_objects and GL_ARB_shader_objects}
 type
-	GLcharARB = char;
+	GLcharARB = AnsiChar;
 	PGLcharARB = ^GLcharARB;
 	
 	GLhandleARB = UnivPtr;
@@ -3315,8 +3315,8 @@ type
 	glGetProgramLocalParameterfvARBProcPtr = procedure( target: GLenum; index: GLuint; params: PGLfloat );
 
 type
-	glProgramStringARBProcPtr = procedure( target: GLenum; format: GLenum; len: GLsizei; const strng: PChar );
-	glGetProgramStringARBProcPtr = procedure( target: GLenum; pname: GLenum; strng: PChar );
+	glProgramStringARBProcPtr = procedure( target: GLenum; format: GLenum; len: GLsizei; const strng: PAnsiChar );
+	glGetProgramStringARBProcPtr = procedure( target: GLenum; pname: GLenum; strng: PAnsiChar );
 
 type
 	glGetProgramivARBProcPtr = procedure( target: GLenum; pname: GLenum; params: PGLint );
@@ -3345,8 +3345,8 @@ procedure glProgramLocalParameters4fvEXT( target: GLenum; index: GLuint; count: 
 procedure glGetProgramLocalParameterdvARB( target: GLenum; index: GLuint; params: PGLdouble ); external name '_glGetProgramLocalParameterdvARB';
 procedure glGetProgramLocalParameterfvARB( target: GLenum; index: GLuint; params: PGLfloat ); external name '_glGetProgramLocalParameterfvARB';
 
-procedure glProgramStringARB( target: GLenum; format: GLenum; len: GLsizei; const strng: PChar ); external name '_glProgramStringARB';
-procedure glGetProgramStringARB( target: GLenum; pname: GLenum; strng : PChar ); external name '_glGetProgramStringARB';
+procedure glProgramStringARB( target: GLenum; format: GLenum; len: GLsizei; const strng: PAnsiChar ); external name '_glProgramStringARB';
+procedure glGetProgramStringARB( target: GLenum; pname: GLenum; strng : PAnsiChar ); external name '_glGetProgramStringARB';
 
 procedure glGetProgramivARB( target: GLenum; pname: GLenum; params: PGLint ); external name '_glGetProgramivARB';
 {$endc} { GL_GLEXT_FUNCTION_POINTERS }
@@ -3467,7 +3467,7 @@ type
 {GPC-ONLY-START}	
 	glShaderSourceARBProcPtr = procedure( shaderObj: GLhandleARB; count: GLsizei; {const} strng: CStringPtrPtr; const length: PGLint );
 {GPC-ONLY-FINISH}
-	glShaderSourceARBProcPtr = procedure( shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPChar; const length: PGLint );
+	glShaderSourceARBProcPtr = procedure( shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPAnsiChar; const length: PGLint );
 
 	glCompileShaderARBProcPtr = procedure( shaderObj: GLhandleARB );
 	glCreateProgramObjectARBProcPtr = function: GLhandleARB;
@@ -3496,20 +3496,20 @@ type
 	glUniformMatrix4fvARBProcPtr = procedure( location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat );
 	glGetObjectParameterfvARBProcPtr = procedure( obj: GLhandleARB; pname: GLenum; params: PGLfloat );
 	glGetObjectParameterivARBProcPtr = procedure( obj: GLhandleARB; pname: GLenum; params: PGLint );
-	glGetInfoLogARBProcPtr = procedure( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; infoLog: PChar );
+	glGetInfoLogARBProcPtr = procedure( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; infoLog: PAnsiChar );
 	glGetAttachedObjectsARBProcPtr = procedure( containerObj: GLhandleARB; maxCount: GLsizei; count: PGLsizei; var obj: GLhandleARB );
-	glGetUniformLocationARBProcPtr = function( programObj: GLhandleARB; const name: PChar ): GLint;
-	glGetActiveUniformARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PChar );
+	glGetUniformLocationARBProcPtr = function( programObj: GLhandleARB; const name: PAnsiChar ): GLint;
+	glGetActiveUniformARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PAnsiChar );
 	glGetUniformfvARBProcPtr = procedure( programObj: GLhandleARB; location: GLint; params: PGLfloat );
 	glGetUniformivARBProcPtr = procedure( programObj: GLhandleARB; location: GLint; params: PGLint );
-	glGetShaderSourceARBProcPtr = procedure( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; source: PChar );
+	glGetShaderSourceARBProcPtr = procedure( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; source: PAnsiChar );
 {$elsec}
 procedure glDeleteObjectARB( obj: GLhandleARB ); external name '_glDeleteObjectARB';
 function glGetHandleARB( pname: GLenum ): GLhandleARB; external name '_glGetHandleARB';
 procedure glDetachObjectARB( containerObj: GLhandleARB; attachedObj: GLhandleARB ); external name '_glDetachObjectARB';
 function glCreateShaderObjectARB( shaderType: GLenum ): GLhandleARB; external name '_glCreateShaderObjectARB';
 
-procedure glShaderSourceARB( shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPChar; const length: PGLint ); external name '_glShaderSourceARB';
+procedure glShaderSourceARB( shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPAnsiChar; const length: PGLint ); external name '_glShaderSourceARB';
 
 procedure glCompileShaderARB( shaderObj: GLhandleARB ); external name '_glCompileShaderARB';
 function glCreateProgramObjectARB: GLhandleARB; external name '_glCreateProgramObjectARB';
@@ -3538,26 +3538,26 @@ procedure glUniformMatrix3fvARB( location: GLint; count: GLsizei; transpose: GLb
 procedure glUniformMatrix4fvARB( location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat ); external name '_glUniformMatrix4fvARB';
 procedure glGetObjectParameterfvARB( obj: GLhandleARB; pname: GLenum; params: PGLfloat ); external name '_glGetObjectParameterfvARB';
 procedure glGetObjectParameterivARB( obj: GLhandleARB; pname: GLenum; params: PGLint ); external name '_glGetObjectParameterivARB';
-procedure glGetInfoLogARB( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; infoLog: PChar ); external name '_glGetInfoLogARB';
+procedure glGetInfoLogARB( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; infoLog: PAnsiChar ); external name '_glGetInfoLogARB';
 procedure glGetAttachedObjectsARB( containerObj: GLhandleARB; maxCount: GLsizei; count: PGLsizei; var obj: GLhandleARB ); external name '_glGetAttachedObjectsARB';
-function glGetUniformLocationARB( programObj: GLhandleARB; const name: PChar ): GLint; external name '_glGetUniformLocationARB';
-procedure glGetActiveUniformARB( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PChar ); external name '_glGetActiveUniformARB';
+function glGetUniformLocationARB( programObj: GLhandleARB; const name: PAnsiChar ): GLint; external name '_glGetUniformLocationARB';
+procedure glGetActiveUniformARB( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PAnsiChar ); external name '_glGetActiveUniformARB';
 procedure glGetUniformfvARB( programObj: GLhandleARB; location: GLint; params: PGLfloat ); external name '_glGetUniformfvARB';
 procedure glGetUniformivARB( programObj: GLhandleARB; location: GLint; params: PGLint ); external name '_glGetUniformivARB';
-procedure glGetShaderSourceARB( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; source: PChar ); external name '_glGetShaderSourceARB';
+procedure glGetShaderSourceARB( obj: GLhandleARB; maxLength: GLsizei; length: PGLsizei; source: PAnsiChar ); external name '_glGetShaderSourceARB';
 {$endc} { GL_GLEXT_FUNCTION_POINTERS }
 {$endc}
 
 {$ifc not undefined GL_ARB_vertex_shader and GL_ARB_vertex_shader}
 {$ifc not undefined GL_GLEXT_FUNCTION_POINTERS and GL_GLEXT_FUNCTION_POINTERS}
 type
-	glBindAttribLocationARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; const name: PChar );
-	glGetActiveAttribARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PChar );
-	glGetAttribLocationARBProcPtr = function( programObj: GLhandleARB; const name: PChar ): GLint;
+	glBindAttribLocationARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; const name: PAnsiChar );
+	glGetActiveAttribARBProcPtr = procedure( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PAnsiChar );
+	glGetAttribLocationARBProcPtr = function( programObj: GLhandleARB; const name: PAnsiChar ): GLint;
 {$elsec}
-procedure glBindAttribLocationARB( programObj: GLhandleARB; index: GLuint; const name: PChar ); external name '_glBindAttribLocationARB';
-procedure glGetActiveAttribARB( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PChar ); external name '_glGetActiveAttribARB';
-function glGetAttribLocationARB( programObj: GLhandleARB; const name: PChar ): GLint; external name '_glGetAttribLocationARB';
+procedure glBindAttribLocationARB( programObj: GLhandleARB; index: GLuint; const name: PAnsiChar ); external name '_glBindAttribLocationARB';
+procedure glGetActiveAttribARB( programObj: GLhandleARB; index: GLuint; maxLength: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; name: PAnsiChar ); external name '_glGetActiveAttribARB';
+function glGetAttribLocationARB( programObj: GLhandleARB; const name: PAnsiChar ): GLint; external name '_glGetAttribLocationARB';
 {$endc} { GL_GLEXT_FUNCTION_POINTERS }
 {$endc}
 
@@ -4281,9 +4281,9 @@ type
 	glBindBufferBaseEXTProcPtr = procedure( target: GLenum; index: GLuint; buffer: GLuint );
 	glBeginTransformFeedbackEXTProcPtr = procedure( primitiveMode: GLenum );
 	glEndTransformFeedbackEXTProcPtr = procedure;
-	glTransformFeedbackVaryingsEXTProcPtr = procedure( program_: GLuint; count: GLsizei; {const} varyings: PPChar; bufferMode: GLenum );
+	glTransformFeedbackVaryingsEXTProcPtr = procedure( program_: GLuint; count: GLsizei; {const} varyings: PPAnsiChar; bufferMode: GLenum );
 
-	glGetTransformFeedbackVaryingEXTProcPtr = procedure( program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PChar );
+	glGetTransformFeedbackVaryingEXTProcPtr = procedure( program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PAnsiChar );
 {$elsec}
 procedure glBindBufferRangeEXT( target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr ); external name '_glBindBufferRangeEXT';
 procedure glBindBufferOffsetEXT( target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr ); external name '_glBindBufferOffsetEXT';
@@ -4291,9 +4291,9 @@ procedure glBindBufferBaseEXT( target: GLenum; index: GLuint; buffer: GLuint ); 
 procedure glBeginTransformFeedbackEXT( primitiveMode: GLenum ); external name '_glBeginTransformFeedbackEXT';
 procedure glEndTransformFeedbackEXT; external name '_glEndTransformFeedbackEXT';
 
-procedure glTransformFeedbackVaryingsEXT( program_: GLuint; count: GLsizei; {const} varyings: PPChar; bufferMode: GLenum ); external name '_glTransformFeedbackVaryingsEXT';
+procedure glTransformFeedbackVaryingsEXT( program_: GLuint; count: GLsizei; {const} varyings: PPAnsiChar; bufferMode: GLenum ); external name '_glTransformFeedbackVaryingsEXT';
 
-procedure glGetTransformFeedbackVaryingEXT( program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PChar ); external name '_glGetTransformFeedbackVaryingEXT';
+procedure glGetTransformFeedbackVaryingEXT( program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PAnsiChar ); external name '_glGetTransformFeedbackVaryingEXT';
 {$endc}
 {$endc} { GL_EXT_transform_feedback }
 
@@ -4375,8 +4375,8 @@ type
 	glUniform3uivEXTProcPtr = procedure( location: GLint; count: GLsizei; const value: PGLuint );
 	glUniform4uivEXTProcPtr = procedure( location: GLint; count: GLsizei; const value: PGLuint );
 	glGetUniformuivEXTProcPtr = procedure( program_: GLuint; location: GLint; params: PGLuint );
-	glBindFragDataLocationEXTProcPtr = procedure( program_: GLuint; colorNumber: GLuint; const name: PChar );
-	glGetFragDataLocationEXTProcPtr = function( program_: GLuint; const name: PChar ): GLint;
+	glBindFragDataLocationEXTProcPtr = procedure( program_: GLuint; colorNumber: GLuint; const name: PAnsiChar );
+	glGetFragDataLocationEXTProcPtr = function( program_: GLuint; const name: PAnsiChar ): GLint;
 {$elsec}
 procedure glVertexAttribI1iEXT( index: GLuint; x: GLint ); external name '_glVertexAttribI1iEXT';
 procedure glVertexAttribI2iEXT( index: GLuint; x: GLint; y: GLint ); external name '_glVertexAttribI2iEXT';
@@ -4410,8 +4410,8 @@ procedure glUniform2uivEXT( location: GLint; count: GLsizei; const value: PGLuin
 procedure glUniform3uivEXT( location: GLint; count: GLsizei; const value: PGLuint ); external name '_glUniform3uivEXT';
 procedure glUniform4uivEXT( location: GLint; count: GLsizei; const value: PGLuint ); external name '_glUniform4uivEXT';
 procedure glGetUniformuivEXT( program_: GLuint; location: GLint; params: PGLuint ); external name '_glGetUniformuivEXT';
-procedure glBindFragDataLocationEXT( program_: GLuint; colorNumber: GLuint; const name: PChar ); external name '_glBindFragDataLocationEXT';
-function glGetFragDataLocationEXT( program_: GLuint; const name: PChar ): GLint; external name '_glGetFragDataLocationEXT';
+procedure glBindFragDataLocationEXT( program_: GLuint; colorNumber: GLuint; const name: PAnsiChar ); external name '_glBindFragDataLocationEXT';
+function glGetFragDataLocationEXT( program_: GLuint; const name: PAnsiChar ): GLint; external name '_glGetFragDataLocationEXT';
 {$endc}
 {$endc} { GL_EXT_gpu_shader4 }
 

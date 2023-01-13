@@ -820,7 +820,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *  GetMacOSStatusErrorString()
  *  
  *  Summary:
- *    Returns a const char* string which corresponds to the textual
+ *    Returns a const AnsiChar* string which corresponds to the textual
  *    constant for the given OSStatus code.
  *  
  *  Discussion:
@@ -844,7 +844,7 @@ procedure InstallDebugAssertOutputHandler( handler: DebugAssertOutputHandlerUPP 
  *      The OSStatus to return a text string for.
  *  
  *  Result:
- *    A const char* string corresponding to the given OSStatus
+ *    A const AnsiChar* string corresponding to the given OSStatus
  *  
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework
@@ -859,7 +859,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *  GetMacOSStatusCommentString()
  *  
  *  Summary:
- *    Returns a const char* string which corresponds to the descriptive
+ *    Returns a const AnsiChar* string which corresponds to the descriptive
  *    string for the given OSStatus code.
  *  
  *  Discussion:
@@ -885,7 +885,7 @@ function GetMacOSStatusErrorString( err: OSStatus ): CStringPtr; external name '
  *      The OSStatus to return a text string for.
  *  
  *  Result:
- *    A const char* string corresponding to the given OSStatus
+ *    A const AnsiChar* string corresponding to the given OSStatus
  *  
  *  Availability:
  *    Mac OS X:         in version 10.4 and later in CoreServices.framework

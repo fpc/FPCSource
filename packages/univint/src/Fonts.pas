@@ -447,8 +447,8 @@ type
 type
 	KernPairPtr = ^KernPair;
 	KernPair = record
-		kernFirst: char;              {1st character of kerned pair}
-		kernSecond: char;             {2nd character of kerned pair}
+		kernFirst: AnsiChar;              {1st character of kerned pair}
+		kernSecond: AnsiChar;             {2nd character of kerned pair}
 		kernWidth: SInt16;              {kerning in 1pt fixed format}
 	end;
 type

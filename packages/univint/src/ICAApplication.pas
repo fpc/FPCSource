@@ -452,7 +452,7 @@ const
     @constant kICATypeBoolean
         Boolean.
     @constant kICATypeString
-        Char string.
+        AnsiChar string.
     @constant kICATypeData
         void *.
     @constant kICATypeThumbnail
@@ -1531,7 +1531,7 @@ function ICAObjectSendMessage( var pb: ICAObjectSendMessagePB; completion: ICACo
     @constant kAdjustCreationDate
         Set creation date of the downloaded file same as the creation date for the file as reported by the device.
     @constant kSetFileTypeAndCreator
-        Set 4-char file type and creator code.
+        Set 4-AnsiChar file type and creator code.
     @constant kRotateImage
         Rotate the image.
     @constant kDontEmbedColorSyncProfile
@@ -1558,9 +1558,9 @@ const
     @field flags 
         Any combination of flag values defined above. <--
     @field fileType
-        Four-char code indicating the type of file. <--
+        Four-AnsiChar code indicating the type of file. <--
     @field fileCreator
-        Four-char code indicating with the creator of the file. <--
+        Four-AnsiChar code indicating with the creator of the file. <--
     @field rotationAngle
         Rotation angle in steps of 90 degress. <--
     @field fileFSRef

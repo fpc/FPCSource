@@ -257,7 +257,7 @@ type
 	end;
 type
 	BreakTable = record
-		charTypes: packed array [0..255] of char;
+		charTypes: packed array [0..255] of AnsiChar;
 		tripleLength: SInt16;
 		triples: array [0..0] of SInt16;
 	end;
@@ -273,7 +273,7 @@ type
 		forwdTableOff: SInt16;
 		doBackup: SInt16;
 		length: SInt16;                 { length of NBreakTable }
-		charTypes: packed array [0..255] of char;
+		charTypes: packed array [0..255] of AnsiChar;
 		tables: array [0..0] of SInt16;
 	end;
 	NBreakTablePtr = ^NBreakTable;

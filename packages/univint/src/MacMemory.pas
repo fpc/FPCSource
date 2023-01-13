@@ -1623,7 +1623,7 @@ procedure HClrRBit( h: Handle ); external name '_HClrRBit';
  *    bits
  *  
  *  Discussion:
- *    The HGetState function returns a signed byte (char) containing
+ *    The HGetState function returns a signed byte (AnsiChar) containing
  *    the flags of the master pointer for the given handle. You can
  *    save this byte, change the state of any of the flags using the
  *    functions described in this section, and then restore their

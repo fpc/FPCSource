@@ -319,7 +319,7 @@ type
 	cred_t = cred;
 { Free return structure for esballoc }
 type
-	FreeFuncType = procedure( var arg: char );
+	FreeFuncType = procedure( var arg: AnsiChar );
 	free_rtnPtr = ^free_rtn;
 	free_rtn = record
 		free_func: FreeFuncType;              { Routine to call to free buffer }
@@ -606,7 +606,7 @@ type
 
 { structure contained in M_COPYIN/M_COPYOUT messages }
 type
-	caddr_t = ^char;
+	caddr_t = ^AnsiChar;
 	copyreqPtr = ^copyreq;
 	copyreq = record
 		cq_cmd: SInt32;                 { ioctl command (from ioc_cmd) }
@@ -898,7 +898,7 @@ type
 type
 	str_mlistPtr = ^str_mlist;
 	str_mlist = record
-		l_name: packed array [0..31] of char;
+		l_name: packed array [0..31] of AnsiChar;
 	end;
 type
 	str_listPtr = ^str_list;
@@ -930,7 +930,7 @@ type
 		fd: SIGNEDLONG;                     { new file descriptor (FDCELL) }
 		uid: UInt16;                    { user id of sending stream }
 		gid: UInt16;
-		fill: packed array [0..7] of char;
+		fill: packed array [0..7] of AnsiChar;
 	end;
 { structure of ioctl data on I_STR }
 type
@@ -969,7 +969,7 @@ type
 	trace_ids = record
 		ti_mid: SInt16;
 		ti_sid: SInt16;
-		ti_level: char;
+		ti_level: AnsiChar;
 	end;
 const
 	I_TRCLOG = $6201;
@@ -4543,11 +4543,11 @@ type
 	OTAutopushInfoPtr = ^OTAutopushInfo;
 	OTAutopushInfo = record
 		sap_cmd: UInt32;
-		sap_device_name: packed array [0..31] of char;
+		sap_device_name: packed array [0..31] of AnsiChar;
 		sap_minor: SInt32;
 		sap_lastminor: SInt32;
 		sap_npush: SInt32;
-		sap_list: packed array [0..7,0..31] of char;
+		sap_list: packed array [0..7,0..31] of AnsiChar;
 	end;
 { Command values for sap_cmd field of the above.}
 const

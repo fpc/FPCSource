@@ -242,12 +242,12 @@ type
   procedure SetStr63Length( var s: Str63; len: Integer ); inline;
   procedure SetStr255Length( var s: Str255; len: Integer ); inline;
 
-  function CharToStr15( ch: char) : Str15; inline;
-  function CharToStr27( ch: char) : Str27; inline;
-  function CharToStr31( ch: char) : Str31; inline;
-  function CharToStr32( ch: char) : Str32; inline;
-  function CharToStr63( ch: char) : Str63; inline;
-  function CharToStr255( ch: char) : Str255; inline;
+  function CharToStr15( ch: AnsiChar) : Str15; inline;
+  function CharToStr27( ch: AnsiChar) : Str27; inline;
+  function CharToStr31( ch: AnsiChar) : Str31; inline;
+  function CharToStr32( ch: AnsiChar) : Str32; inline;
+  function CharToStr63( ch: AnsiChar) : Str63; inline;
+  function CharToStr255( ch: AnsiChar) : Str255; inline;
   function Str15ToStr15 ( const s: Str15 ) : Str15; inline;
   function Str15ToStr27 ( const s: Str15 ) : Str27; inline;
   function Str15ToStr31 ( const s: Str15 ) : Str31; inline;
@@ -365,12 +365,12 @@ type
 
   procedure InsertStr255( const theSource: Str255; var theDest: Str255; theStart: Integer); inline;
 
-  function PosCharInStr15( theCh: Char; const theStr: Str15) : Integer; inline;
-  function PosCharInStr27( theCh: Char; const theStr: Str27)  : Integer; inline;
-  function PosCharInStr31( theCh: Char; const theStr: Str31)  : Integer; inline;
-  function PosCharInStr32( theCh: Char; const theStr: Str32)  : Integer; inline;
-  function PosCharInStr63( theCh: Char; const theStr: Str63)  : Integer; inline;
-  function PosCharInStr255( theCh: Char; const theStr: Str255)  : Integer; inline;
+  function PosCharInStr15( theCh: AnsiChar; const theStr: Str15) : Integer; inline;
+  function PosCharInStr27( theCh: AnsiChar; const theStr: Str27)  : Integer; inline;
+  function PosCharInStr31( theCh: AnsiChar; const theStr: Str31)  : Integer; inline;
+  function PosCharInStr32( theCh: AnsiChar; const theStr: Str32)  : Integer; inline;
+  function PosCharInStr63( theCh: AnsiChar; const theStr: Str63)  : Integer; inline;
+  function PosCharInStr255( theCh: AnsiChar; const theStr: Str255)  : Integer; inline;
 
   function PosInStr255( const theSubStr, theSourceStr: Str255)  : Integer; inline;
 
@@ -441,32 +441,32 @@ implementation
 
 
 
-  function CharToStr15( ch: char): Str15;
+  function CharToStr15( ch: AnsiChar): Str15;
   begin
     result := ch;
   end;
 
-  function CharToStr27( ch: char) : Str27;
+  function CharToStr27( ch: AnsiChar) : Str27;
   begin
     result := ch;
   end;
 
-  function CharToStr31( ch: char) : Str31;
+  function CharToStr31( ch: AnsiChar) : Str31;
   begin
     result := ch;
   end;
 
-  function CharToStr32( ch: char) : Str32;
+  function CharToStr32( ch: AnsiChar) : Str32;
   begin
     result := ch;
   end;
 
-  function CharToStr63( ch: char) : Str63;
+  function CharToStr63( ch: AnsiChar) : Str63;
   begin
     result := ch;
   end;
 
-  function CharToStr255( ch: char) : Str255;
+  function CharToStr255( ch: AnsiChar) : Str255;
   begin
     result := ch;
   end;
@@ -1024,32 +1024,32 @@ implementation
     insert(theSource,theDest,theStart);
   end;
 
-  function PosCharInStr15( theCh: Char; const theStr: Str15)  : Integer;
+  function PosCharInStr15( theCh: AnsiChar; const theStr: Str15)  : Integer;
   begin
     result := pos(theCh,theStr)
   end;
 
-  function PosCharInStr27( theCh: Char; const theStr: Str27) : Integer;
+  function PosCharInStr27( theCh: AnsiChar; const theStr: Str27) : Integer;
   begin
     result := pos(theCh,theStr)
   end;
 
-  function PosCharInStr31( theCh: Char; const theStr: Str31)  : Integer;
+  function PosCharInStr31( theCh: AnsiChar; const theStr: Str31)  : Integer;
   begin
     result := pos(theCh,theStr)
   end;
 
-  function PosCharInStr32( theCh: Char; const theStr: Str32)  : Integer;
+  function PosCharInStr32( theCh: AnsiChar; const theStr: Str32)  : Integer;
   begin
     result := pos(theCh,theStr)
   end;
 
-  function PosCharInStr63( theCh: Char; const theStr: Str63)  : Integer;
+  function PosCharInStr63( theCh: AnsiChar; const theStr: Str63)  : Integer;
   begin
     result := pos(theCh,theStr)
   end;
 
-  function PosCharInStr255( theCh: Char; const theStr: Str255)  : Integer;
+  function PosCharInStr255( theCh: AnsiChar; const theStr: Str255)  : Integer;
   begin
     result := pos(theCh,theStr)
   end;

@@ -224,7 +224,7 @@ uses MacTypes,CoreAudioTypes;
 
 {!
     @typedef	AudioFormatPropertyID
-    @abstract   A type for four char codes for property IDs
+    @abstract   A type for four AnsiChar codes for property IDs
 }
 type
 	AudioFormatPropertyID = UInt32;

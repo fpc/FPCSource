@@ -239,7 +239,7 @@ type
 	AudioFileComponentPtr = ^AudioFileComponent;
 {!
     @typedef	AudioFileComponentPropertyID
-    @abstract		a four char code for a property ID.
+    @abstract		a four AnsiChar code for a property ID.
 }
 type
 	AudioFileComponentPropertyID = UInt32;
@@ -473,7 +473,7 @@ function AudioFileComponentSetProperty( inComponent: AudioFileComponent; inPrope
 					in Sound Designer II files, and possibly other things in other files.
 					For simplicity, referred to below as "chunks".
     @param inComponent				an AudioFileComponent
-    @param inUserDataID				the four char code of the chunk.
+    @param inUserDataID				the four AnsiChar code of the chunk.
     @param outNumberItems			on output, if successful, number of chunks of this type in the file.
     @result							returns noErr if successful.
 }
@@ -484,7 +484,7 @@ function AudioFileComponentCountUserData( inComponent: AudioFileComponent; inUse
     @function	AudioFileComponentGetUserDataSize
     @abstract   implements AudioFileGetUserDataSize
     @param inComponent				an AudioFileComponent
-    @param inUserDataID				the four char code of the chunk.
+    @param inUserDataID				the four AnsiChar code of the chunk.
     @param inIndex					an index specifying which chunk if there are more than one.
     @param outUserDataSize			on output, if successful, the size of the user data chunk.
     @result							returns noErr if successful.
@@ -496,7 +496,7 @@ function AudioFileComponentGetUserDataSize( inComponent: AudioFileComponent; inU
     @function	AudioFileGetUserData
     @abstract   implements AudioFileGetUserData.
     @param		inComponent			an AudioFileComponent
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
 	@param		ioUserDataSize		the size of the buffer on input, size of bytes copied to buffer on output 
     @param      outUserData			a pointer to a buffer in which to copy the chunk data.
@@ -509,7 +509,7 @@ function AudioFileComponentGetUserData( inComponent: AudioFileComponent; inUserD
     @function	AudioFileComponentSetUserData
     @abstract   implements AudioFileSetUserData.
     @param		inComponent			an AudioFileComponent
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
 	@param		inUserDataSize		on input the size of the data to copy, on output, size of bytes copied from the buffer  
     @param      inUserData			a pointer to a buffer from which to copy the chunk data 
@@ -524,7 +524,7 @@ function AudioFileComponentSetUserData( inComponent: AudioFileComponent; inUserD
     @function	AudioFileComponentRemoveUserData
     @abstract   implements AudioFileRemoveUserData.
     @param		inComponent			an AudioFileComponent
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
     @result							returns noErr if successful.
 }

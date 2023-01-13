@@ -371,7 +371,7 @@ const
     @field          mSampleRate
                         The number of sample frames per second of the data in the stream.
     @field          mFormatID
-                        A four char code indicating the general kind of data in the stream.
+                        A four AnsiChar code indicating the general kind of data in the stream.
     @field          mFormatFlags
                         Flags specific to each format.
     @field          mBytesPerPacket
@@ -413,7 +413,7 @@ const
 
 {!
     @enum           Format IDs
-    @abstract       The four char code IDs used to identify individual formats of audio data.
+    @abstract       The four AnsiChar code IDs used to identify individual formats of audio data.
     @constant       kAudioFormatLinearPCM
                         Linear PCM, uses the standard flags.
     @constant       kAudioFormatAC3
@@ -944,11 +944,11 @@ const
     @struct         AudioClassDescription
     @abstract       This structure is used to describe codecs installed on the system.
     @field          mType
-                        The four char code codec type.
+                        The four AnsiChar code codec type.
     @field          mSubType
-                        The four char code codec subtype.
+                        The four AnsiChar code codec subtype.
     @field          mManufacturer
-                        The four char code codec manufacturer.
+                        The four AnsiChar code codec manufacturer.
 }
 type
 	AudioClassDescription = record

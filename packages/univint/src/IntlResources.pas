@@ -302,29 +302,29 @@ type
 type
 	Intl0RecPtr = ^Intl0Rec;
 	Intl0Rec =  record
-		decimalPt: char;              {decimal point character}
-		thousSep: char;               {thousands separator character}
-		listSep: char;                {list separator character}
-		currSym1: char;               {currency symbol}
-		currSym2: char;
-		currSym3: char;
+		decimalPt: AnsiChar;              {decimal point character}
+		thousSep: AnsiChar;               {thousands separator character}
+		listSep: AnsiChar;                {list separator character}
+		currSym1: AnsiChar;               {currency symbol}
+		currSym2: AnsiChar;
+		currSym3: AnsiChar;
 		currFmt: UInt8;                {currency format flags}
 		dateOrder: UInt8;              {order of short date elements: mdy, dmy, etc.}
 		shrtDateFmt: UInt8;            {format flags for each short date element}
-		dateSep: char;                {date separator character}
+		dateSep: AnsiChar;                {date separator character}
 		timeCycle: UInt8;              {specifies time cycle: 0..23, 1..12, or 0..11}
 		timeFmt: UInt8;                {format flags for each time element}
-		mornStr: array [1..4] of char;             {trailing string for AM if 12-hour cycle}
-		eveStr: array [1..4] of char;              {trailing string for PM if 12-hour cycle}
-		timeSep: char;                {time separator character}
-		time1Suff: char;              {trailing string for AM if 24-hour cycle}
-		time2Suff: char;
-		time3Suff: char;
-		time4Suff: char;
-		time5Suff: char;              {trailing string for PM if 24-hour cycle}
-		time6Suff: char;
-		time7Suff: char;
-		time8Suff: char;
+		mornStr: array [1..4] of AnsiChar;             {trailing string for AM if 12-hour cycle}
+		eveStr: array [1..4] of AnsiChar;              {trailing string for PM if 12-hour cycle}
+		timeSep: AnsiChar;                {time separator character}
+		time1Suff: AnsiChar;              {trailing string for AM if 24-hour cycle}
+		time2Suff: AnsiChar;
+		time3Suff: AnsiChar;
+		time4Suff: AnsiChar;
+		time5Suff: AnsiChar;              {trailing string for PM if 24-hour cycle}
+		time6Suff: AnsiChar;
+		time7Suff: AnsiChar;
+		time8Suff: AnsiChar;
 		metricSys: UInt8;              {255 if metric, 0 if inches etc.}
 		intl0Vers: SInt16;              {region code (hi byte) and version (lo byte)}
 	end;
@@ -339,11 +339,11 @@ type
 		lngDateFmt: UInt8;             {order of long date elements}
 		dayLeading0: UInt8;            {255 for leading 0 in day number}
 		abbrLen: UInt8;                {length for abbreviating names}
-		st0: array [1..4] of char;                 { separator strings for long date format }
-		st1: array [1..4] of char;
-		st2: array [1..4] of char;
-		st3: array [1..4] of char;
-		st4: array [1..4] of char;
+		st0: array [1..4] of AnsiChar;                 { separator strings for long date format }
+		st1: array [1..4] of AnsiChar;
+		st2: array [1..4] of AnsiChar;
+		st3: array [1..4] of AnsiChar;
+		st4: array [1..4] of AnsiChar;
 		intl1Vers: SInt16;              { region code (hi byte) and version (lo byte) }
 		localRtn: array [0..0] of SInt16;            { now a flag for opt extension }
 	end;
@@ -383,15 +383,15 @@ type
 	WideChar = packed record
 		case SInt16 of
 		0: (
-			a: packed array [0..1] of char;			{ 0 is the high order character [for PPC] }
+			a: packed array [0..1] of AnsiChar;			{ 0 is the high order character [for PPC] }
 			);
 		2: (
 {$ifc TARGET_RT_BIG_ENDIAN}
-			hi: char;
-			lo: char;
+			hi: AnsiChar;
+			lo: AnsiChar;
 {$elsec}
-			lo: char;
-			hi: char;
+			lo: AnsiChar;
+			hi: AnsiChar;
 {$endc}
 			);
 		1: (
@@ -412,7 +412,7 @@ type
 		peMinus: WideCharArr;
 		peMinusPlus: WideCharArr;
 		altNumTable: WideCharArr;
-		reserved: packed array [0..19] of char;
+		reserved: packed array [0..19] of AnsiChar;
 	end;
 	NumberPartsPtr = ^NumberParts;
 
@@ -522,7 +522,7 @@ type
 		itlbSort: SInt16;               {itl2 id number}
 		itlbFlags: SInt16;              {Script flags}
 		itlbToken: SInt16;              {itl4 id number}
-		itlbEncoding: SInt16;           {itl5 ID # (optional; char encoding)}
+		itlbEncoding: SInt16;           {itl5 ID # (optional; AnsiChar encoding)}
 		itlbLang: SInt16;               {current language for script }
 		itlbNumRep: SInt8;             {number representation code}
 		itlbDateRep: SInt8;            {date representation code }

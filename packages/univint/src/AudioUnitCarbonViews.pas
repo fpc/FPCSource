@@ -227,9 +227,9 @@ type
 {!
 	@enum		Carbon view component types and subtypes
 	@constant	kAudioUnitCarbonViewComponentType
-					The four char-code type of a carbon-based view component
+					The four AnsiChar-code type of a carbon-based view component
 	@constant	kAUCarbonViewSubType_Generic
-					The four char-code subtype of a carbon-based view component
+					The four AnsiChar-code subtype of a carbon-based view component
 }
 const
 	kAudioUnitCarbonViewComponentType = FourCharCode('auvw');

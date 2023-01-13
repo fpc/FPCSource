@@ -495,7 +495,7 @@ function PLstrncat( str1: StringPtr; const (*var*) append: Str255; num: SInt16 )
  *  
  *  Discussion:
  *    The PLstrrchr() function locates the first occurrence of ch1
- *    (converted to an unsigned char) in the string s.  If ch1 does not
+ *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
@@ -535,7 +535,7 @@ function PLstrchr( const (*var*) str1: Str255; ch1: SInt16 ): Ptr; external name
  *  
  *  Discussion:
  *    The PLstrrchr() function locates the last occurrence of ch1
- *    (converted to an unsigned char) in the string s.  If ch1 does not
+ *    (converted to an unsigned AnsiChar) in the string s.  If ch1 does not
  *    occur in the string, this returns NULL. This function should be
  *    deprecated since pascal strings are obsolete on MacOSX and
  *    CFString should be used instead.
