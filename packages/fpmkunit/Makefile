@@ -409,6 +409,9 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
+ifdef SUB_TARGET
+FPC_TARGETOPT+=-t=$(SUB_TARGET)
+endif
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 ifneq ($(findstring $(OS_SOURCE),dragonfly freebsd openbsd netbsd linux solaris),)
 ifneq ($(findstring $(CPU_SOURCE),x86_64 mips mipsel),)

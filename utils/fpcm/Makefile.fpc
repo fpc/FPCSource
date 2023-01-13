@@ -23,6 +23,9 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
+ifdef SUB_TARGET
+FPC_TARGETOPT+=--subtarget=$(SUB_TARGET)
+endif
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 BS_UNITDIR=$(BASEDIR)/units/$(SOURCESUFFIX)
 
@@ -42,6 +45,7 @@ FPMAKE_OPT+=--globalunitdir=../../packages
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
 FPMAKE_OPT+=-bu
 .NOTPARALLEL:
 

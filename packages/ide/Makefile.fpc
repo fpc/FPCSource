@@ -55,6 +55,9 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
+ifdef SUB_TARGET
+FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
+endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
 else

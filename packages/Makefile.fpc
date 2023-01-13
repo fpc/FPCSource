@@ -27,6 +27,9 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
+ifdef SUB_TARGET
+FPC_TARGETOPT+=--subtarget=$(SUB_TARGET)
+endif
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 # Get the location of the bootstrap-fpmkunit units
@@ -66,6 +69,9 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
+ifdef SUB_TARGET
+FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
+endif
 ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-scp
 endif
