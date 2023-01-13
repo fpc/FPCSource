@@ -367,7 +367,7 @@ const
 const
   PJ_VERSION = 461;
 
-//extern char const pj_release[]; /* global release id string */
+//extern AnsiChar const pj_release[]; /* global release id string */
 
 const
   RAD_TO_DEG = 57.29577951308232;
@@ -394,10 +394,10 @@ function pj_datum_transform(src, dst: projPJ; point_count: clong; point_offset: 
 function pj_geocentric_to_geodetic(a, es: cdouble; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
 function pj_geodetic_to_geocentric(a, es: cdouble; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
 function pj_compare_datums(srcdefn: projPJ; dstdefn: projPJ): cint; cdecl; external;
-function pj_apply_gridshift(c: pchar; i: cint; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
+function pj_apply_gridshift(c: PAnsiChar; i: cint; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
 
 type
-  projFinder = function(s: pchar): pchar; cdecl;
+  projFinder = function(s: PAnsiChar): PAnsiChar; cdecl;
 
 procedure pj_deallocate_grids; cdecl; external;
 function pj_is_latlong(proj: projPJ): cint; cdecl; external;
@@ -405,16 +405,16 @@ function pj_is_geocent(proj: projPJ): cint; cdecl; external;
 procedure pj_pr_list(proj: projPJ); cdecl; external;
 procedure pj_free(proj: projPJ); cdecl; external;
 procedure pj_set_finder(finder: projFinder); cdecl; external;
-procedure pj_set_searchpath(count: cint; path: ppchar); cdecl; external;
-function pj_init(argc: cint; argv: ppchar): projPJ; cdecl; external;
-function pj_init_plus(args: pchar): projPJ; cdecl; external;
-function pj_get_def(proj: projPJ; i: cint): pchar; cdecl; external;
+procedure pj_set_searchpath(count: cint; path: PPAnsiChar); cdecl; external;
+function pj_init(argc: cint; argv: PPAnsiChar): projPJ; cdecl; external;
+function pj_init_plus(args: PAnsiChar): projPJ; cdecl; external;
+function pj_get_def(proj: projPJ; i: cint): PAnsiChar; cdecl; external;
 function pj_latlong_from_proj(proj: projPJ): projPJ; cdecl; external;
 function pj_malloc(size: csize_t): pointer; cdecl; external;
 procedure pj_dalloc(ptr: pointer); cdecl; external;
-function pj_strerrno(err: cint): pchar; cdecl; external;
+function pj_strerrno(err: cint): PAnsiChar; cdecl; external;
 function pj_get_errno_ref: pcint; cdecl; external;
-function pj_get_release: pchar; cdecl; external;
+function pj_get_release: PAnsiChar; cdecl; external;
 
 
 
