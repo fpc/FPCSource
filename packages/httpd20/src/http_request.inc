@@ -64,9 +64,9 @@ function ap_process_request_internal(r: Prequest_rec): Integer;
  * @param next_filter The first filter the sub_request should use.  If this is
  *                    NULL, it defaults to the first filter for the main request
  * @return The new request record
- * @deffunc request_rec * ap_sub_req_lookup_uri(const char *new_uri, const request_rec *r)
+ * @deffunc request_rec * ap_sub_req_lookup_uri(const AnsiChar *new_uri, const request_rec *r)
  }
-function ap_sub_req_lookup_uri(const new_uri: PChar;
+function ap_sub_req_lookup_uri(const new_uri: PAnsiChar;
  const r: Prequest_rec; next_filter: Pap_filter_t): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_sub_req_lookup_uri' + LibSuff12;
@@ -79,9 +79,9 @@ function ap_sub_req_lookup_uri(const new_uri: PChar;
  * @param next_filter The first filter the sub_request should use.  If this is
  *                    NULL, it defaults to the first filter for the main request
  * @return The new request record
- * @deffunc request_rec * ap_sub_req_lookup_file(const char *new_file, const request_rec *r)
+ * @deffunc request_rec * ap_sub_req_lookup_file(const AnsiChar *new_file, const request_rec *r)
  }
-function ap_sub_req_lookup_file(const new_file: PChar;
+function ap_sub_req_lookup_file(const new_file: PAnsiChar;
  const r: Prequest_rec; next_filter: Pap_filter_t): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_sub_req_lookup_file' + LibSuff12;
@@ -119,9 +119,9 @@ function ap_sub_req_lookup_dirent(const finfo: Papr_finfo_t;
  * @param next_filter The first filter the sub_request should use.  If this is
  *                    NULL, it defaults to the first filter for the main request
  * @return The new request record
- * @deffunc request_rec * ap_sub_req_method_uri(const char *method, const char *new_uri, const request_rec *r)
+ * @deffunc request_rec * ap_sub_req_method_uri(const AnsiChar *method, const AnsiChar *new_uri, const request_rec *r)
  }
-function ap_sub_req_method_uri(const method, new_uri: PChar;
+function ap_sub_req_method_uri(const method, new_uri: PAnsiChar;
  const r: Prequest_rec; next_filter: Pap_filter_t): Prequest_rec;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_sub_req_method_uri' + LibSuff16;
@@ -166,9 +166,9 @@ procedure ap_destroy_sub_req(r: Prequest_rec);
  * Redirect the current request to some other uri
  * @param new_uri The URI to replace the current request with
  * @param r The current request
- * @deffunc void ap_internal_redirect(const char *new_uri, request_rec *r)
+ * @deffunc void ap_internal_redirect(const AnsiChar *new_uri, request_rec *r)
  }
-procedure ap_internal_redirect(const new_uri: PChar; r: Prequest_rec);
+procedure ap_internal_redirect(const new_uri: PAnsiChar; r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_internal_redirect' + LibSuff8;
 
@@ -178,9 +178,9 @@ procedure ap_internal_redirect(const new_uri: PChar; r: Prequest_rec);
  * an internal redirect.
  * @param new_uri The URI to replace the current request with.
  * @param r The current request
- * @deffunc void ap_internal_redirect_handler(const char *new_uri, request_rec *r)
+ * @deffunc void ap_internal_redirect_handler(const AnsiChar *new_uri, request_rec *r)
  }
-procedure ap_internal_redirect_handler(const new_uri: PChar; r: Prequest_rec);
+procedure ap_internal_redirect_handler(const new_uri: PAnsiChar; r: Prequest_rec);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_internal_redirect_handler' + LibSuff8;
 
@@ -303,8 +303,8 @@ procedure ap_die(type_: Integer; r: Prequest_rec);
 type
   ap_HOOK_create_request_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_create_request(pf: ap_HOOK_create_request_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_create_request(pf: ap_HOOK_create_request_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_create_request' + LibSuff16;
 
@@ -319,8 +319,8 @@ procedure ap_hook_create_request(pf: ap_HOOK_create_request_t; const aszPre: PPC
 type
   ap_HOOK_translate_name_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_translate_name(pf: ap_HOOK_translate_name_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_translate_name(pf: ap_HOOK_translate_name_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_translate_name' + LibSuff16;
 
@@ -340,8 +340,8 @@ procedure ap_hook_translate_name(pf: ap_HOOK_translate_name_t; const aszPre: PPC
 type
   ap_HOOK_map_to_storage_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_map_to_storage(pf: ap_HOOK_map_to_storage_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_map_to_storage(pf: ap_HOOK_map_to_storage_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_map_to_storage' + LibSuff16;
 
@@ -360,8 +360,8 @@ procedure ap_hook_map_to_storage(pf: ap_HOOK_map_to_storage_t; const aszPre: PPC
 type
   ap_HOOK_check_user_id_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_check_user_id(pf: ap_HOOK_check_user_id_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_check_user_id(pf: ap_HOOK_check_user_id_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_check_user_id' + LibSuff16;
 
@@ -375,8 +375,8 @@ procedure ap_hook_check_user_id(pf: ap_HOOK_check_user_id_t; const aszPre: PPCha
 type
   ap_HOOK_fixups_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_fixups(pf: ap_HOOK_fixups_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_fixups(pf: ap_HOOK_fixups_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_fixups' + LibSuff16;
 
@@ -391,8 +391,8 @@ procedure ap_hook_fixups(pf: ap_HOOK_fixups_t; const aszPre: PPChar;
 type
   ap_HOOK_type_checker_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_type_checker(pf: ap_HOOK_type_checker_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_type_checker(pf: ap_HOOK_type_checker_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_type_checker' + LibSuff16;
 
@@ -409,8 +409,8 @@ procedure ap_hook_type_checker(pf: ap_HOOK_type_checker_t; const aszPre: PPChar;
 type
   ap_HOOK_access_checker_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_access_checker(pf: ap_HOOK_access_checker_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_access_checker(pf: ap_HOOK_access_checker_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_access_checker' + LibSuff16;
 
@@ -428,8 +428,8 @@ procedure ap_hook_access_checker(pf: ap_HOOK_access_checker_t; const aszPre: PPC
 type
   ap_HOOK_auth_checker_t = function (r: Prequest_rec): Integer; cdecl;
 
-procedure ap_hook_auth_checker(pf: ap_HOOK_auth_checker_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_auth_checker(pf: ap_HOOK_auth_checker_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_auth_checker' + LibSuff16;
 
@@ -441,8 +441,8 @@ procedure ap_hook_auth_checker(pf: ap_HOOK_auth_checker_t; const aszPre: PPChar;
 type
   ap_HOOK_insert_filter_t = procedure (r: Prequest_rec); cdecl;
 
-procedure ap_hook_insert_filter(pf: ap_HOOK_insert_filter_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_insert_filter(pf: ap_HOOK_insert_filter_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_insert_filter' + LibSuff16;
 

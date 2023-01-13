@@ -79,7 +79,7 @@ procedure ap_open_stderr_log(p: Papr_pool_t);
  * @param file Name of the file to log stderr output
  }
 function ap_replace_stderr_log(p: Papr_pool_t;
- file_: PChar): apr_status_t;
+ file_: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_replace_stderr_log' + LibSuff8;
 
@@ -141,12 +141,12 @@ function ap_replace_stderr_log(p: Papr_pool_t;
  * denial-of-service attack and other messy behavior.  Instead, use a 
  * simple format string like "%s", followed by the string containing the 
  * untrusted data.
- * @deffunc void ap_log_error(const char *file, int line, int level, apr_status_t status, const server_rec *s, const char *fmt, ...) 
+ * @deffunc void ap_log_error(const AnsiChar *file, int line, int level, apr_status_t status, const server_rec *s, const AnsiChar *fmt, ...) 
  }
 procedure ap_log_error(
- const file_: PChar; line, level: Integer;
+ const file_: PAnsiChar; line, level: Integer;
  status: apr_status_t; const s: Pserver_rec;
- const fmt: PChar; others: array of const);
+ const fmt: PAnsiChar; others: array of const);
  cdecl; external LibHTTPD name 'ap_log_error';
 
 //			    __attribute__((format(printf,6,7)));
@@ -169,12 +169,12 @@ procedure ap_log_error(
  * denial-of-service attack and other messy behavior.  Instead, use a 
  * simple format string like "%s", followed by the string containing the 
  * untrusted data.
- * @deffunc void ap_log_perror(const char *file, int line, int level, apr_status_t status, apr_pool_t *p, const char *fmt, ...) 
+ * @deffunc void ap_log_perror(const AnsiChar *file, int line, int level, apr_status_t status, apr_pool_t *p, const AnsiChar *fmt, ...) 
  }
 procedure ap_log_perror(
- const file_: PChar; line, level: Integer;
+ const file_: PAnsiChar; line, level: Integer;
  status: apr_status_t; p: Papr_pool_t;
- const fmt: PChar; others: array of const);
+ const fmt: PAnsiChar; others: array of const);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name 'ap_log_perror';
 
@@ -198,12 +198,12 @@ procedure ap_log_perror(
  * denial-of-service attack and other messy behavior.  Instead, use a 
  * simple format string like "%s", followed by the string containing the 
  * untrusted data.
- * @deffunc void ap_log_rerror(const char *file, int line, int level, apr_status_t status, const request_rec *r, const char *fmt, ...)
+ * @deffunc void ap_log_rerror(const AnsiChar *file, int line, int level, apr_status_t status, const request_rec *r, const AnsiChar *fmt, ...)
  }
 procedure ap_log_rerror(
- const file_: PChar; line, level: Integer;
+ const file_: PAnsiChar; line, level: Integer;
  status: apr_status_t; const r: Prequest_rec;
- const fmt: PChar; others: array of const);
+ const fmt: PAnsiChar; others: array of const);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name 'ap_log_rerror';
 
@@ -230,12 +230,12 @@ procedure ap_log_rerror(
  * simple format string like "%s", followed by the string containing the 
  * untrusted data.
  * @note ap_log_cerror() is available starting with Apache 2.0.55.
- * @deffunc void ap_log_cerror(const char *file, int line, int level, apr_status_t status, const conn_rec *c, const char *fmt, ...)
+ * @deffunc void ap_log_cerror(const AnsiChar *file, int line, int level, apr_status_t status, const conn_rec *c, const AnsiChar *fmt, ...)
  }
 procedure ap_log_cerror(
- const file_: PChar; line, level: Integer;
+ const file_: PAnsiChar; line, level: Integer;
  status: apr_status_t; const c: Pconn_rec;
- const fmt: PChar; others: array of const);
+ const fmt: PAnsiChar; others: array of const);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name 'ap_log_cerror';
 
@@ -255,7 +255,7 @@ procedure ap_error_log2stderr(s: Pserver_rec);
  * @param p The pool to use for logging
  * @param fname The name of the file to log to
  }
-procedure ap_log_pid(p: Papr_pool_t; const fname: PChar);
+procedure ap_log_pid(p: Papr_pool_t; const fname: PAnsiChar);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_log_pid' + LibSuff8;
 
@@ -265,7 +265,7 @@ procedure ap_log_pid(p: Papr_pool_t; const fname: PChar);
  * @param filename The name of the file containing the pid
  * @param mypid Pointer to pid_t (valid only if return APR_SUCCESS)
  }
-function ap_read_pid(p: Papr_pool_t; const filename: PChar; mypid: Ppid_t): apr_status_t;
+function ap_read_pid(p: Papr_pool_t; const filename: PAnsiChar; mypid: Ppid_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_read_pid' + LibSuff12;
 
@@ -283,7 +283,7 @@ type
      * be hard }
 {$ifdef AP_HAVE_RELIABLE_PIPED_LOGS}
     { The name of the program the logging process is running }
-    program: PChar;
+    program: PAnsiChar;
     { The pid of the logging process }
     pid: Papr_proc_t;
 {$endif}
@@ -294,9 +294,9 @@ type
  * @param p The pool to allocate out of
  * @param program The program to run in the logging process
  * @return The piped log structure
- * @deffunc piped_log *ap_open_piped_log(apr_pool_t *p, const char *program)
+ * @deffunc piped_log *ap_open_piped_log(apr_pool_t *p, const AnsiChar *program)
  }
-function ap_open_piped_log(p: Papr_pool_t; const program_: PChar): Ppiped_log;
+function ap_open_piped_log(p: Papr_pool_t; const program_: PAnsiChar): Ppiped_log;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_open_piped_log' + LibSuff8;
 
@@ -326,12 +326,12 @@ procedure ap_close_piped_log(pl: Ppiped_log);
 //#define ap_piped_log_write_fd(pl)	((pl)->fds[1])
 
 type
-  ap_HOOK_error_log_t = procedure(const _file: PChar; line: Integer;
+  ap_HOOK_error_log_t = procedure(const _file: PAnsiChar; line: Integer;
     level: Integer; status: apr_status_t; const s: Pserver_rec;
-    const r: Prequest_rec; p: Papr_pool_t; const errstr: PChar); cdecl;
+    const r: Prequest_rec; p: Papr_pool_t; const errstr: PAnsiChar); cdecl;
 
-procedure ap_hook_error_log(pf: ap_HOOK_error_log_t; const aszPre: PPChar;
- const aszSucc: PPChar; nOrder: Integer);
+procedure ap_hook_error_log(pf: ap_HOOK_error_log_t; const aszPre: PPAnsiChar;
+ const aszSucc: PPAnsiChar; nOrder: Integer);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_hook_error_log' + LibSuff16;
 

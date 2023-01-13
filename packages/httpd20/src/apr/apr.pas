@@ -126,7 +126,7 @@ type
   
   sockaddr = record
     sa_family: cushort;    // address family, AF_xxx
-    sa_data: array [1..14] of Char;  // (NBO) 14 bytes of protocol address
+    sa_data: array [1..14] of AnsiChar;  // (NBO) 14 bytes of protocol address
   end;
   
 {$ifndef windows}
@@ -141,7 +141,7 @@ type
     sin_family: cshort;    // e.g. AF_INET
     sin_port: cushort;     // e.g. htons(3490)
     sin_addr: in_addr;     // see struct in_addr, below
-    sin_zero: array [1..8] of Char;  // zero this if you want to
+    sin_zero: array [1..8] of AnsiChar;  // zero this if you want to
   end;
   
 {$endif}
@@ -179,7 +179,7 @@ type
     /// byte count to read/write
     iov_len: culong;
     /// data to be read/written
-    iov_base: PChar;
+    iov_base: PAnsiChar;
   end;
   
   Piovec = ^iovec;
@@ -229,9 +229,9 @@ end;
 
 { apr_lib.inc }
 
-function apr_tolower(c: Char): Char;
+function apr_tolower(c: AnsiChar): AnsiChar;
 var
-  buf: array[0..1] of Char;
+  buf: array[0..1] of AnsiChar;
 begin
   buf[0] := c;
   buf[1] := #0;
@@ -241,9 +241,9 @@ begin
   Result := buf[0];
 end;
 
-function apr_toupper(c: Char): Char;
+function apr_toupper(c: AnsiChar): AnsiChar;
 var
-  buf: array[0..1] of Char;
+  buf: array[0..1] of AnsiChar;
 begin
   buf[0] := c;
   buf[1] := #0;
