@@ -19,15 +19,15 @@ const
  UnzipErr: longint = 0;
 
 type
- TArgV = array [0..1023] of PChar;
+ TArgV = array [0..1023] of PAnsiChar;
  PArgV = ^TArgV;
- TCharArray = array [1..1024*1024] of char;
+ TCharArray = array [1..1024*1024] of AnsiChar;
  PCharArray = ^TCharArray;
  TFileUnzipEx = function (SourceZipFile, TargetDirectory,
-                                                    FileSpecs: PChar): integer;
+                                                    FileSpecs: PAnsiChar): integer;
 
 function DllFileUnzipEx (SourceZipFile, TargetDirectory,
-                                                    FileSpecs: PChar): integer;
+                                                    FileSpecs: PAnsiChar): integer;
 
 const
  FileUnzipEx: TFileUnzipEx = @DllFileUnzipEx;
@@ -73,21 +73,21 @@ const
  UzpMainOrd = 4;
  DLLName: string [8] = 'UNZIP32'#0;
  UzpMain: UzpMainFunc = nil;
- QuietOpt: array [1..4] of char = '-qq'#0;
- OverOpt: array [1..3] of char = '-o'#0;
- CaseInsOpt: array [1..3] of char = '-C'#0;
- ExDirOpt: array [1..3] of char = '-d'#0;
+ QuietOpt: array [1..4] of AnsiChar = '-qq'#0;
+ OverOpt: array [1..3] of AnsiChar = '-o'#0;
+ CaseInsOpt: array [1..3] of AnsiChar = '-C'#0;
+ ExDirOpt: array [1..3] of AnsiChar = '-d'#0;
  OptCount = 4;
 
 var
  DLLHandle: longint;
  OldExit: pointer;
- C: char;
+ C: AnsiChar;
 
 function DLLInit: boolean;
 var
 {$IFDEF OS2}
- ErrPath: array [0..259] of char;
+ ErrPath: array [0..259] of AnsiChar;
 {$ENDIF}
  DLLPath: PathStr;
  Dir: DirStr;
@@ -106,7 +106,7 @@ begin
   if ErrPath [0] <> #0 then
   begin
    Write (#13#10'Error while loading module ');
-   WriteLn (PChar (@ErrPath));
+   WriteLn (PAnsiChar (@ErrPath));
   end;
  {$IFDEF FPC}
  end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, pointer (UzpMain)) = 0;
@@ -141,11 +141,11 @@ begin
 end;
 
 function DllFileUnzipEx (SourceZipFile, TargetDirectory,
-                                                    FileSpecs: PChar): integer;
+                                                    FileSpecs: PAnsiChar): integer;
 var
  I, FCount, ArgC: longint;
  ArgV: TArgV;
- P: PChar;
+ P: PAnsiChar;
  StrLen: array [Succ (OptCount)..1023] of longint;
 begin
  ArgV [0] := @DLLName;
