@@ -85,7 +85,7 @@ type
     ItemFill: APTR;         // points to Image, IntuiText, or nil
     // when this item is pointed to by the cursor and the items highlight mode HIGHIMAGE is selected, this alternate image will be displayed
     SelectFill: APTR;       // points to Image, IntuiText, or nil
-    Command: Char;          // only if appliprog sets the COMMSEQ flag
+    Command: AnsiChar;          // only if appliprog sets the COMMSEQ flag
     SubItem: PMenuItem;     // if non-zero, DrawMenu shows "->"
     // The NextSelect field represents the menu number of next selected item (when user has drag-selected several items)
     NextSelect: Word;
@@ -2267,7 +2267,7 @@ type
     EnableCLI: WordBool;   // CLI availability switch
     // printer configurations
     PrinterType: Word;     // printer type
-    PrinterFilename: array[0..FILENAME_SIZE-1] of Char; // file for printer
+    PrinterFilename: array[0..FILENAME_SIZE-1] of AnsiChar; // file for printer
     // print format and quality configurations
     PrintPitch: Word;         // print pitch
     PrintQuality: Word;       // print quality
@@ -2291,10 +2291,10 @@ type
     SerParShk: Byte;  // upper nibble = (value for Parity setting)
                       // lower nibble = (value for Handshake mode)
     LaceWB: Byte;     // if workbench is to be interlaced
-    Pad: array[0..FILENAME_SIZE - 1] of Char; // This was UBYTE WorkName[FILENAME_SIZE]; (temp file for printer) in old versions.
+    Pad: array[0..FILENAME_SIZE - 1] of AnsiChar; // This was UBYTE WorkName[FILENAME_SIZE]; (temp file for printer) in old versions.
     PrinterDevPrivateFlags: Byte;    // system private (V51)
     PrtDevOpenDeviceFlags: LongWord; // flags for device below (V51)
-    PrtDevName: array[0..DEVNAME_SIZE - 1] of Char; // device used by printer.device (omit the ".device")
+    PrtDevName: array[0..DEVNAME_SIZE - 1] of AnsiChar; // device used by printer.device (omit the ".device")
     DefaultPrtUnit: Byte;      // default unit opened by printer.device
     DefaultSerUnit: Byte;      // default serial unit
     RowSizeChange: SmallInt;   // affect NormalDisplayRows/Columns
@@ -2520,22 +2520,22 @@ type
  * to list the names of the built-in classes.
  }
 const
-  ROOTCLASS      : PChar = 'rootclass';
-  IMAGECLASS     : PChar = 'imageclass';
-  FRAMEICLASS    : PChar = 'frameiclass';
-  SYSICLASS      : PChar = 'sysiclass';
-  FILLRECTCLASS  : PChar = 'fillrectclass';
-  GADGETCLASS    : PChar = 'gadgetclass';
-  PROPGCLASS     : PChar = 'propgclass';
-  STRGCLASS      : PChar = 'strgclass';
-  BUTTONGCLASS   : PChar = 'buttongclass';
-  FRBUTTONCLASS  : PChar = 'frbuttonclass';
-  GROUPGCLASS    : PChar = 'groupgclass';
-  SCROLLERGCLASS : PChar = 'scrollergclass'; // V50
-  ICCLASS        : PChar = 'icclass';
-  MODELCLASS     : PChar = 'modelclass';
-  ITEXTICLASS    : PChar = 'itexticlass';
-  POINTERCLASS   : PChar = 'pointerclass';
+  ROOTCLASS      : PAnsiChar = 'rootclass';
+  IMAGECLASS     : PAnsiChar = 'imageclass';
+  FRAMEICLASS    : PAnsiChar = 'frameiclass';
+  SYSICLASS      : PAnsiChar = 'sysiclass';
+  FILLRECTCLASS  : PAnsiChar = 'fillrectclass';
+  GADGETCLASS    : PAnsiChar = 'gadgetclass';
+  PROPGCLASS     : PAnsiChar = 'propgclass';
+  STRGCLASS      : PAnsiChar = 'strgclass';
+  BUTTONGCLASS   : PAnsiChar = 'buttongclass';
+  FRBUTTONCLASS  : PAnsiChar = 'frbuttonclass';
+  GROUPGCLASS    : PAnsiChar = 'groupgclass';
+  SCROLLERGCLASS : PAnsiChar = 'scrollergclass'; // V50
+  ICCLASS        : PAnsiChar = 'icclass';
+  MODELCLASS     : PAnsiChar = 'modelclass';
+  ITEXTICLASS    : PAnsiChar = 'itexticlass';
+  POINTERCLASS   : PAnsiChar = 'pointerclass';
 
 
 // Dispatched method ID's
@@ -2775,8 +2775,8 @@ CONST
   STRINGA_ExitHelp       = STRINGA_Dummy + $0013; // STRINGA_ExitHelp is new for V37, and ignored by V36. Set this if you want the gadget to exit when Help is
                                                   // pressed.  Look for a code of $5F, the rawkey code for Help
   // New in V50:
-  STRINGA_MarkedBlock    = STRINGA_Dummy + $0014; // Sets/gets the marked block of a string.gadget. The hi-word contains the start position (first marked char) and the
-                                                  // lo-word the end position (last marked char).  If both are -1 nothing is marked.
+  STRINGA_MarkedBlock    = STRINGA_Dummy + $0014; // Sets/gets the marked block of a string.gadget. The hi-word contains the start position (first marked AnsiChar) and the
+                                                  // lo-word the end position (last marked AnsiChar).  If both are -1 nothing is marked.
   SG_DEFAULTMAXCHARS = 128;
 
 // Gadget Layout related attributes
@@ -3089,9 +3089,9 @@ const
                                         // as TRUE.  You cannot set or clear this attribute, however.
   IA_FrameType   = IA_Dummy + $1b; // Starting with V39, FrameIClass recognizes  several standard types of frame.  Use one
                                         // of the FRAME_ specifiers below.  Defaults to FRAME_DEFAULT.
-  IA_Underscore  = IA_Dummy + $1c; // V44, Indicate underscore keyboard shortcut for image labels. (Char) Defaults to '_'
+  IA_Underscore  = IA_Dummy + $1c; // V44, Indicate underscore keyboard shortcut for image labels. (AnsiChar) Defaults to '_'
   IA_Scalable    = IA_Dummy + $1d; // V44, Attribute indicates this image is allowed to/can scale its rendering. (BOOL) Defaults to FALSE.
-  IA_ActivateKey = IA_Dummy + $1e; // V44, Used to get an underscored label shortcut. Useful for labels attached to string gadgets. (Char) Defaults to #0.
+  IA_ActivateKey = IA_Dummy + $1e; // V44, Used to get an underscored label shortcut. Useful for labels attached to string gadgets. (AnsiChar) Defaults to #0.
   IA_Screen      = IA_Dummy + $1f; // V44 Screen pointer, may be useful/required by certain classes. (PScreen)
   IA_Precision   = IA_Dummy + $20; // V44 Precision value, typically pen precision but may be used for similar custom purposes. (LongWord)
   // New For V50:
@@ -3461,7 +3461,7 @@ const
   EO_ENTER      =  $0005; // "enter" or "return" key, terminate
   EO_RESET      =  $0006; // current Intuition-style undo
   EO_REPLACECHAR=  $0007; // replaced one character and maybe advanced cursor
-  EO_INSERTCHAR =  $0008; // inserted one char into string or added one at end
+  EO_INSERTCHAR =  $0008; // inserted one AnsiChar into string or added one at end
   EO_BADFORMAT  =  $0009; // didn't like the text data, e.g., Bad LongInt
   EO_BIGCHANGE  =  $000A; // unused by Intuition   // complete or major change to the text, e.g. new string
   EO_UNDO       =  $000B; // unused by Intuition   // some other style of undo
@@ -3477,7 +3477,7 @@ const
   // These Mode Flags are for internal use only
   SGM_NOCHANGE   = 1 shl 3; // no edit changes yet
   SGM_NOWORKB    = 1 shl 4; // Buffer == PrevBuffer
-  SGM_CONTROL    = 1 shl 5; // control char escape mode
+  SGM_CONTROL    = 1 shl 5; // control AnsiChar escape mode
   SGM_LONGINT    = 1 shl 6; // an intuition LongInt gadget
   // String Gadget Action Flags put in SGWork.Actions by EditHook
   SGA_USE        = $1;  // use contents of SGWork
@@ -3793,7 +3793,7 @@ type
 
 
 const
-  INTUITIONNAME: PChar = 'intuition.library';
+  INTUITIONNAME: PAnsiChar = 'intuition.library';
 
 var
   IntuitionBase: PIntuitionBase;
@@ -4032,7 +4032,7 @@ procedure DisableTemplate(Rp: PRastPort; Left, Top, Width, Height: LongInt; Temp
 
 function OpenScreenTags(newScreen: PNewScreen; const TagList: array of PtrUInt): PScreen;
 function OpenWindowTags(newWindow: PNewWindow; const TagList: array of PtrUInt): PWindow;
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const argv: array of PtrUInt): Pointer;
+function NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const argv: array of PtrUInt): Pointer;
 function SetAttrs(obj: Pointer; const Tags: array of PtrUInt): LongWord;
 function SetGadgetAttrs(gadget: PGadget; Window: PWindow; Requester: PRequester; const argv: array of PtrUInt): LongWord;
 function EasyRequest(Window: PWindow; const EasyStruct: PEasyStruct; IDCMPPtr: PLongWord; const args: array of PtrUInt): LongInt;
@@ -4077,7 +4077,7 @@ begin
   OpenWindowTags := OpenWindowTagList(NewWindow, @TagList);
 end;
 
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const argv: array of PtrUInt): Pointer;
+function NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const argv: array of PtrUInt): Pointer;
 begin
   NewObject := NewObjectA(ClassPtr, ClassID, @argv);
 end;

@@ -31,7 +31,7 @@ const
   UNIT_WAITECLOCK = 4; // wait until a certain point of time (in EClock ticks)
   UNIT_ENTROPY    = 5; // Read entropy data
 
-  TIMERNAME : PChar   = 'timer.device';
+  TIMERNAME : PAnsiChar   = 'timer.device';
 
 type
   PTimeVal = ^TTimeVal;

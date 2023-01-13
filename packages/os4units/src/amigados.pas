@@ -305,13 +305,13 @@ type
   TFileInfoBlock = record
     fib_DiskKey: LongWord;     // -- FILESYSTEM PRIVATE !!
     fib_DirEntryType: LongInt; // Use FIB_IS_ macros to identify object.
-    fib_FileName: array[0..107] of Char; // Null terminated.
+    fib_FileName: array[0..107] of AnsiChar; // Null terminated.
     fib_Protection: LongWord;  // Bit mask of protection, rwxd are 3-0.
     fib_Obsolete: LongInt;     // obsolete use fib_DirEntryType instead
     fib_Size: LongWord;        // Byte size of file, only good to 4 gig.
     fib_NumBlocks: LongWord;   // Number of blocks in file
     fib_Date: TDateStamp;      // Date file last changed
-    fib_Comment: array[0..79] of Char; // Null terminated comment string.
+    fib_Comment: array[0..79] of AnsiChar; // Null terminated comment string.
     // Note: the following two fields are not supported by all filesystems.
     //   Should be 0 if not supported
     fib_OwnerUID: Word;        //
@@ -638,7 +638,7 @@ Type
     an_Flags: Shortint;
     an_ExData: PExamineData;
     an_DevProc: Pointer; // real type PDevProc;
-    an_String: Array[0..0] of Char;
+    an_String: Array[0..0] of AnsiChar;
   end;
 
 // Obsolete definition ==ONLY== for legacy reference, pre V50.76 DOS.
@@ -660,7 +660,7 @@ Type
       ap_Reserved: Shortint;
       ap_Strlen: Word;             // This is what ap_Length used to be
       ap_Info: TFileInfoBlock;
-      ap_Buf: array[0..0] of Char; // Buffer for path name, allocated by user !!
+      ap_Buf: array[0..0] of AnsiChar; // Buffer for path name, allocated by user !!
      );
   end;
 
@@ -1220,7 +1220,7 @@ type
     seg_Next: BPTR;   // BCPL pointer to next DosResidentSeg, or zero
     seg_UC: LongInt;  // Use Count
     seg_Seg: BPTR;    // BCPL pointer to seglist of command.
-    seg_Name: array[0..3] of Char; // First 4 chars of BCPL style formatted name
+    seg_Name: array[0..3] of AnsiChar; // First 4 chars of BCPL style formatted name
   end;
 const
   CMD_SYSTEM   = -1;
@@ -1430,7 +1430,7 @@ Type
            end;
          );
       2: ( dol_assign : record
-             dol_AssignName: PChar;
+             dol_AssignName: PAnsiChar;
              dol_List      : PAssignList;
            end;
          );
@@ -2124,7 +2124,7 @@ const
 // bit definitions of flags passed to GetVar()/SetVar()/DeleteVar(), ScanVars() these bit defs are OR'ed with the type. Item will be treated as a single line of text unless BINARY_VAR is specified
   GVB_GLOBAL_ONLY       = 8;  // only use global vars, no local vars will be accessed.
   GVB_LOCAL_ONLY        = 9;  // only use local vars, no global vars will be accessed.
-  GVB_BINARY_VAR        = 10; // treat as binary var, don't truncate at a newline or carriage return char.
+  GVB_BINARY_VAR        = 10; // treat as binary var, don't truncate at a newline or carriage return AnsiChar.
   GVB_DONT_NULL_TERM    = 11; // can only be used with GVF_BINARY_VAR do not add a nul-terminator 0 byte at the end of data.
   GVB_SAVE_VAR          = 12; // only works with GVF_GLOBAL_VAR this is only supported in >= V39 dos.  V37 dos ignores this. this causes SetVar to affect ENVARC: as well as ENV:
   GVB_SCAN_ENVARC       = 13; // only usefull with GLOBAL vars scan envarc: instead of env: for use in ScanVars() - v50
@@ -2304,10 +2304,10 @@ const
   RLI_MultiLine       = RLI_Dummy + 11; // (LongInt; boolean) -- Enable Multi-line processing. Defaults to FALSE.
   RLI_CommentChars    = RLI_Dummy + 12; // (STRPTR) -- Nul-terminated string of one or more characters to be used as a comment marker.
                                         // This may be an empty string '' or nil, for none. Defaults to ''.
-  RLI_Substitute_N    = RLI_Dummy + 13; // (LongInt; boolean) -- Substitute quoted escaped 'N' to the hex char $0a.
+  RLI_Substitute_N    = RLI_Dummy + 13; // (LongInt; boolean) -- Substitute quoted escaped 'N' to the hex AnsiChar $0a.
                                         // Only works when RLI_EscapeChars is not "" or nil. Defaults to TRUE.
   RLI_Substitute_E    = RLI_Dummy + 14; // (LongInt; boolean) -- Substitute quoted escaped 'E' to the hex
-                                        // char $1b. Only works when RLI_EscapeChars is not '' or nil. Defaults to TRUE.
+                                        // AnsiChar $1b. Only works when RLI_EscapeChars is not '' or nil. Defaults to TRUE.
 // Tags for SetFileHandleAttr()
   FH_Dummy      = TAG_USER + 6000;
 
@@ -2734,7 +2734,7 @@ function MKBADDR(adr: Pointer): BPTR;
 // var args version
 function AllocDosObjectTags(type_ : LongWord; Const argv : Array of PtrUInt) : POINTER;
 function CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
-function SystemTags(command : PChar; Const argv : Array of PtrUInt) : LongInt;
+function SystemTags(command : PAnsiChar; Const argv : Array of PtrUInt) : LongInt;
 
 
 
@@ -2761,7 +2761,7 @@ begin
   CreateNewProcTags := CreateNewProcTagList(@argv);
 end;
 
-function SystemTags(command : PChar; Const argv : Array of PtrUInt) : LongInt;
+function SystemTags(command : PAnsiChar; Const argv : Array of PtrUInt) : LongInt;
 begin
   SystemTags := SystemTagList(command, @argv);
 end;

@@ -23,7 +23,7 @@ uses
 //  (C) Copyright 1996-98 Alexander Kneer & Tobias Abt
 //      All Rights Reserved.
 const
-  PICASSO96APINAME: PChar = 'Picasso96API.library';
+  PICASSO96APINAME: PAnsiChar = 'Picasso96API.library';
 
 // Types for RGBFormat used
 type
@@ -193,7 +193,7 @@ type
   PP96Mode = ^TP96Mode;
   TP96Mode = record
     Node: TNode;
-    Description: array[0..MODENAMELENGTH - 1] of Char;
+    Description: array[0..MODENAMELENGTH - 1] of AnsiChar;
     Width: Word;
     Height: Word;
     Depth: Word;

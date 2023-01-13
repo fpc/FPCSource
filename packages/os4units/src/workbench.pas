@@ -27,7 +27,7 @@ type
   PWBArg = ^TWBArg;
   TWBArg = record
     wa_Lock: BPTR;       // A lock descriptor.
-    wa_Name: PChar;      // A string relative to that lock.
+    wa_Name: PAnsiChar;      // A string relative to that lock.
   end;
 
 // ###### <freepascal> ######################################################
@@ -43,14 +43,14 @@ type
     sm_Process: PMsgPort;    // The process descriptor for you.
     sm_Segment: BPTR;        // A descriptor for your code.
     sm_NumArgs: LongInt;     // The number of elements in ArgList.
-    sm_ToolWindow: PChar;    // Description of window.
+    sm_ToolWindow: PAnsiChar;    // Description of window.
     sm_ArgList: PWBArgList;  // The arguments themselves
   end;
 
 // ###### workbench/workbench.h #############################################
 
 const
-  WORKBENCHNAME: PChar = 'workbench.library';  // Workbench library name.
+  WORKBENCHNAME: PAnsiChar = 'workbench.library';  // Workbench library name.
 
 type
   POldDrawerData = ^TOldDrawerData;
@@ -97,7 +97,7 @@ type
     do_Gadget: TGadget;          // A copy of in core gadget.
     do_type: Byte;
     do_DefaultTool: STRPTR;
-    do_Tooltypes: PPChar;
+    do_Tooltypes: PPAnsiChar;
     do_CurrentX: LongInt;
     do_CurrentY: LongInt;
     do_DrawerData: PDrawerData;
@@ -530,7 +530,7 @@ procedure UpdateWorkbench(const Name: STRPTR; Lock: BPTR; Action: LongInt); sysc
 function AddAppWindowA(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort; TagList: PTagItem): PAppWindow;  syscall IWorkbench 88;
 // 92 AddAppWindow
 function RemoveAppWindow(AppWindow: PAppWindow): LongBool;  syscall IWorkbench 96;
-function AddAppIconA(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; TagList: PTagItem): PAppIcon; syscall IWorkbench 100;
+function AddAppIconA(ID: LongWord; UserData: LongWord; Text_: PAnsiChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; TagList: PTagItem): PAppIcon; syscall IWorkbench 100;
 // 104 AddAppIcon
 function RemoveAppIcon(AppIcon: PAppIcon): LongBool; syscall IWorkbench 108;
 function AddAppMenuItemA(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort; TagList: PTagItem): PAppMenuItem; syscall IWorkbench 112;
@@ -556,7 +556,7 @@ function WhichWorkbenchObjectA(Window: PWindow; X, Y: LongInt; Tags: PTagItem): 
 // 192 private
 
 // varargs versions:
-function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon;
+function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PAnsiChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon;
 function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort; const Tags: array of PtrUInt): PAppMenuItem;
 function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort; const Tags: array of PtrUInt): PAppWindow;
 function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord; const Tags: array of PtrUInt): PAppWindowDropZone;
@@ -569,7 +569,7 @@ implementation
 
 
 // varargs versions:
-function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon; inline;
+function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PAnsiChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon; inline;
 begin
   AddAppIcon := AddAppIconA(ID, UserData, Text_, MsgPort, Lock, DiskObj, @Tags);
 end;

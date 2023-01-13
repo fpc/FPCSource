@@ -284,7 +284,7 @@ procedure DeleteSplayTree(SplayTree: PSplayTree); syscall IUtility 216;
 function FindSplayNode(SplayTree: PSplayTree; Key: APTR): PSplayTree; syscall IUtility 220;
 function InsertSplayNode(SplayTree: PSplayTree; Key: APTR; DateSize: LongWord): PSplayTree; syscall IUtility 224;
 function RemoveSplayNode(SplayTree: PSplayTree; Key: APTR): PSplayTree; syscall IUtility 228;
-function FindNameNC(List: PList; const Name: PChar): PNode; syscall IUtility 232;
+function FindNameNC(List: PList; const Name: PAnsiChar): PNode; syscall IUtility 232;
 function GetUniqueID : LongWord; syscall IUtility 236;
 procedure MessageDigest_SHA_Final(SHAs: PMessageDigest_SHA); syscall IUtility 240;
 procedure MessageDigest_SHA_Init(SHAs: PMessageDigest_SHA); syscall IUtility 244;
@@ -297,8 +297,8 @@ function Stricmp(const S1: STRPTR; const S2: STRPTR): LongInt; syscall IUtility 
 function Strlcpy(Dst: STRPTR; const Src: STRPTR; Size: LongInt): LongInt; syscall IUtility 272;
 function Strlcat(Dst: STRPTR; const Src: STRPTR; Size: LongInt): LongInt; syscall IUtility 276;
 function Strnicmp(const S1: STRPTR; const S2: STRPTR; n: LongInt): LongInt; syscall IUtility 280;
-function ToLower(c: Char): LongWord; syscall IUtility 284;
-function ToUpper(c: Char): LongWord; syscall IUtility 288;
+function ToLower(c: AnsiChar): LongWord; syscall IUtility 284;
+function ToUpper(c: AnsiChar): LongWord; syscall IUtility 288;
 function VASPrintf(const Fmt: STRPTR; Args: APTR): STRPTR; syscall IUtility 292;
 // 296 ASPrintf
 function VSNPrintf(Buffer: STRPTR; BufferSize: LongInt; const Fmt: STRPTR; Args: APTR): STRPTR; syscall IUtility 300;
@@ -323,12 +323,12 @@ function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObj
 function CallHook(Hook: PHook; Obj: APTR; Params: array of PtrUInt): LongWord; inline;
 
 function TAG_(value: pointer): PtrUInt; overload; inline;
-function TAG_(value: PChar): PtrUInt; overload; inline;
+function TAG_(value: PAnsiChar): PtrUInt; overload; inline;
 function TAG_(value: boolean): PtrUInt; overload; inline;
 function TAG_(value: LongInt): PtrUInt; overload; inline;
 
 function AsTag(value: pointer): PtrUInt; overload; inline;
-function AsTag(value: PChar): PtrUInt; overload; inline;
+function AsTag(value: PAnsiChar): PtrUInt; overload; inline;
 function AsTag(value: boolean): PtrUInt; overload; inline;
 function AsTag(value: LongInt): PtrUInt; overload; inline;
 
@@ -349,7 +349,7 @@ begin
   TAG_:=PtrUInt(value);
 end;
 
-function TAG_(value: PChar): PtrUInt; inline;
+function TAG_(value: PAnsiChar): PtrUInt; inline;
 begin
   TAG_:=PtrUInt(value);
 end;
@@ -372,7 +372,7 @@ begin
   AsTag:=PtrUInt(value);
 end;
 
-function AsTag(value: PChar): PtrUInt; inline;
+function AsTag(value: PAnsiChar): PtrUInt; inline;
 begin
   AsTag:=PtrUInt(value);
 end;

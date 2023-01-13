@@ -25,7 +25,7 @@ const
 type
   PFontContents = ^TFontContents;
   TFontContents = record
-    fc_FileName: array[0..MAXFONTPATH - 1] of Char;
+    fc_FileName: array[0..MAXFONTPATH - 1] of AnsiChar;
     fc_YSize: Word;
     fc_Style: Byte;
     fc_Flags: Byte;
@@ -33,7 +33,7 @@ type
 
   PTFontContents = ^TTFontContents;
   TTFontContents = record
-    tfc_FileName: array[0..MAXFONTPATH - 3] of Char;
+    tfc_FileName: array[0..MAXFONTPATH - 3] of AnsiChar;
     tfc_TagCount: Word;  // including the TAG_DONE tag
     // if tfc_TagCount is non-zero, tfc_FileName is overlayed with Text Tags starting at:
     //     PTagItem(@tfc_FileName[MAXFONTPATH - (tfc_TagCount * sizeof(TTagItem))])
@@ -71,7 +71,7 @@ type
     dfh_FileID: Word;     // DFH_ID
     dfh_Revision: Word;   // the font revision
     dfh_Segment: Longint; // the segment address when loaded
-    dfh_Name: array [0..MAXFONTNAME-1] of Char; // stripped font name (null terminated)
+    dfh_Name: array [0..MAXFONTNAME-1] of AnsiChar; // stripped font name (null terminated)
     dfh_TF: TTextFont;    // loaded TextFont structure, dfh_TF.tf_Message.mn_Node.ln_Name points to the full font name
   end;
 
@@ -119,7 +119,7 @@ type
   PGlyphEngine = ^TGlyphEngine;
   TGlyphEngine = record
     gle_Library: PLibrary; // engine library
-    gle_Name: PChar;       // library basename: e.g. 'bullet'
+    gle_Name: PAnsiChar;       // library basename: e.g. 'bullet'
     // private library data follows...
   end;
 
@@ -436,7 +436,7 @@ const
   OTERR_UnknownGlyph = 12; // glyph not known by engine
 
 const
-  DISKFONTNAME: PChar = 'diskfont.library';
+  DISKFONTNAME: PAnsiChar = 'diskfont.library';
 
 var
   DiskfontBase: PLibrary;
