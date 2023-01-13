@@ -1,6 +1,8 @@
 unit tcwriter;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H+}
+{$codepage utf8}
 
 interface
 
@@ -20,9 +22,9 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure WriteElement(JS : TJSElement); // Set element in Element, write. Freed on teardown
-    Procedure AssertResult(Const Msg, Result : String); // Compare result;
+    Procedure AssertResult(Const Msg, Result : AnsiString); // Compare result;
     Procedure AssertResult(Const Msg : string; Result : UnicodeString); // Compare result;
-    Procedure AssertWrite(Const Msg, Result : String; AElement : TJSElement); // Call writelement, compare result;
+    Procedure AssertWrite(Const Msg : String; Result : AnsiString; AElement : TJSElement); // Call writelement, compare result;
     Procedure AssertWrite(Const Msg : string; Result : UnicodeString; AElement : TJSElement); // Call writelement, compare result;
     Function CreateIdent(Const AName : String) : TJSPrimaryExpressionIdent;
     Function CreateLiteral(Const AValue : TJSString) : TJSLiteral;
@@ -3046,7 +3048,7 @@ begin
   FWriter.WriteJS(JS);
 end;
 
-Procedure TTestJSWriter.AssertResult(Const Msg, Result: String);
+Procedure TTestJSWriter.AssertResult(Const Msg, Result: AnsiString);
 
 Var
   S : AnsiString;
@@ -3070,7 +3072,7 @@ Var
   S : UnicodeString;
   p: Integer;
 begin
-  S:=FTextWriter.AsUnicodeString;
+  S:=UTF8Decode(FTextWriter.AsString);
   if S=Result then exit;
   p:=1;
   while (p<=length(S)) and (p<=length(Result)) and (S[p]=Result[p]) do inc(p);
@@ -3082,7 +3084,7 @@ begin
     AssertEquals(Msg+' (diff at '+IntToStr(p)+' "'+String(S[p])+'")',String(Result),String(S));
 end;
 
-Procedure TTestJSWriter.AssertWrite(Const Msg, Result: String;
+Procedure TTestJSWriter.AssertWrite(Const Msg : String; Result: AnsiString;
   AElement: TJSElement);
 begin
   WriteElement(AElement);

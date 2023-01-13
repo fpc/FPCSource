@@ -1,6 +1,8 @@
 unit tcscanner;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H+}
+{$codepage UTF8}
 
 interface
 
@@ -40,14 +42,14 @@ type
     FScanner : TJSScanner;
     FErrorSource : String;
     procedure AssertEquals(AMessage: String; AExpected, AActual : TJSToken); overload;
-    procedure CheckToken(AToken: TJSToken; ASource: String; aVersion : TECMAVersion = ecma5);
-    procedure CheckTokens(ASource: String; ATokens: array of TJSToken; aVersion : TECMAVersion = ecma5);
+    procedure CheckToken(AToken: TJSToken; ASource: TJSScannerString; aVersion : TECMAVersion = ecma5);
+    procedure CheckTokens(ASource: TJSScannerString; ATokens: array of TJSToken; aVersion : TECMAVersion = ecma5);
     procedure DoTestFloat(F: Double);
     procedure DoTestFloat(F: Double; S: String);
     procedure DoTestString(S: String; WasMultiline : Boolean = False);
     procedure TestErrorSource;
   protected
-    Function CreateScanner(AInput : String; aVersion : TECMAVersion = ecma5) : TJSScanner;
+    Function CreateScanner(AInput : TJSScannerString; aVersion : TECMAVersion = ecma5) : TJSScanner;
     procedure FreeScanner;
     procedure SetUp; override;
     procedure TearDown; override;
@@ -181,7 +183,7 @@ type
 
 implementation
 
-Function TTestJSScanner.CreateScanner(AInput : String; aVersion : TECMAVersion = ecma5) : TJSScanner;
+Function TTestJSScanner.CreateScanner(AInput : TJSScannerString; aVersion : TECMAVersion = ecma5) : TJSScanner;
 
 begin
   FStream:=TStringStream.Create(AInput);
@@ -235,7 +237,7 @@ begin
     end;
 end;
 
-procedure TTestJSScanner.CheckToken(AToken: TJSToken; ASource: String; aVersion: TECMAVersion);
+procedure TTestJSScanner.CheckToken(AToken: TJSToken; ASource: TJSScannerString; aVersion: TECMAVersion);
 
 Var
   J : TJSToken;
@@ -794,7 +796,7 @@ begin
   CheckToken(tjsYield,'yield',ecma2021);
 end;
 
-procedure TTestJSScanner.CheckTokens(ASource : String; ATokens : Array of TJSToken; aVersion: TECMAVersion = ecma5);
+procedure TTestJSScanner.CheckTokens(ASource : TJSScannerString; ATokens : Array of TJSToken; aVersion: TECMAVersion = ecma5);
 
 Var
   I : Integer;

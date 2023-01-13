@@ -19,23 +19,11 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="--suite=TTestTSToPas.TestObjectOneReadOnlyPropertyKeyword"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
-        <Mode0 Name="default">
-          <local>
-            <CommandLineParams Value="--suite=TTestTSToPas.TestObjectOneReadOnlyPropertyKeyword"/>
-          </local>
-        </Mode0>
+        <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="FCL"/>
-      </Item1>
-    </RequiredPackages>
     <Units Count="15">
       <Unit0>
         <Filename Value="testjs.lpr"/>
@@ -120,9 +108,12 @@
         <OptimizationLevel Value="0"/>
       </Optimizations>
     </CodeGeneration>
+    <Other>
+      <CustomOptions Value="-tunicodertl"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="6">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -132,6 +123,15 @@
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
+      <Item4>
+        <Name Value="EAssertionFailedError"/>
+      </Item4>
+      <Item5>
+        <Name Value="EJSScannerError"/>
+      </Item5>
+      <Item6>
+        <Name Value="EJSParser"/>
+      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>

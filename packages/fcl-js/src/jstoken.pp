@@ -60,7 +60,7 @@ const
 
   TokenInfos: array[TJSToken] of String = ('unknown',
        // Specials
-        'EOF','whitespace','Char','String', 'identifier','number','comment','regular expression', 'reserved word',
+        'EOF','whitespace','AnsiChar','String', 'identifier','number','comment','regular expression', 'reserved word',
         '&&','&=',
         '(',')','[',']','{','}',
         ',',':','.',';','=','>','<','?',

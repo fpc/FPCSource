@@ -48,14 +48,14 @@ end;
 procedure TTestSrcMap.Test_Base64VLQ;
 var
   i: Integer;
-  s: String;
-  p: PChar;
+  s: AnsiString;
+  p: PAnsiChar;
   j: NativeInt;
 begin
   for i:=-511 to 511 do
   begin
     s:=EncodeBase64VLQ(i);
-    p:=PChar(s);
+    p:=PAnsiChar(s);
     j:=DecodeBase64VLQ(p);
     if i<>j then
       Fail('Encode/DecodeBase64VLQ OrigIndex='+IntToStr(i)+' Code="'+s+'" NewIndex='+IntToStr(j));
