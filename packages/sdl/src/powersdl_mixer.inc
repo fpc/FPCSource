@@ -2,16 +2,16 @@
 var PowerSDLMixerBase : pLibrary;
 
 const
-    POWERSDL_MIXERNAME : PChar = 'powersdl_mixer.library';
+    POWERSDL_MIXERNAME : PAnsiChar = 'powersdl_mixer.library';
 
 function Mix_OpenAudio(frequency : LongInt; format : Word; channels : LongInt; chunksize : LongInt) : LongInt; syscall r12base PowerSDLMixerBase 028;
 function Mix_AllocateChannels(numchans : LongInt) : LongInt; syscall r12base PowerSDLMixerBase 034;
 function Mix_QuerySpec(frequency : pLongInt; var format : Word; channels : pLongInt) : LongInt; syscall r12base PowerSDLMixerBase 040;
 function Mix_LoadWAV_RW(src : pSDL_RWops; freesrc : LongInt) : pMix_Chunk; syscall r12base PowerSDLMixerBase 046;
-function Mix_LoadMUS(const file_ : pChar) : pMix_Music; syscall r12base PowerSDLMixerBase 052;
+function Mix_LoadMUS(const file_ : PAnsiChar) : pMix_Music; syscall r12base PowerSDLMixerBase 052;
 function Mix_LoadMUS_RW(rw : pSDL_RWops) : pMix_Music; syscall r12base PowerSDLMixerBase 058;
-function Mix_QuickLoad_WAV(mem : pChar) : pMix_Chunk; syscall r12base PowerSDLMixerBase 064;
-function Mix_QuickLoad_RAW(mem : pChar; len : DWord) : pMix_Chunk; syscall r12base PowerSDLMixerBase 070;
+function Mix_QuickLoad_WAV(mem : PAnsiChar) : pMix_Chunk; syscall r12base PowerSDLMixerBase 064;
+function Mix_QuickLoad_RAW(mem : PAnsiChar; len : DWord) : pMix_Chunk; syscall r12base PowerSDLMixerBase 070;
 procedure Mix_FreeChunk(chunk : pMix_Chunk); syscall r12base PowerSDLMixerBase 076;
 procedure Mix_FreeMusic(music : pMix_Music); syscall r12base PowerSDLMixerBase 082;
 function Mix_GetMusicType(const music : pMix_Music) : LongInt; syscall r12base PowerSDLMixerBase 088;
@@ -61,7 +61,7 @@ function Mix_PausedMusic : LongInt; syscall r12base PowerSDLMixerBase 352;
 function Mix_SetMusicPosition(position : LongInt) : LongInt; syscall r12base PowerSDLMixerBase 358;
 function Mix_Playing(channel : LongInt) : LongInt; syscall r12base PowerSDLMixerBase 364;
 function Mix_PlayingMusic : LongInt; syscall r12base PowerSDLMixerBase 370;
-function Mix_SetMusicCMD(const command : pChar) : LongInt; syscall r12base PowerSDLMixerBase 376;
+function Mix_SetMusicCMD(const command : PAnsiChar) : LongInt; syscall r12base PowerSDLMixerBase 376;
 function Mix_SetSynchroValue(value : LongInt) : LongInt; syscall r12base PowerSDLMixerBase 382;
 function Mix_GetSynchroValue : LongInt; syscall r12base PowerSDLMixerBase 388;
 function Mix_GetChunk(channel : LongInt) : pMix_Chunk; syscall r12base PowerSDLMixerBase 394;
