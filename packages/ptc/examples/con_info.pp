@@ -37,7 +37,7 @@ begin
   try
     try
       Writeln('[ptcpas version]');
-      { print ptcpas version string define }
+      { print ptcpas version AnsiString define }
       Writeln(PTCPAS_VERSION);
       Writeln;
 

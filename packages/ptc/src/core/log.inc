@@ -89,7 +89,7 @@ begin
   CloseFile(LOG_file);
 end;
 
-procedure LOG(const message: String);
+procedure LOG(const message: AnsiString);
 begin
   if not LOG_enabled then
     exit;
@@ -98,7 +98,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: Boolean);
+procedure LOG(const message: AnsiString; data: Boolean);
 begin
   if not LOG_enabled then
     exit;
@@ -111,7 +111,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: Integer);
+procedure LOG(const message: AnsiString; data: Integer);
 begin
   if not LOG_enabled then
     exit;
@@ -120,7 +120,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: DWord);
+procedure LOG(const message: AnsiString; data: DWord);
 begin
   if not LOG_enabled then
     exit;
@@ -129,7 +129,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: Int64);
+procedure LOG(const message: AnsiString; data: Int64);
 begin
   if not LOG_enabled then
     exit;
@@ -138,7 +138,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: QWord);
+procedure LOG(const message: AnsiString; data: QWord);
 begin
   if not LOG_enabled then
     exit;
@@ -147,7 +147,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: Single);
+procedure LOG(const message: AnsiString; data: Single);
 begin
   if not LOG_enabled then
     exit;
@@ -156,7 +156,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: Double);
+procedure LOG(const message: AnsiString; data: Double);
 begin
   if not LOG_enabled then
     exit;
@@ -165,7 +165,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; const data: String);
+procedure LOG(const message: AnsiString; const data: AnsiString);
 begin
   if not LOG_enabled then
     exit;
@@ -174,7 +174,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: IPTCFormat);
+procedure LOG(const message: AnsiString; data: IPTCFormat);
 begin
   if not LOG_enabled then
     exit;
@@ -196,7 +196,7 @@ begin
   LOG_close;
 end;
 
-procedure LOG(const message: string; data: TPTCError);
+procedure LOG(const message: AnsiString; data: TPTCError);
 begin
   if not LOG_enabled then
     exit;

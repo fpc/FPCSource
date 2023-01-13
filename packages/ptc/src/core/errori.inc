@@ -35,13 +35,13 @@ begin
   FMessage := '';
 end;
 
-constructor TPTCError.Create(const AMessage: String);
+constructor TPTCError.Create(const AMessage: AnsiString);
 begin
   FMessage := AMessage;
   LOG('error', Self);
 end;
 
-constructor TPTCError.Create(const AMessage: string; const AError: TPTCError);
+constructor TPTCError.Create(const AMessage: AnsiString; const AError: TPTCError);
 begin
   FMessage := AMessage + #10 + AError.FMessage;
   LOG('composite error', Self);
@@ -100,7 +100,7 @@ begin
   {$IFDEF Win32}
 //  Win32Cursor_resurrect;
   txt := FMessage;
-  MessageBoxA(0, PChar(txt), 'Error', MB_OK or MB_ICONERROR or MB_SETFOREGROUND or MB_TOPMOST);
+  MessageBoxA(0, PAnsiChar(txt), 'Error', MB_OK or MB_ICONERROR or MB_SETFOREGROUND or MB_TOPMOST);
   {$ENDIF Win32}
 
   {$IFDEF WinCE}

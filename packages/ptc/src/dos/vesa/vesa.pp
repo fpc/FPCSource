@@ -95,7 +95,7 @@ type
     Reserved4: array [1..189] of Byte; {remainder of ModeInfoBlock}
   end;
 
-  TLogProcedure = procedure(const S: string);
+  TLogProcedure = procedure(const S: AnsiString);
 
   TVBEModeMemoryModel =
    (vmmmTextMode,
@@ -303,20 +303,20 @@ uses
 type
   TVBEInfoBlock = packed record
     {VBE 1.0+}
-    VBESignature: array [1..4] of Char; {'VESA'}
+    VBESignature: array [1..4] of AnsiChar; {'VESA'}
     VBEVersion: Word;
-    OemStringPtr: DWord; {VbeFarPtr to OEM string}
+    OemStringPtr: DWord; {VbeFarPtr to OEM AnsiString}
     Capabilities: DWord; {Capabilities of graphics controller}
     VideoModePtr: DWord; {VbeFarPtr to VideoModeList}
     {added for VBE 1.1+}
     TotalMemory: Word; {Number of 64kb memory blocks}
     {added for VBE 2.0+}
     OemSoftwareRev: Word; {VBE implementation Software revision}
-    OemVendorNamePtr: DWord; {VbeFarPtr to Vendor Name string}
-    OemProductNamePtr: DWord; {VbeFarPtr to Product Name string}
-    OemProductRevPtr: DWord; {VbeFarPtr to Product Revision string}
+    OemVendorNamePtr: DWord; {VbeFarPtr to Vendor Name AnsiString}
+    OemProductNamePtr: DWord; {VbeFarPtr to Product Name AnsiString}
+    OemProductRevPtr: DWord; {VbeFarPtr to Product Revision AnsiString}
     Reserved: array [1..222] of Byte; {Reserved for VBE implementation scratch area}
-    OemData: array [1..256] of Char; {Data Area for OEM Strings}
+    OemData: array [1..256] of AnsiChar; {Data Area for OEM Strings}
   end;
   TVideoModeList = array of Word;
 
@@ -329,10 +329,10 @@ var
   SnowyRAMDAC: Boolean;
   StereoSignalingSupport: Boolean;
   StereoSignalingVesaEVC: Boolean;
-  OEMString: string;
-  OEMVendorName: string;
-  OEMProductName: string;
-  OEMProductRev: string;
+  OEMString: AnsiString;
+  OEMVendorName: AnsiString;
+  OEMProductName: AnsiString;
+  OEMProductRev: AnsiString;
   OEMSoftwareRev: Integer;
   CurrentMode: TVBEMode = nil;
 
@@ -365,7 +365,7 @@ var
 
   VESAInit: Boolean;
 
-procedure Debugln(const S: string);
+procedure Debugln(const S: AnsiString);
 begin
   if Assigned(LogProcedure) then
     LogProcedure(S);
@@ -376,22 +376,22 @@ begin
   Debugln('');
 end;
 
-function IntToStr(Value: Integer): string;
+function IntToStr(Value: Integer): AnsiString;
 begin
   System.Str(Value, Result);
 end;
 
-function IntToStr(Value: Int64): string;
+function IntToStr(Value: Int64): AnsiString;
 begin
   System.Str(Value, Result);
 end;
 
-function IntToStr(Value: QWord): string;
+function IntToStr(Value: QWord): AnsiString;
 begin
   System.Str(Value, Result);
 end;
 
-function BoolToStr(Value: Boolean): string;
+function BoolToStr(Value: Boolean): AnsiString;
 begin
   if Value then
     Result := 'TRUE'
@@ -810,10 +810,10 @@ begin
   MakeMask := Mask;
 end;
 
-function GetRMString(SegOfs: DWord): string;
+function GetRMString(SegOfs: DWord): AnsiString;
 var
-  S: string;
-  C: Char;
+  S: AnsiString;
+  C: AnsiChar;
   Seg, Ofs: Word;
 begin
   if SegOfs = 0 then
@@ -962,7 +962,7 @@ begin
   end;
 end;
 
-function WinAttrib(q: Integer): string;
+function WinAttrib(q: Integer): AnsiString;
 begin
   if (q and 1) <> 0 then
     Result := 'supported'
@@ -974,7 +974,7 @@ begin
     Result := Result + ' writeable';
 end;
 
-function ModeAttrib(AModeAttributes: Integer): string;
+function ModeAttrib(AModeAttributes: Integer): AnsiString;
 begin
   if (AModeAttributes and 1) <> 0 then
     Result := 'supported'
@@ -1019,7 +1019,7 @@ begin
     Result := Result + ' DualDisplayStartAddressSupport';
 end;
 
-function MemoryModelStr(AMemoryModel: Integer): string;
+function MemoryModelStr(AMemoryModel: Integer): AnsiString;
 begin
   case AMemoryModel of
     0: Result := 'Text mode';
@@ -1037,7 +1037,7 @@ begin
   Result := Result + '/' + IntToStr(AMemoryModel);
 end;
 
-function DirectColorModeInfoStr(ADirectColorModeInfo: Integer): string;
+function DirectColorModeInfoStr(ADirectColorModeInfo: Integer): AnsiString;
 begin
   if (ADirectColorModeInfo and 1) <> 0 then
     Result := 'Color_ramp_is_programmable'

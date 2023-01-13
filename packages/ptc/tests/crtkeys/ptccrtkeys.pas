@@ -4,7 +4,7 @@ uses
   ptccrt, ptcgraph;
 var
   Gd, Gm: Integer;
-  Ch, Ex: Char;
+  Ch, Ex: AnsiChar;
   Done: Boolean;
 begin
   Gd := VGA;

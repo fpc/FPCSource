@@ -912,8 +912,8 @@ type
      * drivers, since this is unreliable and many different strings may be associated with the same
      * device, and the same driver from different vendors.
      *)
-    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of char;
-    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of char;
+    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
+    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
 
     (*
      * This element is the version of the DirectDraw/3D driver. It is legal to do <, > comparisons
@@ -962,8 +962,8 @@ type
      * drivers, since this is unreliable and many different strings may be associated with the same
      * device, and the same driver from different vendors.
      *)
-    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of char;
-    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of char;
+    szDriver: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
+    szDescription: array [0..MAX_DDDEVICEID_STRING-1] of AnsiChar;
 
     (*
      * This element is the version of the DirectDraw/3D driver. It is legal to do <, > comparisons

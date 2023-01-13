@@ -36,7 +36,7 @@ const
   PFD_SUPPORT_COMPOSITION = $00008000;
 {$endif VER2_6}
 
-constructor TWin32OpenGLWindow.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
+constructor TWin32OpenGLWindow.Create(const AWndClass, ATitle: AnsiString; AExtra, AStyle, AClassStyle: DWord;
               AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor, AInterceptClose: Boolean;
               const AOpenGLAttributes: IPTCOpenGLAttributes);
 begin
@@ -260,7 +260,7 @@ end;
 
 procedure TWin32OpenGLWindow.LogPixelFormatDescriptor(const pfd: PIXELFORMATDESCRIPTOR);
 
-  function dwFlags2String(dwFlags: DWORD): string;
+  function dwFlags2String(dwFlags: DWORD): AnsiString;
   begin
     Result := IntToStr(dwFlags) + ' (';
     if (dwFlags and PFD_DOUBLEBUFFER) <> 0 then
@@ -306,7 +306,7 @@ procedure TWin32OpenGLWindow.LogPixelFormatDescriptor(const pfd: PIXELFORMATDESC
     Result := Result + ')';
   end;
 
-  function iPixelType2String(iPixelType: Byte): string;
+  function iPixelType2String(iPixelType: Byte): AnsiString;
   begin
     case iPixelType of
       PFD_TYPE_RGBA: Result := 'PFD_TYPE_RGBA';
@@ -317,7 +317,7 @@ procedure TWin32OpenGLWindow.LogPixelFormatDescriptor(const pfd: PIXELFORMATDESC
     Result := IntToStr(iPixelType) + ' (' + Result + ')';
   end;
 
-  function iLayerType2String(iLayerType: Byte): string;
+  function iLayerType2String(iLayerType: Byte): AnsiString;
   begin
     case iLayerType of
       PFD_MAIN_PLANE: Result := 'PFD_MAIN_PLANE';

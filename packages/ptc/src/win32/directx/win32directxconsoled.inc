@@ -35,7 +35,7 @@ type
   TDirectXConsole = class(TPTCOpenGLLessConsole)
   private
     { title data }
-{    FTitle: array [0..1023] of Char;}
+{    FTitle: array [0..1023] of AnsiChar;}
     FTitle: AnsiString;
 
     { flags }
@@ -79,13 +79,13 @@ type
     FPrimary: TDirectXPrimary;
 
     { internal console management routines }
-    procedure internal_open(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
-    procedure internal_recycle(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_open(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
     procedure internal_close;
     procedure internal_shutdown;
 
     { internal console open management routines }
-    procedure internal_open_start(const _title: string; window: HWND);
+    procedure internal_open_start(const _title: AnsiString; window: HWND);
     procedure internal_open_finish;
     procedure internal_open_reset;
 
@@ -102,13 +102,13 @@ type
     procedure internal_open_windowed_finish;
 
     { internal console open recycling routines }
-    procedure internal_recycle_fullscreen(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
-    procedure internal_recycle_windowed(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle_fullscreen(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle_windowed(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 
 {$IFDEF DEBUG}
     { debug }
-    procedure CHECK_OPEN(AMsg: String);
-    procedure CHECK_LOCK(AMsg: String);
+    procedure CHECK_OPEN(AMsg: AnsiString);
+    procedure CHECK_LOCK(AMsg: AnsiString);
 {$ENDIF}
 
     { painting }
@@ -122,15 +122,15 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
-    procedure Configure(const AFileName: String); override;
-    function Option(const AOption: String): Boolean; override;
+    procedure Configure(const AFileName: AnsiString); override;
+    function Option(const AOption: AnsiString): Boolean; override;
     function Modes: TPTCModeList; override;
-    procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AFormat: IPTCFormat;
+    procedure Open(const ATitle: AnsiString; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                    APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+    procedure Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                    AFormat: IPTCFormat; APages: Integer = 0); overload; override;
-    procedure Open(const ATitle: string; AMode: IPTCMode;
+    procedure Open(const ATitle: AnsiString; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
     procedure InternalResize(AWidth, AHeight: Integer); override;
@@ -175,9 +175,9 @@ type
     function GetArea: IPTCArea; override;
     function Clip: IPTCArea; override;
     function GetFormat: IPTCFormat; override;
-    function GetName: string; override;
-    function GetTitle: string; override;
-    function GetInformation: string; override;
+    function GetName: AnsiString; override;
+    function GetTitle: AnsiString; override;
+    function GetInformation: AnsiString; override;
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
     function MoveMouseTo(X, Y: Integer): Boolean; override;

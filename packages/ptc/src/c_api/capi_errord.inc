@@ -33,13 +33,13 @@
 type
   TPTC_ERROR_HANDLER = procedure(error: TPTC_ERROR);
 
-function ptc_error_create(message: string): TPTC_ERROR;
-function ptc_error_create_composite(message: string; error: TPTC_ERROR): TPTC_ERROR;
+function ptc_error_create(message: AnsiString): TPTC_ERROR;
+function ptc_error_create_composite(message: AnsiString; error: TPTC_ERROR): TPTC_ERROR;
 procedure ptc_error_destroy(obj: TPTC_ERROR);
 
 procedure ptc_error_report(obj: TPTC_ERROR);
 
-function ptc_error_message(obj: TPTC_ERROR): string;
+function ptc_error_message(obj: TPTC_ERROR): AnsiString;
 
 procedure ptc_error_assign(obj, error: TPTC_ERROR);
 function ptc_error_equals(obj, error: TPTC_ERROR): Boolean;
