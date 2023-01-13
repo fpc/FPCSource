@@ -3,7 +3,7 @@ uses
   ctypes, cl;
 
 const
-  device_str_info : array[1..5] of record id : dword; name : pchar end =
+  device_str_info : array[1..5] of record id : dword; name : PAnsiChar end =
    ((id: CL_DEVICE_NAME; name : 'CL_DEVICE_NAME'),
     (id: CL_DEVICE_VENDOR; name : 'CL_DEVICE_VENDOR'),
     (id: CL_DEVICE_VERSION; name : 'CL_DEVICE_VERSION'),
@@ -19,7 +19,7 @@ var
   devices : cl_uint;
   deviceids : pcl_device_id;
   i,j,k : Integer;
-  buf : array[0..99999] of char;
+  buf : array[0..99999] of AnsiChar;
   bufwritten : csize_t;
 
 
