@@ -122,8 +122,8 @@ type va_list=pointer;
 
      PJNINativeMethod=^JNINativeMethod;
      JNINativeMethod={$ifdef packedrecords}packed{$endif} record
-      name:pchar;
-      signature:pchar;
+      name:PAnsiChar;
+      signature:PAnsiChar;
       fnPtr:pointer;
      end;
 
@@ -154,8 +154,8 @@ type va_list=pointer;
       reserved3:pointer;
 
       GetVersion:function(Env:PJNIEnv):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      DefineClass:function(Env:PJNIEnv;const Name:pchar;Loader:JObject;const Buf:PJByte;Len:JSize):JClass;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      FindClass:function(Env:PJNIEnv;const Name:pchar):JClass;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      DefineClass:function(Env:PJNIEnv;const Name:PAnsiChar;Loader:JObject;const Buf:PJByte;Len:JSize):JClass;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      FindClass:function(Env:PJNIEnv;const Name:PAnsiChar):JClass;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       // Reflection Support
       FromReflectedMethod:function(Env:PJNIEnv;Method:JObject):JMethodID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -169,11 +169,11 @@ type va_list=pointer;
       ToReflectedField:function(Env:PJNIEnv;AClass:JClass;FieldID:JFieldID;IsStatic:JBoolean):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       Throw:function(Env:PJNIEnv;Obj:JThrowable):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      ThrowNew:function(Env:PJNIEnv;AClass:JClass;const Msg:pchar):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      ThrowNew:function(Env:PJNIEnv;AClass:JClass;const Msg:PAnsiChar):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       ExceptionOccurred:function(Env:PJNIEnv):JThrowable;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       ExceptionDescribe:procedure(Env:PJNIEnv);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       ExceptionClear:procedure(Env:PJNIEnv);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      FatalError:procedure(Env:PJNIEnv;const Msg:pchar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      FatalError:procedure(Env:PJNIEnv;const Msg:PAnsiChar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       // Local Reference Management
       PushLocalFrame:function(Env:PJNIEnv;Capacity:JInt):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -196,7 +196,7 @@ type va_list=pointer;
       GetObjectClass:function(Env:PJNIEnv;Obj:JObject):JClass;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       IsInstanceOf:function(Env:PJNIEnv;Obj:JObject;AClass:JClass):JBoolean;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
-      GetMethodID:function(Env:PJNIEnv;AClass:JClass;const Name:pchar;const Sig:pchar):JMethodID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetMethodID:function(Env:PJNIEnv;AClass:JClass;const Name:PAnsiChar;const Sig:PAnsiChar):JMethodID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       CallObjectMethod:function(Env:PJNIEnv;Obj:JObject;MethodID:JMethodID):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       CallObjectMethodV:function(Env:PJNIEnv;Obj:JObject;MethodID:JMethodID;Args:va_list):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -278,7 +278,7 @@ type va_list=pointer;
       CallNonvirtualVoidMethodV:procedure(Env:PJNIEnv;Obj:JObject;AClass:JClass;MethodID:JMethodID;Args:va_list);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       CallNonvirtualVoidMethodA:procedure(Env:PJNIEnv;Obj:JObject;AClass:JClass;MethodID:JMethodID;Args:PJValue);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
-      GetFieldID:function(Env:PJNIEnv;AClass:JClass;const Name:pchar;const Sig:pchar):JFieldID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetFieldID:function(Env:PJNIEnv;AClass:JClass;const Name:PAnsiChar;const Sig:PAnsiChar):JFieldID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       GetObjectField:function(Env:PJNIEnv;Obj:JObject;FieldID:JFieldID):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetBooleanField:function(Env:PJNIEnv;Obj:JObject;FieldID:JFieldID):JBoolean;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -300,7 +300,7 @@ type va_list=pointer;
       SetFloatField:procedure(Env:PJNIEnv;Obj:JObject;FieldID:JFieldID;Val:JFloat);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       SetDoubleField:procedure(Env:PJNIEnv;Obj:JObject;FieldID:JFieldID;Val:JDouble);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
-      GetStaticMethodID:function(Env:PJNIEnv;AClass:JClass;const Name:pchar;const Sig:pchar):JMethodID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetStaticMethodID:function(Env:PJNIEnv;AClass:JClass;const Name:PAnsiChar;const Sig:PAnsiChar):JMethodID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       CallStaticObjectMethod:function(Env:PJNIEnv;AClass:JClass;MethodID:JMethodID):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       CallStaticObjectMethodV:function(Env:PJNIEnv;AClass:JClass;MethodID:JMethodID;Args:va_list):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -342,7 +342,7 @@ type va_list=pointer;
       CallStaticVoidMethodV:procedure(Env:PJNIEnv;AClass:JClass;MethodID:JMethodID;Args:va_list);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       CallStaticVoidMethodA:procedure(Env:PJNIEnv;AClass:JClass;MethodID:JMethodID;Args:PJValue);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
-      GetStaticFieldID:function(Env:PJNIEnv;AClass:JClass;const Name:pchar;const Sig:pchar):JFieldID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetStaticFieldID:function(Env:PJNIEnv;AClass:JClass;const Name:PAnsiChar;const Sig:PAnsiChar):JFieldID;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetStaticObjectField:function(Env:PJNIEnv;AClass:JClass;FieldID:JFieldID):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetStaticBooleanField:function(Env:PJNIEnv;AClass:JClass;FieldID:JFieldID):JBoolean;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetStaticByteField:function(Env:PJNIEnv;AClass:JClass;FieldID:JFieldID):JByte;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -368,10 +368,10 @@ type va_list=pointer;
       GetStringChars:function(Env:PJNIEnv;Str:JString;var IsCopy:JBoolean):PJChar;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       ReleaseStringChars:procedure(Env:PJNIEnv;Str:JString;const Chars:PJChar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
-      NewStringUTF:function(Env:PJNIEnv;const UTF:pchar):JString;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      NewStringUTF:function(Env:PJNIEnv;const UTF:PAnsiChar):JString;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetStringUTFLength:function(Env:PJNIEnv;Str:JString):JSize;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      GetStringUTFChars:function(Env:PJNIEnv;Str:JString; IsCopy: PJBoolean):pchar;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      ReleaseStringUTFChars:procedure(Env:PJNIEnv;Str:JString;const Chars:pchar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetStringUTFChars:function(Env:PJNIEnv;Str:JString; IsCopy: PJBoolean):PAnsiChar;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      ReleaseStringUTFChars:procedure(Env:PJNIEnv;Str:JString;const Chars:PAnsiChar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       GetArrayLength:function(Env:PJNIEnv;AArray:JArray):JSize;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
@@ -434,7 +434,7 @@ type va_list=pointer;
 
       // String Operations
       GetStringRegion:procedure(Env:PJNIEnv;Str:JString;Start:JSize;Len:JSize;Buf:PJChar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      GetStringUTFRegion:procedure(Env:PJNIEnv;Str:JString;Start:JSize;Len:JSize;Buf:pchar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetStringUTFRegion:procedure(Env:PJNIEnv;Str:JString;Start:JSize;Len:JSize;Buf:PAnsiChar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       // Array Operations
       GetPrimitiveArrayCritical:function(Env:PJNIEnv;AArray:JArray;var IsCopy:JBoolean):pointer;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -474,7 +474,7 @@ type va_list=pointer;
 
      JavaVMAttachArgs={$ifdef packedrecords}packed{$endif} record
       version:jint;  // must be >= JNI_VERSION_1_2
-      name:pchar;    // NULL or name of thread as modified UTF-8 str
+      name:PAnsiChar;    // NULL or name of thread as modified UTF-8 str
       group:jobject; // global ref of a ThreadGroup object, or NULL
      end;
 
@@ -485,7 +485,7 @@ type va_list=pointer;
 
      PJavaVMOption=^JavaVMOption;
      JavaVMOption={$ifdef packedrecords}packed{$endif} record
-      optionString:pchar;
+      optionString:PAnsiChar;
       extraInfo:pointer;
      end;
 
