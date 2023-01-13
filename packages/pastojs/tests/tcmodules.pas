@@ -39,7 +39,7 @@ type
     mkDirectReference
     );
 const
-  SrcMarker: array[TSrcMarkerKind] of char = (
+  SrcMarker: array[TSrcMarkerKind] of AnsiChar = (
     '#', // mkLabel
     '@', // mkResolverReference
     '='  // mkDirectReference
@@ -1039,21 +1039,21 @@ function CheckSrcDiff(Expected, Actual: string; out Msg: string): boolean;
 const
   SpaceChars = [#9,#10,#13,' '];
 var
-  ExpectedP, ActualP: PChar;
+  ExpectedP, ActualP: PAnsiChar;
 
-  function FindLineEnd(p: PChar): PChar;
+  function FindLineEnd(p: PAnsiChar): PAnsiChar;
   begin
     Result:=p;
     while not (Result^ in [#0,#10,#13]) do inc(Result);
   end;
 
-  function FindLineStart(p, MinP: PChar): PChar;
+  function FindLineStart(p, MinP: PAnsiChar): PAnsiChar;
   begin
     while (p>MinP) and not (p[-1] in [#10,#13]) do dec(p);
     Result:=p;
   end;
 
-  procedure SkipLineEnd(var p: PChar);
+  procedure SkipLineEnd(var p: PAnsiChar);
   begin
     if p^ in [#10,#13] then
     begin
@@ -1088,19 +1088,19 @@ var
 
   procedure DiffFound;
   var
-    ActLineStartP, ActLineEndP, p, StartPos: PChar;
+    ActLineStartP, ActLineEndP, p, StartPos: PAnsiChar;
     ExpLine, ActLine: String;
     i, LineNo, DiffLineNo: Integer;
   begin
     writeln('Diff found "',Msg,'". Lines:');
     // write correct lines
-    p:=PChar(Expected);
+    p:=PAnsiChar(Expected);
     LineNo:=0;
     DiffLineNo:=0;
     repeat
       StartPos:=p;
       while not (p^ in [#0,#10,#13]) do inc(p);
-      ExpLine:=copy(Expected,StartPos-PChar(Expected)+1,p-StartPos);
+      ExpLine:=copy(Expected,StartPos-PAnsiChar(Expected)+1,p-StartPos);
       SkipLineEnd(p);
       inc(LineNo);
       if (p<=ExpectedP) and (p^<>#0) then
@@ -1110,9 +1110,9 @@ var
         // diff line
         if DiffLineNo=0 then DiffLineNo:=LineNo;
         // write actual line
-        ActLineStartP:=FindLineStart(ActualP,PChar(Actual));
+        ActLineStartP:=FindLineStart(ActualP,PAnsiChar(Actual));
         ActLineEndP:=FindLineEnd(ActualP);
-        ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
+        ActLine:=copy(Actual,ActLineStartP-PAnsiChar(Actual)+1,ActLineEndP-ActLineStartP);
         writeln('- ',ActLine);
         if HasSpecialChar(ActLine) then
           writeln('- ',HashSpecialChars(ActLine));
@@ -1131,7 +1131,7 @@ var
           SkipLineEnd(ActLineStartP);
           if ActLineStartP^=#0 then break;
           ActLineEndP:=FindLineEnd(ActLineStartP);
-          ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
+          ActLine:=copy(Actual,ActLineStartP-PAnsiChar(Actual)+1,ActLineEndP-ActLineStartP);
           writeln('~ ',ActLine);
         end;
         exit;
@@ -1149,14 +1149,14 @@ var
 
 var
   IsSpaceNeeded: Boolean;
-  LastChar, Quote: Char;
+  LastChar, Quote: AnsiChar;
 begin
   Result:=true;
   Msg:='';
   if Expected='' then Expected:=' ';
   if Actual='' then Actual:=' ';
-  ExpectedP:=PChar(Expected);
-  ActualP:=PChar(Actual);
+  ExpectedP:=PAnsiChar(Expected);
+  ActualP:=PAnsiChar(Actual);
   repeat
     //writeln('TTestModule.CheckDiff Exp="',ExpectedP^,'" Act="',ActualP^,'"');
     case ExpectedP^ of
@@ -1175,7 +1175,7 @@ begin
       begin
       // skip space in Expected
       IsSpaceNeeded:=false;
-      if ExpectedP>PChar(Expected) then
+      if ExpectedP>PAnsiChar(Expected) then
         LastChar:=ExpectedP[-1]
       else
         LastChar:=#0;
@@ -1879,8 +1879,8 @@ begin
     //'  LineEnding = #10;',
     //'  DirectorySeparator = ''/'';',
     //'  DriveSeparator = '''';',
-    //'  AllowDirectorySeparators : set of char = [''\'',''/''];',
-    //'  AllowDriveSeparators : set of char = [];',
+    //'  AllowDirectorySeparators : set of AnsiChar = [''\'',''/''];',
+    //'  AllowDriveSeparators : set of AnsiChar = [];',
   if supTObject in Parts then
     Intf.AddStrings([
     'type',
@@ -2473,7 +2473,7 @@ var
     while p^ in ['a'..'z','A'..'Z','_','0'..'9'] do inc(p);
     Result:='';
     SetLength(Result,p-StartP);
-    Move(StartP^,Result[1],length(Result));
+    Move(StartP^,Result[1],length(Result)*sizeof(char));
   end;
 
   procedure AddLabel;
@@ -2513,7 +2513,7 @@ var
 
   procedure ParseCode(SrcLines: TStringList; aFilename: string);
   var
-    p: PChar;
+    p,pstart,pend: PChar;
     IsDirective: Boolean;
   begin
     //writeln('TCustomTestModule.CheckReferenceDirectives.ParseCode File=',aFilename);
@@ -2526,10 +2526,13 @@ var
       SrcLine:=SrcLines[LineNumber-1];
       if SrcLine='' then continue;
       //writeln('TCustomTestModule.CheckReferenceDirectives Line=',SrcLine);
-      p:=PChar(SrcLine);
+      pstart:=PChar(SrcLine);
+      pend:=pstart;
+      inc(PEnd,length(SrcLine));
+      p:=pstart;
       repeat
         case p^ of
-          #0: if (p-PChar(SrcLine)=length(SrcLine)) then break;
+          #0: if (p>=pend) then break;
           '{':
             begin
             CommentStartP:=p;
@@ -2540,7 +2543,7 @@ var
             repeat
               case p^ of
               #0:
-                if (p-PChar(SrcLine)=length(SrcLine)) then
+                if (p>=pend) then
                   begin
                   // multi line comment
                   if IsDirective then
@@ -2551,7 +2554,10 @@ var
                     SrcLine:=SrcLines[LineNumber-1];
                     //writeln('TCustomTestModule.CheckReferenceDirectives Comment Line=',SrcLine);
                   until SrcLine<>'';
-                  p:=PChar(SrcLine);
+                  pstart:=PChar(SrcLine);
+                  pend:=pstart;
+                  inc(PEnd,length(SrcLine));
+                  p:=pstart;
                   continue;
                   end;
               '}':
@@ -3444,12 +3450,12 @@ begin
   Add('var');
   Add('  i: longint;');
   Add('  s: string;');
-  Add('  c: char;');
+  Add('  c: AnsiChar;');
   Add('  b: boolean;');
   Add('  d: double;');
   Add('  i2: longint = 3;');
   Add('  s2: string = ''foo'';');
-  Add('  c2: char = ''4'';');
+  Add('  c2: AnsiChar = ''4'';');
   Add('  b2: boolean = true;');
   Add('  d2: double = 5.6;');
   Add('  i3: longint = $707;');
@@ -3510,7 +3516,7 @@ begin
   Add('const');
   Add('  i: longint = 3;');
   Add('  s: string = ''foo'';');
-  Add('  c: char = ''4'';');
+  Add('  c: AnsiChar = ''4'';');
   Add('  b: boolean = true;');
   Add('  d: double = 5.6;');
   Add('  e = low(word);');
@@ -3560,7 +3566,7 @@ begin
   '  b: boolean;',
   '  d: double;',
   '  s: string;',
-  '  c: char;',
+  '  c: AnsiChar;',
   'begin',
   '  i:=longint(i);',
   '  i:=longint(b);',
@@ -3570,11 +3576,11 @@ begin
   '  d:=double(i);',
   '  s:=string(s);',
   '  s:=string(c);',
-  '  c:=char(c);',
-  '  c:=char(i);',
-  '  c:=char(65);',
-  '  c:=char(#10);',
-  '  c:=char(#$E000);',
+  '  c:=AnsiChar(c);',
+  '  c:=AnsiChar(i);',
+  '  c:=AnsiChar(65);',
+  '  c:=AnsiChar(#10);',
+  '  c:=AnsiChar(#$E000);',
   '']);
   ConvertProgram;
   CheckSource('TestAliasTypeRef',
@@ -3610,7 +3616,7 @@ begin
   Add('  TYesNo = boolean;');
   Add('  TFloat = double;');
   Add('  TCaption = string;');
-  Add('  TChar = char;');
+  Add('  TChar = AnsiChar;');
   Add('var');
   Add('  i: integer;');
   Add('  b: TYesNo;');
@@ -5003,7 +5009,7 @@ begin
   StartProgram(false);
   Add(['type TCaption = string;',
   'procedure DoIt(vA: TCaption; var vB: TCaption; out vC: TCaption);',
-  'var c: char;',
+  'var c: AnsiChar;',
   'begin',
   '  va[1]:=c;',
   '  vb[2]:=c;',
@@ -7311,7 +7317,7 @@ begin
   '  TAtoZ = ''A''..''Z'';',
   '  TSetOfAZ = set of TAtoZ;',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  a: TAtoZ;',
   '  s: TSetOfAZ = [''P'',''A''];',
   '  i: longint;',
@@ -7395,7 +7401,7 @@ begin
   '  Chars = LowChars+[''A''..''Z''];',
   '  sc = [''А'', ''Я''];',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  s: string;',
   'begin',
   '  if c in lowchars then ;',
@@ -8585,7 +8591,7 @@ begin
   Add([
   'const',
   '  a = #$00F3;',
-  '  c: char = ''1'';',
+  '  c: AnsiChar = ''1'';',
   '  wc: widechar = ''ä'';',
   'begin',
   '  c:=#0;',
@@ -8601,7 +8607,7 @@ begin
   '  c:=#$0b;',
   '  c:=^A;',
   '  c:=''"'';',
-  '  c:=default(char);',
+  '  c:=default(AnsiChar);',
   '  c:=#$00E4;', // ä
   '  c:=''ä'';',
   '  c:=#$E4;', // ä
@@ -8648,7 +8654,7 @@ procedure TTestModule.TestChar_Compare;
 begin
   StartProgram(false);
   Add('var');
-  Add('  c: char;');
+  Add('  c: AnsiChar;');
   Add('  b: boolean;');
   Add('begin');
   Add('  b:=c=''1'';');
@@ -8692,7 +8698,7 @@ begin
   StartProgram(false);
   Add([
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  i: longint;',
   '  s: string;',
   'begin',
@@ -8807,7 +8813,7 @@ begin
   StartProgram(false);
   Add([
   'const',
-  '  a: char = #$D87E;',
+  '  a: AnsiChar = #$D87E;',
   '  b: string = #$D87E;',
   '  c: string = #$D87E#43;',
   'begin',
@@ -8983,7 +8989,7 @@ begin
   Add([
   'var',
   '  s: string;',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  b: boolean;',
   'begin',
   '  b:= s[1] = c;',
@@ -9136,7 +9142,7 @@ begin
   'const',
   '  crg: TCharRg = ''b'';',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  crg2: TCharRg2;',
   '  s: TSetOfCharRg;',
   'begin',
@@ -9175,14 +9181,14 @@ procedure TTestModule.TestWideChar;
 begin
   StartProgram(false);
   Add([
-  'procedure Fly(var c: char);',
+  'procedure Fly(var c: AnsiChar);',
   'begin',
   'end;',
   'procedure Run(var c: widechar);',
   'begin',
   'end;',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  wc: widechar;',
   '  w: word;',
   'begin',
@@ -9231,7 +9237,7 @@ procedure TTestModule.TestForCharDo;
 begin
   StartProgram(false);
   Add([
-  'var c: char;',
+  'var c: AnsiChar;',
   'begin',
   '  for c:=''a'' to ''c'' do ;',
   '  for c:=c downto ''a'' do ;',
@@ -9253,22 +9259,22 @@ begin
   StartProgram(false);
   Add([
   'type',
-  '  TSetOfChar = set of char;',
+  '  TSetOfChar = set of AnsiChar;',
   '  TCharRg = ''a''..''z'';',
   '  TSetOfCharRg = set of TCharRg;',
   'const Foo = ''foo'';',
   'var',
-  '  c,c2: char;',
+  '  c,c2: AnsiChar;',
   '  s: string;',
-  '  a1: array of char;',
-  '  a2: array[1..3] of char;',
+  '  a1: array of AnsiChar;',
+  '  a2: array[1..3] of AnsiChar;',
   '  soc: TSetOfChar;',
   '  socr: TSetOfCharRg;',
   '  cr: TCharRg;',
   'begin',
   '  for c in foo do ;',
   '  for c in s do ;',
-  '  for c in char do ;',
+  '  for c in AnsiChar do ;',
   '  for c in a1 do ;',
   '  for c in a2 do ;',
   '  for c in [''1''..''3''] do ;',
@@ -9339,7 +9345,7 @@ begin
   Add('procedure p1(i: longint = 1);');
   Add('begin');
   Add('end;');
-  Add('procedure p2(i: longint = 1; c: char = ''a'');');
+  Add('procedure p2(i: longint = 1; c: AnsiChar = ''a'');');
   Add('begin');
   Add('end;');
   Add('procedure p3(d: double = 1.0; b: boolean = false; s: string = ''abc'');');
@@ -10031,7 +10037,7 @@ procedure TTestModule.TestCaseOfChar;
 begin
   StartProgram(false);
   Add([
-  'var s,h: char;',
+  'var s,h: AnsiChar;',
   'begin',
   '  case s of',
   '  ''a''..''z'': h:=s;',
@@ -10388,16 +10394,16 @@ begin
   StartProgram(false);
   Add([
   'type',
-  '  TChars = array[char] of char;',
-  '  TChars2 = array[''a''..''z''] of char;',
+  '  TChars = array[AnsiChar] of AnsiChar;',
+  '  TChars2 = array[''a''..''z''] of AnsiChar;',
   'var',
   '  Arr: TChars;',
   '  Arr2: TChars2;',
-  '  Arr3: array[2..4] of char = (''p'',''a'',''s'');',
-  '  Arr4: array[11..13] of char = ''pas'';',
-  '  Arr5: array[21..22] of char = ''äö'';',
-  '  Arr6: array[31..32] of char = ''ä''+''ö'';',
-  '  c: char;',
+  '  Arr3: array[2..4] of AnsiChar = (''p'',''a'',''s'');',
+  '  Arr4: array[11..13] of AnsiChar = ''pas'';',
+  '  Arr5: array[21..22] of AnsiChar = ''äö'';',
+  '  Arr6: array[31..32] of AnsiChar = ''ä''+''ö'';',
+  '  c: AnsiChar;',
   '  b: boolean;',
   'begin',
   '  c:=low(arr);',
@@ -11252,12 +11258,12 @@ procedure TTestModule.TestArray_ArrayOfCharAssignString;
 begin
   StartProgram(false);
   Add([
-  'type TArr = array of char;',
+  'type TArr = array of AnsiChar;',
   'var',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  s: string;',
   '  a: TArr;',
-  'procedure Run(const a: array of char);',
+  'procedure Run(const a: array of AnsiChar);',
   'begin',
   '  Run(c);',
   '  Run(s);',
@@ -11792,7 +11798,7 @@ begin
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneStr: array of integer = (7);',
-  '  Chars: array of char = ''aoc'';',
+  '  Chars: array of AnsiChar = ''aoc'';',
   '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'var i: integer;',
@@ -11849,7 +11855,7 @@ begin
   '  Aliases: TarrStr = [''foo'',''b''];',
   '  OneInt: TArrInt = [7];',
   '  OneStr: array of integer = [7]+[8];',
-  '  Chars: array of char = ''aoc'';',
+  '  Chars: array of AnsiChar = ''aoc'';',
   '  Names: array of string = [''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'begin',
@@ -14769,7 +14775,7 @@ begin
   Add('  end;');
   Add('  TA = class');
   Add('    constructor Create; override;');
-  Add('    constructor CreateWithC(c: char);');
+  Add('    constructor CreateWithC(c: AnsiChar);');
   Add('    procedure DoIt;');
   Add('    class function DoSome: TObject;');
   Add('  end;');
@@ -14788,7 +14794,7 @@ begin
   Add('  inherited create; // normal call TObject.Create');
   Add('  inherited createwithb(false); // normal call TObject.CreateWithB');
   Add('end;');
-  Add('constructor ta.createwithc(c: char);');
+  Add('constructor ta.createwithc(c: AnsiChar);');
   Add('begin');
   Add('  inherited create; // call TObject.Create');
   Add('  inherited createwithb(true); // call TObject.CreateWithB');
@@ -27287,7 +27293,7 @@ begin
   '  TStringHelper = type helper for string',
   '    procedure DoIt(e: byte = 123);',
   '  end;',
-  '  TCharHelper = type helper for char',
+  '  TCharHelper = type helper for AnsiChar',
   '    procedure Fly;',
   '  end;',
   'procedure TStringHelper.DoIt(e: byte);',
@@ -29837,14 +29843,14 @@ begin
   Add('  TYesNo = boolean;');
   Add('  TFloat = double;');
   Add('  TCaption = string;');
-  Add('  TChar = char;');
+  Add('  TChar = AnsiChar;');
   Add('var');
   Add('  v: jsvalue;');
   Add('  i: integer;');
   Add('  s: TCaption;');
   Add('  b: TYesNo;');
   Add('  d: TFloat;');
-  Add('  c: char;');
+  Add('  c: AnsiChar;');
   Add('begin');
   Add('  i:=longint(v);');
   Add('  i:=integer(v);');
@@ -29854,7 +29860,7 @@ begin
   Add('  b:=TYesNo(v);');
   Add('  d:=double(v);');
   Add('  d:=TFloat(v);');
-  Add('  c:=char(v);');
+  Add('  c:=AnsiChar(v);');
   Add('  c:=TChar(v);');
   ConvertProgram;
   CheckSource('TestJSValue_TypeCastToBaseType',
@@ -29932,7 +29938,7 @@ begin
   Add('  TYesNo = boolean;');
   Add('  TFloat = double;');
   Add('  TCaption = string;');
-  Add('  TChar = char;');
+  Add('  TChar = AnsiChar;');
   Add('  TMulti = JSValue;');
   Add('var');
   Add('  v: jsvalue;');
@@ -29940,7 +29946,7 @@ begin
   Add('  s: TCaption;');
   Add('  b: TYesNo;');
   Add('  d: TFloat;');
-  Add('  c: char;');
+  Add('  c: AnsiChar;');
   Add('  m: TMulti;');
   Add('begin');
   Add('  b:=v=v;');
@@ -30315,7 +30321,7 @@ begin
   Add('  TYesNo = boolean;');
   Add('  TFloat = double;');
   Add('  TCaption = string;');
-  Add('  TChar = char;');
+  Add('  TChar = AnsiChar;');
   Add('function DoIt(a: jsvalue; const b: jsvalue; var c: jsvalue; out d: jsvalue): jsvalue;');
   Add('var');
   Add('  l: jsvalue;');
@@ -30909,12 +30915,12 @@ begin
   Add([
   'type',
   '  uni = string;',
-  '  WChar = char;',
+  '  WChar = AnsiChar;',
   'procedure DoIt(s: string); begin end;',
   'procedure DoIt(v: jsvalue); begin end;',
   'var',
   '  s: string;',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  u: uni;',
   'begin',
   '  DoIt(s);',
@@ -30945,12 +30951,12 @@ begin
   Add([
   'type',
   '  uni = string;',
-  '  WChar = char;',
-  'procedure DoIt(c: char); begin end;',
+  '  WChar = AnsiChar;',
+  'procedure DoIt(c: AnsiChar); begin end;',
   'procedure DoIt(v: jsvalue); begin end;',
   'var',
   '  s: string;',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  u: uni;',
   'begin',
   '  DoIt(s);',
@@ -31105,7 +31111,7 @@ begin
   Add('  TProcA = procedure;');
   Add('  TMethodB = procedure of object;');
   Add('  TProcC = procedure; varargs;');
-  Add('  TProcD = procedure(i: longint; const j: string; var c: char; out d: double);');
+  Add('  TProcD = procedure(i: longint; const j: string; var c: AnsiChar; out d: double);');
   Add('  TProcE = function: nativeint;');
   Add('  TProcF = function(const p: TProcA): nativeuint;');
   Add('var p: pointer;');
@@ -31125,7 +31131,7 @@ begin
     '  procsig: rtl.newTIProcSig([], null, 2)',
     '});',
     'this.$rtti.$ProcVar("TProcD", {',
-    '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.char, 1], ["d", rtl.double, 4]])',
+    '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.AnsiChar, 1], ["d", rtl.double, 4]])',
     '});',
     'this.$rtti.$ProcVar("TProcE", {',
     '  procsig: rtl.newTIProcSig([], rtl.nativeint)',
@@ -31190,7 +31196,7 @@ begin
   '  ProcA: procedure;',
   '  MethodB: procedure of object;',
   '  ProcC: procedure; varargs;',
-  '  ProcD: procedure(i: longint; const j: string; var c: char; out d: double);',
+  '  ProcD: procedure(i: longint; const j: string; var c: AnsiChar; out d: double);',
   '  ProcE: function: nativeint;',
   '  p: pointer;',
   'begin',
@@ -31212,7 +31218,7 @@ begin
     '});',
     'this.ProcC = null;',
     'this.$rtti.$ProcVar("ProcD$a", {',
-    '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.char, 1], ["d", rtl.double, 4]])',
+    '  procsig: rtl.newTIProcSig([["i", rtl.longint], ["j", rtl.string, 2], ["c", rtl.AnsiChar, 1], ["d", rtl.double, 4]])',
     '});',
     'this.ProcD = null;',
     'this.$rtti.$ProcVar("ProcE$a", {',
@@ -31568,7 +31574,7 @@ begin
   Add('    FPropA: string;');
   Add('  published');
   Add('    VarLI: longint;');
-  Add('    VarC: char;');
+  Add('    VarC: AnsiChar;');
   Add('    VarS: string;');
   Add('    VarD: double;');
   Add('    VarB: boolean;');
@@ -31611,7 +31617,7 @@ begin
     '  };',
     '  var $r = this.$rtti;',
     '  $r.addField("VarLI", rtl.longint);',
-    '  $r.addField("VarC", rtl.char);',
+    '  $r.addField("VarC", rtl.AnsiChar);',
     '  $r.addField("VarS", rtl.string);',
     '  $r.addField("VarD", rtl.double);',
     '  $r.addField("VarB", rtl.boolean);',
@@ -31794,11 +31800,11 @@ begin
   Add('  private');
   Add('    function GetItems(i: integer): tobject; virtual; abstract;');
   Add('    procedure SetItems(i: integer; value: tobject); virtual; abstract;');
-  Add('    function GetValues(const i: integer; var b: boolean): char; virtual; abstract;');
-  Add('    procedure SetValues(const i: integer; var b: boolean; value: char); virtual; abstract;');
+  Add('    function GetValues(const i: integer; var b: boolean): AnsiChar; virtual; abstract;');
+  Add('    procedure SetValues(const i: integer; var b: boolean; value: AnsiChar); virtual; abstract;');
   Add('  published');
   Add('    property Items[Index: integer]: tobject read getitems write setitems;');
-  Add('    property Values[const keya: integer; var keyb: boolean]: char read getvalues write setvalues;');
+  Add('    property Values[const keya: integer; var keyb: boolean]: AnsiChar read getvalues write setvalues;');
   Add('  end;');
   Add('begin');
   ConvertProgram;
@@ -31811,7 +31817,7 @@ begin
     '  };',
     '  var $r = this.$rtti;',
     '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems");',
-    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
+    '  $r.addProperty("Values", 3, rtl.AnsiChar, "GetValues", "SetValues");',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32683,7 +32689,7 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TFloatRec = record');
-  Add('    c,d: array of char;');
+  Add('    c,d: array of AnsiChar;');
   // Add('    i: array of array of longint;');
   Add('  end;');
   Add('var p: pointer;');
@@ -32712,7 +32718,7 @@ begin
     '  };',
     '  var $r = $mod.$rtti.$Record("TFloatRec", {});',
     '  $mod.$rtti.$DynArray("TFloatRec.d$a", {',
-    '    eltype: rtl.char',
+    '    eltype: rtl.AnsiChar',
     '  });',
     '  $r.addField("c", $mod.$rtti["TFloatRec.d$a"]);',
     '  $r.addField("d", $mod.$rtti["TFloatRec.d$a"]);',
@@ -32808,7 +32814,7 @@ begin
   'type',
   '  TCaption = string;',
   '  TYesNo = boolean;',
-  '  TLetter = char;',
+  '  TLetter = AnsiChar;',
   '  TFloat = double;',
   '  TPtr = pointer;',
   '  TShortInt = shortint;',
@@ -32824,7 +32830,7 @@ begin
   '  p:=typeinfo(tcaption);',
   '  p:=typeinfo(boolean);',
   '  p:=typeinfo(tyesno);',
-  '  p:=typeinfo(char);',
+  '  p:=typeinfo(AnsiChar);',
   '  p:=typeinfo(tletter);',
   '  p:=typeinfo(double);',
   '  p:=typeinfo(tfloat);',
@@ -32853,8 +32859,8 @@ begin
     '$mod.p = rtl.string;',
     '$mod.p = rtl.boolean;',
     '$mod.p = rtl.boolean;',
-    '$mod.p = rtl.char;',
-    '$mod.p = rtl.char;',
+    '$mod.p = rtl.AnsiChar;',
+    '$mod.p = rtl.AnsiChar;',
     '$mod.p = rtl.double;',
     '$mod.p = rtl.double;',
     '$mod.p = rtl.pointer;',
@@ -32882,7 +32888,7 @@ begin
   'type',
   '  TCaption = type string;',
   '  TYesNo = type boolean;',
-  '  TLetter = type char;',
+  '  TLetter = type AnsiChar;',
   '  TFloat = type double;',
   '  TPtr = type pointer;',
   '  TShortInt = type shortint;',
@@ -32916,7 +32922,7 @@ begin
     LinesToStr([ // statements
     'this.$rtti.$inherited("TCaption", rtl.string, {});',
     'this.$rtti.$inherited("TYesNo", rtl.boolean, {});',
-    'this.$rtti.$inherited("TLetter", rtl.char, {});',
+    'this.$rtti.$inherited("TLetter", rtl.AnsiChar, {});',
     'this.$rtti.$inherited("TFloat", rtl.double, {});',
     'this.$rtti.$inherited("TPtr", rtl.pointer, {});',
     'this.$rtti.$inherited("TShortInt", rtl.shortint, {});',
@@ -32983,7 +32989,7 @@ begin
   'begin',
   '  ti:=typeinfo(string);',
   '  ti:=typeinfo(boolean);',
-  '  ti:=typeinfo(char);',
+  '  ti:=typeinfo(AnsiChar);',
   '  ti:=typeinfo(double);',
   '  tiInt:=typeinfo(shortint);',
   '  tiInt:=typeinfo(byte);',
@@ -33020,7 +33026,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.ti = rtl.string;',
     '$mod.ti = rtl.boolean;',
-    '$mod.ti = rtl.char;',
+    '$mod.ti = rtl.AnsiChar;',
     '$mod.ti = rtl.double;',
     '$mod.tiInt = rtl.shortint;',
     '$mod.tiInt = rtl.byte;',
@@ -33611,7 +33617,7 @@ begin
   '  Red = ''red'';',
   '  Foobar = ''fOo''+bar;',
   'var s: string;',
-  '  c: char;',
+  '  c: AnsiChar;',
   'begin',
   '  s:=red;',
   '  s:=test1.red;',
@@ -34393,7 +34399,7 @@ begin
   Add([
   '{$R+}',
   'type',
-  '  TLetter = char;',
+  '  TLetter = AnsiChar;',
   'var',
   '  b: TLetter = ''2'';',
   '  w: TLetter = ''3'';',
@@ -34499,7 +34505,7 @@ begin
   '  ArrChar: TArrChar;',
   '  ArrByteChar: TArrByteChar;',
   '  i: Ten;',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  o: tobject;',
   'begin',
   '  i:=Arr[1];',
@@ -34633,7 +34639,7 @@ begin
   'var',
   '  s: string;',
   '  i: longint;',
-  '  c: char;',
+  '  c: AnsiChar;',
   '  o: tobject;',
   'begin',
   '  c:=s[1];',

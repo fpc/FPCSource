@@ -29,14 +29,6 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
-      <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
-        <PackageName Value="FCL"/>
-      </Item2>
-    </RequiredPackages>
     <Units Count="14">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
@@ -128,10 +120,8 @@
       <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
     <Other>
-      <CustomOptions Value="-dVerbosePas2JS"/>
-      <OtherDefines Count="1">
-        <Define0 Value="VerbosePas2JS"/>
-      </OtherDefines>
+      <CustomOptions Value="-dVerbosePas2JS 
+-tunicodertl"/>
     </Other>
   </CompilerOptions>
   <Debugging>

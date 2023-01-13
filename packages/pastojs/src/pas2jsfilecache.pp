@@ -288,7 +288,7 @@ type
     function ExpandDirectory(const Filename: string): string; override;
     function ExpandFileName(const Filename: string): string; override;
     function ExpandExecutable(const Filename: string): string; override;
-    function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; override;
+    function HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String; override;
     Function AddForeignUnitPath(const aValue: String; FromCmdLine: Boolean): String; override;
     function TryCreateRelativePath(const Filename, BaseDirectory: String;
       UsePointDirectory, AlwaysRequireSharedBaseFolder: boolean; out RelPath: String): Boolean; override;
@@ -414,7 +414,7 @@ end;
 {$IFDEF FPC_HAS_CPSTRING}
 function ConvertTextToUTF8(const Src: string; var SrcEncoding: string): string;
 var
-  p: PChar;
+  p: PAnsiChar;
   NormSrcEncoding: String;
 begin
   Result:=Src;
@@ -424,7 +424,7 @@ begin
   NormSrcEncoding:=NormalizeEncoding(SrcEncoding);
   if NormSrcEncoding=NormalizeEncoding(EncodingUTF8) then
   begin
-    p:=PChar(Result);
+    p:=PAnsiChar(Result);
     if (p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF) then
     begin
       // cut out UTF-8 BOM
@@ -440,7 +440,7 @@ end;
 
 function GuessEncoding(const Src: string): string;
 var
-  p: PChar;
+  p: PAnsiChar;
   l: SizeInt;
   i: Integer;
 begin
@@ -452,12 +452,12 @@ begin
 
   // try UTF-8 (this includes ASCII)
   l:=length(Src);
-  p:=PChar(Src);
+  p:=PAnsiChar(Src);
   repeat
     if ord(p^)<128 then
     begin
       // ASCII
-      if (p^=#0) and (p-PChar(Src)>=l) then
+      if (p^=#0) and (p-PAnsiChar(Src)>=l) then
         exit(EncodingUTF8);
       inc(p);
     end else begin
@@ -469,11 +469,11 @@ begin
   until false;
 
   // check binary
-  p:=PChar(Src);
+  p:=PAnsiChar(Src);
   repeat
     case p^ of
     #0:
-      if (p-PChar(Src)>=l) then
+      if (p-PAnsiChar(Src)>=l) then
         break
       else
         exit(EncodingBinary);
@@ -489,10 +489,10 @@ end;
 
 function HasUTF8BOM(const s: string): boolean;
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   if s='' then exit(false);
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   Result:=(p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF);
 end;
 
@@ -1843,7 +1843,7 @@ begin
     Result:=ExpandFileName(Filename);
 end;
 
-function TPas2jsFilesCache.HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String;
+function TPas2jsFilesCache.HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String;
 
 Var
   ErrorMsg : String;

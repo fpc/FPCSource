@@ -220,8 +220,8 @@ type
 
 function CompareP2JMessage(Item1, Item2: {$IFDEF Pas2JS}JSValue{$ELSE}Pointer{$ENDIF}): Integer;
 
-function QuoteStr(const s: string; Quote: char = '"'): string;
-function DeQuoteStr(const s: string; Quote: char = '"'): string;
+function QuoteStr(const s: string; Quote: AnsiChar = '"'): string;
+function DeQuoteStr(const s: string; Quote: AnsiChar = '"'): string;
 function AsString(Element: TPasElement; Full: boolean = true): string; overload;
 function AsString(Element: TJSElement): string; overload;
 function DbgString(Element: TJSElement; Indent: integer): string; overload;
@@ -244,12 +244,12 @@ begin
   Result:=Msg1.Number-Msg2.Number;
 end;
 
-function QuoteStr(const s: string; Quote: char): string;
+function QuoteStr(const s: string; Quote: AnsiChar): string;
 begin
   Result:={$IFDEF Pas2JS}SysUtils.QuotedStr{$ELSE}AnsiQuotedStr{$ENDIF}(S,Quote);
 end;
 
-function DeQuoteStr(const s: string; Quote: char): string;
+function DeQuoteStr(const s: string; Quote: AnsiChar): string;
 begin
   Result:={$IFDEF Pas2JS}SysUtils.DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(S,Quote);
 end;
@@ -494,14 +494,14 @@ var
 begin
   Result:='';
   for i:=0 to Count-1 do
-    Result:=Result+HexStr(ord(PChar(p)[i]),2);
+    Result:=Result+HexStr(ord(PAnsiChar(p)[i]),2);
 end;
 {$ENDIF}
 
 function DbgStr(const s: string): string;
 var
   i: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   Result:='';
   for i:=1 to length(s) do begin
@@ -679,7 +679,7 @@ end;
 
 procedure TPas2jsLogger.DoLogRaw(const Msg: string; SkipEncoding : Boolean);
 var
-  S: String;
+  S: ansiString;
 begin
   if SkipEncoding then
     S:=Msg

@@ -64,7 +64,7 @@ Type
   public
     Constructor Create(Const aFileName, aSource: String); overload;
     function IsEOF: Boolean; override;
-    function ReadLine: string; override;
+    function ReadLine: TPasScannerString; override;
     property LineNumber: integer read FLineNumber;
   end;
 
@@ -124,7 +124,7 @@ Type
     function CreateResolver: TPas2jsFSResolver; virtual;
     // On success, return '', On error, return error message.
     Function AddForeignUnitPath(Const aValue: String; FromCmdLine: Boolean): String; virtual;
-    Function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String; virtual;
+    Function HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String; virtual;
   Public
     Constructor Create; virtual;
     Procedure Reset; virtual;
@@ -306,7 +306,7 @@ begin
   if (aValue='') or FromCmdLine then ;
 end;
 
-function TPas2JSFS.HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): String;
+function TPas2JSFS.HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): String;
 begin
   Result:='Invalid parameter: -F'+C+aValue;
   if FromCmdLine then ;
@@ -376,7 +376,7 @@ begin
   Result:=FIsEOF;
 end;
 
-function TSourceLineReader.ReadLine: string;
+function TSourceLineReader.ReadLine: tpasscannerstring;
 var
   S: string;
   p, SrcLen: integer;

@@ -50,7 +50,7 @@ type
     FPCUWriter: TPCUWriter;
     FRestAnalyzer: TPas2JSAnalyzer;
     FCheckedElements: TPasAnalyzerKeySet; // keyset of TPCCheckedElementPair, key is Orig
-    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
+    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PAnsiChar;
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
@@ -275,7 +275,7 @@ end;
 { TCustomTestPrecompile }
 
 procedure TCustomTestPrecompile.OnFilerGetSrc(Sender: TObject;
-  aFilename: string; out p: PChar; out Count: integer);
+  aFilename: string; out p: PAnsiChar; out Count: integer);
 var
   i: Integer;
   aModule: TTestEnginePasResolver;
@@ -286,7 +286,7 @@ begin
     aModule:=Resolvers[i];
     if aModule.Filename<>aFilename then continue;
     Src:=aModule.Source;
-    p:=PChar(Src);
+    p:=PAnsiChar(Src);
     Count:=length(Src);
     end;
 end;
@@ -2269,7 +2269,7 @@ begin
   '  FloatA = -31.678E-012;', // float lit
   '  HighInt = High(longint);', // func params, built-in function
   '  s = ''abc'';', // string lit
-  '  c: char = s[1];', // array params
+  '  c: AnsiChar = s[1];', // array params
   '  a: array[1..2] of longint = (3,4);', // anonymous array, range, array values
   '  PI: Double; external name ''Math.PI'';',
   'resourcestring',
@@ -2506,7 +2506,7 @@ begin
   'interface',
   '  function Abs(d: double): double; external name ''Math.Abs'';',
   '  function GetIt(d: double): double;',
-  '  procedure DoArgs(const a; var b: array of char; out c: jsvalue); inline;',
+  '  procedure DoArgs(const a; var b: array of AnsiChar; out c: jsvalue); inline;',
   '  procedure DoMulti(a,b: byte);',
   'implementation',
   'var k: double;',
@@ -2516,7 +2516,7 @@ begin
   '  j:=Abs(d+k);',
   '  Result:=j;',
   'end;',
-  'procedure DoArgs(const a; var b: array of char; out c: jsvalue); inline;',
+  'procedure DoArgs(const a; var b: array of AnsiChar; out c: jsvalue); inline;',
   'begin',
   'end;',
   'procedure DoMulti(a,b: byte);',
@@ -3108,12 +3108,12 @@ begin
   'implementation',
   'generic function Run<T>(a: T): T;',
   'var i,j,k,l: word;',
-  '  c: char;',
+  '  c: AnsiChar;',
   'begin',
   '  for i:=1 to 3 do ;',
   '  for j:=1+4 to 3*7 do ;',
   '  for k:=-1 to 2 do l:=l;',
-  '  for c in char do ;',
+  '  for c in AnsiChar do ;',
   'end;',
   '']);
   WriteReadUnit;

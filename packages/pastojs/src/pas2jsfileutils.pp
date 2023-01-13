@@ -71,7 +71,7 @@ function GetEnvironmentVariableCountPJ: Integer;
 function GetEnvironmentStringPJ(Index: Integer): string;
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: AnsiChar;
                               var Position: integer): string;
 
 type TChangeStamp = SizeInt;
@@ -96,12 +96,12 @@ function GetUnixEncoding: string;
 function IsASCII(const s: string): boolean; inline;
 
 {$IFDEF FPC_HAS_CPSTRING}
-function UTF8ToSystemCP(const s: string): string;
-function SystemCPToUTF8(const s: string): string;
+function UTF8ToSystemCP(const s: ansistring): ansistring;
+function SystemCPToUTF8(const s: ansistring): ansistring;
 
-function ConsoleToUTF8(const s: string): string;
+function ConsoleToUTF8(const s: ansistring): ansistring;
 // converts UTF8 string to console encoding (used by Write, WriteLn)
-function UTF8ToConsole(const s: string): string;
+function UTF8ToConsole(const s: ansistring): ansistring;
 {$ENDIF FPC_HAS_CPSTRING}
 
 implementation
@@ -451,7 +451,7 @@ end;
   end;
 
 var SrcPos, DestPos, Len, DirStart: integer;
-  c: char;
+  c: AnsiChar;
   MacroPos: LongInt;
 begin
   Len:=length(AFilename);
@@ -653,7 +653,7 @@ end;
 function GetForcedPathDelims(const FileName: string): String;
 var
   i: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   Result:=Filename;
   {$IFDEF Pas2js}
@@ -757,12 +757,12 @@ begin
 end;
 {$ELSE}
 
-  function IsNameEnd(NameP: PChar): boolean; inline;
+  function IsNameEnd(NameP: PAnsiChar): boolean; inline;
   begin
-    Result:=(NameP^=#0) and (NameP-PChar(Name)=length(Name));
+    Result:=(NameP^=#0) and (NameP-PAnsiChar(Name)=length(Name));
   end;
 
-  function Check(MaskP, NameP: PChar): boolean;
+  function Check(MaskP, NameP: PAnsiChar): boolean;
   var
     c: Integer;
   begin
@@ -804,24 +804,24 @@ end;
   end;
 
 var
-  MaskP: PChar;
+  MaskP: PAnsiChar;
 begin
   if Mask='' then exit(Name='');
   {$IFDEF CaseInsensitiveFilenames}
   Mask:=AnsiLowerCase(Mask);
   Name:=AnsiLowerCase(Name);
   {$ENDIF}
-  MaskP:=PChar(Mask);
+  MaskP:=PAnsiChar(Mask);
   while (MaskP^='*') and (MaskP[1]='*') do inc(MaskP);
   if (MaskP^='*') and (MaskP[1]=#0) then
     exit(true); // the * mask fits all, even the empty string
   if Name='' then
     exit(false);
-  Result:=Check(MaskP,PChar(Name));
+  Result:=Check(MaskP,PAnsiChar(Name));
 end;
 {$ENDIF}
 
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: AnsiChar;
   var Position: integer): string;
 var
   StartPos: Integer;
@@ -902,13 +902,13 @@ begin
 end;
 {$ELSE}
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   if s='' then exit(true);
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   repeat
     case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
+    #0: if p-PAnsiChar(s)=length(s) then exit(true);
     #128..#255: exit(false);
     end;
     inc(p);

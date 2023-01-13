@@ -1,4 +1,5 @@
-{
+{ **********************************************************************
+
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2020 by Michael Van Canneyt
 
@@ -46,17 +47,17 @@ Works:
   - FuncName:=, auto rename lower lvl Result variables
   - var modifier 'absolute' for local vars
 - assign statements
-- char
+- AnsiChar
   - literals
-  - ord(char)  ->  char.charCodeAt()
+  - ord(AnsiChar)  ->  AnsiChar.charCodeAt()
   - chr(integer)  -> String.fromCharCode(integer)
 - string
   - literals
   - setlength(s,newlen) -> s = rtl.strSetLength(s,newlen)
-  - read and write char aString[]
+  - read and write AnsiChar aString[]
   - allow only String, no ShortString, AnsiString, UnicodeString,...
   - allow type casting string to external class name 'String'
-- for int/enum do, for char do, for bool do
+- for int/enum do, for AnsiChar do, for bool do
 - repeat..until
 - while..do
 - try..finally
@@ -158,7 +159,7 @@ Works:
   - a := Concat([1,2,3],[4,5,6]);
   - copy, concat for static arrays, creating dynamic arrays
 - static arrays
-  - range: enumtype, boolean, int, char, custom int
+  - range: enumtype, boolean, int, AnsiChar, custom int
   - init as arr = rtl.arraySetLength(null,value,dim1,dim2,...)
   - init with expression
   - length(1-dim array)
@@ -184,7 +185,7 @@ Works:
   - low(), high()
   - when passing as argument set state referenced
   - set of (enum,enum2)  - anonymous enumtype
-  - set of char, boolean, integer range, char range, enum range
+  - set of AnsiChar, boolean, integer range, AnsiChar range, enum range
 - with-do  using local var
   - with record do i:=v;
   - with classinstance do begin create; i:=v; f(); i:=a[]; end;
@@ -244,14 +245,14 @@ Works:
   - nested classes
 - jsvalue
   - init as undefined
-  - assign to jsvalue := integer, string, boolean, double, char
+  - assign to jsvalue := integer, string, boolean, double, AnsiChar
   - type cast base types to jsvalue
   - type cast jsvalue to base type
      integer: Math.floor(jsvalue)   may return NaN
      boolean: !(jsvalue == false)   works for numbers too 0==false
      double: rtl.getNumber(jsvalue)    typeof(n)=="number"?n:NaN;
      string: ""+jsvalue
-     char: rtl.getChar(jsvalue)   ((typeof(c)!="string") && (c.length==1)) ? c : ""
+     AnsiChar: rtl.getChar(jsvalue)   ((typeof(c)!="string") && (c.length==1)) ? c : ""
   - enums: assign to jsvalue, typecast jsvalue to enum
   - class instance: assign to jsvalue, typecast jsvalue to a class
   - class of: assign to jsvalue, typecast jsvalue to a class-of
@@ -294,16 +295,16 @@ Works:
 - dotted unit names, namespaces
 - resourcestring
 - custom ranges
-  - enum, int, char
+  - enum, int, AnsiChar
   - low(), high(), pred(), succ(), ord(),
   - rg(int), int(rg), enum:=rg,
   - rg:=rg, rg1:=rg2, rg:=enum, =, <>,
-  - set of int/enum/char range, in
+  - set of int/enum/AnsiChar range, in
   - array[rg], low(array), high(array), length(array)
 - enumeration  for..in..do
   - enum, enum range, set of enum, set of enum range
   - int, int range, set of int, set of int range
-  - char, char range, set of char, set of char range
+  - AnsiChar, AnsiChar range, set of AnsiChar, set of AnsiChar range
   - array
   - class
   - for key in JSObject do
@@ -317,8 +318,8 @@ Works:
 - Range checks:
   - compile time: warnings to errors
   - assign int:=, int+=, enum:=, enum+=, intrange:=, intrange+=,
-      enumrange:=, enumrange+=, char:=, char+=, charrange:=, charrange+=
-  - procedure argument int, enum, intrange, enumrange, char, charrange
+      enumrange:=, enumrange+=, AnsiChar:=, AnsiChar+=, charrange:=, charrange+=
+  - procedure argument int, enum, intrange, enumrange, AnsiChar, charrange
   - array[index1,index2,...]  read and assign
   - string[index]  read and assign
 - Interfaces:
@@ -1447,8 +1448,8 @@ type
     FTargetPlatform: TPasToJsPlatform;
     FTargetProcessor: TPasToJsProcessor;
   protected
-    function HandleInclude(const Param: String): TToken; override;
-    procedure DoHandleOptimization(OptName, OptValue: string); override;
+    function HandleInclude(const Param: TPasScannerString): TToken; override;
+    procedure DoHandleOptimization(OptName, OptValue: TPasScannerString); override;
   public
     GlobalConvOptsEnabled: TPasToJsConverterOptions;
     GlobalConvOptsDisabled: TPasToJsConverterOptions;
@@ -1568,8 +1569,7 @@ type
       ); override;
     procedure FinishExportSymbol(El: TPasExportSymbol); override;
     procedure ComputeArgumentExpr(const ArgResolved: TPasResolverResult;
-      Access: TArgumentAccess; Expr: TPasExpr; out
-      ExprResolved: TPasResolverResult; SetReferenceFlags: boolean); override;
+      Access: TArgumentAccess; Expr: TPasExpr; out ExprResolved: TPasResolverResult; SetReferenceFlags: boolean); override;
     procedure FindCreatorArrayOfConst(Args: TFPList; ErrorEl: TPasElement);
     function FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement): TPasFunction; virtual;
     function FindSystemExternalClassType(const aClassName, JSName: string;
@@ -2432,7 +2432,7 @@ var
     );
 
 function CodePointToJSString(u: longword): TJSString;
-function PosLast(c: char; const s: string): integer;
+function PosLast(c: AnsiChar; const s: string): integer;
 
 function JSEquals(A, B: TJSElement): boolean;
 
@@ -2459,7 +2459,7 @@ begin
     Result:=WideChar($D800+((u - $10000) shr 10))+WideChar($DC00+((u - $10000) and $3ff));
 end;
 
-function PosLast(c: char; const s: string): integer;
+function PosLast(c: AnsiChar; const s: string): integer;
 begin
   Result:=length(s);
   while (Result>0) and (s[Result]<>c) do dec(Result);
@@ -2849,7 +2849,7 @@ end;
 
 { TPas2jsPasScanner }
 
-function TPas2jsPasScanner.HandleInclude(const Param: String): TToken;
+function TPas2jsPasScanner.HandleInclude(const Param: TPasScannerString): TToken;
 
   procedure SetStr(s: string);
   var
@@ -2989,7 +2989,7 @@ begin
   Result:=inherited HandleInclude(Param);
 end;
 
-procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: string);
+procedure TPas2jsPasScanner.DoHandleOptimization(OptName, OptValue: TPasScannerString);
 
   procedure HandleBoolean(o: TPasToJsConverterOption; IsGlobalSwitch: boolean);
   var
@@ -3046,7 +3046,7 @@ var
     {$IFDEF Pas2js}
     TokenPos:=MyTokenPos;
     {$ELSE}
-    TokenPos:=PChar(s)+MyTokenPos-1;
+    TokenPos:=PAnsiChar(s)+MyTokenPos-1;
     {$ENDIF}
   end;
 
@@ -3103,10 +3103,10 @@ begin
   MyTokenPos:=TokenPos;
   {$ELSE}
   {$IFDEF VerbosePas2JS}
-  if (TokenPos<PChar(s)) or (TokenPos>PChar(s)+length(s)) then
+  if (TokenPos<PAnsiChar(s)) or (TokenPos>PAnsiChar(s)+length(s)) then
     Error(nErrRangeCheck,'[20181109104812]');
   {$ENDIF}
-  MyTokenPos:=TokenPos-PChar(s)+1;
+  MyTokenPos:=TokenPos-PAnsiChar(s)+1;
   {$ENDIF}
   StartPos:=MyTokenPos;
   repeat
@@ -6742,7 +6742,7 @@ function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
 }
 var
   p, StartP, i, l: integer;
-  c: Char;
+  c: AnsiChar;
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
@@ -10761,13 +10761,13 @@ function TPasToJSConverter.ConvertCharToInt(Arg: TJSElement;
 begin
   if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
     begin
-    // convert char literal to int
+    // convert AnsiChar literal to int
     ConvertCharLiteralToInt(TJSLiteral(Arg),PosEl,ArgContext);
     Result:=Arg;
     end
   else
     begin
-    // convert char to int  ->  Arg.charCodeAt(0)
+    // convert AnsiChar to int  ->  Arg.charCodeAt(0)
     Result:=CreateCallCharCodeAt(Arg,0,PosEl);
     end;
 end;
@@ -11369,7 +11369,7 @@ var
                   if ArgContext.Resolver.ExprEvaluator.GetWideChar(TResEvalString(LowRg).S,w) then
                     Int:=ord(w)
                   else
-                    ArgContext.Resolver.RaiseXExpectedButYFound(20170910213203,'char','string',Param);
+                    ArgContext.Resolver.RaiseXExpectedButYFound(20170910213203,'AnsiChar','string',Param);
                   end
                 else
                   Int:=ord(TResEvalString(LowRg).S[1]);
@@ -11379,7 +11379,7 @@ var
               revkUnicodeString:
                 begin
                 if length(TResEvalUTF16(LowRg).S)<>1 then
-                  ArgContext.Resolver.RaiseXExpectedButYFound(20170910213247,'char','string',Param)
+                  ArgContext.Resolver.RaiseXExpectedButYFound(20170910213247,'AnsiChar','string',Param)
                 else
                   Int:=ord(TResEvalUTF16(LowRg).S[1]);
                 Arg:=ConvertCharToInt(Arg,Param,ArgContext);
@@ -12784,7 +12784,7 @@ begin
       end
     else if from_bt in btAllJSChars then
       begin
-      // char to integer
+      // AnsiChar to integer
       Result:=ConvertExpression(Param,AContext);
       Result:=ConvertCharToInt(Result,El,AContext);
       Result:=ConvertIntToInt(Result,btWord,to_bt,El,AContext);
@@ -12889,7 +12889,7 @@ begin
     begin
     if from_bt in btAllJSStringAndChars then
       begin
-      // string or char to string -> value
+      // string or AnsiChar to string -> value
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
@@ -12918,7 +12918,7 @@ begin
     begin
     if from_bt in [btChar,btWideChar] then
       begin
-      // char to char
+      // AnsiChar to AnsiChar
       Result:=ConvertExpression(Param,AContext);
       exit;
       end
@@ -12937,7 +12937,7 @@ begin
         end
       else
         begin
-        // char(integer) -> String.fromCharCode(integer)
+        // AnsiChar(integer) -> String.fromCharCode(integer)
         Result:=CreateCallFromCharCode(Result,El);
         end;
       exit;
@@ -12945,7 +12945,7 @@ begin
     else if (from_bt in (btArrayRangeTypes+[btRange]))
         or (IsParamPas2JSBaseType and (JSBaseType=pbtJSValue)) then
       begin
-      // convert value to char -> rtl.getChar(value)
+      // convert value to AnsiChar -> rtl.getChar(value)
       // Note: convert value first in case it raises an exception
       Result:=ConvertExpression(Param,AContext);
       if IsLiteralInteger(Result,Int) then
@@ -12957,13 +12957,13 @@ begin
           end
         else
           begin
-          // char(integer) -> String.fromCharCode(integer)
+          // AnsiChar(integer) -> String.fromCharCode(integer)
           Result:=CreateCallFromCharCode(Result,El);
           end;
         end
       else
         begin
-        // convert value to char -> rtl.getChar(value)
+        // convert value to AnsiChar -> rtl.getChar(value)
         Call:=CreateCallExpression(El);
         Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnGetChar)]);
         Call.AddArg(Result);
@@ -22518,7 +22518,7 @@ var
   ReturnSt, RetSt: TJSReturnStatement;
   Obj: TJSObjectLiteral;
   ObjLit: TJSObjectLiteralElement;
-  SetterArgName: Char;
+  SetterArgName: AnsiChar;
 begin
   if El.HelperForType=nil then exit;
   aResolver:=AContext.Resolver;
@@ -23500,7 +23500,7 @@ var
         exit;
       jstString:
         begin
-        // convert char literal to int
+        // convert AnsiChar literal to int
         ConvertCharLiteralToInt(TJSLiteral(Result),Expr,AContext);
         exit;
         end;
@@ -23514,7 +23514,7 @@ var
       if (ResolvedEl.BaseType in btAllChars)
           or ((ResolvedEl.BaseType=btRange) and (ResolvedEl.SubType in btAllChars)) then
         begin
-        // convert char variable to int: append  .charCodeAt()
+        // convert AnsiChar variable to int: append  .charCodeAt()
         Result:=CreateCallCharCodeAt(Result,0,Expr);
         end
       else if (ResolvedEl.BaseType in btAllJSBooleans)
@@ -24084,7 +24084,7 @@ begin
         else if (VarResolved.BaseType in btAllChars)
             or ((VarResolved.BaseType=btRange) and (VarResolved.SubType in btAllChars)) then
           begin
-          // convert int to char
+          // convert int to AnsiChar
           SimpleAss.Expr:=CreateCallFromCharCode(SimpleAss.Expr,PosEl);
           end
         else if (VarResolved.BaseType in btAllJSBooleans)
@@ -24992,7 +24992,7 @@ begin
       else if (CompareText(T.Name,'boolean')=0) then
         Lit.Value.AsBoolean:=false
       else if (CompareText(T.Name,'string')=0)
-           or (CompareText(T.Name,'char')=0)
+           or (CompareText(T.Name,'AnsiChar')=0)
       then
         Lit.Value.AsString:=''
       else
@@ -25158,7 +25158,7 @@ begin
         WS:=LitVal.AsString;
         Result.Free;
         if length(WS)<>1 then
-          DoError(20170415193254,nXExpectedButYFound,sXExpectedButYFound,['char','string'],Expr);
+          DoError(20170415193254,nXExpectedButYFound,sXExpectedButYFound,['AnsiChar','string'],Expr);
         Result:=CreateLiteralNumber(Expr,ord(WS[1]));
         exit;
         end;
@@ -27807,7 +27807,7 @@ function TPasToJSConverter.TransformToJSName(ErrorEl: TPasElement;
 // CheckGlobal: check name clashes with global identifiers too
 var
   i: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   if AContext=nil then ;
   if Pos('.',AName)>0 then
@@ -28094,7 +28094,7 @@ begin
         begin
         // anonymous type -> prepend '$a'
         // for example:
-        //   "var AnArray: array of array of char;" becomes AnArray$a$a
+        //   "var AnArray: array of array of AnsiChar;" becomes AnArray$a$a
         Result:=GetBIName(pbitnAnonymousPostfix)+Result;
         end;
       CurEl:=CurEl.Parent;

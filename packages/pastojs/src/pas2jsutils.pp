@@ -26,7 +26,7 @@ uses
   Classes, SysUtils;
 
 function ChompPathDelim(const Path: string): string;
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
                               var Position: integer): string;
 type
    TChangeStamp = SizeInt;
@@ -44,10 +44,10 @@ function IsASCII(const s: string): boolean; inline;
 {$IFDEF FPC_HAS_CPSTRING}
 const
   UTF8BOM = #$EF#$BB#$BF;
-function UTF8CharacterStrictLength(P: PChar): integer;
+function UTF8CharacterStrictLength(P: PAnsiChar): integer;
 
-function UTF8ToUTF16(const s: string): UnicodeString;
-function UTF16ToUTF8(const s: UnicodeString): string;
+function UTF8ToUTF16(const s: AnsiString): UnicodeString;
+function UTF16ToUTF8(const s: UnicodeString): AnsiString;
 
 {$ENDIF FPC_HAS_CPSTRING}
 
@@ -89,7 +89,7 @@ begin
   Result:=gNonUTF8System;
 end;
 
-function GetNextDelimitedItem(const List: string; Delimiter: char;
+function GetNextDelimitedItem(const List: string; Delimiter: Char;
   var Position: integer): string;
 var
   StartPos: Integer;
@@ -192,13 +192,13 @@ begin
 end;
 {$ELSE}
 var
-  p: PChar;
+  p: PAnsiChar;
 begin
   if s='' then exit(true);
-  p:=PChar(s);
+  p:=PAnsiChar(s);
   repeat
     case p^ of
-    #0: if p-PChar(s)=length(s) then exit(true);
+    #0: if p-PAnsiChar(s)=length(s) then exit(true);
     #128..#255: exit(false);
     end;
     inc(p);
@@ -207,7 +207,7 @@ end;
 {$ENDIF}
 
 {$IFDEF FPC_HAS_CPSTRING}
-function UTF8CharacterStrictLength(P: PChar): integer;
+function UTF8CharacterStrictLength(P: PAnsiChar): integer;
 begin
   if p=nil then exit(0);
   if ord(p^)<%10000000 then
@@ -250,12 +250,12 @@ begin
     exit(0);
 end;
 
-function UTF8ToUTF16(const s: string): UnicodeString;
+function UTF8ToUTF16(const s: AnsiString): UnicodeString;
 begin
   Result:=UTF8Decode(s);
 end;
 
-function UTF16ToUTF8(const s: UnicodeString): string;
+function UTF16ToUTF8(const s: UnicodeString): ansistring;
 begin
   if s='' then exit('');
   Result:=UTF8Encode(s);
