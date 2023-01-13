@@ -42,7 +42,7 @@
 (* Const before type ignored *)
   T_GstStaticCaps = record
       caps : PGstCaps;
-      _string : Pchar;
+      _string : PAnsiChar;
       _gst_reserved : array[0..3] of Tgpointer;
     end;
   TGstStaticCaps = T_GstStaticCaps;
@@ -107,13 +107,13 @@
   function gst_caps_new_any:PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_any';
 
 (* Const before type ignored *)
-  function gst_caps_new_empty_simple(media_type:Pchar):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_empty_simple';
+  function gst_caps_new_empty_simple(media_type:PAnsiChar):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_empty_simple';
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function gst_caps_new_simple(media_type:Pchar; fieldname:Pchar; args:array of const):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_simple';
+  function gst_caps_new_simple(media_type:PAnsiChar; fieldname:PAnsiChar; args:array of const):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_simple';
 
-  function gst_caps_new_simple(media_type:Pchar; fieldname:Pchar):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_simple';
+  function gst_caps_new_simple(media_type:PAnsiChar; fieldname:PAnsiChar):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_simple';
 
   function gst_caps_new_full(struct1:PGstStructure; args:array of const):PGstCaps;cdecl;external gstreamerlib name 'gst_caps_new_full';
 
@@ -163,15 +163,15 @@
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  procedure gst_caps_set_value(caps:PGstCaps; field:Pchar; value:PGValue);cdecl;external gstreamerlib name 'gst_caps_set_value';
+  procedure gst_caps_set_value(caps:PGstCaps; field:PAnsiChar; value:PGValue);cdecl;external gstreamerlib name 'gst_caps_set_value';
 
 (* Const before type ignored *)
-  procedure gst_caps_set_simple(caps:PGstCaps; field:Pchar; args:array of const);cdecl;external gstreamerlib name 'gst_caps_set_simple';
+  procedure gst_caps_set_simple(caps:PGstCaps; field:PAnsiChar; args:array of const);cdecl;external gstreamerlib name 'gst_caps_set_simple';
 
-  procedure gst_caps_set_simple(caps:PGstCaps; field:Pchar);cdecl;external gstreamerlib name 'gst_caps_set_simple';
+  procedure gst_caps_set_simple(caps:PGstCaps; field:PAnsiChar);cdecl;external gstreamerlib name 'gst_caps_set_simple';
 
 (* Const before type ignored *)
-  procedure gst_caps_set_simple_valist(caps:PGstCaps; field:Pchar; varargs:Tva_list);cdecl;external gstreamerlib name 'gst_caps_set_simple_valist';
+  procedure gst_caps_set_simple_valist(caps:PGstCaps; field:PAnsiChar; varargs:Tva_list);cdecl;external gstreamerlib name 'gst_caps_set_simple_valist';
 
 (* Const before type ignored *)
   function gst_caps_foreach(caps:PGstCaps; func:TGstCapsForeachFunc; user_data:Tgpointer):Tgboolean;cdecl;external gstreamerlib name 'gst_caps_foreach';
