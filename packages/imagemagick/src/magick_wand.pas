@@ -41,7 +41,7 @@ uses ImageMagick, ctypes;
 type
   MagickWand = record
     id: culong;
-    name: array[1..MaxTextExtent] of Char;
+    name: array[1..MaxTextExtent] of AnsiChar;
     exception: ExceptionInfo;
     image_info: PImageInfo;
     quantize_info: PQuantizeInfo;

@@ -24,7 +24,7 @@ type
   PixelWand = record
     id: culong;
 
-    name: array[1..MaxTextExtent] of char;
+    name: array[1..MaxTextExtent] of AnsiChar;
 
     exception: ExceptionInfo;
 
@@ -42,8 +42,8 @@ type
   PPPixelWand = ^PPixelWand;
   
 
-function PixelGetException(const wand: PPixelWand; severity: PExceptionType): PChar; cdecl; external WandExport;
-function PixelGetColorAsString(const wand: PPixelWand): PChar; cdecl; external WandExport;
+function PixelGetException(const wand: PPixelWand; severity: PExceptionType): PAnsiChar; cdecl; external WandExport;
+function PixelGetColorAsString(const wand: PPixelWand): PAnsiChar; cdecl; external WandExport;
 
 function PixelGetAlpha(const wand: PPixelWand): Double; cdecl; external WandExport;
 function PixelGetBlack(const wand: PPixelWand): Double; cdecl; external WandExport;
@@ -61,7 +61,7 @@ function IsPixelWand(const wand: PPixelWand): MagickBooleanType; cdecl; external
 function IsPixelWandSimilar(p: PPixelWand; q: PPixelWand;
  const fuzz: double): MagickBooleanType; cdecl; external WandExport;
 function PixelClearException(wand: PPixelWand): MagickBooleanType; cdecl; external WandExport;
-function PixelSetColor(wand: PPixelWand; const color: PChar): MagickBooleanType; cdecl; external WandExport;
+function PixelSetColor(wand: PPixelWand; const color: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 
 function DestroyPixelWand(wand: PPixelWand): PPixelWand; cdecl; external WandExport;
 function DestroyPixelWands(wand: PPPixelWand;

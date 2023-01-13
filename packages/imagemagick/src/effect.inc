@@ -61,11 +61,11 @@ type
     const double,const double,const double,ExceptionInfo *);
 
 extern MagickExport MagickBooleanType
-  BlackThresholdImage(Image *,const char *),
+  BlackThresholdImage(Image *,const AnsiChar *),
   BilevelImage(Image *,const double),
   BilevelImageChannel(Image *,const ChannelType,const double),
-  RandomThresholdImage(Image *,const char *,ExceptionInfo *),
-  RandomThresholdImageChannel(Image *,const ChannelType,const char *,
+  RandomThresholdImage(Image *,const AnsiChar *,ExceptionInfo *),
+  RandomThresholdImageChannel(Image *,const ChannelType,const AnsiChar *,
     ExceptionInfo *),
-  WhiteThresholdImage(Image *,const char *);}
+  WhiteThresholdImage(Image *,const AnsiChar *);}
 

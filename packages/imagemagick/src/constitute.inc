@@ -29,15 +29,15 @@ type
  );
 
 {extern MagickExport Image
-  *ConstituteImage(const unsigned long,const unsigned long,const char *,
+  *ConstituteImage(const unsigned long,const unsigned long,const AnsiChar *,
     const StorageType,const void *,ExceptionInfo *),
   *PingImage(const ImageInfo *,ExceptionInfo *),
   *ReadImage(const ImageInfo *,ExceptionInfo *),
-  *ReadInlineImage(const ImageInfo *,const char *,ExceptionInfo *);
+  *ReadInlineImage(const ImageInfo *,const AnsiChar *,ExceptionInfo *);
 
 extern MagickExport MagickBooleanType
   WriteImage(const ImageInfo *,Image *),
-  WriteImages(const ImageInfo *,Image *,const char *,ExceptionInfo *);
+  WriteImages(const ImageInfo *,Image *,const AnsiChar *,ExceptionInfo *);
 
 extern MagickExport void
   DestroyConstitute(void);}

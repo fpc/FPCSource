@@ -75,10 +75,10 @@ type
 
 {extern MagickExport MagickBooleanType
   ExportImagePixels(const Image *,const long,const long,const unsigned long,
-    const unsigned long,const char *,const StorageType,void *,ExceptionInfo *),
+    const unsigned long,const AnsiChar *,const StorageType,void *,ExceptionInfo *),
   ExportQuantumPixels(Image *,const QuantumType,const size_t,
-    const unsigned char *),
+    const unsigned AnsiChar *),
   ImportImagePixels(Image *,const long,const long,const unsigned long,
-    const unsigned long,const char *,const StorageType,const void *),
-  ImportQuantumPixels(Image *,const QuantumType,const size_t,unsigned char *);}
+    const unsigned long,const AnsiChar *,const StorageType,const void *),
+  ImportQuantumPixels(Image *,const QuantumType,const size_t,unsigned AnsiChar *);}
 

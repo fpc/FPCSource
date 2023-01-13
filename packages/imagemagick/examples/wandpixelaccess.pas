@@ -14,7 +14,7 @@ uses SysUtils, magick_wand, ImageMagick, ctypes;
 
 procedure ThrowWandException(wand: PMagickWand);
 var
-  description: PChar;
+  description: PAnsiChar;
   severity: ExceptionType;
 begin
   description := MagickGetException(wand, @severity);

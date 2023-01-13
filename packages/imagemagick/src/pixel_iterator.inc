@@ -20,7 +20,7 @@ type
   PixelIterator = record
     id: culong;
 
-    name: array[0..MaxTextExtent] of char;
+    name: array[0..MaxTextExtent] of AnsiChar;
 
     exception: ExceptionInfo;
 
@@ -41,7 +41,7 @@ type
 
 
 function PixelGetIteratorException(const iterator: PPixeliterator;
- severity: PExceptionType): PChar; cdecl; external WandExport;
+ severity: PExceptionType): PAnsiChar; cdecl; external WandExport;
 
 function IsPixelIterator(const iterator: PPixeliterator): MagickBooleanType; cdecl; external WandExport;
 function PixelClearIteratorException(iterator: PPixeliterator): MagickBooleanType; cdecl; external WandExport;
@@ -66,7 +66,7 @@ procedure PixelSetLastIteratorRow(iterator: PPixeliterator); cdecl; external Wan
 {
   Deprecated.
 }
-{extern WandExport char
+{extern WandExport AnsiChar
   *PixelIteratorGetException(const PixelIterator *,ExceptionType *);
 
 extern WandExport PixelWand

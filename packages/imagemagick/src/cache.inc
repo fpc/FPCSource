@@ -42,7 +42,7 @@ extern MagickExport MagickBooleanType
   GetOneAuthenticPixel(Image *,const long,const long,PixelPacket *,
     ExceptionInfo *),
   InstantiateCacheComponent(void),
-  PersistPixelCache(Image *,const char *,const MagickBooleanType,
+  PersistPixelCache(Image *,const AnsiChar *,const MagickBooleanType,
     MagickOffsetType *,ExceptionInfo *),
   SyncAuthenticPixels(Image *,ExceptionInfo *);
 

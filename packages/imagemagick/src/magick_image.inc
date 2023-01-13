@@ -27,11 +27,11 @@
 
 function MagickGetImageChannelStatistics(wand: PMagickWand): PChannelStatistics; cdecl; external WandExport;
 
-function MagickGetImageAttribute(wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickGetImageFilename(wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickGetImageFormat(wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickGetImageSignature(wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickIdentifyImage(wand: PMagickWand): PChar; cdecl; external WandExport;
+function MagickGetImageAttribute(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickGetImageFilename(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickGetImageFormat(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickGetImageSignature(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickIdentifyImage(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
 
 function MagickGetImageCompose(wand: PMagickWand): CompositeOperator; cdecl; external WandExport;
 
@@ -60,9 +60,9 @@ function MagickAffineTransformImage(wand: PMagickWand;
  const drawing_wand: PDrawingWand): MagickBooleanType; cdecl; external WandExport;
 function MagickAnnotateImage(wand: PMagickWand;
  const drawing_wand: PDrawingWand; const x, y, angle: double;
- const text: PChar): MagickBooleanType; cdecl; external WandExport;
+ const text: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickAnimateImages(wand: PMagickWand;
- const server_name: PChar): MagickBooleanType; cdecl; external WandExport;
+ const server_name: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickBlackThresholdImage(wand: PMagickWand;
  const threshold: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickBlurImage(wand: PMagickWand;
@@ -77,19 +77,19 @@ function MagickChopImage(wand: PMagickWand;
  const width, height: culong; const x, y: clong): MagickBooleanType; cdecl; external WandExport;
 function MagickClipImage(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
 function MagickClipPathImage(wand: PMagickWand;
- const pathname: PChar; const inside: MagickBooleanType): MagickBooleanType; cdecl; external WandExport;
+ const pathname: PAnsiChar; const inside: MagickBooleanType): MagickBooleanType; cdecl; external WandExport;
 function MagickColorFloodfillImage(wand: PMagickWand;
  const fill: PPixelWand; const fuzz: double; const bordercolor: PPixelWand;
  const x, y: clong): MagickBooleanType; cdecl; external WandExport;
 function MagickColorizeImage(wand: PMagickWand;
  const colorize, opacity: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickCommentImage(wand: PMagickWand;
- const comment: PChar): MagickBooleanType; cdecl; external WandExport;
+ const comment: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickCompositeImage(wand: PMagickWand;
  const composite_wand: PMagickWand; const compose: CompositeOperator;
  const x, y: clong): MagickBooleanType; cdecl; external WandExport;
 function MagickConstituteImage(wand: PMagickWand;
- const columns, rows: culong; const map: PChar;
+ const columns, rows: culong; const map: PAnsiChar;
  const storage: StorageType; pixels: Pointer): MagickBooleanType; cdecl; external WandExport;
 function MagickContrastImage(wand: PMagickWand;
  const sharpen: MagickBooleanType): MagickBooleanType; cdecl; external WandExport;
@@ -104,9 +104,9 @@ function MagickCycleColormapImage(wand: PMagickWand;
  const displace: clong): MagickBooleanType; cdecl; external WandExport;
 function MagickDespeckleImage(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
 function MagickDisplayImage(wand: PMagickWand;
- const server_name: PChar): MagickBooleanType; cdecl; external WandExport;
+ const server_name: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickDisplayImages(wand: PMagickWand;
- const server_name: PChar): MagickBooleanType; cdecl; external WandExport;
+ const server_name: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickDrawImage(wand: PMagickWand;
  const drawing_wand: PDrawingWand): MagickBooleanType; cdecl; external WandExport;
 function MagickEdgeImage(wand: PMagickWand;
@@ -159,14 +159,14 @@ function MagickGetImagePixelColor(wand: PMagickWand;
  const x, y: clong; color: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickGetImagePixels(wand: PMagickWand;
  const x, y: clong; const columns, rows: culong;
- const map: PChar; const storage: StorageType; pixels: Pointer): MagickBooleanType; cdecl; external WandExport;
+ const map: PAnsiChar; const storage: StorageType; pixels: Pointer): MagickBooleanType; cdecl; external WandExport;
 function MagickGetImageRedPrimary(wand: PMagickWand; x, y: Pdouble): MagickBooleanType; cdecl; external WandExport;
 function MagickGetImageResolution(wand: PMagickWand; x, y: Pdouble): MagickBooleanType; cdecl; external WandExport;
 function MagickGetImageWhitePoint(wand: PMagickWand; x, y: Pdouble): MagickBooleanType; cdecl; external WandExport;
 function MagickHasNextImage(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
 function MagickHasPreviousImage(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
 function MagickImplodeImage(wand: PMagickWand; const radius: double): MagickBooleanType; cdecl; external WandExport;
-function MagickLabelImage(wand: PMagickWand; const _label: PChar): MagickBooleanType; cdecl; external WandExport;
+function MagickLabelImage(wand: PMagickWand; const _label: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickLevelImage(wand: PMagickWand;
  const black_point, gamma, white_point: double): MagickBooleanType; cdecl; external WandExport;
 function MagickLevelImageChannel(wand: PMagickWand;
@@ -201,15 +201,15 @@ function MagickPaintOpaqueImage(wand: PMagickWand;
 function MagickPaintTransparentImage(wand: PMagickWand;
  const target: PPixelWand; const opacity: Quantum; const fuzz: double): MagickBooleanType; cdecl; external WandExport;
 function MagickPingImage(wand: PMagickWand;
- const filename: PChar): MagickBooleanType; cdecl; external WandExport;
+ const filename: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 {
 function MagickPosterizeImage(wand: PMagickWand;
  const levels: Word; const dither: MagickBooleanType): MagickBooleanType; cdecl; external WandExport;
 ??
 }
 function MagickPreviousImage(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
-function MagickProfileImage(wand: PMagickWand; const name: PChar;
- const profile: PChar; const length: culong): MagickBooleanType; cdecl; external WandExport;
+function MagickProfileImage(wand: PMagickWand; const name: PAnsiChar;
+ const profile: PAnsiChar; const length: culong): MagickBooleanType; cdecl; external WandExport;
 function MagickQuantizeImage(wand: PMagickWand;
  const number_colors: culong; const colorspace: ColorspaceType;
  const treedepth: culong; const dither, measure_error): MagickBooleanType; cdecl; external WandExport;
@@ -223,7 +223,7 @@ function MagickRadialBlurImageChannel(wand: PMagickWand;
 function MagickRaiseImage(wand: PMagickWand;
  const width, height: culong; const x, y: clong;
  const raise_: MagickBooleanType): MagickBooleanType; cdecl; external WandExport;
-function MagickReadImage(wand: PMagickWand; const filename: PChar
+function MagickReadImage(wand: PMagickWand; const filename: PAnsiChar
 ): MagickBooleanType; cdecl; external WandExport;
 function MagickReadImageBlob(wand: PMagickWand;
  const blob: Pointer; const length: clong): MagickBooleanType; cdecl; external WandExport;
@@ -248,7 +248,7 @@ function MagickSeparateImageChannel(wand: PMagickWand; const channel: ChannelTyp
 // MagickSepiaToneImage(MagickWand *,const double),
 
 function MagickSetImage(wand: PMagickWand; const set_wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
-function MagickSetImageAttribute(wand: PMagickWand; const key, attribute: PChar): MagickBooleanType; cdecl; external WandExport;
+function MagickSetImageAttribute(wand: PMagickWand; const key, attribute: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageBackgroundColor(wand: PMagickWand; const background: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageBias(wand: PMagickWand; const bias: double): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageBluePrimary(wand: PMagickWand; const x, y: double): MagickBooleanType; cdecl; external WandExport;
@@ -263,8 +263,8 @@ function MagickSetImageDelay(wand: PMagickWand; const delay: culong): MagickBool
 function MagickSetImageDepth(wand: PMagickWand; const depth: culong): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageDispose(wand: PMagickWand; const dispose: DisposeType): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageExtent(wand: PMagickWand; const columns, rows: culong): MagickBooleanType; cdecl; external WandExport;
-function MagickSetImageFilename(wand: PMagickWand; const filename: PChar): MagickBooleanType; cdecl; external WandExport;
-function MagickSetImageFormat(wand: PMagickWand; const format: PChar): MagickBooleanType; cdecl; external WandExport;
+function MagickSetImageFilename(wand: PMagickWand; const filename: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
+function MagickSetImageFormat(wand: PMagickWand; const format: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageGamma(wand: PMagickWand; const gamma: Double): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageGreenPrimary(wand: PMagickWand; const x, y: Double): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageIndex(wand: PMagickWand; const index: clong): MagickBooleanType; cdecl; external WandExport;
@@ -273,8 +273,8 @@ function MagickSetImageIterations(wand: PMagickWand; const iterations: culong): 
 function MagickSetImageMatteColor(wand: PMagickWand; const matte: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImagePage(wand: PMagickWand; const width, height: culong; const x, y: clong): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImagePixels(wand: PMagickWand; const x, y: clong; const columns, rows: culong;
- const map: PChar; const storage: StorageType; const pixels: Pointer): MagickBooleanType; cdecl; external WandExport;
-function MagickSetImageProfile(wand: PMagickWand; const name: PChar; const profile: Pointer;
+ const map: PAnsiChar; const storage: StorageType; const pixels: Pointer): MagickBooleanType; cdecl; external WandExport;
+function MagickSetImageProfile(wand: PMagickWand; const name: PAnsiChar; const profile: Pointer;
  const length: culong): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageRedPrimary(wand: PMagickWand; const x, y: Double): MagickBooleanType; cdecl; external WandExport;
 function MagickSetImageRenderingIntent(wand: PMagickWand; const rendering_intent: RenderingIntent
@@ -328,10 +328,10 @@ function MagickWaveImage(wand: PMagickWand; const amplitude, wave_length: double
  ): MagickBooleanType; cdecl; external WandExport;
 function MagickWhiteThresholdImage(wand: PMagickWand; const threshold: PPixelWand): MagickBooleanType; cdecl; external WandExport;
 function MagickWriteImage(wand: PMagickWand;
- const filename: PChar): MagickBooleanType; cdecl; external WandExport;
+ const filename: PAnsiChar): MagickBooleanType; cdecl; external WandExport;
 //  MagickWriteImageFile(MagickWand *,FILE *),
 function MagickWriteImages(wand: PMagickWand;
- const filename: PChar; const adjoin: MagickBooleanType
+ const filename: PAnsiChar; const adjoin: MagickBooleanType
  ): MagickBooleanType; cdecl; external WandExport;
 //  MagickWriteImagesFile(MagickWand *,FILE *);
 
@@ -353,8 +353,8 @@ function MagickCompareImages(wand: PMagickWand;
  ): PMagickWand; cdecl; external WandExport;
 function MagickDeconstructImages(wand: PMagickWand): PMagickWand; cdecl; external WandExport;
 function MagickFlattenImages(wand: PMagickWand): PMagickWand; cdecl; external WandExport;
-function MagickFxImage(wand: PMagickWand; const expression: PChar): PMagickWand; cdecl; external WandExport;
-function MagickFxImageChannel(wand: PMagickWand; const channel: ChannelType; const expression: PChar
+function MagickFxImage(wand: PMagickWand; const expression: PAnsiChar): PMagickWand; cdecl; external WandExport;
+function MagickFxImageChannel(wand: PMagickWand; const channel: ChannelType; const expression: PAnsiChar
  ): PMagickWand; cdecl; external WandExport;
 function MagickGetImage(wand: PMagickWand): PMagickWand; cdecl; external WandExport;
 function MagickGetImageRegion(wand: PMagickWand;
@@ -363,15 +363,15 @@ function MagickGetImageRegion(wand: PMagickWand;
 function MagickMorphImages(wand: PMagickWand; const number_frames: culong): PMagickWand; cdecl; external WandExport;
 function MagickMosaicImages(wand: PMagickWand): PMagickWand; cdecl; external WandExport;
 //function MagickMontageImage(wand: PMagickWand;
-// const drawing_wand: DrawingWand; const tile_geometry: PChar;
-// const thumbnail_geometry: PChar; const mode: MontageMode; const frame: PChar
+// const drawing_wand: DrawingWand; const tile_geometry: PAnsiChar;
+// const thumbnail_geometry: PAnsiChar; const mode: MontageMode; const frame: PAnsiChar
 // ): PMagickWand; cdecl; external WandExport;
 function MagickPreviewImages(wand: PMagickWand; const preview: PreviewType): PMagickWand; cdecl; external WandExport;
 function MagickSteganoImage(wand: PMagickWand; const watermark_wand: PMagickWand;
  const offset: clong): PMagickWand; cdecl; external WandExport;
 function MagickStereoImage(wand: PMagickWand; const offset_wand: PMagickWand): PMagickWand; cdecl; external WandExport;
 function MagickTextureImage(wand: PMagickWand; const texture_wand: PMagickWand): PMagickWand; cdecl; external WandExport;
-function MagickTransformImage(wand: PMagickWand; const crop, geometry: PChar): PMagickWand; cdecl; external WandExport;
+function MagickTransformImage(wand: PMagickWand; const crop, geometry: PAnsiChar): PMagickWand; cdecl; external WandExport;
 function NewMagickWandFromImage(para1: PImage): PMagickWand; cdecl; external WandExport;
 
 function MagickGetImageHistogram(wand: PMagickWand; number_colors: Pculong): PPPixelWand; cdecl; external  WandExport;
@@ -382,8 +382,8 @@ function MagickGetImageUnits(wand: PMagickWand): ResolutionType; cdecl; external
 
 function MagickGetImageBlob(wand: PMagickWand; length: Pcsize_t): PByte; cdecl; external WandExport;
 function MagickGetImagesBlob(wand: PMagickWand; length: Pcsize_t): PByte; cdecl; external WandExport;
-function MagickGetImageProfile(wand: PMagickWand; name: PChar; length: Pcsize_t): PByte; cdecl; external WandExport;
-function MagickRemoveImageProfile(wand: PMagickWand; name: PChar; length: Pcsize_t): PByte; cdecl; external WandExport;
+function MagickGetImageProfile(wand: PMagickWand; name: PAnsiChar; length: Pcsize_t): PByte; cdecl; external WandExport;
+function MagickRemoveImageProfile(wand: PMagickWand; name: PAnsiChar; length: Pcsize_t): PByte; cdecl; external WandExport;
 
 function MagickGetImageColors(wand: PMagickWand): culong; cdecl; external WandExport;
 function MagickGetImageCompressionQuality(wand: PMagickWand): culong; cdecl; external WandExport;
@@ -401,13 +401,13 @@ function MagickGetNumberImages(wand: PMagickWand): culong; cdecl; external WandE
 {
   Deprecated methods.
 }
-{extern WandExport char
+{extern WandExport AnsiChar
   *MagickDescribeImage(MagickWand *);
 
 extern WandExport MagickBooleanType
   MagickOpaqueImage(MagickWand *,const PixelWand *,const PixelWand *,
     const double),
-  MagickSetImageOption(MagickWand *,const char *,const char *,const char *),
+  MagickSetImageOption(MagickWand *,const AnsiChar *,const AnsiChar *,const AnsiChar *),
   MagickTransparentImage(MagickWand *,const PixelWand *,const Quantum,
     const double);
 
@@ -415,6 +415,6 @@ extern WandExport MagickWand
   *MagickRegionOfInterestImage(MagickWand *,const unsigned long,
 	  const unsigned long,const long,const long);
 
-extern WandExport unsigned char
+extern WandExport unsigned AnsiChar
   *MagickWriteImageBlob(MagickWand *,size_t *);
 }

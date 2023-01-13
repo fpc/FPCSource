@@ -17,34 +17,34 @@
 }
 
 function MagickGetException(wand: PMagickWand;
- severity: PExceptionType): PChar; cdecl; external WandExport;
-function MagickGetFilename(const wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickGetFormat(wand: PMagickWand): PChar; cdecl; external WandExport;
-function MagickGetHomeURL: PChar; cdecl; external WandExport;
+ severity: PExceptionType): PAnsiChar; cdecl; external WandExport;
+function MagickGetFilename(const wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickGetFormat(wand: PMagickWand): PAnsiChar; cdecl; external WandExport;
+function MagickGetHomeURL: PAnsiChar; cdecl; external WandExport;
 function MagickGetOption(wand: PMagickWand;
- const key: PChar): PChar; cdecl; external WandExport;
+ const key: PAnsiChar): PAnsiChar; cdecl; external WandExport;
 {sem documenta
-extern WandExport char
-  *MagickQueryConfigureOption(const char *),
-  **MagickQueryConfigureOptions(const char *,unsigned long *),
-  **MagickQueryFonts(const char *,unsigned long *),
-  **MagickQueryFormats(const char *,unsigned long *);}
+extern WandExport AnsiChar
+  *MagickQueryConfigureOption(const AnsiChar *),
+  **MagickQueryConfigureOptions(const AnsiChar *,unsigned long *),
+  **MagickQueryFonts(const AnsiChar *,unsigned long *),
+  **MagickQueryFormats(const AnsiChar *,unsigned long *);}
 
 function MagickGetCompression(wand: PMagickWand): CompressionType; cdecl; external WandExport;
 
-function MagickGetCopyright: PChar; cdecl; external WandExport;
-function MagickGetPackageName: PChar; cdecl; external WandExport;
-function MagickGetQuantumDepth(depth: Pculong): PChar; cdecl; external WandExport;
-function MagickGetQuantumRange(range: Pculong): PChar; cdecl; external WandExport;
-function MagickGetReleaseDate: PChar; cdecl; external WandExport;
-function MagickGetVersion(version: Pculong): PChar; cdecl; external WandExport;
+function MagickGetCopyright: PAnsiChar; cdecl; external WandExport;
+function MagickGetPackageName: PAnsiChar; cdecl; external WandExport;
+function MagickGetQuantumDepth(depth: Pculong): PAnsiChar; cdecl; external WandExport;
+function MagickGetQuantumRange(range: Pculong): PAnsiChar; cdecl; external WandExport;
+function MagickGetReleaseDate: PAnsiChar; cdecl; external WandExport;
+function MagickGetVersion(version: Pculong): PAnsiChar; cdecl; external WandExport;
 
 function MagickGetSamplingFactors(wand: PMagickWand;
  number_factors: Pculong): Pdouble; cdecl; external WandExport;
 {function (wand: PMagickWand): Pdouble; cdecl; external WandExport;
-  *MagickQueryFontMetrics(MagickWand *,const DrawingWand *,const char *),
+  *MagickQueryFontMetrics(MagickWand *,const DrawingWand *,const AnsiChar *),
   *MagickQueryMultilineFontMetrics(MagickWand *,const DrawingWand *,
-    const char *);}
+    const AnsiChar *);}
 
 function MagickGetInterlaceScheme(wand: PMagickWand): InterlaceType; cdecl; external WandExport;
 
@@ -55,13 +55,13 @@ extern WandExport MagickBooleanType
   MagickSetBackgroundColor(MagickWand *,const PixelWand *),
   MagickSetCompression(MagickWand *,const CompressionType),
   MagickSetCompressionQuality(MagickWand *,const unsigned long),
-  MagickSetFilename(MagickWand *,const char *),
-  MagickSetFormat(MagickWand *,const char *),
+  MagickSetFilename(MagickWand *,const AnsiChar *),
+  MagickSetFormat(MagickWand *,const AnsiChar *),
   MagickSetInterlaceScheme(MagickWand *,const InterlaceType),
-  MagickSetOption(MagickWand *,const char *,const char *),
+  MagickSetOption(MagickWand *,const AnsiChar *,const AnsiChar *),
   MagickSetPage(MagickWand *,const unsigned long,const unsigned long,
     const long,const long),
-  MagickSetPassphrase(MagickWand *,const char *),
+  MagickSetPassphrase(MagickWand *,const AnsiChar *),
 }
 
 function MagickSetResolution(wand: PMagickWand; const x_resolution, y_resolution:double):MagickBooleanType; cdecl; external WandExport;

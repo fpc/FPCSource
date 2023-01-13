@@ -142,7 +142,7 @@ type
 
 type
   ElementReference = record
-    id: PChar;
+    id: PAnsiChar;
 
     type_: ReferenceType;
 
@@ -159,7 +159,7 @@ type
 type
   DrawInfo = record
     primitive,
-    geometry: PChar;
+    geometry: PAnsiChar;
 
     viewbox: RectangleInfo;
 
@@ -195,13 +195,13 @@ type
 
     compose: CompositeOperator;
 
-    text: PChar;
+    text: PAnsiChar;
 
     face: culong;
 
     font,
     metrics,
-    family: PChar;
+    family: PAnsiChar;
 
     style: StyleType;
 
@@ -209,22 +209,22 @@ type
 
     weight: culong;
     
-    encoding: PChar;
+    encoding: PAnsiChar;
 
     pointsize: double;
 
-    density: PChar;
+    density: PAnsiChar;
 
     align: AlignType;
 
     undercolor,
     border_color: PixelPacket;
 
-    server_name: PChar;
+    server_name: PAnsiChar;
 
     dash_pattern: Pdouble;
 
-    clip_path: PChar;
+    clip_path: PAnsiChar;
 
     bounds: SegmentInfo;
 
@@ -262,7 +262,7 @@ type
 
     method: PaintMethod;
 
-    text: PChar;
+    text: PAnsiChar;
   end;
 
 type
@@ -286,9 +286,9 @@ type
 
 extern MagickExport MagickBooleanType
   DrawAffineImage(Image *,const Image *,const AffineMatrix *),
-  DrawClipPath(Image *,const DrawInfo *,const char *),
+  DrawClipPath(Image *,const DrawInfo *,const AnsiChar *),
   DrawImage(Image *,const DrawInfo *),
-  DrawPatternPath(Image *,const DrawInfo *,const char *,Image **),
+  DrawPatternPath(Image *,const DrawInfo *,const AnsiChar *,Image **),
   DrawPrimitive(Image *,const DrawInfo *,const PrimitiveInfo *);
 
 extern MagickExport void

@@ -35,13 +35,13 @@ type
 
 {extern MagickExport Image
   *CharcoalImage(const Image *,const double,const double,ExceptionInfo *),
-  *ColorizeImage(const Image *,const char *,const PixelPacket,ExceptionInfo *),
+  *ColorizeImage(const Image *,const AnsiChar *,const PixelPacket,ExceptionInfo *),
   *ConvolveImage(const Image *,const unsigned long,const double *,
     ExceptionInfo *),
   *ConvolveImageChannel(const Image *,const ChannelType,const unsigned long,
     const double *,ExceptionInfo *),
-  *FxImage(const Image *,const char *,ExceptionInfo *),
-  *FxImageChannel(const Image *,const ChannelType,const char *,ExceptionInfo *),
+  *FxImage(const Image *,const AnsiChar *,ExceptionInfo *),
+  *FxImageChannel(const Image *,const ChannelType,const AnsiChar *,ExceptionInfo *),
   *ImplodeImage(const Image *,const double,ExceptionInfo *),
   *MorphImages(const Image *,const unsigned long,ExceptionInfo *),
   *OilPaintImage(const Image *,const double,ExceptionInfo *),
@@ -51,7 +51,7 @@ type
   *SteganoImage(const Image *,const Image *,ExceptionInfo *),
   *StereoImage(const Image *,const Image *,ExceptionInfo *),
   *SwirlImage(const Image *,double,ExceptionInfo *),
-  *TintImage(const Image *,const char *,const PixelPacket,ExceptionInfo *),
+  *TintImage(const Image *,const AnsiChar *,const PixelPacket,ExceptionInfo *),
   *WaveImage(const Image *,const double,const double,ExceptionInfo *);
 
 extern MagickExport MagickBooleanType

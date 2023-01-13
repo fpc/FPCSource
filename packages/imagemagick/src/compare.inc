@@ -35,7 +35,7 @@ type
     ExceptionInfo *);
 
 extern MagickExport MagickBooleanType
-  CompareImageCommand(ImageInfo *,int,char **,char **,ExceptionInfo *),
+  CompareImageCommand(ImageInfo *,int,AnsiChar **,AnsiChar **,ExceptionInfo *),
   GetImageChannelDistortion(Image *,const Image *,const ChannelType,
     const MetricType,double *,ExceptionInfo *),
   GetImageDistortion(Image *,const Image *,const MetricType,double *,

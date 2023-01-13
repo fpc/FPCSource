@@ -91,7 +91,7 @@ end;
 var
   status: MagickBooleanType;
   wand: PMagickWand;
-  TempDir, shellStr: string;
+  TempDir, shellStr: ansistring;
   Antes: TTimeStamp;
   Command: TCommand;
 begin
