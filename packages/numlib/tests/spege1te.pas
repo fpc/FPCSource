@@ -14,7 +14,7 @@ const
 var
   x:    ArbFloat;
   t, u: ArbInt;
-  s, h: string;
+  s, h: ShortString;
   f:    rfunc1r;
 
 begin

@@ -6,7 +6,7 @@ uses
 
 var
   x: ArbFloat;
-  h: string;
+  h: ShortString;
   t: ArbInt;
 begin
   Write('program results speentte');

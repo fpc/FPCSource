@@ -69,8 +69,8 @@ const
 var
   alfa, ond, inte, int1: ArbFloat;
   u, i:  ArbInt;
-  s:     string;
-  q:     char;
+  s:     ShortString;
+  q:     AnsiChar;
   f:     rfunc1r;
   scale: boolean;
 
