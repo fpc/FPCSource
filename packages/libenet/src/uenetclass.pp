@@ -54,7 +54,7 @@ type
     private
       FInit : Boolean;
 
-      FHostname : string;
+      FHostname : AnsiString;
       FAddress : ENetAddress;
       FIsServer : Boolean;
 
@@ -82,7 +82,7 @@ type
 
       function InitHost(): Boolean;
       procedure DeinitHost();
-      function Connect( const Host: string; Port: Word ): Boolean;
+      function Connect( const Host: AnsiString; Port: Word ): Boolean;
       function Disconnect( bNow: Boolean ): Boolean;
       function SendMsg( Channel: Byte; Data: Pointer; Length: Integer;
         flag: TENetPacketFlags; WaitResponse: Boolean = False ): Boolean;
@@ -181,7 +181,7 @@ begin
   FHost := nil;
 end;
 
-function TENetClass.Connect( const Host: string; Port: Word ): Boolean;
+function TENetClass.Connect( const Host: AnsiString; Port: Word ): Boolean;
 begin
   Result := False;
   if not FIsServer then begin
