@@ -118,7 +118,8 @@ function TFPReportDOM.StreamToHex(S: TStream): String;
 
 Var
   T : TMemoryStream;
-  P,PD : PChar;
+  P : PByte;
+  PD : PCHar;
   I,L : Integer;
   h : String[2];
 
@@ -134,10 +135,10 @@ begin
     L:=T.Size;
     SetLength(Result,L*2);
     PD:=PChar(Result);
-    P:=PChar(T.Memory);
+    P:=PByte(T.Memory);
     For I:=1 to L do
       begin
-      H:=HexStr(Ord(P^),2);
+      H:=HexStr(P^,2);
       PD^:=H[1];
       Inc(PD);
       PD^:=H[2];
@@ -509,10 +510,10 @@ end;
 function TFPReportDOM.HexToStringStream(S : String) : TStringStream;
 
 Var
-  T : String;
+  T : RawByteString;
   I,J : Integer;
   B : Byte;
-  P : Pchar;
+  P : PByte;
   H : String[3];
 
 begin
@@ -522,7 +523,7 @@ begin
   if (S<>'') then
     begin
     SetLength(T,Length(S) div 2);
-    P:=PChar(T);
+    P:=PAnsiChar(T);
     I:=1;
     While I<Length(S) do
       begin
@@ -532,9 +533,9 @@ begin
       Inc(I);
       Val(H,B,J);
       If (J=0) then
-        P^:=Char(B)
+        P^:=B
       else
-        P^:=#0;
+        P^:=0;
       Inc(P);
       end;
     Result:=TStringStream.Create(T);

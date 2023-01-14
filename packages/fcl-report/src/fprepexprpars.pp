@@ -55,11 +55,11 @@ Type
     FSource : String;
     LSource,
     FPos : Integer;
-    FChar : PChar;
+    FChar : PAnsiChar;
     FToken : String;
     FTokenType : TTokenType;
   private
-    function GetCurrentChar: Char;
+    function GetCurrentChar: AnsiChar;
     procedure ScanError(Msg: String);
   protected
     procedure SetSource(const AValue: String); virtual;
@@ -67,12 +67,12 @@ Type
     function DoNumber(AKind: TNumberKind): TTokenType;
     function DoDelimiter: TTokenType;
     function DoString: TTokenType;
-    Function NextPos : Char; // inline;
+    Function NextPos : AnsiChar; // inline;
     procedure SkipWhiteSpace; // inline;
-    function IsWordDelim(C : Char) : Boolean; // inline;
-    function IsDelim(C : Char) : Boolean; // inline;
-    function IsDigit(C : Char; AKind: TNumberKind) : Boolean; // inline;
-    function IsAlpha(C : Char) : Boolean; // inline;
+    function IsWordDelim(C : AnsiChar) : Boolean; // inline;
+    function IsDelim(C : AnsiChar) : Boolean; // inline;
+    function IsDigit(C : AnsiChar; AKind: TNumberKind) : Boolean; // inline;
+    function IsAlpha(C : AnsiChar) : Boolean; // inline;
   public
     Constructor Create;
     Function GetToken : TTokenType;
@@ -80,7 +80,7 @@ Type
     Property TokenType : TTokenType Read FTokenType;
     Property Source : String Read FSource Write SetSource;
     Property Pos : Integer Read FPos;
-    Property CurrentChar : Char Read GetCurrentChar;
+    Property CurrentChar : AnsiChar Read GetCurrentChar;
   end;
 
   EExprScanner = Class(Exception);
@@ -584,9 +584,9 @@ Type
     Function AddCurrencyVariable(Const AName : ShortString; AValue : Currency) : TFPExprIdentifierDef;
     Function AddStringVariable(Const AName : ShortString; AValue : String) : TFPExprIdentifierDef;
     Function AddDateTimeVariable(Const AName : ShortString; AValue : TDateTime) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPExprIdentifierDef;
     property Identifiers[AIndex : Integer] : TFPExprIdentifierDef Read GetI Write SetI; Default;
   end;
 
@@ -803,9 +803,9 @@ Type
     Function AddCurrencyVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Currency) : TFPBuiltInExprIdentifierDef;
     Function AddStringVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : String) : TFPBuiltInExprIdentifierDef;
     Function AddDateTimeVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TDateTime) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
     Property IdentifierCount : Integer Read GetCount;
     Property Identifiers[AIndex : Integer] :TFPBuiltInExprIdentifierDef Read GetI;
   end;
@@ -817,7 +817,7 @@ Const
 
 Function TokenName (AToken : TTokenType) : String;
 Function ResultTypeName (AResult : TResultType) : String;
-Function CharToResultType(C : Char) : TResultType;
+Function CharToResultType(C : AnsiChar) : TResultType;
 Function BuiltinIdentifiers : TExprBuiltInManager;
 Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager; Categories : TBuiltInCategories = AllBuiltIns);
 function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
@@ -918,7 +918,7 @@ begin
   Result:=GetEnumName(TypeInfo(TResultType),Ord(AResult));
 end;
 
-function CharToResultType(C: Char): TResultType;
+function CharToResultType(C: AnsiChar): TResultType;
 begin
   Case Upcase(C) of
     'S' : Result:=rtString;
@@ -1203,7 +1203,7 @@ end;
   TFPExpressionScanner
   ---------------------------------------------------------------------}
 
-function TFPExpressionScanner.IsAlpha(C: Char): Boolean;
+function TFPExpressionScanner.IsAlpha(C: AnsiChar): Boolean;
 begin
   Result := C in ['A'..'Z', 'a'..'z'];
 end;
@@ -1223,11 +1223,11 @@ begin
     FPos:=0
   else
     FPos:=1;
-  FChar:=Pchar(FSource);
+  FChar:=PAnsiChar(FSource);
   FToken:='';
 end;
 
-function TFPExpressionScanner.NextPos: Char;
+function TFPExpressionScanner.NextPos: AnsiChar;
 begin
   Inc(FPos);
   Inc(FChar);
@@ -1235,17 +1235,17 @@ begin
 end;
 
 
-function TFPExpressionScanner.IsWordDelim(C: Char): Boolean;
+function TFPExpressionScanner.IsWordDelim(C: AnsiChar): Boolean;
 begin
   Result:=C in WordDelimiters;
 end;
 
-function TFPExpressionScanner.IsDelim(C: Char): Boolean;
+function TFPExpressionScanner.IsDelim(C: AnsiChar): Boolean;
 begin
   Result:=C in Delimiters;
 end;
 
-function TFPExpressionScanner.IsDigit(C: Char; AKind: TNumberKind): Boolean;
+function TFPExpressionScanner.IsDigit(C: AnsiChar; AKind: TNumberKind): Boolean;
 begin
   case AKind of
     nkDecimal: Result := C in Digits;
@@ -1266,7 +1266,7 @@ Function TFPExpressionScanner.DoDelimiter : TTokenType;
 
 Var
   B : Boolean;
-  C,D : Char;
+  C,D : AnsiChar;
 
 begin
   C:=FChar^;
@@ -1313,7 +1313,7 @@ end;
 
 Function TFPExpressionScanner.DoString : TTokenType;
 
-  Function TerminatingChar(C : Char) : boolean;
+  Function TerminatingChar(C : AnsiChar) : boolean;
 
   begin
     Result:=(C=cNull) or
@@ -1323,7 +1323,7 @@ Function TFPExpressionScanner.DoString : TTokenType;
 
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   FToken := '';
@@ -1342,7 +1342,7 @@ begin
   NextPos;
 end;
 
-function TFPExpressionScanner.GetCurrentChar: Char;
+function TFPExpressionScanner.GetCurrentChar: AnsiChar;
 begin
   If FChar<>Nil then
     Result:=FChar^
@@ -1367,12 +1367,12 @@ end;
 Function TFPExpressionScanner.DoNumber(AKind: TNumberKind) : TTokenType;
 
 Var
-  C : Char;
+  C : AnsiChar;
   X : TExprFloat;
   I : Integer;
-  prevC: Char;
+  prevC: AnsiChar;
 
-  function ValidDigit(C: Char; AKind: TNumberKind): Boolean;
+  function ValidDigit(C: AnsiChar; AKind: TNumberKind): Boolean;
   begin
     Result := IsDigit(C, AKind);
     if (not Result) then
@@ -1401,7 +1401,7 @@ begin
         nkHex, nkOctal:
           break;
         nkBinary:
-          if (prevC <> #0) then break;   // allow '%' as first char
+          if (prevC <> #0) then break;   // allow '%' as first AnsiChar
       end;
     if not ValidDigit(C, AKind) then
       ScanError(Format(SErrInvalidNumberChar,[C]));
@@ -1418,7 +1418,7 @@ end;
 Function TFPExpressionScanner.DoIdentifier : TTokenType;
 
 Var
-  C : Char;
+  C : AnsiChar;
   S : String;
 begin
   C:=CurrentChar;
@@ -1465,7 +1465,7 @@ end;
 Function TFPExpressionScanner.GetToken : TTokenType;
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   FToken := '';
@@ -2263,7 +2263,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes: String;
   ACallBack: TFPExprFunctionCallBack): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2275,7 +2275,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes: String;
   ACallBack: TFPExprFunctionEvent): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2287,7 +2287,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes: String;
   ANodeClass: TFPExprFunctionClass): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2643,7 +2643,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes: String;
   ACallBack: TFPExprFunctionCallBack): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ACallBack));
@@ -2651,7 +2651,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes: String;
   ACallBack: TFPExprFunctionEvent): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ACallBack));
@@ -2659,7 +2659,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes: String;
   ANodeClass: TFPExprFunctionClass): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ANodeClass));

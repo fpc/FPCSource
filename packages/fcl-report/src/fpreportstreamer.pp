@@ -611,7 +611,8 @@ end;
 function TFPReportJSONStreamer.StreamToHex(S: TStream): String;
 var
   T: TMemoryStream;
-  P, PD: PChar;
+  P : PByte;
+  PD: PChar;
   I, L: integer;
   h: string[2];
 begin
@@ -626,10 +627,10 @@ begin
     L := T.Size;
     SetLength(Result, L * 2);
     PD := PChar(Result);
-    P := PChar(T.Memory);
+    P := PByte(T.Memory);
     for I := 1 to L do
     begin
-      H := HexStr(Ord(P^), 2);
+      H := HexStr(P^, 2);
       PD^ := H[1];
       Inc(PD);
       PD^ := H[2];
@@ -668,10 +669,10 @@ end;
 
 function TFPReportJSONStreamer.HexToStringStream(S: String): TStringStream;
 var
-  T: string;
+  T: Ansistring;
   I, J: integer;
   B: byte;
-  P: PChar;
+  P: PByte;
   H: string[3];
 begin
   Result := nil;
@@ -680,7 +681,7 @@ begin
   if (S <> '') then
   begin
     SetLength(T, Length(S) div 2);
-    P := PChar(T);
+    P := PByte(T);
     I := 1;
     while I < Length(S) do
     begin
@@ -690,9 +691,9 @@ begin
       Inc(I);
       Val(H, B, J);
       if (J = 0) then
-        P^ := char(B)
+        P^ := B
       else
-        P^ := #0;
+        P^ := 0;
       Inc(P);
     end;
     Result := TStringStream.Create(T);
