@@ -7,8 +7,8 @@ var
 
     form, labelC, entry, button : newtComponent;
     S: ansiString;
-    P: Pchar;
-    machaine :string;
+    P: PAnsiChar;
+    machine :ansistring;
 begin
 
     newtInit();
@@ -18,9 +18,9 @@ begin
 
     labelC := newtLabel(1, 1, 'Enter a string');
 
-    p:=addr(machaine[1]);
+    p:=addr(machine[1]);
     s:='Sample';
-    entry := newtEntry(16,1,PChar(S),20,@P,NEWT_FLAG_SCROLL OR NEWT_FLAG_RETURNEXIT);
+    entry := newtEntry(16,1,PAnsiChar(S),20,@P,NEWT_FLAG_SCROLL OR NEWT_FLAG_RETURNEXIT);
 
 
     button := newtButton(17, 3, 'Ok');
