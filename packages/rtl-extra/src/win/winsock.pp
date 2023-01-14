@@ -41,7 +41,7 @@ unit WinSock;
        tOS_UINT = DWord;
        ptOS_INT = ^tOS_INT;
        ptOS_UINT = ^tOS_UINT;
-       u_char = char;
+       u_char = AnsiChar;
        u_short = word;
        u_int = tOS_UINT;
        u_long = dword;
@@ -101,17 +101,17 @@ unit WinSock;
     type
        hostent = record
           { official name of host  }
-          h_name: pchar;
+          h_name: PAnsiChar;
           { alias list  }
-          h_aliases: ^pchar;
+          h_aliases: ^PAnsiChar;
           { host address type  }
           h_addrtype: SmallInt;
           { length of address  }
           h_length: SmallInt;
           { list of addresses  }
           case byte of
-             0: (h_addr_list: ^pchar);
-             1: (h_addr: ^pchar)
+             0: (h_addr_list: ^PAnsiChar);
+             1: (h_addr: ^PAnsiChar)
        end;
        THostEnt = hostent;
        PHostEnt = ^THostEnt;
@@ -122,9 +122,9 @@ unit WinSock;
        }
        netent = record
           { official name of net  }
-          n_name : ^char;
+          n_name : ^AnsiChar;
           { alias list  }
-          n_aliases : ^pchar;
+          n_aliases : ^PAnsiChar;
           { net address type  }
           n_addrtype : SmallInt;
           n_pad1 : SmallInt;    { ensure right packaging }
@@ -136,12 +136,12 @@ unit WinSock;
 
        servent = record
           { official service name  }
-          s_name : ^char;
+          s_name : ^AnsiChar;
           { alias list  }
-          s_aliases : ^pchar;
+          s_aliases : ^PAnsiChar;
 {$ifdef WIN64}
           { protocol to use  }
-          s_proto : ^char;
+          s_proto : ^AnsiChar;
           { port #  }
           s_port : SmallInt;
 {$else WIN64}
@@ -149,7 +149,7 @@ unit WinSock;
           s_port : SmallInt;
           n_pad1 : SmallInt;    { ensure right packaging }
           { protocol to use  }
-          s_proto : ^char;
+          s_proto : ^AnsiChar;
 {$endif WIN64}
        end;
        TServEnt = servent;
@@ -157,9 +157,9 @@ unit WinSock;
 
        protoent = record
           { official protocol name  }
-          p_name : ^char;
+          p_name : ^AnsiChar;
           { alias list  }
-          p_aliases : ^pchar;
+          p_aliases : ^PAnsiChar;
           { protocol #  }
           p_proto : SmallInt;
           p_pad1 : SmallInt;    { ensure packaging }
@@ -238,11 +238,11 @@ unit WinSock;
                   sin_family : SmallInt;                (* 2 byte *)
                   sin_port : u_short;                   (* 2 byte *)
                   sin_addr : TInAddr;                   (* 4 byte *)
-                  sin_zero : array[0..8-1] of char;     (* 8 byte *)
+                  sin_zero : array[0..8-1] of AnsiChar;     (* 8 byte *)
                  );
              1 : ((* equals to sockaddr, size is 16 byte *)
                   sa_family : Smallint; (* 2 byte *)
-                  sa_data : array[0..14-1] of char;    (* 14 byte *)
+                  sa_data : array[0..14-1] of AnsiChar;    (* 14 byte *)
                  );
        end;
        TSockAddrIn = sockaddr_in;
@@ -278,15 +278,15 @@ unit WinSock;
 {$ifdef win64}
           iMaxSockets : word;           { 2 byte, ofs 390 }
           iMaxUdpDg : word;             { 2 byte, ofs 392 }
-          lpVendorInfo : pchar;         { 4 byte, ofs 396 }
-          szDescription : array[0..WSADESCRIPTION_LEN] of char; { 257 byte, ofs 4 }
-          szSystemStatus : array[0..WSASYS_STATUS_LEN] of char; { 129 byte, ofs 261 }
+          lpVendorInfo : PAnsiChar;         { 4 byte, ofs 396 }
+          szDescription : array[0..WSADESCRIPTION_LEN] of AnsiChar; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..WSASYS_STATUS_LEN] of AnsiChar; { 129 byte, ofs 261 }
 {$else win64}
-          szDescription : array[0..WSADESCRIPTION_LEN] of char; { 257 byte, ofs 4 }
-          szSystemStatus : array[0..WSASYS_STATUS_LEN] of char; { 129 byte, ofs 261 }
+          szDescription : array[0..WSADESCRIPTION_LEN] of AnsiChar; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..WSASYS_STATUS_LEN] of AnsiChar; { 129 byte, ofs 261 }
           iMaxSockets : word;           { 2 byte, ofs 390 }
           iMaxUdpDg : word;             { 2 byte, ofs 392 }
-          lpVendorInfo : pchar;         { 4 byte, ofs 396 }
+          lpVendorInfo : PAnsiChar;         { 4 byte, ofs 396 }
 {$endif win64}
        end;
        TWSAData = WSADATA;
@@ -689,14 +689,14 @@ unit WinSock;
        winsockdll = 'wsock32.dll';
 
 {
-Winsock types all buffers as pchar (char *), modern POSIX does it the ANSI
+Winsock types all buffers as PAnsiChar (AnsiChar *), modern POSIX does it the ANSI
 C way with pointer (void *). If the pointer overloaded version doesn't exist,
 a "pointer" will be passed to the "var" version. (bug 3142).
 So if there are var/const versions:
 - To keep ported unix code working, there must be "pointer" variants (ANSI)
-- To keep Delphi/ported C Winsock code working there must be pchar variants
+- To keep Delphi/ported C Winsock code working there must be PAnsiChar variants
         (K&R)
-IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
+IOW, there _must_ be 3 versions then: var/const, PAnsiChar and pointer}
 
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
@@ -712,7 +712,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       external winsockdll name 'getpeername';
     function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockname';
-    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pchar;var optlen:tOS_INT):tOS_INT;stdcall;
+    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:PAnsiChar;var optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockopt';
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pointer;var optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getsockopt';
@@ -720,15 +720,15 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       external winsockdll name 'getsockopt';
     function htonl(hostlong:u_long):u_long;stdcall;external winsockdll name 'htonl';
     function htons(hostshort:u_short):u_short;stdcall;external winsockdll name 'htons';
-    function inet_addr(cp:pchar):cardinal;stdcall;external winsockdll name 'inet_addr';
-    function inet_ntoa(i : TInAddr):pchar;stdcall;external winsockdll name 'inet_ntoa';
+    function inet_addr(cp:PAnsiChar):cardinal;stdcall;external winsockdll name 'inet_addr';
+    function inet_ntoa(i : TInAddr):PAnsiChar;stdcall;external winsockdll name 'inet_ntoa';
     function listen(s:TSocket; backlog:tOS_INT):tOS_INT;stdcall;external winsockdll name 'listen';
     function ntohl(netlong:u_long):u_long;stdcall;external winsockdll name 'ntohl';
     function ntohs(netshort:u_short):u_short;stdcall;external winsockdll name 'ntohs';
-    function recv(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
+    function recv(s:TSocket;buf:PAnsiChar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
     function recv(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
-    function recvfrom(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+    function recvfrom(s:TSocket;buf:PAnsiChar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
     function recvfrom(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
@@ -738,17 +738,17 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       external winsockdll name 'select';
     function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
-    function send(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
+    function send(s:TSocket; buf:PAnsiChar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
     function send(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+    function sendto(s:TSocket; buf:PAnsiChar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function sendto(s:TSocket; buf:pointer; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function sendto(s:TSocket; Const buf; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:PAnsiChar; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;optval:pointer; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
@@ -760,13 +760,13 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
       external winsockdll name 'socket';
 
     { Database function prototypes  }
-    function gethostbyaddr(addr:pchar; len:tOS_INT; t:tOS_INT): PHostEnt;stdcall;external winsockdll name 'gethostbyaddr';
-    function gethostbyname(name:pchar):PHostEnt;stdcall;external winsockdll name 'gethostbyname';
-    function gethostname(name:pchar; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'gethostname';
-    function getservbyport(port:tOS_INT; proto:pchar):PServEnt;stdcall;external winsockdll name 'getservbyport';
-    function getservbyname(name:pchar; proto:pchar):PServEnt;stdcall;external winsockdll name 'getservbyname';
+    function gethostbyaddr(addr:PAnsiChar; len:tOS_INT; t:tOS_INT): PHostEnt;stdcall;external winsockdll name 'gethostbyaddr';
+    function gethostbyname(name:PAnsiChar):PHostEnt;stdcall;external winsockdll name 'gethostbyname';
+    function gethostname(name:PAnsiChar; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'gethostname';
+    function getservbyport(port:tOS_INT; proto:PAnsiChar):PServEnt;stdcall;external winsockdll name 'getservbyport';
+    function getservbyname(name:PAnsiChar; proto:PAnsiChar):PServEnt;stdcall;external winsockdll name 'getservbyname';
     function getprotobynumber(proto:tOS_INT):PProtoEnt;stdcall;external winsockdll name 'getprotobynumber';
-    function getprotobyname(name:pchar):PProtoEnt;stdcall;external winsockdll name 'getprotobyname';
+    function getprotobyname(name:PAnsiChar):PProtoEnt;stdcall;external winsockdll name 'getprotobyname';
 
     { Microsoft Windows Extension function prototypes  }
     function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):tOS_INT;stdcall;
@@ -778,18 +778,18 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSAUnhookBlockingHook:tOS_INT;stdcall;external winsockdll name 'WSAUnhookBlockingHook';
     function WSASetBlockingHook(lpBlockFunc:TFarProc):TFarProc;stdcall;external winsockdll name 'WSASetBlockingHook';
     function WSACancelBlockingCall:tOS_INT;stdcall;external winsockdll name 'WSACancelBlockingCall';
-    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar;
+    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; proto:PAnsiChar; buf:PAnsiChar;
                                    buflen:tOS_INT):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByName';
-    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:tOS_INT; proto:pchar; buf:pchar;
+    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:tOS_INT; proto:PAnsiChar; buf:PAnsiChar;
                                    buflen:tOS_INT):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByPort';
-    function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetProtoByName';
-    function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:tOS_INT; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:tOS_INT; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetProtoByNumber';
-    function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetHostByName';
-    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:tOS_INT; t:tOS_INT;
-                                   buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:PAnsiChar; len:tOS_INT; t:tOS_INT;
+                                   buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
                                    external winsockdll name 'WSAAsyncGetHostByAddr';
     function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):tOS_INT;stdcall;
       external winsockdll name 'WSACancelAsyncRequest';
