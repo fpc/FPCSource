@@ -186,7 +186,7 @@ begin
   securityAttributes.lpSecurityDescriptor := nil;
   securityAttributes.bInheritHandle := true;
   result := CreateFile(
-    PChar(DeviceName),
+    PAnsiChar(DeviceName),
     GENERIC_READ or GENERIC_WRITE,
     0,
     @securityAttributes,
