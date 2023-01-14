@@ -127,19 +127,19 @@ uses
 
 {$IFDEF DEBUGLN_ON}
   // dummy, default debugging
-  procedure debugproc(s: string);
+  procedure debugproc(s: String);
   // for custom debugging, assign this in your units 
-  var debugln: procedure(s: string) = debugproc;
+  var debugln: procedure(s: String) = debugproc;
 {$ENDIF}
 
 type
 
   // when tag content found in HTML, including names and values
   // case insensitive analysis available via NoCaseTag
-  TOnFoundTag = procedure(NoCaseTag, ActualTag: string) of object;
+  TOnFoundTag = procedure(NoCaseTag, ActualTag: AnsiString) of object;
 
   // when text  found in the HTML
-  TOnFoundText = procedure(Text: string) of object;
+  TOnFoundText = procedure(Text: AnsiString) of object;
 
   // Lars's modified html parser, case insensitive or case sensitive 
 
@@ -151,13 +151,14 @@ type
     public
       OnFoundTag: TOnFoundTag;
       OnFoundText: TOnFoundText;
-      Raw: Pchar;
-      FCurrent : PChar;
-      constructor Create(sRaw: string);overload;
-      constructor Create(pRaw: PChar);overload;
+      Raw: PAnsiChar;
+      FCurrent : PAnsiChar;
+      constructor Create(sRaw: AnsiString);overload;
+      constructor Create(sRaw: UnicodeString);overload;
+      constructor Create(pRaw: PAnsiChar);overload;
       procedure Exec;
-      procedure NilOnFoundTag(NoCaseTag, ActualTag: string);
-      procedure NilOnFoundText(Text: string);
+      procedure NilOnFoundTag(NoCaseTag, ActualTag: AnsiString);
+      procedure NilOnFoundText(Text: AnsiString);
     Public
       Function CurrentPos : Integer;
       property Done: Boolean read FDone write FDone;
@@ -168,11 +169,11 @@ implementation
 
 
 // default debugging, do nothing, let user do his own by assigning DebugLn var
-procedure debugproc(s: string);
+procedure debugproc(s: String);
 begin 
 end;
 
-function CopyBuffer(StartIndex: PChar; Length: Integer): string;
+function CopyBuffer(StartIndex: PAnsiChar; Length: Integer): AnsiString;
 begin
   SetLength(Result, Length);
   StrLCopy(@Result[1], StartIndex, Length);
@@ -182,25 +183,32 @@ end;
 
 { ************************ THTMLParser ************************************** }
 
-constructor THTMLParser.Create(pRaw: Pchar);
+constructor THTMLParser.Create(pRaw: PAnsiChar);
 begin
   if pRaw = '' then exit;
   if pRaw = nil then exit;
   Raw:= pRaw;
 end;
 
-constructor THTMLParser.Create(sRaw: string);
+constructor THTMLParser.Create(sRaw: AnsiString);
 begin
   if sRaw = '' then exit;
-  Raw:= Pchar(sRaw);
+  Raw:= PAnsiChar(sRaw);
 end;
 
+constructor THTMLParser.Create(sRaw: UnicodeString);
+
+begin
+  Create(UTF8Encode(sRaw));
+end;
+
+
 { default dummy "do nothing" events if events are unassigned }
-procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: string);
+procedure THTMLParser.NilOnFoundTag(NoCaseTag, ActualTag: AnsiString);
 begin 
 end;
 
-procedure THTMLParser.NilOnFoundText(Text: string);
+procedure THTMLParser.NilOnFoundText(Text: AnsiString);
 begin 
 end;
 
@@ -219,8 +227,8 @@ var
   I: Integer;
   TagStart,
   TextStart,
-  P: PChar;   // Pointer to current char.
-  C: Char;
+  P: PAnsiChar;   // Pointer to current AnsiChar.
+  C: AnsiChar;
 begin
   {$IFDEF DEBUGLN_ON}debugln('FastHtmlParser Exec Begin');{$ENDIF}
   { set nil events once rather than checking for nil each time tag is found }
@@ -270,7 +278,7 @@ begin
         if (P^ = '"') or (P^ = '''') then
         begin
           C:= P^;
-          Inc(P); Inc(I); // Skip current char " or '
+          Inc(P); Inc(I); // Skip current AnsiChar " or '
 
           // Skip until string end
           while Not (P^ in [C, #0]) do

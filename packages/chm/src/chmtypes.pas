@@ -301,7 +301,7 @@ begin
 
   Stream.Write(Buffer[0], $1000);
   {$IFDEF DEBUG_CHM_CHUNKS}
-  WriteLn('Writing ', Copy(PChar(@Buffer[0]),0,4),' ChunkToStream');
+  WriteLn('Writing ', Copy(PAnsiChar(@Buffer[0]),0,4),' ChunkToStream');
   {$ENDIF}
 end;
 
