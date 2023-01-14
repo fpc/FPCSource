@@ -278,7 +278,7 @@ begin
   begin
     FStream.Size := $400; // the header size. we will fill this after the nodes have been determined
     FStream.Position := $400;
-    FillChar(PChar(TMemoryStream(FStream).Memory)^, $400, 0);
+    FillChar(PAnsiChar(TMemoryStream(FStream).Memory)^, $400, 0);
     FHeaderRec.DocIndexRootSize := 1;
     FHeaderRec.CodeCountRootSize := 1;
     FHeaderRec.LocationCodeRootSize := 4;

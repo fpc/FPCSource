@@ -45,16 +45,16 @@ Type
   TIndexedWord = class(TObject)
   private
     FIsTitle: Boolean;
-    FTheWord: string;
+    FTheWord: AnsiString;
     FCachedTopic: TIndexDocument;
     FDocuments: Array of TIndexDocument;
     function GetDocument ( TopicIndexNum: Integer ) : TIndexDocument;
     function GetDocumentCount: Integer;
   public
-    constructor Create(AWord: String; AIsTitle: Boolean);
+    constructor Create(AWord: AnsiString; AIsTitle: Boolean);
     destructor Destroy; override;
     function GetLogicalDocument(AIndex: Integer): TIndexDocument;
-    property TheWord: string read FTheWord write ftheword; // Always lowercase
+    property TheWord: AnsiString read FTheWord write ftheword; // Always lowercase
     property DocumentTopic[TopicIndexNum: Integer]: TIndexDocument read GetDocument;
     property DocumentCount: Integer read GetDocumentCount;
     property IsTitle: Boolean read FIsTitle write fistitle;
@@ -63,7 +63,7 @@ Type
   { TIndexedWordList }
 
   {$ifdef userb}
-  TRBIndexTree = specialize TGFOS_RBTree<String,TIndexedWord>;
+  TRBIndexTree = specialize TGFOS_RBTree<AnsiString,TIndexedWord>;
   {$endif}
 
   TForEachMethod = procedure (AWord:TIndexedWord) of object;
@@ -76,7 +76,7 @@ Type
     FInTitle,
     FInBody: Boolean;
     FWordCount: Integer; // only words in body
-    FDocTitle: String;
+    FDocTitle: AnsiString;
     FTopicIndex: Integer;
     //end vars
     FTotalDifferentWordLength: DWord;
@@ -92,16 +92,16 @@ Type
     Spare :TIndexedWord;
     {$endif}
 
-    function AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
+    function AddGetWord(AWord: AnsiString; IsTitle: Boolean): TIndexedWord;
     // callbacks
-    procedure CBFoundTag(NoCaseTag, ActualTag: string);
-    procedure CBFountText(Text: string);
+    procedure CBFoundTag(NoCaseTag, ActualTag: AnsiString);
+    procedure CBFountText(Text: AnsiString);
 
-    procedure EatWords(Words: String; IsTitle: Boolean);
+    procedure EatWords(Words: AnsiString; IsTitle: Boolean);
   public
     constructor Create;
     destructor  Destroy; override;
-    function  IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): String; // returns the documents <Title>
+    function  IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): AnsiString; // returns the documents <Title>
     procedure Clear;
     procedure AddWord(const AWord: TIndexedWord);
     procedure ForEach(Proc:TForEachMethod);
@@ -112,7 +112,7 @@ Type
     property TotalDIfferentWords: DWord read FTotalDIfferentWords;
     property TotalWordLength: DWord read FTotalWordLength;
     property TotalDifferentWordLength: DWord read FTotalDifferentWordLength;
-    property Words[AWord: String; IsTitle: Boolean] : TIndexedWord read AddGetWord;
+    property Words[AWord: AnsiString; IsTitle: Boolean] : TIndexedWord read AddGetWord;
   end;
 
 implementation
@@ -127,9 +127,9 @@ begin
     Result := BNumber;
 end;
 
-const titlexlat : array [boolean] of char = ('0','1');
+const titlexlat : array [boolean] of AnsiChar = ('0','1');
 
-function  makekey( n : string;istitle:boolean):string; inline;
+function  makekey( n : AnsiString;istitle:boolean):AnsiString; inline;
 
 begin
    result:=n+'___'+titlexlat[istitle];
@@ -149,10 +149,10 @@ begin
 end;
 
 { TIndexedWordList }
-function TIndexedWordList.AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
+function TIndexedWordList.AddGetWord(AWord: AnsiString; IsTitle: Boolean): TIndexedWord;
 var 
 {$ifdef userb}
-   key : string;
+   key : AnsiString;
 {$else}
    n : TAVLTreeNode;
 {$endif}   
@@ -197,7 +197,7 @@ begin
   Inc(FTotalWordCount);
 end;
 
-procedure TIndexedWordList.CBFoundTag(NoCaseTag, ActualTag: string);
+procedure TIndexedWordList.CBFoundTag(NoCaseTag, ActualTag: AnsiString);
 begin
   if FInBody then begin
     if NoCaseTag = '</BODY>' then FInBody := False;
@@ -212,7 +212,7 @@ begin
   if FInBody and FIndexTitlesOnly then FParser.Done := True;
 end;
 
-procedure TIndexedWordList.CBFountText(Text: string);
+procedure TIndexedWordList.CBFountText(Text: AnsiString);
 begin
   if Length(Text) < 1 then
     Exit;
@@ -223,10 +223,10 @@ begin
   EatWords(Text, FInTitle and not FInBody);
 end;
 
-procedure TIndexedWordList.EatWords ( Words: String; IsTitle: Boolean ) ;
+procedure TIndexedWordList.EatWords ( Words: AnsiString; IsTitle: Boolean ) ;
 var
-  WordPtr: PChar;
-  WordStart: PChar;
+  WordPtr: PAnsiChar;
+  WordStart: PAnsiChar;
   InWord: Boolean;
   IsNumberWord: Boolean;
   function IsEndOfWord: Boolean;
@@ -240,13 +240,13 @@ var
   end;
   var
     WordIndex: TIndexedWord;
-    WordName: String;
+    WordName: AnsiString;
     FPos: Integer;
 begin
   if IsTitle then
     FDocTitle := Words;
   Words := LowerCase(Words);
-  WordStart := PChar(Words);
+  WordStart := PAnsiChar(Words);
   WordPtr := WordStart;
   IsNumberWord := False;
   InWord := False;
@@ -328,9 +328,9 @@ begin
   inherited Destroy;
 end;
 
-function TIndexedWordList.IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): String;
+function TIndexedWordList.IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): AnsiString;
 var
-  TheFile: String;
+  TheFile: AnsiString;
 begin
   FInBody := False;
   FInTitle:= False;
@@ -380,7 +380,7 @@ end;
 
 procedure TIndexedWordList.ForEach(Proc:TForEachMethod);
 {$ifdef userb}
-var key : string;
+var key : AnsiString;
     val:TIndexedWord;
 {$else}
 var   
@@ -407,7 +407,7 @@ end;
 procedure TIndexedWordList.ForEach(Proc:TForEachProcedure;state:pointer); 
 
 {$ifdef userb}
-var key : string;
+var key : AnsiString;
     val:TIndexedWord;
 {$else}
 var   
@@ -457,7 +457,7 @@ begin
   Result := Length(FDocuments);
 end;
 
-constructor TIndexedWord.Create(AWord: String; AIsTitle: Boolean);
+constructor TIndexedWord.Create(AWord: AnsiString; AIsTitle: Boolean);
 begin
   FTheWord := AWord;
   FIsTitle := AIsTitle;

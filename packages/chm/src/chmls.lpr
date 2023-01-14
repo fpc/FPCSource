@@ -574,7 +574,7 @@ var s,
 begin
   symbolname:='helpid';
   chm:=filespec[0];
-  prefixfn:=changefileext(chm,'');
+  prefixfn:=changefileext(chm,RTLString(''));
   if not Fileexists(chm) then
     begin
       writeln(stderr,' Can''t find file ',chm);
@@ -633,7 +633,7 @@ end;
 
 begin
   chm:=filespec[0];
-  prefixfn:=changefileext(chm,'');
+  prefixfn:=changefileext(chm,RTLString(''));
   if not Fileexists(chm) then
     begin
       writeln(stderr,' Can''t find file ',chm);
@@ -721,7 +721,7 @@ var s,
     entries : integer;
 begin
   chm:=filespec[0];
-  prefixfn:=changefileext(chm,'');
+  prefixfn:=changefileext(chm,RTLString(''));
   if not Fileexists(chm) then
     begin
       writeln(stderr,' Can''t find file ',chm);
@@ -854,7 +854,7 @@ var dx : dword;
 begin
   symbolname:='helpid';
   chm:=filespec[0];
-  prefixfn:=changefileext(chm,'');
+  prefixfn:=changefileext(chm,RTLString(''));
   if not Fileexists(chm) then
     begin
       writeln(stderr,' Can''t find file ',chm);

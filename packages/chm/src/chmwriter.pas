@@ -1571,7 +1571,7 @@ var
   n  : TAVLTreeNode;
   StrRec : TStringIndex;
 begin
-  // #STRINGS starts with a null char
+  // #STRINGS starts with a null AnsiChar
   if FStringsStream.Size = 0 then FStringsStream.WriteByte(0);
 
   SpareString.TheString:=AString;
@@ -1949,8 +1949,8 @@ begin
 end;
 
 Const
-      BinIndexIdent : array[0..1] of char = (CHR($3B),CHR($29));
-      AlwaysX44     : Array[0..15] of char = ('X','4','4',#0,#0,#0,#0,#0,
+      BinIndexIdent : array[0..1] of AnsiChar = (CHR($3B),CHR($29));
+      AlwaysX44     : Array[0..15] of AnsiChar = ('X','4','4',#0,#0,#0,#0,#0,
                                               #0,#0,#0,#0,#0,#0,#0,#0);
       DataEntry     : Array[0..12] of Byte = ($00,$00,$00,$00,$05,$00,$00,$00,$80,$00,$00,$00,$00);
 {
