@@ -61,7 +61,7 @@ Type
   Protected
     Procedure CheckOperation(const Msg : String);
     Function NameLookup(Const S : String) : Boolean; virtual;
-    Procedure SaveAliases(P : PPChar);
+    Procedure SaveAliases(P : PPAnsiChar);
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -261,7 +261,7 @@ begin
   Result:=True;
 end;
 
-Procedure TResolver.SaveAliases(P : PPChar);
+Procedure TResolver.SaveAliases(P : PPAnsiChar);
 
 Var
   I : Integer;
@@ -372,7 +372,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FHostEntry:=GetHostByName(pchar(FName));
+    FHostEntry:=GetHostByName(PAnsiChar(FName));
     Result:=FHostEntry<>Nil;
     If Result then
       SaveHostEntry(FHostEntry)
@@ -415,7 +415,7 @@ Var
 
 begin
   ClearData;
-  FHostEntry:=GetHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
+  FHostEntry:=GetHostByAddr(PAnsiChar(@Address),SizeOf(Address),AF_INET);
   Result:=FHostEntry<>Nil;
   If Result then
     SaveHostEntry(FHostEntry)
@@ -494,7 +494,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FNetEntry:=GetNetByName(pchar(S));
+    FNetEntry:=GetNetByName(PAnsiChar(S));
     Result:=FNetEntry<>Nil;
     If Result then
       SaveNetEntry(FNetEntry)
@@ -631,9 +631,9 @@ begin
   FName:=S;
   FProtocol:=Proto;
   If (proto='') then
-    FServiceEntry:=GetServByName(pchar(S),Nil)
+    FServiceEntry:=GetServByName(PAnsiChar(S),Nil)
   else
-    FServiceEntry:=GetServByName(pchar(S),PChar(FProtocol));
+    FServiceEntry:=GetServByName(PAnsiChar(S),PAnsiChar(FProtocol));
   Result:=FServiceEntry<>Nil;
   If Result then
     SaveServiceEntry(FServiceEntry)
@@ -656,7 +656,7 @@ begin
   If (Proto='') then
     FServiceEntry:=GetServByPort(APort,Nil)
   else
-    FServiceEntry:=GetServByPort(APort,pchar(Proto));
+    FServiceEntry:=GetServByPort(APort,PAnsiChar(Proto));
   Result:=FServiceEntry<>Nil;
   If Result then
     SaveServiceEntry(FServiceEntry)

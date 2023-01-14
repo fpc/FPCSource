@@ -35,38 +35,38 @@ Type
 
   { THostEnt Object }
   THostEnt = record
-    H_Name     : pchar;   { Official name }
-    H_Aliases  : ppchar;  { Null-terminated list of aliases}
+    H_Name     : PAnsiChar;   { Official name }
+    H_Aliases  : PPAnsiChar;  { Null-terminated list of aliases}
     H_Addrtype : longint;   { Host address type }
     H_length  : longint;   { Length of address }
-    H_Addr : ppchar;    { null-terminated list of adresses }
+    H_Addr : PPAnsiChar;    { null-terminated list of adresses }
   end;
   PHostEntry = ^THostEnt;
 
   { TNetEnt object }
   TNetEnt = record
-    N_Name     : pchar;   { Official name }
-    N_Aliases  : ppchar;  { Nill-terminated alias list }
+    N_Name     : PAnsiChar;   { Official name }
+    N_Aliases  : PPAnsiChar;  { Nill-terminated alias list }
     N_AddrType : longint; { Net address type }
     N_net      : Cardinal; { Network number }
   end;
   PNetEntry = ^TNetEnt;
 
   TServEnt = record
-    s_name    : pchar;    { Service name }
-    s_aliases : ppchar;   { Null-terminated alias list }
+    s_name    : PAnsiChar;    { Service name }
+    s_aliases : PPAnsiChar;   { Null-terminated alias list }
     s_port    : longint;  { Port number }
-    s_proto   : pchar;    { Protocol to use }
+    s_proto   : PAnsiChar;    { Protocol to use }
   end;
   PServEntry = ^TServEnt;
 
 { C style calls, linked in from Libc }
 
-function fpgethostbyname(Name: PChar): PHostEntry; syscall SocketBase 35;
-function getnetbyname(Name: PChar): PNetEntry; syscall SocketBase 37;
+function fpgethostbyname(Name: PAnsiChar): PHostEntry; syscall SocketBase 35;
+function getnetbyname(Name: PAnsiChar): PNetEntry; syscall SocketBase 37;
 function getnetbyaddr(Net: Longint; NetType: Longint): PNetEntry; syscall SocketBase 38;
-function getservbyname(Name: PChar; Protocol: PChar): PServEntry; syscall SocketBase 39;
-function getservbyport(Port: LongInt; Protocol: PChar): PServEntry; syscall SocketBase 40;
+function getservbyname(Name: PAnsiChar; Protocol: PAnsiChar): PServEntry; syscall SocketBase 39;
+function getservbyport(Port: LongInt; Protocol: PAnsiChar): PServEntry; syscall SocketBase 40;
 
 procedure setnetent(Stayopen: Longint);  syscall SocketBase 86;
 procedure endnetent; syscall SocketBase 87;
@@ -76,7 +76,7 @@ procedure endservent; syscall SocketBase 93;
 function getservent: PServEntry; syscall SocketBase 94;
 
 
-function gethostbyname(Name: PChar): PHostEntry;
+function gethostbyname(Name: PAnsiChar): PHostEntry;
 begin
   if Assigned(SocketBase) then
     gethostbyname := fpgethostbyname(Name)
@@ -84,7 +84,7 @@ begin
     gethostbyname := nil;
 end;
 
-function gethostbyaddr(Addr: PChar; Len: Longint; HType: Longint): PHostentry;
+function gethostbyaddr(Addr: PAnsiChar; Len: Longint; HType: Longint): PHostentry;
 var
   addr1,
   addr2: in_addr;

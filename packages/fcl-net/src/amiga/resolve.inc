@@ -36,38 +36,38 @@ Type
 
   { THostEnt Object }
   THostEnt = record
-    H_Name     : pchar;   { Official name }
-    H_Aliases  : ppchar;  { Null-terminated list of aliases}
+    H_Name     : PAnsiChar;   { Official name }
+    H_Aliases  : PPAnsiChar;  { Null-terminated list of aliases}
     H_Addrtype : longint;   { Host address type }
     H_length  : longint;   { Length of address }
-    H_Addr : ppchar;    { null-terminated list of adresses }
+    H_Addr : PPAnsiChar;    { null-terminated list of adresses }
   end;
   PHostEntry = ^THostEnt;
 
   { TNetEnt object }
   TNetEnt = record
-    N_Name     : pchar;   { Official name }
-    N_Aliases  : ppchar;  { Nill-terminated alias list }
+    N_Name     : PAnsiChar;   { Official name }
+    N_Aliases  : PPAnsiChar;  { Nill-terminated alias list }
     N_AddrType : longint; { Net address type }
     N_net      : Cardinal; { Network number }
   end;
   PNetEntry = ^TNetEnt;
 
   TServEnt = record
-    s_name    : pchar;    { Service name }
-    s_aliases : ppchar;   { Null-terminated alias list }
+    s_name    : PAnsiChar;    { Service name }
+    s_aliases : PPAnsiChar;   { Null-terminated alias list }
     s_port    : longint;  { Port number }
-    s_proto   : pchar;    { Protocol to use }
+    s_proto   : PAnsiChar;    { Protocol to use }
   end;
   PServEntry = ^TServEnt;
 
 { remember, classic style calls are also used on MorphOS, so don't test for AMIGA68K }
 {$ifndef AMIGAOS4}
-function fpgethostbyname(Name: PChar location 'a0'): PHostEntry; syscall SocketBase 210;
-function getnetbyname(Name: PChar location 'a0'): PNetEntry; syscall SocketBase 222;
+function fpgethostbyname(Name: PAnsiChar location 'a0'): PHostEntry; syscall SocketBase 210;
+function getnetbyname(Name: PAnsiChar location 'a0'): PNetEntry; syscall SocketBase 222;
 function getnetbyaddr(Net: Longint location 'd0'; NetType: Longint location 'd1'): PNetEntry; syscall SocketBase 228;
-function getservbyname(Name: PChar location 'a0'; Protocol: PChar location 'a1'): PServEntry; syscall SocketBase 234;
-function getservbyport(Port: LongInt location 'd0'; Protocol: PChar location 'a0'): PServEntry; syscall SocketBase 240;
+function getservbyname(Name: PAnsiChar location 'a0'; Protocol: PAnsiChar location 'a1'): PServEntry; syscall SocketBase 234;
+function getservbyport(Port: LongInt location 'd0'; Protocol: PAnsiChar location 'a0'): PServEntry; syscall SocketBase 240;
 
 procedure setnetent(Stayopen: Longint location 'd0');  syscall SocketBase 516;
 procedure endnetent; syscall SocketBase 522;
@@ -78,11 +78,11 @@ function getservent: PServEntry; syscall SocketBase 564;
 
 {$else AMIGAOS4}
 
-function fpgethostbyname(const Name: PChar): PHostEntry; syscall ISocket 196;
-function getnetbyname(Name: PChar): PNetEntry; syscall ISocket 204;
+function fpgethostbyname(const Name: PAnsiChar): PHostEntry; syscall ISocket 196;
+function getnetbyname(Name: PAnsiChar): PNetEntry; syscall ISocket 204;
 function getnetbyaddr(Net: Longint; NetType: Longint): PNetEntry; syscall ISocket 208;
-function getservbyname(Name: PChar; Protocol: PChar): PServEntry; syscall ISocket 212;
-function getservbyport(Port: LongInt; Protocol: PChar): PServEntry; syscall ISocket 216;
+function getservbyname(Name: PAnsiChar; Protocol: PAnsiChar): PServEntry; syscall ISocket 212;
+function getservbyport(Port: LongInt; Protocol: PAnsiChar): PServEntry; syscall ISocket 216;
 
 procedure setnetent(Stayopen: Longint);  syscall ISocket 456;
 procedure endnetent; syscall ISocket 460;
@@ -92,7 +92,7 @@ procedure endservent; syscall ISocket 484;
 function getservent: PServEntry; syscall ISocket 488;
 {$endif AMIGAOS4}
 
-function gethostbyname(Name: PChar): PHostEntry;
+function gethostbyname(Name: PAnsiChar): PHostEntry;
 begin
   if Assigned(SocketBase) then
     gethostbyname := fpgethostbyname(Name)
@@ -100,7 +100,7 @@ begin
     gethostbyname := nil;
 end;
 
-function gethostbyaddr(Addr: PChar; Len: Longint; HType: Longint): PHostentry;
+function gethostbyaddr(Addr: PAnsiChar; Len: Longint; HType: Longint): PHostentry;
 var
   addr1,
   addr2: in_addr;
