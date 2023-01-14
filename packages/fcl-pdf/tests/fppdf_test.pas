@@ -350,7 +350,7 @@ end;
 procedure TTestPDFObject.TestFloatStr;
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   AssertEquals('Failed on 1', '0.12', TMockPDFObject.FloatStr(TPDFFLoat(0.12)));
@@ -1575,10 +1575,10 @@ end;
 procedure TTestPDFLineStyle.TestLocalisationChanges;
 var
   o: TMockPDFLineStyle;
-  d: char;
+  d: AnsiChar;
 begin
   d :=  DefaultFormatSettings.DecimalSeparator;
-  DefaultFormatSettings.DecimalSeparator := Char('~');
+  DefaultFormatSettings.DecimalSeparator := AnsiChar('~');
   o := TMockPDFLineStyle.Create(PDF, ppsDashDotDot, 1, 1);
   try
     AssertEquals('Failed on 1', '', S.DataString);
@@ -1850,8 +1850,8 @@ var
   lSBefore: TStringStream;
   lSAfter: TStringStream;
   lCompressed: TMemoryStream;
-  lBefore: string;
-  lAfter: string;
+  lBefore: rawbytestring;
+  lAfter: rawbytestring;
 begin
   lBefore := GetTestString;
   lSBefore := TStringStream.Create(lBefore);
@@ -1871,9 +1871,9 @@ end;
 
 procedure TTestCompressionDecompression.TestStringCompressionDecompression;
 var
-  lBefore: string;
-  lCompressed: string;
-  lAfter: string;
+  lBefore: rawbytestring;
+  lCompressed: rawbytestring;
+  lAfter: rawbytestring;
   s: TStringStream;
   e: TStringStream;
 begin

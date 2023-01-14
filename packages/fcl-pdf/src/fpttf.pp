@@ -533,7 +533,7 @@ procedure TFPFontCacheList.ReadStandardFonts;
   function GetWinFontsDir: string;
   var
     {$if FPC_FULLVERSION < 30400}
-    w :  Array[0..MaxPathLen] of Char;
+    w :  Array[0..MaxPathLen] of AnsiChar;
     {$ELSE}
     w : pwidechar;
     {$ENDIF}
