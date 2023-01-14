@@ -13,7 +13,7 @@ uses Ibase60, strings;
 Const
      { Change to YOUR database server }
 
-     ServerDb : pchar =  'testdb.gdb';
+     ServerDb : PAnsiChar =  'testdb.gdb';
 
      { CHange to YOUR username and password. These may be empty }
 
@@ -24,7 +24,7 @@ Const
 
       dbinfo : array [1..3] of byte
              = (isc_info_page_size,isc_info_num_buffers,isc_info_end);
-      query : pchar = 'select * from FPDev;';
+      query : PAnsiChar = 'select * from FPDev;';
       flag : array[0..2] of shortint = (0,0,0);
 
 Type
@@ -34,10 +34,10 @@ Var
   DB : Tisc_db_handle;
   TA : TISC_tr_handle;
   statement : TISC_stmt_handle;
-  DPB : String;
+  DPB : AnsiString;
   Status : TStatusArray;
   sqlda : PXSQLDA;
-  name,email : String;
+  name,email : AnsiString;
   i,id : longint;
   fs : longint;
 

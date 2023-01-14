@@ -72,11 +72,11 @@ type
 
   TISC_VARYING = record
     strlen: Short;
-    str: array[0..0] of Char;
+    str: array[0..0] of AnsiChar;
   end;
 
-  TISC_BlobGetSegment = function(BlobHandle: PInt; Buffer: PChar; BufferSize: Long; var ResultLength: Long): Short; cdecl;
-  TISC_BlobPutSegment = procedure(BlobHandle: PInt; Buffer: PChar; BufferLength: Short); cdecl;
+  TISC_BlobGetSegment = function(BlobHandle: PInt; Buffer: PAnsiChar; BufferSize: Long; var ResultLength: Long): Short; cdecl;
+  TISC_BlobPutSegment = procedure(BlobHandle: PInt; Buffer: PAnsiChar; BufferLength: Short); cdecl;
 
   TBlob = record
     GetSegment         : TISC_BlobGetSegment;
@@ -1497,10 +1497,10 @@ type
   PISC_ARRAY_BOUND = ^TISC_ARRAY_BOUND;
   TISC_ARRAY_DESC = record
     array_desc_dtype : UChar;
-    array_desc_scale : Char;
+    array_desc_scale : AnsiChar;
     array_desc_length : UShort;
-    array_desc_field_name : array[0..31] of Char;
-    array_desc_relation_name : array[0..31] of Char;
+    array_desc_field_name : array[0..31] of AnsiChar;
+    array_desc_relation_name : array[0..31] of AnsiChar;
     array_desc_dimensions : Short;
     array_desc_flags : Short;
     array_desc_bounds : array[0..15] of TISC_ARRAY_BOUND;
@@ -1526,7 +1526,7 @@ type
     ctl_buffer_length : UShort;
     ctl_segment_length : UShort;
     ctl_bpb_length : UShort;
-    ctl_bpb : PChar;
+    ctl_bpb : PAnsiChar;
     ctl_buffer : PUChar;
     ctl_max_segment : ISC_LONG;
     ctl_number_segments : ISC_LONG;
@@ -1537,26 +1537,26 @@ type
 
   TBSTREAM = record
     bstr_blob : PVoid;
-    bstr_buffer : PChar;
-    bstr_ptr : PChar;
+    bstr_buffer : PAnsiChar;
+    bstr_ptr : PAnsiChar;
     bstr_length : Short;
     bstr_cnt : Short;
-    bstr_mode : Char;
+    bstr_mode : AnsiChar;
   end;
   PBSTREAM = ^TBSTREAM;
 
   TSQLVAR = record
     sqltype : Short;
     sqllen : Short;
-    sqldata : PChar;
+    sqldata : PAnsiChar;
     sqlind : PShort;
     sqlname_length : Short;
-    sqlname : array[0..29] of Char;
+    sqlname : array[0..29] of AnsiChar;
   end;
   PSQLVAR = ^TSQLVAR;
 
   TSQLDA = record
-    sqldaid : array[0..7] of Char;
+    sqldaid : array[0..7] of AnsiChar;
     sqldabc : ISC_LONG;
     sqln : Short;
     sqld : Short;
@@ -1569,23 +1569,23 @@ type
     sqlscale : Short;
     sqlsubtype : Short;
     sqllen : Short;
-    sqldata : PChar;
+    sqldata : PAnsiChar;
     sqlind : PShort;
     sqlname_length : Short;
-    sqlname : array[0..31] of Char;
+    sqlname : array[0..31] of AnsiChar;
     relname_length : Short;
-    relname : array[0..31] of Char;
+    relname : array[0..31] of AnsiChar;
     ownname_length : Short;
-    ownname : array[0..31] of Char;
+    ownname : array[0..31] of AnsiChar;
     aliasname_length : Short;
-    aliasname : array[0..31] of Char;
+    aliasname : array[0..31] of AnsiChar;
   end;
   PXSQLVAR = ^TXSQLVAR;
 
   TXSQLDA = record
     version : Short;
     pad : Short;
-    sqldaid : array[0..7] of Char;
+    sqldaid : array[0..7] of AnsiChar;
     sqldabc : ISC_LONG;
     sqln : Short;
     sqld : Short;
@@ -1596,13 +1596,13 @@ type
   TISC_START_TRANS = record
     db_handle : PISC_DB_HANDLE;
     tpb_length : UShort;   // Should it be long?
-    tpb_address : PChar;
+    tpb_address : PAnsiChar;
   end;
 
   TISC_TEB = record
     db_handle : PISC_DB_HANDLE;
     tpb_length : Long;
-    tpb_address : PChar;
+    tpb_address : PAnsiChar;
   end;
   PISC_TEB = ^TISC_TEB;
   TISC_TEB_ARRAY = array[0..0] of TISC_TEB;
@@ -1613,41 +1613,41 @@ TUserSecData = record
   uid : Int;
   gid : int;
   protocol : Int;
-  server : PChar;
-  user_name : PChar;
-  password : PChar;
-  group_name : PChar;
-  first_name : PChar;
-  middle_name : PChar;
-  last_name : PChar;
-  dba_user_name : PChar;
-  dba_password : PChar;
+  server : PAnsiChar;
+  user_name : PAnsiChar;
+  password : PAnsiChar;
+  group_name : PAnsiChar;
+  first_name : PAnsiChar;
+  middle_name : PAnsiChar;
+  last_name : PAnsiChar;
+  dba_user_name : PAnsiChar;
+  dba_password : PAnsiChar;
   end;
 PUserSecData = ^TUserSecData;
 
 // FUNCSTART  (to quickly get here, look for FUNCSTART)
 
-function isc_attach_database (status_vector : PISC_STATUS;db_name_length: Short;db_name: PChar;db_handle: PISC_DB_HANDLE;parm_buffer_length:Short;parm_buffer: PChar): ISC_STATUS; stdcall; external LibName;
-function isc_array_gen_sdl (status_vector : PISC_STATUS;isc_array_desc: PISC_ARRAY_DESC;isc_arg3 : PShort;isc_arg4 : PChar;isc_arg5 : PShort): ISC_STATUS;stdcall; external LibName;
+function isc_attach_database (status_vector : PISC_STATUS;db_name_length: Short;db_name: PAnsiChar;db_handle: PISC_DB_HANDLE;parm_buffer_length:Short;parm_buffer: PAnsiChar): ISC_STATUS; stdcall; external LibName;
+function isc_array_gen_sdl (status_vector : PISC_STATUS;isc_array_desc: PISC_ARRAY_DESC;isc_arg3 : PShort;isc_arg4 : PAnsiChar;isc_arg5 : PShort): ISC_STATUS;stdcall; external LibName;
 function isc_array_get_slice (status_vector : PISC_STATUS;db_handle: PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;array_id                 : PISC_QUAD;descriptor               : PISC_ARRAY_DESC;dest_array : PVoid;slice_length : ISC_LONG): ISC_STATUS;stdcall; external LibName;
-function isc_array_lookup_bounds (status_vector : PISC_STATUS;db_handle: PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name              : PChar;descriptor               : PISC_ARRAY_DESC): ISC_STATUS;stdcall; external LibName;
-function isc_array_lookup_desc (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name : PChar;descriptor : PISC_ARRAY_DESC) : ISC_STATUS; stdcall; external LibName;
-function isc_array_set_desc (status_vector : PISC_STATUS;table_name : PChar;column_name : PChar;sql_dtype,sql_length,sql_dimensions : PShort;descriptor : PISC_ARRAY_DESC) : ISC_STATUS;stdcall; external LibName;
+function isc_array_lookup_bounds (status_vector : PISC_STATUS;db_handle: PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name              : PAnsiChar;descriptor               : PISC_ARRAY_DESC): ISC_STATUS;stdcall; external LibName;
+function isc_array_lookup_desc (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name : PAnsiChar;descriptor : PISC_ARRAY_DESC) : ISC_STATUS; stdcall; external LibName;
+function isc_array_set_desc (status_vector : PISC_STATUS;table_name : PAnsiChar;column_name : PAnsiChar;sql_dtype,sql_length,sql_dimensions : PShort;descriptor : PISC_ARRAY_DESC) : ISC_STATUS;stdcall; external LibName;
 function isc_array_put_slice (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;array_id : PISC_QUAD;descriptor : PISC_ARRAY_DESC;source_array : PVoid;slice_length : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
 procedure isc_blob_default_desc (descriptor : PISC_BLOB_DESC;table_name : PUChar;column_name : PUChar);stdcall; external LibName;
 function isc_blob_gen_bpb (status_vector : PISC_STATUS;to_descriptor,from_descriptor : PISC_BLOB_DESC;bpb_buffer_length : UShort;bpb_buffer : PUChar;bpb_length : PUShort) : ISC_STATUS;stdcall; external LibName;
-function isc_blob_info (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;item_list_buffer_length : Short;item_list_buffer : PChar;result_buffer_length : Short;result_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_blob_lookup_desc (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name : PChar;descriptor : PISC_BLOB_DESC;global : PUChar) : ISC_STATUS;stdcall; external LibName;
-function isc_blob_set_desc (status_vector : PISC_STATUS;table_name,column_name : PChar;subtype,charset,segment_size : Short;descriptor : PISC_BLOB_DESC) : ISC_STATUS;stdcall; external LibName;
+function isc_blob_info (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;item_list_buffer_length : Short;item_list_buffer : PAnsiChar;result_buffer_length : Short;result_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_blob_lookup_desc (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;trans_handle : PISC_TR_HANDLE;table_name,column_name : PAnsiChar;descriptor : PISC_BLOB_DESC;global : PUChar) : ISC_STATUS;stdcall; external LibName;
+function isc_blob_set_desc (status_vector : PISC_STATUS;table_name,column_name : PAnsiChar;subtype,charset,segment_size : Short;descriptor : PISC_BLOB_DESC) : ISC_STATUS;stdcall; external LibName;
 function isc_cancel_blob (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_cancel_events (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;event_id : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
 function isc_close_blob (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_commit_retaining (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_commit_transaction (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_create_blob (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD) : ISC_STATUS;stdcall; external LibName;
-function isc_create_blob2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD;bpb_length : Short;bpb_address : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_create_database (status_vector : PISC_STATUS;isc_arg2 : Short;isc_arg3 : PChar;db_handle : PISC_DB_HANDLE;isc_arg5 : Short;isc_arg6 : PChar;isc_arg7 : Short) : ISC_STATUS;stdcall; external LibName;
-function isc_database_info (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;item_list_buffer_length : Short;item_list_buffer : PChar;result_buffer_length : Short;result_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_create_blob2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD;bpb_length : Short;bpb_address : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_create_database (status_vector : PISC_STATUS;isc_arg2 : Short;isc_arg3 : PAnsiChar;db_handle : PISC_DB_HANDLE;isc_arg5 : Short;isc_arg6 : PAnsiChar;isc_arg7 : Short) : ISC_STATUS;stdcall; external LibName;
+function isc_database_info (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;item_list_buffer_length : Short;item_list_buffer : PAnsiChar;result_buffer_length : Short;result_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 procedure isc_decode_date (ib_date : PISC_QUAD;tm_date : PCTimeStructure);stdcall; external LibName;
 function isc_detach_database (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_drop_database (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE) : ISC_STATUS;stdcall; external LibName;
@@ -1655,136 +1655,136 @@ function SQLDA_LENGTH (n : Long) : Long;function XSQLDA_LENGTH (n : Long) : Long
 function isc_dsql_alloc_statement2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;stmt_handle : PISC_STMT_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_describe (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_describe_bind (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_exec_immed2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;length : UShort;statement : PChar;dialect : UShort;in_xsqlda,out_xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_exec_immed2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;length : UShort;statement : PAnsiChar;dialect : UShort;in_xsqlda,out_xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_execute (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_execute2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;in_xsqlda,out_xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_execute_immediate (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;length : UShort;statement : PChar;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_execute_immediate (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;length : UShort;statement : PAnsiChar;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_fetch (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_finish (db_handle : PISC_DB_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_free_statement (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;options : UShort) : ISC_STATUS; stdcall; external LibName;
 function isc_dsql_insert (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;arg3 : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_prepare (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;stmt_handle : PISC_STMT_HANDLE;length : UShort;statement : PChar;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_set_cursor_name (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;cursor_name : PChar;_type : UShort) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_sql_info (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;item_length : UShort; items : PChar;buffer_length : UShort; buffer : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_prepare (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;stmt_handle : PISC_STMT_HANDLE;length : UShort;statement : PAnsiChar;dialect : UShort;xsqlda : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_set_cursor_name (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;cursor_name : PAnsiChar;_type : UShort) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_sql_info (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;item_length : UShort; items : PAnsiChar;buffer_length : UShort; buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 procedure isc_encode_date (tm_date : PCTimeStructure;ib_date : PISC_QUAD);stdcall; external LibName;
-function  isc_event_block (event_buffer : PPChar;result_buffer : PPChar;id_count : UShort;event_list : array of PChar) : ISC_LONG;cdecl; external LibName;
-procedure isc_event_counts (status_vector : PISC_STATUS;buffer_length : Short;event_buffer : PChar;result_buffer : PChar);stdcall; external LibName;
-procedure isc_expand_dpb (dpb : PPChar;dpb_length : PShort;item_list : array of Pointer);cdecl; external LibName;
-function isc_modify_dpb (dpb : PPChar;isc_arg2,isc_arg3 : PShort;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : Short) : Int;stdcall; external LibName;
-function isc_free (isc_arg1 : PChar) : ISC_LONG;stdcall; external LibName;
-function isc_get_segment (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;actual_seg_length : PUShort;seg_buffer_length : UShort;seg_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_get_slice (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PISC_QUAD;isc_arg5 : Short;isc_arg6 : PChar;isc_arg7 : Short;isc_arg8 : PISC_LONG;isc_arg9 : ISC_LONG;isc_arg10 : PVoid;isc_arg11 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
-function isc_interprete (buffer : PChar;status_vector : PPISC_STATUS) : ISC_STATUS;stdcall; external LibName;
+function  isc_event_block (event_buffer : PPAnsiChar;result_buffer : PPAnsiChar;id_count : UShort;event_list : array of PAnsiChar) : ISC_LONG;cdecl; external LibName;
+procedure isc_event_counts (status_vector : PISC_STATUS;buffer_length : Short;event_buffer : PAnsiChar;result_buffer : PAnsiChar);stdcall; external LibName;
+procedure isc_expand_dpb (dpb : PPAnsiChar;dpb_length : PShort;item_list : array of Pointer);cdecl; external LibName;
+function isc_modify_dpb (dpb : PPAnsiChar;isc_arg2,isc_arg3 : PShort;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : Short) : Int;stdcall; external LibName;
+function isc_free (isc_arg1 : PAnsiChar) : ISC_LONG;stdcall; external LibName;
+function isc_get_segment (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;actual_seg_length : PUShort;seg_buffer_length : UShort;seg_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_get_slice (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PISC_QUAD;isc_arg5 : Short;isc_arg6 : PAnsiChar;isc_arg7 : Short;isc_arg8 : PISC_LONG;isc_arg9 : ISC_LONG;isc_arg10 : PVoid;isc_arg11 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
+function isc_interprete (buffer : PAnsiChar;status_vector : PPISC_STATUS) : ISC_STATUS;stdcall; external LibName;
 function isc_open_blob (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD) : ISC_STATUS;stdcall; external LibName;
-function isc_open_blob2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD;bpb_length : Short;bpb_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_prepare_transaction2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;msg_length : Short;msg : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_open_blob2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;blob_handle : PISC_BLOB_HANDLE;blob_id : PISC_QUAD;bpb_length : Short;bpb_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_prepare_transaction2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;msg_length : Short;msg : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 procedure isc_print_sqlerror (sqlcode : Short;status_vector : PISC_STATUS);stdcall; external LibName;
 function isc_print_status (status_vector : PISC_STATUS) : ISC_STATUS;stdcall; external LibName;
-function isc_put_segment (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;seg_buffer_len : UShort;seg_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_put_slice (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PISC_QUAD;isc_arg5 : Short;isc_arg6 : PChar;isc_arg7 : Short;isc_arg8 : PISC_LONG;isc_arg9 : ISC_LONG;isc_arg10 : PVoid) : ISC_STATUS;stdcall; external LibName;
-function isc_que_events (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;event_id : PISC_LONG;length : Short;event_buffer : PChar;event_function : TISC_CALLBACK;event_function_arg : PVoid) : ISC_STATUS;stdcall; external LibName;
+function isc_put_segment (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;seg_buffer_len : UShort;seg_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_put_slice (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PISC_QUAD;isc_arg5 : Short;isc_arg6 : PAnsiChar;isc_arg7 : Short;isc_arg8 : PISC_LONG;isc_arg9 : ISC_LONG;isc_arg10 : PVoid) : ISC_STATUS;stdcall; external LibName;
+function isc_que_events (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;event_id : PISC_LONG;length : Short;event_buffer : PAnsiChar;event_function : TISC_CALLBACK;event_function_arg : PVoid) : ISC_STATUS;stdcall; external LibName;
 function isc_rollback_transaction (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_start_multiple (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;db_handle_count : Short;teb_vector_address : PISC_TEB) : ISC_STATUS;stdcall; external LibName;
-function isc_start_transaction (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;db_handle_count : Short;db_handle : PISC_DB_HANDLE;tpb_length : UShort;tpb_address : PChar) : ISC_STATUS;cdecl; external LibName;
+function isc_start_transaction (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;db_handle_count : Short;db_handle : PISC_DB_HANDLE;tpb_length : UShort;tpb_address : PAnsiChar) : ISC_STATUS;cdecl; external LibName;
 function isc_sqlcode (status_vector : PISC_STATUS) : ISC_LONG;stdcall; external LibName;
-procedure isc_sql_interprete (sqlcode : Short;buffer : PChar;buffer_length : Short);stdcall; external LibName;
-function isc_transaction_info (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;item_list_buffer_length : Short;item_list_buffer : PChar;result_buffer_length : Short;result_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_transact_request (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : PChar;isc_arg8 : UShort;isc_arg9 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_vax_integer (buffer : PChar;length : Short) : ISC_LONG;stdcall; external LibName;
+procedure isc_sql_interprete (sqlcode : Short;buffer : PAnsiChar;buffer_length : Short);stdcall; external LibName;
+function isc_transaction_info (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;item_list_buffer_length : Short;item_list_buffer : PAnsiChar;result_buffer_length : Short;result_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_transact_request (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : PAnsiChar;isc_arg8 : UShort;isc_arg9 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_vax_integer (buffer : PAnsiChar;length : Short) : ISC_LONG;stdcall; external LibName;
 function isc_add_user (status_vector : PISC_STATUS;user_sec_data : PUserSecData) : ISC_STATUS;stdcall; external LibName;
 function isc_delete_user (status_vector : PISC_STATUS;user_sec_data : PUserSecData) : ISC_STATUS;stdcall; external LibName;
 function isc_modify_user (status_vector : PISC_STATUS;user_sec_data : PUserSecData) : ISC_STATUS;stdcall; external LibName;
-function isc_compile_request (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : Short;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_compile_request2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : Short;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_ddl (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : Short;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_compile_request (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : Short;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_compile_request2 (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : Short;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_ddl (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : Short;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 function isc_prepare_transaction (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_receive (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3,isc_arg4 : Short;isc_arg5 : PVoid;isc_arg6 : Short) : ISC_STATUS;stdcall; external LibName;{$ifndef fpc}function isc_receive2 (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3,isc_arg4 : Short;isc_arg5 : PVoid;isc_arg6,isc_arg7 : Short;isc_arg8 : Long) : ISC_STATUS;stdcall; external LibName;{$endif}
-function isc_reconnect_transaction (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : Short;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_reconnect_transaction (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : Short;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 function isc_release_request (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE) : ISC_STATUS;stdcall; external LibName;
-function isc_request_info (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : Short;isc_arg4 : Short;isc_arg5 : PChar;isc_arg6 : Short;isc_arg7 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_request_info (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : Short;isc_arg4 : Short;isc_arg5 : PAnsiChar;isc_arg6 : Short;isc_arg7 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 function isc_seek_blob (status_vector : PISC_STATUS;blob_handle : PISC_BLOB_HANDLE;isc_arg3 : Short;isc_arg4 : ISC_LONG;isc_arg5 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
 function isc_send (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3,isc_arg4 : Short;isc_arg5 : PVoid;isc_arg6 : Short) : ISC_STATUS;stdcall; external LibName;
 function isc_start_and_send (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4,isc_arg5 : Short;isc_arg6 : PVoid;isc_arg7 : Short) : ISC_STATUS;stdcall; external LibName;
 function isc_start_request (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : Short) : ISC_STATUS;stdcall; external LibName;
 function isc_unwind_request (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : Short) : ISC_STATUS;stdcall; external LibName;
-function isc_wait_for_event (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;length : Short;event_buffer,result_buffer : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_close (status_vector : PISC_STATUS;isc_arg2 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_declare (status_vector : PISC_STATUS;isc_arg2,isc_arg3 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_describe (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_describe_bind (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_execute (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_execute_immediate (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_fetch (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_open (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_prepare (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PChar;isc_arg5 : PShort;isc_arg6 : PChar;isc_arg7 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_execute_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_execute2_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PChar;isc_arg9 : UShort;isc_arg10 : PChar;isc_arg11 : UShort;isc_arg12 : UShort;isc_arg13 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_execute_immediate_m (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PChar;isc_arg9 : UShort;isc_arg10 : UShort;isc_arg11 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_exec_immed3_m (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PChar;isc_arg9 : UShort;isc_arg10 : UShort;isc_arg11 : PChar;isc_arg12 : UShort;isc_arg13 : PChar;isc_arg14 : UShort;isc_arg15 : UShort;isc_arg16 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_fetch_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_insert_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_prepare_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PChar;isc_arg9 : UShort;isc_arg10 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_release (status_vector : PISC_STATUS;isc_arg2 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_close (status_vector : PISC_STATUS;isc_arg2 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_declare (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_describe (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_describe_bind (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_execute (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_execute2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA;isc_arg6 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_execute_immed (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PChar;isc_arg6 : UShort;isc_arg7 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_fetch (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_open (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_open2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA;isc_arg6 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_insert (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_prepare (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PChar;isc_arg5 : UShort;isc_arg6 : PChar;isc_arg7 : UShort;isc_arg8 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
-function isc_embed_dsql_release (status_vector : PISC_STATUS;isc_arg2 : PChar) : ISC_STATUS;stdcall; external LibName;
-function BLOB_open (blob_handle : TISC_BLOB_HANDLE;isc_arg2 : PChar;isc_arg3 : int) : PBSTREAM;stdcall; external LibName;
-function BLOB_put (isc_arg1 : char;isc_arg2 : PBSTREAM) : Int;stdcall; external LibName;
+function isc_wait_for_event (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;length : Short;event_buffer,result_buffer : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_close (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_declare (status_vector : PISC_STATUS;isc_arg2,isc_arg3 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_describe (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_describe_bind (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_execute (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_execute_immediate (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_fetch (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_open (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_prepare (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PAnsiChar;isc_arg5 : PShort;isc_arg6 : PAnsiChar;isc_arg7 : PSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_execute_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_execute2_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PAnsiChar;isc_arg9 : UShort;isc_arg10 : PAnsiChar;isc_arg11 : UShort;isc_arg12 : UShort;isc_arg13 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_execute_immediate_m (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PAnsiChar;isc_arg9 : UShort;isc_arg10 : UShort;isc_arg11 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_exec_immed3_m (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PAnsiChar;isc_arg9 : UShort;isc_arg10 : UShort;isc_arg11 : PAnsiChar;isc_arg12 : UShort;isc_arg13 : PAnsiChar;isc_arg14 : UShort;isc_arg15 : UShort;isc_arg16 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_fetch_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PAnsiChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_insert_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PAnsiChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_prepare_m (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;statement_handle : PISC_STMT_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : UShort;isc_arg8 : PAnsiChar;isc_arg9 : UShort;isc_arg10 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_release (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_close (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_declare (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_describe (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_describe_bind (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_execute (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_execute2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA;isc_arg6 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_execute_immed (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : UShort;isc_arg5 : PAnsiChar;isc_arg6 : UShort;isc_arg7 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_fetch (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_open (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_open2 (status_vector : PISC_STATUS;tran_handle : PISC_TR_HANDLE;isc_arg3 : PAnsiChar;isc_arg4 : UShort;isc_arg5 : PXSQLDA;isc_arg6 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_insert (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_prepare (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;isc_arg4 : PAnsiChar;isc_arg5 : UShort;isc_arg6 : PAnsiChar;isc_arg7 : UShort;isc_arg8 : PXSQLDA) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_release (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function BLOB_open (blob_handle : TISC_BLOB_HANDLE;isc_arg2 : PAnsiChar;isc_arg3 : int) : PBSTREAM;stdcall; external LibName;
+function BLOB_put (isc_arg1 : AnsiChar;isc_arg2 : PBSTREAM) : Int;stdcall; external LibName;
 function BLOB_close (isc_arg1 : PBSTREAM) : Int;stdcall; external LibName;
 function BLOB_get (isc_arg1 : PBSTREAM) : Int;stdcall; external LibName;
-function BLOB_display (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function BLOB_dump (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function BLOB_edit (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function BLOB_load (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function BLOB_text_dump (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function BLOB_text_load (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function Bopen (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar) : Int;stdcall; external LibName;
-function isc_ftof (isc_arg1 : PChar;isc_arg2 : UShort;isc_arg3 : PChar;isc_arg4 : UShort) : ISC_LONG;stdcall; external LibName;
-function isc_print_blr (isc_arg1 : PChar;isc_arg2 : TISC_CALLBACK;isc_arg3 : PVoid;isc_arg4 : Short) : ISC_STATUS;stdcall; external LibName;
+function BLOB_display (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function BLOB_dump (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function BLOB_edit (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function BLOB_load (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function BLOB_text_dump (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function BLOB_text_load (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function Bopen (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar) : Int;stdcall; external LibName;
+function isc_ftof (isc_arg1 : PAnsiChar;isc_arg2 : UShort;isc_arg3 : PAnsiChar;isc_arg4 : UShort) : ISC_LONG;stdcall; external LibName;
+function isc_print_blr (isc_arg1 : PAnsiChar;isc_arg2 : TISC_CALLBACK;isc_arg3 : PVoid;isc_arg4 : Short) : ISC_STATUS;stdcall; external LibName;
 procedure isc_set_debug (isc_arg1 : Int);stdcall; external LibName;
 procedure isc_qtoq (isc_arg1 : PISC_QUAD;isc_arg2 : PISC_QUAD);stdcall; external LibName;
-procedure isc_vtof (isc_arg1 : PChar;isc_arg2 : PChar;isc_arg3 : UShort);stdcall; external LibName;
-procedure isc_vtov (isc_arg1 : PChar;isc_arg2 : PChar;isc_arg3 : Short);stdcall; external LibName;
+procedure isc_vtof (isc_arg1 : PAnsiChar;isc_arg2 : PAnsiChar;isc_arg3 : UShort);stdcall; external LibName;
+procedure isc_vtov (isc_arg1 : PAnsiChar;isc_arg2 : PAnsiChar;isc_arg3 : Short);stdcall; external LibName;
 function isc_version (db_handle : PISC_DB_HANDLE;isc_arg2 : TISC_CALLBACK;isc_arg3 : PVoid) : Int;stdcall; external LibName;
-function isc_attach_service (status_vector : PISC_STATUS;isc_arg2 : UShort;isc_arg3 : PChar;service_handle : PISC_SVC_HANDLE;isc_arg5 : UShort;isc_arg6 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_attach_service (status_vector : PISC_STATUS;isc_arg2 : UShort;isc_arg3 : PAnsiChar;service_handle : PISC_SVC_HANDLE;isc_arg5 : UShort;isc_arg6 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 function isc_detach_service (status_vector : PISC_STATUS;service_handle : PISC_SVC_HANDLE) : ISC_STATUS;stdcall; external LibName;
-function isc_query_service (status_vector : PISC_STATUS;service_handle : PISC_SVC_HANDLE;isc_arg3 : UShort;isc_arg4 : PChar;isc_arg5 : UShort;isc_arg6 : PChar;isc_arg7 : UShort;isc_arg8 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_query_service (status_vector : PISC_STATUS;service_handle : PISC_SVC_HANDLE;isc_arg3 : UShort;isc_arg4 : PAnsiChar;isc_arg5 : UShort;isc_arg6 : PAnsiChar;isc_arg7 : UShort;isc_arg8 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 
 {$ifdef IB_CURSORS}
-function isc_embed_dsql_fetch2 (status_vector : PISC_STATUS;isc_arg2 : PChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA;isc_arg5 : UShort;isc_arg6 : Long) : ISC_STATUS;stdcall; external LibName;
+function isc_embed_dsql_fetch2 (status_vector : PISC_STATUS;isc_arg2 : PAnsiChar;isc_arg3 : UShort;isc_arg4 : PXSQLDA;isc_arg5 : UShort;isc_arg6 : Long) : ISC_STATUS;stdcall; external LibName;
 function isc_dsql_fetch2 (status_vector : PISC_STATUS;stmt_handle : PISC_STMT_HANDLE;dialect : UShort;xsqlda : PXSQLDA;isc_arg5 : UShort;isc_arg6 : Long) : ISC_STATUS;stdcall; external LibName;
-function isc_dsql_fetch2_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PChar;isc_arg8 : UShort;isc_arg9 : Long) : ISC_STATUS;stdcall; external LibName;
+function isc_dsql_fetch2_m (status_vector : PISC_STATUS;statement_handle : PISC_STMT_HANDLE;isc_arg3 : UShort;isc_arg4 : PAnsiChar;isc_arg5 : UShort;isc_arg6 : UShort;isc_arg7 : PAnsiChar;isc_arg8 : UShort;isc_arg9 : Long) : ISC_STATUS;stdcall; external LibName;
 {$endif}
 
 {$ifdef IB_Extensions}
-function Bopen2 (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PChar;isc_arg5 : UShort) : PBSTREAM;stdcall; external LibName;
+function Bopen2 (isc_arg1 : PISC_QUAD;db_handle : TISC_DB_HANDLE;tran_handle : TISC_TR_HANDLE;isc_arg4 : PAnsiChar;isc_arg5 : UShort) : PBSTREAM;stdcall; external LibName;
 function isc_reset_fpe (isc_arg1 : UShort) : ISC_LONG;stdcall; external LibName;
-function isc_compile_map (status_vector : PISC_STATUS;form_handle : PISC_FORM_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_compile_menu (status_vector : PISC_STATUS;form_handle : PISC_FORM_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_compile_sub_map (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_create_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;isc_arg3 : PShort;isc_arg4 : PChar;isc_arg5 : PShort;isc_arg6 : PShort) : ISC_STATUS;stdcall; external LibName;
+function isc_compile_map (status_vector : PISC_STATUS;form_handle : PISC_FORM_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_compile_menu (status_vector : PISC_STATUS;form_handle : PISC_FORM_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_compile_sub_map (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_create_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;isc_arg3 : PShort;isc_arg4 : PAnsiChar;isc_arg5 : PShort;isc_arg6 : PShort) : ISC_STATUS;stdcall; external LibName;
 function isc_delete_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_drive_form (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg6 : PUChar;isc_arg7 : PUChar) : ISC_STATUS;stdcall; external LibName;
-function isc_drive_menu (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar;isc_arg6 : PShort;isc_arg7 : PChar;isc_arg8 : PShort;isc_arg9 : PShort;isc_arg10 : PChar;isc_arg11 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
+function isc_drive_menu (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar;isc_arg6 : PShort;isc_arg7 : PAnsiChar;isc_arg8 : PShort;isc_arg9 : PShort;isc_arg10 : PAnsiChar;isc_arg11 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
 function isc_form_delete (status_vector : PISC_STATUS;form_handle : PISC_FORM_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_form_fetch (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg5 : PUChar) : ISC_STATUS;stdcall; external LibName;
 function isc_form_insert (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg5 : PUChar) : ISC_STATUS;stdcall; external LibName;
-function isc_get_entree (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : PShort;isc_arg4 : PChar;isc_arg5 : PISC_LONG;isc_arg6 : PShort) : ISC_STATUS;stdcall; external LibName;
+function isc_get_entree (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : PShort;isc_arg4 : PAnsiChar;isc_arg5 : PISC_LONG;isc_arg6 : PShort) : ISC_STATUS;stdcall; external LibName;
 function isc_initialize_menu (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE) : ISC_STATUS;stdcall; external LibName;
-function isc_menu (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PChar) : ISC_STATUS;stdcall; external LibName;
-function isc_load_form (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;form_handle : PISC_FORM_HANDLE;isc_arg5 : PShort;isc_arg6 : PChar) : ISC_STATUS;stdcall; external LibName;
+function isc_menu (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE;request_handle : PISC_REQ_HANDLE;isc_arg4 : PShort;isc_arg5 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
+function isc_load_form (status_vector : PISC_STATUS;db_handle : PISC_DB_HANDLE;tran_handle : PISC_TR_HANDLE;form_handle : PISC_FORM_HANDLE;isc_arg5 : PShort;isc_arg6 : PAnsiChar) : ISC_STATUS;stdcall; external LibName;
 function isc_pop_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE) : ISC_STATUS;stdcall; external LibName;
-function isc_put_entree (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : PShort;isc_arg4 : PChar;isc_arg5 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
+function isc_put_entree (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE;isc_arg3 : PShort;isc_arg4 : PAnsiChar;isc_arg5 : PISC_LONG) : ISC_STATUS;stdcall; external LibName;
 function isc_reset_form (status_vector : PISC_STATUS;request_handle : PISC_REQ_HANDLE) : ISC_STATUS;stdcall; external LibName;
 function isc_suspend_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_HANDLE) : ISC_STATUS;stdcall; external LibName;
 {$endif}
@@ -1804,7 +1804,7 @@ begin
 end;
 
 
-function getb(p: PBSTREAM): Char;
+function getb(p: PBSTREAM): AnsiChar;
 begin
   Dec(p^.bstr_cnt);
   if (p^.bstr_cnt >= 0) then
@@ -1813,30 +1813,30 @@ begin
     Inc(p^.bstr_ptr);
     end
   else
-    getb := Char(BLOB_get(p));
+    getb := AnsiChar(BLOB_get(p));
 end;
 
 
-function putb(x: Char; p: PBSTREAM): Int;
+function putb(x: AnsiChar; p: PBSTREAM): Int;
 begin
   Dec(p^.bstr_cnt);
   if (x = Chr(Byte('n') - Byte('a'))) or (p^.bstr_cnt = 0) then
     putb := BLOB_put(x, p)
       else
-      begin    p^.bstr_ptr^ := Char(x);
+      begin    p^.bstr_ptr^ := AnsiChar(x);
     putb := Byte(x);
     Inc(p^.bstr_ptr^);
   end;
 end;
 
 
-function putbx(x: Char; p: PBSTREAM): Int;
+function putbx(x: AnsiChar; p: PBSTREAM): Int;
 begin  Dec(p^.bstr_cnt);
   if (p^.bstr_cnt = 0) then
     putbx := BLOB_put(x, p)
   else
     begin
-    p^.bstr_ptr^ := Char(x);
+    p^.bstr_ptr^ := AnsiChar(x);
     Inc(p^.bstr_ptr^);
     putbx := Byte(x);
   end;
