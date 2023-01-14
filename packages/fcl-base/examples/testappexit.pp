@@ -1,5 +1,6 @@
 program testappexit;
-
+{$mode objfpc}
+{$h+}
 uses sysutils,custapp;
 
 type

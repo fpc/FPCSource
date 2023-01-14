@@ -12,7 +12,7 @@ Const BufSize = 1024;
 
 
 Var S : TProcess;
-    Buf : Array[1..BUFSIZE] of char;
+    Buf : Array[1..BUFSIZE] of AnsiChar;
     I,Count : longint;
 
 begin

@@ -327,7 +327,7 @@ begin
   If FBufPos>0 then
     begin
     // Fill with nulls
-    FillChar(PChar(@FData)[FBufPos],SizeOf(FData)-FBufPos,#0);
+    FillChar(PAnsiChar(@FData)[FBufPos],SizeOf(FData)-FBufPos,#0);
     CipherIdea(Fdata,OutData,FKey);
     Source.Write(OutData,SizeOf(OutData));
     // fixed: Manual flush and then free will now work
@@ -348,7 +348,7 @@ begin
     MVsize:=Count;
     If Mvsize>SizeOf(Fdata)-FBufPos then
       mvsize:=SizeOf(FData)-FBufPos;
-    Move(PChar(@Buffer)[Result],PChar(@FData)[FBufPos],MVSize);
+    Move(PAnsiChar(@Buffer)[Result],PAnsiChar(@FData)[FBufPos],MVSize);
     If FBufPos+mvSize=Sizeof(FData) then
       begin
       // Empty buffer.
@@ -409,9 +409,9 @@ begin
       mvSize:=FBufPos;
       If MvSize>count then
         mvsize:=Count;
-      Move(PChar(@FData)[0],PChar(@Buffer)[Result],MVSize);
+      Move(PAnsiChar(@FData)[0],PAnsiChar(@Buffer)[Result],MVSize);
       If ((Sizeof(FData)-MvSize)>0) then
-        Move(PChar(@FData)[mvSize],PChar(@FData)[0],Sizeof(FData)-MvSize);
+        Move(PAnsiChar(@FData)[mvSize],PAnsiChar(@FData)[0],Sizeof(FData)-MvSize);
       Dec(Count,mvsize);
       Inc(Result,mvsize);
       FBufPos:=FBufPos-MvSize;
@@ -424,7 +424,7 @@ begin
         begin
         If MvSize<SizeOf(InData) Then
           // Fill with nulls
-          FillChar(PChar(@InData)[mvsize],SizeOf(InData)-mvsize,#0);
+          FillChar(PAnsiChar(@InData)[mvsize],SizeOf(InData)-mvsize,#0);
         CipherIdea(InData,FData,FKey);
         FBufPos:=SizeOf(FData);
         end

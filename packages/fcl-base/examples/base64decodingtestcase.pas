@@ -29,13 +29,13 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     // utility
-    procedure WriteToSourceStream(s:string);
-    function NoiseCharString:string; // all non-base64 alphabet characters
-    function RandomNoise(l:integer):string; // l random non-base64 alphabet characters
+    procedure WriteToSourceStream(s:AnsiString);
+    function NoiseCharString:ansistring; // all non-base64 alphabet characters
+    function RandomNoise(l:integer):ansistring; // l random non-base64 alphabet characters
     // test templates
-    procedure TestGetSize(mode:TBase64DecodingMode; s:string; expectedSize:Int64);
-    procedure TestDecode (mode:TBase64DecodingMode; s, expected:string);
-    procedure TestReset  (mode:TBase64DecodingMode; s:string; start:array of Int64; expected:array of string);
+    procedure TestGetSize(mode:TBase64DecodingMode; s:AnsiString; expectedSize:Int64);
+    procedure TestDecode (mode:TBase64DecodingMode; s, expected: AnsiString);
+    procedure TestReset  (mode:TBase64DecodingMode; s:AnsiString; start:array of Int64; expected:array of ansistring);
   published
     procedure TestGetSizeStrict1;
     procedure TestGetSizeStrict2;
@@ -98,12 +98,12 @@ uses
 
 // utility routines
 type
-  TChars = set of char;
+  TChars = set of AnsiChar;
   
-function SetToString(chars:TChars):string;
+function SetToString(chars:TChars):ansistring;
 var
   pos: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   pos:=0;
   SetLength(Result,256);
@@ -115,11 +115,11 @@ begin
   SetLength(Result,pos);
 end;
 
-function Shuffle(s:string):string;
+function Shuffle(s: ansistring): ansistring;
 var
   i: Integer;
   randomPos: Integer;
-  c: Char;
+  c: AnsiChar;
 begin
   UniqueString(s);
   for i:=1 to Length(s) do begin
@@ -132,7 +132,7 @@ begin
 end;
 
 // order preserving shuffle
-function Merge(s,t:string):string;
+function Merge(s,t: ansistring): ansistring;
 var
   si: Integer;
   ti: Integer;
@@ -181,21 +181,21 @@ begin
   FreeAndNil(SourceStream);
 end;
 
-procedure TBase64DecodingStreamTestCase.WriteToSourceStream(s: string);
+procedure TBase64DecodingStreamTestCase.WriteToSourceStream(s: ansistring);
 begin
   SourceStream.Write(s[1],Length(s));
   SourceStream.Position:=0;
 end;
 
-function TBase64DecodingStreamTestCase.NoiseCharString: string;
+function TBase64DecodingStreamTestCase.NoiseCharString: ansistring;
 begin
   Result:=SetToString([#0..#255]-['a'..'z','A'..'Z','0'..'9','+','/','=']);
 end;
 
-function TBase64DecodingStreamTestCase.RandomNoise(l: integer): string;
+function TBase64DecodingStreamTestCase.RandomNoise(l: integer): ansistring;
 var
   i: Integer;
-  noiseChars: String;
+  noiseChars: ansistring;
 begin
   noiseChars:=NoiseCharString; // our pool
   SetLength(Result,l);
@@ -203,7 +203,7 @@ begin
     Result[i]:=noiseChars[Random(Length(noiseChars))+1];
 end;
 
-procedure TBase64DecodingStreamTestCase.TestGetSize(mode:TBase64DecodingMode; s: string; expectedSize: Int64);
+procedure TBase64DecodingStreamTestCase.TestGetSize(mode:TBase64DecodingMode; s: ansistring; expectedSize: Int64);
 var
   Size: Int64;
 begin
@@ -213,9 +213,9 @@ begin
   AssertEquals('Correct size calculated by Size getter', Size, expectedSize);
 end;
 
-procedure TBase64DecodingStreamTestCase.TestDecode(mode: TBase64DecodingMode; s, expected: string);
+procedure TBase64DecodingStreamTestCase.TestDecode(mode: TBase64DecodingMode; s, expected: );
 var
-  Buf: array[0..63] of Char;
+  Buf: array[0..63] of AnsiChar;
   si: Integer;
   i: Integer;
   count: LongInt;
@@ -235,9 +235,9 @@ begin
   AssertEquals('Correct decoded length', Length(expected), si-1);
 end;
 
-procedure TBase64DecodingStreamTestCase.TestReset(mode: TBase64DecodingMode; s: string; start: array of Int64; expected: array of string);
+procedure TBase64DecodingStreamTestCase.TestReset(mode: TBase64DecodingMode; s: ansistring; start: array of Int64; expected: array of ansistring);
 var
-  Buf: array[0..63] of Char;
+  Buf: array[0..63] of AnsiChar;
   len: Integer;
   i: Integer;
   count: LongInt;
