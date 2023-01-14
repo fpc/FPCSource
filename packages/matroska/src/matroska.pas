@@ -137,7 +137,7 @@ type
 *)
   matroska_track = pointer;
 (*!
-    \var char* c_string
+    \var AnsiChar* c_string
     \brief C-String, ie a buffer with characters terminated by \0
 *)
   c_string = pcchar;
@@ -148,7 +148,7 @@ type
 *)
   matroska_file_mode = pcchar;
 (*!
-    \var void ( *matroska_error_callback)(matroska_error_t error_code, char* error_message)
+    \var void ( *matroska_error_callback)(matroska_error_t error_code, AnsiChar* error_message)
     \brief a callback that the library use to inform of errors happening
 *)
   matroska_error_callback = procedure(error_code: matroska_error_t; error_message: pcchar); cdecl;
