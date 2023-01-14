@@ -28,21 +28,21 @@ const
   { Asynchronous (non-blocking)  }
 (* Const before type ignored *)
 
-  function PQconnectStart(conninfo:Pchar):PPGconn;cdecl;external External_library name 'PQconnectStart';
+  function PQconnectStart(conninfo:PAnsiChar):PPGconn;cdecl;external External_library name 'PQconnectStart';
 
   function PQconnectPoll(conn:PPGconn):PostgresPollingStatusType;cdecl;external External_library name 'PQconnectPoll';
 
   { Synchronous (blocking)  }
 (* Const before type ignored *)
-  function PQconnectdb(conninfo:Pchar):PPGconn;cdecl;external External_library name 'PQconnectdb';
+  function PQconnectdb(conninfo:PAnsiChar):PPGconn;cdecl;external External_library name 'PQconnectdb';
 
-  function PQsetdbLogin(pghost:Pchar; pgport:Pchar; pgoptions:Pchar; pgtty:Pchar; dbName:Pchar;
-             login:Pchar; pwd:Pchar):PPGconn;cdecl;external External_library name 'PQsetdbLogin';
+  function PQsetdbLogin(pghost:PAnsiChar; pgport:PAnsiChar; pgoptions:PAnsiChar; pgtty:PAnsiChar; dbName:PAnsiChar;
+             login:PAnsiChar; pwd:PAnsiChar):PPGconn;cdecl;external External_library name 'PQsetdbLogin';
 
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
+  function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : ppgconn;
 
   { close the current connection and free the PGconn data structure  }
   procedure PQfinish(conn:PPGconn);cdecl;external External_library name 'PQfinish';
@@ -69,31 +69,31 @@ const
   function PQrequestCancel(conn:PPGconn):longint;cdecl;external External_library name 'PQrequestCancel';
 
   { Accessor functions for PGconn objects  }
-  function PQdb(conn:PPGconn):Pchar;cdecl;external External_library name 'PQdb';
+  function PQdb(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQdb';
 
-  function PQuser(conn:PPGconn):Pchar;cdecl;external External_library name 'PQuser';
+  function PQuser(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQuser';
 
-  function PQpass(conn:PPGconn):Pchar;cdecl;external External_library name 'PQpass';
+  function PQpass(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQpass';
 
-  function PQhost(conn:PPGconn):Pchar;cdecl;external External_library name 'PQhost';
+  function PQhost(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQhost';
 
-  function PQport(conn:PPGconn):Pchar;cdecl;external External_library name 'PQport';
+  function PQport(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQport';
 
-  function PQtty(conn:PPGconn):Pchar;cdecl;external External_library name 'PQtty';
+  function PQtty(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQtty';
 
-  function PQoptions(conn:PPGconn):Pchar;cdecl;external External_library name 'PQoptions';
+  function PQoptions(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQoptions';
 
   function PQstatus(conn:PPGconn):TConnStatusType;cdecl;external External_library name 'PQstatus';
 
   function PQtransactionStatus(conn:PPGconn):PGTransactionStatusType;cdecl;external External_library name 'PQtransactionStatus';
 
-  function PQparameterStatus(conn:PPGconn; paramName:Pchar):Pchar;cdecl;external External_library name 'PQparameterStatus';
+  function PQparameterStatus(conn:PPGconn; paramName:PAnsiChar):PAnsiChar;cdecl;external External_library name 'PQparameterStatus';
 
   function PQprotocolVersion(conn:PPGconn):longint;cdecl;external External_library name 'PQprotocolVersion';
 
   function PQserverVersion(conn:PPGconn):longint;cdecl;external External_library name 'PQserverVersion';
 
-  function PQerrorMessage(conn:PPGconn):Pchar;cdecl;external External_library name 'PQerrorMessage';
+  function PQerrorMessage(conn:PPGconn):PAnsiChar;cdecl;external External_library name 'PQerrorMessage';
 
   function PQsocket(conn:PPGconn):longint;cdecl;external External_library name 'PQsocket';
 
@@ -101,7 +101,7 @@ const
 
   function PQclientEncoding(conn:PPGconn):longint;cdecl;external External_library name 'PQclientEncoding';
 
-  function PQsetClientEncoding(conn:PPGconn; encoding:Pchar):longint;cdecl;external External_library name 'PQsetClientEncoding';
+  function PQsetClientEncoding(conn:PPGconn; encoding:PAnsiChar):longint;cdecl;external External_library name 'PQsetClientEncoding';
 
 {$ifdef USE_SSL}
   { Get the SSL structure associated with a connection  }
@@ -119,21 +119,21 @@ const
 
   { === in fe-exec.c ===  }
   { Simple synchronous query  }
-  function PQexec(conn:PPGconn; query:Pchar):PPGresult;cdecl;external External_library name 'PQexec';
-  function PQexecParams(conn:PPGconn; command:Pchar; nParams:longint; paramTypes:POid; paramValues:PPchar;
+  function PQexec(conn:PPGconn; query:PAnsiChar):PPGresult;cdecl;external External_library name 'PQexec';
+  function PQexecParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues:PPAnsiChar;
              paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):PPGresult;cdecl;external External_library name 'PQexecParams';
 
-  function PQexecPrepared(conn:PPGconn; stmtName:Pchar; nParams:longint; paramValues:PPchar; paramLengths:Plongint;
+  function PQexecPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues:PPAnsiChar; paramLengths:Plongint;
              paramFormats:Plongint; resultFormat:longint):PPGresult;cdecl;external External_library name 'PQexecPrepared';
-  function PQdescribePrepared(conn:PPGconn; stmtName:Pchar):PPGresult;cdecl;external External_library name 'PQdescribePrepared';
+  function PQdescribePrepared(conn:PPGconn; stmtName:PAnsiChar):PPGresult;cdecl;external External_library name 'PQdescribePrepared';
 
   { Interface for multiple-result or asynchronous queries  }
-  function PQsendQuery(conn:PPGconn; query:Pchar):longint;cdecl;external External_library name 'PQsendQuery';
+  function PQsendQuery(conn:PPGconn; query:PAnsiChar):longint;cdecl;external External_library name 'PQsendQuery';
 
-  function PQsendQueryParams(conn:PPGconn; command:Pchar; nParams:longint; paramTypes:POid; paramValues:PPchar;
+  function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues:PPAnsiChar;
              paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint;cdecl;external External_library name 'PQsendQueryParams';
 
-  function PQsendQueryPrepared(conn:PPGconn; stmtName:Pchar; nParams:longint; paramValues:PPchar; paramLengths:Plongint;
+  function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues:PPAnsiChar; paramLengths:Plongint;
              paramFormats:Plongint; resultFormat:longint):longint;cdecl;external External_library name 'PQsendQueryPrepared';
 
   function PQgetResult(conn:PPGconn):PPGresult;cdecl;external External_library name 'PQgetResult';
@@ -147,20 +147,20 @@ const
   function PQnotifies(conn:PPGconn):PPGnotify;cdecl;external External_library name 'PQnotifies';
 
   { Routines for copy in/out  }
-  function PQputCopyData(conn:PPGconn; buffer:Pchar; nbytes:longint):longint;cdecl;external External_library name 'PQputCopyData';
+  function PQputCopyData(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint;cdecl;external External_library name 'PQputCopyData';
 
-  function PQputCopyEnd(conn:PPGconn; errormsg:Pchar):longint;cdecl;external External_library name 'PQputCopyEnd';
+  function PQputCopyEnd(conn:PPGconn; errormsg:PAnsiChar):longint;cdecl;external External_library name 'PQputCopyEnd';
 
-  function PQgetCopyData(conn:PPGconn; buffer:PPchar; async:longint):longint;cdecl;external External_library name 'PQgetCopyData';
+  function PQgetCopyData(conn:PPGconn; buffer:PPAnsiChar; async:longint):longint;cdecl;external External_library name 'PQgetCopyData';
 
   { Deprecated routines for copy in/out  }
-  function PQgetline(conn:PPGconn; _string:Pchar; length:longint):longint;cdecl;external External_library name 'PQgetline';
+  function PQgetline(conn:PPGconn; _string:PAnsiChar; length:longint):longint;cdecl;external External_library name 'PQgetline';
 
-  function PQputline(conn:PPGconn; _string:Pchar):longint;cdecl;external External_library name 'PQputline';
+  function PQputline(conn:PPGconn; _string:PAnsiChar):longint;cdecl;external External_library name 'PQputline';
 
-  function PQgetlineAsync(conn:PPGconn; buffer:Pchar; bufsize:longint):longint;cdecl;external External_library name 'PQgetlineAsync';
+  function PQgetlineAsync(conn:PPGconn; buffer:PAnsiChar; bufsize:longint):longint;cdecl;external External_library name 'PQgetlineAsync';
 
-  function PQputnbytes(conn:PPGconn; buffer:Pchar; nbytes:longint):longint;cdecl;external External_library name 'PQputnbytes';
+  function PQputnbytes(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint;cdecl;external External_library name 'PQputnbytes';
 
   function PQendcopy(conn:PPGconn):longint;cdecl;external External_library name 'PQendcopy';
 
@@ -182,10 +182,10 @@ const
   { Accessor functions for PGresult objects  }
   function PQresultStatus(res:PPGresult):TExecStatusType;cdecl;external External_library name 'PQresultStatus';
 
-  function PQresStatus(status:TExecStatusType):Pchar;cdecl;external External_library name 'PQresStatus';
-  function PQresultErrorMessage(res:PPGresult):Pchar;cdecl;external External_library name 'PQresultErrorMessage';
+  function PQresStatus(status:TExecStatusType):PAnsiChar;cdecl;external External_library name 'PQresStatus';
+  function PQresultErrorMessage(res:PPGresult):PAnsiChar;cdecl;external External_library name 'PQresultErrorMessage';
 
-  function PQresultErrorField(res:PPGresult; fieldcode:longint):Pchar;cdecl;external External_library name 'PQresultErrorField';
+  function PQresultErrorField(res:PPGresult; fieldcode:longint):PAnsiChar;cdecl;external External_library name 'PQresultErrorField';
 
   function PQntuples(res:PPGresult):longint;cdecl;external External_library name 'PQntuples';
 
@@ -193,9 +193,9 @@ const
 
   function PQbinaryTuples(res:PPGresult):longint;cdecl;external External_library name 'PQbinaryTuples';
 
-  function PQfname(res:PPGresult; field_num:longint):Pchar;cdecl;external External_library name 'PQfname';
+  function PQfname(res:PPGresult; field_num:longint):PAnsiChar;cdecl;external External_library name 'PQfname';
 
-  function PQfnumber(res:PPGresult; field_name:Pchar):longint;cdecl;external External_library name 'PQfnumber';
+  function PQfnumber(res:PPGresult; field_name:PAnsiChar):longint;cdecl;external External_library name 'PQfnumber';
 
   function PQftable(res:PPGresult; field_num:longint):Oid;cdecl;external External_library name 'PQftable';
 
@@ -209,16 +209,16 @@ const
 
   function PQfmod(res:PPGresult; field_num:longint):longint;cdecl;external External_library name 'PQfmod';
 
-  function PQcmdStatus(res:PPGresult):Pchar;cdecl;external External_library name 'PQcmdStatus';
+  function PQcmdStatus(res:PPGresult):PAnsiChar;cdecl;external External_library name 'PQcmdStatus';
 
-  function PQoidStatus(res:PPGresult):Pchar;cdecl;external External_library name 'PQoidStatus';
+  function PQoidStatus(res:PPGresult):PAnsiChar;cdecl;external External_library name 'PQoidStatus';
 
   { old and ugly  }
   function PQoidValue(res:PPGresult):Oid;cdecl;external External_library name 'PQoidValue';
 
   { new and improved  }
-  function PQcmdTuples(res:PPGresult):Pchar;cdecl;external External_library name 'PQcmdTuples';
-  function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):Pchar;cdecl;external External_library name 'PQgetvalue';
+  function PQcmdTuples(res:PPGresult):PAnsiChar;cdecl;external External_library name 'PQcmdTuples';
+  function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PAnsiChar;cdecl;external External_library name 'PQgetvalue';
 
   function PQgetlength(res:PPGresult; tup_num:longint; field_num:longint):longint;cdecl;external External_library name 'PQgetlength';
 
@@ -244,7 +244,7 @@ const
   function PQmakeEmptyPGresult(conn:PPGconn; status:TExecStatusType):PPGresult;cdecl;external External_library name 'PQmakeEmptyPGresult';
 
   { Quoting strings before inclusion in queries.  }
-  function PQescapeString(till:Pchar; from:Pchar; length:size_t):size_t;cdecl;external External_library name 'PQescapeString';
+  function PQescapeString(till:PAnsiChar; from:PAnsiChar; length:size_t):size_t;cdecl;external External_library name 'PQescapeString';
   function PQescapeBytea(bintext:Pbyte; binlen:size_t; bytealen:Psize_t):Pbyte;cdecl;external External_library name 'PQescapeBytea';
   function PQunescapeBytea(strtext:Pbyte; retbuflen:Psize_t):Pbyte;cdecl;external External_library name 'PQunescapeBytea';
 
@@ -260,7 +260,7 @@ const
   { pad the fields with spaces  }
   { field separator  }
   { display headers?  }
-  procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:Pchar; printHeader:longint;
+  procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PAnsiChar; printHeader:longint;
               quiet:longint);cdecl;external External_library name 'PQdisplayTuples';
 
 (* Const before type ignored *)
@@ -277,9 +277,9 @@ const
 
   function lo_close(conn:PPGconn; fd:longint):longint;cdecl;external External_library name 'lo_close';
 
-  function lo_read(conn:PPGconn; fd:longint; buf:Pchar; len:size_t):longint;cdecl;external External_library name 'lo_read';
+  function lo_read(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint;cdecl;external External_library name 'lo_read';
 
-  function lo_write(conn:PPGconn; fd:longint; buf:Pchar; len:size_t):longint;cdecl;external External_library name 'lo_write';
+  function lo_write(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint;cdecl;external External_library name 'lo_write';
 
   function lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint;cdecl;external External_library name 'lo_lseek';
 
@@ -289,12 +289,12 @@ const
 
   function lo_unlink(conn:PPGconn; lobjId:Oid):longint;cdecl;external External_library name 'lo_unlink';
 
-  function lo_import(conn:PPGconn; filename:Pchar):Oid;cdecl;external External_library name 'lo_import';
+  function lo_import(conn:PPGconn; filename:PAnsiChar):Oid;cdecl;external External_library name 'lo_import';
 
-  function lo_export(conn:PPGconn; lobjId:Oid; filename:Pchar):longint;cdecl;external External_library name 'lo_export';
+  function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint;cdecl;external External_library name 'lo_export';
 
   { === in fe-misc.c ===  }
-  { Determine length of multibyte encoded char at *s  }
+  { Determine length of multibyte encoded AnsiChar at *s  }
   function PQmblen(s:Pbyte; encoding:longint):longint;cdecl;external External_library name 'PQmblen';
 
   { Get encoding id from environment variable PGCLIENTENCODING  }
@@ -308,7 +308,7 @@ implementation
 
 // This function is also defined in postgres3dyn!
 
-  function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
+  function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : ppgconn;
     begin
        PQsetdb:=PQsetdbLogin(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME,'','');
     end;
