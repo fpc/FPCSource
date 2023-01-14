@@ -3898,9 +3898,15 @@ cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_CondWaitTimeout'{$ELSE} S
 { * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * }
 
 { Create a thread }
-function SDL_CreateThread(fn: PInt; data: Pointer): PSDL_Thread;
+function SDL_CreateThread(fn: PInt; data: Pointer): PSDL_Thread; overload;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_CreateThread'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_CreateThread}
+
+type
+  SDL_ThreadFunction = function(data: pointer): integer; cdecl;
+
+function SDL_CreateThread(fn: SDL_ThreadFunction; data: Pointer): PSDL_Thread; overload;
+cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_CreateThread'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 
 { Get the 32-bit thread identifier for the current thread }
 function SDL_ThreadID: UInt32;
