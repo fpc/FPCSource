@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-function ftok(path:Pchar; id:cint):key_t;
+function ftok(path:PAnsiChar; id:cint):key_t;
 
 var st:stat;
 

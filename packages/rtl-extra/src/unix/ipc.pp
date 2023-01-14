@@ -205,7 +205,7 @@ type
 
 
 { Function to generate a IPC key. }
-Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'ftok'; {$endif}
+Function ftok (Path : PAnsiChar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'ftok'; {$endif}
 
 { ----------------------------------------------------------------------
   Sys V Shared memory stuff
@@ -477,11 +477,11 @@ type
     msg_next  : PMSG;
     msg_attr  : TMsg_Hdr;
     msg_ts    : cuint;
-    msg_spot  : pchar;
+    msg_spot  : PAnsiChar;
    {$else}
     msg_next  : PMSG;
     msg_type  : Longint;
-    msg_spot  : PChar;
+    msg_spot  : PAnsiChar;
     msg_stime : Longint;
     msg_ts    : Integer;
    {$endif}
@@ -618,7 +618,7 @@ type
   PMSGbuf = ^TMSGbuf;
   TMSGbuf = record              // called mymsg on freebsd and SVID manual
     mtype : clong;
-    mtext : array[0..0] of char;
+    mtext : array[0..0] of AnsiChar;
   end;
 
 {$if defined(linux)}
