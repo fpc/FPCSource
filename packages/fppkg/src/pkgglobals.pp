@@ -359,7 +359,7 @@ var
 {$ELSE USE_SHELL}
   S: TProcess;
 {$ENDIF USE_SHELL}
-  Buf: array [0..BufSize - 1] of char;
+  Buf: array [0..BufSize - 1] of AnsiChar;
   Count: longint;
 begin
 {$IFDEF USE_SHELL}

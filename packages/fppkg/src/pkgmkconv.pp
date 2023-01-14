@@ -65,7 +65,7 @@ uses
   pkgglobals,
   pkgmessages;
 
-Function GetWord(var S : String; Sep : Char) : String;
+Function GetWord(var S : String; Sep : AnsiChar) : String;
 
 Var
   L : Integer;

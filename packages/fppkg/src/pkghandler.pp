@@ -172,7 +172,7 @@ var
     n: longint;
     BuffPos: longint;
     sLine: string;
-    ch: char;
+    ch: AnsiChar;
   begin
     // make sure we have room
     ConsoleOutput.SetSize(BytesRead + READ_BYTES);
