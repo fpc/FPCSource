@@ -474,7 +474,7 @@ var
   L: Integer;
   InfoO,InfoN : TRegDataInfo;
   D : TRegDataType;
-  P: PChar;
+  P: PAnsiChar;
 
 begin
   If GetDataInfo(OldName,InfoO) and Not GetDataInfo(NewName,InfoN) then
