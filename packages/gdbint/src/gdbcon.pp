@@ -37,20 +37,20 @@ type
     procedure MaxWidth;
     procedure NormWidth;
     { print }
-    function InternalGetValue(Const expr : string) : AnsiString;
+    function InternalGetValue(Const expr : ShortString) : AnsiString;
   public
     progname,
     progdir,
-    progargs   : pchar;
+    progargs   : PAnsiChar;
     TBreakNumber,
     start_break_number,
     in_command,
     init_count : longint;
     constructor Init;
     destructor  Done;
-    procedure CommandBegin(const s:string);virtual;
-    procedure Command(const s:string);
-    procedure CommandEnd(const s:string);virtual;
+    procedure CommandBegin(const s:ShortString);virtual;
+    procedure Command(const s:ShortString);
+    procedure CommandEnd(const s:ShortString);virtual;
     procedure Reset;virtual;
     { tracing }
     procedure StartTrace;
@@ -62,41 +62,41 @@ type
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
     { registers }
-    function GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
-    function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
-    function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
-    function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
-    function GetIntRegister(const RegName: string; var Value: UInt16): Boolean;
-    function GetIntRegister(const RegName: string; var Value: Int16): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: UInt64): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: Int64): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: UInt32): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: Int32): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: UInt16): Boolean;
+    function GetIntRegister(const RegName: ShortString; var Value: Int16): Boolean;
     { set command }
-    function SetCommand(Const SetExpr : string) : boolean;
+    function SetCommand(Const SetExpr : ShortString) : boolean;
     { print }
-    function PrintCommand(const expr : string): AnsiString;
-    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
+    function PrintCommand(const expr : ShortString): AnsiString;
+    function PrintFormattedCommand(const expr : ShortString; Format : TPrintFormatType): AnsiString;
     { breakpoints }
-    function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
-    function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+    function BreakpointInsert(const location: ShortString; BreakpointFlags: TBreakpointFlags): LongInt;
+    function WatchpointInsert(const location: ShortString; WatchpointType: TWatchpointType): LongInt;
     function BreakpointDelete(BkptNo: LongInt): Boolean;
     function BreakpointEnable(BkptNo: LongInt): Boolean;
     function BreakpointDisable(BkptNo: LongInt): Boolean;
-    function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+    function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: ShortString): Boolean;
     function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
-    procedure SetTBreak(tbreakstring : string);
+    procedure SetTBreak(tbreakstring : ShortString);
     { frame commands }
     procedure Backtrace;
     function SelectFrameCommand(level :longint) : boolean;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
-    function  GetOutput : Pchar;
-    function  GetError : Pchar;
-    function  LoadFile(var fn:string):boolean;
-    procedure SetDir(const s : string);
-    procedure SetArgs(const s : string);
+    function  GetOutput : PAnsiChar;
+    function  GetError : PAnsiChar;
+    function  LoadFile(var fn:ShortString):boolean;
+    procedure SetDir(const s : ShortString);
+    procedure SetArgs(const s : ShortString);
     procedure ClearSymbols;
   end;
 
-procedure UnixDir(var s : string);
+procedure UnixDir(var s : ShortString);
 
 implementation
 
@@ -115,11 +115,11 @@ const
   CygDrivePrefixKey4 = 'mounts v2';
   CygDrivePrefixKey = 'cygdrive prefix';
 
-function CygDrivePrefix : string;
+function CygDrivePrefix : ShortString;
 var
   i : longint;
   length : dword;
-  Value : pchar;
+  Value : PAnsiChar;
   _type : dword;
   Key,NKey : HKey;
 begin
@@ -166,7 +166,7 @@ begin
 end;
 {$endif win32}
 
-procedure UnixDir(var s : string);
+procedure UnixDir(var s : ShortString);
 var i : longint;
 begin
   for i:=1 to length(s) do
@@ -203,7 +203,7 @@ begin
 end;
 
 
-procedure TGDBController.Command(const s:string);
+procedure TGDBController.Command(const s:ShortString);
 begin
   inc(in_command);
   CommandBegin(s);
@@ -226,17 +226,17 @@ begin
   dec(in_command);
 end;
 
-procedure TGDBController.CommandBegin(const s:string);
+procedure TGDBController.CommandBegin(const s:ShortString);
 begin
 end;
 
-procedure TGDBController.CommandEnd(const s:string);
+procedure TGDBController.CommandEnd(const s:ShortString);
 begin
 end;
 
-function TGDBController.LoadFile(var fn:string):boolean;
+function TGDBController.LoadFile(var fn:ShortString):boolean;
 var
-  cmd : string;
+  cmd : ShortString;
 begin
   getdir(0,cmd);
   UnixDir(cmd);
@@ -253,9 +253,9 @@ begin
   LoadFile:=true;
 end;
 
-procedure TGDBController.SetDir(const s : string);
+procedure TGDBController.SetDir(const s : ShortString);
 var
-  hs : string;
+  hs : ShortString;
 begin
   hs:=s;
   UnixDir(hs);
@@ -266,7 +266,7 @@ begin
   command('cd '+hs);
 end;
 
-procedure TGDBController.SetArgs(const s : string);
+procedure TGDBController.SetArgs(const s : ShortString);
 begin
   if assigned(progargs) then
     strdispose(progargs);
@@ -340,12 +340,12 @@ end;
 
 { Register functions }
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: UInt64): Boolean;
 var
-  RegValueStr: string;
+  RegValueStr: ShortString;
   Code: LongInt;
-  p, po, p1: PChar;
-  buffer: array [0..255] of char;
+  p, po, p1: PAnsiChar;
+  buffer: array [0..255] of AnsiChar;
 begin
   GetIntRegister := False;
   Value := 0;
@@ -391,7 +391,7 @@ begin
   GetIntRegister := True;
 end;
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: Int64): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: Int64): Boolean;
 var
   U64Value: UInt64;
 begin
@@ -399,7 +399,7 @@ begin
   Value := Int64(U64Value);
 end;
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: UInt32): Boolean;
 var
   U64Value: UInt64;
 begin
@@ -409,7 +409,7 @@ begin
     GetIntRegister := False;
 end;
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: Int32): Boolean;
 var
   U32Value: UInt32;
 begin
@@ -417,7 +417,7 @@ begin
   Value := Int32(U32Value);
 end;
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: UInt16): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: UInt16): Boolean;
 var
   U64Value: UInt64;
 begin
@@ -427,7 +427,7 @@ begin
     GetIntRegister := False;
 end;
 
-function TGDBController.GetIntRegister(const RegName: string; var Value: Int16): Boolean;
+function TGDBController.GetIntRegister(const RegName: ShortString; var Value: Int16): Boolean;
 var
   U16Value: UInt16;
 begin
@@ -436,7 +436,7 @@ begin
 end;
 
 { set command }
-function TGDBController.SetCommand(Const SetExpr : string) : boolean;
+function TGDBController.SetCommand(Const SetExpr : ShortString) : boolean;
 begin
   SetCommand:=false;
   Command('set '+SetExpr);
@@ -449,7 +449,7 @@ end;
 
 procedure TGDBController.MaxWidth;
 var
-  p,p2,p3 : pchar;
+  p,p2,p3 : PAnsiChar;
 begin
   Command('show width');
   p:=GetOutput;
@@ -479,7 +479,7 @@ end;
 
 procedure TGDBController.NormWidth;
 var
-  st : string;
+  st : ShortString;
   saved_got_error : boolean;
 begin
   saved_got_error:=got_error;
@@ -507,9 +507,9 @@ begin
   TrimEnd:=s;
 end;
 
-function TGDBController.InternalGetValue(Const expr : string) : AnsiString;
+function TGDBController.InternalGetValue(Const expr : ShortString) : AnsiString;
 var
-  p,p2 : pchar;
+  p,p2 : PAnsiChar;
 begin
   MaxWidth;
 
@@ -537,24 +537,24 @@ begin
 end;
 
 
-function TGDBController.PrintCommand(const expr : string): AnsiString;
+function TGDBController.PrintCommand(const expr : ShortString): AnsiString;
 begin
   PrintCommand:=InternalGetValue(expr);
 end;
 
 const
-  PrintFormatName : Array[TPrintFormatType] of string[11] =
+  PrintFormatName : Array[TPrintFormatType] of String[11] =
   (' /b ', ' /d ', ' /x ', ' /o ', '');
 
-function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
+function TGDBController.PrintFormattedCommand(const expr : ShortString; Format : TPrintFormatType): AnsiString;
 begin
   PrintFormattedCommand:=InternalGetValue(PrintFormatName[Format]+expr);
 end;
 
 
-function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
+function TGDBController.BreakpointInsert(const location: ShortString; BreakpointFlags: TBreakpointFlags): LongInt;
 var
-  Prefix: string = '';
+  Prefix: ShortString = '';
 begin
   if bfTemporary in BreakpointFlags then
     Prefix:=Prefix+'t';
@@ -565,7 +565,7 @@ begin
   BreakpointInsert:=Last_breakpoint_number;
 end;
 
-function TGDBController.WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+function TGDBController.WatchpointInsert(const location: ShortString; WatchpointType: TWatchpointType): LongInt;
 begin
   Last_breakpoint_number:=0;
   case WatchpointType of
@@ -581,7 +581,7 @@ end;
 
 function TGDBController.BreakpointDelete(BkptNo: LongInt): Boolean;
 var
-  BkptNoStr: string;
+  BkptNoStr: ShortString;
 begin
   Str(BkptNo, BkptNoStr);
   Command('delete ' + BkptNoStr);
@@ -590,7 +590,7 @@ end;
 
 function TGDBController.BreakpointEnable(BkptNo: LongInt): Boolean;
 var
-  BkptNoStr: string;
+  BkptNoStr: ShortString;
 begin
   Str(BkptNo, BkptNoStr);
   Command('enable ' + BkptNoStr);
@@ -599,16 +599,16 @@ end;
 
 function TGDBController.BreakpointDisable(BkptNo: LongInt): Boolean;
 var
-  BkptNoStr: string;
+  BkptNoStr: ShortString;
 begin
   Str(BkptNo, BkptNoStr);
   Command('disable ' + BkptNoStr);
   BreakpointDisable := not Error;
 end;
 
-function TGDBController.BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+function TGDBController.BreakpointCondition(BkptNo: LongInt; const ConditionExpr: ShortString): Boolean;
 var
-  BkptNoStr: string;
+  BkptNoStr: ShortString;
 begin
   Str(BkptNo, BkptNoStr);
   Command('condition ' + BkptNoStr + ' ' + ConditionExpr);
@@ -617,7 +617,7 @@ end;
 
 function TGDBController.BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
 var
-  BkptNoStr, IgnoreCountStr: string;
+  BkptNoStr, IgnoreCountStr: ShortString;
 begin
   Str(BkptNo, BkptNoStr);
   Str(IgnoreCount, IgnoreCountStr);
@@ -625,7 +625,7 @@ begin
   BreakpointSetIgnoreCount := not Error;
 end;
 
-procedure TGDBController.SetTBreak(tbreakstring : string);
+procedure TGDBController.SetTBreak(tbreakstring : ShortString);
 begin
   Last_breakpoint_number:=0;
   Command('tbreak '+tbreakstring);
@@ -644,7 +644,7 @@ end;
 
 function TGDBController.SelectFrameCommand(level :longint) : boolean;
 var
-  LevelStr : String;
+  LevelStr : ShortString;
 begin
   Str(Level, LevelStr);
   Command('frame '+LevelStr);
@@ -661,8 +661,8 @@ begin
 end;
 
 
-procedure BufWrite(Buf : pchar);
-  var p,pe : pchar;
+procedure BufWrite(Buf : PAnsiChar);
+  var p,pe : PAnsiChar;
 begin
   p:=buf;
   While assigned(p) do
@@ -685,17 +685,17 @@ begin
 end;
 
 
-function  TGDBController.GetOutput : Pchar;
+function  TGDBController.GetOutput : PAnsiChar;
 begin
   GetOutput:=gdboutputbuf.buf;
 end;
 
-function  TGDBController.GetError : Pchar;
-var p : pchar;
+function  TGDBController.GetError : PAnsiChar;
+var p : PAnsiChar;
 begin
   p:=gdberrorbuf.buf;
   if (p^=#0) and got_error then
-    GetError:=pchar(ptrint(gdboutputbuf.buf)+gdboutputbuf.idx)
+    GetError:=PAnsiChar(ptrint(gdboutputbuf.buf)+gdboutputbuf.idx)
   else
     GetError:=p;
 end;
