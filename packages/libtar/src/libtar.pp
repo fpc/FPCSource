@@ -171,7 +171,7 @@ TYPE
                   PROCEDURE ReadFile (Buffer   : POINTER); OVERLOAD;       // Reads file data for last Directory Record
                   PROCEDURE ReadFile (Stream   : TStream); OVERLOAD;       // -;-
                   PROCEDURE ReadFile (Filename : STRING);  OVERLOAD;       // -;-
-                  FUNCTION  ReadFile : STRING;           OVERLOAD;         // -;-  RawByteString in D2009+. Not active due to FPC unicode architecture not being finalized
+                  FUNCTION  ReadFile : RawByteString;      OVERLOAD;         // -;-  RawByteString in D2009+. Not active due to FPC unicode architecture not being finalized
 
                   PROCEDURE GetFilePos (VAR Current, Size : INT64);        // Current File Position
                   PROCEDURE SetFilePos (NewPos : INT64);                   // Set new Current File Position
@@ -216,7 +216,7 @@ TYPE
 // --- Some useful constants
 CONST
   FILETYPE_NAME : ARRAY [TFileType] OF STRING =
-                  ('Regular', 'Link', 'Symbolic Link', 'Char File', 'Block File',
+                  ('Regular', 'Link', 'Symbolic Link', 'AnsiChar File', 'Block File',
                    'Directory', 'FIFO File', 'Contiguous', 'Dir Dump', 'Multivol', 'Volume Header');
 
   ALL_PERMISSIONS     = [tpReadByOwner, tpWriteByOwner, tpExecuteByOwner,
@@ -600,7 +600,7 @@ FUNCTION  TTarArchive.FindNext (VAR DirRec : TTarDirRec) : BOOLEAN;
           // Reads next Directory Info Record
           // The Stream pointer must point to the first byte of the tar header
 VAR
-  Rec          : ARRAY [0..RECORDSIZE-1] OF CHAR;
+  Rec          : ARRAY [0..RECORDSIZE-1] OF AnsiChar;
   CurFilePos   : int64;
   Header       : TTarHeader ABSOLUTE Rec;
   I            : INTEGER;
@@ -720,9 +720,9 @@ BEGIN
 END;
 
 
-FUNCTION  TTarArchive.ReadFile : STRING;
+FUNCTION  TTarArchive.ReadFile : RawByteSTRING;
           // Reads file data for the last Directory Record. The entire file is returned
-          // as a large ANSI string.
+          // as a large ANSI Ansistring.
 VAR
   RestBytes : INTEGER;
 BEGIN
@@ -824,7 +824,7 @@ END;
 PROCEDURE TTarWriter.AddStream (Stream : TStream; TarFilename : AnsiString; FileDateGmt : TDateTime);
 VAR
   DirRec      : TTarDirRec;
-  Rec         : ARRAY [0..RECORDSIZE-1] OF CHAR;
+  Rec         : ARRAY [0..RECORDSIZE-1] OF AnsiChar;
   BytesToRead : INT64;      // Bytes to read from the Source Stream
   BlockSize   : INT64;      // Bytes to write out for the current record
 BEGIN
@@ -976,7 +976,7 @@ PROCEDURE TTarWriter.Finalize;
           // Data after this tag will be ignored
           // The destructor calls this automatically if you didn't do it before
 VAR
-  Rec : ARRAY [0..RECORDSIZE-1] OF CHAR;
+  Rec : ARRAY [0..RECORDSIZE-1] OF AnsiChar;
 BEGIN
   FillChar (Rec, SizeOf (Rec), 0);
   FStream.Write (Rec, RECORDSIZE);
