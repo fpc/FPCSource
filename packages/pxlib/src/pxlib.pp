@@ -84,7 +84,7 @@ Type
   PWord     = ^Word;
   PDWord    = ^DWord;
   PDouble   = ^Double;
-  Pcchar    = pchar;
+  Pcchar    = PAnsiChar;
 
 {$ifndef unix}
   size_t    = Integer;
@@ -491,7 +491,7 @@ Procedure Loadpxlib(lib : String);
 
 begin
   Freepxlib;
-  hlib:=LoadLibrary(Pchar(lib));
+  hlib:=LoadLibrary(PAnsiChar(lib));
   if hlib=0 then
     raise Exception.Create(format('Could not load library: %s',[lib]));
   pointer(PX_get_majorversion):=GetProcAddress(hlib,'PX_get_majorversion');
