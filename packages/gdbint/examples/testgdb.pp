@@ -18,7 +18,7 @@ uses
 {$endif}
   gdbcon;
 var
-  last,s,parafile : string;
+  last,s,parafile : ShortString;
   gdb : tgdbcontroller;
 begin
   gdb.init;

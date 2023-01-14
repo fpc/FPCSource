@@ -24,20 +24,20 @@ uses ctypes;
 
 var rl_end:cint;public name 'rl_end';               {The number of characters in the readline buffer.}
     rl_point:cint;public name 'rl_point';           {The cursor position in the readline buffer.}
-    rl_prompt:Pchar;public name 'rl_prompt';        {The prompt readline should use.}
+    rl_prompt:PAnsiChar;public name 'rl_prompt';        {The prompt readline should use.}
     rl_instream:pointer;public name 'rl_instream';  {The FILE* for input.}
     rl_outstream:pointer;public name 'rl_outstream';{The FILE* for output.}
     rl_terminal_name:pointer;public name 'rl_terminal_name'; {The terminal (set by TERM) readline thinks it is using.}
     rl_prep_term_function:pointer;public name 'rl_prep_term_function'; {Procedure to initialize terminal.}
-    rl_getc_function:pointer;public name 'rl_getc_function'; {The function to get a char from input.}
-    rl_line_buffer:Pchar;public name 'rl_line_buffer'; {The buffer readline is currently reading into.}
-    rl_completer_word_break_characters:Pchar;public name 'rl_completer_word_break_characters';
-    rl_completer_quote_characters:Pchar;public name 'rl_completer_quote_characters';
+    rl_getc_function:pointer;public name 'rl_getc_function'; {The function to get a AnsiChar from input.}
+    rl_line_buffer:PAnsiChar;public name 'rl_line_buffer'; {The buffer readline is currently reading into.}
+    rl_completer_word_break_characters:PAnsiChar;public name 'rl_completer_word_break_characters';
+    rl_completer_quote_characters:PAnsiChar;public name 'rl_completer_quote_characters';
     rl_already_prompted:cint;public name 'rl_already_prompted';
     readline_echoing_p:cint;public name 'readline_echoing_p';
     rl_startup_hook:pointer;public name 'rl_startup_hook';
     emacs_ctlx_keymap:pointer;public name 'emacs_ctlx_keymap';
-    rl_readline_name:Pchar;public name 'rl_readline_name';
+    rl_readline_name:PAnsiChar;public name 'rl_readline_name';
     rl_deprep_term_function:pointer;public name 'rl_deprep_term_function';
     rl_redisplay_function:pointer;public name 'rl_redisplay_function';
     rl_pre_input_hook:pointer;public name 'rl_pre_input_hook';
@@ -56,13 +56,13 @@ begin
   runerror(254);
 end;
 
-function rl_reset_terminal(terminal:Pchar):cint;public;alias:'rl_reset_terminal';
+function rl_reset_terminal(terminal:PAnsiChar):cint;public;alias:'rl_reset_terminal';
 
 begin
   {Called by gdb, do nothing.}
 end;
 
-function rl_tilde_expand(s:Pchar):Pchar;public;alias:'tilde_expand';
+function rl_tilde_expand(s:PAnsiChar):PAnsiChar;public;alias:'tilde_expand';
 
 begin
   {Called by gdb, don't expand, return original string.}
@@ -116,7 +116,7 @@ begin
   runerror(254);
 end;
 
-function rl_add_defun(name:Pchar;rl_command_func_t:pointer;key:cint):cint;public;alias:'rl_add_defun';
+function rl_add_defun(name:PAnsiChar;rl_command_func_t:pointer;key:cint):cint;public;alias:'rl_add_defun';
 
 begin
   {Called by gdb, do nothing.}
@@ -146,7 +146,7 @@ begin
   runerror(254);
 end;
 
-procedure rl_callback_handler_install(prompt:Pchar;lhandler:pointer);public;alias:'rl_callback_handler_install';
+procedure rl_callback_handler_install(prompt:PAnsiChar;lhandler:pointer);public;alias:'rl_callback_handler_install';
 
 begin
   runerror(254);
@@ -158,7 +158,7 @@ begin
   runerror(254);
 end;
 
-function rl_filename_completion_function(text:Pchar;state:cint):Pchar;public;alias:'rl_filename_completion_function';
+function rl_filename_completion_function(text:PAnsiChar;state:cint):PAnsiChar;public;alias:'rl_filename_completion_function';
 
 begin
   runerror(254);
@@ -176,7 +176,7 @@ begin
   runerror(254);
 end;
 
-function rl_generic_bind(_type:cint;keyseq,data:Pchar;map:pointer):cint;public;alias:'rl_generic_bind';
+function rl_generic_bind(_type:cint;keyseq,data:PAnsiChar;map:pointer):cint;public;alias:'rl_generic_bind';
 
 begin
   runerror(254);
@@ -200,13 +200,13 @@ begin
   runerror(254);
 end;
 
-function readline(prompt:Pchar):Pchar;public;alias:'readline';
+function readline(prompt:PAnsiChar):PAnsiChar;public;alias:'readline';
 
 begin
   runerror(254);
 end;
 
-function rl_qsort_string_compare(s1,s2:Pchar):cint;public;alias:'_rl_qsort_string_compare';
+function rl_qsort_string_compare(s1,s2:PAnsiChar):cint;public;alias:'_rl_qsort_string_compare';
 
 begin
   runerror(254);

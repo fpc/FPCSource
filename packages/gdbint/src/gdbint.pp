@@ -774,16 +774,16 @@ type
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : ptrint;
-    fname    : pchar;
+    fname    : PAnsiChar;
     line     : longint;
-    funcname : pchar;
+    funcname : PAnsiChar;
     offset   : ptrint;
   end;
 
   tframeentry = object
-    file_name : pchar;
-    function_name : pchar;
-    args : pchar;
+    file_name : PAnsiChar;
+    function_name : PAnsiChar;
+    args : PAnsiChar;
     line_number : longint;
     address : CORE_ADDR;
     level : longint;
@@ -812,16 +812,16 @@ type
   pstdio_file = ^stdio_file;
 
   ui_file_flush_ftype = procedure(stream : pui_file);cdecl;
-  ui_file_write_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
-  ui_file_write_async_save_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
-  ui_file_fputs_ftype = procedure(buf : pchar; stream : pui_file);cdecl;
+  ui_file_write_ftype = procedure(stream : pui_file;buf : PAnsiChar;len : longint);cdecl;
+  ui_file_write_async_save_ftype = procedure(stream : pui_file;buf : PAnsiChar;len : longint);cdecl;
+  ui_file_fputs_ftype = procedure(buf : PAnsiChar; stream : pui_file);cdecl;
   ui_file_delete_ftype = procedure(stream : pui_file);cdecl;
   ui_file_isatty_ftype = function(stream : pui_file) : longbool;cdecl;
   ui_file_rewind_ftype = procedure(stream : pui_file);cdecl;
-  ui_file_put_method_ftype = procedure(var _object; buffer : pchar;length_buffer : longint);cdecl;
+  ui_file_put_method_ftype = procedure(var _object; buffer : PAnsiChar;length_buffer : longint);cdecl;
   ui_file_put_ftype = procedure(stream : pui_file;method : ui_file_put_method_ftype;var context);cdecl;
   {$ifdef GDB_V6}
-  ui_file_read_ftype = function (stream : pui_file; buffer : pchar; len : longint):longint;cdecl;
+  ui_file_read_ftype = function (stream : pui_file; buffer : PAnsiChar; len : longint):longint;cdecl;
   {$endif}
   {$ifdef GDB_UI_FILE_HAS_FSEEK}
   ui_file_fseek_ftype = function (stream : pui_file; offset : longint{clong}; whence : longint {cint}) : longint{cint};cdecl;
@@ -905,7 +905,7 @@ var _impure_ptr : PREENT;cvar;external;
 
 type
   tgdbbuffer=object
-    buf   : pchar;
+    buf   : PAnsiChar;
     size,
     idx   : longint;
     gdb_file  : pui_file;
@@ -913,8 +913,8 @@ type
     destructor  Done;
     procedure Reset;
     procedure Resize(nsize : longint);
-    procedure Append(p:pchar);
-    procedure lappend(p:pchar;len : longint);
+    procedure Append(p:PAnsiChar);
+    procedure lappend(p:PAnsiChar;len : longint);
   end;
 
   pgdbinterface=^tgdbinterface;
@@ -953,14 +953,14 @@ type
     line_start,
     line_end : longint;
     signal_name,
-    signal_string : pchar;
+    signal_string : PAnsiChar;
     current_address,
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
     last_breakpoint_line : longint;
     last_breakpoint_address : CORE_ADDR;
-    last_breakpoint_file : pchar;
+    last_breakpoint_file : PAnsiChar;
     invalid_breakpoint_line : boolean;
     user_screen_shown,
     switch_to_user     : boolean;
@@ -971,7 +971,7 @@ type
     { Lowlevel }
     function  error:boolean;
     function  error_num:longint;
-    procedure gdb_command(const s:string);
+    procedure gdb_command(const s:ShortString);
     procedure gdb__init;
     procedure gdb_done;
     procedure resize_frames;
@@ -982,16 +982,16 @@ type
     procedure clear_frames;
     { Highlevel }
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
-    function SelectSourceline(fn:pchar;line,BreakIndex:longint): Boolean;
+    function SelectSourceline(fn:PAnsiChar;line,BreakIndex:longint): Boolean;
     procedure StartSession;
     procedure BreakSession;
     procedure EndSession(code:longint);
     procedure DebuggerScreen;
     procedure UserScreen;
     procedure FlushAll; virtual;
-    function Query(question : pchar; args : pchar) : longint; virtual;
+    function Query(question : PAnsiChar; args : PAnsiChar) : longint; virtual;
     { Hooks }
-    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
+    function DoSelectSourceline(const fn:ShortString;line,BreakIndex:longint): Boolean;virtual;
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
@@ -1010,7 +1010,7 @@ var
   gdb_file : text;
   inferior_ptid : tinferior_ptid;cvar;external;
 
-function  GDBVersion : string;
+function  GDBVersion : ShortString;
 function  inferior_pid : longint;
 
 {$ifdef GDB_V6}
@@ -1210,7 +1210,7 @@ type
 {$endif not GDB_USES_BP_LOCATION}
 {$ifndef GDB_USES_BP_OPS}
           line_number : longint;
-          source_file : pchar;
+          source_file : PAnsiChar;
 {$endif not GDB_USES_BP_OPS}
           silent : byte;
 {$ifdef GDB_USES_BP_OPS}
@@ -1221,9 +1221,9 @@ type
           enable_count : longint;
 {$endif GDB_BP_HAS_ENABLE_COUNT}
 {$ifndef GDB_USES_BP_LOCATION}
-          shadow_contents : array[0..15] of char;
-          inserted : char;
-          duplicate : char;
+          shadow_contents : array[0..15] of AnsiChar;
+          inserted : AnsiChar;
+          duplicate : AnsiChar;
 {$endif not GDB_USES_BP_LOCATION}
 
           commands : pointer; {^command_line}
@@ -1234,16 +1234,16 @@ type
           frame : CORE_ADDR;
           cond : pointer; {^expression}
 {$endif GDB_USES_BP_OPS}
-          addr_string : pchar;
+          addr_string : PAnsiChar;
 {$ifdef GDB_USES_BP_OPS}
-          filter : pchar;
-          addr_string_range_end : pchar;
+          filter : PAnsiChar;
+          addr_string_range_end : PAnsiChar;
           gdbarch : pgdbarch;
 {$endif GDB_USES_BP_OPS}
           language : tlanguage;
           input_radix : longint;
-          cond_string : ^char;
-          exp_string : ^char;
+          cond_string : ^AnsiChar;
+          exp_string : ^AnsiChar;
           exp : pointer; {^expression}
           exp_valid_block : pblock; {^block;}
           val : pointer; {value_ptr;}
@@ -1264,7 +1264,7 @@ type
 {$ifdef GDB_BP_TI_HAS_LENGTH}
           length : longint;
 {$endif GDB_BP_TI_HAS_LENGTH}
-          shadow_contents : array[0..15] of char;
+          shadow_contents : array[0..15] of AnsiChar;
           shadow_len : longint;
           placed_size : longint;
        end;
@@ -1315,7 +1315,7 @@ type
          probe : pointer; { struct probe *probe; }
 {$endif}
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
-         function_name : ^char;
+         function_name : ^AnsiChar;
 {$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          target_info : bp_target_info;
          overlay_target_info : bp_target_info;
@@ -1323,7 +1323,7 @@ type
 {$ifdef GDB_USES_BP_OPS}
         { line and source file are in location }
           line_number : longint;
-          source_file : pchar;
+          source_file : PAnsiChar;
 {$endif not GDB_USES_BP_OPS}
       end;
 
@@ -1335,11 +1335,11 @@ type
 {$ifdef SYMTAB_HAS_COMPUNIT_SYMTAB}
           comp_unit : pointer; {^compunit_symtab }
           linetable : pointer; {^linetable;}
-          filename : pchar;
+          filename : PAnsiChar;
           nlines : longint;
           line_charpos : ^longint;
           language : tlanguage;
-          fullname : pchar;
+          fullname : PAnsiChar;
 {$else not SYMTAB_HAS_COMPUNIT_SYMTAB}
           blockvector : pointer; {^blockvector;}
           linetable : pointer; {^linetable;}
@@ -1349,16 +1349,16 @@ type
             { new field added in the middle :( }
           macro_table : pointer;
           {$endif GDB_SYMTAB_HAS_MACROS}
-          filename : pchar;
-          dirname : pchar;
+          filename : PAnsiChar;
+          dirname : PAnsiChar;
           free_code : tfreecode;
-          free_ptr : pchar;
+          free_ptr : PAnsiChar;
           nlines : longint;
           line_charpos : ^longint;
           language : tlanguage;
-          Debugformat : pchar;
-          version : pchar;
-          fullname : pchar;
+          Debugformat : PAnsiChar;
+          version : PAnsiChar;
+          fullname : PAnsiChar;
           objfile : pointer; {^objfile;}
 {$endif not SYMTAB_HAS_COMPUNIT_SYMTAB}
        end;
@@ -1397,7 +1397,7 @@ type
      allocated on the psymbol_obstack or symbol_obstack for the associated
      objfile. *)
 
-      _name : pchar;
+      _name : PAnsiChar;
 
   (* Value of the symbol.  Which member of this union to use, and what
      it means, depends on what kind of symbol this is and its
@@ -1413,7 +1413,7 @@ type
 
        1 : (block  : pblock;);
 
-       2 : (bytes  : pchar;);
+       2 : (bytes  : PAnsiChar;);
 
        3 : (address : CORE_ADDR;);
 
@@ -1430,14 +1430,14 @@ type
       struct cplus_specific      /* For C++ */
                                 /*  and Java */
         {
-          char *demangled_name;
+          AnsiChar *demangled_name;
         } cplus_specific;
       struct chill_specific      /* For Chill */
         {
-          char *demangled_name;
+          AnsiChar *demangled_name;
         } chill_specific;
     } language_specific; *)
-     demangled_name : pchar;
+     demangled_name : PAnsiChar;
 
   (* Record the source code language that applies to this symbol.
      This is used to select one of the fields from the language specific
@@ -1646,11 +1646,11 @@ type
      from the instructions in the function header, and the MIPS-16 code uses
      it to identify 16-bit procedures.  *)
 
-    info : pchar;
+    info : PAnsiChar;
 
 {$ifdef SOFUN_ADDRESS_MAYBE_MISSING}
   (* Which source file is this symbol in?  Only relevant for mst_file_*.  *)
-    filename : pchar;
+    filename : PAnsiChar;
 {$endif}
 
   (* Classification types for this symbol.  These should be taken as "advisory
@@ -1785,31 +1785,31 @@ type
 
      ptarget_ops = ^target_ops;
      target_ops = record
-          to_shortname : pchar;
-          to_longname : pchar;
-          to_doc : pchar;
-          to_open : procedure (_para1:pchar; _para2:longint);
+          to_shortname : PAnsiChar;
+          to_longname : PAnsiChar;
+          to_doc : PAnsiChar;
+          to_open : procedure (_para1:PAnsiChar; _para2:longint);
           to_close : procedure (_para1:longint);
-          to_attach : procedure (_para1:pchar; _para2:longint);
-          to_detach : procedure (_para1:pchar; _para2:longint);
+          to_attach : procedure (_para1:PAnsiChar; _para2:longint);
+          to_detach : procedure (_para1:PAnsiChar; _para2:longint);
           to_resume : procedure (_para1:longint; _para2:longint; _para3:target_signal);
           to_wait : pointer; {function (_para1:longint; _para2:ptarget_waitstatus):longint;}
           to_fetch_registers : procedure (_para1:longint);
           to_store_registers : procedure (_para1:longint);
           to_prepare_to_store : procedure ;
-          to_xfer_memory : function (memaddr:CORE_ADDR; myaddr:pchar; len:longint; write:longint; target:ptarget_ops):longint;
+          to_xfer_memory : function (memaddr:CORE_ADDR; myaddr:PAnsiChar; len:longint; write:longint; target:ptarget_ops):longint;
           to_files_info : procedure (_para1:ptarget_ops);
-          to_insert_breakpoint : function (_para1:CORE_ADDR; _para2:pchar):longint;
-          to_remove_breakpoint : function (_para1:CORE_ADDR; _para2:pchar):longint;
+          to_insert_breakpoint : function (_para1:CORE_ADDR; _para2:PAnsiChar):longint;
+          to_remove_breakpoint : function (_para1:CORE_ADDR; _para2:PAnsiChar):longint;
           to_terminal_init : procedure ;
           to_terminal_inferior : procedure ;
           to_terminal_ours_for_output : procedure ;
           to_terminal_ours : procedure ;
-          to_terminal_info : procedure (_para1:pchar; _para2:longint);
+          to_terminal_info : procedure (_para1:PAnsiChar; _para2:longint);
           to_kill : procedure ;
-          to_load : procedure (_para1:pchar; _para2:longint);
-          to_lookup_symbol : function (_para1:pchar; _para2:pCORE_ADDR):longint;
-          to_create_inferior : procedure (_para1:pchar; _para2:pchar; _para3:ppchar);
+          to_load : procedure (_para1:PAnsiChar; _para2:longint);
+          to_lookup_symbol : function (_para1:PAnsiChar; _para2:pCORE_ADDR):longint;
+          to_create_inferior : procedure (_para1:PAnsiChar; _para2:PAnsiChar; _para3:PPAnsiChar);
           to_mourn_inferior : procedure ;
           to_can_run : function :longint;
           to_notice_signals : procedure (pid:longint);
@@ -1852,7 +1852,7 @@ var
   { Only used from GDB 5.0 but doesn't hurst otherwise }
   { This global variable is declared in defs.h as external
     and instanciated in main.c since version 5.0. }
-  interpreter_p : pchar;cvar;public;
+  interpreter_p : PAnsiChar;cvar;public;
 
 { we need also to declare some vars }
   watchdog      : longint;cvar;external;
@@ -1879,7 +1879,7 @@ var
   instream : P_C_FILE;cvar;external;
 {$endif not GDB_NO_INSTREAM_VAR}
 
-  function gdb_fopen (filename : pchar; mode : pchar) : pui_file;cdecl;external;
+  function gdb_fopen (filename : PAnsiChar; mode : PAnsiChar) : pui_file;cdecl;external;
 {$ifdef LIBGDB_HAS_GET_STDIN}
   { this function is generated by the gen-libgdb-inc.sh script
     in a object called gdb_get_stdin.o added to the libgdb.a archive }
@@ -1888,7 +1888,7 @@ var
   function gdb_get_stderr : P_C_FILE; cdecl; external;
 {$ifdef GDB_HAS_SAVED_COMMAND_LINE_BUT_NO_SIZE}
 var
-  saved_command_line : pchar;cvar;external; { defined in top.c source }
+  saved_command_line : PAnsiChar;cvar;external; { defined in top.c source }
 const
   saved_command_line_size : longint = 100; {not anymore in top.c source }
   {$define GDB_SET_SAVED_COMMAND_LINE}
@@ -1897,7 +1897,7 @@ const
   { In some GDB versions, saved_command_line needs to 
     be explicitly allocated at startup }
 var
-  saved_command_line : pchar;cvar;external; { defined in top.c source }
+  saved_command_line : PAnsiChar;cvar;external; { defined in top.c source }
   saved_command_line_size : longint;cvar;external; {defined in top.c source }
   {$define GDB_SET_SAVED_COMMAND_LINE}
  {$endif def GDB_HAS_SAVED_COMMAND_LINE_SIZE}
@@ -1928,20 +1928,20 @@ function  xmalloc(size : longint) : pointer;cdecl;external;
   while xstrvprintf only appears in version 6.2,
   so only use xvasprintf function }
 {$ifdef GDB_USE_XSTRVPRINTF}
-function xstrvprintf(msg : pchar) : pchar; varargs; cdecl; external;
+function xstrvprintf(msg : PAnsiChar) : PAnsiChar; varargs; cdecl; external;
 {$else}
-function xvasprintf(ret : ppchar; msg : pchar) : pchar; varargs; cdecl; external;
+function xvasprintf(ret : PPAnsiChar; msg : PAnsiChar) : PAnsiChar; varargs; cdecl; external;
 {$endif}
 procedure xfree(p : pointer); cdecl; external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
 function  lookup_minimal_symbol_by_pc(i : CORE_ADDR):pminimal_symbol;cdecl;external;
 {$ifdef GDB_INIT_HAS_ARGV0}
-procedure gdb_init(argv0 : pchar);cdecl;external;
+procedure gdb_init(argv0 : PAnsiChar);cdecl;external;
 {$else not GDB_INIT_HAS_ARGV0}
 procedure gdb_init;cdecl;external;
 {$endif not GDB_INIT_HAS_ARGV0}
-procedure execute_command(p:pchar;i:longint);cdecl;external;
+procedure execute_command(p:PAnsiChar;i:longint);cdecl;external;
 {$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_kill;cdecl;external;
 procedure target_close(pt : ptarget_ops; i:longint);cdecl;external;
@@ -1954,7 +1954,7 @@ procedure target_close(i:longint);cdecl;external;
                                  Helpers
 *****************************************************************************}
 
-procedure Debug(const s:string);
+procedure Debug(const s:ShortString);
 begin
   if use_gdb_file then
     Writeln(gdb_file,s)
@@ -2031,7 +2031,7 @@ begin
 end;
 
 
-procedure tgdbbuffer.append(p:pchar);
+procedure tgdbbuffer.append(p:PAnsiChar);
 var
   len : longint;
 begin
@@ -2046,7 +2046,7 @@ begin
 end;
 
 
-procedure tgdbbuffer.lappend(p:pchar;len : longint);
+procedure tgdbbuffer.lappend(p:PAnsiChar;len : longint);
 begin
   if not assigned(p) then
    exit;
@@ -2060,7 +2060,7 @@ end;
 
 procedure tgdbbuffer.resize(nsize : longint);
 var
-  np    : pchar;
+  np    : PAnsiChar;
 begin
   nsize:=((nsize+blocksize-1) div blocksize)*blocksize;
   getmem(np,nsize);
@@ -2129,7 +2129,7 @@ end;
 
 procedure annotate_signal_string_end;cdecl;public;
 var
-  c : char;
+  c : AnsiChar;
 begin
 {$ifdef Verbose}
   Debug('|signal_string_end|');
@@ -2239,7 +2239,7 @@ end;
 procedure annotate_stopped;cdecl;public;
 var
   sym : symtab_and_line;
-  fname : pchar;
+  fname : PAnsiChar;
 begin
 {$ifdef Verbose}
   Debug('|stopped|');
@@ -2506,7 +2506,7 @@ end;
 procedure annotate_frame_end;cdecl;public;
 var
   fe : pframeentry;
-  c  : char;
+  c  : AnsiChar;
   err : integer;
 begin
 {$ifdef Verbose}
@@ -2559,7 +2559,7 @@ begin
         c:=gdboutputbuf.buf[line_end];
         gdboutputbuf.buf[line_end]:=#0;
 {     sscanf(gdb_output_buffer+line_start,'%d',&fe^.line_number); }
-        val(strpas(pchar(@gdboutputbuf.buf[line_start])),fe^.line_number,err);
+        val(strpas(PAnsiChar(@gdboutputbuf.buf[line_start])),fe^.line_number,err);
         gdboutputbuf.buf[line_end]:=c;
       end;
    end;
@@ -2605,7 +2605,7 @@ begin
 {$endif}
 end;
 
-procedure annotate_source(filename:pchar;line,character,mid:longint;
+procedure annotate_source(filename:PAnsiChar;line,character,mid:longint;
 {$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
   gdbarch : pgdbarch;
 {$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
@@ -2819,7 +2819,7 @@ begin
 end;
 
 
-procedure gdbint_ui_file_write(stream : pui_file; p : pchar; len : longint);cdecl;
+procedure gdbint_ui_file_write(stream : pui_file; p : PAnsiChar; len : longint);cdecl;
 begin
   if assigned(curr_gdb) then
    with curr_gdb^ do
@@ -2835,8 +2835,8 @@ begin
 end;
 
 
-function QueryHook(question : pchar; arg : ppchar) : longint; cdecl;
-var local : pchar;
+function QueryHook(question : PAnsiChar; arg : PPAnsiChar) : longint; cdecl;
+var local : PAnsiChar;
 
 begin
   if not assigned(curr_gdb) then
@@ -2963,7 +2963,7 @@ end;
 
 { Avoid loading of main.o object by providing a
   stripped down version of relocate_gdb_directory function }
-function relocate_gdb_directory(path : pchar) : pchar; cdecl; public;
+function relocate_gdb_directory(path : PAnsiChar) : PAnsiChar; cdecl; public;
 begin
   relocate_gdb_directory:=path;
 end;
@@ -3058,7 +3058,7 @@ procedure tgdbinterface.FlushAll;
 begin
 end;
 
-function tgdbinterface.Query(question : pchar; args : pchar) : longint;
+function tgdbinterface.Query(question : PAnsiChar; args : PAnsiChar) : longint;
 begin
   Query:=0;
 end;
@@ -3077,18 +3077,18 @@ var
    top_level_val : longint;
 
 {$ifdef USE_CATCH_EXCEPTIONS}
-function catch_exceptions(uiout : ui_out; func : pointer; command : pchar; mask : longint) : longint;cdecl;external;
+function catch_exceptions(uiout : ui_out; func : pointer; command : PAnsiChar; mask : longint) : longint;cdecl;external;
 
-function gdbint_execute_command(uiout : ui_out; command : pchar) : longint;cdecl;
+function gdbint_execute_command(uiout : ui_out; command : PAnsiChar) : longint;cdecl;
 begin
   gdbint_execute_command:=1;
   execute_command(command,1);
   gdbint_execute_command:=0;
 end;
 {$else not USE_CATCH_EXCEPTIONS}
-function catch_command_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
+function catch_command_errors(func : pointer; command : PAnsiChar; from_tty,mask : longint) : longint;cdecl;external;
 
-function gdbint_execute_command(command : pchar; from_tty : longint) : longint;cdecl;
+function gdbint_execute_command(command : PAnsiChar; from_tty : longint) : longint;cdecl;
 begin
   gdbint_execute_command:=1;
   execute_command(command,from_tty);
@@ -3141,12 +3141,12 @@ begin
 {$endif}
 end;
 
-procedure tgdbinterface.gdb_command(const s:string);
+procedure tgdbinterface.gdb_command(const s:ShortString);
 var
-  command          : array[0..256] of char;
+  command          : array[0..256] of AnsiChar;
   prev_stop_breakpoint_number,
   mask : longint;
-  s2 : string;
+  s2 : ShortString;
   old_quit_return,
   old_error_return : jmp_buf;
   control : TFPUState;
@@ -3286,7 +3286,7 @@ end;
 
 function tgdbinterface.set_current_frame(level : longint) : boolean;
 var
-  s : string;
+  s : ShortString;
 begin
   record_frames:=false;
   str(level,s);
@@ -3325,7 +3325,7 @@ begin
 end;
 
 
-function tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint): Boolean;
+function tgdbinterface.SelectSourceLine(fn:PAnsiChar;line,BreakIndex:longint): Boolean;
 begin
   if assigned(fn) then
     SelectSourceLine:=DoSelectSourceLine(StrPas(fn),line,BreakIndex)
@@ -3392,10 +3392,10 @@ end;
           Default Hooks
 ---------------------------------------}
 
-function tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
+function tgdbinterface.DoSelectSourceLine(const fn:ShortString;line,BreakIndex:longint): Boolean;
 {$ifdef Verbose}
 var
-  s,bs : string;
+  s,bs : ShortString;
 {$endif}
 begin
 {$ifdef Verbose}
@@ -3435,14 +3435,14 @@ begin
 end;
 
 var
-  version : array[0..0] of char;cvar;external;
+  version : array[0..0] of AnsiChar;cvar;external;
 
 {$ifndef GDB_NEEDS_NO_ERROR_INIT}
 { doesn't seem to exist anymore. Seems to work fine without }
 procedure error_init;cdecl;external;
 {$endif GDB_NEEDS_NO_ERROR_INIT}
 
-function  GDBVersion : string;
+function  GDBVersion : ShortString;
 begin
   GDBVersion:='GDB '+StrPas(version);
 end;
@@ -3456,19 +3456,19 @@ end;
 
 {$ifdef go32v2}
 var
-  c_environ : ppchar;external name '__environ';
+  c_environ : PPAnsiChar;external name '__environ';
   c_argc : longint;external name '___crt0_argc';
-  c_argv : ppchar;external name '___crt0_argv';
+  c_argv : PPAnsiChar;external name '___crt0_argv';
 
   procedure ReallocateEnvironUsingCMalloc;
 
   var
     neededsize , i, count : longint;
-    penv : pchar;
-    newenv : ppchar;
+    penv : PAnsiChar;
+    newenv : PPAnsiChar;
   begin
     if not assigned(c_environ) then
-      neededsize:=sizeof(pchar)
+      neededsize:=sizeof(PAnsiChar)
     else
       begin
         count:=0;
@@ -3479,7 +3479,7 @@ var
             penv:=c_environ[count];
           end;
         inc(count);
-        neededsize:=count*sizeof(pchar);
+        neededsize:=count*sizeof(PAnsiChar);
       end;
     newenv:=malloc(neededsize);
     system.move(c_environ^,newenv^,neededsize);
@@ -3503,13 +3503,13 @@ var
 
 {$endif def go32v2}
 var
-  current_directory : pchar; cvar; external;
-  gdb_dirbuf : array[0..0] of char; cvar; external;
+  current_directory : PAnsiChar; cvar; external;
+  gdb_dirbuf : array[0..0] of AnsiChar; cvar; external;
   CurrentDir : AnsiString;
 {$ifdef GDB_NEEDS_INTERPRETER_SETUP}
   type
      interpreter_struct_p = pointer; { to opaque type }
-  function interp_lookup ({$ifdef GDB_INTERP_LOOKUP_HAS_UI} ui :pui ;{$endif} name : pchar) : interpreter_struct_p;cdecl; external;
+  function interp_lookup ({$ifdef GDB_INTERP_LOOKUP_HAS_UI} ui :pui ;{$endif} name : PAnsiChar) : interpreter_struct_p;cdecl; external;
   function interp_set (interp : interpreter_struct_p;top_level : longint {cint}) : longbool;cdecl; external;
 {$endif GDB_NEEDS_INTERPRETER_SETUP}
 const
@@ -3527,7 +3527,7 @@ var
 
 {$ifdef GDB_INIT_HAS_ARGV0}
 var
-  argv0 : pchar;
+  argv0 : PAnsiChar;
 {$endif not GDB_INIT_HAS_ARGV0}
 {$ifdef GDB_NEEDS_INTERPRETER_SETUP}
 var
@@ -3694,15 +3694,15 @@ end;
     We must not load main.o otherwise, we will get
     into multiply defined symbols troubles. }
 var
-    gdb_sysrootc : char;
-    { used locally only to provide a pchar pointing to '\0' }
-    gdb_sysroot  : pchar; cvar;public;
+    gdb_sysrootc : AnsiChar;
+    { used locally only to provide a PAnsiChar pointing to '\0' }
+    gdb_sysroot  : PAnsiChar; cvar;public;
     { gdb_sysroot global variable is declared in defs.h and
       instanciated in main.c since version 6.0 }
-    gdb_datadir  : pchar; cvar;public;
+    gdb_datadir  : PAnsiChar; cvar;public;
     { gdb_datadir global variable is declared in defs.h and
       instanciated in main.c since version 7.0 }
-    python_libdir : pchar;cvar;public;
+    python_libdir : PAnsiChar;cvar;public;
     { python_libdir global variable is declared in defs.h and instanciated
       in main.c since version 7.2 }
     return_child_result : longbool;cvar;public;
@@ -3720,13 +3720,13 @@ var
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
 var
-  debug_file_directory : pchar; cvar; external;
+  debug_file_directory : PAnsiChar; cvar; external;
 {$endif GDB_HAS_DEBUG_FILE_DIRECTORY}
 
 {$ifdef USE_LOCAL_SET_GDB_DATA_DIRECTORY}
 { Avoid loading of main.o object by providing a
   stripped down version of relocate_gdb_directory function }
-procedure set_gdb_data_directory(path : pchar); cdecl; public;
+procedure set_gdb_data_directory(path : PAnsiChar); cdecl; public;
 begin
   gdb_datadir:=path;
 end;
