@@ -487,7 +487,7 @@ var
   bversion, path: ansistring;
   version: dword;
   i: Integer;
-  s: string;
+  s: AnsiString;
 begin
   aspell_init := True;
   libname := libn;
