@@ -39,30 +39,30 @@
 
 Type
      lconv = record
-          decimal_point     : pchar;
-          thousands_sep     : pchar;
-          grouping          : pchar;
-          int_curr_symbol   : pchar;
-          currency_symbol   : pchar;
-          mon_decimal_point : pchar;
-          mon_thousands_sep : pchar;
-          mon_grouping      : pchar;
-          positive_sign     : pchar;
-          negative_sign     : pchar;
-          int_frac_digits   : char;
-          frac_digits       : char;
-          p_cs_precedes     : char;
-          p_sep_by_space    : char;
-          n_cs_precedes     : char;
-          n_sep_by_space    : char;
-          p_sign_posn       : char;
-          n_sign_posn       : char;
-          int_p_cs_precedes : char;
-          int_n_cs_precedes : char;
-          int_p_sep_by_space: char;
-          int_n_sep_by_space: char;
-          int_p_sign_posn   : char;
-          int_n_sign_posn   : char;
+          decimal_point     : PAnsiChar;
+          thousands_sep     : PAnsiChar;
+          grouping          : PAnsiChar;
+          int_curr_symbol   : PAnsiChar;
+          currency_symbol   : PAnsiChar;
+          mon_decimal_point : PAnsiChar;
+          mon_thousands_sep : PAnsiChar;
+          mon_grouping      : PAnsiChar;
+          positive_sign     : PAnsiChar;
+          negative_sign     : PAnsiChar;
+          int_frac_digits   : AnsiChar;
+          frac_digits       : AnsiChar;
+          p_cs_precedes     : AnsiChar;
+          p_sep_by_space    : AnsiChar;
+          n_cs_precedes     : AnsiChar;
+          n_sep_by_space    : AnsiChar;
+          p_sign_posn       : AnsiChar;
+          n_sign_posn       : AnsiChar;
+          int_p_cs_precedes : AnsiChar;
+          int_n_cs_precedes : AnsiChar;
+          int_p_sep_by_space: AnsiChar;
+          int_n_sep_by_space: AnsiChar;
+          int_p_sign_posn   : AnsiChar;
+          int_n_sign_posn   : AnsiChar;
        end;
      Tlconv = lconv;
      plconv = ^lconv;
@@ -128,7 +128,7 @@ Const
         ABMON_11        = ABMON_1+10;
         ABMON_12        = ABMON_1+11;
         {$if defined(openbsd) or defined(netbsd)}
-        RADIXCHAR       = ABMON_1+12;   { Radix char}
+        RADIXCHAR       = ABMON_1+12;   { Radix AnsiChar}
         THOUSEP         = RADIXCHAR+1;  { separator for thousands }
         YESSTR          = RADIXCHAR+2;  { affirmative response for yes/no queries }
         YESEXPR         = RADIXCHAR+3;  { affirmative response expression }
@@ -141,7 +141,7 @@ Const
         ERA_D_T_FMT     = ERA+2;        { era date and time format string }
         ERA_T_FMT       = ERA+3;        { era time format string }
         ALT_DIGITS      = ERA+4;        { alternative symbols for digits }
-        RADIXCHAR       = ERA+5;        { radix char }
+        RADIXCHAR       = ERA+5;        { radix AnsiChar }
         THOUSEP         = RADIXCHAR+1;  { separator for thousands }
         YESEXPR         = RADIXCHAR+2;  { affirmative response expression }
         NOEXPR          = RADIXCHAR+3;  { negative response expression }

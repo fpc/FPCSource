@@ -95,12 +95,12 @@ Const
 {$ifdef netbsd}
   { NetBSD has a new setlocale function defined in /usr/include/locale.h
     that should be used }
-function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale_mb_len_max_32';
+function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; external clib name '__setlocale_mb_len_max_32';
 {$else}
-function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
+function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; external clib name 'setlocale';
 {$endif}
 
-function nl_langinfo(__item: cint):Pchar;cdecl;external clib name 'nl_langinfo';
+function nl_langinfo(__item: cint):PAnsiChar;cdecl;external clib name 'nl_langinfo';
 
 procedure GetFormatSettings(out fmts: TFormatSettings);
 
@@ -109,7 +109,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     GetLocaleStr := AnsiString(nl_langinfo(item));
   end;
 
-  function GetLocaleChar(item: cint): char;
+  function GetLocaleChar(item: cint): AnsiChar;
   begin
     GetLocaleChar := nl_langinfo(item)^;
   end;
@@ -127,7 +127,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     end;
   end;
 
-  function IsModifier(const Mods: string; m: char): boolean;
+  function IsModifier(const Mods: string; m: AnsiChar): boolean;
   var
     i: integer;
   begin
@@ -140,7 +140,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     end;
   end;
 
-  function FindSeparator(const s: string; Def: char): char;
+  function FindSeparator(const s: string; Def: AnsiChar): AnsiChar;
   var
     i: integer;
   begin
@@ -357,7 +357,7 @@ begin
   fmts.ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
   Sep := ord(GetLocaleChar(__MON_THOUSANDS_SEP));
   if fmts.ThousandSeparator=#0 then
-    fmts.ThousandSeparator := char(Sep);
+    fmts.ThousandSeparator := AnsiChar(Sep);
   {$endif}
   fmts.DecimalSeparator:=GetLocaleChar(RADIXCHAR);
 end;
