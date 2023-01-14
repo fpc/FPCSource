@@ -607,7 +607,7 @@ end;
 
 { List }
 
-const ListSignalNames : array[0..15] of string =
+const ListSignalNames : array[0..15] of AnsiString =
         (sgSelectionChanged,sgSelectChild,sgUnselectChild,
          sgToggleFocusRow,sgSelectAll,sgUnselectAll,sgUndoSelection,
          sgStartSelection,sgEndSelection,sgToggleAddMode,

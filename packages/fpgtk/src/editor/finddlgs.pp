@@ -21,19 +21,19 @@ uses gtk, FPgtk;
 type
   TFindDialog = class (TFPgtkWindow)
   private
-    FSearchString : string;
+    FSearchString : AnsiString;
     EditSearch : TFPgtkEntry;
-    procedure SetSearchString (Value:string);
+    procedure SetSearchString (Value:AnsiString);
     procedure ChangeText (Sender:TFPgtkObject; data:pointer);
   public
     constructor create (WindowType : TGtkWindowType); override;
     procedure DoDialogInit (InitData : pointer); override;
-    property SearchString : string read FSearchString write SetSearchString;
+    property SearchString : AnsiString read FSearchString write SetSearchString;
   end;
 
   PFindDialogData = ^TFindDialogData;
   TFindDialogData = record
-    Text : string;
+    Text : AnsiString;
   end;
 
 implementation
@@ -79,7 +79,7 @@ begin
   inherited;
 end;
 
-procedure TFindDialog.SetSearchString (Value : string);
+procedure TFindDialog.SetSearchString (Value : AnsiString);
 begin
   EditSearch.Text := Value;
 end;
