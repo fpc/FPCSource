@@ -9,7 +9,7 @@ procedure DumpInfo (Doc : PPX_Doc);
 
 Var
   I : Integer;
-  S : String;
+  S : AnsiString;
   pxf : Ppxfield_t;
   
 begin
@@ -20,7 +20,7 @@ begin
     Write('Field ',I:3,': ',strpas(pxf^.px_fname):18,' : ');
     S:='';
     Case (pxf^.px_ftype) of
-      pxfAlpha:    S:=Format('char(%d)',[pxf^.px_flen]);
+      pxfAlpha:    S:=Format('AnsiChar(%d)',[pxf^.px_flen]);
       pxfDate:     S:=Format('date(%d)',[pxf^.px_flen]);
       pxfShort:    S:=Format('int(%d)',[pxf^.px_flen]);
       pxfLong:     S:=Format('int(%d)',[pxf^.px_flen]);
@@ -51,13 +51,13 @@ Procedure DumpRecords(Doc : PPX_Doc);
 var
   I,J,K,flen : Integer;
   pxf : Ppxfield_t;
-  s : string;          
-  buf, fbuf,value : Pchar;
+  s : AnsiString;
+  buf, fbuf,value : PAnsiChar;
   longv : clong;
   y,m,d : cint;
   si: shortint;
   R : Double;
-  c : char;
+  c : AnsiChar;
   
 begin
   I:=0;
@@ -164,7 +164,7 @@ end;
 
 Var
   Doc : PPX_Doc;
-  FN,BFN : String;
+  FN,BFN : AnsiString;
 
 begin
   LoadPXlib(pxlibraryname);
@@ -174,10 +174,10 @@ begin
     Try
       FN:=ParamStr(1);
       BFN:=ChangeFileExt(FN,'.mb');
-      px_open_file(Doc,Pchar(FN));
+      px_open_file(Doc,PAnsiChar(FN));
       try
         if FileExists(BFN) then
-          PX_set_blob_file(Doc,PChar(BFN));
+          PX_set_blob_file(Doc,PAnsiChar(BFN));
         DumpInfo(Doc);
         DumpRecords(Doc);
       Finally  
