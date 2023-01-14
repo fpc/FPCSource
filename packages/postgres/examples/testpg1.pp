@@ -15,7 +15,7 @@ end;
 
 
 Var
-  pghost,pgport,pgoptions,pgtty,dbname : Pchar;
+  pghost,pgport,pgoptions,pgtty,dbname : PAnsiChar;
   nFields,i,j : longint;
   conn : PPGConn;
   res : PPGresult;
