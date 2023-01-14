@@ -14,7 +14,7 @@ Var
   hash : tsha1_ctx;
   F : TFileStream;
   s : Tmpz_t;
-  res : string;
+  res : ansistring;
 
 begin
   LoadLibGMP;

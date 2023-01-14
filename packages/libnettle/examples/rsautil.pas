@@ -15,11 +15,11 @@ Function ReadRSAKey(const aFileName : String; out aPrivate : trsa_private_key) :
 function HashFile(aHash : pnettle_hash; Ctx : Pointer; aFileName : string) : Boolean;
 function HashStream(aHash : pnettle_hash; Ctx : Pointer; F : TStream) : Boolean;
 Function ReadSignature(const aFileName : String; out s : tmpz_t) : Boolean;
-Function MpzToString(s : tmpz_t) : string;
+Function MpzToString(s : tmpz_t) : Ansistring;
 
 implementation
 
-Function MpzToString(s : tmpz_t) : string;
+Function MpzToString(s : tmpz_t) : Ansistring;
 
 Var
   P : pcchar;
@@ -28,7 +28,7 @@ begin
   Result:='';
   SetLength(result,4096);
   P:=mpz_get_str(pcchar(Result),16,@s);
-  Setlength(Result,StrLen(Pchar(P)));
+  Setlength(Result,StrLen(PAnsiChar(P)));
 end;
 
 function HashFile(aHash : pnettle_hash; Ctx : Pointer; aFileName : string) : Boolean;
