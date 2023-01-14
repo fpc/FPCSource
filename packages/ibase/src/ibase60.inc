@@ -182,10 +182,10 @@ type
 
      ISC_ARRAY_DESC = record
           array_desc_dtype : byte;
-          array_desc_scale : char;
+          array_desc_scale : AnsiChar;
           array_desc_length : word;
-          array_desc_field_name : array[0..31] of char;
-          array_desc_relation_name : array[0..31] of char;
+          array_desc_field_name : array[0..31] of AnsiChar;
+          array_desc_relation_name : array[0..31] of AnsiChar;
           array_desc_dimensions : smallint;
           array_desc_flags : smallint;
           array_desc_bounds : array[0..15] of ISC_ARRAY_BOUND;
@@ -237,7 +237,7 @@ type
           ctl_buffer_length : word;
           ctl_segment_length : word;
           ctl_bpb_length : word;
-          ctl_bpb : Pchar;
+          ctl_bpb : PAnsiChar;
           ctl_buffer : Pbyte;
           ctl_max_segment : ISC_LONG;
           ctl_number_segments : ISC_LONG;
@@ -259,11 +259,11 @@ type
 
      BSTREAM = record
           bstr_blob : pointer;
-          bstr_buffer : Pchar;
-          bstr_ptr : Pchar;
+          bstr_buffer : PAnsiChar;
+          bstr_ptr : PAnsiChar;
           bstr_length : smallint;
           bstr_cnt : smallint;
-          bstr_mode : char;
+          bstr_mode : AnsiChar;
        end;
      TBSTREAM = BSTREAM;
      PBstream = ^BSTREAM;
@@ -305,16 +305,16 @@ type
           sqlscale : smallint;
           sqlsubtype : smallint;
           sqllen : smallint;
-          sqldata : Pchar;
+          sqldata : PAnsiChar;
           sqlind : Psmallint;
           sqlname_length : smallint;
-          sqlname : array[0..31] of char;
+          sqlname : array[0..31] of AnsiChar;
           relname_length : smallint;
-          relname : array[0..31] of char;
+          relname : array[0..31] of AnsiChar;
           ownname_length : smallint;
-          ownname : array[0..31] of char;
+          ownname : array[0..31] of AnsiChar;
           aliasname_length : smallint;
-          aliasname : array[0..31] of char;
+          aliasname : array[0..31] of AnsiChar;
        end;
      TXSQLVAR = XSQLVAR;
      PXSQLVAR =^XSQLVAR;
@@ -327,7 +327,7 @@ type
 
      XSQLDA = record
           version : smallint;
-          sqldaid : array[0..7] of char;
+          sqldaid : array[0..7] of AnsiChar;
           sqldabc : ISC_LONG;
           sqln : smallint;
           sqld : smallint;
@@ -436,15 +436,15 @@ type
           uid : longint;
           gid : longint;
           protocol : longint;
-          server : Pchar;
-          user_name : Pchar;
-          password : Pchar;
-          group_name : Pchar;
-          first_name : Pchar;
-          middle_name : Pchar;
-          last_name : Pchar;
-          dba_user_name : Pchar;
-          dba_password : Pchar;
+          server : PAnsiChar;
+          user_name : PAnsiChar;
+          password : PAnsiChar;
+          group_name : PAnsiChar;
+          first_name : PAnsiChar;
+          middle_name : PAnsiChar;
+          last_name : PAnsiChar;
+          dba_user_name : PAnsiChar;
+          dba_password : PAnsiChar;
        end;
      TUSER_SEC_DATA = USER_SEC_DATA;
      PUSER_SEC_DATA = ^USER_SEC_DATA;
@@ -1672,21 +1672,21 @@ type
   { OSRI database functions  }
   {                          }
 
-  function isc_attach_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_attach_database(_para1:PISC_STATUS; _para2:smallint; _para3:PAnsiChar; _para4:Pisc_db_handle; _para5:smallint;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_array_gen_sdl(_para1:PISC_STATUS; _para2:PISC_ARRAY_DESC; _para3:Psmallint; _para4:Pchar; _para5:Psmallint):ISC_STATUS; extdecl; external gdslib;
+  function isc_array_gen_sdl(_para1:PISC_STATUS; _para2:PISC_ARRAY_DESC; _para3:Psmallint; _para4:PAnsiChar; _para5:Psmallint):ISC_STATUS; extdecl; external gdslib;
 
   function isc_array_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;
              _para6:pointer; _para7:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_array_lookup_bounds(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;
+  function isc_array_lookup_bounds(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:PAnsiChar;
              _para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_array_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;
+  function isc_array_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:PAnsiChar;
              _para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_array_set_desc(_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar; _para4:Psmallint; _para5:Psmallint;
+  function isc_array_set_desc(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar; _para4:Psmallint; _para5:Psmallint;
              _para6:Psmallint; _para7:PISC_ARRAY_DESC):ISC_STATUS; extdecl; external gdslib;
 
   function isc_array_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;
@@ -1697,8 +1697,8 @@ type
   function isc_blob_gen_bpb(_para1:PISC_STATUS; _para2:PISC_BLOB_DESC; _para3:PISC_BLOB_DESC; _para4:word; _para5:Pbyte;
              _para6:Pword):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_blob_info(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_blob_info(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_blob_lookup_desc(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pbyte; _para5:Pbyte;
              _para6:PISC_BLOB_DESC; _para7:Pbyte):ISC_STATUS; extdecl; external gdslib;
@@ -1719,13 +1719,13 @@ type
   function isc_create_blob(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; extdecl; external gdslib;
 
   function isc_create_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;
-             _para6:smallint; _para7:Pchar):ISC_STATUS; extdecl; external gdslib;
+             _para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_create_database(_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;
-             _para6:Pchar; _para7:smallint):ISC_STATUS; extdecl; external gdslib;
+  function isc_create_database(_para1:PISC_STATUS; _para2:smallint; _para3:PAnsiChar; _para4:Pisc_db_handle; _para5:smallint;
+             _para6:PAnsiChar; _para7:smallint):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_database_info(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_database_info(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   procedure isc_decode_date(_para1:PISC_QUAD; _para2:pointer); extdecl; external gdslib;
 
@@ -1747,7 +1747,7 @@ type
 
   function isc_dsql_describe_bind(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_exec_immed2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
+  function isc_dsql_exec_immed2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
              _para6:word; _para7:PXSQLDA; _para8:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
   function isc_dsql_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
@@ -1755,7 +1755,7 @@ type
   function isc_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
+  function isc_dsql_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
   function isc_dsql_fetch(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
@@ -1766,13 +1766,13 @@ type
 
   function isc_dsql_insert(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
+  function isc_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_set_cursor_name(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:Pchar; _para4:word):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_set_cursor_name(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:PAnsiChar; _para4:word):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_sql_info(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_sql_info(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   procedure isc_encode_date(_para1:pointer; _para2:PISC_QUAD); extdecl; external gdslib;
 
@@ -1782,41 +1782,41 @@ type
 
   procedure isc_encode_timestamp(_para1:pointer; _para2:PISC_TIMESTAMP); extdecl; external gdslib;
 
-  function isc_event_block(_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl; external gdslib;
+  function isc_event_block(_para1:PPAnsiChar; _para2:PPAnsiChar; _para3:word; args:array of const):ISC_LONG; cdecl; external gdslib;
 
-  procedure isc_event_counts(_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;  external gdslib;
+  procedure isc_event_counts(_para1: PISC_STATUS; _para2: short; _para3: PAnsiChar; _para4: PAnsiChar); extdecl;  external gdslib;
 
-  procedure isc_expand_dpb(_para1:PPchar; _para2:Psmallint; args:array of const); cdecl; external gdslib;
+  procedure isc_expand_dpb(_para1:PPAnsiChar; _para2:Psmallint; args:array of const); cdecl; external gdslib;
 
-  function isc_modify_dpb(_para1:PPchar; _para2:Psmallint; _para3:word; _para4:Pchar; _para5:smallint):longint; extdecl; external gdslib;
+  function isc_modify_dpb(_para1:PPAnsiChar; _para2:Psmallint; _para3:word; _para4:PAnsiChar; _para5:smallint):longint; extdecl; external gdslib;
 
-  function isc_free(_para1:Pchar):ISC_LONG; extdecl; external gdslib;
+  function isc_free(_para1:PAnsiChar):ISC_LONG; extdecl; external gdslib;
 
-  function isc_get_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:Pword; _para4:word; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_get_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:Pword; _para4:word; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_get_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;
-             _para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer;
+             _para6:PAnsiChar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer;
              _para11:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_interprete(_para1:Pchar; _para2:PPISC_STATUS):ISC_STATUS; extdecl; external gdslib;
+  function isc_interprete(_para1:PAnsiChar; _para2:PPISC_STATUS):ISC_STATUS; extdecl; external gdslib;
 
   function isc_open_blob(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; extdecl; external gdslib;
 
   function isc_open_blob2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;
-             _para6:smallint; _para7:Pchar):ISC_STATUS; extdecl; external gdslib;
+             _para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_prepare_transaction2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_prepare_transaction2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   procedure isc_print_sqlerror(_para1:smallint; _para2:PISC_STATUS); extdecl; external gdslib;
 
   function isc_print_status(_para1:PISC_STATUS):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_put_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:word; _para4:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_put_segment(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:word; _para4:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_put_slice(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;
-             _para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer):ISC_STATUS; extdecl; external gdslib;
+             _para6:PAnsiChar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_que_events(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:Pchar;
+  function isc_que_events(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:PAnsiChar;
              _para6:isc_callback; _para7:pointer):ISC_STATUS; extdecl; external gdslib;
 
   function isc_rollback_retaining(_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl; external gdslib;
@@ -1832,15 +1832,15 @@ type
   // Available in Firebird 2.5+
   function fb_sqlstate(_para1: PAnsiChar;_para2:PISC_STATUS): ISC_STATUS ; extdecl;  external gdslib;
 
-  procedure isc_sql_interprete(_para1:smallint; _para2:Pchar; _para3:smallint); extdecl; external gdslib;
+  procedure isc_sql_interprete(_para1:smallint; _para2:PAnsiChar; _para3:smallint); extdecl; external gdslib;
 
-  function isc_transaction_info(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_transaction_info(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_transact_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_transact_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:PAnsiChar; _para8:word; _para9:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_vax_integer(_para1:Pchar; _para2:smallint):ISC_LONG; extdecl; external gdslib;
+  function isc_vax_integer(_para1:PAnsiChar; _para2:smallint):ISC_LONG; extdecl; external gdslib;
 
   function isc_portable_integer(_para1:Pbyte; _para2:smallint):ISC_INT64; extdecl; external gdslib;
 
@@ -1858,23 +1858,23 @@ type
   {                                 }
   {  Other OSRI functions           }
   {                                 }
-  function isc_compile_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_compile_request(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_compile_request2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_compile_request2(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_ddl(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_ddl(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_prepare_transaction(_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl; external gdslib;
 
   function isc_receive(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer;
              _para6:smallint):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_reconnect_transaction(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_reconnect_transaction(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_release_request(_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_request_info(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:Pchar;
-             _para6:smallint; _para7:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_request_info(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:PAnsiChar;
+             _para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_seek_blob(_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:ISC_LONG; _para5:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
 
@@ -1888,133 +1888,133 @@ type
 
   function isc_unwind_request(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_wait_for_event(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_wait_for_event(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:PAnsiChar; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   {                            }
   { Other Sql functions        }
   {                            }
-  function isc_close(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_close(_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_declare(_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_declare(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_describe(_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_describe(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_describe_bind(_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_describe_bind(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_execute_immediate(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_fetch(_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_fetch(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Psmallint;
-             _para6:Pchar; _para7:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:Psmallint;
+             _para6:PAnsiChar; _para7:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
   {                                    }
   { Other Dynamic sql functions        }
   {                                    }
-  function isc_dsql_execute_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:word; _para8:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_execute_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:word; _para8:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_execute2_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar;
-             _para11:word; _para12:word; _para13:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_execute2_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:PAnsiChar;
+             _para11:word; _para12:word; _para13:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_execute_immediate_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;
-             _para11:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_execute_immediate_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:word;
+             _para11:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_exec_immed3_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;
-             _para11:Pchar; _para12:word; _para13:Pchar; _para14:word; _para15:word;
-             _para16:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_exec_immed3_m(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:word;
+             _para11:PAnsiChar; _para12:word; _para13:PAnsiChar; _para14:word; _para15:word;
+             _para16:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_fetch_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;
-             _para6:word; _para7:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_fetch_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PAnsiChar; _para5:word;
+             _para6:word; _para7:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_insert_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;
-             _para6:word; _para7:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_insert_m(_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PAnsiChar; _para5:word;
+             _para6:word; _para7:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_prepare_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_prepare_m(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_dsql_release(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_dsql_release(_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_close(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_close(_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_declare(_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_declare(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_describe(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_describe(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_describe_bind(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_describe_bind(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_execute(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;
+  function isc_embed_dsql_execute2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_execute_immed(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;
+  function isc_embed_dsql_execute_immed(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;
              _para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_fetch(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_fetch(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_open(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_open2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;
+  function isc_embed_dsql_open2(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA;
              _para6:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_insert(_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_insert(_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:word;
-             _para6:Pchar; _para7:word; _para8:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_prepare(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:word;
+             _para6:PAnsiChar; _para7:word; _para8:PXSQLDA):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_embed_dsql_release(_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_embed_dsql_release(_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   {                             }
   { Other Blob functions        }
   {                             }
-  function BLOB_open(_para1:isc_blob_handle; _para2:Pchar; _para3:longint):PBSTREAM; extdecl; external gdslib;
+  function BLOB_open(_para1:isc_blob_handle; _para2:PAnsiChar; _para3:longint):PBSTREAM; extdecl; external gdslib;
 
-  function BLOB_put(_para1:char; _para2:PBSTREAM):longint; extdecl; external gdslib;
+  function BLOB_put(_para1:AnsiChar; _para2:PBSTREAM):longint; extdecl; external gdslib;
 
   function BLOB_close(_para1:PBSTREAM):longint; extdecl; external gdslib;
 
   function BLOB_get(_para1:PBSTREAM):longint; extdecl; external gdslib;
 
-  function BLOB_display(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_display(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function BLOB_dump(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_dump(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function BLOB_edit(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_edit(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function BLOB_load(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_load(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function BLOB_text_dump(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_text_dump(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function BLOB_text_load(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl; external gdslib;
+  function BLOB_text_load(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl; external gdslib;
 
-  function Bopen(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):PBSTREAM; extdecl; external gdslib;
+  function Bopen(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):PBSTREAM; extdecl; external gdslib;
 
 {$IFDEF Unix}
-  function Bopen2(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar; _para5:word):PBSTREAM; extdecl; external gdslib;
+  function Bopen2(_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar; _para5:word):PBSTREAM; extdecl; external gdslib;
 {$ENDIF}
 
   {                             }
   { Other Misc functions        }
   {                             }
-  function isc_ftof(_para1:Pchar; _para2:word; _para3:Pchar; _para4:word):ISC_LONG; extdecl; external gdslib;
+  function isc_ftof(_para1:PAnsiChar; _para2:word; _para3:PAnsiChar; _para4:word):ISC_LONG; extdecl; external gdslib;
 
-  function isc_print_blr(_para1:Pchar; _para2:isc_callback; _para3:pointer; _para4:smallint):ISC_STATUS; extdecl; external gdslib;
+  function isc_print_blr(_para1:PAnsiChar; _para2:isc_callback; _para3:pointer; _para4:smallint):ISC_STATUS; extdecl; external gdslib;
 
   procedure isc_set_debug(_para1:longint); extdecl; external gdslib;
 
   procedure isc_qtoq(_para1:PISC_QUAD; _para2:PISC_QUAD); extdecl; external gdslib;
 
-  procedure isc_vtof(_para1:Pchar; _para2:Pchar; _para3:word); extdecl; external gdslib;
+  procedure isc_vtof(_para1:PAnsiChar; _para2:PAnsiChar; _para3:word); extdecl; external gdslib;
 
-  procedure isc_vtov(_para1:Pchar; _para2:Pchar; _para3:smallint); extdecl; external gdslib;
+  procedure isc_vtov(_para1:PAnsiChar; _para2:PAnsiChar; _para3:smallint); extdecl; external gdslib;
 
   function isc_version(_para1:Pisc_db_handle; _para2:isc_callback; _para3:pointer):longint; extdecl; external gdslib;
 
@@ -2035,15 +2035,15 @@ type
                                           (p)++ = (data) >> 24;}
   !!MVC *)
 
-  function isc_service_attach(_para1:PISC_STATUS; _para2:word; _para3:Pchar; _para4:Pisc_svc_handle; _para5:word;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_service_attach(_para1:PISC_STATUS; _para2:word; _para3:PAnsiChar; _para4:Pisc_svc_handle; _para5:word;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_service_detach(_para1:PISC_STATUS; _para2:Pisc_svc_handle):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_service_query(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar;
-             _para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_service_query(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:PAnsiChar;
+             _para6:word; _para7:PAnsiChar; _para8:word; _para9:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_service_start(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_service_start(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   {                              }
   { Shutdown and cancel          }
@@ -2062,13 +2062,13 @@ type
   { Forms functions              }
   {                              }
 {$IFDEF Unix}
-  function isc_compile_map(_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_compile_map(_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_compile_menu(_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_compile_menu(_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_compile_sub_map(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_compile_sub_map(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_create_window(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:Pchar; _para5:Psmallint;
+  function isc_create_window(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:Psmallint;
              _para6:Psmallint):ISC_STATUS; extdecl; external gdslib;
 
   function isc_delete_window(_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl; external gdslib;
@@ -2076,8 +2076,8 @@ type
   function isc_drive_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_win_handle; _para5:Pisc_req_handle;
              _para6:Pbyte; _para7:Pbyte):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_drive_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar;
-             _para6:Psmallint; _para7:Pchar; _para8:Psmallint; _para9:Psmallint; _para10:Pchar;
+  function isc_drive_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar;
+             _para6:Psmallint; _para7:PAnsiChar; _para8:Psmallint; _para9:Psmallint; _para10:PAnsiChar;
              _para11:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
 
   function isc_form_delete(_para1:PISC_STATUS; _para2:Pisc_form_handle):ISC_STATUS; extdecl; external gdslib;
@@ -2086,19 +2086,19 @@ type
 
   function isc_form_insert(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_req_handle; _para5:Pbyte):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_get_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG;
+  function isc_get_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:PISC_LONG;
              _para6:Psmallint):ISC_STATUS; extdecl; external gdslib;
 
   function isc_initialize_menu(_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
+  function isc_menu(_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_load_form(_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_form_handle; _para5:Psmallint;
-             _para6:Pchar):ISC_STATUS; extdecl; external gdslib;
+             _para6:PAnsiChar):ISC_STATUS; extdecl; external gdslib;
 
   function isc_pop_window(_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl; external gdslib;
 
-  function isc_put_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
+  function isc_put_entree(_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:PISC_LONG):ISC_STATUS; extdecl; external gdslib;
 
   function isc_reset_form(_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl; external gdslib;
 
@@ -2292,16 +2292,16 @@ var
 {                          }
 { OSRI database functions  }
 {                          }
-  isc_attach_database : function (_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
-  isc_array_gen_sdl : function (_para1:PISC_STATUS; _para2:PISC_ARRAY_DESC; _para3:Psmallint; _para4:Pchar; _para5:Psmallint):ISC_STATUS; extdecl;
+  isc_attach_database : function (_para1:PISC_STATUS; _para2:smallint; _para3:PAnsiChar; _para4:Pisc_db_handle; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
+  isc_array_gen_sdl : function (_para1:PISC_STATUS; _para2:PISC_ARRAY_DESC; _para3:Psmallint; _para4:PAnsiChar; _para5:Psmallint):ISC_STATUS; extdecl;
   isc_array_get_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;_para6:pointer; _para7:PISC_LONG):ISC_STATUS; extdecl;
-  isc_array_lookup_bounds : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;_para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
-  isc_array_lookup_desc : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Pchar;_para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
-  isc_array_set_desc : function (_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar; _para4:Psmallint; _para5:Psmallint;_para6:Psmallint; _para7:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
+  isc_array_lookup_bounds : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:PAnsiChar;_para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
+  isc_array_lookup_desc : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:PAnsiChar;_para6:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
+  isc_array_set_desc : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar; _para4:Psmallint; _para5:Psmallint;_para6:Psmallint; _para7:PISC_ARRAY_DESC):ISC_STATUS; extdecl;
   isc_array_put_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:PISC_ARRAY_DESC;_para6:pointer; _para7:PISC_LONG):ISC_STATUS; extdecl;
   isc_blob_default_desc : procedure (_para1:PISC_BLOB_DESC; _para2:Pbyte; _para3:Pbyte); extdecl;
   isc_blob_gen_bpb : function (_para1:PISC_STATUS; _para2:PISC_BLOB_DESC; _para3:PISC_BLOB_DESC; _para4:word; _para5:Pbyte;_para6:Pword):ISC_STATUS; extdecl;
-  isc_blob_info : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
+  isc_blob_info : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_blob_lookup_desc : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pbyte; _para5:Pbyte;_para6:PISC_BLOB_DESC; _para7:Pbyte):ISC_STATUS; extdecl;
   isc_blob_set_desc : function (_para1:PISC_STATUS; _para2:Pbyte; _para3:Pbyte; _para4:smallint; _para5:smallint;_para6:smallint; _para7:PISC_BLOB_DESC):ISC_STATUS; extdecl;
   isc_cancel_blob : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle):ISC_STATUS; extdecl;
@@ -2310,9 +2310,9 @@ var
   isc_commit_retaining : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl;
   isc_commit_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl;
   isc_create_blob : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; extdecl;
-  isc_create_blob2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;_para6:smallint; _para7:Pchar):ISC_STATUS; extdecl;
-  isc_create_database : function (_para1:PISC_STATUS; _para2:smallint; _para3:Pchar; _para4:Pisc_db_handle; _para5:smallint;_para6:Pchar; _para7:smallint):ISC_STATUS; extdecl;
-  isc_database_info : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
+  isc_create_blob2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;_para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl;
+  isc_create_database : function (_para1:PISC_STATUS; _para2:smallint; _para3:PAnsiChar; _para4:Pisc_db_handle; _para5:smallint;_para6:PAnsiChar; _para7:smallint):ISC_STATUS; extdecl;
+  isc_database_info : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_decode_date : procedure (_para1:PISC_QUAD; _para2:pointer); extdecl;
   isc_decode_sql_date : procedure (_para1:PISC_DATE; _para2:pointer); extdecl;
   isc_decode_sql_time : procedure (_para1:PISC_TIME; _para2:pointer); extdecl;
@@ -2323,37 +2323,37 @@ var
   isc_dsql_alloc_statement2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_stmt_handle):ISC_STATUS; extdecl;
   isc_dsql_describe : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
   isc_dsql_describe_bind : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_dsql_exec_immed2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:PXSQLDA; _para8:PXSQLDA):ISC_STATUS; extdecl;
+  isc_dsql_exec_immed2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PXSQLDA; _para8:PXSQLDA):ISC_STATUS; extdecl;
   isc_dsql_execute : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl;
   isc_dsql_execute2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PXSQLDA;_para6:PXSQLDA):ISC_STATUS; extdecl;
-  isc_dsql_execute_immediate : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
+  isc_dsql_execute_immediate : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
   isc_dsql_fetch : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
   isc_dsql_finish : function (_para1:Pisc_db_handle):ISC_STATUS; extdecl;
   isc_dsql_free_statement : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word):ISC_STATUS; extdecl;
   isc_dsql_insert : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_dsql_prepare : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
-  isc_dsql_set_cursor_name : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:Pchar; _para4:word):ISC_STATUS; extdecl;
-  isc_dsql_sql_info : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
+  isc_dsql_prepare : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
+  isc_dsql_set_cursor_name : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:PAnsiChar; _para4:word):ISC_STATUS; extdecl;
+  isc_dsql_sql_info : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_encode_date : procedure (_para1:pointer; _para2:PISC_QUAD); extdecl;
   isc_encode_sql_date : procedure (_para1:pointer; _para2:PISC_DATE); extdecl;
   isc_encode_sql_time : procedure (_para1:pointer; _para2:PISC_TIME); extdecl;
   isc_encode_timestamp : procedure (_para1:pointer; _para2:PISC_TIMESTAMP); extdecl;
-  isc_event_block : function (_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl;
-  isc_event_counts: procedure (_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;
-  isc_expand_dpb : procedure (_para1:PPchar; _para2:Psmallint; args:array of const); cdecl;
-  isc_modify_dpb : function (_para1:PPchar; _para2:Psmallint; _para3:word; _para4:Pchar; _para5:smallint):longint; extdecl;
-  isc_free : function (_para1:Pchar):ISC_LONG; extdecl;
-  isc_get_segment : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:Pword; _para4:word; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_get_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;_para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer;_para11:PISC_LONG):ISC_STATUS; extdecl;
-  isc_interprete : function (_para1:Pchar; _para2:PPISC_STATUS):ISC_STATUS; extdecl;
+  isc_event_block : function (_para1:PPAnsiChar; _para2:PPAnsiChar; _para3:word; args:array of const):ISC_LONG; cdecl;
+  isc_event_counts: procedure (_para1: PISC_STATUS; _para2: short; _para3: PAnsiChar; _para4: PAnsiChar); extdecl;
+  isc_expand_dpb : procedure (_para1:PPAnsiChar; _para2:Psmallint; args:array of const); cdecl;
+  isc_modify_dpb : function (_para1:PPAnsiChar; _para2:Psmallint; _para3:word; _para4:PAnsiChar; _para5:smallint):longint; extdecl;
+  isc_free : function (_para1:PAnsiChar):ISC_LONG; extdecl;
+  isc_get_segment : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:Pword; _para4:word; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_get_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;_para6:PAnsiChar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer;_para11:PISC_LONG):ISC_STATUS; extdecl;
+  isc_interprete : function (_para1:PAnsiChar; _para2:PPISC_STATUS):ISC_STATUS; extdecl;
   isc_open_blob : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD):ISC_STATUS; extdecl;
-  isc_open_blob2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;_para6:smallint; _para7:Pchar):ISC_STATUS; extdecl;
-  isc_prepare_transaction2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar):ISC_STATUS; extdecl;
+  isc_open_blob2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_blob_handle; _para5:PISC_QUAD;_para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl;
+  isc_prepare_transaction2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:PAnsiChar):ISC_STATUS; extdecl;
   isc_print_sqlerror : procedure (_para1:smallint; _para2:PISC_STATUS); extdecl;
   isc_print_status : function (_para1:PISC_STATUS):ISC_STATUS; extdecl;
-  isc_put_segment : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:word; _para4:Pchar):ISC_STATUS; extdecl;
-  isc_put_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;_para6:Pchar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer):ISC_STATUS; extdecl;
-  isc_que_events : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:Pchar;_para6:isc_callback; _para7:pointer):ISC_STATUS; extdecl;
+  isc_put_segment : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:word; _para4:PAnsiChar):ISC_STATUS; extdecl;
+  isc_put_slice : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PISC_QUAD; _para5:smallint;_para6:PAnsiChar; _para7:smallint; _para8:PISC_LONG; _para9:ISC_LONG; _para10:pointer):ISC_STATUS; extdecl;
+  isc_que_events : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:PISC_LONG; _para4:smallint; _para5:PAnsiChar;_para6:isc_callback; _para7:pointer):ISC_STATUS; extdecl;
   isc_rollback_retaining : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl;
   isc_rollback_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl;
   isc_start_multiple : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:pointer):ISC_STATUS; extdecl;
@@ -2361,10 +2361,10 @@ var
   isc_sqlcode : function (_para1:PISC_STATUS):ISC_LONG; extdecl;
   // Available in Firebird 2.5+
   fb_sqlstate : function(_para1: PAnsiChar;_para2:PISC_STATUS):ISC_STATUS; extdecl; 
-  isc_sql_interprete : procedure (_para1:smallint; _para2:Pchar; _para3:smallint); extdecl;
-  isc_transaction_info : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
-  isc_transact_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl;
-  isc_vax_integer : function (_para1:Pchar; _para2:smallint):ISC_LONG; extdecl;
+  isc_sql_interprete : procedure (_para1:smallint; _para2:PAnsiChar; _para3:smallint); extdecl;
+  isc_transaction_info : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:PAnsiChar; _para5:smallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
+  isc_transact_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PAnsiChar; _para8:word; _para9:PAnsiChar):ISC_STATUS; extdecl;
+  isc_vax_integer : function (_para1:PAnsiChar; _para2:smallint):ISC_LONG; extdecl;
   isc_portable_integer : function (_para1:Pbyte; _para2:smallint):ISC_INT64; extdecl;
 {                                    }
 { Security Functions                 }
@@ -2375,82 +2375,82 @@ var
 {                                 }
 {  Other OSRI functions           }
 {                                 }
-  isc_compile_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_compile_request2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_ddl : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl;
+  isc_compile_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_compile_request2 : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_req_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_ddl : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
   isc_prepare_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle):ISC_STATUS; extdecl;
   isc_receive : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer;_para6:smallint):ISC_STATUS; extdecl;
-  isc_reconnect_transaction : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:Pchar):ISC_STATUS; extdecl;
+  isc_reconnect_transaction : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
   isc_release_request : function (_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl;
-  isc_request_info : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:Pchar;_para6:smallint; _para7:Pchar):ISC_STATUS; extdecl;
+  isc_request_info : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:PAnsiChar;_para6:smallint; _para7:PAnsiChar):ISC_STATUS; extdecl;
   isc_seek_blob : function (_para1:PISC_STATUS; _para2:Pisc_blob_handle; _para3:smallint; _para4:ISC_LONG; _para5:PISC_LONG):ISC_STATUS; extdecl;
   isc_send : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:smallint; _para4:smallint; _para5:pointer;_para6:smallint):ISC_STATUS; extdecl;
   isc_start_and_send : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Pisc_tr_handle; _para4:smallint; _para5:smallint;_para6:pointer; _para7:smallint):ISC_STATUS; extdecl;
   isc_start_request : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Pisc_tr_handle; _para4:smallint):ISC_STATUS; extdecl;
   isc_unwind_request : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint):ISC_STATUS; extdecl;
-  isc_wait_for_event : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:Pchar; _para5:Pchar):ISC_STATUS; extdecl;
+  isc_wait_for_event : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:smallint; _para4:PAnsiChar; _para5:PAnsiChar):ISC_STATUS; extdecl;
 {                            }
 { Other Sql functions        }
 {                            }
-  isc_close : function (_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl;
-  isc_declare : function (_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar):ISC_STATUS; extdecl;
-  isc_describe : function (_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl;
-  isc_describe_bind : function (_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl;
-  isc_execute : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_execute_immediate : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_fetch : function (_para1:PISC_STATUS; _para2:Pchar; _para3:PXSQLDA):ISC_STATUS; extdecl;
-  isc_open : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_prepare : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:Psmallint;_para6:Pchar; _para7:PXSQLDA):ISC_STATUS; extdecl;
+  isc_close : function (_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl;
+  isc_declare : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar):ISC_STATUS; extdecl;
+  isc_describe : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl;
+  isc_describe_bind : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl;
+  isc_execute : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_execute_immediate : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_fetch : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PXSQLDA):ISC_STATUS; extdecl;
+  isc_open : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_prepare : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:Psmallint;_para6:PAnsiChar; _para7:PXSQLDA):ISC_STATUS; extdecl;
 {                                    }
 { Other Dynamic sql functions        }
 {                                    }
-  isc_dsql_execute_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;_para6:word; _para7:word; _para8:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_execute2_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;_para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar;_para11:word; _para12:word; _para13:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_execute_immediate_m : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;_para11:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_exec_immed3_m : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:word;_para11:Pchar; _para12:word; _para13:Pchar; _para14:word; _para15:word;_para16:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_fetch_m : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;_para6:word; _para7:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_insert_m : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:Pchar; _para5:word;_para6:word; _para7:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_prepare_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:Pchar;_para6:word; _para7:word; _para8:Pchar; _para9:word; _para10:Pchar):ISC_STATUS; extdecl;
-  isc_dsql_release : function (_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl;
-  isc_embed_dsql_close : function (_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl;
-  isc_embed_dsql_declare : function (_para1:PISC_STATUS; _para2:Pchar; _para3:Pchar):ISC_STATUS; extdecl;
-  isc_embed_dsql_describe : function (_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_describe_bind : function (_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_execute : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_execute2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;_para6:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_execute_immed : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_fetch : function (_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_open : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_open2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pchar; _para4:word; _para5:PXSQLDA;_para6:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_insert : function (_para1:PISC_STATUS; _para2:Pchar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_prepare : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pchar; _para5:word;_para6:Pchar; _para7:word; _para8:PXSQLDA):ISC_STATUS; extdecl;
-  isc_embed_dsql_release : function (_para1:PISC_STATUS; _para2:Pchar):ISC_STATUS; extdecl;
+  isc_dsql_execute_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:word; _para8:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_execute2_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:PAnsiChar;_para11:word; _para12:word; _para13:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_execute_immediate_m : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:word;_para11:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_exec_immed3_m : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:word;_para11:PAnsiChar; _para12:word; _para13:PAnsiChar; _para14:word; _para15:word;_para16:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_fetch_m : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PAnsiChar; _para5:word;_para6:word; _para7:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_insert_m : function (_para1:PISC_STATUS; _para2:Pisc_stmt_handle; _para3:word; _para4:PAnsiChar; _para5:word;_para6:word; _para7:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_prepare_m : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:Pisc_stmt_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:word; _para8:PAnsiChar; _para9:word; _para10:PAnsiChar):ISC_STATUS; extdecl;
+  isc_dsql_release : function (_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl;
+  isc_embed_dsql_close : function (_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl;
+  isc_embed_dsql_declare : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:PAnsiChar):ISC_STATUS; extdecl;
+  isc_embed_dsql_describe : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_describe_bind : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_execute : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_execute2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA;_para6:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_execute_immed : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_fetch : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_open : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_open2 : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:PAnsiChar; _para4:word; _para5:PXSQLDA;_para6:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_insert : function (_para1:PISC_STATUS; _para2:PAnsiChar; _para3:word; _para4:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_prepare : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:PAnsiChar; _para5:word;_para6:PAnsiChar; _para7:word; _para8:PXSQLDA):ISC_STATUS; extdecl;
+  isc_embed_dsql_release : function (_para1:PISC_STATUS; _para2:PAnsiChar):ISC_STATUS; extdecl;
 {                             }
 { Other Blob functions        }
 {                             }
-  BLOB_open : function (_para1:isc_blob_handle; _para2:Pchar; _para3:longint):PBSTREAM; extdecl;
-  BLOB_put : function (_para1:char; _para2:PBSTREAM):longint; extdecl;
+  BLOB_open : function (_para1:isc_blob_handle; _para2:PAnsiChar; _para3:longint):PBSTREAM; extdecl;
+  BLOB_put : function (_para1:AnsiChar; _para2:PBSTREAM):longint; extdecl;
   BLOB_close : function (_para1:PBSTREAM):longint; extdecl;
   BLOB_get : function (_para1:PBSTREAM):longint; extdecl;
-  BLOB_display : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  BLOB_dump : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  BLOB_edit : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  BLOB_load : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  BLOB_text_dump : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  BLOB_text_load : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):longint; extdecl;
-  Bopen : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar):PBSTREAM; extdecl;
+  BLOB_display : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  BLOB_dump : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  BLOB_edit : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  BLOB_load : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  BLOB_text_dump : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  BLOB_text_load : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):longint; extdecl;
+  Bopen : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar):PBSTREAM; extdecl;
 {$IFDEF Unix}
-  Bopen2 : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:Pchar; _para5:word):PBSTREAM; extdecl;
+  Bopen2 : function (_para1:PISC_QUAD; _para2:isc_db_handle; _para3:isc_tr_handle; _para4:PAnsiChar; _para5:word):PBSTREAM; extdecl;
 {$ENDIF}
 {                             }
 { Other Misc functions        }
 {                             }
-  isc_ftof : function (_para1:Pchar; _para2:word; _para3:Pchar; _para4:word):ISC_LONG; extdecl;
-  isc_print_blr : function (_para1:Pchar; _para2:isc_callback; _para3:pointer; _para4:smallint):ISC_STATUS; extdecl;
+  isc_ftof : function (_para1:PAnsiChar; _para2:word; _para3:PAnsiChar; _para4:word):ISC_LONG; extdecl;
+  isc_print_blr : function (_para1:PAnsiChar; _para2:isc_callback; _para3:pointer; _para4:smallint):ISC_STATUS; extdecl;
   isc_set_debug : procedure (_para1:longint); extdecl;
   isc_qtoq : procedure (_para1:PISC_QUAD; _para2:PISC_QUAD); extdecl;
-  isc_vtof : procedure (_para1:Pchar; _para2:Pchar; _para3:word); extdecl;
-  isc_vtov : procedure (_para1:Pchar; _para2:Pchar; _para3:smallint); extdecl;
+  isc_vtof : procedure (_para1:PAnsiChar; _para2:PAnsiChar; _para3:word); extdecl;
+  isc_vtov : procedure (_para1:PAnsiChar; _para2:PAnsiChar; _para3:smallint); extdecl;
   isc_version : function (_para1:Pisc_db_handle; _para2:isc_callback; _para3:pointer):longint; extdecl;
 {$IFDEF Unix}
   isc_reset_fpe : function (_para1:word):ISC_LONG; extdecl;
@@ -2467,10 +2467,10 @@ var
   (p)++ = (data) >> 16; \
   (p)++ = (data) >> 24;}
 !!MVC *)
-  isc_service_attach : function (_para1:PISC_STATUS; _para2:word; _para3:Pchar; _para4:Pisc_svc_handle; _para5:word;_para6:Pchar):ISC_STATUS; extdecl;
+  isc_service_attach : function (_para1:PISC_STATUS; _para2:word; _para3:PAnsiChar; _para4:Pisc_svc_handle; _para5:word;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_service_detach : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle):ISC_STATUS; extdecl;
-  isc_service_query : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar;_para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl;
-  isc_service_start : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar):ISC_STATUS; extdecl;
+  isc_service_query : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:PAnsiChar;_para6:word; _para7:PAnsiChar; _para8:word; _para9:PAnsiChar):ISC_STATUS; extdecl;
+  isc_service_start : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:PAnsiChar):ISC_STATUS; extdecl;
 
 
 {                              }
@@ -2483,22 +2483,22 @@ var
 { Forms functions              }
 {                              }
 {$IFDEF Unix}
-  isc_compile_map : function (_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_compile_menu : function (_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_compile_sub_map : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_create_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:Pchar; _para5:Psmallint;_para6:Psmallint):ISC_STATUS; extdecl;
+  isc_compile_map : function (_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_compile_menu : function (_para1:PISC_STATUS; _para2:Pisc_form_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_compile_sub_map : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_create_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:Psmallint;_para6:Psmallint):ISC_STATUS; extdecl;
   isc_delete_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
   isc_drive_form : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_win_handle; _para5:Pisc_req_handle;_para6:Pbyte; _para7:Pbyte):ISC_STATUS; extdecl;
-  isc_drive_menu : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar;_para6:Psmallint; _para7:Pchar; _para8:Psmallint; _para9:Psmallint; _para10:Pchar;_para11:PISC_LONG):ISC_STATUS; extdecl;
+  isc_drive_menu : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar;_para6:Psmallint; _para7:PAnsiChar; _para8:Psmallint; _para9:Psmallint; _para10:PAnsiChar;_para11:PISC_LONG):ISC_STATUS; extdecl;
   isc_form_delete : function (_para1:PISC_STATUS; _para2:Pisc_form_handle):ISC_STATUS; extdecl;
   isc_form_fetch : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_req_handle; _para5:Pbyte):ISC_STATUS; extdecl;
   isc_form_insert : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_req_handle; _para5:Pbyte):ISC_STATUS; extdecl;
-  isc_get_entree : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG;_para6:Psmallint):ISC_STATUS; extdecl;
+  isc_get_entree : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:PISC_LONG;_para6:Psmallint):ISC_STATUS; extdecl;
   isc_initialize_menu : function (_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl;
-  isc_menu : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:Pchar):ISC_STATUS; extdecl;
-  isc_load_form : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_form_handle; _para5:Psmallint;_para6:Pchar):ISC_STATUS; extdecl;
+  isc_menu : function (_para1:PISC_STATUS; _para2:Pisc_win_handle; _para3:Pisc_req_handle; _para4:Psmallint; _para5:PAnsiChar):ISC_STATUS; extdecl;
+  isc_load_form : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:Pisc_form_handle; _para5:Psmallint;_para6:PAnsiChar):ISC_STATUS; extdecl;
   isc_pop_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
-  isc_put_entree : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:Pchar; _para5:PISC_LONG):ISC_STATUS; extdecl;
+  isc_put_entree : function (_para1:PISC_STATUS; _para2:Pisc_req_handle; _para3:Psmallint; _para4:PAnsiChar; _para5:PISC_LONG):ISC_STATUS; extdecl;
   isc_reset_form : function (_para1:PISC_STATUS; _para2:Pisc_req_handle):ISC_STATUS; extdecl;
   isc_suspend_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
 {$ENDIF}
