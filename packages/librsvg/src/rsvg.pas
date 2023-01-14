@@ -144,18 +144,18 @@ function rsvg_handle_new(): PRsvgHandle; cdecl; external {$IFDEF DYNLIB}proj4lib
 function rsvg_handle_write(handle: PRsvgHandle; buf: pguchar; count: gsize; var error: PGError): gboolean; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 function rsvg_handle_close(handle: PRsvgHandle; var error: PGError): gboolean; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 function rsvg_handle_get_pixbuf(handle: PRsvgHandle): PGdkPixbuf; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
-function rsvg_handle_get_pixbuf_sub(handle: PRsvgHandle; id: pchar): PGdkPixbuf; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+function rsvg_handle_get_pixbuf_sub(handle: PRsvgHandle; id: PAnsiChar): PGdkPixbuf; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 
-function rsvg_handle_get_base_uri(handle: PRsvgHandle): pchar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
-procedure rsvg_handle_set_base_uri(handle: PRsvgHandle; base_uri: pchar); cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+function rsvg_handle_get_base_uri(handle: PRsvgHandle): PAnsiChar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+procedure rsvg_handle_set_base_uri(handle: PRsvgHandle; base_uri: PAnsiChar); cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 
 procedure rsvg_handle_get_dimensions(handle: PRsvgHandle; dimension_data: PRsvgDimensionData); cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 
 (* Accessibility API *)
 
-function rsvg_handle_get_title(handle: PRsvgHandle): pchar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
-function rsvg_handle_get_desc(handle: PRsvgHandle): pchar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
-function rsvg_handle_get_metadata(handle: PRsvgHandle): pchar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+function rsvg_handle_get_title(handle: PRsvgHandle): PAnsiChar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+function rsvg_handle_get_desc(handle: PRsvgHandle): PAnsiChar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
+function rsvg_handle_get_metadata(handle: PRsvgHandle): PAnsiChar; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 
 function rsvg_handle_new_from_data(data: Pguint8; data_len: gsize; var error: PGError): PRsvgHandle; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
 function rsvg_handle_new_from_file(file_name: pgchar; var error: PGError): PRsvgHandle; cdecl; external {$IFDEF DYNLIB}proj4lib{$ENDIF};
