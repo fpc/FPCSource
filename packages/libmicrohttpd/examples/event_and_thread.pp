@@ -123,7 +123,7 @@ type
     busy_page: Pcchar = '<html><body>The server is busy. :-(</body></html>';
 {$ENDIF}
   var
-    s: string;
+    s: ansistring;
     ret: cint;
     thr: TThread;
     response: PMHD_Response;

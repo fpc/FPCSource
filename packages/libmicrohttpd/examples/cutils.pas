@@ -53,7 +53,7 @@ function _daylight: clong; cdecl; external LIB_NAME name '__daylight';
 {$IFDEF UNIX}
 function sscanf(s: Pcchar; format: Pcchar): cint; cdecl; varargs; external LIB_NAME name 'sscanf';
 function lseek(fd: cint; offset: __off_t; whence: cint): __off_t; cdecl; external LIB_NAME name 'lseek';
-function isprint(p: Char): cint; cdecl; external LIB_NAME name 'isprint';
+function isprint(p: AnsiChar): cint; cdecl; external LIB_NAME name 'isprint';
 function strdup(para1: Pcchar): Pcchar; cdecl; external LIB_NAME name 'strdup';
 function strchr(para1: Pcchar; para2: cint): Pcchar; cdecl; external LIB_NAME name 'strchr';
 function strstr(haystack: Pcchar; needle: Pcchar): Pcchar; cdecl; external LIB_NAME name 'strstr';
@@ -64,9 +64,9 @@ function errno: PInteger; cdecl; external LIB_NAME name '__errno_location';
 function memset(s: pointer; c: longint; n: size_t): pointer; cdecl; external LIB_NAME name 'memset';
 function snprintf(str: Pcchar; size: size_t; format: Pcchar): cint; cdecl; varargs; external LIB_NAME Name {$IFDEF MSWINDOWS}'_snprintf'{$ELSE}'snprintf'{$ENDIF};
 function rand: cint; cdecl; external LIB_NAME name 'rand';
-function strerror(errnum: cint): Pchar; cdecl; external LIB_NAME name 'strerror';
-function strncat(a, b: Pcchar; sz: size_t): Pchar; cdecl; external LIB_NAME name 'strncat';
-function strcpy(a, b: Pcchar): Pchar; cdecl; external LIB_NAME name 'strcpy';
+function strerror(errnum: cint): PAnsiChar; cdecl; external LIB_NAME name 'strerror';
+function strncat(a, b: Pcchar; sz: size_t): PAnsiChar; cdecl; external LIB_NAME name 'strncat';
+function strcpy(a, b: Pcchar): PAnsiChar; cdecl; external LIB_NAME name 'strcpy';
 function strncmp(a, b: Pcchar; sz: size_t): cint; cdecl;  external LIB_NAME name 'strncmp';
 function signal(sig: cint; func: signal_func): signal_func; cdecl; external LIB_NAME Name 'signal';
 
