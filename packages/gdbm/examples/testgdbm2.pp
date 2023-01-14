@@ -23,7 +23,7 @@ uses sysutils,gdbm;
 
 Var
   dbf : pgdbm_file;
-  A,B : String;
+  A,B : AnsiString;
   i : longint;
 
 begin
