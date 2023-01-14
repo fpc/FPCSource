@@ -217,7 +217,7 @@ type
 const
       PA_MAX_PATHNAME = 96;		// including null terminator, practically speaking,
                              // might be " \storage card 3\My Documents\document
-                             // folder 7\very long filename.wav" or 69 char's max
+                             // folder 7\very long filename.wav" or 69 AnsiChar's max
 
 // Pure-NT machines don't necessarily define CEOID.  In the future, we'll want
 // to replace this define with the actual typedef (JParks).

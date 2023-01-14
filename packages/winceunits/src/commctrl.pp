@@ -558,7 +558,7 @@ type
     pszFormat  : LPCSTR;
     st         : SYSTEMTIME;
     pszDisplay : LPCSTR;
-    szDisplay  : Array[0..63] of CHAR;
+    szDisplay  : Array[0..63] of AnsiChar;
   end;
   NMDATETIMEFORMATA=tagNMDATETIMEFORMATA;
   TNMDATETIMEFORMATA=tagNMDATETIMEFORMATA;

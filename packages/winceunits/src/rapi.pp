@@ -335,9 +335,9 @@ type
   TCeGetSystemPowerStatusEx= function(pStatus: PSYSTEM_POWER_STATUS_EX; fUpdate: BOOL): BOOL stdcall;
 
   //added 10/16/2000 - Terence Goggin; terencegoggin@hotmail.com
-  TDesktopToDevice = function(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint stdcall;
+  TDesktopToDevice = function(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint stdcall;
   //added 01/19/2003 - Octavio Hernandez; dotnet@danysoft.com
-  TDeviceToDesktop = function(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint stdcall;
+  TDeviceToDesktop = function(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint stdcall;
 
   TCeRapiUninit = function : LongInt stdcall;
   TCeFindAllFiles = function(Path: PWideChar; Attr: DWORD; var Count: DWord;
@@ -434,9 +434,9 @@ function CeGetClassName(hWnd: HWND; lpClassName: LPWSTR; nMaxCount: integer): In
 procedure CeGlobalMemoryStatus(lpmst: PMemoryStatus);
 function CeGetSystemPowerStatusEx(pStatus: PSYSTEM_POWER_STATUS_EX; fUpdate: BOOL): BOOL;
 //added 10/16/2000 - Terence Goggin; terencegoggin@hotmail.com
-function DesktopToDevice(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
+function DesktopToDevice(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint;
 //added 01/19/2003 - Octavio Hernandez
-function DeviceToDesktop(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
+function DeviceToDesktop(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint;
 function CeRapiInvoke(pDllPath: LPCWSTR; pFunctionName: LPCWSTR; cbInput: DWord; pInput: PByte;
   pcbOutput: PDWord; ppOutput: PPByte; ppIRAPIStream: PIRAPIStream; dwReserved: DWord): HResult;
 
@@ -1470,7 +1470,7 @@ begin
 end;
 
 //added 10/16/00 - Terence Goggin; terencegoggin@hotmail.com
-function DesktopToDevice(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
+function DesktopToDevice(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint;
 begin
   if not AdoCELoaded then
   begin
@@ -1485,7 +1485,7 @@ begin
 end;
 
 //added 01/19/2003 - Octavio Hernandez
-function DeviceToDesktop(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
+function DeviceToDesktop(DesktopLocation, TableList: AnsiString; Sync: BOOL; Overwrite: Integer; DeviceLocation: AnsiString): Longint;
 begin
   if not AdoCELoaded then
   begin

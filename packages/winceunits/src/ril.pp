@@ -378,7 +378,7 @@ const
 // -----------------------------------------------------------------------------
 const
       RIL_NOTIFY_SIMNOTACCESSIBLE         = $00000001 or RIL_NCLASS_MISC;  // @constdefine SIM card has been removed or has failed to respond; lpData is NULL
-      RIL_NOTIFY_DTMFSIGNAL               = $00000002 or RIL_NCLASS_MISC;  // @constdefine A DTMF signal has been detected; lpData points to char
+      RIL_NOTIFY_DTMFSIGNAL               = $00000002 or RIL_NCLASS_MISC;  // @constdefine A DTMF signal has been detected; lpData points to AnsiChar
       RIL_NOTIFY_GPRSCLASS_NETWORKCHANGED = $00000003 or RIL_NCLASS_MISC;  // @constdefine Network has indicated a change in GPRS class
                                                                            // lpData points to a DWORD containing the new RIL_GPRSCLASS_* value
       RIL_NOTIFY_GPRSCLASS_RADIOCHANGED   = $00000004 or RIL_NCLASS_MISC;  // @constdefine The radio has indicated a change in GPRS class
@@ -6732,7 +6732,7 @@ function RIL_SetHideConnectedIdStatus(
 //
 // @func Retrieves the status for a Completion of Call to Busy Subscriber index.
 //
-// @comm Asynchronous.  If active, <p lpData> points to an array of <t char>s
+// @comm Asynchronous.  If active, <p lpData> points to an array of <t AnsiChar>s
 //       indicating the phone number for which CCBS is active.  If CCBS is not
 //       active for that entry, <p lpData> is <def NULL>.
 //
@@ -7000,7 +7000,7 @@ function RIL_SendDTMF(
 // -----------------------------------------------------------------------------
 function RIL_StartDTMF(
                        _hRil:HRIL;       // @parm handle to RIL instance returned by <f RIL_Initialize>
-                       ch:AnsiChar       // @parm alphanumeric char representing DTMF tones to be sent (0-9, A-D, *, #)
+                       ch:AnsiChar       // @parm alphanumeric AnsiChar representing DTMF tones to be sent (0-9, A-D, *, #)
                       ):HRESULT; external RILDLL name 'RIL_StartDTMF';
 
 // -----------------------------------------------------------------------------
@@ -7015,7 +7015,7 @@ function RIL_StartDTMF(
 // -----------------------------------------------------------------------------
 function RIL_StopDTMF(
                       _hRil:HRIL;       // @parm handle to RIL instance returned by <f RIL_Initialize>
-                      ch:AnsiChar       // @parm alphanumeric char representing DTMF tones to be stopped (0-9, A-D, *, #)
+                      ch:AnsiChar       // @parm alphanumeric AnsiChar representing DTMF tones to be stopped (0-9, A-D, *, #)
                      ):HRESULT; external RILDLL name 'RIL_StopDTMF';
                      
 // -----------------------------------------------------------------------------
@@ -7503,7 +7503,7 @@ function RIL_SendMsgAcknowledgement(
 //
 // @func Retrieves International Mobile Subscriber Identity of the phone user
 //
-// @comm Asynchronous.  <p lpData> points to an array of <t char>s
+// @comm Asynchronous.  <p lpData> points to an array of <t AnsiChar>s
 //
 // -----------------------------------------------------------------------------
 function RIL_GetUserIdentity(

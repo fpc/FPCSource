@@ -1522,7 +1522,7 @@ type
        cDowngraded:longint;   //               ... converted to session-cookies
        cBlocked:longint;      //               ... rejected
 
-       pszLocation:PChar;   // Optional: URL associated with reported cookie events
+       pszLocation:PAnsiChar;   // Optional: URL associated with reported cookie events
                             // This can be used to override request URL
      end;
 
@@ -1531,7 +1531,7 @@ type
        cSent:longint;
        cSuppressed:longint;
 
-       pszLocation:PChar;   // Optional: URL associated with reported cookie events
+       pszLocation:PAnsiChar;   // Optional: URL associated with reported cookie events
                             // This can be used to override request URL
      end;
 
@@ -1903,12 +1903,12 @@ const
 
 type
      GOPHER_FIND_DATAA = record
-        DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of char;
+        DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of AnsiChar;
         GopherType:DWORD; // GOPHER_TYPE_, if known
         SizeLow:DWORD;
         SizeHigh:DWORD;
         LastModificationTime:FILETIME;
-        Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of char;
+        Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of AnsiChar;
      end;
      LPGOPHER_FIND_DATAA = ^GOPHER_FIND_DATAA;
 
@@ -3348,7 +3348,7 @@ type
         dwDiskUsage:DWORD;  // in KB
         dwDiskQuota:DWORD;  // in KB
         dwOwnerStorage:array[0..GROUP_OWNER_STORAGE_SIZE-1] of DWORD;
-        szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of char;
+        szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of AnsiChar;
      end;
      INTERNET_CACHE_GROUP_INFOA = _INTERNET_CACHE_GROUP_INFOA;
      LPINTERNET_CACHE_GROUP_INFOA = ^INTERNET_CACHE_GROUP_INFOA;
