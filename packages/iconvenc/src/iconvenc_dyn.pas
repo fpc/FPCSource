@@ -88,7 +88,7 @@ begin
 end;
 
 
-function InitIconv(var error: ): boolean;
+function InitIconv(var error: string): boolean;
 begin
   result := true;
   error := '';
