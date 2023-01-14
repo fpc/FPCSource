@@ -85,8 +85,8 @@ const
       KeyShiftRightAltFlag		= $00100000;  //  R alt is down.
       KeyShiftRightWinFlag		= $00080000;  //  R Win key is down.
       KeyShiftReserved40000		= $00040000;  //  Reserved.
-      KeyShiftDeadFlag			  = $00020000;  //  Corresponding char is dead char.
-      KeyShiftNoCharacterFlag	= $00010000;  //  No corresponding char.
+      KeyShiftDeadFlag			  = $00020000;  //  Corresponding AnsiChar is dead AnsiChar.
+      KeyShiftNoCharacterFlag	= $00010000;  //  No corresponding AnsiChar.
 
 			KeyShiftLanguageFlag1		= $00008000;  //  Use for language specific shifts.
       KeyShiftKeybdEventFlag	= $00004000;	//	Not for external use.
