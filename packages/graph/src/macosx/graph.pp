@@ -985,7 +985,7 @@ end;
    end;
 
 
-  function toval(const s: string): size_t;
+  function toval(const s: ShortString): size_t;
     var
       err: longint;
     begin
@@ -1004,7 +1004,7 @@ end;
   { Returns nil if no graphics mode supported.        }
   { This list is READ ONLY!                           }
    var
-     colorstr: string;
+     colorstr: ShortString;
      i, hpos, cpos : longint;
      xres, yres, colors,
      dispxres, dispyres: longint;
@@ -1107,11 +1107,11 @@ type
   pmainparas = ^tmainparas;
   tmainparas = record
     argc: cint;
-    argv: ppchar;
-    envp: ppchar;
+    argv: PPAnsiChar;
+    envp: PPAnsiChar;
   end;
 
-procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: ppchar); cdecl; external;
+procedure FPCMacOSXGraphMain(argcpara: cint; argvpara, envppara: PPAnsiChar); cdecl; external;
 
 function wrapper(p: pointer): pointer; cdecl;
   var
@@ -1126,7 +1126,7 @@ function wrapper(p: pointer): pointer; cdecl;
 
 { this routine runs before the rtl is initialised, so don't call any }
 { rtl routines in it                                                 }
-procedure main(argcpara: cint; argvpara, envppara: ppchar); cdecl; [public];
+procedure main(argcpara: cint; argvpara, envppara: PPAnsiChar); cdecl; [public];
   var
     eventRec: eventrecord;
     graphmainthread: TThreadID;

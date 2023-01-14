@@ -139,9 +139,9 @@ const
     ALL_PLANES      =   $0F      ; { All Bit Planes Selected         }
     CHAR_BITS       =   $0F      ; { Bits 0-3 of Character Data      }
 
-    GET_CHAR_PTR    =   $01130   ; { VGA BIOS Func: Get Char Set     }
-    ROM_8x8_Lo      =   $03      ; { ROM 8x8 Char Set Lo Pointer     }
-    ROM_8x8_Hi      =   $04      ; { ROM 8x8 Char Set Hi Pointer     }
+    GET_CHAR_PTR    =   $01130   ; { VGA BIOS Func: Get AnsiChar Set     }
+    ROM_8x8_Lo      =   $03      ; { ROM 8x8 AnsiChar Set Lo Pointer     }
+    ROM_8x8_Hi      =   $04      ; { ROM 8x8 AnsiChar Set Hi Pointer     }
 
     { Constants Specific for these routines                          }
 

@@ -591,7 +591,7 @@ TYPE
 
        SetAllPaletteProc = procedure(const Palette:PaletteType);
 
-       OutTextXYProc = procedure(x,y : SmallInt;const TextString : string);
+       OutTextXYProc = procedure(x,y : SmallInt;const TextString : ShortString);
 
        CircleProc = procedure(X, Y: smallint; Radius:Word);
 
@@ -688,7 +688,7 @@ VAR
 
 
 type
-  TCharsetTransTable = array[Char] of Char;
+  TCharsetTransTable = array[AnsiChar] of AnsiChar;
   PCharsetTransTable = ^TCharsetTransTable;
 
 const
@@ -741,12 +741,12 @@ function queryadapterinfo : pmodeinfo;
 
 Procedure Closegraph;
 procedure SetLineStyle(LineStyle: word; Pattern: word; Thickness: word);
-function  GraphErrorMsg(ErrorCode: smallint): string;
+function  GraphErrorMsg(ErrorCode: smallint): ShortString;
 Function  GetMaxX: smallint;
 Function  GetMaxY: smallint;
 Procedure SetViewPort(X1, Y1, X2, Y2: smallint; Clip: Boolean);
 Function  GraphResult: smallint;
-function  GetModeName(ModeNumber: smallint): string;
+function  GetModeName(ModeNumber: smallint): ShortString;
 procedure SetGraphMode(Mode: smallint);
 function GetGraphMode: smallint;
 function GetMaxMode: smallint;
@@ -762,13 +762,13 @@ procedure SetWriteModeEx(WriteMode : smallint);
 procedure GetFillSettings(var Fillinfo:Fillsettingstype);
 procedure GetFillPattern(var FillPattern:FillPatternType);
 procedure GetLineSettings(var ActiveLineInfo : LineSettingsType);
-procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;const PathToDriver:String);
+procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;const PathToDriver:ShortString);
 procedure DetectGraph(var GraphDriver:smallint;var GraphMode:smallint);
-function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): smallint;
+function InstallUserDriver(Name: ShortString; AutoDetectPtr: Pointer): smallint;
 function RegisterBGIDriver(driver: pointer): smallint;
 procedure SetFillStyle(Pattern : word; Color: ColorType);
 procedure SetFillPattern(Pattern: FillPatternType; Color: ColorType);
-Function GetDriverName: string;
+Function GetDriverName: ShortString;
  procedure MoveRel(Dx, Dy: smallint);
  procedure MoveTo(X,Y: smallint);
 
@@ -810,15 +810,15 @@ Function GetDriverName: string;
    YRadius: word);
 
  { --------------------- Text related routines --------------------- }
- function  InstallUserFont(const FontFileName : string) : smallint;
+ function  InstallUserFont(const FontFileName : ShortString) : smallint;
  function  RegisterBGIfont(font : pointer) : smallint;
  procedure GetTextSettings(var TextInfo : TextSettingsType);
- function  TextHeight(const TextString : string) : word;
- function  TextWidth(const TextString : string) : word;
+ function  TextHeight(const TextString : ShortString) : word;
+ function  TextWidth(const TextString : ShortString) : word;
  procedure SetTextJustify(horiz,vert : word);
  procedure SetTextStyle(font,direction : word;charsize : word);
  procedure SetUserCharSize(Multx,Divx,Multy,Divy : word);
 
- procedure OutText(const TextString : string);
+ procedure OutText(const TextString : ShortString);
 
 

@@ -22,9 +22,9 @@ TYPE
                                       {VESA modes are >=100h}
 
   TVESAinfo = packed record  { VESA Information request }
-    signature : array [1..4] of char;     { This should be VESA   }
+    signature : array [1..4] of AnsiChar;     { This should be VESA   }
     version   : word;                     { VESA revision         }
-    str       : pChar;                    { pointer to OEM string }
+    str       : PAnsiChar;                    { pointer to OEM string }
     caps      : longint;                  { video capabilities    }
     modeList  : pModeList;                { pointer to SVGA modes }
 (*    pad       : array [18..260] of byte;  { extra padding more then   }

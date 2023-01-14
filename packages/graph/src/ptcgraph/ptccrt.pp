@@ -43,7 +43,7 @@ var
   KeyMode: TKeyMode = kmTP7;
 
 function KeyPressed: Boolean;
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 procedure ClrScr;
 procedure ClrEol;
 procedure GotoXY(X, Y: tcrtcoord);
@@ -71,7 +71,7 @@ begin
 end;
 
 var
-  KeyBuffer: array[0..64] of Char;
+  KeyBuffer: array[0..64] of AnsiChar;
   KeyBufHead, KeyBufTail: Integer;
 
 function KeyBufEmpty: Boolean;
@@ -79,7 +79,7 @@ begin
   Result := KeyBufHead = KeyBufTail;
 end;
 
-procedure KeyBufAdd(Ch: Char);
+procedure KeyBufAdd(Ch: AnsiChar);
 begin
   { do nothing, if the buffer is full }
   if ((KeyBufTail + 1) = KeyBufHead) or
@@ -91,7 +91,7 @@ begin
     KeyBufTail := Low(KeyBuffer);
 end;
 
-procedure KeyBufAdd(S: String);
+procedure KeyBufAdd(S: ShortString);
 var
   I: Integer;
 begin
@@ -99,7 +99,7 @@ begin
     KeyBufAdd(S[I]);
 end;
 
-function KeyBufGet: Char;
+function KeyBufGet: AnsiChar;
 begin
   if KeyBufHead <> KeyBufTail then
   begin
@@ -550,7 +550,7 @@ begin
   end;
 end;
 
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 {$IFDEF UNIX}
 var
   req, rem: TTimeSpec;

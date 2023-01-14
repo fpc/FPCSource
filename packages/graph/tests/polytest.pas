@@ -43,7 +43,7 @@ end;
 procedure Tralala;
 var
   I: Integer;
-  IStr: string;
+  IStr: shortstring;
 begin
   if ParamStr(1) <> '' then
     Assign(InF, ParamStr(1))

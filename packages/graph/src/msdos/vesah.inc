@@ -16,14 +16,14 @@
 
 
 TYPE
-  pFarChar = ^char;far;
+  pFarChar = ^AnsiChar;far;
 
   pModeList = ^tModeList;far;
   tModeList = Array [0..255] of word; {list of modes terminated by -1}
                                       {VESA modes are >=100h}
 
   TVESAinfo = packed record  { VESA Information request }
-    signature : array [1..4] of char;     { This should be VESA   }
+    signature : array [1..4] of AnsiChar;     { This should be VESA   }
     version   : word;                     { VESA revision         }
     str       : pFarChar;                 { pointer to OEM string }
     caps      : longint;                  { video capabilities    }

@@ -72,7 +72,7 @@ uses
     { handle double clicks on it's own }
     graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
 
-    windowtitle : pchar = 'Graph window application';
+    windowtitle : PAnsiChar = 'Graph window application';
     menu : hmenu = 0;
     icon : hicon = 0;
     drawtoscreen : boolean = true;
@@ -315,7 +315,7 @@ var
    bitmapfontverticalcache : array[0..255] of HBITMAP;
    bitmapfonthorizoncache : array[0..255] of HBITMAP;
 
-procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
+procedure OutTextXYWin32GUI(x,y : smallint;const TextString : ShortString);
 
   type
    Tpoint = record
@@ -333,7 +333,7 @@ procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
      oldvalues     : linesettingstype;
      fontbitmap    : TBitmapChar;
      fontbitmapbyte: byte;
-     chr           : char;
+     chr           : AnsiChar;
      curx2i,cury2i,
      xpos2i,ypos2i : longint;
      charbitmap,oldcharbitmap : HBITMAP;

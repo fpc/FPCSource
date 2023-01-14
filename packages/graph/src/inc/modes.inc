@@ -319,7 +319,7 @@ end;
 {                          External routines                            }
 {-----------------------------------------------------------------------}
 
-   function GetModeName(ModeNumber: smallint): string;
+   function GetModeName(ModeNumber: smallint): ShortString;
   {********************************************************}
   { Function GetModeName()                                 }
   {--------------------------------------------------------}

@@ -310,7 +310,7 @@ are also possible for those who wish to optimize the speed of the unit.
 -------------------------------------------------------------
 \begin{function}{GetModeName}
 \Declaration
-Function GetModeName (ModeNumber : smallint) : String;
+Function GetModeName (ModeNumber : smallint) : ShortString;
 
 \Description
 
@@ -800,7 +800,7 @@ None.
 
 \begin{function}{GetDriverName}
 \Declaration
-Function GetDriverName  : String;
+Function GetDriverName  : ShortString;
 
 \Description
 \var{GetDriverName} returns a string containing the name of the
@@ -1084,7 +1084,7 @@ None.
 
 \begin{function}{GraphErrorMsg}
 \Declaration
-Function GraphErrorMsg (ErrorCode : smallint) : String;
+Function GraphErrorMsg (ErrorCode : smallint) : ShortString;
 
 \Description
 \var{GraphErrorMsg}
@@ -1142,7 +1142,7 @@ None.
 \begin{procedure}{InitGraph}
 \Declaration
 Procedure InitGraph (var GraphDriver,GraphModus : smallint;\\
-const PathToDriver : string);
+const PathToDriver : ShortString);
 
 \Description
 
@@ -1184,7 +1184,7 @@ Example:
 \begin{verbatim}
 var
    gd,gm : smallint;
-   PathToDriver : string;
+   PathToDriver : ShortString;
 begin
    gd:=detect; { highest possible resolution }
    gm:=0; { not needed, auto detection }
@@ -1199,7 +1199,7 @@ end.
 
 \begin{function}{InstallUserDriver}
 \Declaration
-Function InstallUserDriver (DriverPath : String; AutoDetectPtr: Pointer) : smallint;
+Function InstallUserDriver (DriverPath : ShortString; AutoDetectPtr: Pointer) : smallint;
 
 \Description
 This routine is not supported in FPC, it is here only for compatiblity and
@@ -1212,7 +1212,7 @@ None.
 \end{function}
 \begin{function}{InstallUserFont}
 \Declaration
-Function InstallUserFont (FontPath : String) : smallint;
+Function InstallUserFont (FontPath : ShortString) : smallint;
 
 \Description
 \var{InstallUserFont} adds the font in \var{FontPath} to the list of fonts
@@ -1297,7 +1297,7 @@ None.
 \end{procedure}
 \begin{procedure}{OutText}
 \Declaration
-Procedure OutText (Const TextString : String);
+Procedure OutText (Const TextString : ShortString);
 
 \Description
 \var{OutText} puts \var{TextString} on the screen, at the current pointer
@@ -1317,7 +1317,7 @@ None.
 \end{procedure}
 \begin{procedure}{OutTextXY}
 \Declaration
-Procedure OutTextXY (X,Y : smallint; Const TextString : String);
+Procedure OutTextXY (X,Y : smallint; Const TextString : ShortString);
 
 \Description
 \var{OutText} puts \var{TextString} on the screen, at position \var{(X,Y)},
@@ -1889,7 +1889,7 @@ None.
 \end{procedure}
 \begin{function}{TextHeight}
 \Declaration
-Function TextHeight (S : String) : Word;
+Function TextHeight (S : ShortString) : Word;
 
 \Description
 \var{TextHeight} returns the height (in pixels) of the string \var{S} in
@@ -1902,7 +1902,7 @@ None.
 \end{function}
 \begin{function}{TextWidth}
 \Declaration
-Function TextWidth (S : String) : Word;
+Function TextWidth (S : ShortString) : Word;
 
 \Description
 \var{TextHeight} returns the width (in pixels) of the string \var{S} in

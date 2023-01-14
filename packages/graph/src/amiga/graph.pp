@@ -261,7 +261,7 @@ Procedure ClearViewPort;
 function GraphResult: Integer;
 
 { For compatibility }
-Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
+Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : ShortString);
 Procedure CloseGraph;
 
 const
@@ -369,7 +369,7 @@ const
 
 const
   DoUseMarker: Boolean = true;
-  TheMarker: Char      = '~';
+  TheMarker: AnsiChar      = '~';
   TextColor: LongInt   = 15;
   MarkColor: LongInt   = 15;
   BackColor: LongInt   = 0;
@@ -412,7 +412,7 @@ var
   sFont, sColor:Word;
   sCharSpace: Integer;
 { Not used
-  sMarker: Char;
+  sMarker: AnsiChar;
   sAttr: Word; }
 
 { Bitmap utilities }
@@ -725,7 +725,7 @@ begin
    GetMaxY := GraphWin^.Height;
 end;
 
-Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
+Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : ShortString);
 var
   thetags : array[0..3] of tTagItem;
 

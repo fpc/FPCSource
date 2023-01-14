@@ -26,7 +26,7 @@
 {      PFHeader = ^TFHeader;}
       TFHeader = packed record
          header_size: word;    {* Version 2.0 Header Format        *}
-         font_name: array[1..4] of char;
+         font_name: array[1..4] of AnsiChar;
          font_size: word;      {* Size in byte of file        *}
          font_major: byte;     {* Driver Version Information    *}
          font_minor: byte;
@@ -38,16 +38,16 @@
       { Font record information }
 {      PHeader = ^THeader;}
       THeader = packed record
-        Signature:  char;     { signature byte                        }
+        Signature:  AnsiChar;     { signature byte                        }
         Nr_chars:   smallint;  { number of characters in file          }
         Reserved:   byte;
         First_char: byte;     { first character in file               }
         cdefs :     smallint;  { offset to character definitions       }
-        scan_flag:  byte;     { TRUE if char is scanable              }
+        scan_flag:  byte;     { TRUE if AnsiChar is scanable              }
         org_to_cap: shortint;     { Height from origin to top of capitol  }
         org_to_base:shortint;     { Height from origin to baseline        }
         org_to_dec: shortint;     { Height from origin to bot of decender }
-        _reserved: array[1..4] of char;
+        _reserved: array[1..4] of AnsiChar;
         Unused: byte;
       end;
 
@@ -62,7 +62,7 @@
         offsets : TOffsetTable;
         widths : TWidthTable;
         instrlength: longint;    { length of instr, because instr can }
-        instr : pchar;           { contain null characters            }
+        instr : PAnsiChar;           { contain null characters            }
       end;
 
 
@@ -94,7 +94,7 @@ procedure swap_fheader(var h: tfheader);
 (*
       TFHeader = packed record
          header_size: word;    {* Version 2.0 Header Format        *}
-         font_name: array[1..4] of char;
+         font_name: array[1..4] of AnsiChar;
          font_size: word;      {* Size in byte of file        *}
          font_major: byte;     {* Driver Version Information    *}
          font_minor: byte;
@@ -113,16 +113,16 @@ end;
 procedure swap_header(var h: theader);
 (*
       THeader = packed record
-        Signature:  char;     { signature byte                        }
+        Signature:  AnsiChar;     { signature byte                        }
         Nr_chars:   smallint;  { number of characters in file          }
         Reserved:   byte;
         First_char: byte;     { first character in file               }
         cdefs :     smallint;  { offset to character definitions       }
-        scan_flag:  byte;     { TRUE if char is scanable              }
+        scan_flag:  byte;     { TRUE if AnsiChar is scanable              }
         org_to_cap: shortint;     { Height from origin to top of capitol  }
         org_to_base:shortint;     { Height from origin to baseline        }
         org_to_dec: shortint;     { Height from origin to bot of decender }
-        _reserved: array[1..4] of char;
+        _reserved: array[1..4] of AnsiChar;
         Unused: byte;
       end;
 *)
@@ -148,10 +148,10 @@ end;
 {$endif FPC_BIG_ENDIAN}
 
 
-function ConvertString(const OrigString: String): String;
+function ConvertString(const OrigString: ShortString): ShortString;
 var
   i: Integer;
-  ConvResult: String;
+  ConvResult: ShortString;
 begin
   if GraphStringTransTable = nil then
     ConvertString := OrigString
@@ -165,7 +165,7 @@ begin
 end;
 
 
-    function testfont(p : pchar) : boolean;
+    function testfont(p : PAnsiChar) : boolean;
 
       begin
          testfont:=(p[0]='P') and
@@ -175,7 +175,7 @@ end;
       end;
 
 
-    function InstallUserFont(const FontFileName : string) : smallint;
+    function InstallUserFont(const FontFileName : ShortString) : smallint;
 
       begin
          _graphresult:=grOk;
@@ -194,7 +194,7 @@ end;
       end;
 
 
-    function Decode(byte1,byte2: char; var x,y: smallint): smallint;
+    function Decode(byte1,byte2: AnsiChar; var x,y: smallint): smallint;
     { This routines decoes a signle word in a font opcode section  }
     { to a stroke record.                                          }
       var
@@ -224,7 +224,7 @@ end;
      end;
 
 
-    function unpack(buf: pchar; index: smallint; var Stroke: TStrokes): smallint;
+    function unpack(buf: PAnsiChar; index: smallint; var Stroke: TStrokes): smallint;
 
      var
 {$ifdef CPU16}
@@ -250,7 +250,7 @@ end;
            Inc(num_ops);  {* Count the operation                *}
            opcode := decode( buf[counter], buf[counter+1] ,jx, jy );
            Inc(counter,2);
-           if( opcode = ord(_END_OF_CHAR) ) then break; {* Exit loop at end of char     *}
+           if( opcode = ord(_END_OF_CHAR) ) then break; {* Exit loop at end of AnsiChar     *}
          end;
 
        counter:=index;
@@ -276,7 +276,7 @@ end;
 
 
 
-    procedure GetTextPosition(var xpos,ypos: longint; const TextString: string);
+    procedure GetTextPosition(var xpos,ypos: longint; const TextString: ShortString);
      begin
          if CurrentTextInfo.Font = DefaultFont then
           begin
@@ -344,12 +344,12 @@ end;
     function RegisterBGIfont(font : pointer) : smallint;
 
       var
-         hp : pchar;
+         hp : PAnsiChar;
          b : word;
          i: longint;
          Header: THeader;
          counter: longint;
-         FontData: pchar;
+         FontData: PAnsiChar;
          FHeader: TFHeader;
       begin
          RegisterBGIfont:=grInvalidFontNum;
@@ -357,7 +357,7 @@ end;
          { Check if the font header is valid first of all }
          if testfont(font) then
            begin
-              hp:=pchar(font);
+              hp:=PAnsiChar(font);
               { Move to EOF in prefix header }
               while (hp[i] <> chr($1a)) do Inc(i);
               System.move(hp[i+1],FHeader,sizeof(FHeader));
@@ -385,7 +385,7 @@ end;
                         { allocate also space for null }
                         GetMem(FontData,Counter+1);
                         System.move(hp[i],FontData^,Counter);
-                        { Null terminate the string }
+                        { Null terminate the ShortString }
                         FontData[counter+1] := #0;
                         if fonts[b].header.Signature<> SIGNATURE then
                           begin
@@ -413,7 +413,7 @@ end;
 
 
 
-    function TextHeight(const TextString : string) : word;
+    function TextHeight(const TextString : ShortString) : word;
 
       begin
          if Currenttextinfo.font=DefaultFont
@@ -423,10 +423,10 @@ end;
                 fonts[Currenttextinfo.font].header.org_to_dec) * CurrentYRatio);
       end;
 
-    function TextWidth(const TextString : string) : word;
+    function TextWidth(const TextString : ShortString) : word;
       var i,x : smallint;
           c   : byte;
-          s   : String;
+          s   : ShortString;
       begin
          x := 0;
          { if this is the default font ... }
@@ -448,14 +448,14 @@ end;
             end;
       end;
 
-    procedure OutTextXYDefault(x,y : smallint;const TextString : string);
+    procedure OutTextXYDefault(x,y : smallint;const TextString : ShortString);
 
       type
        Tpoint = record
          X,Y: smallint;
        end;
       var
-         ConvString    : String;
+         ConvString    : ShortString;
          i,j,k,c       : longint;
          xpos,ypos     : longint;
          counter       : longint;
@@ -467,7 +467,7 @@ end;
          oldvalues     : linesettingstype;
          fontbitmap    : TBitmapChar;
          fontbitmapbyte: byte;
-         chr           : char;
+         chr           : AnsiChar;
          curx2i,cury2i,
          xpos2i,ypos2i : longint;
 
@@ -698,7 +698,7 @@ end;
       end;
 
 
-    procedure OutText(const TextString : string);
+    procedure OutText(const TextString : ShortString);
       var x,y:smallint;
       begin
          { Save CP }
@@ -737,10 +737,10 @@ end;
 
       var
          f : file;
-         Prefix: array[0..Prefix_Size-1] of char; {* File Prefix Holder         *}
+         Prefix: array[0..Prefix_Size-1] of AnsiChar; {* File Prefix Holder         *}
          Length, Current: longint;
-         FontData: Pchar;
-         hp  : pchar;
+         FontData: PAnsiChar;
+         hp  : PAnsiChar;
          i   : longint;
       begin
          if font>installedfonts then
