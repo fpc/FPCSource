@@ -20,7 +20,7 @@ Var
   TheDiscID : cardinal;
   Tracks, i : Integer;
   Entries : Array[1..100] of TTocEntry;
-  Device : string;
+  Device : AnsiString;
 
 begin
   Case ParamCount of

@@ -21,7 +21,7 @@ interface
 uses cdrom,sysutils;
 
 Function CDDBDiscID(Const CDTOC : Array of TTocEntry; Count : Integer) : integer ;
-Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : String;
+Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : AnsiString;
 
 Implementation
 
@@ -52,7 +52,7 @@ begin
   Result:=(((n mod $ff) shl 24) or (t shl 8 or count));
 end;
 
-Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : String;
+Function GetCDDBQueryString(Const Tracks : Array of TTocEntry; Count : Integer) : AnsiString;
 
 
 Var

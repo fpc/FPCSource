@@ -34,10 +34,10 @@ Type
 // has 10 songs then ReadCDToc will return 10 but there are 11 entries: 0..10.
 // You still need to use the zero'th entry to get the first track length:
 // Track1Length := TOC[1].frames = TOC[0].frames.
-Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
+Function ReadCDTOC(Device : AnsiString; Var CDTOC : Array of TTocEntry) : Integer;
 
 // Returns the number of devices placed in 'Devices'
-Function GetCDRomDevices(Var Devices : Array of string) : Integer;
+Function GetCDRomDevices(Var Devices : Array of AnsiString) : Integer;
 
 Implementation
 

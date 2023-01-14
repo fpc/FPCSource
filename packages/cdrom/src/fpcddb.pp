@@ -41,16 +41,16 @@ Type
   TCDTrack = Class(TCollectionItem)
   private
     FDuration: TDateTime;
-    FExtra: String;
-    FPerformer: String;
-    FTitle: String;
-    function GetPerformer: String;
+    FExtra: AnsiString;
+    FPerformer: AnsiString;
+    FTitle: AnsiString;
+    function GetPerformer: AnsiString;
   Public
     Procedure Assign(Source : TPersistent); override;
   Published
-    Property Title : String Read FTitle Write FTitle;
-    Property Performer : String Read GetPerformer Write FPerformer;
-    Property Extra : String Read FExtra Write FExtra;
+    Property Title : AnsiString Read FTitle Write FTitle;
+    Property Performer : AnsiString Read GetPerformer Write FPerformer;
+    Property Extra : AnsiString Read FExtra Write FExtra;
     Property Duration : TDateTime Read FDuration Write FDuration;
   end;
 
@@ -63,9 +63,9 @@ Type
     procedure SetT(AIndex : Integer; const AValue: TCDTrack);
   Public
     Property CDDisk : TCDDisk Read FCDDisk;
-    Function AddTrack(Const ATitle,AExtra : String; ADuration : TDateTime) : TCDTrack;
-    Function AddTrack(Const ATitle,AExtra : String) : TCDTrack;
-    Function AddTrack(Const ATitle : String) : TCDTrack;
+    Function AddTrack(Const ATitle,AExtra : AnsiString; ADuration : TDateTime) : TCDTrack;
+    Function AddTrack(Const ATitle,AExtra : AnsiString) : TCDTrack;
+    Function AddTrack(Const ATitle : AnsiString) : TCDTrack;
     Property Track[AIndex : Integer] : TCDTrack Read GetT Write SetT; default;
   end;
 
@@ -75,15 +75,15 @@ Type
   TCDDisk = Class(TCollectionItem)
   private
     FDiskID: Integer;
-    FExtra: String;
-    FGenre: String;
-    FPerformer: String;
-    FPlayOrder: String;
-    FTitle: String;
+    FExtra: AnsiString;
+    FGenre: AnsiString;
+    FPerformer: AnsiString;
+    FPlayOrder: AnsiString;
+    FTitle: AnsiString;
     FTracks: TCDTracks;
     FYear: Word;
-    function GetDiskID: String;
-    procedure SetDiskID(const AValue: String);
+    function GetDiskID: AnsiString;
+    procedure SetDiskID(const AValue: AnsiString);
     procedure SetTracks(const AValue: TCDTracks);
   Protected
     Function CreateTracks : TCDTracks; virtual;
@@ -93,13 +93,13 @@ Type
     Procedure Assign(Source : TPersistent); override;
     Property IntDiscID : Integer Read FDiskID Write FDiskID;
   Published
-    Property PlayOrder : String Read FPlayOrder Write FPlayOrder;
+    Property PlayOrder : AnsiString Read FPlayOrder Write FPlayOrder;
     Property Year : Word Read FYear Write FYear; // proto=5
-    Property Title : String Read FTitle Write FTitle;
-    Property Performer : String Read FPerformer Write FPerformer;
-    Property Genre : String Read FGenre write FGenre; //proto=5
-    Property Extra : String Read FExtra Write FExtra;
-    Property DiscID : String Read GetDiskID Write SetDiskID;
+    Property Title : AnsiString Read FTitle Write FTitle;
+    Property Performer : AnsiString Read FPerformer Write FPerformer;
+    Property Genre : AnsiString Read FGenre write FGenre; //proto=5
+    Property Extra : AnsiString Read FExtra Write FExtra;
+    Property DiscID : AnsiString Read GetDiskID Write SetDiskID;
     property Tracks : TCDTracks Read FTracks Write SetTracks;
   end;
 
@@ -110,7 +110,7 @@ Type
     function GetD(AIndex : Integer): TCDDisk;
     procedure SetD(AIndex : Integer; const AValue: TCDDisk);
   Public
-    Function AddDisk(ADiscID : String) : TCDDisk;
+    Function AddDisk(ADiscID : AnsiString) : TCDDisk;
     Function AddDisk : TCDDisk;
     Property Disk[AIndex : Integer] : TCDDisk Read GetD Write SetD; default;
   end;
@@ -118,17 +118,17 @@ Type
   { TCDDBQueryMatch }
   TCDDBQueryMatch = Class(TCollectionItem)
   private
-    FCategory: String;
+    FCategory: AnsiString;
     FDiscID: Integer;
-    FPerformer: String;
-    FTitle: String;
+    FPerformer: AnsiString;
+    FTitle: AnsiString;
   Public
     Procedure Assign(Source : TPersistent); override;
   Published
     Property DiscID : Integer Read FDiscID Write FDiscID;
-    Property Category : String Read FCategory Write FCategory;
-    Property Title : String Read FTitle Write FTitle;
-    Property Performer : String Read FPerformer Write FPerformer;
+    Property Category : AnsiString Read FCategory Write FCategory;
+    Property Title : AnsiString Read FTitle Write FTitle;
+    Property Performer : AnsiString Read FPerformer Write FPerformer;
   end;
 
   { TCDDBQueryMatches }
@@ -138,8 +138,8 @@ Type
     function GetM(AIndex : Integer): TCDDBQueryMatch;
     procedure SetM(AIndex : Integer; const AValue: TCDDBQueryMatch);
   Public
-    Function AddMatch(Const ADiscID: Integer; Const ACategory,ATitle, APerformer : String) : TCDDBQueryMatch;
-    Function AddMatch(Const ADiscID,ACategory,ATitle, APerformer : String) : TCDDBQueryMatch;
+    Function AddMatch(Const ADiscID: Integer; Const ACategory,ATitle, APerformer : AnsiString) : TCDDBQueryMatch;
+    Function AddMatch(Const ADiscID,ACategory,ATitle, APerformer : AnsiString) : TCDDBQueryMatch;
     Function AddMatch : TCDDBQueryMatch;
     Property Match[AIndex : Integer] :TCDDBQueryMatch Read GetM Write SetM; default;
   end;
@@ -149,18 +149,18 @@ Type
   private
     FDisks: TCDDisks;
     FDisk : TCDDisk;
-    function ParseExtraDiskData(AData: String): Boolean;
-    function ParseExtraTrackData(ATrack: TCDTrack; AData: String): Boolean;
+    function ParseExtraDiskData(AData: AnsiString): Boolean;
+    function ParseExtraTrackData(ATrack: TCDTrack; AData: AnsiString): Boolean;
     procedure SetDisks(const AValue: TCDDisks);
-    procedure SplitQueryResponse(AResponse: String; var ACategory, ADiscID, ATitle, APerformer: String);
-    procedure SplitTitle(const ALine: String; var AArtist, ATitle: String;
+    procedure SplitQueryResponse(AResponse: AnsiString; var ACategory, ADiscID, ATitle, APerformer: AnsiString);
+    procedure SplitTitle(const ALine: AnsiString; var AArtist, ATitle: AnsiString;
       PreferTitle: boolean);
-    function StdReplacements(S: String): String;
+    function StdReplacements(S: AnsiString): AnsiString;
   Protected
     Procedure CheckDisk;
-    function CheckCDDBCmdResult(var S: String): Integer;
+    function CheckCDDBCmdResult(var S: AnsiString): Integer;
     Function CreateDisks :TCDDisks; virtual;
-    Function IsComment(Const L : String) : Boolean;
+    Function IsComment(Const L : AnsiString) : Boolean;
     Function GetTrack(Const TrackNo : Integer) : TCDTrack;
     Property Disk : TCDDisk Read FDisk;
   Public
@@ -176,8 +176,8 @@ Type
 
   ECDDBParser = Class(Exception);
 
-Function DiscIDToStr(ID : Integer) : String;
-Function StrToDiscID(S : String) : Integer;
+Function DiscIDToStr(ID : Integer) : AnsiString;
+Function StrToDiscID(S : AnsiString) : Integer;
 
 implementation
 
@@ -187,19 +187,19 @@ Resourcestring
   SErrParsingLine    = 'An error occurred while parsing line %d of the response: %s';
   SErrCDDBResponse   = 'CDDB error in command response: %s';
 
-function DiscIDToStr(ID: Integer): String;
+function DiscIDToStr(ID: Integer): AnsiString;
 begin
   Result:=LowerCase(Format('%.8x',[ID]));
 end;
 
-function StrToDiscID(S: String): Integer;
+function StrToDiscID(S: AnsiString): Integer;
 begin
   Result:=StrToIntDef('$'+S,-1);
 end;
 
 { TCDTrack }
 
-function TCDTrack.GetPerformer: String;
+function TCDTrack.GetPerformer: AnsiString;
 begin
   Result:=FPerformer;
   If (Result='') and Assigned(Collection) and (Collection is TCDTracks) then
@@ -233,12 +233,12 @@ begin
   FTracks.Assign(AValue);
 end;
 
-function TCDDisk.GetDiskID: String;
+function TCDDisk.GetDiskID: AnsiString;
 begin
   Result:=DiscIDToStr(FdiskID);
 end;
 
-procedure TCDDisk.SetDiskID(const AValue: String);
+procedure TCDDisk.SetDiskID(const AValue: AnsiString);
 begin
   FDiskID:=StrToDiscID(AValue);
 end;
@@ -293,7 +293,7 @@ begin
   Items[AIndex]:=AValue;
 end;
 
-function TCDTracks.AddTrack(const ATitle, AExtra: String; ADuration: TDateTime
+function TCDTracks.AddTrack(const ATitle, AExtra: AnsiString; ADuration: TDateTime
   ): TCDTrack;
 begin
   Result:=Add as TCDTrack;
@@ -302,12 +302,12 @@ begin
   Result.Duration:=ADuration;
 end;
 
-function TCDTracks.AddTrack(const ATitle, AExtra: String): TCDTrack;
+function TCDTracks.AddTrack(const ATitle, AExtra: AnsiString): TCDTrack;
 begin
   Result:=AddTrack(ATitle,AExtra,0);
 end;
 
-function TCDTracks.AddTrack(const ATitle: String): TCDTrack;
+function TCDTracks.AddTrack(const ATitle: AnsiString): TCDTrack;
 begin
   Result:=AddTrack(ATitle,'',0);
 end;
@@ -324,7 +324,7 @@ begin
   Items[AIndex]:=AValue;
 end;
 
-function TCDDisks.AddDisk(ADiscID: String): TCDDisk;
+function TCDDisks.AddDisk(ADiscID: AnsiString): TCDDisk;
 begin
   Result:=Self.AddDisk();
   Result.DiscID:=ADiscID;
@@ -354,7 +354,7 @@ begin
   Result:=TCDDisks.Create(TCDDisk);
 end;
 
-function TCDDBParser.IsComment(const L: String): Boolean;
+function TCDDBParser.IsComment(const L: AnsiString): Boolean;
 begin
   Result:=(Length(L)=0) or (L[1]='#');
 end;
@@ -384,25 +384,25 @@ begin
   inherited Destroy;
 end;
 
-Function TCDDBParser.StdReplacements(S : String) : String;
+Function TCDDBParser.StdReplacements(S : AnsiString) : AnsiString;
 
 begin
   Result:=StringReplace(S,'\n',sLineBreak,[rfReplaceAll]);
 end;
 
-Function TCDDBParser.ParseExtraDiskData(AData : String) : Boolean;
+Function TCDDBParser.ParseExtraDiskData(AData : AnsiString) : Boolean;
 
 begin
   FDisk.Extra:=FDisk.Extra+StdReplacements(AData);
 end;
 
-Function TCDDBParser.ParseExtraTrackData(ATrack : TCDTrack; AData : String) : Boolean;
+Function TCDDBParser.ParseExtraTrackData(ATrack : TCDTrack; AData : AnsiString) : Boolean;
 
 begin
   ATrack.Extra:=ATrack.Extra+StdReplacements(AData);
 end;
 
-Procedure TCDDBParser.SplitTitle(Const ALine: String; Var AArtist, ATitle : String; PreferTitle : boolean);
+Procedure TCDDBParser.SplitTitle(Const ALine: AnsiString; Var AArtist, ATitle : AnsiString; PreferTitle : boolean);
 
 Var
   P,L : Integer;
@@ -421,7 +421,7 @@ Function TCDDBParser.ParseCDDBReadResponse(Response: TStrings; WithHeader : Bool
 
 Var
   I,P : Integer;
-  L,Args,A,T : String;
+  L,Args,A,T : AnsiString;
   TrackID : Integer;
   Track : TCDTrack;
 
@@ -525,8 +525,8 @@ function TCDDBParser.ParseCDDBQueryResponse(Response: TStrings;
 
 Var
   I,CmdRes : Integer;
-  L : String;
-  D,C,T,P : String;
+  L : AnsiString;
+  D,C,T,P : AnsiString;
 
 begin
   Matches.Clear;
@@ -570,7 +570,7 @@ begin
   end;
 end;
 
-Function TCDDBParser.CheckCDDBCmdResult(Var S : String) : Integer;
+Function TCDDBParser.CheckCDDBCmdResult(Var S : AnsiString) : Integer;
 
 Var
   P : integer;
@@ -583,7 +583,7 @@ begin
   Delete(S,1,P);
 end;
 
-Procedure TCDDBParser.SplitQueryResponse(AResponse :String; Var ACategory, ADiscID, ATitle, APerformer : String);
+Procedure TCDDBParser.SplitQueryResponse(AResponse :AnsiString; Var ACategory, ADiscID, ATitle, APerformer : AnsiString);
 
 Var
   P : Integer;
@@ -612,7 +612,7 @@ begin
 end;
 
 function TCDDBQueryMatches.AddMatch(const ADiscID: Integer; const ACategory,
-  ATitle, APerformer: String): TCDDBQueryMatch;
+  ATitle, APerformer: AnsiString): TCDDBQueryMatch;
 begin
   Result:=AddMatch();
   Result.DiscID:=ADiscID;
@@ -621,7 +621,7 @@ begin
   Result.Performer:=APerformer;
 end;
 
-function TCDDBQueryMatches.AddMatch(const ADiscID, ACategory, ATitle, APerformer : String): TCDDBQueryMatch;
+function TCDDBQueryMatches.AddMatch(const ADiscID, ACategory, ATitle, APerformer : AnsiString): TCDDBQueryMatch;
 
 begin
   Result:=AddMatch(StrToDiscID(ADiscID),ACategory,ATitle,APerformer);

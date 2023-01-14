@@ -28,13 +28,13 @@ TTOC = packed Record
 end;
 
 Const
-  AccessMethodNames : Array[TCDAccessMethod] of string
+  AccessMethodNames : Array[TCDAccessMethod] of AnsiString
                     = ('None','ASPI','SPTI','IOCTL');
 
 Function  GetCDAccessMethod : TCDAccessMethod;
 Procedure SetCDAccessMethod (Value : TCDAccessMethod);
-Function  ReadTOC(Device : String; Var TOC : TTOc) : Integer;
-Function  EnumCDDrives(Var Drives : Array of String) : Integer;
+Function  ReadTOC(Device : AnsiString; Var TOC : TTOc) : Integer;
+Function  EnumCDDrives(Var Drives : Array of AnsiString) : Integer;
 Function  GetNumDrives : Integer;
 
 implementation
@@ -150,12 +150,12 @@ end;
   1. SPTI
   ---------------------------------------------------------------------}
 
-Function sptiReadTOC(Device : String; var TOC: TToC) : Integer;
+Function sptiReadTOC(Device : AnsiString; var TOC: TToC) : Integer;
 
 Var
   DriveHandle : THandle;
   len : Cardinal;
-  buf : Array[0..31] of char;
+  buf : Array[0..31] of AnsiChar;
   ID,retVal : Integer;
   Returned,Flags : Cardinal;
   swb : TSCSI_PASS_THROUGH_DIRECT_WITH_BUFFER;
@@ -164,7 +164,7 @@ begin
   if (CDOSVer>4) then
     Flags:=Flags or Cardinal(GENERIC_WRITE);
   Device:=Upcase('\\.\'+Device);
-  DriveHandle:=CreateFileA(pchar(Device),Flags,FILE_SHARE_READ,
+  DriveHandle:=CreateFileA(PAnsiChar(Device),Flags,FILE_SHARE_READ,
                           nil,OPEN_EXISTING, 0, 0 );
   if (DriveHandle=INVALID_HANDLE_VALUE) then
     begin
@@ -228,7 +228,7 @@ begin
     Result:=Count;
 end;
 
-Function DriveToSCSIParm (Device : String; Var HID,TGT,LUN : Byte) : Boolean;
+Function DriveToSCSIParm (Device : AnsiString; Var HID,TGT,LUN : Byte) : Boolean;
 
 Var
   Code : Integer;
@@ -262,7 +262,7 @@ end;
 Var
   Atoc : TTOc;
 
-Function AspiReadTOC(Device : String; Var TOC : TTOC) : Integer;
+Function AspiReadTOC(Device : AnsiString; Var TOC : TTOC) : Integer;
 
 Var
   HAID,TGT,LUN : Byte;
@@ -325,7 +325,7 @@ end;
   3. IOCTL
   ---------------------------------------------------------------------}
 
-Function ioctlReadTOC(Device : String; Var TOC : TTOC) : Integer;
+Function ioctlReadTOC(Device : AnsiString; Var TOC : TTOC) : Integer;
 
 Var
   DriveHandle : Thandle;
@@ -336,7 +336,7 @@ Var
 begin
   Flags:=Cardinal(GENERIC_READ);
   device:=Upcase('\\.\'+device);
-  DriveHandle:=CreateFileA(PChar(Device), Flags,
+  DriveHandle:=CreateFileA(PAnsiChar(Device), Flags,
                           FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0 );
   if (DriveHandle = INVALID_HANDLE_VALUE) then
     begin
@@ -366,12 +366,12 @@ begin
 end;
 
 
-Function NtDriveInfo(CopyDrives : Boolean;Var CDDrives : Array of string): Integer;
+Function NtDriveInfo(CopyDrives : Boolean;Var CDDrives : Array of AnsiString): Integer;
 
 var
   I : Integer;
-  Drives : Array[0..105] of char;
-  P : PChar;
+  Drives : Array[0..105] of AnsiChar;
+  P : PAnsiChar;
 
 begin
   FillChar(Drives,SizeOf(Drives),0);
@@ -392,13 +392,13 @@ end;
 
 Function NTGetNumDrives: Integer;
 
-Var A : Array[1..1] of string;
+Var A : Array[1..1] of AnsiString;
 
 begin
   Result:=NTDriveInfo(False,A);
 end;
 
-Function ioctlEnumDrives(Var Drives : Array of string) : Integer;
+Function ioctlEnumDrives(Var Drives : Array of AnsiString) : Integer;
 
 begin
   result:=NTDriveInfo(True,Drives);
@@ -408,7 +408,7 @@ end;
   3. Generic
   ---------------------------------------------------------------------}
 
-Function ReadTOC(Device : String; Var TOC : TTOc) : Integer;
+Function ReadTOC(Device : AnsiString; Var TOC : TTOc) : Integer;
 
 begin
   Case CurrentAccessMethod of
@@ -432,7 +432,7 @@ begin
 end;
 
 
-Function ASPIDriveInfo(CopyInfo : Boolean; Var Drives : Array of string) : Integer;
+Function ASPIDriveInfo(CopyInfo : Boolean; Var Drives : Array of AnsiString) : Integer;
 
 var
   sh : SRB_HAInquiry;
@@ -481,7 +481,7 @@ end;
 Function ASPIGetNumDrives: Integer;
 
 Var
-  A : Array[1..1] of string;
+  A : Array[1..1] of AnsiString;
 
 begin
   Result:=AspiDriveInfo(False,A);
@@ -497,7 +497,7 @@ begin
    Result:=NTGetNumDrives;
 end;
 
-Function EnumCDDrives(Var Drives : Array of String) : Integer;
+Function EnumCDDrives(Var Drives : Array of AnsiString) : Integer;
 
 begin
  If CurrenTAccessMethod=camASPI then

@@ -1,7 +1,7 @@
 uses wincd;
 
 
-Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
+Function ReadCDTOC(Device : AnsiString; Var CDTOC : Array of TTocEntry) : Integer;
 
 Var
   Toc :  TToc;
@@ -44,7 +44,7 @@ begin
 end;
 
 
-Function GetCDRomDevices(Var Devices : Array of string) : Integer;
+Function GetCDRomDevices(Var Devices : Array of AnsiString) : Integer;
 begin
   Result:=enumcddrives(Devices);
 end;
