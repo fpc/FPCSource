@@ -17,10 +17,10 @@ begin
   bits := f_get_default_prec;
   digits := floor(bits * LOG_10_2);
   f := f_sqrt_ui(N);
-  writeln(format('Sqrt(%d) to %d digits (%d bits) = %s', [N, digits, bits, string(f)]));
+  writeln(format('Sqrt(%d) to %d digits (%d bits) = %s', [N, digits, bits, AnsiString(f)]));
   f := f ** 2;
-  writeln(format('Squared back = %s', [string(f)]));
+  writeln(format('Squared back = %s', [AnsiString(f)]));
   f -= N;
-  writeln(format('Minus %d = %s', [N, string(f)]));
+  writeln(format('Minus %d = %s', [N, AnsiString(f)]));
 end.
 

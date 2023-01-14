@@ -204,7 +204,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  p: pchar;
+  p: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   assert(mp_asprintf(p, Z_FMT, [@z]) = length(S));
@@ -219,7 +219,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  p: pchar;
+  p: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   assert(mp_asprintf(p, Z_FMT, @z) = length(S));
@@ -234,7 +234,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  buf: pchar;
+  buf: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   getmem(buf, length(S) + 1);
@@ -250,7 +250,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  buf: pchar;
+  buf: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   getmem(buf, length(S) + 1);
@@ -266,7 +266,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  buf: pchar;
+  buf: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   getmem(buf, length(S) + 1);
@@ -282,7 +282,7 @@ const
   S = '123456';
 var
   z: mpz_t;
-  buf: pchar;
+  buf: PAnsiChar;
 begin
   mpz_init_set_ui(z, N);
   getmem(buf, length(S) + 1);
@@ -299,7 +299,7 @@ const
 var q: mpq_t;
 begin
   mpq_init(q);
-  assert(mp_sscanf(pchar(inttostr(N) + '/' + inttostr(D)), Q_FMT, [@q]) = 1);
+  assert(mp_sscanf(PAnsiChar(inttostr(N) + '/' + inttostr(D)), Q_FMT, [@q]) = 1);
   assert(mpq_cmp_ui(q, N, D) = 0);
   mpq_clear(q);
 end;
@@ -311,7 +311,7 @@ const
 var q: mpq_t;
 begin
   mpq_init(q);
-  assert(mp_sscanf(pchar(inttostr(N) + '/' + inttostr(D)), Q_FMT, @q) = 1);
+  assert(mp_sscanf(PAnsiChar(inttostr(N) + '/' + inttostr(D)), Q_FMT, @q) = 1);
   assert(mpq_cmp_ui(q, N, D) = 0);
   mpq_clear(q);
 end;
@@ -384,7 +384,7 @@ procedure TTestGmpBinding.mpz_init_set_str_test;
 const N = 1000000;
 var rop: mpz_t;
 begin
-  assert(mpz_init_set_str(rop, pchar(inttostr(N)), BASE10) = 0);
+  assert(mpz_init_set_str(rop, PAnsiChar(inttostr(N)), BASE10) = 0);
   assert(mpz_get_si(rop) = N);
   mpz_clear(rop);
 end;
@@ -535,7 +535,7 @@ const OP_ = -1000000;
 var rop: mpz_t;
 begin
   mpz_init(rop);
-  assert(mpz_set_str(rop, pchar(inttostr(OP_)), BASE10) = 0);
+  assert(mpz_set_str(rop, PAnsiChar(inttostr(OP_)), BASE10) = 0);
   assert(mpz_get_si(rop) = OP_);
   mpz_clear(rop);
 end;
@@ -586,8 +586,8 @@ procedure TTestGmpBinding.mpz_get_str_test;
 const N = -1000000;
 var
   op: mpz_t;
-  p: pchar;
-  s0, s1: string;
+  p: PAnsiChar;
+  s0, s1: AnsiString;
 begin
   mpz_init_set_si(op, N);
   s0 := inttostr(N);
@@ -595,7 +595,7 @@ begin
   assert(s0 = p);
   freemem(p);
   setlength(s1, length(s0));
-  assert(pointer(mpz_get_str(pchar(s1), BASE10, op)) = pointer(s1));
+  assert(pointer(mpz_get_str(PAnsiChar(s1), BASE10, op)) = pointer(s1));
   assert(s0 = s1);
   mpz_clear(op)
 end;
@@ -2357,9 +2357,9 @@ const
 var rational: mpq_t;
 begin
   mpq_init(rational);
-  assert(mpq_set_str(rational, pchar(inttostr(OP_1) + '/' + inttostr(OP_2)), BASE10) = 0);
+  assert(mpq_set_str(rational, PAnsiChar(inttostr(OP_1) + '/' + inttostr(OP_2)), BASE10) = 0);
   assert(mpq_cmp_si(rational, OP_1, OP_2) = 0);
-  assert(mpq_set_str(rational, pchar(inttostr(OP_1) + '*' + inttostr(OP_2)), BASE10) <> 0);
+  assert(mpq_set_str(rational, PAnsiChar(inttostr(OP_1) + '*' + inttostr(OP_2)), BASE10) <> 0);
   mpq_clear(rational);
 end;
 
@@ -2426,7 +2426,7 @@ const
   OP_2 = 2;
 var
   op: mpq_t;
-  p: pchar;
+  p: PAnsiChar;
 begin
   mpq_init(op);
   mpq_set_si(op, OP_1, OP_2);
@@ -2866,7 +2866,7 @@ const N = -123;
 var rop: mpf_t;
 begin
   mpf_init(rop);
-  assert(mpf_set_str(rop, pchar(inttostr(N)), BASE10) = 0);
+  assert(mpf_set_str(rop, PAnsiChar(inttostr(N)), BASE10) = 0);
   assert(mpf_get_si(rop) = N);
   mpf_clear(rop);
 end;
@@ -2943,7 +2943,7 @@ const
   E = 1;
 var
   op: mpf_t;
-  p: pchar;
+  p: PAnsiChar;
   exp: mp_exp_t;
 begin
   mpf_init_set_d(op, N);
@@ -3438,7 +3438,7 @@ procedure TTestGmpBinding.mpf_init_set_str_test;
 const N = -123;
 var rop: mpf_t;
 begin
-  mpf_init_set_str(rop, pchar(inttostr(N)), BASE10);
+  mpf_init_set_str(rop, PAnsiChar(inttostr(N)), BASE10);
   assert(mpf_get_si(rop) = N);
   mpf_clear(rop);
 end;
@@ -3818,7 +3818,7 @@ end;
 
 procedure TTestGmpBinding.version_test;
 
-  function isvernum(s: string; first, last: integer): boolean;
+  function isvernum(s: AnsiString; first, last: integer): boolean;
   var i: integer;
   begin
     i := strtointdef(copy(s, first, last - first + 1), -1);
@@ -3827,7 +3827,7 @@ procedure TTestGmpBinding.version_test;
 
 const DOT = '.';
 var
-  v: string;
+  v: AnsiString;
   dot1, dot2: integer;
 begin
   v := version;
@@ -3943,7 +3943,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  p: pchar;
+//  p: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  assert(asprintf(p, Z_FMT, [@z]) = length(S));
@@ -3958,7 +3958,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  p: pchar;
+//  p: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  assert(asprintf(p, Z_FMT, @z) = length(S));
@@ -3973,7 +3973,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  buf: pchar;
+//  buf: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  getmem(buf, length(S) + 1);
@@ -3989,7 +3989,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  buf: pchar;
+//  buf: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  getmem(buf, length(S) + 1);
@@ -4005,7 +4005,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  buf: pchar;
+//  buf: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  getmem(buf, length(S) + 1);
@@ -4021,7 +4021,7 @@ end;
 //  S = '123456';
 //var
 //  z: MPInteger;
-//  buf: pchar;
+//  buf: PAnsiChar;
 //begin
 //  z_init_set_ui(z, N);
 //  getmem(buf, length(S) + 1);
@@ -4038,7 +4038,7 @@ end;
 //var q: mpq_t;
 //begin
 //  q_init(q);
-//  assert(sscanf(pchar(inttostr(N) + '/' + inttostr(D)), Q_FMT, [@q]) = 1);
+//  assert(sscanf(PAnsiChar(inttostr(N) + '/' + inttostr(D)), Q_FMT, [@q]) = 1);
 //  assert(q_cmp_ui(q, N, D) = 0);
 //  q_clear(q);
 //end;
@@ -4050,7 +4050,7 @@ end;
 //var q: mpq_t;
 //begin
 //  q_init(q);
-//  assert(sscanf(pchar(inttostr(N) + '/' + inttostr(D)), Q_FMT, @q) = 1);
+//  assert(sscanf(PAnsiChar(inttostr(N) + '/' + inttostr(D)), Q_FMT, @q) = 1);
 //  assert(q_cmp_ui(q, N, D) = 0);
 //  q_clear(q);
 //end;
@@ -4295,8 +4295,8 @@ procedure TTestGmpExtensions.z_get_str_test;
 const N = -1000000;
 var
   op: MPInteger;
-  p: pchar;
-  s, s0, s1: String;
+  p: PAnsiChar;
+  s, s0, s1: AnsiString;
 begin
   z_init_set_si(op, N);
   s0 := inttostr(N);
@@ -4306,7 +4306,7 @@ begin
   assert(p = s0);
   freemem(p);
   setlength(s1, length(s0));
-  assert(pointer(z_get_str(pchar(s1), BASE10, op)) = pointer(s1));
+  assert(pointer(z_get_str(PAnsiChar(s1), BASE10, op)) = pointer(s1));
   assert(s1 = s0);
 end;
 
@@ -5935,9 +5935,9 @@ const
 var rational: MPRational;
 begin
   q_init(rational);
-  assert(q_set_str(rational, pchar(inttostr(OP_1) + '/' + inttostr(OP_2)), BASE10));
+  assert(q_set_str(rational, PAnsiChar(inttostr(OP_1) + '/' + inttostr(OP_2)), BASE10));
   assert(q_cmp_si(rational, OP_1, OP_2) = 0);
-  assert(not q_set_str(rational, pchar(inttostr(OP_1) + '*' + inttostr(OP_2)), BASE10));
+  assert(not q_set_str(rational, PAnsiChar(inttostr(OP_1) + '*' + inttostr(OP_2)), BASE10));
 end;
 
 procedure TTestGmpExtensions.q_swap_test;
@@ -5997,8 +5997,8 @@ const
   OP_2 = 2;
 var
   op: MPRational;
-  p: pchar;
-  s, s2: string;
+  p: PAnsiChar;
+  s, s2: AnsiString;
 begin
   q_init(op);
   q_set_si(op, OP_1, OP_2);
@@ -6008,7 +6008,7 @@ begin
   assert(p = inttostr(OP_1) + '/' + inttostr(OP_2));
   freemem(p);
   setlength(s2, length(inttostr(OP_1) + '/' + inttostr(OP_2)));
-  assert(pointer(q_get_str(pchar(s2), BASE10, op)) = pointer(s2));
+  assert(pointer(q_get_str(PAnsiChar(s2), BASE10, op)) = pointer(s2));
   assert(s2 = inttostr(OP_1) + '/' + inttostr(OP_2));
 end;
 
@@ -6484,9 +6484,9 @@ const
   E = 1;
 var
   op: MPFloat;
-  p: pchar;
+  p: PAnsiChar;
   exp: mp_exp_t;
-  s1: string;
+  s1: AnsiString;
 begin
   f_init_set_d(op, N);
   p := f_get_str(nil, exp, BASE10, length(S), op);
@@ -6494,7 +6494,7 @@ begin
   assert(exp = E);
   freemem(p);
   setlength(s1, length(S));
-  assert(pointer(f_get_str(pchar(s1), exp, BASE10, length(s), op)) = pointer(s1));
+  assert(pointer(f_get_str(PAnsiChar(s1), exp, BASE10, length(s), op)) = pointer(s1));
   assert(s1 = S);
   s1 := f_get_str(exp, BASE10, length(S), op);
   assert(s1 = S);
@@ -7315,7 +7315,7 @@ const
   S = '123456';
 var
   op: MPFloat;
-  r: string;
+  r: AnsiString;
 begin
   f_init_set_d(op, N);
   r := op;
@@ -7441,7 +7441,7 @@ const
   S = '123456';
 var
   op: MPInteger;
-  r: string;
+  r: AnsiString;
 begin
   z_init_set_ui(op, N);
   r := op;
@@ -7565,7 +7565,7 @@ const
   S = '5/3';
 var
   op: MPRational;
-  r: string;
+  r: AnsiString;
 begin
   q_init(op);
   q_set_si(op, N, D);

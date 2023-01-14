@@ -70,7 +70,7 @@ Type
   tculong = culong;
   tclong = clong;
   Tcint = cint;
-  Ppcchar = ^pchar;
+  Ppcchar = ^PAnsiChar;
   Tcslong = cslong;
   Tcuint = cuint;
 
@@ -590,7 +590,7 @@ Const
     GMP_ERROR_SQRT_OF_NEGATIVE = 4;
     GMP_ERROR_INVALID_ARGUMENT = 8;
 
-procedure Loadlibgmp(const lib : string);
+procedure Loadlibgmp(const lib : AnsiString);
 procedure Loadlibgmp;
 procedure Freelibgmp;
 function libgmpLoaded: boolean;
@@ -983,7 +983,7 @@ begin
   LoadLibGMP(GMPlibraryFileName);
 end;
 
-procedure Loadlibgmp(const lib : string);
+procedure Loadlibgmp(const lib : AnsiString);
 
 begin
   if libgmpLoaded then
