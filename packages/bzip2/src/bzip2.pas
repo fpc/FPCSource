@@ -97,8 +97,8 @@ implementation
 
 constructor Tbzip2_decode_stream.init(Areadstream:Pstream);
 
-var magic:array[1..3] of char;
-    c:char;
+var magic:array[1..3] of AnsiChar;
+    c:AnsiChar;
 
 begin
   readstream:=Areadstream;
@@ -511,13 +511,13 @@ function Tbzip2_decode_stream.decode_block:boolean;
 
 {Decode a new compressed block.}
 
-var magic:array[1..6] of char;
+var magic:array[1..6] of AnsiChar;
     stored_blockcrc:cardinal;
     i:byte;
 
 begin
   for i:=1 to 6 do
-    magic[i]:=char(get_byte);
+    magic[i]:=AnsiChar(get_byte);
   if magic='1AY&SY' then
     begin
       inc(current_block);
