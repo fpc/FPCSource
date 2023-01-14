@@ -32,12 +32,12 @@ uses
 type
   TMaskCharType = (mcChar, mcCharSet, mcAnyChar, mcAnyText);
   
-  TCharSet = set of Char;
+  TCharSet = set of AnsiChar;
   PCharSet = ^TCharSet;
   
   TMaskChar = record
     case CharType: TMaskCharType of
-      mcChar: (CharValue: Char);
+      mcChar: (CharValue: AnsiChar);
       mcCharSet: (Negative: Boolean; SetValue: PCharSet);
       mcAnyChar, mcAnyText: ();
   end;
@@ -75,7 +75,7 @@ type
     function GetCount: Integer;
     function GetItem(Index: Integer): TMask;
   public
-    constructor Create(const AValue: UTF8string; ASeparator: Char = ';');
+    constructor Create(const AValue: UTF8string; ASeparator: AnsiChar = ';');
     destructor Destroy; override;
     
     function Matches(const AFileName: UTF8string): Boolean;
@@ -85,7 +85,7 @@ type
   end;
 
 function MatchesMask(const FileName, Mask: UTF8string): Boolean;
-function MatchesMaskList(const FileName, Mask: UTF8string; Separator: Char = ';'): Boolean;
+function MatchesMaskList(const FileName, Mask: UTF8string; Separator: AnsiChar = ';'): Boolean;
 
 implementation
 
@@ -101,7 +101,7 @@ begin
   end;
 end;
 
-function MatchesMaskList(const FileName, Mask: UTF8string; Separator: Char): Boolean;
+function MatchesMaskList(const FileName, Mask: UTF8string; Separator: AnsiChar): Boolean;
 var
   AMaskList: TMaskList;
 begin
@@ -158,7 +158,7 @@ var
   var
     CharSet: TCharSet;
     Valid: Boolean;
-    C, Last: Char;
+    C, Last: AnsiChar;
   begin
     SkipAnyText := False;
     
@@ -362,7 +362,7 @@ begin
   Result := FMasks.Count;
 end;
 
-constructor TMaskList.Create(const AValue: UTF8string; ASeparator: Char);
+constructor TMaskList.Create(const AValue: UTF8string; ASeparator: AnsiChar);
 var
   S: TParseStringList;
   I: Integer;
