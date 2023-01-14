@@ -609,7 +609,7 @@ const
   EMXLib: string [8] = 'emx.dll'#0;
   CBufLen = 260;
 var
-  CBuf: array [1..CBufLen] of char;
+  CBuf: array [1..CBufLen] of AnsiChar;
 begin
   if not EMXHandles then
    begin

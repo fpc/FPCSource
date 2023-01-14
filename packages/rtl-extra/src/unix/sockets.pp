@@ -40,7 +40,7 @@ type
                     sa_len     : cuchar;
                  {$endif}
                   family       : sa_family_t;
-                  path:array[0..107] of char;    //104 total for freebsd.
+                  path:array[0..107] of AnsiChar;    //104 total for freebsd.
                   end;
 
 const
