@@ -254,7 +254,7 @@ type
     wszAddress                : array[0..CELLDEVCONFIG_MAXLENGTH_GPRSADDRESS-1] of WCHAR;//The packet address to use (if empty, then a dynamic address will be requested)
     dwDataCompression         : LongInt; //One of the CELLDEVCONFIG_GPRSCOMPRESSION_* constants
     dwHeaderCompression       : LongInt; //One of the CELLDEVCONFIG_GPRSCOMPRESSION_* constants
-    szParameters              : array[0..CELLDEVCONFIG_MAXLENGTH_GPRSPARAMETERS-1] of Char; //Prococol-specific parameters (NULL terminated)
+    szParameters              : array[0..CELLDEVCONFIG_MAXLENGTH_GPRSPARAMETERS-1] of AnsiChar; //Prococol-specific parameters (NULL terminated)
     bRequestedQOSSettingsValid: Boolean; //TRUE iff sgqsRequestedQOSSettings is valid
     cgqsRequestedQOSSettings  : CELLGPRSQOSSETTINGS;//GPRS QOS settings structure
     bMinimumQOSSettingsValid  : Boolean; //TRUE iff sgqsMinimumQOSSettings is valid

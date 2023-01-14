@@ -124,7 +124,7 @@ const
 type
      tagSTYLEBUFA = record
        dwStyle:DWORD;
-       szDescription:array[0..STYLE_DESCRIPTION_SIZE-1] of char;
+       szDescription:array[0..STYLE_DESCRIPTION_SIZE-1] of AnsiChar;
      end;
      STYLEBUFA = tagSTYLEBUFA;
      PSTYLEBUFA = ^STYLEBUFA;
@@ -167,7 +167,7 @@ type
        hbmpChecked:HBITMAP;
        hbmpUnchecked:HBITMAP;
        dwItemData:DWORD;
-       szString:array[0..IMEMENUITEM_STRING_SIZE-1] of char;
+       szString:array[0..IMEMENUITEM_STRING_SIZE-1] of AnsiChar;
        hbmpItem:HBITMAP;
      end;
      IMEMENUITEMINFOA = tagIMEMENUITEMINFOA;
