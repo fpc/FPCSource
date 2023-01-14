@@ -19,7 +19,7 @@ type
     procedure OnConnect(const Event:ENetEvent);
     procedure OnReceive(const Event:ENetEvent; var BroadcastMsg : Boolean; var BroadcastChannel : Byte);
     procedure ProcessLoop;
-    procedure SendMessage(AMessage: String);
+    procedure SendMessage(AMessage: AnsiString);
     procedure WriteHelp;
   Protected
     Procedure DoRun; override;
@@ -49,9 +49,9 @@ begin
   Inherited;
 end;
 
-procedure TClientApplication.SendMessage(AMessage : String);
+procedure TClientApplication.SendMessage(AMessage : AnsiString);
 begin
-  myClient.BroadcastMsg(1,PChar(AMessage),Length(AMessage)+1,[ENetPacketReliable]);
+  myClient.BroadcastMsg(1,PAnsiChar(AMessage),Length(AMessage)+1,[ENetPacketReliable]);
 end;
 
 procedure TClientApplication.ProcessLoop;
@@ -62,7 +62,7 @@ end;
 procedure TClientApplication.DoConnect;
 
 Var
-  H : String;
+  H : AnsiString;
   P : Integer;
 begin
   H:=GetOptionValue('H','host');
@@ -85,9 +85,9 @@ end;
 procedure TClientApplication.OnReceive(const Event: ENetEvent; var BroadcastMsg: Boolean;
   var BroadcastChannel: Byte);
 var
-  msg : string;
+  msg : AnsiString;
 begin
-  msg := StrPas(PChar(Event.packet^.data));
+  msg := StrPas(PAnsiChar(Event.packet^.data));
   Writeln('Received : "',Msg,'"');
 end;
 
@@ -109,7 +109,7 @@ end;
 procedure TClientApplication.DoRun;
 Var
   I,PingCount,MessageCount : Integer;
-  Msg : String;
+  Msg : AnsiString;
 begin
   if HasOption('h','help') then
     begin
