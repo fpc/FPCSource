@@ -8,13 +8,13 @@ uses sysutils, ssockets, gnutls, uriparser;
 Const
   logLevel = 0; // Set to positive value to enable logging.
   // Correct this for your system.
-  DefaultCerts : PChar =  '/etc/ssl/certs/ca-certificates.crt';
+  DefaultCerts : PAnsiChar =  '/etc/ssl/certs/ca-certificates.crt';
 
   MAX_BUF = 1024*256;
   MSG = 'GET %s HTTP/1.0'#13#10'Host: %s'#13#10#13#10;
 
 
-Procedure MyLogFunc(level : longint; msg : PChar); cdecl;
+Procedure MyLogFunc(level : longint; msg : PAnsiChar); cdecl;
 begin
   writeln(StdErr,'Log[',Level:2,']: ',msg);
 end;
@@ -23,12 +23,12 @@ Var
   sock : TInetSocket;
   ret : integer;
   session : tgnutls_session_t;
-  buf : Array[0..MAX_BUF] of char;
+  buf : Array[0..MAX_BUF] of AnsiChar;
   cred : tgnutls_certificate_credentials_t;
-  errptr,desc : pchar;
+  errptr,desc : PAnsiChar;
   FN, URL,S, HostName : String;
   port : word;
-
+  A : AnsiString;
   uri : TURI;
 
 begin
@@ -95,15 +95,15 @@ begin
   Sock:=TINetSocket.Create(HostName,Port);
   gnutls_transport_set_int(session, Sock.Handle);
   gnutls_handshake_set_timeout(session,GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
-
-  ret := gnutls_server_name_set(session, GNUTLS_NAME_DNS,pchar(HostName), length(HostName));
+  A:=HostName;
+  ret := gnutls_server_name_set(session, GNUTLS_NAME_DNS,PAnsiChar(A), length(A));
   if (ret <> GNUTLS_E_SUCCESS) then
     begin
     writeln(stderr, 'error: gnutls_server_name_set: ', gnutls_strerror(ret));
     halt(1);
     end;
   
-  gnutls_session_set_verify_cert(session,pchar(HostName),0);
+  gnutls_session_set_verify_cert(session,PAnsiChar(A),0);
   
   Repeat
     ret:=gnutls_handshake(session);
@@ -128,7 +128,8 @@ begin
     end;
   S:=Format(Msg,[FN,HostName]);
   Writeln(StdErr,'Sending request : ',S);
-  gnutls_record_send(session, Pchar(S), length(S));
+  A:=S;
+  gnutls_record_send(session, PAnsiChar(A), length(A));
   repeat
     ret := gnutls_record_recv(session, @buf, MAX_BUF);
     if (ret=0) then

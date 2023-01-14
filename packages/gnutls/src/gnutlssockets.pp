@@ -20,13 +20,13 @@ Type
   Private
     FSession : tgnutls_session_t;
     FCred : tgnutls_certificate_credentials_t;
-    FGNUTLSLastErrorString: string;
+    FGNUTLSLastErrorString: ansistring;
     FGNUTLSLastError : Integer;
-    FCurrentHostName : String;
-    FCurrentCypherlist : String;
+    FCurrentHostName : AnsiString;
+    FCurrentCypherlist : AnsiString;
     function LoadTrustedCertificate(aCertData: TSSLData): Boolean;
     function MaybeAllocateCredentials: Boolean;
-    procedure SetGNUTLSLastErrorString(AValue: string);
+    procedure SetGNUTLSLastErrorString(AValue: Ansistring);
     function SetTrustedCertificateDir(const aFileName: string): Boolean;
   Protected
     function LoadCertificate(aData, aKey: TSSLData): Boolean;
@@ -55,7 +55,7 @@ Type
     function BytesAvailable: Integer; override;
     // Result of last CheckSSL call.
     Function GNUTLSLastError: integer;
-    property GNUTLSLastErrorString: string read FGNUTLSLastErrorString write SetGNUTLSLastErrorString;
+    property GNUTLSLastErrorString: Ansistring read FGNUTLSLastErrorString write SetGNUTLSLastErrorString;
   end;
 
   { TGNUTLSX509Certificate }
@@ -260,7 +260,7 @@ begin
   Result:=TGNUTLSX509Certificate.Create;
 end;
 
-procedure TGNUTLSSocketHandler.SetGNUTLSLastErrorString(AValue: string);
+procedure TGNUTLSSocketHandler.SetGNUTLSLastErrorString(AValue: Ansistring);
 begin
   if FGNUTLSLastErrorString=AValue then Exit;
   FGNUTLSLastErrorString:=AValue;
@@ -280,11 +280,11 @@ begin
     FCurrentHostName:=(Socket as TInetSocket).Host;
     if SendHostAsSNI then
       begin
-      Result:=CheckOK(gnutls_server_name_set(FSession, GNUTLS_NAME_DNS,pchar(FCurrentHostName), length(FCurrentHostName)));
+      Result:=CheckOK(gnutls_server_name_set(FSession, GNUTLS_NAME_DNS,PAnsiChar(FCurrentHostName), length(FCurrentHostName)));
       if not Result then
         exit;
       end;
-    gnutls_session_set_verify_cert(Fsession,pchar(FCurrentHostName),0);
+    gnutls_session_set_verify_cert(Fsession,PAnsiChar(FCurrentHostName),0);
     end;
   if Not Result then
     exit;
@@ -303,7 +303,7 @@ end;
 Function TGNUTLSSocketHandler.FetchErrorInfo : Boolean;
 
 Var
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   FGNUTLSLastErrorString:='';
@@ -352,14 +352,16 @@ Const
 
 Var
   flags :Cint;
-  errPtr : Pchar;
+  errPtr : PAnsiChar;
+  A : AnsiString;
 
 begin
   Flags:=InitFlags[AsServer];
   Result:=CheckOK(gnutls_init(@FSession,Flags));
   if not Result then
     exit;
-  Result:=CheckOK(gnutls_priority_set_direct(FSession, PChar(GetCipherListString), @errptr));
+  A:=GetCipherListString;
+  Result:=CheckOK(gnutls_priority_set_direct(FSession, PAnsiChar(A), @errptr));
   if not Result then
     FGNUTLSLastErrorString:=FGNUTLSLastErrorString+', error at: '+StrPas(errPtr);
   If AsServer and CertificateData.NeedCertificateData  then
@@ -402,6 +404,7 @@ end;
 function TGNUTLSSocketHandler.LoadCertificate(aData,aKey : TSSLData) : Boolean;
 var
   key,cert : tgnutls_datum_t;
+  A,B: AnsiString;
 
 begin
   result:=MaybeAllocateCredentials;
@@ -417,10 +420,12 @@ begin
       Result:=CheckOK(gnutls_certificate_set_x509_key_mem(FCred,@cert,@key,GNUTLS_X509_FMT_DER));
     end
   else
-    begin
-    Result:=CheckOK(gnutls_certificate_set_x509_key_file (FCred, pChar(aData.FileName),PChar(aKey.FileName),GNUTLS_X509_FMT_PEM));
+  begin
+    A:=aData.FileName;
+    B:=aKey.FileName;
+    Result:=CheckOK(gnutls_certificate_set_x509_key_file (FCred, PAnsiChar(A),PAnsiChar(B),GNUTLS_X509_FMT_PEM));
     if not Result then
-      Result:=CheckOK(gnutls_certificate_set_x509_key_file (FCred, pChar(aData.FileName),PChar(aKey.FileName),GNUTLS_X509_FMT_DER));
+      Result:=CheckOK(gnutls_certificate_set_x509_key_file (FCred, PAnsiChar(A),PAnsiChar(B),GNUTLS_X509_FMT_DER));
     end;
   if Result then
     Result:=CheckOK(gnutls_credentials_set(FSession, GNUTLS_CRD_CERTIFICATE, FCred));
@@ -430,15 +435,16 @@ function TGNUTLSSocketHandler.LoadTrustedCertificate(aCertData : TSSLData) : Boo
 
 var
   ca : tgnutls_datum_t;
-
+  A : AnsiString;
 begin
   MaybeAllocateCredentials;
   Result:=False;
   if (aCertData.FileName<>'') then
     begin
-    Result:=CheckOK(gnutls_certificate_set_x509_trust_file(FCred,PChar(aCertData.FileName),GNUTLS_X509_FMT_PEM));
+    A:=aCertData.FileName;
+    Result:=CheckOK(gnutls_certificate_set_x509_trust_file(FCred,PAnsiChar(A),GNUTLS_X509_FMT_PEM));
     if not Result then
-      Result:=CheckOK(gnutls_certificate_set_x509_trust_file(FCred,PChar(aCertData.FileName),GNUTLS_X509_FMT_DER));
+      Result:=CheckOK(gnutls_certificate_set_x509_trust_file(FCred,PAnsiChar(A),GNUTLS_X509_FMT_DER));
     end;
   if (Length(aCertData.Value)>0) then
     begin
@@ -453,11 +459,12 @@ end;
 function TGNUTLSSocketHandler.SetTrustedCertificateDir(Const aFileName : string) : Boolean;
 
 Var
-  P : PChar;
-
+  P : PAnsiChar;
+  FN : AnsiString;
 begin
   MaybeAllocateCredentials;
-  P:=PAnsiChar(aFileName);
+  FN:=aFileName;
+  P:=PAnsiChar(FN);
   if DirectoryExists(aFileName) then
     begin
     Result:=CheckOK(gnutls_certificate_set_x509_trust_dir(FCred,P,GNUTLS_X509_FMT_PEM));
