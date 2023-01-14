@@ -226,10 +226,10 @@ type
     @param aFileOffset offset of the next entry or zero
     @return 1 if buffer is full, zero otherwise
   }
-  TFuseFillDir = function(aBuffer : pointer; const aName : PChar; const aStat : PStat; aFileOffset : TOff) : cint; cdecl;
+  TFuseFillDir = function(aBuffer : pointer; const aName : PAnsiChar; const aStat : PStat; aFileOffset : TOff) : cint; cdecl;
 
   { Used by deprecated getdir() method }
-  TFuseDirfil = function(aHandle : pointer; const aName : PChar; aType : cint; aIno : TIno) : cint deprecated; cdecl;
+  TFuseDirfil = function(aHandle : pointer; const aName : PAnsiChar; aType : cint; aIno : TIno) : cint deprecated; cdecl;
 
   { The file system operations:
 
@@ -257,7 +257,7 @@ type
       Similar to stat(). The 'st_dev' and 'st_blksize' fields are ignored.
       The 'st_ino' field is ignored except if the 'use_ino' mount option is given.
     }
-    getattr : function(const aName : PChar; var aStat : TStat) : cint; cdecl;
+    getattr : function(const aName : PAnsiChar; var aStat : TStat) : cint; cdecl;
 
     { Read the target of a symbolic link
 
@@ -266,10 +266,10 @@ type
       linkname is too long to fit in the buffer, it should be truncated.
       The return value should be 0 for success.
     }
-    readlink : function(const aName : PChar; aLinksToName : PChar; aLinksToNameSize: TSize) : cint; cdecl;
+    readlink : function(const aName : PAnsiChar; aLinksToName : PAnsiChar; aLinksToNameSize: TSize) : cint; cdecl;
 
     { Deprecated, use readdir() instead }
-    getdir : function(const aName : PChar; aDirectoryHandle : pointer; aDirfilFunc : TFuseDirfil) : cint deprecated; cdecl;
+    getdir : function(const aName : PAnsiChar; aDirectoryHandle : pointer; aDirfilFunc : TFuseDirfil) : cint deprecated; cdecl;
 
     { Create a file node
 
@@ -277,7 +277,7 @@ type
       filesystem defines a create() method, then for regular files that will be
       called instead
     }
-    mknod : function(const aName : PChar; aMode : TMode; aDevice : TDev) : cint; cdecl;
+    mknod : function(const aName : PAnsiChar; aMode : TMode; aDevice : TDev) : cint; cdecl;
 
     { Create a directory
 
@@ -285,37 +285,37 @@ type
       i.e. S_ISDIR(mode) can be false. To obtain the correct directory type bits
       use  mode|S_IFDIR
     }
-    mkdir : function(const aDirectoryName : PChar; aMode : TMode) : cint; cdecl;
+    mkdir : function(const aDirectoryName : PAnsiChar; aMode : TMode) : cint; cdecl;
 
     { Remove a file }
-    unlink : function(const aName : PChar) : cint; cdecl;
+    unlink : function(const aName : PAnsiChar) : cint; cdecl;
 
     { Remove a directory }
-    rmdir : function(const aName : PChar) : cint; cdecl;
+    rmdir : function(const aName : PAnsiChar) : cint; cdecl;
 
     { Create a symbolic link }
-    symlink : function(const aLinksToName, aName : PChar) : cint; cdecl;
+    symlink : function(const aLinksToName, aName : PAnsiChar) : cint; cdecl;
 
     { Rename a file }
-    rename : function(const aName, aNewName : PChar) : cint; cdecl;
+    rename : function(const aName, aNewName : PAnsiChar) : cint; cdecl;
 
     { Create a hard link to a file }
-    link : function(const aLinksToName, aName : PChar) : cint; cdecl;
+    link : function(const aLinksToName, aName : PAnsiChar) : cint; cdecl;
 
     { Change the permission bits of a file }
-    chmod : function(const aName : PChar; aMode : TMode) : cint; cdecl;
+    chmod : function(const aName : PAnsiChar; aMode : TMode) : cint; cdecl;
 
     { Change the owner and group of a file }
-    chown : function(const aName : PChar; aUID : TUid; aGID : TGid) : cint; cdecl;
+    chown : function(const aName : PAnsiChar; aUID : TUid; aGID : TGid) : cint; cdecl;
 
     { Change the size of a file }
-    truncate : function(const aName : PChar; aNewSize : TOff) : cint; cdecl;
+    truncate : function(const aName : PAnsiChar; aNewSize : TOff) : cint; cdecl;
 
     { Change the access and/or modification times of a file
 
       Deprecated, use utimens() instead.
     }
-    utime : function(aName : PChar; aTime : Putimbuf) : cint deprecated; cdecl;
+    utime : function(aName : PAnsiChar; aTime : Putimbuf) : cint deprecated; cdecl;
 
     { File open operation
 
@@ -332,7 +332,7 @@ type
 
       Changed in version 2.2
     }
-    open : function(const aName : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    open : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Read data from an open file
 
@@ -344,7 +344,7 @@ type
 
       Changed in version 2.2
     }
-    read : function(const aName : PChar; aBuffer : pointer; aBufferSize : TSize; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    read : function(const aName : PAnsiChar; aBuffer : pointer; aBufferSize : TSize; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Write data to an open file
 
@@ -354,7 +354,7 @@ type
 
       Changed in version 2.2
     }
-    write : function(const aName : PChar; const aBuffer : Pointer; aBufferSize : TSize; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    write : function(const aName : PAnsiChar; const aBuffer : Pointer; aBufferSize : TSize; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Get file system statistics
 
@@ -362,7 +362,7 @@ type
 
       Replaced 'struct statfs' parameter with 'struct statvfs' in version 2.5
     }
-    statfs : function(const aName : PChar; aStatVFS : PStatVFS) : cint; cdecl;
+    statfs : function(const aName : PAnsiChar; aStatVFS : PStatVFS) : cint; cdecl;
 
     { Possibly flush cached data
 
@@ -385,7 +385,7 @@ type
 
       Changed in version 2.2
     }
-    flush : function(const aName : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    flush : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Release an open file
 
@@ -400,7 +400,7 @@ type
 
       Changed in version 2.2
     }
-    release : function(const aName : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    release : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Synchronize file contents
 
@@ -409,19 +409,19 @@ type
 
       Changed in version 2.2
     }
-    fsync : function(const aName : PChar; aDataSync : cint; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    fsync : function(const aName : PAnsiChar; aDataSync : cint; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Set Extended Attributes }
-    setxattr : function(const aName, aKey, aValue : PChar; aValueSize : TSize; Flags : cint) : cint; cdecl;
+    setxattr : function(const aName, aKey, aValue : PAnsiChar; aValueSize : TSize; Flags : cint) : cint; cdecl;
 
     { Get Extended Attributes }
-    getxattr : function(const aName, aKey : PChar; aValue : PChar; aValueSize : TSize) : cint; cdecl;
+    getxattr : function(const aName, aKey : PAnsiChar; aValue : PAnsiChar; aValueSize : TSize) : cint; cdecl;
 
     { List Extended Attributes }
-    listxattr : function(const aName : PChar; aList : PChar; aListSize : TSize) : cint; cdecl;
+    listxattr : function(const aName : PAnsiChar; aList : PAnsiChar; aListSize : TSize) : cint; cdecl;
 
     { Remove Extended Attributes }
-    removexattr : function(const aName, aKey : PChar) : cint; cdecl;
+    removexattr : function(const aName, aKey : PAnsiChar) : cint; cdecl;
 
     { Open directory
 
@@ -432,7 +432,7 @@ type
 
       Introduced in version 2.3
     }
-    opendir : function(const aName : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    opendir : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Read directory
 
@@ -453,13 +453,13 @@ type
 
       Introduced in version 2.3
     }
-    readdir : function(const aName : PChar; aBuffer : pointer; aFillDirFunc : TFuseFillDir; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    readdir : function(const aName : PAnsiChar; aBuffer : pointer; aFillDirFunc : TFuseFillDir; aFileOffset : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Release directory
 
       Introduced in version 2.3
     }
-    releasedir : function(const aName : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    releasedir : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Synchronize directory contents
 
@@ -468,7 +468,7 @@ type
 
       Introduced in version 2.3
     }
-    fsyncdir : function(const aName : PChar; aDataSync : Integer; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    fsyncdir : function(const aName : PAnsiChar; aDataSync : Integer; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Initialize filesystem
 
@@ -497,7 +497,7 @@ type
 
       Introduced in version 2.5
     }
-    access : function(const aName : PChar; aMode : cint) : cint; cdecl;
+    access : function(const aName : PAnsiChar; aMode : cint) : cint; cdecl;
 
     { Create and open a file
 
@@ -509,7 +509,7 @@ type
 
       Introduced in version 2.5
     }
-    create : function(const aName : PChar; aMode : TMode; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    create : function(const aName : PAnsiChar; aMode : TMode; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Change the size of an open file
 
@@ -521,7 +521,7 @@ type
 
       Introduced in version 2.5
     }
-    ftruncate : function(const aName : PChar; aSize : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
+    ftruncate : function(const aName : PAnsiChar; aSize : TOff; aFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Get attributes from an open file
 
@@ -534,7 +534,7 @@ type
 
       Introduced in version 2.5
     }
-    fgetattr : function(constaName : PChar; aOutStat : PStat; PFileInfo : PFuseFileInfo) : cint; cdecl;
+    fgetattr : function(constaName : PAnsiChar; aOutStat : PStat; PFileInfo : PFuseFileInfo) : cint; cdecl;
 
     { Perform POSIX file locking operation
 
@@ -565,14 +565,14 @@ type
 
       Introduced in version 2.6
     }
-    lock : function(const aName : PChar; aFileInfo : PFuseFileInfo; aCMD : cint; var aLock : FLock) : cint; cdecl;
+    lock : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo; aCMD : cint; var aLock : FLock) : cint; cdecl;
 
     { Change the access and modification times of a file with nanosecond
       resolution
 
       Introduced in version 2.6
     }
-    utimens : function(const aName : PChar; const aTime : TFuseTimeTuple) : cint; cdecl;
+    utimens : function(const aName : PAnsiChar; const aTime : TFuseTimeTuple) : cint; cdecl;
 
     { Map block index within file to block index within device
 
@@ -581,7 +581,7 @@ type
 
       Introduced in version 2.6
     }
-    bmap : function(const aName : PChar; aBlockSize : TSize; aIndex : cuint64) : cint; cdecl;
+    bmap : function(const aName : PAnsiChar; aBlockSize : TSize; aIndex : cuint64) : cint; cdecl;
 
   {$if (fuse_use_version >= 28)}
     { See FUSE_OP_ flags }
@@ -597,7 +597,7 @@ type
 
       Introduced in version 2.8
     }
-    ioctl : function(const aName : PChar; aCmd : cint; aArg : pointer; aFileInfo : PFuseFileInfo; aFlags : cuint; aData : pointer) : cint; cdecl;
+    ioctl : function(const aName : PAnsiChar; aCmd : cint; aArg : pointer; aFileInfo : PFuseFileInfo; aFlags : cuint; aData : pointer) : cint; cdecl;
 
     { Poll for IO readiness events
 
@@ -613,7 +613,7 @@ type
 
       Introduced in version 2.8
     }
-    poll : function(const aName : PChar; aFileInfo : PFuseFileInfo; aPH : PFusePollHandle; aREventSP : pcunsigned) : cint; cdecl;
+    poll : function(const aName : PAnsiChar; aFileInfo : PFuseFileInfo; aPH : PFusePollHandle; aREventSP : pcunsigned) : cint; cdecl;
   {$endif}
   end;
   PFuseOperations = ^TFuseOperations;
@@ -635,7 +635,7 @@ type
   { Argument list }
   TFuseArgs = record
     argc : cint;       // Argument count
-    argv : PPChar;     // Argument vector. NULL termiated
+    argv : PPAnsiChar;     // Argument vector. NULL termiated
     allocated : cint;  // Is 'argv' allocated?
   end;
   PFuseArgs = ^TFuseArgs;
@@ -658,14 +658,14 @@ type
   @param aFuseArgs argument vector
   @return the communication channel on success, NULL on failure
 }
-function fuse_mount(const aMountpoint : PChar; aFuseArgs : PFuseArgs) : PFuseChan; cdecl;
+function fuse_mount(const aMountpoint : PAnsiChar; aFuseArgs : PFuseArgs) : PFuseChan; cdecl;
 
 { Umount a FUSE mountpoint
 
   @param aMountpoint the mount point path
   @param aFuseChan the communication channel
 }
-procedure fuse_unmount(const mountpoint : PChar; aFuseChan : PFuseChan); cdecl;
+procedure fuse_unmount(const mountpoint : PAnsiChar; aFuseChan : PFuseChan); cdecl;
 
 { Parse common options
 
@@ -687,7 +687,7 @@ procedure fuse_unmount(const mountpoint : PChar; aFuseChan : PFuseChan); cdecl;
   @param aForeground set to 1 if one of the relevant options is present
   @return 0 on success, -1 on failure
 }
-function fuse_parse_cmdline(aFuseArgs : PFuseArgs; var aMountpoint : PChar; var aMultithreaded : cint; var aForeground : cint) : cint; cdecl;
+function fuse_parse_cmdline(aFuseArgs : PFuseArgs; var aMountpoint : PAnsiChar; var aMultithreaded : cint; var aForeground : cint) : cint; cdecl;
 
 { Go into the background
 
@@ -755,7 +755,7 @@ procedure fuse_remove_signal_handlers(aSession : PFuseSession); cdecl;
   @param aUserData user data supplied in the context during the init() method
   @return 0 on success, nonzero on failure
 }
-function fuse_main(aArgC : cint; aArgV: PPChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint;
+function fuse_main(aArgC : cint; aArgV: PPAnsiChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint;
 
 { -----------------------------------------------------------
   More detailed API
@@ -838,10 +838,10 @@ function fuse_interrupted : cint; cdecl;
 
   @return -EINVAL
 }
-function fuse_invalidate(aFuse : PFuse; const aPath : PChar) : cint; deprecated;
+function fuse_invalidate(aFuse : PFuse; const aPath : PAnsiChar) : cint; deprecated;
 
 { Deprecated, don't use }
-function fuse_is_lib_option(const aOpt : PChar) : cint; deprecated;
+function fuse_is_lib_option(const aOpt : PAnsiChar) : cint; deprecated;
 
 { -----------------------------------------------------------
   Advanced API for event handling, don't worry about this...
@@ -852,7 +852,7 @@ function fuse_is_lib_option(const aOpt : PChar) : cint; deprecated;
 }
 
 { This is the part of fuse_main() before the event loop }
-function fuse_setup(aArgC : cint; aArgV : PPChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aMountpoint : pointer; aMultithreaded : pcint; aUserData : pointer) : PFuse; cdecl; deprecated;
+function fuse_setup(aArgC : cint; aArgV : PPAnsiChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aMountpoint : pointer; aMultithreaded : pcint; aUserData : pointer) : PFuse; cdecl; deprecated;
 
 { This is the part of fuse_main() after the event loop }
 procedure fuse_teardown(aFuse : PFuse; aMountpoint : pointer); cdecl; deprecated;
@@ -887,9 +887,9 @@ const
   {$endif}
 
 { --- Common --- }
-function fuse_mount(const aMountpoint : PChar; aFuseArgs : PFuseArgs) : PFuseChan; cdecl; external FUSELIBFile;
-procedure fuse_unmount(const mountpoint : PChar; aFuseChan : PFuseChan); cdecl; external FUSELIBFile;
-function fuse_parse_cmdline(aFuseArgs : PFuseArgs; var aMountpoint : PChar; var aMultithreaded : cint; var aForeground : cint) : cint; cdecl; external FUSELIBFile;
+function fuse_mount(const aMountpoint : PAnsiChar; aFuseArgs : PFuseArgs) : PFuseChan; cdecl; external FUSELIBFile;
+procedure fuse_unmount(const mountpoint : PAnsiChar; aFuseChan : PFuseChan); cdecl; external FUSELIBFile;
+function fuse_parse_cmdline(aFuseArgs : PFuseArgs; var aMountpoint : PAnsiChar; var aMultithreaded : cint; var aForeground : cint) : cint; cdecl; external FUSELIBFile;
 function fuse_daemonize(aForeground : cint) : cint; cdecl; external FUSELIBFile;
 function fuse_version : cint; cdecl; external FUSELIBFile;
 {$if (fuse_use_version >= 28)}
@@ -899,8 +899,8 @@ function fuse_set_signal_handlers(aSession : PFuseSession) : cint; cdecl; extern
 procedure fuse_remove_signal_handlers(aSession : PFuseSession); cdecl; external FUSELIBFile;
 
 { --- Main --- }
-function fuse_main_real(aArgC : cint; aArgV: PPChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint; cdecl; external FUSELIBFile;
-function fuse_main(aArgC : cint; aArgV: PPChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint;
+function fuse_main_real(aArgC : cint; aArgV: PPAnsiChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint; cdecl; external FUSELIBFile;
+function fuse_main(aArgC : cint; aArgV: PPAnsiChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aUserData : pointer) : cint;
 begin
   Result := fuse_main_real(aArgC, aArgV, aFuseOperations, aFuseOperationsSize, aUserData);
 end;
@@ -919,18 +919,18 @@ end;
 
 function fuse_interrupted : cint; cdecl; external FUSELIBFile;
 
-function fuse_invalidate(aFuse : PFuse; const aPath : PChar) : cint;
+function fuse_invalidate(aFuse : PFuse; const aPath : PAnsiChar) : cint;
 begin
   Result := -ESysEINVAL;
 end;
 
-function fuse_is_lib_option(const aOpt : PChar) : cint;
+function fuse_is_lib_option(const aOpt : PAnsiChar) : cint;
 begin
   Result := -ESysEINVAL;
 end;
 
 { --- Deprecated --- }
-function fuse_setup(aArgC : cint; aArgV : PPChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aMountpoint : pointer; aMultithreaded : Pcint; aUserData : pointer) : PFuse; cdecl; external FUSELIBFile;
+function fuse_setup(aArgC : cint; aArgV : PPAnsiChar; aFuseOperations : PFuseOperations; aFuseOperationsSize : TSize; aMountpoint : pointer; aMultithreaded : Pcint; aUserData : pointer) : PFuse; cdecl; external FUSELIBFile;
 procedure fuse_teardown(aFuse : PFuse; aMountpoint : pointer); cdecl; external FUSELIBFile;
 function fuse_read_cmd(aFuse : PFuse) : PFuseCmd; cdecl; external FUSELIBFile;
 procedure fuse_process_cmd(aFuse : PFuse; aCmd : PFuseCmd); cdecl; external FUSELIBFile;

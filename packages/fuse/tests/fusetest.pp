@@ -14,12 +14,12 @@ You should have received a copy of the GNU General Public License along with thi
 uses BaseUNIX, Strings, FUSE;
 
 const
-  hello_path : String = '/hello';
-  hello_str : String = 'Hello World!'#10;
+  hello_path : AnsiString = '/hello';
+  hello_str : AnsiString = 'Hello World!'#10;
 
-function hello_getattr(const aNameC : PChar;var aStat : tStat) : cint; cdecl;
+function hello_getattr(const aNameC : PAnsiChar;var aStat : tStat) : cint; cdecl;
 var
-  aName : String;
+  aName : AnsiString;
 begin
   Result := 0;
 
@@ -39,24 +39,24 @@ begin
 end;
 
 var
-  xx : PChar = 'hello';
+  xx : PAnsiChar = 'hello';
 
-function hello_readdir(const ANameC : PChar; aBuffer : Pointer; filler : TFUseFillDir; aFileOffset : off_t; aFileInfo : PFuseFileInfo) : Integer; cdecl;
+function hello_readdir(const ANameC : PAnsiChar; aBuffer : Pointer; filler : TFUseFillDir; aFileOffset : off_t; aFileInfo : PFuseFileInfo) : Integer; cdecl;
 begin
   if (aNameC[0] <> '/') or (aNameC[1] <> #0) then
     Result := -ESysENOENT
   else begin
     filler(aBuffer, '.', nil, 0);
     filler(aBuffer, '..', nil, 0);
-    filler(aBuffer, xx, nil, 0); // PChar(hello_path) + 1, nil, 0);
+    filler(aBuffer, xx, nil, 0); // PAnsiChar(hello_path) + 1, nil, 0);
 
     Result := 0;
   end;
 end;
 
-function hello_open(const aNameC : PChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
+function hello_open(const aNameC : PAnsiChar; aFileInfo : PFuseFileInfo) : cint; cdecl;
 var
-  aName : String;
+  aName : AnsiString;
 begin
   aName := aNameC;
 
@@ -70,10 +70,10 @@ begin
   end;
 end;
 
-function hello_read(const aNameC : PChar; aBuffer : Pointer; aBufferSize : size_t; aFileOffset : off_t; aFileInfo : PFuseFileInfo) : Integer; cdecl;
+function hello_read(const aNameC : PAnsiChar; aBuffer : Pointer; aBufferSize : size_t; aFileOffset : off_t; aFileInfo : PFuseFileInfo) : Integer; cdecl;
 var
   len : size_t;
-  aName : String;
+  aName : AnsiString;
 begin
   aName := aNameC;
 
@@ -85,7 +85,7 @@ begin
       if (aFileOffset + aBufferSize > len) then
         aBufferSize := len - aFileOffset;
 
-      move((PChar(hello_str) + aFileOffset)^,ABuffer^, aBufferSize);
+      move((PAnsiChar(hello_str) + aFileOffset)^,ABuffer^, aBufferSize);
     end else
       aBufferSize := 0;
 
