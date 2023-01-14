@@ -88,6 +88,7 @@ Interface
 {$endif unix}
 
 uses
+  Types,
 {$ifdef UNIX}
   BaseUnix,
 {$endif UNIX}
@@ -112,7 +113,9 @@ uses
   ;
 
 Type
-  TStringDynArray = Array of string;
+{$IF SIZEOF(CHAR)=1}
+  TRTLStringDynArray = TStringDynArray;
+{$ENDIF}
 
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
                ftSharedLibrary);
@@ -587,6 +590,7 @@ Type
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
+    Procedure AddOption(const aValue : string);
     property Options: TStrings read FOptions;
     Property IncludePath : TConditionalStrings Read FIncludePath;
     Property SourcePath : TConditionalStrings Read FSourcePath;
@@ -679,7 +683,7 @@ Type
     FObjectPath,
     FUnitPath,
     FIncludePath : TConditionalStrings;
-    FSubTargets: TStringDynArray;
+    FSubTargets: TRTLStringDynArray;
     FDependencies : TDependencies;
     FResourceFiles : TResourceFiles;
     FCommands : TCommands;
@@ -715,6 +719,7 @@ Type
     procedure AssignTo(Dest: TPersistent); override;
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
     Function HaveOptions : Boolean;
+    Procedure AddOption(const aValue : string);
     Function SubTargetAllowed(Const aSubTarget : String) : Boolean;
     Function SubTargetsAsString: String;
     procedure SetName(const AValue: String);override;
@@ -734,7 +739,7 @@ Type
     Property TargetType : TTargetType Read FTargetType Write FTargetType;
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
-    Property SubTargets : TStringDynArray Read FSubTargets Write FSubTargets;
+    Property SubTargets : TRTLStringDynArray Read FSubTargets Write FSubTargets;
     Property Mode : TCompilerMode Read FMode Write FMode;
     Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
@@ -895,7 +900,7 @@ Type
     FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
-    FSubTargets: TStringDynArray;
+    FSubTargets: TRTLStringDynArray;
     FSupportBuildModes: TBuildModes;
     FUnitPath,
     FObjectPath,
@@ -1017,7 +1022,7 @@ Type
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
-    Property SubTargets : TStringDynArray Read FSubTargets Write FSubTargets;
+    Property SubTargets : TRTLStringDynArray Read FSubTargets Write FSubTargets;
     Property NeedLibC : Boolean Read FNeedLibC Write FNeedLibC;
     Property Options: TStrings Read GetOptions Write SetOptions;
     Property UnitPath : TConditionalStrings Read FUnitPath;
@@ -1172,6 +1177,7 @@ Type
     Destructor Destroy; override;
     Procedure InitDefaults;
     Function HaveOptions: Boolean;
+    Procedure AddOption(const aValue : string);
     function IsBuildDifferentFromTarget: boolean;
     procedure CompilerDefaults; virtual;
     Procedure LocalInit(Const AFileName : String);
@@ -2053,7 +2059,7 @@ var
     n,available: longint;
     BuffPos: longint;
     sLine: string;
-    ch: char;
+    ch: AnsiChar;
     msg: TMessages;
     ipos: integer;
     snum: string;
@@ -2215,15 +2221,16 @@ begin
   end;
 end;
 
-function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
+function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): ansistring;
 type
   TParseCompilerOutputState = (cosBeginOfLine, cosSearchColon, cosParseNumber, cosOther);
 
 var
-  presult: pchar;
+  presult: PAnsiChar;
   state: TParseCompilerOutputState;
-  ch: char;
-  eolchar: char;
+  ch: AnsiChar;
+  eolchar: AnsiChar;
+
 begin
   Result:='';
   m.Seek(0, soBeginning);
@@ -2241,7 +2248,7 @@ begin
   state := cosBeginOfLine;
   while m.Position<m.Size do
     begin
-      ch := char(m.ReadByte);
+      ch := AnsiChar(m.ReadByte);
       case state of
         cosBeginOfLine:
           begin
@@ -2265,7 +2272,7 @@ begin
               begin
               state := cosOther;
               // Omit the space behind the number
-              ch := char(m.ReadByte);
+              ch := AnsiChar(m.ReadByte);
               assert(ch=' ');
               end;
           end;
@@ -2835,7 +2842,7 @@ procedure SplitCommand(const Cmd : String; out Exe, Options : String);
 Var
   I : Integer;
   InQuote : Boolean;
-  LastQuote : Char;
+  LastQuote : AnsiChar;
   S : String;
 
 begin
@@ -2963,7 +2970,7 @@ function GetCompilerInfo(const ACompiler:string; Args : TStrings; ReadStdErr: bo
 const
   BufSize = 1024;
 Type
-  TBufType = array [0..BufSize - 1] of char;
+  TBufType = array [0..BufSize - 1] of AnsiChar;
 
 var
   Proc: TProcess;
@@ -3023,15 +3030,15 @@ end;
 function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; out ErrorMessage: string): string;
 
 var
-  CrossPrefix: string;
+  CrossPrefix: Ansistring;
   UseBinutilsPrefix: boolean;
   SourceOS : TOS;
   SourceCPU : TCPU;
 
-  function Get4thWord(const AString: string): string;
-  var p: pchar;
+  function Get4thWord(const AString: Ansistring): Ansistring;
+  var p: PAnsiChar;
       spacecount: integer;
-      StartWord: pchar;
+      StartWord: PAnsiChar;
   begin
     result:='';
     if length(AString)>6 then
@@ -3058,10 +3065,10 @@ var
       end;
   end;
 
-  function GetGccDirArch(const ACpuType : String; GCCParams: TStrings) : string;
+  function GetGccDirArch(const ACpuType : AnsiString; GCCParams: TStrings) : Ansistring;
 
-  var ExecResult: string;
-      libgccFilename: string;
+  var ExecResult: Ansistring;
+      libgccFilename: Ansistring;
       GccExecutable: string;
       Parms : TStrings;
 
@@ -3515,6 +3522,13 @@ begin
   FIncludePath.Free;
   FSourcePath.Free;
   inherited Destroy;
+end;
+
+procedure TPackageVariant.AddOption(const aValue: string);
+begin
+  // Cannot use duplicates, requires ordering
+  if Options.Indexof(aValue)=-1 then
+    Options.Add(aValue);
 end;
 
 { TPackageVariants }
@@ -4562,7 +4576,7 @@ procedure TPackage.GetManifest(Manifest: TStrings);
     Manifest.Add(AIndent+'</cpus>');
   end;
 
-  procedure AddSubTargets(const AIndent:string;aSubTargets:TStringDynArray);
+  procedure AddSubTargets(const AIndent:string;aSubTargets:TRTLStringDynArray);
   var
     S : String;
   begin
@@ -4764,11 +4778,14 @@ procedure TPackage.ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrin
 var
   i: integer;
   PackageVariants: TPackageVariants;
+  S : String;
 begin
   for i := 0 to FPackageVariants.Count-1 do
     begin
     PackageVariants := TPackageVariants(FPackageVariants.Items[i]);
-    ACompilerOptions.AddStrings(PackageVariants.ActivePackageVariant.Options);
+    for S in PackageVariants.ActivePackageVariant.Options do
+      if ACompilerOptions.IndexOf(S)=-1 then
+        ACompilerOptions.Add(S);
     end;
 end;
 
@@ -4820,7 +4837,7 @@ begin
         InstalledChecksum:=Cardinal(StrToInt64Def(Values[KeyChecksum],$ffffffff));
         VCPU:=StringToCPU(Values[KeyCPU]);
         VOS:=StringToOS(Values[KeyOS]);
-        SubTargets:=Values[KeySubTargets].Split(' ',TStringSplitOptions.ExcludeEmpty);
+        SubTargets:=Values[KeySubTargets].Split(RTLString(' '),TStringSplitOptions.ExcludeEmpty);
         OSes:=[VOS];
         CPUs:=[VCPU];
         L2:=TStringList.Create;
@@ -5417,6 +5434,13 @@ begin
   Result:=Assigned(FOptions);
 end;
 
+procedure TCustomDefaults.AddOption(const aValue: string);
+begin
+  // Cannot use duplicates, requires ordering
+  if Options.Indexof(aValue)=-1 then
+    Options.Add(aValue);
+end;
+
 function TCustomDefaults.IsBuildDifferentFromTarget: boolean;
 begin
   result := IsDifferentFromBuild(CPU,OS);
@@ -5963,7 +5987,7 @@ procedure TCustomInstaller.AnalyzeOptions;
             begin
             result := true;
             while O <> '' do
-              (PV.Items[J] as TPackageVariant).Options.Add(SplitSpaces(O));
+              (PV.Items[J] as TPackageVariant).AddOption(SplitSpaces(O));
             end;
           end;
         end;
@@ -6086,7 +6110,7 @@ begin
       begin
         OptString := OptionArg(I, true);
         while OptString <> '' do
-          Defaults.Options.Add(SplitSpaces(OptString));
+          Defaults.AddOption(SplitSpaces(OptString));
       end
     else if CheckOption(I,'r','compiler') then
       Defaults.Compiler:=OptionArg(I)
@@ -6588,6 +6612,7 @@ end;
 
 function TBuildEngine.SysFileExists(const AFileName: string): Boolean;
 begin
+  // Writeln('Testing : ',aFileName);
   result:=SysUtils.FileExists(AFileName);
   if result then
     Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
@@ -7058,7 +7083,7 @@ begin
         Files:=TStringList.Create;
         Files.Assign(List);
         PrependFileListWithString(Files,IncludeTrailingPathDelimiter(GPathPrefix));
-        CmdLine:=Defaults.Archive.Split(' ','"','"');
+        CmdLine:=Defaults.Archive.Split(RTLString(' '),'"','"');
         Cmd:=CmdLine[0];
         For I:=1 to Length(CmdLine)-1 do
           begin
@@ -9663,7 +9688,7 @@ end;
 
 procedure TFPVersion.SetAsString(const AValue: String);
 
-  Function NextDigit(sep : Char; var V : string) : integer;
+  Function NextDigit(sep : AnsiChar; var V : string) : integer;
   Var
     P : Integer;
   begin
@@ -9963,7 +9988,7 @@ begin
   N:=ExtractFileName(N);
   FExeName:=Copy(N,1,Length(N)-Length(E));
   { Use exact AValue for -o option }
-  Options.Add('-o'+AValue);
+  AddOption('-o'+AValue);
 end;
 
 procedure TTarget.SetXML(const AValue: string);
@@ -10148,6 +10173,13 @@ begin
     List.Add(Directory + Name + Extension);
     List.Add(XML);
   end;
+end;
+
+procedure TTarget.AddOption(const aValue: String);
+begin
+  // Cannot use duplicates, requires ordering
+  if Options.IndexOf(aValue)=-1 then
+    Options.Add(aValue);
 end;
 
 
