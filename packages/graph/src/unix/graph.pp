@@ -135,7 +135,7 @@ Const
      chiptype,           { Chiptype detected }
      memory,             { videomemory in KB }
      linewidth_unit: Longint;    { Use only a multiple of this as parameter for                                   set_displaystart }
-     linear_aperture: PChar;     { points to mmap secondary mem aperture of card }
+     linear_aperture: PAnsiChar;     { points to mmap secondary mem aperture of card }
      aperture_size: Longint;     { size of aperture in KB if size>=videomemory.}
 
      set_aperture_page: procedure (page: Longint);
@@ -167,7 +167,7 @@ Const
 
 Const
   GLASTMODE         = 49;
-  ModeNames : Array[0..GLastMode] of string [18] =
+  ModeNames : Array[0..GLastMode] of String [18] =
    ('Text',
     'G320x200x16',
     'G640x200x16',
