@@ -16,22 +16,22 @@ implementation
   General auxiliary functions
   ---------------------------------------------------------------------}
 
-Function ValueToString(V : TSee_Value) : string;
+Function ValueToString(V : TSee_Value) : AnsiString;
 
 Var
   PS : Ptcuint;
-  PD : PChar;
+  PD : PAnsiChar;
   I : Integer;
 
 begin
   SetLength(Result,v.u._string^.length);
   If Length(Result)<>0 then
     begin
-    PD:=PChar(Result);
+    PD:=PAnsiChar(Result);
     PS:=v.u._string^.data;
     For I:=0 to length(Result)-1 do
       begin
-      PD^:=Char(PS^ and $ff);
+      PD^:=AnsiChar(PS^ and $ff);
       Inc(PD);
       Inc(PS);
       end;
@@ -149,7 +149,7 @@ procedure StreamWrite (i:PTSEE_interpreter; obj:PTSEE_object; thisobj:PTSEE_obje
 Var
   S : PStreamObject;
   v : TSEE_Value;
-  t : string;
+  t : AnsiString;
 
 begin
   S:=AsFile(I,ThisObj);
@@ -169,7 +169,7 @@ procedure StreamPosition (i:PTSEE_interpreter; obj:PTSEE_object; thisobj:PTSEE_o
 Var
   S : PStreamObject;
   v : TSEE_Value;
-  t : string;
+  t : AnsiString;
 
 begin
   S:=AsFile(I,ThisObj);
@@ -203,7 +203,7 @@ Var
   S : PStreamObject;
   r : PSEE_String;
   j,maxlen : integer;
-  c : char;
+  c : AnsiChar;
 
 begin
   S:=AsFile(I,ThisObj);
@@ -228,7 +228,7 @@ procedure StreamFree (i:PTSEE_interpreter; obj:PTSEE_object; thisobj:PTSEE_objec
 Var
   S : PStreamObject;
   v : TSEE_Value;
-  t : string;
+  t : AnsiString;
 
 begin
   S:=AsFile(I,ThisObj);
@@ -248,10 +248,10 @@ procedure StreamConstruct (i:PTSEE_interpreter; obj:PTSEE_object; thisobj:PTSEE_
              res:PTSEE_value);cdecl;
 
 Var
-  P : PChar;
+  P : PAnsiChar;
   fm : Integer;
   S : TStream;
-  Err : String;
+  Err : AnsiString;
   R : PTSEE_Object;
 
 begin
@@ -266,7 +266,7 @@ begin
       Err:=E.Message;
   end;
   If (Err<>'') then
-    SEE_error__throw0(i,PrivateData(I)^.Error,PChar(Err));
+    SEE_error__throw0(i,PrivateData(I)^.Error,PAnsiChar(Err));
   R:=PTSEE_Object(SEE_malloc_finalize(I,SizeOf(TStreamObject),@StreamFinalize,Nil));
   SEE_Native_init(PSEE_Native(R),I,StreamPrototypeDef,PrivateData(I)^.Prototype);
   PStreamObject(r)^.Stream:=S;
@@ -397,7 +397,7 @@ procedure WriteWrite (i:PTSEE_interpreter; obj:PTSEE_object; thisobj:PTSEE_objec
 
 Var
   a,C : Integer;
-  t : string;
+  t : AnsiString;
   v : TSEE_Value;
 
 begin

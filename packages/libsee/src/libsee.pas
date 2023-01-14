@@ -33,7 +33,7 @@ uses
 
 Type
   Tsize_t = csize_t;
-  tcuchar = char;
+  tcuchar = AnsiChar;
   Tuint16_t = word;
   Tuint32_t = cardinal;
   Tuint64_t = qword;
@@ -43,11 +43,11 @@ Type
   TDouble = double;  
   tcuint = word;
   tcint = integer;
-  PTcchar = pchar;
+  PTcchar = PAnsiChar;
   PPTcchar = ^PTcchar;
   Ptcint = ^tcint;
   PTcuint = ^tcuint;
-  tcchar = char;
+  tcchar = AnsiChar;
 
 var
   SEE_literal_NaN : array[0..7] of Tcuchar;cvar;external;
@@ -729,7 +729,7 @@ procedure SEE_SET_BOOLEAN(v : PSEE_value; b : Boolean);
 
 begin
   SEE_SET_TYPE(V,SEE_BOOLEAN);
-  V^.u.boolean:=char(ord(B));
+  V^.u.boolean:=AnsiChar(ord(B));
 end;
 
 procedure SEE_SET_NUMBER(v : PSEE_value; n : TSEE_number_t);
@@ -938,7 +938,7 @@ procedure Loadlibsee(Const Alib : string);
 
 begin
   Freelibsee;
-  hlib:=LoadLibrary(pchar(Alib));
+  hlib:=LoadLibrary(PAnsiChar(Alib));
   if hlib=0 then
     raise Exception.Create(format('Could not load library: %s',[Alib]));
   pointer(_SEE_isnan):=GetProcAddress(hlib,'_SEE_isnan');
