@@ -4,6 +4,9 @@ program testidl;
 {$H+}
 
 uses
+  {$ifdef unix}
+  cwstring,
+  {$endif}
   consoletestrunner, webidlscanner, tcidlscanner, webidlparser, webidldefs,
   tcidlparser, tcwebidldefs, tcwebidl2wasmjob;
 
