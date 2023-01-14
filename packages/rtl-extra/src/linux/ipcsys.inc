@@ -14,7 +14,7 @@
  ***********************************************************************}
 
 
-Function ftok (Path : pchar; ID : cint) : TKey;
+Function ftok (Path : PAnsiChar; ID : cint) : TKey;
 Var Info : TStat;
 begin
   If fpstat(path,info)<0 then
