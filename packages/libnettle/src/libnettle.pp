@@ -231,7 +231,7 @@ Type
   PWord     = ^Word;
   PDWord    = ^DWord;
   PDouble   = ^Double;
-  Ppcchar   = ^pchar;
+  Ppcchar   = ^PAnsiChar;
 
 Type
   TCuint = cuint;
