@@ -50,7 +50,7 @@ type
    private
     FSpeller: PAspellSpeller;
     FLastError: string;
-    function DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
+    function DoCreateSpeller(Lang, Enc, aMode: PAnsiChar): PAspellSpeller;
    protected
     procedure CreateSpeller; override;
     procedure FreeSpeller; override;
@@ -133,7 +133,7 @@ end;
 
 { TWordSpeller }
 
-function TWordSpeller.DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
+function TWordSpeller.DoCreateSpeller(Lang, Enc, aMode: PAnsiChar): PAspellSpeller;
 var
   Error: Paspellcanhaveerror;
 begin
@@ -163,13 +163,13 @@ begin
   FLastError := '';
   FreeSpeller;
 
-  FSpeller := DoCreateSpeller(pChar(FLanguage), pChar(FEncoding), pChar(FMode));
+  FSpeller := DoCreateSpeller(PAnsiChar(FLanguage), PAnsiChar(FEncoding), PAnsiChar(FMode));
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), pChar(FMode));
+    FSpeller := DoCreateSpeller(nil, PAnsiChar(FEncoding), PAnsiChar(FMode));
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), nil);
+    FSpeller := DoCreateSpeller(nil, PAnsiChar(FEncoding), nil);
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, nil, pChar(FMode));
+    FSpeller := DoCreateSpeller(nil, nil, PAnsiChar(FMode));
   if not Assigned(FSpeller) then
     FSpeller := DoCreateSpeller(nil, nil, nil);
 
@@ -189,13 +189,13 @@ function TWordSpeller.SpellCheck(const Word: string): TSuggestionArray;
 var
   sgs: Paspellwordlist;
   elm: Paspellstringenumeration;
-  tmp: pChar;
+  tmp: PAnsiChar;
   i: Integer = 0;
 begin
   SetLength(Result, 0);
 
-  if aspell_speller_check(FSpeller, pChar(Word), Length(Word)) = 0 then begin
-    sgs := aspell_speller_suggest(FSpeller, pChar(Word), Length(Word));
+  if aspell_speller_check(FSpeller, PAnsiChar(Word), Length(Word)) = 0 then begin
+    sgs := aspell_speller_suggest(FSpeller, PAnsiChar(Word), Length(Word));
     elm := aspell_word_list_elements(sgs);
 
     repeat
@@ -272,7 +272,7 @@ var
   i, Count: Integer;
   Token: AspellToken;
 begin
-  aspell_document_checker_process(FChecker, pChar(aLine), Length(aLine));
+  aspell_document_checker_process(FChecker, PAnsiChar(aLine), Length(aLine));
 
   SetLength(Result, CHUNK_SIZE);
   i := 0;

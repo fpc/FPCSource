@@ -29,9 +29,9 @@ uses
 
   {************************* mutable container ************************* }
 
-  function aspell_mutable_container_add(ths:PAspellMutableContainer; to_add:pchar):cint;cdecl;external libaspell name 'aspell_mutable_container_add';
+  function aspell_mutable_container_add(ths:PAspellMutableContainer; to_add:PAnsiChar):cint;cdecl;external libaspell name 'aspell_mutable_container_add';
 
-  function aspell_mutable_container_remove(ths:PAspellMutableContainer; to_rem:pchar):cint;cdecl;external libaspell name 'aspell_mutable_container_remove';
+  function aspell_mutable_container_remove(ths:PAspellMutableContainer; to_rem:PAnsiChar):cint;cdecl;external libaspell name 'aspell_mutable_container_remove';
 
   procedure aspell_mutable_container_clear(ths:PAspellMutableContainer);cdecl;external libaspell name 'aspell_mutable_container_clear';
 
@@ -59,7 +59,7 @@ uses
 
     function aspell_config_error_number(ths:PAspellConfig):cuint;cdecl;external libaspell name 'aspell_config_error_number';
 
-    function aspell_config_error_message(ths:PAspellConfig):pchar;cdecl;external libaspell name 'aspell_config_error_message';
+    function aspell_config_error_message(ths:PAspellConfig):PAnsiChar;cdecl;external libaspell name 'aspell_config_error_message';
 
     function aspell_config_error(ths:PAspellConfig):PAspellError;cdecl;external libaspell name 'aspell_config_error';
 
@@ -76,7 +76,7 @@ uses
      * not valid. The pointer returned is valid for
      * the lifetime of the object.  }
 
-    function aspell_config_keyinfo(ths:PAspellConfig; key:pchar):PAspellKeyInfo;cdecl;external libaspell name 'aspell_config_keyinfo';
+    function aspell_config_keyinfo(ths:PAspellConfig; key:PAnsiChar):PAspellKeyInfo;cdecl;external libaspell name 'aspell_config_keyinfo';
 
     { Returns a newly allocated enumeration of all
      * the possible objects this config class uses.  }
@@ -90,7 +90,7 @@ uses
      * the key is not valid. Uses the temporary
      * string.  }
 
-    function aspell_config_get_default(ths:PAspellConfig; key:pchar):pchar;cdecl;external libaspell name 'aspell_config_get_default';
+    function aspell_config_get_default(ths:PAspellConfig; key:PAnsiChar):PAnsiChar;cdecl;external libaspell name 'aspell_config_get_default';
 
     { Returns a newly allocated enumeration of all
      * the key/value pairs. This DOES not include ones
@@ -109,7 +109,7 @@ uses
      * a list and you are trying to set its directory,
      * it sets error_num to PERROR_LIST_SET  }
 
-    function aspell_config_replace(ths:PAspellConfig; key:pchar; value:pchar):cint;cdecl;external libaspell name 'aspell_config_replace';
+    function aspell_config_replace(ths:PAspellConfig; key:PAnsiChar; value:PAnsiChar):cint;cdecl;external libaspell name 'aspell_config_replace';
 
     { Remove a key and returns TRUE if it exists
      * otherwise return FALSE. This effectively sets
@@ -122,28 +122,28 @@ uses
      * changed then it sets error_num to
      * PERROR_CANT_CHANGE_VALUE  }
 
-    function aspell_config_remove(ths:PAspellConfig; key:pchar):cint;cdecl;external libaspell name 'aspell_config_remove';
+    function aspell_config_remove(ths:PAspellConfig; key:PAnsiChar):cint;cdecl;external libaspell name 'aspell_config_remove';
 
-    function aspell_config_have(ths:PAspellConfig; key:pchar):cint;cdecl;external libaspell name 'aspell_config_have';
+    function aspell_config_have(ths:PAspellConfig; key:PAnsiChar):cint;cdecl;external libaspell name 'aspell_config_have';
 
     { Returns NULL on error.  }
 
-    function aspell_config_retrieve(ths:PAspellConfig; key:pchar):pchar;cdecl;external libaspell name 'aspell_config_retrieve';
+    function aspell_config_retrieve(ths:PAspellConfig; key:PAnsiChar):PAnsiChar;cdecl;external libaspell name 'aspell_config_retrieve';
 
-    function aspell_config_retrieve_list(ths:PAspellConfig; key:pchar; lst:PAspellMutableContainer):cint;cdecl;external libaspell name 'aspell_config_retrieve_list';
+    function aspell_config_retrieve_list(ths:PAspellConfig; key:PAnsiChar; lst:PAspellMutableContainer):cint;cdecl;external libaspell name 'aspell_config_retrieve_list';
 
     { In "ths" Aspell configuration, search for a
      * character string matching "key" string.
      * If "key" is found then return 1 else return 0.
      * If error encountered, then return -1.  }
 
-    function aspell_config_retrieve_bool(ths:PAspellConfig; key:pchar):cint;cdecl;external libaspell name 'aspell_config_retrieve_bool';
+    function aspell_config_retrieve_bool(ths:PAspellConfig; key:PAnsiChar):cint;cdecl;external libaspell name 'aspell_config_retrieve_bool';
 
     { In "ths" Aspell configuration, search for an
      * integer value matching "key" string.
      * Return -1 on error.  }
 
-    function aspell_config_retrieve_int(ths:PAspellConfig; key:pchar):cint;cdecl;external libaspell name 'aspell_config_retrieve_int';
+    function aspell_config_retrieve_int(ths:PAspellConfig; key:PAnsiChar):cint;cdecl;external libaspell name 'aspell_config_retrieve_int';
 
     {******************************* error ******************************* }
 
@@ -153,7 +153,7 @@ uses
 
     function aspell_error_number(ths:PAspellCanHaveError):cuint;cdecl;external libaspell name 'aspell_error_number';
 
-    function aspell_error_message(ths:PAspellCanHaveError):pchar;cdecl;external libaspell name 'aspell_error_message';
+    function aspell_error_message(ths:PAspellCanHaveError):PAnsiChar;cdecl;external libaspell name 'aspell_error_message';
 
     function aspell_error(ths:PAspellCanHaveError):PAspellError;cdecl;external libaspell name 'aspell_error';
 
@@ -173,7 +173,7 @@ uses
 
     function aspell_speller_error_number(ths:PAspellSpeller):cuint;cdecl;external libaspell name 'aspell_speller_error_number';
 
-    function aspell_speller_error_message(ths:PAspellSpeller):pchar;cdecl;external libaspell name 'aspell_speller_error_message';
+    function aspell_speller_error_message(ths:PAspellSpeller):PAnsiChar;cdecl;external libaspell name 'aspell_speller_error_message';
 
     function aspell_speller_error(ths:PAspellSpeller):PAspellError;cdecl;external libaspell name 'aspell_speller_error';
 
@@ -181,15 +181,15 @@ uses
     { Returns 0 if it is not in the dictionary,
      * 1 if it is, or -1 on error.  }
 
-    function aspell_speller_check(ths:PAspellSpeller; word:pchar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_check';
+    function aspell_speller_check(ths:PAspellSpeller; word:PAnsiChar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_check';
 
     { Add this word to your own personal word list.  }
 
-    function aspell_speller_add_to_personal(ths:PAspellSpeller; word:pchar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_add_to_personal';
+    function aspell_speller_add_to_personal(ths:PAspellSpeller; word:PAnsiChar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_add_to_personal';
 
     { Add this word to the current spelling session.  }
 
-    function aspell_speller_add_to_session(ths:PAspellSpeller; word:pchar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_add_to_session';
+    function aspell_speller_add_to_session(ths:PAspellSpeller; word:PAnsiChar; word_size:cint):cint;cdecl;external libaspell name 'aspell_speller_add_to_session';
 
     { This is your own personal word list file plus
      * any extra words added during this session to
@@ -217,9 +217,9 @@ uses
      * The word list returned by suggest is only
      * valid until the next call to suggest.  }
 
-    function aspell_speller_suggest(ths:PAspellSpeller; word:pchar; word_size:cint):PAspellWordList;cdecl;external libaspell name 'aspell_speller_suggest';
+    function aspell_speller_suggest(ths:PAspellSpeller; word:PAnsiChar; word_size:cint):PAspellWordList;cdecl;external libaspell name 'aspell_speller_suggest';
 
-    function aspell_speller_store_replacement(ths:PAspellSpeller; mis:pchar; mis_size:cint; cor:pchar; cor_size:cint):cint;cdecl;external libaspell name 'aspell_speller_store_replacement';
+    function aspell_speller_store_replacement(ths:PAspellSpeller; mis:PAnsiChar; mis_size:cint; cor:PAnsiChar; cor_size:cint):cint;cdecl;external libaspell name 'aspell_speller_store_replacement';
 
     {******************************* filter ******************************* }
 
@@ -227,7 +227,7 @@ uses
 
     function aspell_filter_error_number(ths:PAspellFilter):cuint;cdecl;external libaspell name 'aspell_filter_error_number';
 
-    function aspell_filter_error_message(ths:PAspellFilter):pchar;cdecl;external libaspell name 'aspell_filter_error_message';
+    function aspell_filter_error_message(ths:PAspellFilter):PAnsiChar;cdecl;external libaspell name 'aspell_filter_error_message';
 
     function aspell_filter_error(ths:PAspellFilter):PAspellError;cdecl;external libaspell name 'aspell_filter_error';
 
@@ -239,7 +239,7 @@ uses
 
     function aspell_document_checker_error_number(ths:PAspellDocumentChecker):cuint;cdecl;external libaspell name 'aspell_document_checker_error_number';
 
-    function aspell_document_checker_error_message(ths:PAspellDocumentChecker):pchar;cdecl;external libaspell name 'aspell_document_checker_error_message';
+    function aspell_document_checker_error_message(ths:PAspellDocumentChecker):PAnsiChar;cdecl;external libaspell name 'aspell_document_checker_error_message';
 
     function aspell_document_checker_error(ths:PAspellDocumentChecker):PAspellError;cdecl;external libaspell name 'aspell_document_checker_error';
 
@@ -271,7 +271,7 @@ uses
      * order, skipping strings or passing them in
      * more than once may lead to undefined results.  }
 
-    procedure aspell_document_checker_process(ths:PAspellDocumentChecker; str:pchar; size:cint);cdecl;external libaspell name 'aspell_document_checker_process';
+    procedure aspell_document_checker_process(ths:PAspellDocumentChecker; str:PAnsiChar; size:cint);cdecl;external libaspell name 'aspell_document_checker_process';
 
     { Returns the next misspelled word in the
      * processed string.  If there are no more
@@ -303,7 +303,7 @@ uses
 
     function aspell_string_enumeration_at_end(ths:PAspellStringEnumeration):cint;cdecl;external libaspell name 'aspell_string_enumeration_at_end';
 
-    function aspell_string_enumeration_next(ths:PAspellStringEnumeration):pchar;cdecl;external libaspell name 'aspell_string_enumeration_next';
+    function aspell_string_enumeration_next(ths:PAspellStringEnumeration):PAnsiChar;cdecl;external libaspell name 'aspell_string_enumeration_next';
 
     {******************************** info ******************************** }
 
@@ -353,9 +353,9 @@ uses
 
     function aspell_string_list_elements(ths:PAspellStringList):PAspellStringEnumeration;cdecl;external libaspell name 'aspell_string_list_elements';
 
-    function aspell_string_list_add(ths:PAspellStringList; to_add:pchar):cint;cdecl;external libaspell name 'aspell_string_list_add';
+    function aspell_string_list_add(ths:PAspellStringList; to_add:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_list_add';
 
-    function aspell_string_list_remove(ths:PAspellStringList; to_rem:pchar):cint;cdecl;external libaspell name 'aspell_string_list_remove';
+    function aspell_string_list_remove(ths:PAspellStringList; to_rem:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_list_remove';
 
     procedure aspell_string_list_clear(ths:PAspellStringList);cdecl;external libaspell name 'aspell_string_list_clear';
 
@@ -371,9 +371,9 @@ uses
 
     function new_aspell_string_map():PAspellStringMap;cdecl;external libaspell name 'new_aspell_string_map';
 
-    function aspell_string_map_add(ths:PAspellStringMap; to_add:pchar):cint;cdecl;external libaspell name 'aspell_string_map_add';
+    function aspell_string_map_add(ths:PAspellStringMap; to_add:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_map_add';
 
-    function aspell_string_map_remove(ths:PAspellStringMap; to_rem:pchar):cint;cdecl;external libaspell name 'aspell_string_map_remove';
+    function aspell_string_map_remove(ths:PAspellStringMap; to_rem:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_map_remove';
 
     procedure aspell_string_map_clear(ths:PAspellStringMap);cdecl;external libaspell name 'aspell_string_map_clear';
 
@@ -395,20 +395,20 @@ uses
      * Will NOT overwrite an existing entry.
      * Returns FALSE if the element already exists.  }
 
-    function aspell_string_map_insert(ths:PAspellStringMap; key:pchar; value:pchar):cint;cdecl;external libaspell name 'aspell_string_map_insert';
+    function aspell_string_map_insert(ths:PAspellStringMap; key:PAnsiChar; value:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_map_insert';
 
     { Insert a new element.
      * Will overwrite an existing entry.
      * Always returns TRUE.  }
 
-    function aspell_string_map_replace(ths:PAspellStringMap; key:pchar; value:pchar):cint;cdecl;external libaspell name 'aspell_string_map_replace';
+    function aspell_string_map_replace(ths:PAspellStringMap; key:PAnsiChar; value:PAnsiChar):cint;cdecl;external libaspell name 'aspell_string_map_replace';
 
     { Looks up an element and returns the value.
      * Returns NULL if the element does not exist.
      * Returns an empty string if the element exists
      * but has a NULL value.  }
 
-    function aspell_string_map_lookup(ths:PAspellStringMap; key:pchar):pchar;cdecl;external libaspell name 'aspell_string_map_lookup';
+    function aspell_string_map_lookup(ths:PAspellStringMap; key:PAnsiChar):PAnsiChar;cdecl;external libaspell name 'aspell_string_map_lookup';
 
     {********************** string pair enumeration ********************** }
 
@@ -429,7 +429,7 @@ uses
      * caches will be reset. Current caches are "encode",
      * "decode", "dictionary", "language", and "keyboard".  }
 
-    function aspell_reset_cache(which:pchar):cint;cdecl;external libaspell name 'aspell_reset_cache';
+    function aspell_reset_cache(which:PAnsiChar):cint;cdecl;external libaspell name 'aspell_reset_cache';
     
   function aspell_init(const libn: ansistring): Boolean;
   function aspell_loaded: Boolean;
