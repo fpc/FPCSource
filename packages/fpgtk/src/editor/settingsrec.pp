@@ -30,7 +30,7 @@ type
   TSettingsRec = record
     SaveOnClose : boolean;
     FileFormat : TFileFormat;
-    Extension : string;
+    Extension : AnsiString;
     MRUCount : integer;
     ShowProgress : boolean;
   end;
@@ -51,10 +51,10 @@ type
     Constructor Create;
   end;
 
-procedure Log (s : string); overload;
-procedure Log (fmt : string; params : array of const); overload;
-procedure Log (indent:integer; s:string);
-procedure Log (indent:integer; fmt:string; params:array of const);
+procedure Log (s : AnsiString); overload;
+procedure Log (fmt : AnsiString; params : array of const); overload;
+procedure Log (indent:integer; s:AnsiString);
+procedure Log (indent:integer; fmt:AnsiString; params:array of const);
 
 implementation
 
@@ -178,24 +178,24 @@ begin
   inherited;
 end;
 
-procedure Log (s : string);
+procedure Log (s : AnsiString);
 begin
   {$ifdef UseLog}
   writeln (s);
   {$endif}
 end;
 
-procedure Log (fmt : string; params : array of const);
+procedure Log (fmt : AnsiString; params : array of const);
 begin
   Log (format (fmt, params));
 end;
 
-procedure Log (indent:integer; fmt:string; params:array of const);
+procedure Log (indent:integer; fmt:AnsiString; params:array of const);
 begin
   Log (stringofchar(' ',indent) + format(fmt, params));
 end;
 
-procedure Log (indent:integer; s:string);
+procedure Log (indent:integer; s:AnsiString);
 begin
   Log (stringofchar(' ',indent) + s);
 end;

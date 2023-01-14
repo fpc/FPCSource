@@ -48,21 +48,21 @@ type
 
   TParameterItem = class (TCollectionItem)
   private
-    FName : string;
+    FName : AnsiString;
     FConvert: boolean;
-    FpascalType: string;
+    FpascalType: AnsiString;
     FParamType: TParamType;
   protected
-    function GetDisplayName : string; override;
-    procedure SetDisplayName(Const Value : string); override;
+    function GetDisplayName : AnsiString; override;
+    procedure SetDisplayName(Const Value : AnsiString); override;
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor Create (ACollection : TCollection); override;
     destructor destroy; override;
   published
-    property Name : string read FName write FName;
+    property Name : AnsiString read FName write FName;
     { De naam van de parameter }
-    property PascalType : string read FpascalType write FPascalType;
+    property PascalType : AnsiString read FpascalType write FPascalType;
     { Zijn type }
     property Convert : boolean read FConvert write FConvert default false;
     { geeft aan of er een omzetting dient te gebeuren voor het gebruiken }
@@ -86,14 +86,14 @@ type
   TPropertyItem = class (TCollectionItem)
   private
     FPropType : TPropType;
-    FName: string;
+    FName: AnsiString;
     FSection: TInterfaceSection;
-    FPascalType: string;
+    FPascalType: AnsiString;
     FParameters: TParamCollection;
-    FGtkName: string;
+    FGtkName: AnsiString;
     FWriteProcType: TpropFuncType;
     FReadFuncType: TPropFuncType;
-    FWriteGtkName: string;
+    FWriteGtkName: AnsiString;
     FCode: TStringList;
     FWriteCode: TStringList;
     FProctypes: TProcTypeSet;
@@ -103,8 +103,8 @@ type
     procedure SetWriteCode(const Value: TStringList);
     procedure SetPropType(const Value: TPropType);
   protected
-    function GetDisplayName: string; override;
-    procedure SetDisplayName(const Value: string); override;
+    function GetDisplayName: AnsiString; override;
+    procedure SetDisplayName(const Value: AnsiString); override;
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor create (ACollection : TCollection); override;
@@ -112,15 +112,15 @@ type
   published
     property PropType : TPropType read FPropType write SetPropType default ptProcedure;
     { wat voor iets het is } // Moet voor DisplayName staan voor goede inleesvolgorde
-    property Name : string read FName write FName;
+    property Name : AnsiString read FName write FName;
     { Naam van de property/functie/proc/veld/... }
     property Section : TInterfaceSection read FSection write FSection default isPublic;
     { waar het geplaats moet worden private, public, ... }
-    property PascalType : string read FPascalType write FPascalType;
+    property PascalType : AnsiString read FPascalType write FPascalType;
     { het type van property, functie, veld, signal (moet dan wel gedefinieerd zijn) }
     property Parameters : TParamCollection read FParameters write FParameters;
     { de parameters die doorgegeven moeten worden via de functie/procedure/signaltype }
-    property GtkName : string read FGtkName write FGtkName;
+    property GtkName : AnsiString read FGtkName write FGtkName;
     { de naam zoals GTK die gebruikt (waarschijnlijk met _ in) }
     property Code : TStringList read FCode write SetCode;
   { Property specifiek }
@@ -133,7 +133,7 @@ type
     { Geeft aan of de waarde voor toekenning aan result moet omgezet worden }
     property WriteProcType : TpropFuncType read FWriteProcType write FWriteProcType default pftGtkFunc;
     { hoe de write functie moet werken : gtk-proc, object-veld, object-proc, eigen proc }
-    property WriteGtkName : string read FWriteGtkName write FWriteGtkName;
+    property WriteGtkName : AnsiString read FWriteGtkName write FWriteGtkName;
     { de naam zoals gtk of object die gebruikt. Gebruikt in write, voor read zie GtkName }
     property WriteConvert : boolean read FWriteConvert write FWriteConvert default false;
     { Geeft aan of de waarde moet omgezet worden voor het doorgeven }
@@ -158,31 +158,31 @@ type
 
   TObjectItem = class (TCollectionItem)
   private
-    FInherit: string;
-    FName: string;
+    FInherit: AnsiString;
+    FName: AnsiString;
     FProps: TPropertyCollection;
-    FGtkFuncName: string;
+    FGtkFuncName: AnsiString;
     FWithPointer: boolean;
     FCreateObject: boolean;
-    FGtkName: string;
-    FCreateParams: string;
+    FGtkName: AnsiString;
+    FCreateParams: AnsiString;
     procedure SetProps(const Value: TPropertyCollection);
-    procedure SetGtkFuncName(const Value: string);
+    procedure SetGtkFuncName(const Value: AnsiString);
   protected
-    function GetDisplayName: string; override;
-    procedure SetDisplayName(const Value: string); override;
+    function GetDisplayName: AnsiString; override;
+    procedure SetDisplayName(const Value: AnsiString); override;
     procedure AssignTo(Dest: TPersistent); override;
   public
     constructor create (ACollection : TCollection); override;
     destructor destroy; override;
   published
-    property Name : string read FName write FName;
+    property Name : AnsiString read FName write FName;
     { Naam van het object }
-    property Inherit : string read FInherit write FInherit;
+    property Inherit : AnsiString read FInherit write FInherit;
     { De naam van het object dat ancester is }
-    property GtkFuncName : string read FGtkFuncName write SetGtkFuncName;
+    property GtkFuncName : AnsiString read FGtkFuncName write SetGtkFuncName;
     { Naam van het object in gtk zoals het in de functies en procedures gebruikt wordt }
-    property GtkName : string read FGtkName write FGtkName;
+    property GtkName : AnsiString read FGtkName write FGtkName;
     { Naam van het objectrecord in gtk zoals gebruikt in typedeclaraties}
     property Props : TPropertyCollection read FProps write SetProps;
     { De verschillende properties, procedures, ... van en voor het object }
@@ -190,7 +190,7 @@ type
     { duid aan of er ook een pointerdefinitie moet zijn }
     property CreateObject : boolean read FCreateObject write FCreateObject default false;
     { duid aan of er een CreateGtkObject procedure moet aangemaakt worden }
-    property CreateParams : string read FCreateParams write FCreateParams;
+    property CreateParams : AnsiString read FCreateParams write FCreateParams;
     { Geeft de parameters die meegeven moeten worden aan de _New functie }
   end;
 
@@ -212,7 +212,7 @@ type
     FDefinition: TObjectCollection;
     FGtkPrefix,
     FUsesList,
-    FUnitName: string;
+    FUnitName: AnsiString;
     {$IFNDEF Delphi}
     FTop, FLeft : integer;
     {$ENDIF}
@@ -230,9 +230,9 @@ type
   published
     { Published declarations }
     property Definition : TObjectCollection read FDefinition write SetDefinition;
-    property GtkPrefix : string read FGtkPrefix write FGtkPrefix;
-    property UnitName : string read FUnitName write FUnitName;
-    property UsesList : string read FUsesList write FUsesList;
+    property GtkPrefix : AnsiString read FGtkPrefix write FGtkPrefix;
+    property UnitName : AnsiString read FUnitName write FUnitName;
+    property UsesList : AnsiString read FUsesList write FUsesList;
     {$IFNDEF delphi}
     // Compatibiliteit met Delphi
     property Left : integer read FLeft write FLeft;
@@ -241,8 +241,8 @@ type
   end;
 
 var
-  GtkPrefix : string = 'gtk';
-  ObjectsPrefix : string = 'FPgtk';
+  GtkPrefix : AnsiString = 'gtk';
+  ObjectsPrefix : AnsiString = 'FPgtk';
 
 procedure Register;
 
@@ -257,7 +257,7 @@ const
   PropUsesGtkName = [pftProc, pftExistingProc];
 
 var
-  lowerObjectsPrefix : string;
+  lowerObjectsPrefix : AnsiString;
   ObjectsPrefixLength : integer;
 
 procedure Register;
@@ -317,12 +317,12 @@ begin
   inherited;
 end;
 
-function TParameterItem.GetDisplayName: string;
+function TParameterItem.GetDisplayName: AnsiString;
 begin
   result := FName;
 end;
 
-procedure TParameterItem.SetDisplayName(const Value: string);
+procedure TParameterItem.SetDisplayName(const Value: AnsiString);
 begin
   FName := Value;
 end;
@@ -377,12 +377,12 @@ begin
 end;
 
 const
-  DispPropType : array [TPropType] of string =
+  DispPropType : array [TPropType] of AnsiString =
     ('Field','Property','Function','Procedure', 'Signal',
      'HelperProc','HelperFunc','SignalType','Declarations', 'TypeDeclaration',
      'Constructor','Destructor','Initialization','Finilization');
 
-function TPropertyItem.GetDisplayName: string;
+function TPropertyItem.GetDisplayName: AnsiString;
 begin
   if FPropType = ptDeclarations then
     if Section = ispublished then
@@ -406,7 +406,7 @@ begin
   FCode.assign (Value);
 end;
 
-procedure TPropertyItem.SetDisplayName(const Value: string);
+procedure TPropertyItem.SetDisplayName(const Value: AnsiString);
 begin
   FName := Value;
 end;
@@ -481,17 +481,17 @@ begin
   inherited;
 end;
 
-function TObjectItem.GetDisplayName: string;
+function TObjectItem.GetDisplayName: AnsiString;
 begin
   result := FName;
 end;
 
-procedure TObjectItem.SetDisplayName(const Value: string);
+procedure TObjectItem.SetDisplayName(const Value: AnsiString);
 begin
   FName := Value;
 end;
 
-procedure TObjectItem.SetGtkFuncName(const Value: string);
+procedure TObjectItem.SetGtkFuncName(const Value: AnsiString);
 begin
   FGtkFuncName := Value;
   {$IFDEF writecreate}
@@ -550,9 +550,9 @@ begin
 end;
 
 const
-  DispPropFuncType : array [TPropFuncType] of string = ('GtkFunc','ObjField',
+  DispPropFuncType : array [TPropFuncType] of AnsiString = ('GtkFunc','ObjField',
       'ObjFunc','Field','Proc','NotImplemented','GtkMacro','ExistingProc');
-  DispProcType : array [TProcType] of string = ('Override', 'Virtual', 'Dynamic',
+  DispProcType : array [TProcType] of AnsiString = ('Override', 'Virtual', 'Dynamic',
       'Abstract', 'Cdecl', 'Overload', 'Reintroduce');
 
 procedure TObjectDefs.Save (List : TStrings);
@@ -673,7 +673,7 @@ resourcestring
 procedure TObjectDefs.Load (List : TStrings);
 
 var line : integer;
-    item, value : string;
+    item, value : AnsiString;
     HasLine : boolean;
 
   procedure SplitNext;
@@ -742,7 +742,7 @@ var line : integer;
       Rproptype : TPropType;
       RpropFuncType : TpropFuncType;
       counter : integer;
-      s : string;
+      s : AnsiString;
   begin
     with AProperty do
       begin
@@ -1019,7 +1019,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
       TheUnit.add ('  T'+ObjectsPrefix+Name+' = class;');
   end;
 
-  function CalcProcTypes (ProcTypes : TProcTypeSet; InImplementation:boolean) : string; overload;
+  function CalcProcTypes (ProcTypes : TProcTypeSet; InImplementation:boolean) : AnsiString; overload;
   begin
     if not InImplementation then
       begin
@@ -1045,7 +1045,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
       result := result + ' Overload;';
   end;
 
-  function CalcProcTypes (ProcTypes : TProcTypeSet) : string; overload;
+  function CalcProcTypes (ProcTypes : TProcTypeSet) : AnsiString; overload;
   begin
     result := CalcProcTypes (ProcTypes, False);
   end;
@@ -1053,12 +1053,12 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
   type
     TConvType = (ToGtk, ToLuk, ToFPgtk);
 
-  function ConvertType (PascalType : string; ConvType : TConvType) : string;
+  function ConvertType (PascalType : AnsiString; ConvType : TConvType) : AnsiString;
   begin
     PascalType := lowercase (PascalType);
     if ConvType = ToGtk then
       begin
-      if PascalType = 'string' then
+      if PascalType = 'AnsiString' then
         result := 'pgChar'
       else if copy(PascalType,1,ObjectsPrefixLength+1) = 't'+LowerObjectsPrefix then
         result := 'PGtk' + copy (PascalType, ObjectsPrefixLength+2, maxint)
@@ -1070,7 +1070,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
     else
       begin
       if PascalType = 'pgChar' then
-        result := 'string'
+        result := 'AnsiString'
       else if copy(PascalType,1,4) = 'pgtk' then
         result := 'T'+ObjectsPrefix + copy (PascalType, 5, maxint)
       else if PascalType = 'gint' then
@@ -1080,12 +1080,12 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
       end;
   end;
 
-  function DoConvert (Variable, PascalType : string; ConvType : TConvType) : string;
-  var s : string;
+  function DoConvert (Variable, PascalType : AnsiString; ConvType : TConvType) : AnsiString;
+  var s : AnsiString;
   begin
     result := variable;
     PascalType := lowercase (PascalType);
-    if PascalType = 'string' then
+    if PascalType = 'AnsiString' then
       begin
       if ConvType <> ToLuk then
         result := 'ConvertToPgchar('+result+')'
@@ -1125,7 +1125,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
       end;
   end;
 
-  function CalcParam (param : TParameterItem; Declaration : boolean; ConvType : TConvType) : string;
+  function CalcParam (param : TParameterItem; Declaration : boolean; ConvType : TConvType) : AnsiString;
   begin
     with Param do
       begin
@@ -1149,9 +1149,9 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
   type
     TParamListType = (plDecl, plImpl, plImplCl, plImplLukCl);
 
-  function CalcParameterList (params : TParamCollection; PLType : TParamListType) : string; overload;
+  function CalcParameterList (params : TParamCollection; PLType : TParamListType) : AnsiString; overload;
   var r : integer;
-      Sep : string[2];
+      Sep : AnsiString[2];
       ct : TConvType;
   begin
     if PLType = plDecl then
@@ -1175,7 +1175,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
         end;
   end;
 
-  function CalcParameterList (params : TParamCollection) : string; overload;
+  function CalcParameterList (params : TParamCollection) : AnsiString; overload;
   var r : integer;
   begin
     with params do
@@ -1196,7 +1196,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
   procedure WriteObjectInterface (Obj : TObjectItem);
   var r : integer;
       TheList : TStrings;
-      I, N, s : string;
+      I, N, s : AnsiString;
   begin
     Lpublic.Clear;
     LProt.Clear;
@@ -1331,8 +1331,8 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
               end;
             ptSignalType :
               begin
-              TheList.Add ('    function ' + Name + 'Connect (Signal:string; Proc:T'+ObjectsPrefix+Name+'Function; data:pointer) : guint;');
-              TheList.Add ('    function ' + Name + 'ConnectAfter (Signal:string; Proc:T'+ObjectsPrefix+Name+'Function; data:pointer) : guint;');
+              TheList.Add ('    function ' + Name + 'Connect (Signal:AnsiString; Proc:T'+ObjectsPrefix+Name+'Function; data:pointer) : guint;');
+              TheList.Add ('    function ' + Name + 'ConnectAfter (Signal:AnsiString; Proc:T'+ObjectsPrefix+Name+'Function; data:pointer) : guint;');
               end;
             ptConstructor :
               TheList.Add ('    constructor ' + Name + CalcParameterList(Parameters, plDecl)
@@ -1376,7 +1376,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
   end;
 
   procedure WriteObjectImplementation (Obj : TObjectItem);
-  var gn, n, s, start, midden, eind, res : string;
+  var gn, n, s, start, midden, eind, res : AnsiString;
       r, l, p : integer;
   begin
     with Obj, TheUnit do
@@ -1545,7 +1545,7 @@ procedure TObjectDefs.Write(TheUnit : TStrings; StepIt : TLukStepItProc; StepItM
                    '  '+eind+'p ('+s+')'+CRLF+
                    '  end;'+CRLF+
                    'end;'+CRLF);
-              midden := ' (signal:string; proc:T'+ObjectsPrefix+Name+
+              midden := ' (signal:AnsiString; proc:T'+ObjectsPrefix+Name+
                                               'Function; data:pointer) : guint;'+CRLF+
                    'begin'+CRLF+
                    '  result := '+GtkPrefix+'_signal_connect';

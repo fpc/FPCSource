@@ -52,14 +52,14 @@ type
     procedure OpenFileSelection (Sender : TFPgtkObject; data : pointer);
     procedure CloseFileSelection (Sender:TFPgtkWindow; DialogResult:pointer;
                                     Action:integer; initiator:TFPgtkObject);
-    procedure SetFilename (Value : string);
-    function GetFilename : string;
+    procedure SetFilename (Value : ansistring);
+    function GetFilename : ansistring;
   public
     constructor create;
     property Edit : TFPgtkEntry read FEdit;
     property Button : TFPgtkButton read FButton;
     property Image : TFPgtkPixmap read FImage;
-    property Filename : string read GetFilename write SetFilename;
+    property Filename : ansistring read GetFilename write SetFilename;
   end;
 
   TFPgtkCheckedButton = class (TFPgtkToggleButton)
@@ -68,8 +68,8 @@ type
     procedure ChangeCheck (Sender:TFPgtkObject; data:pointer);
   public
     constructor Create;
-    constructor CreateWithLabel (aText:string);
-    constructor CreateWithLabel (aText:string; AccelGroup : PGtkAccelGroup);
+    constructor CreateWithLabel (aText:ansistring);
+    constructor CreateWithLabel (aText:ansistring; AccelGroup : PGtkAccelGroup);
   end;
 
 { ==== Widget who needs a scrollwindow ==== }
@@ -79,20 +79,20 @@ type
   TFPgtkScrollText = class (TFPgtkScrolledWindow)
   private
     FText : TFPgtkText;
-    procedure SetTooltip (Value : string);
-    function GetTooltip : string;
+    procedure SetTooltip (Value : ansistring);
+    function GetTooltip : ansistring;
     function GetUdpatePolicy : TGtkUpdateType;
     procedure SetUpdatePolicy (Value : TGtkUpdateType);
-    function GetText : string;
-    procedure SetText (Value : string);
+    function GetText : ansistring;
+    procedure SetText (Value : ansistring);
     function GetLines : TStrings;
   public
     constructor create;
     procedure Clear;
     property TheText : TFPgtkText read FText;
-    property Tooltip : string read GetTooltip write SetTooltip;
+    property Tooltip : ansistring read GetTooltip write SetTooltip;
     property UpdatePolicy : TGtkUpdateType read GetUdpatePolicy write SetUpdatePolicy;
-    property Text : string read GetText write SetText;
+    property Text : ansistring read GetText write SetText;
     property Lines : TStrings read GetLines;
   end;
 
@@ -148,14 +148,14 @@ const
   mrNoToAll = mrNone + 9;
   mrYesToAll = mrNone + 10;
 
-function MessageDlg(const aMsg: string; DlgType: TMsgDlgType;
+function MessageDlg(const aMsg: ansistring; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
 
 
-function MessageDlg(const Fmt: string; Args : Array of const; DlgType: TMsgDlgType;
+function MessageDlg(const Fmt: ansistring; Args : Array of const; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
 
-procedure ShowMessage (const aTitle, aMessage : string);
+procedure ShowMessage (const aTitle, aMessage : ansistring);
 
 { ==== Menu handling ==== }
 
@@ -177,7 +177,7 @@ const
   gdk_Alt_mask = gdk_mod1_Mask;
   DefaultAccelFlags : TGtkAccelFlags = GTK_ACCEL_VISIBLE;
 
-function RemoveUnderscore (s : string) : string;
+function RemoveUnderscore (s : ansistring) : ansistring;
 function ConvertAccelModifier (amSet : TAccelModifiersSet) : TGdkModifierType;
 function ConvertModifierType (Mods : TGdkModifierType) : TAccelModifiersSet;
 function MakeAccelKeyDef (aWindow : TFPgtkWindow; anAG : integer; aKey : guint; aMods : TGdkModifierType) : PAccelKeyDef; overload;
@@ -186,35 +186,35 @@ function MakeAccelKeyDef (anAG : PGtkAccelGroup; aKey : guint; aMods : TGdkModif
 function MakeAccelKeyDef (anAG : PGtkAccelGroup; aKey : guint; aMods : TAccelModifiersSet) : PAccelKeyDef; overload;
 
 function NewMenuBar (items : array of TFPgtkMenuItem) : TFPgtkMenuBar;
-function NewMenu (ATitle : string; items : array of TFPgtkMenuItem) : TFPgtkMenu;
+function NewMenu (ATitle : ansistring; items : array of TFPgtkMenuItem) : TFPgtkMenu;
 
-function NewMenuItem (ACaption, AToolTip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewMenuItem (ACaption, AToolTip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem; overload;
-function NewMenuItem (ACaption, AToolTip, AprivText : string;
+function NewMenuItem (ACaption, AToolTip, AprivText : ansistring;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem; overload;
-function NewMenuItem (ACaption : string; Accelerator : PAccelKeyDef;
+function NewMenuItem (ACaption : ansistring; Accelerator : PAccelKeyDef;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem; overload;
-function NewMenuItem (ACaption : string; ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem; overload;
-function NewMenuItem (ACaption : string) : TFPgtkMenuItem; overload;
+function NewMenuItem (ACaption : ansistring; ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem; overload;
+function NewMenuItem (ACaption : ansistring) : TFPgtkMenuItem; overload;
 
 function NewLine : TFPgtkMenuItem;
 function NewTearOffMenu : TFPgtkTearOffMenuItem;
 
-function NewSubMenu (ACaption, ATooltip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewSubMenu (ACaption, ATooltip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem; Overload;
-function NewSubMenu (ACaption, ATooltip, AprivText : string;
+function NewSubMenu (ACaption, ATooltip, AprivText : ansistring;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem; Overload;
-function NewSubMenu (ACaption : string; Accelerator : PAccelKeyDef;
+function NewSubMenu (ACaption : ansistring; Accelerator : PAccelKeyDef;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem; Overload;
-function NewSubMenu (ACaption : string; Items : array of TFPgtkMenuItem) : TFPgtkMenuItem; Overload;
+function NewSubMenu (ACaption : ansistring; Items : array of TFPgtkMenuItem) : TFPgtkMenuItem; Overload;
 
-function NewCheckMenuItem (ACaption, AToolTip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewCheckMenuItem (ACaption, AToolTip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem; Overload;
-function NewCheckMenuItem (ACaption, AToolTip, AprivText : string;
+function NewCheckMenuItem (ACaption, AToolTip, AprivText : ansistring;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem; Overload;
-function NewCheckMenuItem (ACaption : string; Accelerator : PAccelKeyDef;
+function NewCheckMenuItem (ACaption : ansistring; Accelerator : PAccelKeyDef;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem; Overload;
-function NewCheckMenuItem (ACaption : string; ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem; Overload;
+function NewCheckMenuItem (ACaption : ansistring; ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem; Overload;
 
 procedure InsertMenuItemGroup (InMenu : TFPgtkMenuShell; position : integer; MenuItems : TFPgtkItemGroup); Overload;
 procedure InsertMenuItemGroup (InMenu : TFPgtkMenuShell; position : integer;
@@ -296,12 +296,12 @@ begin
   HPolicy := Gtk_Policy_Never;
 end;
 
-function TFPgtkScrollText.GetTooltip : string;
+function TFPgtkScrollText.GetTooltip : ansistring;
 begin
   result := inherited Tooltip;
 end;
 
-procedure TFPgtkScrollText.SetTooltip (Value : string);
+procedure TFPgtkScrollText.SetTooltip (Value : ansistring);
 begin
   TheText.Tooltip := Value;
   inherited Tooltip := Value;
@@ -326,7 +326,7 @@ begin
   {$endif}
 end;
 
-function TFPgtkScrollText.GetText : string;
+function TFPgtkScrollText.GetText : ansistring;
 begin
   if assigned(TheText) then
     begin
@@ -338,7 +338,7 @@ begin
     end;
 end;
 
-procedure TFPgtkScrollText.SetText (Value : string);
+procedure TFPgtkScrollText.SetText (Value : ansistring);
 begin
   if assigned (TheText) then
     TheText.Text := Value;
@@ -384,7 +384,7 @@ end;
 
 { Menu functions }
 
-function RemoveUnderscore (s : string) : string;
+function RemoveUnderscore (s : ansistring) : ansistring;
 begin
   result := stringreplace (s, '_', '', [rfReplaceAll]);
 end;
@@ -463,7 +463,7 @@ begin
       append (items[r]);
 end;
 
-function NewMenu (ATitle : string; items : array of TFPgtkMenuItem) : TFPgtkMenu;
+function NewMenu (ATitle : ansistring; items : array of TFPgtkMenuItem) : TFPgtkMenu;
 var r : integer;
     AG : PGtkAccelGroup;
     m : TFPgtkMenuItem;
@@ -484,7 +484,7 @@ begin
 end;
 
 function CreateMenuItem (Atype : TFPgtkMenuItemType; ACaption, ATooltip,
-                         APrivText : string; Accelerator : PAccelKeyDef) : TFPgtkMenuItem;
+                         APrivText : ansistring; Accelerator : PAccelKeyDef) : TFPgtkMenuItem;
 begin
   result := AType.CreateWithLabel (ACaption);
   if (ATooltip <> '') or (APrivText <> '') then
@@ -497,7 +497,7 @@ begin
     end;
 end;
 
-function NewMenuItem (ACaption, AToolTip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewMenuItem (ACaption, AToolTip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem;
 begin
   result := CreateMenuItem (TFPgtkMenuItem, ACaption, ATooltip, APrivtext, Accelerator);
@@ -505,24 +505,24 @@ begin
     result.ConnectActivate (ActivateFunc, AData);
 end;
 
-function NewMenuItem (ACaption, AToolTip, AprivText : string;
+function NewMenuItem (ACaption, AToolTip, AprivText : ansistring;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem;
 begin
   result := NewMenuItem (aCaption, aTooltip, aPrivText, nil, ActivateFunc, aData);
 end;
 
-function NewMenuItem (ACaption : string; Accelerator : PAccelKeyDef;
+function NewMenuItem (ACaption : ansistring; Accelerator : PAccelKeyDef;
                       ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem;
 begin
   result := NewMenuItem (aCaption, '', '', Accelerator, ActivateFunc, aData);
 end;
 
-function NewMenuItem (ACaption : string; ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem;
+function NewMenuItem (ACaption : ansistring; ActivateFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkMenuItem;
 begin
   result := NewMenuItem (aCaption, '', '', nil, ActivateFunc, aData);
 end;
 
-function NewMenuItem (ACaption : string) : TFPgtkMenuItem;
+function NewMenuItem (ACaption : ansistring) : TFPgtkMenuItem;
 begin
   result := NewMenuItem (aCaption, '', '', nil, nil, nil);
 end;
@@ -537,31 +537,31 @@ begin
   result := TFPgtkTearOffMenuItem.create;
 end;
 
-function NewSubMenu (ACaption, ATooltip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewSubMenu (ACaption, ATooltip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem;
 begin
   result := CreateMenuItem (TFPgtkMenuItem, ACaption, ATooltip, APrivText, Accelerator);
   result.SetSubmenu (NewMenu ('', Items));
 end;
 
-function NewSubMenu (ACaption, ATooltip, AprivText : string;
+function NewSubMenu (ACaption, ATooltip, AprivText : ansistring;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem;
 begin
   result := NewSubMenu (aCaption, aTooltip, aPrivText, nil, Items);
 end;
 
-function NewSubMenu (ACaption : string; Accelerator : PAccelKeyDef;
+function NewSubMenu (ACaption : ansistring; Accelerator : PAccelKeyDef;
                      Items : array of TFPgtkMenuItem) : TFPgtkMenuItem;
 begin
   result := NewSubMenu (aCaption, '', '', Accelerator, Items);
 end;
 
-function NewSubMenu (ACaption : string; Items : array of TFPgtkMenuItem) : TFPgtkMenuItem;
+function NewSubMenu (ACaption : ansistring; Items : array of TFPgtkMenuItem) : TFPgtkMenuItem;
 begin
   result := NewSubMenu (aCaption, '', '', nil, Items);
 end;
 
-function NewCheckMenuItem (ACaption, AToolTip, AprivText : string; Accelerator : PAccelKeyDef;
+function NewCheckMenuItem (ACaption, AToolTip, AprivText : ansistring; Accelerator : PAccelKeyDef;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem;
 begin
   result := TFPgtkCheckMenuItem(CreateMenuItem (TFPgtkCheckMenuItem, ACaption, ATooltip, APrivText, Accelerator));
@@ -569,19 +569,19 @@ begin
     Result.ConnectToggled (ToggledFunc, AData);
 end;
 
-function NewCheckMenuItem (ACaption, AToolTip, AprivText : string;
+function NewCheckMenuItem (ACaption, AToolTip, AprivText : ansistring;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem;
 begin
   result := NewCheckMenuItem (aCaption, aToolTip, aPrivText, nil, ToggledFunc, AData);
 end;
 
-function NewCheckMenuItem (ACaption : string; Accelerator : PAccelKeyDef;
+function NewCheckMenuItem (ACaption : ansistring; Accelerator : PAccelKeyDef;
                       ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem;
 begin
   result := NewCheckMenuItem (aCaption, '', '', Accelerator, ToggledFunc, AData);
 end;
 
-function NewCheckMenuItem (ACaption : string; ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem;
+function NewCheckMenuItem (ACaption : ansistring; ToggledFunc : TFPgtkSignalFunction; AData : pointer) : TFPgtkCheckMenuItem;
 begin
   result := NewCheckMenuItem (aCaption, '', '', nil, ToggledFunc, AData);
 end;
@@ -672,7 +672,7 @@ type
 
   PFileEntryData = ^TFileEntryData;
   TFileEntryData = record
-    aFilename : string;
+    aFilename : ansistring;
   end;
 
 constructor TFileEntryDialog.Create (AType:TGtkWindowType);
@@ -738,12 +738,12 @@ begin
   PackStart (FButton, false, true, 0);
 end;
 
-procedure TFPgtkFileEntry.SetFilename (Value : string);
+procedure TFPgtkFileEntry.SetFilename (Value : ansistring);
 begin
   FEdit.Text := Value;
 end;
 
-function TFPgtkFileEntry.GetFilename : string;
+function TFPgtkFileEntry.GetFilename : ansistring;
 begin
   result := FEdit.Text;
 end;
@@ -818,13 +818,13 @@ begin
   FUnchecked.visible := not b;
 end;
 
-constructor TFPgtkCheckedButton.CreateWithLabel (aText:string);
+constructor TFPgtkCheckedButton.CreateWithLabel (aText:ansistring);
 begin
   create;
   Text := aText;
 end;
 
-constructor TFPgtkCheckedButton.CreateWithLabel (aText:string; AccelGroup : PGtkAccelGroup);
+constructor TFPgtkCheckedButton.CreateWithLabel (aText:ansistring; AccelGroup : PGtkAccelGroup);
 begin
   create;
   Text := aText;
@@ -870,7 +870,7 @@ end;
 resourcestring
   rsOk = '   Ok   ';
 
-function MessageWindow (aTitle, aMessage : string) : TFPgtkWindow;
+function MessageWindow (aTitle, aMessage : ansistring) : TFPgtkWindow;
 var b : TFPgtkBox;
     but : TFPgtkButton;
     l : TFPgtkLabel;
@@ -905,7 +905,7 @@ begin
   result.Add (b);
 end;
 
-procedure ShowMessage (const aTitle, aMessage : string);
+procedure ShowMessage (const aTitle, aMessage : ansistring);
 begin
   with MessageWindow (aTitle, aMessage) do
     Execute (nil, nil, nil);
@@ -920,13 +920,13 @@ type
     FLTable : TFPgtkTable;
     FVBox : TFPgtkVBox;
     FButtonBox: TFPgtkButtonBox;
-    Constructor Create(AMsg:String; DlgType:TMsgDlgType; Buttons: TMsgDlgButtons);
+    Constructor Create(AMsg:ansistring; DlgType:TMsgDlgType; Buttons: TMsgDlgButtons);
     Procedure CreateButtons(Buttons: TMsgDlgButtons);
   end;
 
 const
 
-IMGInfo : Array[1..37] of string = ('32 32 4 1',
+IMGInfo : Array[1..37] of ansistring = ('32 32 4 1',
   '. c None',
   '  c None',
   'a c #ffffff', //#c3c3c3',
@@ -964,7 +964,7 @@ IMGInfo : Array[1..37] of string = ('32 32 4 1',
   '............#######.............',
   '................................');
 
-IMGWarning :Array[1..37] of string = ('32 32 4 1',
+IMGWarning :Array[1..37] of ansistring = ('32 32 4 1',
   '# c #000000',
   'b c #9c999c',
   '. c None',
@@ -1002,7 +1002,7 @@ IMGWarning :Array[1..37] of string = ('32 32 4 1',
   '....bbbbbbbbbbbbbbbbbbbbbbbbbbb.',
   '.....bbbbbbbbbbbbbbbbbbbbbbbbb..');
 
-IMGError : Array[1..37] of string = ('32 32 4 1',
+IMGError : Array[1..37] of ansistring = ('32 32 4 1',
   '. c None',
   'b c #808080',
   '# c #c00000',
@@ -1040,7 +1040,7 @@ IMGError : Array[1..37] of string = ('32 32 4 1',
   '................................',
   '................................');
 
-IMGConfirmation : Array[1..37] of string = ('32 32 4 1',
+IMGConfirmation : Array[1..37] of ansistring = ('32 32 4 1',
   '. c None',
   'b c #808080',
   'a c #c00000',
@@ -1079,7 +1079,7 @@ IMGConfirmation : Array[1..37] of string = ('32 32 4 1',
   '................................');
 
 
-Constructor TMessageDialogWindow.Create(AMsg : String;DlgType:TMsgDlgType;Buttons: TMsgDlgButtons);
+Constructor TMessageDialogWindow.Create(AMsg : ansistring;DlgType:TMsgDlgType;Buttons: TMsgDlgButtons);
 const
   OH = GTK_FILL OR GTK_EXPAND;
 begin
@@ -1115,7 +1115,7 @@ begin
 end;
 
 Const
-  ButtonText : Array[TMsgDlgBtn] of string  =
+  ButtonText : Array[TMsgDlgBtn] of ansistring  =
        ('Yes', 'No', 'OK', 'Cancel','Abort', 'Retry', 'Ignore',
         'All', 'NoToAll', 'YesToAll', 'Help');
   ButtonResult : array [TMsgDlgbtn] of TModalResult =
@@ -1137,14 +1137,14 @@ begin
       end;
 end;
 
-function MessageDlg(const aMsg: string; DlgType: TMsgDlgType;
+function MessageDlg(const aMsg: ansistring; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
 begin
   With TMessageDialogWindow.Create(AMsg,DlgType,Buttons) do
     Result:=Execute(Nil,Nil,Nil);
 end;
 
-function MessageDlg(const Fmt: string; Args : Array of const; DlgType: TMsgDlgType;
+function MessageDlg(const Fmt: ansistring; Args : Array of const; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
 begin
   Result:=MessageDlg(Format(Fmt,Args),Dlgtype,Buttons,HelpCtx);
