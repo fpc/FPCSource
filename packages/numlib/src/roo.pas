@@ -511,7 +511,7 @@ Begin
     End
 End {rooqua};
 
-Procedure roo001(uplo, trans, diag: char; n: ArbInt; Var ap1, x1: ArbFloat;
+Procedure roo001(uplo, trans, diag: AnsiChar; n: ArbInt; Var ap1, x1: ArbFloat;
                  incx: ArbInt);
 
 Var
@@ -618,7 +618,7 @@ Begin
     End
 End;
 
-Procedure roo002(uplo, trans, diag: char; n: ArbInt;
+Procedure roo002(uplo, trans, diag: AnsiChar; n: ArbInt;
                   Var ap1, x1: ArbFloat; incx: ArbInt );
 
 Var ap : arfloat1 absolute ap1;
@@ -914,7 +914,7 @@ Begin
     End
 End;
 
-Procedure roo006(trans: char; m, n: ArbInt; alpha: ArbFloat; Var a1: ArbFloat;
+Procedure roo006(trans: AnsiChar; m, n: ArbInt; alpha: ArbFloat; Var a1: ArbFloat;
                  lda: ArbInt; Var x1: ArbFloat; incx : ArbInt; beta: ArbFloat;
                  Var y1: ArbFloat; incy : ArbInt);
 
