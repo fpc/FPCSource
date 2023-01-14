@@ -121,14 +121,14 @@ procedure CreateFPMKUnitSource(const AFileName:string);
 var
   InStream,
   OutStream : TStream;
-  pend      : pchar;
+  pend      : PChar;
 begin
   try
     // Don't write trailing #0
-    pend:=pchar(@fpmkunitsrc)+sizeof(fpmkunitsrc)-1;
+    pend:=PChar(@fpmkunitsrc)+sizeof(fpmkunitsrc)-1;
     while pend^=#0 do
       dec(pend);
-    InStream:=TMyMemoryStream.Create(@fpmkunitsrc,pend-pchar(@fpmkunitsrc));
+    InStream:=TMyMemoryStream.Create(@fpmkunitsrc,pend-PChar(@fpmkunitsrc));
     OutStream:=TFileStream.Create(AFileName,fmCreate);
     OutStream.CopyFrom(InStream,InStream.Size);
   finally
