@@ -23,7 +23,7 @@
      AspellTypeId = record
          case longint of
             0 : ( num : cuint );
-            1 : ( str : array[0..3] of char );
+            1 : ( str : array[0..3] of AnsiChar );
          end;
 
     {****************************** key info ****************************** }
@@ -37,10 +37,10 @@
 
        PAspellKeyInfo = ^AspellKeyInfo;
        AspellKeyInfo = record
-            name : pchar;
+            name : PAnsiChar;
             _type : AspellKeyInfoType;
-            def : pchar;
-            desc : pchar;
+            def : PAnsiChar;
+            desc : PAnsiChar;
             flags : cint;
             other_data : cint;
          end;
@@ -50,14 +50,14 @@
        PAspellErrorInfo = ^AspellErrorInfo;
        AspellErrorInfo = record
             isa : PAspellErrorInfo;
-            mesg : pchar;
+            mesg : PAnsiChar;
             num_parms : cuint;
-            parms : array[0..2] of pchar;
+            parms : array[0..2] of PAnsiChar;
          end;
 
        PAspellError = ^AspellError;
        AspellError = record
-            mesg : pchar;
+            mesg : PAnsiChar;
             err : PAspellErrorInfo;
          end;
 
@@ -73,9 +73,9 @@
 
        PAspellModuleInfo = ^AspellModuleInfo;
        AspellModuleInfo = record
-            name : pchar;
+            name : PAnsiChar;
             order_num : double;
-            lib_dir : pchar;
+            lib_dir : PAnsiChar;
             dict_dirs : PAspellStringList;
             dict_exts : PAspellStringList;
          end;
@@ -91,7 +91,7 @@
        * variety of dictionary from other dictionaries
        * which may have the same language and size.  }
 
-    { A two char digit code describing the size of
+    { A two AnsiChar digit code describing the size of
        * the dictionary: 10=tiny, 20=really small,
        * 30=small, 40=med-small, 50=med, 60=med-large,
        * 70=large, 80=huge, 90=insane.  Please check
@@ -101,11 +101,11 @@
 
        PAspellDictInfo = ^AspellDictInfo;
        AspellDictInfo = record
-            name : pchar;
-            code : pchar;
-            jargon : pchar;
+            name : PAnsiChar;
+            code : PAnsiChar;
+            jargon : PAnsiChar;
             size : cint;
-            size_str : pchar;
+            size_str : PAnsiChar;
             module : PAspellModuleInfo;
          end;
 
@@ -113,7 +113,7 @@
 
        PAspellStringPair = ^AspellStringPair;
        AspellStringPair = record
-            first : pchar;
-            second : pchar;
+            first : PAnsiChar;
+            second : PAnsiChar;
          end;
 
