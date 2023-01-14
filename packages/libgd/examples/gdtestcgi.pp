@@ -10,7 +10,7 @@ var
   black,white:integer;
   red,green,blue:integer;
   im:gdImagePtr;
-  s1,s2:string;
+  s1,s2:ansistring;
   points:array[0..2] of gdpoint;
   x : longint;
   styleDotted: array[0..1] of longint;
@@ -19,7 +19,7 @@ var
 
 // Reference to the libc fdopen function, needed to open standard output.
 
-Function fdopen(FD: longint; Mode : Pchar) : Pointer;cdecl;external 'c';
+Function fdopen(FD: longint; Mode : PAnsiChar) : Pointer;cdecl;external 'c';
 
 Begin
   left := 60;

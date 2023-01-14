@@ -166,7 +166,7 @@ type
     gd_free : procedure(ctx: gdIOCtxPtr); EXTDECL;
   end;
 
-function fopen(filename, rights: pchar): PFile; EXTDECL; external clib;
+function fopen(filename, rights: PAnsiChar): PFile; EXTDECL; external clib;
 procedure fclose(f: PFile); EXTDECL; external clib;
 
 (* The maximum number of palette entries in palette-based images.
@@ -311,7 +311,7 @@ type
     (* Font data; array of characters, one row after another.
        Easily included in code, also easily loaded from
        data files. *)
-    data: pchar;
+    data: PAnsiChar;
   end;
 
 
@@ -373,7 +373,7 @@ function gdImageCreateFromJpegPtr(size: cint; data: pointer): gdImagePtr; EXTDEC
 type
   gdSourcePtr = ^gdSource;
   gdSource = record
-    source  : function(context: pointer; buffer: pchar; len: cint): cint; EXTDECL;
+    source  : function(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL;
     context : pointer;
   end;
 
@@ -395,7 +395,7 @@ function gdImageCreateFromGd2PartPtr(size: cint; data: pointer; srcx: cint; srcy
 function gdImageCreateFromXbm(_in: PFILE): gdImagePtr; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageCreateFromXbm@4'{$ENDIF};
 
  (* NOTE: filename, not FILE *)
-function gdImageCreateFromXpm(filename: pchar): gdImagePtr; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageCreateFromXpm@4'{$ENDIF};
+function gdImageCreateFromXpm(filename: PAnsiChar): gdImagePtr; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageCreateFromXpm@4'{$ENDIF};
 
 procedure gdImageDestroy(im: gdImagePtr); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageDestroy@4'{$ENDIF};
 
@@ -429,8 +429,8 @@ procedure gdImageGetClip(im: gdImagePtr; var x1: cint; var y1: cint; var x2: cin
 function gdImageBoundsSafe(im: gdImagePtr; x: cint; y: cint): cint; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageBoundsSafe@12'{$ENDIF};
 procedure gdImageChar(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: cint; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageChar@24'{$ENDIF};
 procedure gdImageCharUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: cint; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageCharUp@24'{$ENDIF};
-procedure gdImageString(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pchar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageString@24'{$ENDIF};
-procedure gdImageStringUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pchar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringUp@24'{$ENDIF};
+procedure gdImageString(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: PAnsiChar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageString@24'{$ENDIF};
+procedure gdImageStringUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: PAnsiChar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringUp@24'{$ENDIF};
 procedure gdImageString16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pwidechar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageString16@24'{$ENDIF};
 procedure gdImageStringUp16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pwidechar; color: cint); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringUp16@24'{$ENDIF};
 
@@ -450,10 +450,10 @@ procedure gdFontCacheShutdown(); EXTDECL; external gdlib {$IFDEF WIN32}name '_gd
 procedure gdFreeFontCache(); EXTDECL; external gdlib {$IFDEF WIN32}name '_gdFreeFontCache@0'{$ENDIF};
 
 (* Calls gdImageStringFT. Provided for backwards compatibility only. *)
-function gdImageStringTTF(im: gdImagePtr; brect: pcint; fg: cint; fontlist: pchar; ptsize: double; angle: double; x: cint; y: cint; str: pchar): pchar; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringTTF@36'{$ENDIF};
+function gdImageStringTTF(im: gdImagePtr; brect: pcint; fg: cint; fontlist: PAnsiChar; ptsize: double; angle: double; x: cint; y: cint; str: PAnsiChar): PAnsiChar; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringTTF@36'{$ENDIF};
 
 (* FreeType 2 text output *)
-function gdImageStringFT(im: gdImagePtr; brect: pcint; fg: cint; fontlist: pchar; ptsize: double; angle: double; x: cint; y: cint; str: pchar): pchar; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringFT@36'{$ENDIF};
+function gdImageStringFT(im: gdImagePtr; brect: pcint; fg: cint; fontlist: PAnsiChar; ptsize: double; angle: double; x: cint; y: cint; str: PAnsiChar): PAnsiChar; EXTDECL; external gdlib {$IFDEF WIN32}name '_gdImageStringFT@36'{$ENDIF};
 
 (* 2.0.5: provides an extensible way to pass additional parameters.
   Thanks to Wez Furlong, sorry for the delay. *)
@@ -471,7 +471,7 @@ type
            for in the above order. *)
     hdpi: cint;                  (* if(flags & gdFTEX_RESOLUTION) *)
     vdpi: cint;    (* if(flags & gdFTEX_RESOLUTION) *)
-    xshow: pchar;
+    xshow: PAnsiChar;
       (* if(flags & gdFTEX_XSHOW)
          then, on return, xshow is a malloc'ed
          string contining xshow position data for
@@ -480,7 +480,7 @@ type
          NB. The caller is responsible for gdFree'ing
          the xshow string.
        *)
-    fontpath: pchar;    (* if(flags & gdFTEX_RETURNFONTPATHNAME)
+    fontpath: PAnsiChar;    (* if(flags & gdFTEX_RETURNFONTPATHNAME)
                            then, on return, fontpath is a malloc'ed
                            string containing the actual font file path name
                            used, which can be interesting when fontconfig
@@ -526,7 +526,7 @@ const
   gdFTEX_Big5 = 2;
   gdFTEX_Adobe_Custom = 3;
 
-function gdImageStringFTEx(im: gdImagePtr; brect: pcint; fg: cint; fontlist: pchar; ptsize: double; angle: double; x: cint; y: cint; str: pchar; strex: gdFTStringExtraPtr): pchar; EXTDECL;
+function gdImageStringFTEx(im: gdImagePtr; brect: pcint; fg: cint; fontlist: PAnsiChar; ptsize: double; angle: double; x: cint; y: cint; str: PAnsiChar; strex: gdFTStringExtraPtr): PAnsiChar; EXTDECL;
            external gdlib {$IFDEF WIN32}name '_gdImageStringFTEx@40'{$ENDIF};
 
 (* Point type for use in polygon drawing. *)
@@ -671,7 +671,7 @@ function gdImageGifAnimEndPtr(int *size): pointer; EXTDECL; BGD_DECLARE;
 type
   gdSinkPtr = ^gdSink;
   gdSink = record
-    sink    : function(context: pointer; buffer: pchar; len: cint): cint; EXTDECL;
+    sink    : function(context: pointer; buffer: PAnsiChar; len: cint): cint; EXTDECL;
     context : pointer;
   end;
 
@@ -871,9 +871,9 @@ var
 
 
 {overloaded pascal functions}
-function fopen(filename, rights: String): PFile;
-procedure gdImageChar(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: char; color: cint);
-procedure gdImageCharUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: char; color: cint);
+function fopen(filename, rights: AnsiString): PFile;
+procedure gdImageChar(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: AnsiChar; color: cint);
+procedure gdImageCharUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: AnsiChar; color: cint);
 procedure gdImageString(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: AnsiString; color: cint);
 procedure gdImageStringUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: AnsiString; color: cint);
 procedure gdImageString16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: WideString; color: cint);
@@ -1015,17 +1015,17 @@ begin
   Result := im^.tpixels[y][x];
 end;
 
-function fopen(filename, rights: String): PFile;
+function fopen(filename, rights: AnsiString): PFile;
 begin
-  Result := fopen(PChar(filename), PChar(rights));
+  Result := fopen(PAnsiChar(filename), PAnsiChar(rights));
 end;
 
-procedure gdImageChar(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: char; color: cint);
+procedure gdImageChar(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: AnsiChar; color: cint);
 begin
   gdImageChar(im,f,x,y,ord(c),color);
 end;
 
-procedure gdImageCharUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: char; color: cint);
+procedure gdImageCharUp(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; c: AnsiChar; color: cint);
 begin
   gdImageCharUp(im,f,x,y,ord(c),color);
 end;
