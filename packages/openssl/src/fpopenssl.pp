@@ -53,7 +53,7 @@ Type
     Constructor Create(AContext : PSSL_CTX = Nil); overload;
     Constructor Create(AType : TSSLType); overload;
     Destructor Destroy; override;
-    Function SetCipherList(Var ACipherList : String) : Integer;
+    Function SetCipherList(Var ACipherList : AnsiString) : Integer;
     procedure SetVerify(mode: Integer; arg2: TSSLCTXVerifyCallback);
     procedure SetDefaultPasswdCb(cb: PPasswdCb);
     procedure SetDefaultPasswdCbUserdata(u: SslPtr);
@@ -63,7 +63,7 @@ Type
     function UseCertificateASN1(len: cLong; d: String):cInt; overload; deprecated 'use TBytes overload';
     function UseCertificateASN1(len: cLong; buf: TBytes):cInt; overload;
     function UseCertificateFile(const Afile: String; Atype: cInt):cInt;
-    function UseCertificateChainFile(const Afile: PChar):cInt;
+    function UseCertificateChainFile(const Afile: PAnsiChar):cInt;
     function UseCertificate(x: SslPtr):cInt;
     function LoadVerifyLocations(const CAfile: String; const CApath: String):cInt;
     function LoadPFX(Const S,APassword : AnsiString) : cint; deprecated 'use TBytes overload';
@@ -341,7 +341,8 @@ begin
   inherited Destroy;
 end;
 
-Function TSSLContext.SetCipherList(Var ACipherList: String): Integer;
+Function TSSLContext.SetCipherList(Var ACipherList: AnsiString): Integer;
+
 begin
   Result:=SSLCTxSetCipherList(FCTX,ACipherList);
 end;
@@ -416,7 +417,7 @@ begin
   else if (Data.FileName<>'') then
     begin
     FN:=Data.FileName;
-    Result:=UseCertificateChainFile(PChar(FN));
+    Result:=UseCertificateChainFile(PAnsiChar(FN));
     if Result<>1 then
        begin
        Result:=UseCertificateFile(FN,SSL_FILETYPE_PEM);
@@ -441,7 +442,7 @@ begin
   Result:=sslctxUseCertificateFile(FCTX,Afile,Atype);
 end;
 
-function TSSLContext.UseCertificateChainFile(const Afile: PChar): cInt;
+function TSSLContext.UseCertificateChainFile(const Afile: PAnsiChar): cInt;
 begin
   Result:=sslctxUseCertificateChainFile(FCTX,Afile);
 end;
