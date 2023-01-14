@@ -626,8 +626,8 @@ type
     procedure AddName(const AKey,AName : String; const AMustEscape: boolean = True);
     procedure AddInteger(const AKey : String; AInteger : Integer);
     procedure AddReference(const AKey : String; AReference : Integer);
-    procedure AddString(const AKey, AString : String);
-    procedure AddString(const AKey:string;const AString : UnicodeString);
+    procedure AddString(const AKey: string; const AString : AnsiString);
+    procedure AddString(const AKey: string; const AString : UnicodeString);
     function IndexOfKey(const AValue: string): integer;
     procedure Write(const AStream: TStream); override;
     procedure WriteDictionary(const AObject: integer; const AStream: TStream);
@@ -1239,7 +1239,7 @@ const
 
 // Helper procedures - made them global for unit testing purposes
 procedure CompressStream(AFrom: TStream; ATo: TStream; ACompressLevel: TCompressionLevel = clDefault; ASkipHeader: boolean = False);
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 procedure DecompressStream(AFrom: TStream; ATo: TStream);
 
 function mmToPDF(mm: single): TPDFFloat;
@@ -1366,7 +1366,7 @@ begin
   end;
 end;
 
-procedure CompressString(const AFrom: string; var ATo: string);
+procedure CompressString(const AFrom: rawbytestring; var ATo: rawbytestring);
 var
   lStreamFrom : TStringStream;
   lStreamTo  : TStringStream;
@@ -1727,9 +1727,12 @@ begin
       if FTextMappingList[n].CharID = c then
       begin
         result := Result + IntToHex(FTextMappingList[n].GlyphID, 4);
+        c:=0;
         break;
       end;
     end;
+    if C<>0 then
+      Result:=Result+IntToHex(C, 4);
   end;
 end;
 
@@ -4442,7 +4445,7 @@ begin
   AddElement(AKey,Document.CreateReference(AReference));
 end;
 
-procedure TPDFDictionary.AddString(const AKey, AString: String);
+procedure TPDFDictionary.AddString(const AKey : string; const AString: AnsiString);
 begin
   AddElement(AKey,Document.CreateString(AString));
 end;
@@ -4898,7 +4901,7 @@ end;
 function TPDFDocument.GetFontNamePrefix(const AFontNum: Integer): string;
 begin
   // TODO: it must be 6 uppercase characters - no numbers!
-  Result := 'GRAEA' + Char(65+AFontNum) + '+';
+  Result := 'GRAEA' + AnsiChar(65+AFontNum) + '+';
 end;
 
 function TPDFDocument.IndexOfGlobalXRef(const AValue: string): integer;
