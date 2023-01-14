@@ -379,7 +379,7 @@ type
     unid : cint;  (**< user specified id						 *)
     cmdq : lwp_queue;
     bdaddr : _bd_addr;  (**< bt address								 *)
-    bdaddr_str : array [0..17] of char;  (**< readable bt address					 *)
+    bdaddr_str : array [0..17] of AnsiChar;  (**< readable bt address					 *)
     sock : Pbte_pcb;  (**< output socket							 *)
     event_cb : wii_event_cb;  (**< event callback							 *)
     state : cint;  (**< various state flags					 *)
