@@ -1,7 +1,13 @@
-{$mode objfpc} {$h+} {$typedaddress on} {$modeswitch advancedrecords} {$coperators on} {$modeswitch anonymousfunctions}
+{$mode objfpc} 
+{$h+} 
+{$typedaddress on} 
+{$modeswitch advancedrecords} 
+{$coperators on}
+{$modeswitch anonymousfunctions}
 {$modeswitch duplicatelocals}
 
 uses
+	{$ifdef unix}cwstring,{$endif}
 	SysUtils, Generics.Collections, Generics.Defaults;
 
 var
@@ -186,11 +192,11 @@ begin
 		function(id: SizeUint): string
 		begin
 			SetLength((@result)^, 5);
-			result[5] := char(ord('A') + id mod 26); id := id div 26;
-			result[4] := char(ord('A') + id mod 26); id := id div 26;
-			result[3] := char(ord('A') + id mod 26); id := id div 26;
-			result[2] := char(ord('A') + id mod 26); id := id div 26;
-			result[1] := char(ord('A') + id mod 26);
+			result[5] := Char(ord('A') + id mod 26); id := id div 26;
+			result[4] := Char(ord('A') + id mod 26); id := id div 26;
+			result[3] := Char(ord('A') + id mod 26); id := id div 26;
+			result[2] := Char(ord('A') + id mod 26); id := id div 26;
+			result[1] := Char(ord('A') + id mod 26);
 		end, 'strings', 0.15);
 
 	specialize SortBenchmark<single>.Run(
