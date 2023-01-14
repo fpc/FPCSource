@@ -211,7 +211,7 @@ type
   TGGICmdDataSwitchRequest = record
     Request: LongWord;
     Mode: TGGIMode;
-    target: array[0..63] of Char;
+    target: array[0..63] of AnsiChar;
   end;
 
 const
@@ -495,11 +495,11 @@ const
 
 function  ggiInit: Integer; cdecl; external libggi;
 procedure ggiExit; cdecl; external libggi;
-procedure ggiPanic(format: PChar; args: array of const); cdecl; external libggi;
+procedure ggiPanic(format: PAnsiChar; args: array of const); cdecl; external libggi;
 
 
 // Open a new visual - use display 'NULL' for the default visual
-function  ggiOpen(display: PChar; args: array of const): TGGIVisual; cdecl; external libggi;
+function  ggiOpen(display: PAnsiChar; args: array of const): TGGIVisual; cdecl; external libggi;
 function  ggiClose(vis: TGGIVisual): Integer; cdecl; external libggi;
 
 // Get/Set info
@@ -527,7 +527,7 @@ function  ggiResourceFastRelease(res: TGGIResource): Integer; cdecl; external li
 
 const GGI_MAX_APILEN = 1024;
 
-function  ggiGetAPI(vis: TGGIVisual; num: Integer; APIName, arguments: PChar): Integer; cdecl; external libggi;
+function  ggiGetAPI(vis: TGGIVisual; num: Integer; APIName, arguments: PAnsiChar): Integer; cdecl; external libggi;
 
 const GGI_CHG_APILIST = 1;
 
@@ -549,14 +549,14 @@ function  ggiCheckSimpleMode(visual: TGGIVisual; xsize, ysize, frames: Integer; 
 
 // Print all members of the mode struct
 
-function  ggiSPrintMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libggi;
+function  ggiSPrintMode(s: PAnsiChar; var m: TGGIMode): Integer; cdecl; external libggi;
 // function ggiFPrintMode(s: PFile; var m: TGGIMode): Integer; cdecl; external libggi;
 // #define ggiPrintMode(m) ggiFPrintMode(stdout,(m))
 
 
 // Fill a mode struct from the text string s
 
-function  ggiParseMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libggi;
+function  ggiParseMode(s: PAnsiChar; var m: TGGIMode): Integer; cdecl; external libggi;
 
 
 // Flush all pending operations to the display device
@@ -641,8 +641,8 @@ function  ggiCrossBlit(src: TGGIVisual; sx, sy, w, h: Integer; dst: TGGIVisual; 
 
 // Text drawing routines
 
-function  ggiPutc(vis: TGGIVisual; x, y: Integer; c: Char): Integer; cdecl; external libggi;
-function  ggiPuts(vis: TGGIVisual; x, y: Integer; str: PChar): Integer; cdecl; external libggi;
+function  ggiPutc(vis: TGGIVisual; x, y: Integer; c: AnsiChar): Integer; cdecl; external libggi;
+function  ggiPuts(vis: TGGIVisual; x, y: Integer; str: PAnsiChar): Integer; cdecl; external libggi;
 function  ggiGetCharSize(vis: TGGIVisual; var width, height: Integer): Integer; cdecl; external libggi;
 
 
@@ -673,12 +673,12 @@ type
   TGGIExtID = Integer;  {Don't rely on that !}
   TGGIParamChangeProc = function(Visual: TGGIVisual; WhatChanged: Integer): Integer;
 
-function  ggiExtensionRegister(name: PChar; size: Integer;
+function  ggiExtensionRegister(name: PAnsiChar; size: Integer;
   ParamChange: TGGIParamChangeProc): TGGIExtID; cdecl; external libggi;
 function  ggiExtensionUnregister(id: TGGIExtID): Integer; cdecl; external libggi;
 function  ggiExtensionAttach(Visual: TGGIVisual; id: TGGIExtID): Integer; cdecl; external libggi;
 function  ggiExtensionDetach(Visual: TGGIVisual; id: TGGIExtID): Integer; cdecl; external libggi;
-function  ggiExtensionLoadDL(Visual: TGGIVisual; filename, args: PChar; ArgPtr: Pointer): TGGILibID; cdecl; external libggi;
+function  ggiExtensionLoadDL(Visual: TGGIVisual; filename, args: PAnsiChar; ArgPtr: Pointer): TGGILibID; cdecl; external libggi;
 
 
 
