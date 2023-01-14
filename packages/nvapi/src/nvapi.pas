@@ -1784,8 +1784,8 @@ const
 //
 ///////////////////////////////////////////////////////////////////////////////
 type
-//typedef void (* NVAPI_OGLEXPERT_CALLBACK) (unsigned int categoryId, unsigned int messageId, unsigned int detailLevel, int objectId, const char *messageStr): NvAPI_Status; cdecl;
-  NVAPI_OGLEXPERT_CALLBACK = procedure (categoryId, messageId, detailLevel: Cardinal; objectId: Integer; const messageStr: PChar); cdecl;
+//typedef void (* NVAPI_OGLEXPERT_CALLBACK) (unsigned int categoryId, unsigned int messageId, unsigned int detailLevel, int objectId, const AnsiChar *messageStr): NvAPI_Status; cdecl;
+  NVAPI_OGLEXPERT_CALLBACK = procedure (categoryId, messageId, detailLevel: Cardinal; objectId: Integer; const messageStr: PAnsiChar); cdecl;
 
 //  SUPPORTED OS: Windows XP and higher
 var
