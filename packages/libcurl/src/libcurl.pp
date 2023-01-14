@@ -99,7 +99,7 @@ const
 
 
 Type
-  Pchar  = ^char;
+  PAnsiChar  = ^AnsiChar;
   Pcurl_calloc_callback  = ^curl_calloc_callback;
   Pcurl_closepolicy  = ^curl_closepolicy;
   Pcurl_forms  = ^curl_forms;
@@ -147,18 +147,18 @@ Type
 
   curl_httppost = record
     next : Pcurl_httppost;       // next entry in the list
-    name : Pchar;                // pointer to allocated name
+    name : PAnsiChar;                // pointer to allocated name
     namelength : longint;        // length of name length
-    contents : Pchar;            // pointer to allocated data contents
+    contents : PAnsiChar;            // pointer to allocated data contents
     contentslength : longint;    // length of contents field, see also CURL_HTTPPOST_LARGE
-    buffer : Pchar;              // pointer to allocated buffer contents
+    buffer : PAnsiChar;              // pointer to allocated buffer contents
     bufferlength : longint;      // length of buffer field
-    contenttype : Pchar;         // Content-Type
+    contenttype : PAnsiChar;         // Content-Type
     contentheader : Pcurl_slist; // list of extra headers for this form
     more : Pcurl_httppost;       {  if one field name has more than one file,
                                     this link should link to following files }
     flags : longint;             // as defined below
-    showfilename : Pchar;        {  The file name to show. If not set, the
+    showfilename : PAnsiChar;        {  The file name to show. If not set, the
                                     actual file name will be used (if this
                                     is a file part) }
     userp:Pointer;               // custom pointer used for HTTPPOST_CALLBACK posts
@@ -178,7 +178,7 @@ Type
       CURLFILETYPE_DOOR,
       CURLFILETYPE_UNKNOWN);
   curl_fileinfo = record
-    filename : ^char;
+    filename : ^AnsiChar;
     filetype : curlfiletype;
     time : time_t;
     perm : dword;
@@ -187,25 +187,25 @@ Type
     size : curl_off_t;
     hardlinks : longint;
     strings : record
-        time : ^char;
-        perm : ^char;
-        user : ^char;
-        group : ^char;
-        target : ^char;
+        time : ^AnsiChar;
+        perm : ^AnsiChar;
+        user : ^AnsiChar;
+        group : ^AnsiChar;
+        target : ^AnsiChar;
       end;
     flags : dword;
-    b_data : ^char;
+    b_data : ^AnsiChar;
     b_size : size_t;
     b_used : size_t;
   end;
 
   curl_progress_callback = function (clientp:pointer; dltotal:double; dlnow:double; ultotal:double; ulnow:double):longint;cdecl;
-  curl_write_callback = function (buffer:Pchar; size:size_t; nitems:size_t; outstream:pointer):size_t;cdecl;
-  curl_read_callback = function (buffer:Pchar; size:size_t; nitems:size_t; instream:pointer):size_t;cdecl;
-  curl_passwd_callback = function (clientp:pointer; prompt:Pchar; buffer:Pchar; buflen:longint):longint;cdecl;
+  curl_write_callback = function (buffer:PAnsiChar; size:size_t; nitems:size_t; outstream:pointer):size_t;cdecl;
+  curl_read_callback = function (buffer:PAnsiChar; size:size_t; nitems:size_t; instream:pointer):size_t;cdecl;
+  curl_passwd_callback = function (clientp:pointer; prompt:PAnsiChar; buffer:PAnsiChar; buflen:longint):longint;cdecl;
   curl_chunk_bgn_callback = function (transfer_info:pointer; ptr:pointer; remains:longint):longint;cdecl;
   curl_chunk_end_callback = function (ptr:pointer):longint;cdecl;
-  curl_fnmatch_callback = function (ptr:pointer; pattern:Pchar; _string:Pchar):longint;cdecl;
+  curl_fnmatch_callback = function (ptr:pointer; pattern:PAnsiChar; _string:PAnsiChar):longint;cdecl;
   curl_seek_callback = function (instream:pointer; offset:curl_off_t; origin:longint):longint;cdecl;
   curl_XFERINFO_callback =function (clientp:pointer;dltotal:curl_off_t;dlnow:curl_off_t;ultotal:curl_off_t;ulnow:curl_off_t):longint; cdecl;
   curlsocktype = (
@@ -233,7 +233,7 @@ Type
   curl_malloc_callback = function(size: size_t) : pointer; cdecl;
   curl_free_callback = procedure (ptr:pointer); cdecl;
   curl_realloc_callback = function(ptr : pointer; size:size_t) : pointer; cdecl;
-  curl_strdup_callback = function(str : pchar) : pchar; cdecl;
+  curl_strdup_callback = function(str : PAnsiChar) : PAnsiChar; cdecl;
   curl_calloc_callback = function(nmemb : size_t; size : size_t) : pointer; cdecl;
 
   curl_infotype = (CURLINFO_TEXT := 0,CURLINFO_HEADER_IN,
@@ -241,7 +241,7 @@ Type
                    CURLINFO_DATA_OUT,CURLINFO_SSL_DATA_IN,
                    CURLINFO_SSL_DATA_OUT,CURLINFO_END);
 
-  curl_debug_callback = function (handle:PCURL; _type:curl_infotype; data:Pchar; size:size_t; userptr:pointer):longint;cdecl;
+  curl_debug_callback = function (handle:PCURL; _type:curl_infotype; data:PAnsiChar; size:size_t; userptr:pointer):longint;cdecl;
 
   curl_sslbackend =(
     CURLSSLBACKEND_NONE:= 0,
@@ -385,7 +385,7 @@ Type
 
     CURL_LAST); // never use!
  
-  curl_conv_callback = function (buffer:Pchar; length:size_t):CURLcode;cdecl;
+  curl_conv_callback = function (buffer:PAnsiChar; length:size_t):CURLcode;cdecl;
   curl_ssl_ctx_callback = function (curl:PCURL; ssl_ctx:pointer; userptr:pointer):CURLcode;cdecl;
   
   curl_proxytype = (
@@ -405,7 +405,7 @@ Type
   );
 
   curl_khkey = record
-    key : ^char;
+    key : ^AnsiChar;
     len : size_t;
     keytype : curl_khtype;
   end;
@@ -1172,7 +1172,7 @@ Type
 
   curl_forms = record
     option : CURLformoption;
-    value : Pchar;
+    value : PAnsiChar;
   end;
 
   CURLFORMcode = (CURL_FORMADD_OK,CURL_FORMADD_MEMORY,
@@ -1180,10 +1180,10 @@ Type
                   CURL_FORMADD_UNKNOWN_OPTION,CURL_FORMADD_INCOMPLETE,
                   CURL_FORMADD_ILLEGAL_ARRAY,CURL_FORMADD_DISABLED,
                  CURL_FORMADD_LAST);
-  curl_formget_callback = function (arg:pointer; buf:Pchar; len:size_t):size_t;cdecl;
+  curl_formget_callback = function (arg:pointer; buf:PAnsiChar; len:size_t):size_t;cdecl;
 
   curl_slist = record
-    data : Pchar;
+    data : PAnsiChar;
     next : Pcurl_slist;
   end;
 
@@ -1289,23 +1289,23 @@ Type
 
   curl_version_info_data = record
     age : CURLversion;         // age of the returned struct
-    version : Pchar;           // LIBCURL_VERSION
+    version : PAnsiChar;           // LIBCURL_VERSION
     version_num : dword;       // LIBCURL_VERSION_NUM
-    host : Pchar;              // OS/host/cpu/machine when configured
+    host : PAnsiChar;              // OS/host/cpu/machine when configured
     features : longint;        // bitmask, see defines below
-    ssl_version : Pchar;       // human readable string
+    ssl_version : PAnsiChar;       // human readable string
     ssl_version_num : longint; // not used anymore, always 0
-    libz_version : Pchar;      // human readable string
+    libz_version : PAnsiChar;      // human readable string
     // protocols is terminated by an entry with a NULL protoname
-    protocols : ^Pchar;
+    protocols : ^PAnsiChar;
     // The fields below this were added in CURLVERSION_SECOND
-    ares : Pchar;
+    ares : PAnsiChar;
     ares_num : longint;
     // This field was added in CURLVERSION_THIRD
-    libidn : Pchar;
+    libidn : PAnsiChar;
     // These field were added in CURLVERSION_FOURTH
     iconv_ver_num : longint;
-    libssh_version:Pchar;
+    libssh_version:PAnsiChar;
   end;
   CURLM = pointer;
  
@@ -1515,8 +1515,8 @@ Const
   // use size in 'contentlen', added in 7.46.0
   CURL_HTTPPOST_LARGE=(1 shl 7);
 
-function  curl_strequal(s1:Pchar; s2:Pchar):longint;cdecl;external External_library name 'curl_strequal';
-function  curl_strnequal(s1:Pchar; s2:Pchar; n:size_t):longint;cdecl;external External_library name 'curl_strnequal';
+function  curl_strequal(s1:PAnsiChar; s2:PAnsiChar):longint;cdecl;external External_library name 'curl_strequal';
+function  curl_strnequal(s1:PAnsiChar; s2:PAnsiChar; n:size_t):longint;cdecl;external External_library name 'curl_strnequal';
 
 function  curl_formadd(httppost:PPcurl_httppost; last_post:PPcurl_httppost; args:array of const):CURLFORMcode;cdecl;external External_library name 'curl_formadd';
 function  curl_formadd(httppost:PPcurl_httppost; last_post:PPcurl_httppost):CURLFORMcode;cdecl;external External_library name 'curl_formadd';
@@ -1524,14 +1524,14 @@ function  curl_formadd(httppost:PPcurl_httppost; last_post:PPcurl_httppost):CURL
 function  curl_formget(form:Pcurl_httppost; arg:pointer; append:curl_formget_callback):longint;cdecl;external External_library name 'curl_formget';
 procedure curl_formfree(form:Pcurl_httppost);cdecl;external External_library name 'curl_formfree';
 
-function  curl_getenv(variable:Pchar):Pchar;cdecl;external External_library name 'curl_getenv';
-function  curl_version:Pchar;cdecl;external External_library name 'curl_version';
+function  curl_getenv(variable:PAnsiChar):PAnsiChar;cdecl;external External_library name 'curl_getenv';
+function  curl_version:PAnsiChar;cdecl;external External_library name 'curl_version';
 function  curl_version_info(_para1:CURLversion):Pcurl_version_info_data;cdecl;external External_library name 'curl_version_info';
 
-function  curl_easy_escape(handle:PCURL; _string:Pchar; length:longint):Pchar;cdecl;external External_library name 'curl_easy_escape';
-function  curl_escape(_string:Pchar; length:longint):Pchar;cdecl;external External_library name 'curl_escape';
-function  curl_easy_unescape(handle:PCURL; _string:Pchar; length:longint; outlength:Plongint):Pchar;cdecl;external External_library name 'curl_easy_unescape';
-function  curl_unescape(_string:Pchar; length:longint):Pchar;cdecl;external External_library name 'curl_unescape';
+function  curl_easy_escape(handle:PCURL; _string:PAnsiChar; length:longint):PAnsiChar;cdecl;external External_library name 'curl_easy_escape';
+function  curl_escape(_string:PAnsiChar; length:longint):PAnsiChar;cdecl;external External_library name 'curl_escape';
+function  curl_easy_unescape(handle:PCURL; _string:PAnsiChar; length:longint; outlength:Plongint):PAnsiChar;cdecl;external External_library name 'curl_easy_unescape';
+function  curl_unescape(_string:PAnsiChar; length:longint):PAnsiChar;cdecl;external External_library name 'curl_unescape';
 
 procedure curl_free(p:pointer);cdecl;external External_library name 'curl_free';
 function  curl_global_init(flags:longint):CURLcode;cdecl;external External_library name 'curl_global_init';
@@ -1539,17 +1539,17 @@ function  curl_global_init_mem(flags:longint; m:curl_malloc_callback; f:curl_fre
              c:curl_calloc_callback):CURLcode;cdecl;external External_library name 'curl_global_init_mem';
 
 procedure curl_global_cleanup;cdecl;external External_library name 'curl_global_cleanup';
-function  curl_slist_append (curl_slist : Pcurl_slist; P : PChar) : Pcurl_slist; cdecl; external External_library name 'curl_slist_append';
+function  curl_slist_append (curl_slist : Pcurl_slist; P : PAnsiChar) : Pcurl_slist; cdecl; external External_library name 'curl_slist_append';
 procedure curl_slist_free_all(_para1:Pcurl_slist);cdecl;external External_library name 'curl_slist_free_all';
-function  curl_getdate(p:Pchar; unused:Ptime_t):time_t;cdecl;external External_library name 'curl_getdate';
+function  curl_getdate(p:PAnsiChar; unused:Ptime_t):time_t;cdecl;external External_library name 'curl_getdate';
 
 function  curl_share_init:PCURLSH;cdecl;external External_library name 'curl_share_init';
 function  curl_share_setopt(_para1:PCURLSH; option:CURLSHoption; args:array of const):CURLSHcode;cdecl;external External_library name 'curl_share_setopt';
 function  curl_share_setopt(_para1:PCURLSH; option:CURLSHoption):CURLSHcode;cdecl;external External_library name 'curl_share_setopt';
 function  curl_share_cleanup(_para1:PCURLSH):CURLSHcode;cdecl;external External_library name 'curl_share_cleanup';
-function  curl_share_strerror(_para1:CURLSHcode):Pchar;cdecl;external External_library name 'curl_share_strerror';
+function  curl_share_strerror(_para1:CURLSHcode):PAnsiChar;cdecl;external External_library name 'curl_share_strerror';
 
-function  curl_easy_strerror(_para1:CURLcode):Pchar;cdecl;external External_library name 'curl_easy_strerror';
+function  curl_easy_strerror(_para1:CURLcode):PAnsiChar;cdecl;external External_library name 'curl_easy_strerror';
 function  curl_easy_init:PCURL;cdecl;external External_library name 'curl_easy_init';
 function  curl_easy_setopt(curl:PCURL; option:CURLoption; args:array of const):CURLcode;cdecl;external External_library name 'curl_easy_setopt';
 function  curl_easy_setopt(curl:PCURL; option:CURLoption):CURLcode;cdecl;external External_library name 'curl_easy_setopt';
@@ -1567,7 +1567,7 @@ function  curl_multi_fdset(multi_handle:PCURLM; read_fd_set:Pfd_set; write_fd_se
 function  curl_multi_perform(multi_handle:PCURLM; running_handles:Plongint):CURLMcode;cdecl;external External_library name 'curl_multi_perform';
 function  curl_multi_cleanup(multi_handle:PCURLM):CURLMcode;cdecl;external External_library name 'curl_multi_cleanup';
 function  curl_multi_info_read(multi_handle:PCURLM; msgs_in_queue:Plongint):PCURLMsg;cdecl;external External_library name 'curl_multi_info_read';
-function  curl_multi_strerror(_para1:CURLMcode):Pchar;cdecl;external External_library name 'curl_multi_strerror';
+function  curl_multi_strerror(_para1:CURLMcode):PAnsiChar;cdecl;external External_library name 'curl_multi_strerror';
 
 function  curl_multi_socket(multi_handle:PCURLM; s:curl_socket_t; running_handles:Plongint):CURLMcode;cdecl;external External_library name 'curl_multi_socket';
 function  curl_multi_socket_all(multi_handle:PCURLM; running_handles:Plongint):CURLMcode;cdecl;external External_library name 'curl_multi_socket_all';
