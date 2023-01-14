@@ -453,8 +453,10 @@ Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
 
 
 { ScanDateTime is a limited inverse of formatdatetime }
-function ScanDateTime(const Pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
+function ScanDateTime(const Pattern:String;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
 function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
+
+
 
 // ISO date/time
 // YYYYMMDD or YYYY-MM-DD
@@ -2473,8 +2475,8 @@ end;
   Extensions
   - #9 eats whitespace.
   - whitespace at the end of a pattern is optional.
-  - ? matches any char.
-  - Quote the above chars to really match the char.
+  - ? matches any AnsiChar.
+  - Quote the above chars to really match the AnsiChar.
 }
 
 const whitespace  = [' ',#13,#10];
@@ -2491,22 +2493,23 @@ begin
   raise EConvertError.Create(s);
 end;
 
-function scandatetime(const pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime;
+function scandatetime(const pattern: string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime;
+
 const
   EPS = 1E-15;
 
 var len ,ind  : integer;
     yy,mm,dd  : integer;
     timeval   : TDateTime;
-    activequote: char;
+    activequote: Char;
 
-procedure intscandate(ptrn:pchar;plen:integer;poffs:integer);
+procedure intscandate(ptrn:PChar;plen:integer;poffs:integer);
 // poffs is the offset to
 
 var
     pind : integer;
 
-function findimatch(const mnts:array of string;p:pchar):integer;
+function findimatch(const mnts:array of string;p:PChar):integer;
 var i : integer;
     plen, findlen: integer;
 begin
@@ -2517,8 +2520,13 @@ begin
     begin
       findlen := length(mnts[i]);
       if (findlen > 0) and (findlen <= plen) then // protect against buffer over-read
+{$if SizeOf(Char)=2}
+        if StrLIComp(p,@(mnts[i][1]),findlen)=0 then
+          result:=i;
+{$else}
         if AnsiStrLIComp(p,@(mnts[i][1]),findlen)=0 then
           result:=i;
+{$endif}
       inc(i);
     end;
 end;
@@ -2529,7 +2537,7 @@ begin
   raiseexception(format(SNoArrayMatch,[pind+1,ind]))
 end;
 
-function scanmatch(const mnts : array of string;p:pchar; patlen: integer):integer;
+function scanmatch(const mnts : array of string;p:PChar; patlen: integer):integer;
 begin
   result:=findimatch(mnts,p);
   if result=-1 then
@@ -2547,7 +2555,7 @@ var
     i     : integer;
 
 function scanfixedint(maxv:integer):integer;
-var c : char;
+var c : Char;
     oi:integer;
 begin
   result:=0;
@@ -2564,7 +2572,7 @@ begin
     raiseexception(format(SPatternCharMismatch,[c,oi]));
 end;
 
-procedure matchchar(c:char);
+procedure matchchar(c:Char);
 
 begin
   if (ind>len) or (s[ind]<>c) then
@@ -2574,7 +2582,7 @@ begin
 end;
 
 function scanpatlen:integer;
-var c : char;
+var c : Char;
     lind : Integer;
 begin
   result:=pind;
@@ -2595,7 +2603,7 @@ begin
     intscandate(@lptr[1],len,pind+poffs);
 end;
 
-var lasttoken,lch : char;
+var lasttoken,lch : Char;
 
 begin
   pind:=0;     lasttoken:=' ';
@@ -2724,7 +2732,7 @@ begin
                                   end;
                                  inc(pind,length(AMPMformatting[2]));
                                end;
-                           else  // no AM/PM match. Assume 'a' is simply a char
+                           else  // no AM/PM match. Assume 'a' is simply a AnsiChar
                                matchchar(ptrn[pind]);
                              end;
                          end;
@@ -2785,7 +2793,6 @@ begin
      result:=result+encodedate(yy,mm,dd);
 end;
 
-
 function scandatetime(const pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
 begin
@@ -2827,7 +2834,7 @@ function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): str
 
 const
   FmtOffset: string = '%.02d:%.02d';
-  Sign: array[Boolean] of Char = ('+', '-');
+  Sign: array[Boolean] of AnsiChar = ('+', '-');
 
 var
   Offset: Integer;
