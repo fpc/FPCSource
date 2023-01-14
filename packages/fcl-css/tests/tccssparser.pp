@@ -155,7 +155,7 @@ end;
 procedure TTestCSSFilesParser.SetUp;
 begin
   inherited SetUp;
-  With TMemIniFile.Create(ChangeFileExt(Paramstr(0),'.ini')) do
+  With TMemIniFile.Create(ChangeFileExt(Paramstr(0),RTLString('.ini'))) do
     try
       TestDir:=ReadString('CSS','SourceDir','css');
     finally
