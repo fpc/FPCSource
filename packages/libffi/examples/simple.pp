@@ -3,7 +3,7 @@ program simple;
 uses
   ffi;
 
-function WritePChar(s: PChar): LongInt;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
+function WritePChar(s: PAnsiChar): LongInt;{$ifdef windows}stdcall;{$else}cdecl;{$endif}
 begin
   Writeln(s);
   WritePChar := StrLen(s);
@@ -13,7 +13,7 @@ var
   cif: ffi_cif;
   args: array[0..0] of pffi_type;
   values: array[0..0] of Pointer;
-  s: PChar;
+  s: PAnsiChar;
   rc: ffi_arg;
 begin
   args[0] := @ffi_type_pointer;
