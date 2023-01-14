@@ -15,7 +15,7 @@ Type
   private
     FDoc: TCSVDocument;
     procedure RemoveTestFile;
-    function StripQuotes(S: String): string;
+    function StripQuotes(S: ): ;
     procedure TestTestFile;
   Public
     Procedure SetUp; override;
@@ -63,7 +63,7 @@ Const
   RowCount = 4;
 
 Type
-  TRow = Array[0..ColCount-1] of string;
+  TRow = Array[0..ColCount-1] of ;
   TCells = Array[0..RowCount-1] of TRow;
 
 Const
@@ -79,7 +79,7 @@ procedure TTestCSVDocument.CreateTestFile;
 Var
   L : TStringList;
   R,C : Integer;
-  S : String;
+  S : ;
 
 begin
   L:=TStringList.Create;
@@ -106,7 +106,7 @@ begin
   AssertNotNull('Have document',Doc);
 end;
 
-Function TTestCSVDocument.StripQuotes(S : String) : string;
+Function TTestCSVDocument.StripQuotes(S : ) : ;
 
 Var
   L : integer;

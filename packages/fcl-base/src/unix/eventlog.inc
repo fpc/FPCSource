@@ -49,9 +49,9 @@ const
   LOG_AUTHPRIV = 10 shl 3;
 
 procedure closelog;cdecl;external;
-procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;external;
+procedure openlog(__ident:PAnsiChar; __option:longint; __facilit:longint);cdecl;external;
 function setlogmask(__mask:longint):longint;cdecl;external;
-procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;external;
+procedure syslog(__pri:longint; __fmt:PAnsiChar; args:array of const);cdecl;external;
 
 Function TEventLog.DefaultFileName : String;
 
@@ -67,7 +67,7 @@ Procedure TEventLog.ActivateSystemLog;
 
 begin
   CheckIdentification;
-  OpenLog(Pchar(Identification),LOG_NOWAIT,LOG_USER);
+  OpenLog(PAnsiChar(Identification),LOG_NOWAIT,LOG_USER);
 end;
 
 Procedure TEventLog.DeActivateSystemLog;
@@ -79,13 +79,13 @@ end;
 procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 Var
-  P,PT : PChar;
+  P,PT : PAnsiChar;
   T : String;
 
 begin
-  P:=PChar(Msg);
+  P:=PAnsiChar(Msg);
   T:=EventTypeToString(EventType);
-  PT:=PChar(T);
+  PT:=PAnsiChar(T);
   syslog(MapTypeToEvent(EventType),'[%s] %s',[PT,P]);
 end;
 
