@@ -1,7 +1,8 @@
 program syshelpersconsoledemo; // syshelpers demonstration of customizable boolean, binary and hexadecimal data localized string representation
-
+{$codepage utf8}
 uses
   {$IFDEF WINDOWS}windows,{$ENDIF}
+  {$IFDEF UNIX}cwstring,{$ENDIF}
   sysutils, syshelpers;
 
 procedure Print(aValue: boolean);

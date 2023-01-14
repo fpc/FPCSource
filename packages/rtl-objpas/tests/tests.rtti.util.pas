@@ -20,7 +20,7 @@ type
     class procedure Make<T>(const aValue: T; var aResult: TValue); overload; static;
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
-    function AsChar: Char; inline;
+    function AsChar: AnsiChar; inline;
     function AsAnsiChar: AnsiChar;
     function AsWideChar: WideChar;
   end;
@@ -91,7 +91,7 @@ begin
   Result := AnsiChar(Byte(AsOrdinal));
 end;
 
-function TValueHelper.AsChar: Char;
+function TValueHelper.AsChar: AnsiChar;
 begin
   Result := AsWideChar;
 end;

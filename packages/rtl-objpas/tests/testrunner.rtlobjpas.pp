@@ -20,6 +20,9 @@ program testrunner.rtlobjpas;
 {$endif}
 
 uses
+{$ifdef unix} 
+  cwstring,
+{$endif}
 {$ifdef useffi}
   ffi.manager,
 {$endif}
@@ -36,6 +39,8 @@ var
   Application: TTestRunner;
 
 begin
+  DefaultRunAllTests:=True;
+  DefaultFormat:=fPlain;
   Application := TTestRunner.Create(nil);
   Application.Initialize;
   Application.Title := 'RTL-ObjPas unit tests';

@@ -2496,7 +2496,7 @@ begin
   CheckEquals(true, IsManaged(TypeInfo(unicodestring)), 'IsManaged for tkUString');
   CheckEquals(false, IsManaged(TypeInfo(shortstring)), 'IsManaged for tkSString');
   CheckEquals(false, IsManaged(TypeInfo(Byte)), 'IsManaged for tkInteger');
-  CheckEquals(false, IsManaged(TypeInfo(Char)), 'IsManaged for tkChar');
+  CheckEquals(false, IsManaged(TypeInfo(AnsiChar)), 'IsManaged for tkChar');
   CheckEquals(false, IsManaged(TypeInfo(TTestEnum)), 'IsManaged for tkEnumeration');
   CheckEquals(false, IsManaged(TypeInfo(Single)), 'IsManaged for tkFloat');
   CheckEquals(false, IsManaged(TypeInfo(TTestSet)), 'IsManaged for tkSet');
