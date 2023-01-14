@@ -193,8 +193,8 @@ uses
      PPcap_If = ^TPcap_If;
      TPcap_If = record
        next : PPcap_If;
-       name : PChar;
-       description : PChar;
+       name : PAnsiChar;
+       description : PAnsiChar;
        addresses : PPcap_Addr;
        flags : DWord;
      end;
@@ -206,31 +206,31 @@ uses
      PPcapDumper = ^TPcapDumper;
      TPcapDumper = record end;
 
-     TPcapHandler = procedure (para1: PChar; Header: PPcap_Pkthdr; Data: PChar); cdecl;
+     TPcapHandler = procedure (para1: PAnsiChar; Header: PPcap_Pkthdr; Data: PAnsiChar); cdecl;
 
-  function pcap_lookupdev(ErrBuf: PChar): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_lookupdev(ErrBuf: PAnsiChar): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_lookupnet(Device: PChar; NetP: PDword;
-                          MaskP: PDword; ErrBuf: PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_lookupnet(Device: PAnsiChar; NetP: PDword;
+                          MaskP: PDword; ErrBuf: PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_open_live(Device : PChar; SnapLen: Longint; Promisc: Longint;
-                          to_ms: Longint; ebuf: PChar): PPcap; cdecl; external PCAP_LIB_NAME;
+  function pcap_open_live(Device : PAnsiChar; SnapLen: Longint; Promisc: Longint;
+                          to_ms: Longint; ebuf: PAnsiChar): PPcap; cdecl; external PCAP_LIB_NAME;
 
   function pcap_open_dead(LinkType: Longint; SnapLen: Longint): PPcap; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_open_offline(FileName: PChar; ErrBuf: PChar): PPcap; cdecl; external PCAP_LIB_NAME;
+  function pcap_open_offline(FileName: PAnsiChar; ErrBuf: PAnsiChar): PPcap; cdecl; external PCAP_LIB_NAME;
 
-//  function pcap_fopen_offline(para1:PFILE; para2:PChar): PPcap; cdecl; external PCAP_LIB_NAME;
+//  function pcap_fopen_offline(para1:PFILE; para2:PAnsiChar): PPcap; cdecl; external PCAP_LIB_NAME;
 
   procedure pcap_close(p :PPcap); cdecl; external PCAP_LIB_NAME;
 
-  function pcap_loop(p: PPcap; cnt: Longint; Callback: TPCapHandler; User: PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_loop(p: PPcap; cnt: Longint; Callback: TPCapHandler; User: PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_dispatch(p: PPcap; cnt: Longint; Callback: TPCapHandler; User: PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_dispatch(p: PPcap; cnt: Longint; Callback: TPCapHandler; User: PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_next(para1: PPcap; para2:PPcap_Pkthdr): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_next(para1: PPcap; para2:PPcap_Pkthdr): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_next_ex(para1: PPcap; para2:PPPcap_Pkthdr; para3:PPChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_next_ex(para1: PPcap; para2:PPPcap_Pkthdr; para3:PPAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
   procedure pcap_breakloop(para1:PPcap); cdecl; external PCAP_LIB_NAME;
 
@@ -240,23 +240,23 @@ uses
 
   function pcap_setdirection(para1: PPcap; para2:TDirection): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_getnonblock(para1: PPcap; para2:PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_getnonblock(para1: PPcap; para2:PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_setnonblock(para1: PPcap; para2: Longint; para3:PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_setnonblock(para1: PPcap; para2: Longint; para3:PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  procedure pcap_perror(para1: PPcap; para2:PChar); cdecl; external PCAP_LIB_NAME;
+  procedure pcap_perror(para1: PPcap; para2:PAnsiChar); cdecl; external PCAP_LIB_NAME;
 
   function pcap_inject(para1: PPcap; para2:pointer; para3: TSize): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_sendpacket(para1: PPcap; para2: PChar; para3:Longint): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_sendpacket(para1: PPcap; para2: PAnsiChar; para3:Longint): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_strerror(para1:Longint): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_strerror(para1:Longint): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_geterr(para1:PPcap): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_geterr(para1:PPcap): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_compile(para1: PPcap; para2:PBPF_Program; para3: PChar; para4: Longint; para5:DWord): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_compile(para1: PPcap; para2:PBPF_Program; para3: PAnsiChar; para4: Longint; para5:DWord): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_compile_nopcap(para1: Longint; para2: Longint; para3:PBPF_Program; para4: PChar; para5: Longint;
+  function pcap_compile_nopcap(para1: Longint; para2: Longint; para3:PBPF_Program; para4: PAnsiChar; para5: Longint;
              para6:DWord): Longint; cdecl; external PCAP_LIB_NAME;
 
   procedure pcap_freecode(para1:PBPF_Program); cdecl; external PCAP_LIB_NAME;
@@ -267,11 +267,11 @@ uses
 
   function pcap_set_datalink(para1: PPcap; para2:Longint): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_datalink_name_to_val(para1:PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_datalink_name_to_val(para1:PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_datalink_val_to_name(para1:Longint): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_datalink_val_to_name(para1:Longint): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_datalink_val_to_description(para1:Longint): PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_datalink_val_to_description(para1:Longint): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
   function pcap_snapshot(para1:PPcap): Longint; cdecl; external PCAP_LIB_NAME;
 
@@ -286,7 +286,7 @@ uses
 
   function pcap_fileno(para1:PPcap): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function pcap_dump_open(para1: PPcap; para2:PChar):PPCapDumper; cdecl; external PCAP_LIB_NAME;
+  function pcap_dump_open(para1: PPcap; para2:PAnsiChar):PPCapDumper; cdecl; external PCAP_LIB_NAME;
 
 //  function pcap_dump_fopen(para1: PPcap; fp:PFILE):PPCapDumper; cdecl; external PCAP_LIB_NAME;
 
@@ -298,20 +298,20 @@ uses
 
   procedure pcap_dump_close(para1:PPCapDumper); cdecl; external PCAP_LIB_NAME;
 
-  procedure pcap_dump(para1: PChar; para2:PPcap_Pkthdr; para3:PChar); cdecl; external PCAP_LIB_NAME;
+  procedure pcap_dump(para1: PAnsiChar; para2:PPcap_Pkthdr; para3:PAnsiChar); cdecl; external PCAP_LIB_NAME;
 
-  function pcap_findalldevs(para1:PPPcap_If; para2:PChar): Longint; cdecl; external PCAP_LIB_NAME;
+  function pcap_findalldevs(para1:PPPcap_If; para2:PAnsiChar): Longint; cdecl; external PCAP_LIB_NAME;
 
   procedure pcap_freealldevs(para1:PPcap_If); cdecl; external PCAP_LIB_NAME;
 
-  function pcap_lib_version: PChar; cdecl; external PCAP_LIB_NAME;
+  function pcap_lib_version: PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
   { XXX this guy lives in the bpf tree  }
-  function bpf_filter(para1:Pbpf_insn; para2: PChar; para3:PtrInt; para4:PtrInt):PtrInt; cdecl; external PCAP_LIB_NAME;
+  function bpf_filter(para1:Pbpf_insn; para2: PAnsiChar; para3:PtrInt; para4:PtrInt):PtrInt; cdecl; external PCAP_LIB_NAME;
 
   function bpf_validate(f:Pbpf_insn; len:Longint): Longint; cdecl; external PCAP_LIB_NAME;
 
-  function bpf_image(para1:Pbpf_insn; para2:Longint): PChar; cdecl; external PCAP_LIB_NAME;
+  function bpf_image(para1:Pbpf_insn; para2:Longint): PAnsiChar; cdecl; external PCAP_LIB_NAME;
 
   procedure bpf_dump(para1:PBPF_Program; para2:Longint); cdecl; external PCAP_LIB_NAME;
 
