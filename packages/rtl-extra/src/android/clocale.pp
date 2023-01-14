@@ -248,7 +248,7 @@ var
     Result:=utf8string(res);
   end;
 
-  function _GetSeparator(dateStyle: UDateFormatStyle; timeStyle: UDateFormatStyle; DefSep: char): char;
+  function _GetSeparator(dateStyle: UDateFormatStyle; timeStyle: UDateFormatStyle; DefSep: AnsiChar): AnsiChar;
   var
     fmt: UDateFormat;
     err: UErrorCode;
