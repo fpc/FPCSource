@@ -1577,6 +1577,96 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+  TCurrencyHelper
+  ---------------------------------------------------------------------}
+function TCurrencyHelper.GetMaxValue: Currency;
+begin
+  Result:=MaxCurrency;
+end;
+
+function TCurrencyHelper.GetMinValue: Currency;
+begin
+  Result:=MinCurrency;
+end;
+
+function TCurrencyHelper.Ceil: Int64;
+begin
+  {$warning TCurrencyHelper.Ceil unimplemented!}
+end;
+
+function TCurrencyHelper.Floor: Int64;
+begin
+  {$warning TCurrencyHelper.Floor unimplemented!}
+end;
+
+function TCurrencyHelper.Frac: Currency;
+begin
+  Result:=System.Frac(Self);
+end;
+
+class function TCurrencyHelper.Parse(const S: string; const AFormatSettings: TFormatSettings): Currency;
+begin
+  Result:=StrToCurr(S, AFormatSettings);
+end;
+
+class function TCurrencyHelper.Parse(const S: string): Currency;
+begin
+  Result:=StrToCurr(S);
+end;
+
+class function TCurrencyHelper.Size: Integer;
+begin
+  Result:=SizeOf(Currency);
+end;
+
+function TCurrencyHelper.ToString(const AFormatSettings: TFormatSettings): string;
+begin
+  Result:=CurrToStr(Self, AFormatSettings);
+end;
+
+function TCurrencyHelper.ToString: string;
+begin
+  Result:=CurrToStr(Self);
+end;
+
+class function TCurrencyHelper.ToString(const Value: Currency; const AFormatSettings: TFormatSettings): string;
+begin
+  Result:=CurrToStr(Value, AFormatSettings);
+end;
+
+class function TCurrencyHelper.ToString(const Value: Currency): string;
+begin
+  Result:=CurrToStr(Value);
+end;
+
+function TCurrencyHelper.Trunc: Int64;
+begin
+  Result:=System.Trunc(Self);
+end;
+
+class function TCurrencyHelper.TryParse(const S: string; out Value: Currency; const AFormatSettings: TFormatSettings): Boolean;
+begin
+  Result:=True;
+  try
+    Value:=StrToCurr(S, AFormatSettings);
+  except
+    on E: Exception do
+      Result:=False;
+  end;
+end;
+
+class function TCurrencyHelper.TryParse(const S: string; out Value: Currency): Boolean;
+begin
+  Result:=True;
+  try
+    Value:=StrToCurr(S);
+  except
+    on E: Exception do
+      Result:=False;
+  end;
+end;
+
+{ ---------------------------------------------------------------------
   TSingleHelper
   ---------------------------------------------------------------------}
 
