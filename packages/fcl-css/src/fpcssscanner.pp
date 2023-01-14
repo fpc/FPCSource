@@ -138,7 +138,7 @@ Type
     FCurToken: TCSSToken;
     FCurTokenString: TCSSString;
     FCurLine: TCSSString;
-    TokenStr: PChar;
+    TokenStr: PAnsiChar;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
     function DoHash: TCSSToken;
@@ -159,7 +159,7 @@ Type
     function ReadUnicodeEscape: WideChar;
     procedure SetReturnComments(AValue: Boolean);
     procedure SetReturnWhiteSpace(AValue: Boolean);
-    class function UnknownCharToStr(C: Char): TCSSString;
+    class function UnknownCharToStr(C: AnsiChar): TCSSString;
   protected
     procedure DoError(const Msg: TCSSString; Args: array of const); overload;
     procedure DoError(const Msg: TCSSString); overload;
@@ -203,6 +203,8 @@ type
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; const Args: array of const);
 var
   i: Integer;
+  A : AnsiString;
+  U : UnicodeString;
   {$ifdef pas2js}
   v: jsvalue;
   {$endif}
@@ -239,16 +241,36 @@ begin
       vtPChar:        MsgArgs[i] := Args[i].VPChar;
       vtObject:       ; //  Args[i].VObject;
       vtClass:        ; //  Args[i].VClass;
-      vtWideChar:     MsgArgs[i] := AnsiString(Args[i].VWideChar);
-      vtPWideChar:    MsgArgs[i] := Args[i].VPWideChar;
-      vtAnsiString:   MsgArgs[i] := AnsiString(Args[i].VAnsiString);
+      vtWideChar:
+        begin
+        U:=Args[i].VWideChar;
+        MsgArgs[i] := U;
+        end;
+      vtPWideChar:
+        begin
+        U:=Args[i].VPWideChar;
+        MsgArgs[i] := U;
+        end;
+      vtAnsiString:
+        begin
+        A:=AnsiString(Args[i].VAnsiString);
+        MsgArgs[i]:=A;
+        end;
       vtCurrency:     ; //  Args[i].VCurrency^);
       vtVariant:      ; //  Args[i].VVariant^);
       vtInterface:    ; //  Args[i].VInterface^);
-      vtWidestring:   MsgArgs[i] := AnsiString(WideString(Args[i].VWideString));
+      vtWidestring:
+        begin
+        U:=WideString(Args[i].VWideString);
+        MsgArgs[i] := U;
+        end;
       vtInt64:        MsgArgs[i] := IntToStr(Args[i].VInt64^);
       vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
-      vtUnicodeString:MsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
+      vtUnicodeString:
+        begin
+        U:=UnicodeString(Args[i].VUnicodeString);
+        MsgArgs[i] := U;
+        end;
     end;
     {$endif}
 end;
@@ -335,7 +357,7 @@ begin
   end else
   begin
     FCurLine := FSourceFile.ReadLine;
-    TokenStr := PChar(CurLine);
+    TokenStr := PAnsiChar(CurLine);
     Result := true;
     Inc(FCurRow);
   end;
@@ -359,7 +381,7 @@ end;
 function TCSSScanner.DoSingleLineComment : TCSSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len : Integer;
 
 begin
@@ -377,9 +399,9 @@ end;
 function TCSSScanner.DoMultiLineComment : TCSSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len,OLen : Integer;
-  PrevToken : Char;
+  PrevToken : AnsiChar;
 
 begin
   Inc(TokenStr);
@@ -477,8 +499,8 @@ end;
 function TCSSScanner.DoStringLiteral: TCSSToken;
 
 Var
-  Delim : Char;
-  TokenStart : PChar;
+  Delim : AnsiChar;
+  TokenStart : PAnsiChar;
   Len,OLen: Integer;
   S : TCSSString;
 
@@ -513,7 +535,7 @@ begin
         Move(TokenStart^, FCurTokenString[OLen + 1], Len);
       Move(S[1],FCurTokenString[OLen + Len+1],Length(S));
       Inc(OLen, Len+Length(S));
-      // Next char
+      // Next AnsiChar
       // Inc(TokenStr);
       TokenStart := TokenStr+1;
       end;
@@ -534,7 +556,7 @@ end;
 function TCSSScanner.DoNumericLiteral :TCSSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len : Integer;
   isEscape : Boolean;
 
@@ -575,14 +597,14 @@ begin
   if IsEscape then
     begin
     Result:=ctkString;
-    FCurTokenString:=Char(StrToInt(FCurTokenString));
+    FCurTokenString:=AnsiChar(StrToInt(FCurTokenString));
     end;
 end;
 
 function TCSSScanner.DoHash :TCSSToken;
 
 Var
-  TokenStart : PChar;
+  TokenStart : PAnsiChar;
   Len : Integer;
 
 begin
@@ -601,8 +623,8 @@ end;
 function TCSSScanner.EatBadURL: TCSSToken;
 
 var
-  TokenStart : PChar;
-  C : Char;
+  TokenStart : PAnsiChar;
+  C : AnsiChar;
   len,oldlen : integer;
 
 begin
@@ -630,9 +652,9 @@ end;
 
 function TCSSScanner.DoUnicodeRange: TCSSTOKEN;
 Var
-  TokenStart:PChar;
+  TokenStart:PAnsiChar;
   Len : Integer;
-  Tokens : Set of char;
+  Tokens : Set of AnsiChar;
 
 begin
   Tokens:= ['A'..'F', 'a'..'f', '0'..'9', '-'];
@@ -652,7 +674,7 @@ begin
 
 end;
 
-class function TCSSScanner.UnknownCharToStr(C: Char): TCSSString;
+class function TCSSScanner.UnknownCharToStr(C: AnsiChar): TCSSString;
 
 begin
   if C=#0 then
@@ -666,7 +688,7 @@ end;
 function TCSSScanner.DoIdentifierLike : TCSSToken;
 
 Var
-  TokenStart:PChar;
+  TokenStart:PAnsiChar;
   Len,oLen : Integer;
   IsEscape,IsAt, IsPseudo, IsFunc : Boolean;
 
@@ -741,7 +763,7 @@ end;
 
 function TCSSScanner.DoInvalidChars: TCSSToken;
 var
-  TokenStart: PChar;
+  TokenStart: PAnsiChar;
   Len: SizeUInt;
 begin
   Result:=ctkINVALID;
@@ -962,7 +984,7 @@ begin
   if (TokenStr=Nil) or (Length(CurLine)=0) then
     Result:=0
   else
-    Result := TokenStr - PChar(CurLine);
+    Result := TokenStr - PAnsiChar(CurLine);
 end;
 
 function TCSSScanner.GetReturnComments: Boolean;
