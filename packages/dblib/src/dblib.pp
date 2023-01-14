@@ -197,7 +197,7 @@ type
   ULONG=longword;
 
   // DB-Library datatypes
-  DBBOOL=byte;           // unsigned char
+  DBBOOL=byte;           // unsigned AnsiChar
   DBCHAR=shortint;
   DBBIT=byte;
   DBTINYINT=byte;
