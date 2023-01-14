@@ -195,10 +195,10 @@ procedure vorbis_info_init(var vi: vorbis_info); cdecl; external {$IFDEF DYNLINK
 procedure vorbis_info_clear(var vi: vorbis_info); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 function  vorbis_info_blocksize(var vi: vorbis_info; zo: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 procedure vorbis_comment_init(var vc: vorbis_comment); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
-procedure vorbis_comment_add(var vc: vorbis_comment; comment: pchar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
-procedure vorbis_comment_add_tag(var vc: vorbis_comment; tag: pchar; contents: pchar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
-function  vorbis_comment_query(var vc: vorbis_comment; tag: pchar; count: cint): pchar; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
-function  vorbis_comment_query_count(var vc: vorbis_comment; tag: pchar): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_add(var vc: vorbis_comment; comment: PAnsiChar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_add_tag(var vc: vorbis_comment; tag: PAnsiChar; contents: PAnsiChar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_comment_query(var vc: vorbis_comment; tag: PAnsiChar; count: cint): PAnsiChar; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_comment_query_count(var vc: vorbis_comment; tag: PAnsiChar): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 procedure vorbis_comment_clear(var vc: vorbis_comment); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
 function  vorbis_block_init(var v: vorbis_dsp_state; var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
