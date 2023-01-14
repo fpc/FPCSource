@@ -155,7 +155,7 @@ TYPE
 {                               CHARACTER SET                               }
 {---------------------------------------------------------------------------}
 TYPE
-   TCharSet = SET Of Char;                            { Character set }
+   TCharSet = SET Of AnsiChar;                            { Character set }
    PCharSet = ^TCharSet;                              { Character set ptr }
 
 {---------------------------------------------------------------------------}
@@ -193,7 +193,7 @@ var
 {                            DOS ASCIIZ FILENAME                            }
 {---------------------------------------------------------------------------}
 TYPE
-   AsciiZ = Array [0..255] Of Char;                   { Filename array }
+   AsciiZ = Array [0..255] Of AnsiChar;                   { Filename array }
 
 {---------------------------------------------------------------------------}
 {                        BIT SWITCHED TYPE CONSTANTS                        }
@@ -311,7 +311,7 @@ TYPE
          TPCompatible : Boolean;
       CONSTRUCTOR Init;
       FUNCTION Get: PObject;
-      FUNCTION StrRead: PChar;
+      FUNCTION StrRead: PAnsiChar;
       FUNCTION GetPos: Longint;                                      Virtual;
       FUNCTION GetSize: Longint;                                     Virtual;
       FUNCTION ReadStr: PString;
@@ -327,7 +327,7 @@ TYPE
       PROCEDURE Flush;                                               Virtual;
       PROCEDURE Truncate;                                            Virtual;
       PROCEDURE Put (P: PObject);
-      PROCEDURE StrWrite (P: PChar);
+      PROCEDURE StrWrite (P: PAnsiChar);
       PROCEDURE WriteStr (P: PString);
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
       PROCEDURE WriteRawByteString (Const S: RawByteString);
@@ -1236,8 +1236,8 @@ END;
 {--TStream------------------------------------------------------------------}
 {  StrRead -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB              }
 {---------------------------------------------------------------------------}
-FUNCTION TStream.StrRead: PChar;
-VAR L: Word; P: PChar;
+FUNCTION TStream.StrRead: PAnsiChar;
+VAR L: Word; P: PAnsiChar;
 BEGIN
    Read(L, SizeOf(L));                                { Read length }
    If (L = 0) Then StrRead := Nil Else Begin          { Check for empty }
@@ -1246,7 +1246,7 @@ BEGIN
        Read(P[0], L);                                 { Read the data }
        P[L] := #0;                                    { Terminate with #0 }
      End;
-     StrRead := P;                                    { Return PChar }
+     StrRead := P;                                    { Return PAnsiChar }
    End;
 END;
 
@@ -1260,7 +1260,7 @@ BEGIN
    If (L > 0) Then Begin
      GetMem(P, L + 1);                                { Allocate memory }
      If (P <> Nil) Then Begin                         { Check allocate okay }
-       P^[0] := Char(L);                              { Hold length }
+       P^[0] := AnsiChar(L);                              { Hold length }
        Read(P^[1], L);                                { Read string data }
      End;
      ReadStr := P;                                    { Return string ptr }
@@ -1404,12 +1404,12 @@ END;
 {--TStream------------------------------------------------------------------}
 {  StrWrite -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE TStream.StrWrite (P: PChar);
+PROCEDURE TStream.StrWrite (P: PAnsiChar);
 VAR L: Word; Q: PByteArray;
 BEGIN
    L := 0;                                            { Preset zero size }
    Q := PByteArray(P);                                { Transfer type }
-   If (Q <> Nil) Then While (Q^[L] <> 0) Do Inc(L);   { PChar length }
+   If (Q <> Nil) Then While (Q^[L] <> 0) Do Inc(L);   { PAnsiChar length }
    Write(L, SizeOf(L));                               { Store length }
    If (P <> Nil) Then Write(P[0], L);                 { Write data }
 END;
@@ -2754,12 +2754,12 @@ END;
 FUNCTION TStrCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
 VAR I, J: Sw_Integer; P1, P2: PByteArray;
 BEGIN
-   P1 := PByteArray(Key1);                            { PChar 1 pointer }
-   P2 := PByteArray(Key2);                            { PChar 2 pointer }
+   P1 := PByteArray(Key1);                            { PAnsiChar 1 pointer }
+   P2 := PByteArray(Key2);                            { PAnsiChar 2 pointer }
    I := 0;                                            { Preset no size }
-   If (P1<>Nil) Then While (P1^[I]<>0) Do Inc(I);     { PChar 1 length }
+   If (P1<>Nil) Then While (P1^[I]<>0) Do Inc(I);     { PAnsiChar 1 length }
    J := 0;                                            { Preset no size }
-   If (P2<>Nil) Then While (P2^[J]<>0) Do Inc(J);     { PChar 2 length }
+   If (P2<>Nil) Then While (P2^[J]<>0) Do Inc(J);     { PAnsiChar 2 length }
    If (I < J) Then J := I;                            { Shortest length }
    I := 0;                                            { First character }
    While (I<J) AND (P1^[I]=P2^[I]) Do Inc(I);         { Scan till fail }
@@ -2785,7 +2785,7 @@ BEGIN
    If (Item<>Nil) Then Begin                          { Item is valid }
      P := PByteArray(Item);                           { Create byte pointer }
      I := 0;                                          { Preset no size }
-     While (P^[I]<>0) Do Inc(I);                      { Find PChar end }
+     While (P^[I]<>0) Do Inc(I);                      { Find PAnsiChar end }
      FreeMem(Item, I+1);                              { Release memory }
    End;
 END;
@@ -2847,7 +2847,7 @@ BEGIN
    If (P<>Nil) Then Begin                             { If allocate works }
      P^.Posn := Pos;                                  { Xfer position }
      P^.Size := Size;                                 { Xfer size }
-     P^.Key[0] := Char(B);                            { Xfer string length }
+     P^.Key[0] := AnsiChar(B);                            { Xfer string length }
      S.Read(P^.Key[1], B);                            { Xfer string data }
    End;
    GetItem := P;                                      { Return pointer }
