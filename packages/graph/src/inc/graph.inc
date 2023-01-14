@@ -23,19 +23,19 @@ const
 {$ifdef logging}
 var debuglog: text;
 
-function strf(l: longint): string;
+function strf(l: longint): ShortString;
 begin
   str(l, strf)
 end;
 
-Procedure Log(Const s: String);
+Procedure Log(Const s: ShortString);
 Begin
   Append(debuglog);
   Write(debuglog, s);
   Close(debuglog);
 End;
 
-Procedure LogLn(Const s: string);
+Procedure LogLn(Const s: ShortString);
 Begin
   Append(debuglog);
   Writeln(debuglog,s);
@@ -73,7 +73,7 @@ const
       TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE);
 
 const
-  BGIPath : string = '.';
+  BGIPath : ShortString = '.';
 
 
   { Default font 8x8 system from IBM PC }
@@ -146,7 +146,7 @@ var
   PaletteSize : longint; { Maximum palette entry we can set, usually equal}
                          { maxcolor.                                      }
   HardwarePages : byte;  { maximum number of hardware visual pages        }
-  DriverName: String;
+  DriverName: ShortString;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
   newModeList: TNewModeInfo;
@@ -1339,7 +1339,7 @@ end;
    end;
 
 
-  procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
+  procedure OutTextXYDefault(x,y : smallint;const TextString : ShortString);forward;
   procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
   procedure SetBkColorDefault(ColorNum: ColorType);forward;
   function GetBkColorDefault: ColorType;forward;
@@ -1418,7 +1418,7 @@ end;
 
 {$i modes.inc}
 
-  function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): smallint;
+  function InstallUserDriver(Name: ShortString; AutoDetectPtr: Pointer): smallint;
    begin
      _graphResult := grError;
      InstallUserDriver:=grError;
@@ -1852,7 +1852,7 @@ end;
     end;
 
 
-function GraphErrorMsg(ErrorCode: smallint): string;
+function GraphErrorMsg(ErrorCode: smallint): ShortString;
 Begin
  GraphErrorMsg:='';
  case ErrorCode of
@@ -1906,7 +1906,7 @@ end;
      GetY := CurrentY;
    end;
 
-   Function GetDriverName: string;
+   Function GetDriverName: ShortString;
     begin
       GetDriverName:=DriverName;
     end;
@@ -2128,7 +2128,7 @@ end;
   end;
 
   procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
-    const PathToDriver:String);
+    const PathToDriver:ShortString);
   const
     dirchar = System.DirectorySeparator;
   begin

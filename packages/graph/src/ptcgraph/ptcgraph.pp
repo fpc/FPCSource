@@ -279,7 +279,7 @@ const
      chiptype,           { Chiptype detected }
      memory,             { videomemory in KB }
      linewidth_unit: Longint;    { Use only a multiple of this as parameter for                                   set_displaystart }
-     linear_aperture: PChar;     { points to mmap secondary mem aperture of card }
+     linear_aperture: PAnsiChar;     { points to mmap secondary mem aperture of card }
      aperture_size: Longint;     { size of aperture in KB if size>=videomemory.}
 
      set_aperture_page: procedure (page: Longint);
@@ -604,7 +604,7 @@ begin
   CurrentCGABkColor := 0;
 end;
 
-procedure ptc_InternalOpen(const ATitle: string; AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer);
+procedure ptc_InternalOpen(const ATitle: ShortString; AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer);
 var
   ConsoleWidth, ConsoleHeight: Integer;
 begin
