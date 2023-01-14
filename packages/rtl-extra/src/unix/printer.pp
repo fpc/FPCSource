@@ -70,12 +70,12 @@ Const
   P_TOP   = 3; { Print to Pipe }
 
 Var
-  Lpr      : String[255]; { Contains path to lpr binary, including null char }
+  Lpr      : String[255]; { Contains path to lpr binary, including null AnsiChar }
 
 Procedure PrintAndDelete (const f: RawByteString);
 var
   i: pid_t;
-  p,pp : ppchar;
+  p,pp : PPAnsiChar;
 begin
   if lpr='' then
    exit;
@@ -206,7 +206,7 @@ end;
 
 
 
-function SubstPidInName (const S: string): string;
+function SubstPidInName (const S: rawbytestring): rawbytestring;
 var
   i    : longint;
   temp : string[8];
