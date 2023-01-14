@@ -23,7 +23,7 @@
                                UnixSock
 ******************************************************************************}
 
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
+Procedure Str2UnixSockAddr(const addr:ansistring;var t:TUnixSockAddr;var len:longint);
 begin
   Move(Addr[1],t.Path,length(Addr));
   t.Family:=AF_UNIX;
@@ -32,7 +32,7 @@ begin
 end;
 
 
-Function Bind(Sock:longint;const addr:string):boolean;
+Function Bind(Sock:longint;const addr:ansistring):boolean;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -42,7 +42,7 @@ begin
 end;
 
 
-Function DoAccept(Sock:longint;var addr:string):longint;
+Function DoAccept(Sock:longint;var addr:ansistring):longint;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -55,7 +55,7 @@ end;
 
 
 
-Function DoConnect(Sock:longint;const addr:string):Boolean;
+Function DoConnect(Sock:longint;const addr:ansistring):Boolean;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -64,7 +64,7 @@ begin
   DoConnect:=fpConnect(Sock,@UnixAddr,AddrLen)=0;
 end;
 
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:text):Boolean;
 var
   s : longint;
 begin
@@ -78,7 +78,7 @@ begin
    Accept:=false;
 end;
 
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolean;
 var
   s : longint;
 begin
@@ -92,14 +92,14 @@ begin
    Accept:=false;
 end;
 
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:text):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
   If Connect then
      Sock2Text(Sock,SockIn,SockOut);
 end;
 
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:file):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
   if Connect then
