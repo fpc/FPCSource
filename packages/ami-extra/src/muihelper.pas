@@ -59,8 +59,8 @@ function MH_Menustrip(var MenuStrip; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI menu
 function MH_Menu(const Tags: array of PtrUInt): PObject_;
 function MH_Menu(var Menu; const Tags: array of PtrUInt): PObject_;
-function MH_Menu(Name: PChar; const Tags: array of PtrUInt): PObject_;
-function MH_Menu(var Menu; Name: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Menu(Name: PAnsiChar; const Tags: array of PtrUInt): PObject_;
+function MH_Menu(var Menu; Name: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI menuitem
 function MH_Menuitem(const Tags: array of PtrUInt): PObject_;
 function MH_Menuitem(var Menuitem; const Tags: array of PtrUInt): PObject_;
@@ -83,10 +83,10 @@ function MH_Notify(var Notify; const Tags: array of PtrUInt): PObject_;
 function MH_Application(const Tags: array of PtrUInt): PObject_;
 function MH_Application(var App; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI Text area
-function MH_Text(Contents: PChar): PObject_;
-function MH_Text(Contents: PChar; const Tags: array of PtrUInt): PObject_;
-function MH_Text(var Text_; Contents: PChar): PObject_;
-function MH_Text(var Text_; Contents: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Text(Contents: PAnsiChar): PObject_;
+function MH_Text(Contents: PAnsiChar; const Tags: array of PtrUInt): PObject_;
+function MH_Text(var Text_; Contents: PAnsiChar): PObject_;
+function MH_Text(var Text_; Contents: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 function MH_Text(const Tags: array of PtrUInt): PObject_;
 function MH_Text(var NText; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI Rectangle
@@ -202,17 +202,17 @@ function MH_Scrmodelist(var Scrmodelist; const Tags: array of PtrUInt): PObject_
 // Creates MUI V/HGroup
 function MH_VGroup(const Tags: array of PtrUInt): pObject_;
 function MH_VGroup(Frame: LongWord; const Tags: array of PtrUInt): PObject_;
-function MH_VGroup(Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_VGroup(Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 function MH_HGroup(const Tags: array of PtrUInt): PObject_;
 function MH_HGroup(Frame: LongWord; const Tags: array of PtrUInt): PObject_;
-function MH_HGroup(Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_HGroup(Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 // Creates MUI Col/RowGroup
 function MH_ColGroup(Cols: LongWord; const Tags: array of PtrUInt): PObject_;
 function MH_ColGroup(Cols: LongWord; Frame: Longword; const Tags: array of PtrUInt): PObject_;
-function MH_ColGroup(Cols: LongWord; Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_ColGroup(Cols: LongWord; Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 function MH_RowGroup(Rows: LongWord; const Tags: array of PtrUInt): PObject_;
 function MH_RowGroup(Rows: LongWord; Frame: LongWord; const Tags: array of PtrUInt): PObject_;
-function MH_RowGroup(Rows: LongWord; Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_RowGroup(Rows: LongWord; Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI Pagegroup
 function MH_Pagegroup(const Tags: array of PtrUInt): PObject_;
 function MH_Pagegroup(var Pagegroup; const Tags: array of PtrUInt): PObject_;
@@ -226,8 +226,8 @@ function MH_RowGroupV(Rows: LongWord; const Tags: array of PtrUInt): PObject_;
 function MH_PagegroupV(const Tags: array of PtrUInt): PObject_;
 function MH_PagegroupV(var Pagegroup; const Tags: array of PtrUInt): PObject_;
 // Creates a MUI RegisterGroup
-function MH_RegisterGroup(Titles: PPChar; const Tags: array of PtrUInt): PObject_;
-function MH_RegisterGroup(var RegisterGroup; Titles: PPChar; const Tags: array of PtrUInt): PObject_;
+function MH_RegisterGroup(Titles: PPAnsiChar; const Tags: array of PtrUInt): PObject_;
+function MH_RegisterGroup(var RegisterGroup; Titles: PPAnsiChar; const Tags: array of PtrUInt): PObject_;
 //Spacing Macros
 function MH_HVSpace: PObject_;
 function MH_HSpace(x: LongWord): PObject_;
@@ -235,67 +235,67 @@ function MH_VSpace(x: LongWord): PObject_;
 function MH_HCenter(Obj: PObject_): PObject_;
 function MH_VCenter(Obj: PObject_): PObject_;
 // Creates a MUI button
-function MH_Button(BLabel: PChar): PObject_;
-function MH_Button(var Button; BLabel: PChar): PObject_;
-function MH_SimpleButton(BLabel: PChar): PObject_;
-function MH_SimpleButton(var Button; BLabel: PChar): PObject_;
+function MH_Button(BLabel: PAnsiChar): PObject_;
+function MH_Button(var Button; BLabel: PAnsiChar): PObject_;
+function MH_SimpleButton(BLabel: PAnsiChar): PObject_;
+function MH_SimpleButton(var Button; BLabel: PAnsiChar): PObject_;
 // Creates a MUI PopButton
-function MH_PopButton(Img: PChar): PObject_;
-function MH_PopButton(var PopButton; img: PChar): PObject_;
+function MH_PopButton(Img: PAnsiChar): PObject_;
+function MH_PopButton(var PopButton; img: PAnsiChar): PObject_;
 // Creates a MUI label
-function MH_Label(BLabel: PChar): PObject_;
-function MH_Label(var OLabel; BLabel: PChar): PObject_;
+function MH_Label(BLabel: PAnsiChar): PObject_;
+function MH_Label(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI label with single Frame border
-function MH_Label1(BLabel: PChar): PObject_;
-function MH_Label1(var OLabel; BLabel: PChar): PObject_;
+function MH_Label1(BLabel: PAnsiChar): PObject_;
+function MH_Label1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI label with double Frame border
-function MH_Label2(BLabel: PChar): PObject_;
-function MH_Label2(var OLabel; BLabel: PChar): PObject_;
+function MH_Label2(BLabel: PAnsiChar): PObject_;
+function MH_Label2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label
-function MH_LLabel(BLabel: PChar): PObject_;
-function MH_LLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel(BLabel: PAnsiChar): PObject_;
+function MH_LLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label with single Frame border
-function MH_LLabel1(BLabel: PChar): PObject_;
-function MH_LLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel1(BLabel: PAnsiChar): PObject_;
+function MH_LLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label with double Frame border
-function MH_LLabel2(BLabel: PChar): PObject_;
-function MH_LLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel2(BLabel: PAnsiChar): PObject_;
+function MH_LLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label
-function MH_CLabel(BLabel: PChar): PObject_;
-function MH_CLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel(BLabel: PAnsiChar): PObject_;
+function MH_CLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label with single Frame border
-function MH_CLabel1(BLabel: PChar): PObject_;
-function MH_CLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel1(BLabel: PAnsiChar): PObject_;
+function MH_CLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label with double Frame border
-function MH_CLabel2(BLabel: PChar): PObject_;
-function MH_CLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel2(BLabel: PAnsiChar): PObject_;
+function MH_CLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI label
-function MH_FreeLabel(BLabel: PChar): PObject_;
-function MH_FreeLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel(BLabel: PAnsiChar): PObject_;
+function MH_FreeLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI label with single Frame border
-function MH_FreeLabel1(BLabel: PChar): PObject_;
-function MH_FreeLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel1(BLabel: PAnsiChar): PObject_;
+function MH_FreeLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI label with double Frame border
-function MH_FreeLabel2(BLabel: PChar): PObject_;
-function MH_FreeLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel2(BLabel: PAnsiChar): PObject_;
+function MH_FreeLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label
-function MH_FreeLLabel(BLabel: PChar): PObject_;
-function MH_FreeLLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel(BLabel: PAnsiChar): PObject_;
+function MH_FreeLLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label with single Frame border
-function MH_FreeLLabel1(BLabel: PChar): PObject_;
-function MH_FreeLLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel1(BLabel: PAnsiChar): PObject_;
+function MH_FreeLLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI left aligned label with double Frame border
-function MH_FreeLLabel2(BLabel: PChar): PObject_;
-function MH_FreeLLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel2(BLabel: PAnsiChar): PObject_;
+function MH_FreeLLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label
-function MH_FreeCLabel(BLabel: PChar): PObject_;
-function MH_FreeCLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel(BLabel: PAnsiChar): PObject_;
+function MH_FreeCLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label with single Frame border
-function MH_FreeCLabel1(BLabel: PChar): PObject_;
-function MH_FreeCLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel1(BLabel: PAnsiChar): PObject_;
+function MH_FreeCLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI centered label with double Frame border
-function MH_FreeCLabel2(BLabel: PChar): PObject_;
-function MH_FreeCLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel2(BLabel: PAnsiChar): PObject_;
+function MH_FreeCLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 // Creates a MUI HBar
 function MH_HBar(Space: LongWord): PObject_;
 function MH_HBar(var HBar; Space: LongWord): PObject_;
@@ -303,61 +303,61 @@ function MH_HBar(var HBar; Space: LongWord): PObject_;
 function MH_VBar(Space: LongWord): PObject_;
 function MH_VBar(var VBar; Space: LongWord): PObject_;
 
-function MAKE_ID(c1, c2, c3, c4: char): LongWord; inline;
+function MAKE_ID(c1, c2, c3, c4: AnsiChar): LongWord; inline;
 
 procedure MH_Set(Obj: PObject_; Tag, Data: PtrUInt);
 function MH_Get(Obj: PObject_; Tag: PtrUInt): PtrUInt;
 procedure MH_SetMutex(Obj: PObject_; n: Integer);
 procedure MH_SetCycle(Obj: PObject_; n: Integer);
-procedure MH_SetString(Obj: PObject_; s: PChar);
+procedure MH_SetString(Obj: PObject_; s: PAnsiChar);
 procedure MH_SetCheckmark(Obj: PObject_; b: Boolean);
 procedure MH_SetSlider(Obj: PObject_; l: LongInt);
 
 // deprecated but widely used macros
-function MH_String(Contents: PChar; MaxLen: Integer): PObject_;
-function MH_String(var NString: PObject_; Contents: PChar; MaxLen: Integer): PObject_;
+function MH_String(Contents: PAnsiChar; MaxLen: Integer): PObject_;
+function MH_String(var NString: PObject_; Contents: PAnsiChar; MaxLen: Integer): PObject_;
 
-function MH_KeyString(Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
-function MH_KeyString(var NString: PObject_; Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+function MH_KeyString(Contents: PAnsiChar; MaxLen: Integer; ControlChar: AnsiChar): PObject_;
+function MH_KeyString(var NString: PObject_; Contents: PAnsiChar; MaxLen: Integer; ControlChar: AnsiChar): PObject_;
 
 function MH_CheckMark(Selected: Boolean): PObject_;
 function MH_CheckMark(var CM: PObject_; Selected: Boolean): PObject_;
 
-function MH_KeyCheckMark(Selected: Boolean; ControlChar: Char): PObject_;
-function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: Char): PObject_;
+function MH_KeyCheckMark(Selected: Boolean; ControlChar: AnsiChar): PObject_;
+function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: AnsiChar): PObject_;
 
-function MH_KeyButton(Name: PChar; Key: Char): PObject_;
-function MH_KeyButton(var KB: PObject_; Name: PChar; Key: Char): PObject_;
+function MH_KeyButton(Name: PAnsiChar; Key: AnsiChar): PObject_;
+function MH_KeyButton(var KB: PObject_; Name: PAnsiChar; Key: AnsiChar): PObject_;
 
-function MH_Cycle(Entries: PPChar): PObject_;
-function MH_Cycle(var CY: PObject_; Entries: PPChar): PObject_;
+function MH_Cycle(Entries: PPAnsiChar): PObject_;
+function MH_Cycle(var CY: PObject_; Entries: PPAnsiChar): PObject_;
 
-function MH_KeyCycle(Entries: PPChar; Key: Char): PObject_;
-function MH_KeyCycle(var KC: PObject_; Entries: PPChar; Key: Char): PObject_;
+function MH_KeyCycle(Entries: PPAnsiChar; Key: AnsiChar): PObject_;
+function MH_KeyCycle(var KC: PObject_; Entries: PPAnsiChar; Key: AnsiChar): PObject_;
 
-function MH_Radio(Name: PChar; Rarray: PPChar): PObject_;
-function MH_Radio(var RA: PObject_; Name: PChar; Rarray: PPChar): PObject_;
+function MH_Radio(Name: PAnsiChar; Rarray: PPAnsiChar): PObject_;
+function MH_Radio(var RA: PObject_; Name: PAnsiChar; Rarray: PPAnsiChar): PObject_;
 
-function MH_KeyRadio(Name: PChar; Rarray: PPChar; Key: Char): PObject_;
-function MH_KeyRadio(var KR: PObject_; Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+function MH_KeyRadio(Name: PAnsiChar; Rarray: PPAnsiChar; Key: AnsiChar): PObject_;
+function MH_KeyRadio(var KR: PObject_; Name: PAnsiChar; Rarray: PPAnsiChar; Key: AnsiChar): PObject_;
 
 function MH_Slider(MinS, MaxS, Level: Integer): PObject_;
 function MH_Slider(var SL: PObject_; MinS, MaxS, Level: Integer): PObject_;
 
-function MH_KeySlider(MinS, MaxS, Level: Integer; Key: Char): PObject_;
-function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: Char): PObject_;
+function MH_KeySlider(MinS, MaxS, Level: Integer; Key: AnsiChar): PObject_;
+function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: AnsiChar): PObject_;
 
 
 
 
 
-function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
-function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+function MH_NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR;
+function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR;
 
 // Connect a Hook to a hook function, platform specific implementation
 procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
 
-function MH_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
+function MH_CreateCustomClass(Base: PLibrary; Supername: PAnsiChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
 
 implementation
 
@@ -422,14 +422,14 @@ end;
 {$FATAL "SetHook not implemented for this platform"}
 {$endif}
 
-function MH_CreateCustomClass(Base: PLibrary; Supername: PChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
+function MH_CreateCustomClass(Base: PLibrary; Supername: PAnsiChar; Supermcc: PMUI_CustomClass; DataSize: LongInt; Dispatcher: TDispatcherFunc): PMUI_CustomClass;
 begin
   MH_CreateCustomClass := MUI_CreateCustomClass(Base, Supername, Supermcc, DataSize, nil);
   if Assigned(MH_CreateCustomClass) then
     MH_SetHook(MH_CreateCustomClass^.mcc_Class^.cl_Dispatcher, THookFunc(Dispatcher), nil);
 end;
 
-function MAKE_ID(c1, c2, c3, c4: char): LongWord; inline;
+function MAKE_ID(c1, c2, c3, c4: AnsiChar): LongWord; inline;
 begin
   MAKE_ID := (LongWord(Ord(c1)) shl 24) or
              (LongWord(Ord(c2)) shl 16) or
@@ -461,7 +461,7 @@ begin
   MH_Set(Obj, MUIA_Cycle_Active, n);
 end;
 
-procedure MH_SetString(Obj: PObject_; s: PChar);
+procedure MH_SetString(Obj: PObject_; s: PAnsiChar);
 begin
   MH_Set(Obj, MUIA_String_Contents, AsTag(s));
 end;
@@ -505,12 +505,12 @@ begin
   MH_Menu := PObject_(Menu);
 end;
 
-function MH_Menu(Name: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Menu(Name: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_Menu := MUI_NewObject(MUIC_Menu, [MUIA_Menu_Title, AsTag(Name), TAG_MORE, AsTag(@Tags)]);
 end;
 
-function MH_Menu(var Menu; Name: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Menu(var Menu; Name: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   PObject_(Menu) := MUI_NewObject(MUIC_Menu, [MUIA_Menu_Title, AsTag(Name), TAG_MORE, AsTag(@Tags)]);
   MH_Menu := PObject_(Menu);
@@ -609,25 +609,25 @@ end;
 
 // Creates a MUI text area
 // ************************************************************************
-function MH_Text(Contents: PChar): PObject_;
+function MH_Text(Contents: PAnsiChar): PObject_;
 begin
   MH_Text := MUI_NewObject(MUIC_Text,[MUIA_Text_Contents, AsTag(Contents), TAG_DONE]);
 end;
 
-function MH_Text(Contents: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Text(Contents: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_Text := MUI_NewObject(MUIC_Text,[
     MUIA_Text_Contents, AsTag(Contents),
     TAG_MORE,           AsTag(@Tags)]);
 end;
 
-function MH_Text(var Text_; Contents: PChar): PObject_;
+function MH_Text(var Text_; Contents: PAnsiChar): PObject_;
 begin
   PObject_(Text_) := MUI_NewObject(MUIC_Text,[MUIA_Text_Contents, AsTag(Contents), TAG_DONE]);
   MH_Text := PObject_(Text_);
 end;
 
-function MH_Text(var Text_; Contents: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_Text(var Text_; Contents: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   PObject_(Text_) := MUI_NewObject(MUIC_Text, [
     MUIA_Text_Contents, AsTag(Contents),
@@ -1137,7 +1137,7 @@ begin
   MH_VGroup := MUI_NewObject(MUIC_Group, [MUIA_Frame, Frame, TAG_MORE, AsTag(@Tags)]);
 end;
 
-function MH_VGroup(Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_VGroup(Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_VGroup := MUI_NewObject(MUIC_Group, [
     MUIA_Frame,      MUIV_Frame_Group,
@@ -1161,7 +1161,7 @@ begin
     TAG_MORE,         AsTag(@Tags)]);
 end;
 
-function MH_HGroup(Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_HGroup(Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_HGroup := MUI_NewObject(MUIC_Group, [
     MUIA_Group_Horiz, MUI_TRUE,
@@ -1186,7 +1186,7 @@ begin
     TAG_MORE,           AsTag(@Tags)]);
 end;
 
-function MH_ColGroup(Cols: LongWord; Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_ColGroup(Cols: LongWord; Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_ColGroup := MUI_NewObject(MUIC_Group, [
     MUIA_Group_Columns, Cols,
@@ -1211,7 +1211,7 @@ begin
     TAG_MORE,        AsTag(@Tags)]);
 end;
 
-function MH_RowGroup(Rows: LongWord; Title: PChar; const Tags: array of PtrUInt): PObject_;
+function MH_RowGroup(Rows: LongWord; Title: PAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_RowGroup := MUI_NewObject(MUIC_Group, [
     MUIA_Group_Rows, Rows,
@@ -1287,14 +1287,14 @@ end;
 
 // Creates a MUI RegisterGroup
 // ************************************************************************
-function MH_RegisterGroup(Titles: PPChar; const Tags: array of PtrUInt): PObject_;
+function MH_RegisterGroup(Titles: PPAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   MH_RegisterGroup := MUI_NewObject(MUIC_Register, [
     MUIA_Register_Titles, AsTag(Titles),
     TAG_MORE,             AsTag(@Tags)]);
 end;
 
-function MH_RegisterGroup(var RegisterGroup; Titles: PPChar; const Tags: array of PtrUInt): PObject_;
+function MH_RegisterGroup(var RegisterGroup; Titles: PPAnsiChar; const Tags: array of PtrUInt): PObject_;
 begin
   PObject_(RegisterGroup) := MUI_NewObject(MUIC_Register, [
     MUIA_Register_Titles, AsTag(Titles),
@@ -1341,35 +1341,35 @@ end;
 
 // Creates a MUI button
 // ************************************************************************
-function MH_Button(BLabel: PChar): PObject_;
+function MH_Button(BLabel: PAnsiChar): PObject_;
 begin
   MH_Button := MUI_MakeObject(MUIO_Button, [PtrUInt(BLabel)]);
 end;
 
-function MH_Button(var Button; BLabel: PChar): PObject_;
+function MH_Button(var Button; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(Button) := MUI_MakeObject(MUIO_Button, [PtrUInt(BLabel)]);
   MH_Button := PObject_(Button);
 end;
 
-function MH_SimpleButton(BLabel: PChar): PObject_; inline;
+function MH_SimpleButton(BLabel: PAnsiChar): PObject_; inline;
 begin
   MH_SimpleButton := MH_Button(BLabel);
 end;
 
-function MH_SimpleButton(var Button; BLabel: PChar): PObject_;
+function MH_SimpleButton(var Button; BLabel: PAnsiChar): PObject_;
 begin
   MH_SimpleButton := MH_Button(Button, BLabel);
 end;
 
 // Creates a MUI PopButton
 // ************************************************************************
-function MH_PopButton(Img: PChar): PObject_;
+function MH_PopButton(Img: PAnsiChar): PObject_;
 begin
   MH_PopButton := MUI_MakeObject(MUIO_PopButton, [AsTag(Img)]);
 end;
 
-function MH_PopButton(var PopButton; img: PChar): PObject_;
+function MH_PopButton(var PopButton; img: PAnsiChar): PObject_;
 begin
   PObject_(PopButton) := MUI_MakeObject(MUIO_PopButton, [AsTag(Img)]);
   MH_PopButton := PObject_(PopButton);
@@ -1377,12 +1377,12 @@ end;
 
 // Creates a MUI Label
 // ************************************************************************
-function MH_Label(BLabel: PChar): PObject_;
+function MH_Label(BLabel: PAnsiChar): PObject_;
 begin
   MH_Label := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), 0]);
 end;
 
-function MH_Label(var OLabel; BLabel: PChar): PObject_;
+function MH_Label(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), 0]);
   MH_Label := PObject_(OLabel);
@@ -1390,12 +1390,12 @@ end;
 
 // Creates a MUI label with single Frame border
 // ************************************************************************
-function MH_Label1(BLabel: PChar): PObject_;
+function MH_Label1(BLabel: PAnsiChar): PObject_;
 begin
   MH_Label1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_SingleFrame]);
 end;
 
-function MH_Label1(var OLabel; BLabel: PChar): PObject_;
+function MH_Label1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_SingleFrame]);
   MH_Label1 := PObject_(OLabel);
@@ -1403,12 +1403,12 @@ end;
 
 // Creates a MUI label with double Frame border
 // ************************************************************************
-function MH_Label2(BLabel: PChar): PObject_;
+function MH_Label2(BLabel: PAnsiChar): PObject_;
 begin
   MH_Label2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_DoubleFrame]);
 end;
 
-function MH_Label2(var OLabel; BLabel: PChar): PObject_;
+function MH_Label2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_DoubleFrame]);
   MH_Label2 := PObject_(OLabel);
@@ -1416,12 +1416,12 @@ end;
 
 // Creates a MUI left aligned label
 // ************************************************************************
-function MH_LLabel(BLabel: PChar): PObject_;
+function MH_LLabel(BLabel: PAnsiChar): PObject_;
 begin
   MH_LLabel := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned]);
 end;
 
-function MH_LLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned]);
   MH_LLabel := PObject_(OLabel);
@@ -1429,12 +1429,12 @@ end;
 
 // Creates a MUI left aligned label with single Frame border
 // ************************************************************************
-function MH_LLabel1(BLabel: PChar): PObject_;
+function MH_LLabel1(BLabel: PAnsiChar): PObject_;
 begin
   MH_LLabel1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned or MUIO_Label_SingleFrame]);
 end;
 
-function MH_LLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned or MUIO_Label_SingleFrame]);
   MH_LLabel1 := PObject_(OLabel);
@@ -1442,12 +1442,12 @@ end;
 
 // Creates a MUI left aligned label with double Frame border
 // ************************************************************************
-function MH_LLabel2(BLabel: PChar): PObject_;
+function MH_LLabel2(BLabel: PAnsiChar): PObject_;
 begin
   MH_LLabel2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned or MUIO_Label_DoubleFrame]);
 end;
 
-function MH_LLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_LLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_LeftAligned or MUIO_Label_DoubleFrame]);
   MH_LLabel2 := PObject_(OLabel);
@@ -1455,12 +1455,12 @@ end;
 
 // Creates a MUI centered label
 // ************************************************************************
-function MH_CLabel(BLabel: PChar): PObject_;
+function MH_CLabel(BLabel: PAnsiChar): PObject_;
 begin
   MH_CLabel := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered]);
 end;
 
-function MH_CLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered]);
   MH_CLabel := PObject_(OLabel);
@@ -1468,12 +1468,12 @@ end;
 
 // Creates a MUI centered label with single Frame border
 // ************************************************************************
-function MH_CLabel1(BLabel: PChar): PObject_;
+function MH_CLabel1(BLabel: PAnsiChar): PObject_;
 begin
   MH_CLabel1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered or MUIO_Label_SingleFrame]);
 end;
 
-function MH_CLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered or MUIO_Label_SingleFrame]);
   MH_CLabel1 := PObject_(OLabel);
@@ -1481,12 +1481,12 @@ end;
 
 // Creates a MUI centered label with double Frame border
 // ************************************************************************
-function MH_CLabel2(BLabel: PChar): PObject_;
+function MH_CLabel2(BLabel: PAnsiChar): PObject_;
 begin
   MH_CLabel2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered or MUIO_Label_DoubleFrame]);
 end;
 
-function MH_CLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_CLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_Centered or MUIO_Label_DoubleFrame]);
   MH_CLabel2 := PObject_(OLabel);
@@ -1494,12 +1494,12 @@ end;
 
 // Creates a MUI Label
 // ************************************************************************
-function MH_FreeLabel(BLabel: PChar): PObject_;
+function MH_FreeLabel(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLabel := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert]);
 end;
 
-function MH_FreeLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert]);
   MH_FreeLabel := PObject_(OLabel);
@@ -1507,12 +1507,12 @@ end;
 
 // Creates a MUI label with single Frame border
 // ************************************************************************
-function MH_FreeLabel1(BLabel: PChar): PObject_;
+function MH_FreeLabel1(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLabel1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_SingleFrame]);
 end;
 
-function MH_FreeLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_SingleFrame]);
   MH_FreeLabel1 := PObject_(OLabel);
@@ -1520,12 +1520,12 @@ end;
 
 // Creates a MUI label with double Frame border
 // ************************************************************************
-function MH_FreeLabel2(BLabel: PChar): PObject_;
+function MH_FreeLabel2(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLabel2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_DoubleFrame]);
 end;
 
-function MH_FreeLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_DoubleFrame]);
   MH_FreeLabel2 := PObject_(OLabel);
@@ -1533,12 +1533,12 @@ end;
 
 // Creates a MUI left aligned label
 // ************************************************************************
-function MH_FreeLLabel(BLabel: PChar): PObject_;
+function MH_FreeLLabel(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLLabel := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned]);
 end;
 
-function MH_FreeLLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned]);
   MH_FreeLLabel := PObject_(OLabel);
@@ -1546,12 +1546,12 @@ end;
 
 // Creates a MUI left aligned label with single Frame border
 // ************************************************************************
-function MH_FreeLLabel1(BLabel: PChar): PObject_;
+function MH_FreeLLabel1(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLLabel1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned or MUIO_Label_SingleFrame]);
 end;
 
-function MH_FreeLLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned or MUIO_Label_SingleFrame]);
   MH_FreeLLabel1 := PObject_(OLabel);
@@ -1559,12 +1559,12 @@ end;
 
 // Creates a MUI left aligned label with double Frame border
 // ************************************************************************
-function MH_FreeLLabel2(BLabel: PChar): PObject_;
+function MH_FreeLLabel2(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeLLabel2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned or MUIO_Label_DoubleFrame]);
 end;
 
-function MH_FreeLLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeLLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_LeftAligned or MUIO_Label_DoubleFrame]);
   MH_FreeLLabel2 := PObject_(OLabel);
@@ -1572,12 +1572,12 @@ end;
 
 // Creates a MUI centered label
 // ************************************************************************
-function MH_FreeCLabel(BLabel: PChar): PObject_;
+function MH_FreeCLabel(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeCLabel := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered]);
 end;
 
-function MH_FreeCLabel(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered]);
   MH_FreeCLabel := PObject_(OLabel);
@@ -1585,12 +1585,12 @@ end;
 
 // Creates a MUI centered label with single Frame border
 // ************************************************************************
-function MH_FreeCLabel1(BLabel: PChar): PObject_;
+function MH_FreeCLabel1(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeCLabel1 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered or MUIO_Label_SingleFrame]);
 end;
 
-function MH_FreeCLabel1(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel1(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered or MUIO_Label_SingleFrame]);
   MH_FreeCLabel1 := PObject_(OLabel);
@@ -1598,12 +1598,12 @@ end;
 
 // Creates a MUI centered label with double Frame border
 // ************************************************************************
-function MH_FreeCLabel2(BLabel: PChar): PObject_;
+function MH_FreeCLabel2(BLabel: PAnsiChar): PObject_;
 begin
   MH_FreeCLabel2 := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered or MUIO_Label_DoubleFrame]);
 end;
 
-function MH_FreeCLabel2(var OLabel; BLabel: PChar): PObject_;
+function MH_FreeCLabel2(var OLabel; BLabel: PAnsiChar): PObject_;
 begin
   PObject_(OLabel) := MUI_MakeObject(MUIO_Label, [PtrUInt(BLabel), MUIO_Label_FreeVert or MUIO_Label_Centered or MUIO_Label_DoubleFrame]);
   MH_FreeCLabel2 := PObject_(OLabel);
@@ -1637,7 +1637,7 @@ end;
 
 // Creates a MUI object abstract
 // ************************************************************************
-function MH_NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+function MH_NewObject(ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR;
 begin
   {$if defined(AMIGA_V1_2_ONLY)}
   MH_NewObject := nil;
@@ -1646,7 +1646,7 @@ begin
   {$endif}
 end;
 
-function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
+function MH_NewObject(var Obj; ClassPtr: PIClass; ClassID: PAnsiChar; const Tags: array of PtrUInt): APTR;
 begin
   {$if defined(AMIGA_V1_2_ONLY)}
   MH_NewObject := nil;
@@ -1658,7 +1658,7 @@ end;
 
 // deprecated but widely used macros
 
-function MH_String(Contents: PChar; MaxLen: Integer): PObject_;
+function MH_String(Contents: PAnsiChar; MaxLen: Integer): PObject_;
 begin
   MH_String := MH_String([
     MUIA_Frame, StringFrame,
@@ -1667,13 +1667,13 @@ begin
     TAG_DONE]);
 end;
 
-function MH_String(var NString: PObject_; Contents: PChar; MaxLen: Integer): PObject_;
+function MH_String(var NString: PObject_; Contents: PAnsiChar; MaxLen: Integer): PObject_;
 begin
   NString := MH_String(Contents, MAxLen);
   MH_String := NString;
 end;
 
-function MH_KeyString(Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+function MH_KeyString(Contents: PAnsiChar; MaxLen: Integer; ControlChar: AnsiChar): PObject_;
 begin
   MH_KeyString := MH_String([
     MUIA_Frame, StringFrame,
@@ -1683,7 +1683,7 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeyString(var NString: PObject_; Contents: PChar; MaxLen: Integer; ControlChar: Char): PObject_;
+function MH_KeyString(var NString: PObject_; Contents: PAnsiChar; MaxLen: Integer; ControlChar: AnsiChar): PObject_;
 begin
   NString := MH_KeyString(Contents, MaxLen, ControlChar);
   MH_KeyString := NString;
@@ -1708,7 +1708,7 @@ begin
   MH_CheckMark := CM;
 end;
 
-function MH_KeyCheckMark(Selected: Boolean; ControlChar: Char): PObject_;
+function MH_KeyCheckMark(Selected: Boolean; ControlChar: AnsiChar): PObject_;
 begin
   MH_KeyCheckMark := MH_Image([
     MUIA_Frame, ImageButtonFrame,
@@ -1722,19 +1722,19 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: Char): PObject_;
+function MH_KeyCheckMark(var CM: PObject_; Selected: Boolean; ControlChar: AnsiChar): PObject_;
 begin
   CM := MH_KeyCheckMark(Selected, ControlChar);
   MH_KeyCheckMark := CM;
 end;
 
-function MH_KeyButton(Name: PChar; Key: Char): PObject_;
+function MH_KeyButton(Name: PAnsiChar; Key: AnsiChar): PObject_;
 begin
   MH_KeyButton := MH_Text([
     MUIA_Frame, ButtonFrame,
     MUIA_Font, MUIV_Font_Button,
     MUIA_Text_Contents, AsTag(Name),
-    MUIA_Text_PreParse, AsTag(PChar(MUIX_C)),
+    MUIA_Text_PreParse, AsTag(PAnsiChar(MUIX_C)),
     MUIA_Text_HiChar  , AsTag(Byte(Key)),
     MUIA_ControlChar  , AsTag(Byte(Key)),
     MUIA_InputMode    , MUIV_InputMode_RelVerify,
@@ -1742,13 +1742,13 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeyButton(var KB: PObject_; Name: PChar; Key: Char): PObject_;
+function MH_KeyButton(var KB: PObject_; Name: PAnsiChar; Key: AnsiChar): PObject_;
 begin
   KB := MH_KeyButton(Name, Key);
   MH_KeyButton := KB;
 end;
 
-function MH_Cycle(Entries: PPChar): PObject_;
+function MH_Cycle(Entries: PPAnsiChar): PObject_;
 begin
   MH_Cycle := MH_Cycle([
     MUIA_Font, MUIV_Font_Button,
@@ -1756,13 +1756,13 @@ begin
     TAG_DONE]);
 end;
 
-function MH_Cycle(var CY: PObject_; Entries: PPChar): PObject_;
+function MH_Cycle(var CY: PObject_; Entries: PPAnsiChar): PObject_;
 begin
   CY := MH_Cycle(Entries);
   MH_Cycle := CY;
 end;
 
-function MH_KeyCycle(Entries: PPChar; Key: Char): PObject_;
+function MH_KeyCycle(Entries: PPAnsiChar; Key: AnsiChar): PObject_;
 begin
   MH_KeyCycle := MH_Cycle([
     MUIA_Font, MUIV_Font_Button,
@@ -1771,13 +1771,13 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeyCycle(var KC: PObject_; Entries: PPChar; Key: Char): PObject_;
+function MH_KeyCycle(var KC: PObject_; Entries: PPAnsiChar; Key: AnsiChar): PObject_;
 begin
   KC := MH_KeyCycle(Entries, Key);
   MH_KeyCycle := KC;
 end;
 
-function MH_Radio(Name: PChar; Rarray: PPChar): PObject_;
+function MH_Radio(Name: PAnsiChar; Rarray: PPAnsiChar): PObject_;
 begin
   MH_Radio := MH_Radio([
     MUIA_Frame, MUIV_Frame_Group, MUIA_FrameTitle, AsTag(Name), MUIA_Background, MUII_GroupBack,
@@ -1785,13 +1785,13 @@ begin
     TAG_DONE]);
 end;
 
-function MH_Radio(var RA: PObject_; Name: PChar; Rarray: PPChar): PObject_;
+function MH_Radio(var RA: PObject_; Name: PAnsiChar; Rarray: PPAnsiChar): PObject_;
 begin
   RA := MH_Radio(Name, Rarray);
   MH_Radio := RA;
 end;
 
-function MH_KeyRadio(Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+function MH_KeyRadio(Name: PAnsiChar; Rarray: PPAnsiChar; Key: AnsiChar): PObject_;
 begin
   MH_KeyRadio := MH_Radio([
     MUIA_Frame, MUIV_Frame_Group, MUIA_FrameTitle, AsTag(Name), MUIA_Background, MUII_GroupBack,
@@ -1800,7 +1800,7 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeyRadio(var KR: PObject_; Name: PChar; Rarray: PPChar; Key: Char): PObject_;
+function MH_KeyRadio(var KR: PObject_; Name: PAnsiChar; Rarray: PPAnsiChar; Key: AnsiChar): PObject_;
 begin
   KR := MH_KeyRadio(Name, Rarray, Key);
   MH_KeyRadio := KR;
@@ -1821,7 +1821,7 @@ begin
   MH_Slider := SL;
 end;
 
-function MH_KeySlider(MinS, MaxS, Level: Integer; Key: Char): PObject_;
+function MH_KeySlider(MinS, MaxS, Level: Integer; Key: AnsiChar): PObject_;
 begin
   MH_KeySlider := MH_Slider([
     MUIA_Numeric_Min, MinS,
@@ -1831,7 +1831,7 @@ begin
     TAG_DONE]);
 end;
 
-function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: Char): PObject_;
+function MH_KeySlider(var KS: PObject_; MinS, MaxS, Level: Integer; Key: AnsiChar): PObject_;
 begin
   KS := MH_KeySlider(MinS, MaxS, Level, Key);
   MH_KeySlider := KS;

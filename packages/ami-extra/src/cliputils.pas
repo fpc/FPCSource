@@ -19,8 +19,8 @@ unit cliputils;
 
 interface
 
-function GetTextFromClip(ClipUnit: Byte): string;
-function PutTextToClip(ClipUnit: Byte; Text: string): Boolean;
+function GetTextFromClip(ClipUnit: Byte): AnsiString;
+function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
 
 implementation
 
@@ -31,12 +31,12 @@ const
   ID_FTXT = 1179932756;
   ID_CHRS = 1128813139;
 
-function GetTextFromClip(ClipUnit: Byte): string;
+function GetTextFromClip(ClipUnit: Byte): AnsiString;
 var
   Iff: PIffHandle;
   Error: LongInt;
   Cn: PContextNode;
-  Buf: PChar;
+  Buf: PAnsiChar;
   Len: Integer;
   Cu: LongInt;
 begin
@@ -70,7 +70,7 @@ begin
               FillChar(Buf^, Len + 1, #0);
               try
                 ReadChunkBytes(Iff, Buf, Len);
-                Result := Result + string(Buf);
+                Result := Result + AnsiString(Buf);
               finally
                 FreeMem(Buf);
               end;
@@ -85,10 +85,10 @@ begin
   end;
 end;
 
-function PutTextToClip(ClipUnit: Byte; Text: string): Boolean;
+function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
 var
   Iff: PIffHandle;
-  TText: string;
+  TText: AnsiString;
   Len: Integer;
 begin
   Result := False;

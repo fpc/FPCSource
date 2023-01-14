@@ -28,8 +28,8 @@ interface
 
 
 FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
-FUNCTION MessageBox(const tit,txt,gad:string): LongInt;
-function MessageBox(const tit,txt,gad:pchar): LongInt;
+FUNCTION MessageBox(const tit,txt,gad:AnsiString): LongInt;
+function MessageBox(const tit,txt,gad:PAnsiChar): LongInt;
 
 implementation
 
@@ -38,15 +38,15 @@ uses
 
 FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
 begin
-  MessageBox:=MessageBox(PChar(tit),PChar(txt),PChar(gad));
+  MessageBox:=MessageBox(PAnsiChar(tit),PAnsiChar(txt),PAnsiChar(gad));
 end;
 
-FUNCTION MessageBox(const tit,txt,gad:string) : LONGint;
+FUNCTION MessageBox(const tit,txt,gad:AnsiString) : LONGint;
 begin
-  MessageBox := MessageBox(PChar(RawByteString(tit)),PChar(RawByteString(txt)),PChar(RawByteString(gad)));
+  MessageBox := MessageBox(PAnsiChar(RawByteString(tit)),PAnsiChar(RawByteString(txt)),PAnsiChar(RawByteString(gad)));
 end;
 
-FUNCTION MessageBox(const tit,txt,gad:pchar) : LONGint;
+FUNCTION MessageBox(const tit,txt,gad:PAnsiChar) : LONGint;
 VAR
   MyStruct : tEasyStruct;
 BEGIN
