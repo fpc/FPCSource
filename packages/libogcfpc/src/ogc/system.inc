@@ -188,7 +188,7 @@ function SYS_GetArena2Size(): cuint32; cdecl; external;
 function SYS_SetPowerCallback(cb: powercallback): powercallback; cdecl; external;
 {$endif HW_RVL}
 
-procedure kprintf(const str: Pchar; args: array of const); cdecl; external;
+procedure kprintf(const str: PAnsiChar; args: array of const); cdecl; external;
 
 {$endif OGC_INTERFACE}
 
