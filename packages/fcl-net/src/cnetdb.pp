@@ -190,11 +190,11 @@ type
  * use in system calls).
  *}
   hostent = record
-    h_name: PChar;      {/* official name of host *}
-    h_aliases: PPChar;  {* alias list *}
+    h_name: PAnsiChar;      {/* official name of host *}
+    h_aliases: PPAnsiChar;  {* alias list *}
     h_addrtype: cInt;   {* host address type *}
     h_length: cInt;     {* length of address *}
-    h_addr_list: PPChar;{* list of addresses from name server *}
+    h_addr_list: PPAnsiChar;{* list of addresses from name server *}
   end;
 
   THostEnt = hostent;
@@ -202,8 +202,8 @@ type
   PPHostEnt = ^PHostEnt;
 
   netent = record
-    n_name: PChar;      {* official name of net *}
-    n_aliases: PPChar;  {* alias list *}
+    n_name: PAnsiChar;      {* official name of net *}
+    n_aliases: PPAnsiChar;  {* alias list *}
     n_addrtype: cInt;   {* net address type *}
     n_net: cuInt32;     {* network # *}
   end;
@@ -212,18 +212,18 @@ type
   PPNetEnt = ^PNetEnt;
 
   servent = record
-    s_name: PChar;    {* official service name *}
-    s_aliases: PPChar;{* alias list *}
+    s_name: PAnsiChar;    {* official service name *}
+    s_aliases: PPAnsiChar;{* alias list *}
     s_port: cInt;     {* port # *}
-    s_proto: PChar;   {* protocol to use *}
+    s_proto: PAnsiChar;   {* protocol to use *}
   end;
   TServEnt = servent;
   PServEnt = ^TServEnt;
   PPServEnt = ^PServEnt;
 
   protoent = record
-    p_name: PChar; {* official protocol name *}
-    p_aliases: PPChar;  {* alias list *}
+    p_name: PAnsiChar; {* official protocol name *}
+    p_aliases: PPAnsiChar;  {* alias list *}
     p_proto: cInt;      {* protocol # *}
   end;
   TProtoEnt = protoent;
@@ -248,12 +248,12 @@ type
     ai_protocol: cInt;  {* 0 or IPPROTO_xxx for IPv4 and IPv6 *}
     ai_addrlen: TSocklen;  {* length of ai_addr *}
 {$ifdef FIRST_CANONNAME_THEN_ADDR}
-    ai_canonname: PChar;   {* canonical name for hostname *}
+    ai_canonname: PAnsiChar;   {* canonical name for hostname *}
     ai_addr: psockaddr;	   {* binary address *}
 {$endif}
 {$ifdef FIRST_ADDR_THEN_CANONNAME}
     ai_addr: psockaddr;	   {* binary address *}
-    ai_canonname: PChar;   {* canonical name for hostname *}
+    ai_canonname: PAnsiChar;   {* canonical name for hostname *}
 {$endif}
     ai_next: PAddrInfo;	   {* next structure in linked list *}
   end;
@@ -267,53 +267,53 @@ procedure endnetgrent; cdecl; external LIB_C name 'endnetgrent';
 procedure endprotoent; cdecl; external LIB_C name 'endprotoent';
 procedure endservent; cdecl; external LIB_C name 'endservent';
 procedure freehostent(ptr: PHostEnt); cdecl; external LIB_C name 'freehostent';
-function  gethostbyaddr(addr: PChar; len, typ: cInt): PHostEnt; cdecl; external LIB_C name 'gethostbyaddr';
+function  gethostbyaddr(addr: PAnsiChar; len, typ: cInt): PHostEnt; cdecl; external LIB_C name 'gethostbyaddr';
 
-function  gethostbyname(name: PChar): PHostEnt; cdecl; external LIB_C name 'gethostbyname';
+function  gethostbyname(name: PAnsiChar): PHostEnt; cdecl; external LIB_C name 'gethostbyname';
 
-function  gethostbyname2(name: PChar; af: cInt): PHostEnt; cdecl; external LIB_C name 'gethostbyname2';
+function  gethostbyname2(name: PAnsiChar; af: cInt): PHostEnt; cdecl; external LIB_C name 'gethostbyname2';
 
 function  gethostent: PHostEnt; cdecl; external LIB_C name 'gethostent';
 
 function getipnodebyaddr(src: Pointer; len: size_t; af: cInt; error_num: PcInt): PHostEnt; cdecl; external LIB_C name 'getipnodebyaddr';
 
-function getipnodebyname(name: PChar; af, flags: cInt; error_num: PcInt): PHostEnt; cdecl; external LIB_C name 'getipnodebyname';
+function getipnodebyname(name: PAnsiChar; af, flags: cInt; error_num: PcInt): PHostEnt; cdecl; external LIB_C name 'getipnodebyname';
 
 function getnetbyaddr(net: cint32; typ: cInt): PNetEnt; cdecl; external LIB_C name 'getnetbyaddr';
 
-function getnetbyname(name: PChar): PNetEnt; cdecl; external LIB_C name 'getnetbyname';
+function getnetbyname(name: PAnsiChar): PNetEnt; cdecl; external LIB_C name 'getnetbyname';
 
 function getnetent: PNetEnt; cdecl; external LIB_C name 'getnetent';
 
-function getnetgrent(host, user, domain: PPChar): cInt; cdecl; external LIB_C name 'getnetgrent';
+function getnetgrent(host, user, domain: PPAnsiChar): cInt; cdecl; external LIB_C name 'getnetgrent';
 
-function getprotobyname(name: PChar): PProtoEnt; cdecl; external LIB_C name 'getprotobyname';
+function getprotobyname(name: PAnsiChar): PProtoEnt; cdecl; external LIB_C name 'getprotobyname';
 
 function getprotobynumber(proto: cInt): PProtoEnt; cdecl; external LIB_C name 'getprotobynumber';
 
 function getprotoent: PProtoEnt; cdecl; external LIB_C name 'getprotoent';
 
-function getservbyname(name, proto: PChar): PServEnt; cdecl; external LIB_C name 'getservbyname';
+function getservbyname(name, proto: PAnsiChar): PServEnt; cdecl; external LIB_C name 'getservbyname';
 
-function getservbyport(port: cInt; proto: PChar): PServEnt; cdecl; external LIB_C name 'getservbyport';
+function getservbyport(port: cInt; proto: PAnsiChar): PServEnt; cdecl; external LIB_C name 'getservbyport';
 
 function  getservent: PServEnt; cdecl; external LIB_C name 'getservent';
-procedure herror(erstring: PChar); cdecl; external LIB_C name 'herror';
-function  hstrerror(err: cInt): PChar; cdecl; external LIB_C name 'hstrerror';
-function  innetgr(netgroup, host, user, domain: PChar): cInt; cdecl; external LIB_C name 'innetgr';
+procedure herror(erstring: PAnsiChar); cdecl; external LIB_C name 'herror';
+function  hstrerror(err: cInt): PAnsiChar; cdecl; external LIB_C name 'hstrerror';
+function  innetgr(netgroup, host, user, domain: PAnsiChar): cInt; cdecl; external LIB_C name 'innetgr';
 procedure sethostent(i: cInt); cdecl; external LIB_C name 'sethostent';
 
-{* void		sethostfile(const char *); *}
+{* void		sethostfile(const AnsiChar *); *}
 
 procedure setnetent(stayopen: cInt); cdecl; external LIB_C name 'setnetent';
 procedure setprotoent(stayopen: cInt); cdecl; external LIB_C name 'setprotoent';
-function  getaddrinfo(name, service: PChar; hints: PAddrInfo;
+function  getaddrinfo(name, service: PAnsiChar; hints: PAddrInfo;
                       res: PPAddrInfo): cInt; cdecl; external LIB_C name 'getaddrinfo';
-function  getnameinfo(sa: PSockAddr; salen: TSockLen; host: PChar; hostlen: TSize;
-                      serv: PChar; servlen: TSize; flags: cInt): cInt; cdecl; external LIB_C name 'getnameinfo';
+function  getnameinfo(sa: PSockAddr; salen: TSockLen; host: PAnsiChar; hostlen: TSize;
+                      serv: PAnsiChar; servlen: TSize; flags: cInt): cInt; cdecl; external LIB_C name 'getnameinfo';
 procedure freeaddrinfo(ai: PAddrInfo); cdecl; external LIB_C name 'freeaddrinfo';
-function  gai_strerror(ecode: cInt): PChar; cdecl; external LIB_C name 'gai_strerror';
-procedure setnetgrent(netgroup: PChar); cdecl; external LIB_C name 'setnetgrent';
+function  gai_strerror(ecode: cInt): PAnsiChar; cdecl; external LIB_C name 'gai_strerror';
+procedure setnetgrent(netgroup: PAnsiChar); cdecl; external LIB_C name 'setnetgrent';
 procedure setservent(stayopen: cInt); cdecl; external LIB_C name 'setservent';
 
 
