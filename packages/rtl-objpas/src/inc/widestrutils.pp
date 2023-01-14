@@ -35,7 +35,7 @@ type
   TEncodeType = (etUSASCII, etUTF8, etANSI);
 
 const
-  sUTF8BOMString: array[1..3] of char = (#$EF, #$BB, #$BF);
+  sUTF8BOMString: array[1..3] of AnsiChar = (#$EF, #$BB, #$BF);
 
 function HasUTF8BOM(S: TStream): boolean; overload;
 function HasUTF8BOM(const S: RawByteString): boolean; overload;
@@ -147,7 +147,7 @@ end;
 function HasUTF8BOM(S: TStream): boolean;
 var
   OldPos: Int64;
-  Buf: array[1..3] of char;
+  Buf: array[1..3] of AnsiChar;
 begin
   Result := false;
   if S.Size<3 then exit;

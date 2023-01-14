@@ -151,7 +151,7 @@ type
     function AsDouble : Double;
     function AsInteger: Integer;
     function AsError: HRESULT;
-    function AsChar: Char; inline;
+    function AsChar: AnsiChar; inline;
     function AsAnsiChar: AnsiChar;
     function AsWideChar: WideChar;
     function AsInt64: Int64;
@@ -2026,6 +2026,7 @@ begin
 end;
 
 function TValue.AsUnicodeString: UnicodeString;
+
 begin
   if (Kind in [tkSString, tkAString, tkUString, tkWString]) and not Assigned(FData.FValueData) then
     Result := ''
@@ -2266,9 +2267,9 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
-function TValue.AsChar: Char;
+function TValue.AsChar: AnsiChar;
 begin
-{$if SizeOf(Char) = 1}
+{$if SizeOf(AnsiChar) = 1}
   Result := AsAnsiChar;
 {$else}
   Result := AsWideChar;
@@ -4416,6 +4417,7 @@ var
   end;
   s: String;
   ss: ShortString;
+  u : UnicodeString;
   O: TObject;
   Int: IUnknown;
 begin
@@ -4429,6 +4431,16 @@ begin
       begin
         s := GetStrProp(TObject(Instance), FPropInfo);
         TValue.Make(@s, FPropInfo^.PropType, result);
+      end;
+    tkUString:
+      begin
+        U := GetUnicodeStrProp(TObject(Instance), FPropInfo);
+        TValue.Make(@U, FPropInfo^.PropType, result);
+      end;
+    tkWString:
+      begin
+        U := GetWideStrProp(TObject(Instance), FPropInfo);
+        TValue.Make(@U, FPropInfo^.PropType, result);
       end;
     tkEnumeration:
       begin
@@ -4517,6 +4529,10 @@ begin
     tkSString,
     tkAString:
       SetStrProp(TObject(Instance), FPropInfo, AValue.AsString);
+    tkUString:
+      SetUnicodeStrProp(TObject(Instance), FPropInfo, AValue.AsUnicodeString);
+    tkWString:
+      SetWideStrProp(TObject(Instance), FPropInfo, AValue.AsUnicodeString);
     tkInteger,
     tkInt64,
     tkQWord,
