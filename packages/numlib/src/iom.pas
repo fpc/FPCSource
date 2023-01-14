@@ -176,7 +176,7 @@ procedure iomwrms(var out: ArbString; var a: ArbFloat; m, n, form, c: ArbInt);
 var
   pa: ^arfloat1;
   i, l, kk: ArbInt;
-  s: string;
+  s: ShortString;
 BEGIN
   if (n<1) or (m<1) then
     exit;

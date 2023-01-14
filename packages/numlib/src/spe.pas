@@ -1761,7 +1761,7 @@ var exitsave : pointer;
 
 procedure MyExit;
 {
-const ErrorS : array[400..408,1..6] of char =
+const ErrorS : array[400..408,1..6] of AnsiChar =
      ('spepow',
       'spebk0',
       'spebk1',
