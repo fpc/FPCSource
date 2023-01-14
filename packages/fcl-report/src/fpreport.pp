@@ -4038,7 +4038,7 @@ var
   maxw: single; // value in pixels
   n: integer;
   s: UTF8String;
-  c: char;
+  c: AnsiChar;
   lWidth: single;
 
   lDescenderHeight: single;
