@@ -41,7 +41,7 @@ procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
 procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
 
 { auxiliary }
-function SHA1String(const S: String): TSHA1Digest;
+function SHA1String(const S: RawByteString): TSHA1Digest;
 function SHA1Buffer(const Buf; BufLen: PtrUInt): TSHA1Digest;
 function SHA1File(const Filename: String; const Bufsize: PtrUInt = 1024): TSHA1Digest;
 
@@ -241,12 +241,12 @@ begin
   FillChar(ctx, sizeof(TSHA1Context), 0);
 end;
 
-function SHA1String(const S: String): TSHA1Digest;
+function SHA1String(const S: RawByteString): TSHA1Digest;
 var
   Context: TSHA1Context;
 begin
   SHA1Init(Context);
-  SHA1Update(Context, PChar(S)^, length(S));
+  SHA1Update(Context, PAnsiChar(S)^, length(S));
   SHA1Final(Context, Result);
 end;
 
@@ -267,7 +267,7 @@ end;
 function SHA1File(const Filename: String; const Bufsize: PtrUInt): TSHA1Digest;
 var
   F: File;
-  Buf: Pchar;
+  Buf: PAnsiChar;
   Context: TSHA1Context;
   Count: Cardinal;
   ofm: Longint;
@@ -300,7 +300,7 @@ begin
 end;
 
 const
-  HexTbl: array[0..15] of char='0123456789abcdef';     // lowercase
+  HexTbl: array[0..15] of AnsiChar='0123456789abcdef';     // lowercase
 
 function SHA1Print(const Digest: TSHA1Digest): String;
 var

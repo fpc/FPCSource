@@ -388,7 +388,7 @@ begin
   get_crc64_table :=  {const} PQWord(@crc64_table);
 end;
 
-{void crc64(char *seq, char *res)
+{void crc64(AnsiChar *seq, AnsiChar *res)
 
     int i, j, low, high;
     unsigned long long crc = INITIALCRC64, part;

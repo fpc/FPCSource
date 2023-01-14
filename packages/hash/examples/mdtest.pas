@@ -18,6 +18,9 @@ program mdtest;
 {$mode objfpc}{$h+}
 
 uses
+{$ifdef unix}
+  cwstring,
+{$endif}
   SysUtils, md5;
 
 const
