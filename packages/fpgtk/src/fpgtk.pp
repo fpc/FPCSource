@@ -13,7 +13,11 @@
 
  **********************************************************************}
 
-{$mode objfpc}{$h+} {$ifdef win32}{$define gtkwin}{$endif}
+{$mode objfpc}
+{$h+}
+{$ifdef win32}
+{$define gtkwin}
+{$endif}
 UNIT FPgtk;
 
 
@@ -158,10 +162,10 @@ TYPE
     procedure NotifyDestroy (AnObject:TFPgtkObject); Virtual;
   Public
     function TheGtkObject : PGtkObject;
-    function SignalConnect (Signal:string; Proc:TFPgtkSignalFunction; data:pointer) : guint;
-    function SignalConnectAfter (Signal:string; Proc:TFPgtkSignalFunction; data:pointer) : guint;
-    function BooleanSignalConnect (Signal:string; Proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
-    function BooleanSignalConnectAfter (Signal:string; Proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
+    function SignalConnect (Signal:AnsiString; Proc:TFPgtkSignalFunction; data:pointer) : guint;
+    function SignalConnectAfter (Signal:AnsiString; Proc:TFPgtkSignalFunction; data:pointer) : guint;
+    function BooleanSignalConnect (Signal:AnsiString; Proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
+    function BooleanSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
     constructor Create;
     constructor CreateFromObject (GtkObject:PGtkObject);
     property Destroying : TDestroyState read FDestroying;
@@ -172,14 +176,14 @@ TYPE
     procedure SignalDisconnect (SignalHandler:guint);
     procedure SignalBlockHandler (SignalHandler:guint);
     procedure SignalUnblockHandler (SignalHandler:guint);
-    procedure SignalEmit (aName:string; Args:array of const);
-    function SignalNEmissions (aName:string) : guint;
-    procedure SignalEmitStop (aName:string);
-    procedure SetData (Key:string; Data:pointer);
+    procedure SignalEmit (aName:AnsiString; Args:array of const);
+    function SignalNEmissions (aName:AnsiString) : guint;
+    procedure SignalEmitStop (aName:AnsiString);
+    procedure SetData (Key:AnsiString; Data:pointer);
     property UserData : pointer read GetUserData write SetUserData;
-    procedure SetDataFull (Key:string; Data:pointer; Destroyer:TFPgtkSignalFunction);
-    procedure RemoveData (Key:string);
-    function GetData (Key:string) : pointer;
+    procedure SetDataFull (Key:AnsiString; Data:pointer; Destroyer:TFPgtkSignalFunction);
+    procedure RemoveData (Key:AnsiString);
+    function GetData (Key:AnsiString) : pointer;
     function GtkDestroyed : boolean;
     procedure Constructed;
     procedure ConstructedDefault;
@@ -249,7 +253,7 @@ TYPE
   Public
     function TheGtkObject : PGtkToolTips;
     procedure SetColors (Fore:PGdkColor; Back:PGdkColor);
-    procedure SetTip (Widget:TFPgtkWidget; TipText:string; TipPrivate:string);
+    procedure SetTip (Widget:TFPgtkWidget; TipText:AnsiString; TipPrivate:AnsiString);
     property Enabled : boolean read GetEnabled write SetEnabled;
     property Delay : integer read GetDelay write SetDelay;
     property ColorForeground : PGdkColor read GetColorForeground write SetColorForeground;
@@ -277,8 +281,8 @@ TYPE
     function GetTheGtkWidget : PGtkWidget;
     procedure SetTheGtkWidget (TheValue : PGtkWidget);
     function GetAllocation : TGtkAllocation;
-    function GetName : string;
-    procedure SetName (TheValue : string);
+    function GetName : AnsiString;
+    procedure SetName (TheValue : AnsiString);
     function GetPropFlags : longint;
     procedure SetPropFlags (TheValue : longint);
     function GetState : longint;
@@ -311,8 +315,8 @@ TYPE
     function GetHasDefault : boolean;
     function GetReceivesDefault : boolean;
     function GetCompositeChild : boolean;
-    function GetTooltip : string;
-    procedure SetTooltip (TheValue : string);
+    function GetTooltip : AnsiString;
+    procedure SetTooltip (TheValue : AnsiString);
     function GetColormap : PGdkColormap;
     procedure SetColormap (TheValue : PGdkColormap);
   Protected
@@ -327,8 +331,8 @@ TYPE
   Public
     function TheGtkObject : PGtkWidget;
     property TheGtkWidget : PGtkWidget read GetTheGtkWidget write SetTheGtkWidget;
-    function WidgetSignalConnect (Signal:string; Proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
-    function WidgetSignalConnectAfter (Signal:string; Proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
+    function WidgetSignalConnect (Signal:AnsiString; Proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
+    function WidgetSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
     procedure Draw (Rectangle:PGdkRectangle); Overload;
     procedure Show;
     procedure Hide;
@@ -342,7 +346,7 @@ TYPE
     property Allocation : TGtkAllocation read GetAllocation write SetAllocation;
     procedure SetUPosition (x:integer; y:integer);
     procedure SetUsize (width:integer; height:integer);
-    property Name : string read GetName write SetName;
+    property Name : AnsiString read GetName write SetName;
     property Flags : longint read GetPropFlags write SetPropFlags;
     property State : longint read GetState;
     property SavedState : longint read GetSavedState;
@@ -366,7 +370,7 @@ TYPE
     property HasDefault : boolean read GetHasDefault;
     property ReceivesDefault : boolean read GetReceivesDefault;
     property CompositeChild : boolean read GetCompositeChild;
-    property Tooltip : string read GetTooltip write SetTooltip;
+    property Tooltip : AnsiString read GetTooltip write SetTooltip;
     procedure HideOnDelete;
     property Colormap : PGdkColormap read GetColormap write SetColormap;
     function ConnectShow (proc:TFPgtkSignalFunction; data:pointer) : guint;
@@ -389,46 +393,46 @@ TYPE
     function ConnectAfterParentSet (proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
     function ConnectGrabFocus (proc:TFPgtkSignalFunction; data:pointer) : guint;
     function ConnectAfterGrabFocus (proc:TFPgtkSignalFunction; data:pointer) : guint;
-    function EventConnect (Signal:string; Proc:TFPgtkEventFunction; data:pointer) : guint;
-    function EventConnectAfter (Signal:string; Proc:TFPgtkEventFunction; data:pointer) : guint;
+    function EventConnect (Signal:AnsiString; Proc:TFPgtkEventFunction; data:pointer) : guint;
+    function EventConnectAfter (Signal:AnsiString; Proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectAfterEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
-    function EventButtonConnect (Signal:string; Proc:TFPgtkEventButtonFunction; data:pointer) : guint;
-    function EventButtonConnectAfter (Signal:string; Proc:TFPgtkEventButtonFunction; data:pointer) : guint;
+    function EventButtonConnect (Signal:AnsiString; Proc:TFPgtkEventButtonFunction; data:pointer) : guint;
+    function EventButtonConnectAfter (Signal:AnsiString; Proc:TFPgtkEventButtonFunction; data:pointer) : guint;
     function ConnectButtonPressEvent (proc:TFPgtkEventButtonFunction; data:pointer) : guint;
     function ConnectAfterButtonPressEvent (proc:TFPgtkEventButtonFunction; data:pointer) : guint;
     function ConnectButtonReleaseEvent (proc:TFPgtkEventButtonFunction; data:pointer) : guint;
     function ConnectAfterButtonReleaseEvent (proc:TFPgtkEventButtonFunction; data:pointer) : guint;
-    function EventMotionConnect (Signal:string; Proc:TFPgtkEventMotionFunction; data:pointer) : guint;
-    function EventMotionConnectAfter (Signal:string; Proc:TFPgtkEventMotionFunction; data:pointer) : guint;
+    function EventMotionConnect (Signal:AnsiString; Proc:TFPgtkEventMotionFunction; data:pointer) : guint;
+    function EventMotionConnectAfter (Signal:AnsiString; Proc:TFPgtkEventMotionFunction; data:pointer) : guint;
     function ConnectMotionNotifyEvent (proc:TFPgtkEventMotionFunction; data:pointer) : guint;
     function ConnectAfterMotionNotifyEvent (proc:TFPgtkEventMotionFunction; data:pointer) : guint;
     function ConnectDeleteEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectAfterDeleteEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectDestroyEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectAfterDestroyEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
-    function EventExposeConnect (Signal:string; Proc:TFPgtkEventExposeFunction; data:pointer) : guint;
-    function EventExposeConnectAfter (Signal:string; Proc:TFPgtkEventExposeFunction; data:pointer) : guint;
+    function EventExposeConnect (Signal:AnsiString; Proc:TFPgtkEventExposeFunction; data:pointer) : guint;
+    function EventExposeConnectAfter (Signal:AnsiString; Proc:TFPgtkEventExposeFunction; data:pointer) : guint;
     function ConnectExposeEvent (proc:TFPgtkEventExposeFunction; data:pointer) : guint;
     function ConnectAfterExposeEvent (proc:TFPgtkEventExposeFunction; data:pointer) : guint;
-    function EventKeyConnect (Signal:string; Proc:TFPgtkEventKeyFunction; data:pointer) : guint;
-    function EventKeyConnectAfter (Signal:string; Proc:TFPgtkEventKeyFunction; data:pointer) : guint;
+    function EventKeyConnect (Signal:AnsiString; Proc:TFPgtkEventKeyFunction; data:pointer) : guint;
+    function EventKeyConnectAfter (Signal:AnsiString; Proc:TFPgtkEventKeyFunction; data:pointer) : guint;
     function ConnectKeyPressEvent (proc:TFPgtkEventKeyFunction; data:pointer) : guint;
     function ConnectAfterKeyPressEvent (proc:TFPgtkEventKeyFunction; data:pointer) : guint;
     function ConnectKeyReleaseEvent (proc:TFPgtkEventKeyFunction; data:pointer) : guint;
     function ConnectAfterKeyReleaseEvent (proc:TFPgtkEventKeyFunction; data:pointer) : guint;
-    function EventCrossingConnect (Signal:string; Proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
-    function EventCrossingConnectAfter (Signal:string; Proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
+    function EventCrossingConnect (Signal:AnsiString; Proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
+    function EventCrossingConnectAfter (Signal:AnsiString; Proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
     function ConnectEnterNotifyEvent (proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
     function ConnectAfterEnterNotifyEvent (proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
     function ConnectLeaveNotifyEvent (proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
     function ConnectAfterLeaveNotifyEvent (proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
-    function EventConfigureConnect (Signal:string; Proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
-    function EventConfigureConnectAfter (Signal:string; Proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
+    function EventConfigureConnect (Signal:AnsiString; Proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
+    function EventConfigureConnectAfter (Signal:AnsiString; Proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
     function ConnectConfigureEvent (proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
     function ConnectAfterConfigureEvent (proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
-    function EventFocusConnect (Signal:string; Proc:TFPgtkEventFocusFunction; data:pointer) : guint;
-    function EventFocusConnectAfter (Signal:string; Proc:TFPgtkEventFocusFunction; data:pointer) : guint;
+    function EventFocusConnect (Signal:AnsiString; Proc:TFPgtkEventFocusFunction; data:pointer) : guint;
+    function EventFocusConnectAfter (Signal:AnsiString; Proc:TFPgtkEventFocusFunction; data:pointer) : guint;
     function ConnectFocusInEvent (proc:TFPgtkEventFocusFunction; data:pointer) : guint;
     function ConnectAfterFocusInEvent (proc:TFPgtkEventFocusFunction; data:pointer) : guint;
     function ConnectFocusOutEvent (proc:TFPgtkEventFocusFunction; data:pointer) : guint;
@@ -437,39 +441,39 @@ TYPE
     function ConnectAfterMapEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectUnmapEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectAfterUnmapEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
-    function EventPropertyConnect (Signal:string; Proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
-    function EventPropertyConnectAfter (Signal:string; Proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
+    function EventPropertyConnect (Signal:AnsiString; Proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
+    function EventPropertyConnectAfter (Signal:AnsiString; Proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
     function ConnectPropertyNotifyEvent (proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
     function ConnectAfterPropertyNotifyEvent (proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
-    function EventSelectionConnect (Signal:string; Proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
-    function EventSelectionConnectAfter (Signal:string; Proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
+    function EventSelectionConnect (Signal:AnsiString; Proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
+    function EventSelectionConnectAfter (Signal:AnsiString; Proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectSelectionClearEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectAfterSelectionClearEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectSelectionRequestEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectAfterSelectionRequestEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectSelectionNotifyEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
     function ConnectAfterSelectionNotifyEvent (proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
-    function EventProximityConnect (Signal:string; Proc:TFPgtkEventProximityFunction; data:pointer) : guint;
-    function EventProximityConnectAfter (Signal:string; Proc:TFPgtkEventProximityFunction; data:pointer) : guint;
+    function EventProximityConnect (Signal:AnsiString; Proc:TFPgtkEventProximityFunction; data:pointer) : guint;
+    function EventProximityConnectAfter (Signal:AnsiString; Proc:TFPgtkEventProximityFunction; data:pointer) : guint;
     function ConnectProximityInEvent (proc:TFPgtkEventProximityFunction; data:pointer) : guint;
     function ConnectAfterProximityInEvent (proc:TFPgtkEventProximityFunction; data:pointer) : guint;
     function ConnectProximityOutEvent (proc:TFPgtkEventProximityFunction; data:pointer) : guint;
     function ConnectAfterProximityOutEvent (proc:TFPgtkEventProximityFunction; data:pointer) : guint;
-    function EventClientConnect (Signal:string; Proc:TFPgtkEventClientFunction; data:pointer) : guint;
-    function EventClientConnectAfter (Signal:string; Proc:TFPgtkEventClientFunction; data:pointer) : guint;
+    function EventClientConnect (Signal:AnsiString; Proc:TFPgtkEventClientFunction; data:pointer) : guint;
+    function EventClientConnectAfter (Signal:AnsiString; Proc:TFPgtkEventClientFunction; data:pointer) : guint;
     function ConnectClientEvent (proc:TFPgtkEventClientFunction; data:pointer) : guint;
     function ConnectAfterClientEvent (proc:TFPgtkEventClientFunction; data:pointer) : guint;
-    function EventNoExposeConnect (Signal:string; Proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
-    function EventNoExposeConnectAfter (Signal:string; Proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
+    function EventNoExposeConnect (Signal:AnsiString; Proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
+    function EventNoExposeConnectAfter (Signal:AnsiString; Proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
     function ConnectNoExposeEvent (proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
     function ConnectAfterNoExposeEvent (proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
     function ConnectVisibilityNotifyEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     function ConnectAfterVisibilityNotifyEvent (proc:TFPgtkEventFunction; data:pointer) : guint;
     procedure LockAccelerators;
     procedure UnlockAccelerators;
-    procedure RemoveAccelerators (aSignal:string; OnlyVisible:boolean);
+    procedure RemoveAccelerators (aSignal:AnsiString; OnlyVisible:boolean);
     procedure ActivateAccelGroups (Key:guint; Mods:TGdkModifierType);
-    procedure AcceleratorAdd (AG:PGtkAccelGroup; aSignal:string; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
+    procedure AcceleratorAdd (AG:PGtkAccelGroup; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
   end;
 
   TFPgtkForEachProcedure = procedure (item : pointer; data : pointer) of object;
@@ -515,15 +519,15 @@ TYPE
   Private
     function GetItem(Index:integer) : TFPgtkWidget;
     procedure SetItem (Index:integer; TheValue : TFPgtkWidget);
-    function GetTooltips(index:integer) : string;
-    procedure SetTooltips (index:integer; TheValue : string);
+    function GetTooltips(index:integer) : AnsiString;
+    procedure SetTooltips (index:integer; TheValue : AnsiString);
   Public
     function GetData (index:integer) : pointer; Override;
     function UnGetData (data:pointer) : pointer; Override;
     procedure AddToContainer (Container:TFPgtkContainer);
     procedure PackInBox (box:TFPgtkBox; AtStart:boolean; Expanding:boolean; Fill:boolean; Padding:integer);
     property Items [Index:integer]  : TFPgtkWidget read GetItem write SetItem;
-    property Tooltips [index:integer]  : string read GetTooltips write SetTooltips;
+    property Tooltips [index:integer]  : AnsiString read GetTooltips write SetTooltips;
   end;
 
 
@@ -551,10 +555,10 @@ TYPE
 
   TFPgtkLabel = class (TFPgtkMisc)
   Private
-    function GetText : string;
-    procedure SetText (TheValue : string);
-    function GetPattern : string;
-    procedure SetPattern (TheValue : string);
+    function GetText : AnsiString;
+    procedure SetText (TheValue : AnsiString);
+    function GetPattern : AnsiString;
+    procedure SetPattern (TheValue : AnsiString);
     function GetJustify : TGtkJustification;
     procedure SetJustify (TheValue : TGtkJustification);
     function GetLineWrap : boolean;
@@ -563,12 +567,12 @@ TYPE
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkLabel;
-    constructor Create (aText:string);
-    property Text : string read GetText write SetText;
-    property Pattern : string read GetPattern write SetPattern;
+    constructor Create (aText:AnsiString);
+    property Text : AnsiString read GetText write SetText;
+    property Pattern : AnsiString read GetPattern write SetPattern;
     property Justify : TGtkJustification read GetJustify write SetJustify;
     property LineWrap : boolean read GetLineWrap write SetLineWrap;
-    function ParseUline (aText:string) : guint;
+    function ParseUline (aText:AnsiString) : guint;
   end;
 
 
@@ -581,7 +585,7 @@ TYPE
   Public
     function TheGtkObject : PGtkAccelLabel;
     property AccelWidget : TFPgtkWidget read GetAccelWidget write SetAccelWidget;
-    function AccelText : string;
+    function AccelText : AnsiString;
     procedure Refetch;
   end;
 
@@ -648,17 +652,17 @@ TYPE
     function TheGtkObject : PGtkPixmap;
     property BuildInsensitive : longbool read GetBuildInsensitive write SetBuildInsensitive;
     constructor Create;
-    constructor CreateFromFile (Filename:string; Window:TFPgtkWidget);
+    constructor CreateFromFile (Filename:AnsiString; Window:TFPgtkWidget);
     constructor CreateFromStrings (Data:TStrings; Window:TFPgtkWidget);
-    constructor CreateFromText (Data:string; Window:TFPgtkWidget);
+    constructor CreateFromText (Data:AnsiString; Window:TFPgtkWidget);
     property PixMap : PGdkPixMap read GetPixmapProp write SetPixmapProp;
     property Mask : PGdkBitMap read GetMask write SetMask;
     procedure SetPixmap (aPixmap:PGdkPixMap; aMask:PGdkBitmap);
     procedure GetPixmap (var aPixmap:PGdkPixmap; var aMask:PGdkBitmap);
-    procedure LoadFromFile (Filename:string);
+    procedure LoadFromFile (Filename:AnsiString);
     procedure LoadFromStrings (data:TStrings);
-    procedure LoadFromText (data:string);
-    procedure LoadFromArray (data:array of string);
+    procedure LoadFromText (data:AnsiString);
+    procedure LoadFromArray (data:array of AnsiString);
   end;
 
   TFPgtkDirectionFunctionSignalFunction = function (Sender:TFPgtkObject; Direction:TGtkDirectionType; data:pointer): TGtkDirectionType of Object;
@@ -683,8 +687,8 @@ TYPE
     procedure RegisterToplevel;
     procedure UnregisterToplevel;
     procedure ResizeChildren;
-    function DirectionFunctionSignalConnect (Signal:string; Proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
-    function DirectionFunctionSignalConnectAfter (Signal:string; Proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
+    function DirectionFunctionSignalConnect (Signal:AnsiString; Proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
+    function DirectionFunctionSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
     function ConnectAdd (proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
     function ConnectAfterAdd (proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
     function ConnectRemove (proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
@@ -718,8 +722,8 @@ TYPE
 
   TFPgtkFrame = class (TFPgtkBin)
   Private
-    function GetText : string;
-    procedure SetText (TheValue : string);
+    function GetText : AnsiString;
+    procedure SetText (TheValue : AnsiString);
     function GetAlignment : gfloat;
     procedure SetAlignment (TheValue : gfloat);
     function GetShadowType : TgtkShadowType;
@@ -728,7 +732,7 @@ TYPE
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkFrame;
-    property Text : string read GetText write SetText;
+    property Text : AnsiString read GetText write SetText;
     property Alignment : gfloat read GetAlignment write SetAlignment;
     property ShadowType : TgtkShadowType read GetShadowType write SetShadowType;
   end;
@@ -748,9 +752,9 @@ TYPE
     FAccelKey : guint;
     FAddContainer : TFPgtkContainer;
     FLabel : TFPgtkLabel;
-    procedure CreateLabel (aText:string);
-    function GetText : string;
-    procedure SetText (TheValue : string);
+    procedure CreateLabel (aText:AnsiString);
+    function GetText : AnsiString;
+    procedure SetText (TheValue : AnsiString);
     function GetReliefStyle : TGtkReliefStyle;
     procedure SetReliefStyle (TheValue : TGtkReliefStyle);
   Protected
@@ -776,10 +780,10 @@ TYPE
     procedure Enter;
     procedure Leave;
     constructor Create;
-    constructor CreateWithLabel (aText:string); Overload;
-    constructor CreateWithLabel (aText:string; AccelGroup:PGtkAccelGroup); Overload;
+    constructor CreateWithLabel (aText:AnsiString); Overload;
+    constructor CreateWithLabel (aText:AnsiString; AccelGroup:PGtkAccelGroup); Overload;
     property TheLabel : TFPgtkLabel read FLabel;
-    property Text : string read GetText write SetText;
+    property Text : AnsiString read GetText write SetText;
     property ReliefStyle : TGtkReliefStyle read GetReliefStyle write SetReliefStyle;
     property AddContainer : TFPgtkContainer read FAddContainer write FAddContainer;
     property AccelKey : guint read FAccelKey;
@@ -819,7 +823,7 @@ TYPE
     FGroup:TFPgtkRadioButtonGroup;
     function TheGtkObject : PGtkRadioButton;
     constructor Create (AGroup:TFPgtkRadioButtonGroup);
-    constructor CreateWithLabel (AGroup:TFPgtkRadioButtonGroup; aText:string);
+    constructor CreateWithLabel (AGroup:TFPgtkRadioButtonGroup; aText:AnsiString);
   end;
 
 
@@ -829,7 +833,7 @@ TYPE
     procedure SetItem (index:integer; TheValue : TFPgtkRadioButton);
   Public
     property Items [index:integer]  : TFPgtkRadioButton read GetItem write SetItem;
-    function ActiveButtonText : string;
+    function ActiveButtonText : AnsiString;
     function ActiveButtonIndex : integer;
     function ActiveButton : TFPgtkRadioButton;
   end;
@@ -856,9 +860,9 @@ TYPE
     FAccelKey : guint;
     FAddContainer : TFPgtkContainer;
     FLabel : TFPgtkLabel;
-    procedure CreateLabel (aText:string);
-    function GetText : string;
-    procedure SetText (TheValue : string);
+    procedure CreateLabel (aText:AnsiString);
+    function GetText : AnsiString;
+    procedure SetText (TheValue : AnsiString);
   Protected
     function LabelClass : TFPgtkLabelClass; Virtual;
     procedure NotifyDestroy (AnObject:TFPgtkObject); Override;
@@ -875,9 +879,9 @@ TYPE
     procedure Deselect;
     procedure Toggle;
     constructor Create;
-    constructor CreateWithLabel (aText:string);
+    constructor CreateWithLabel (aText:AnsiString);
     property TheLabel : TFPgtkLabel read FLabel;
-    property Text : string read GetText write SetText;
+    property Text : AnsiString read GetText write SetText;
     property AddContainer : TFPgtkContainer read FAddContainer write FAddContainer;
     property AccelKey : guint read FAccelKey;
   end;
@@ -891,12 +895,12 @@ TYPE
   Public
     property Items [index:integer]  : TFPgtkItem read GetItem write SetItem;
     procedure FillFromList (aList:TStrings);
-    procedure FillFromCommaText (aList:string);
-    procedure FillFromArray (aList:array of string);
+    procedure FillFromCommaText (aList:AnsiString);
+    procedure FillFromArray (aList:array of AnsiString);
     property ItemClass : TFPgtkItemClass read FItemClass write FItemClass;
-    procedure SignalConnect (Signal:string; proc:TFPgtkSignalFunction; data:pointer);
+    procedure SignalConnect (Signal:AnsiString; proc:TFPgtkSignalFunction; data:pointer);
     constructor create (AnItemClass:TFPgtkItemClass);
-    function AddTextItem (aText:string) : TFPgtkItem;
+    function AddTextItem (aText:AnsiString) : TFPgtkItem;
   end;
 
 
@@ -961,7 +965,7 @@ TYPE
   Public
     function TheGtkObject : PGtkRadioMenuItem;
     constructor Create (AGroup:TFPgtkRadioMenuGroup);
-    constructor CreateWithLabel (Agroup:TFPgtkRadioMenuGroup; aText:string);
+    constructor CreateWithLabel (Agroup:TFPgtkRadioMenuGroup; aText:AnsiString);
     property Group : TFPgtkRadioMenuGroup read FGroup;
   end;
 
@@ -972,7 +976,7 @@ TYPE
     procedure SetItem (index:integer; TheValue : TFPgtkRadioMenuItem);
   Public
     property Items [index:integer]  : TFPgtkRadioMenuItem read GetItem write SetItem;
-    function ActiveMenuText : string;
+    function ActiveMenuText : AnsiString;
     function ActiveMenuIndex : integer;
     function ActiveMenu : TFPgtkRadioMenuItem;
     constructor create;
@@ -994,10 +998,10 @@ TYPE
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkListItem;
-    function ScrollSignalConnect (Signal:string; Proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
-    function ScrollSignalConnectAfter (Signal:string; Proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
-    function ScrollBooleanSignalConnect (Signal:string; Proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
-    function ScrollBooleanSignalConnectAfter (Signal:string; Proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
+    function ScrollSignalConnect (Signal:AnsiString; Proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
+    function ScrollSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
+    function ScrollBooleanSignalConnect (Signal:AnsiString; Proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
+    function ScrollBooleanSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
     function ConnectToggleFocusRow (proc:TFPgtkSignalFunction; data:pointer) : guint;
     function ConnectAfterToggleFocusRow (proc:TFPgtkSignalFunction; data:pointer) : guint;
     function ConnectSelectAll (proc:TFPgtkSignalFunction; data:pointer) : guint;
@@ -1071,8 +1075,8 @@ TYPE
     TheWindowType:TGtkWindowType;
     function GetWindowType : TGtkWindowType;
     procedure SetWindowType (TheValue : TGtkWindowType);
-    function GetTitle : string;
-    procedure SetTitle (TheValue : string);
+    function GetTitle : AnsiString;
+    procedure SetTitle (TheValue : AnsiString);
     function GetModal : boolean;
     procedure SetModal (TheValue : boolean);
     procedure SetModalAction (TheValue : integer);
@@ -1092,7 +1096,7 @@ TYPE
     constructor Create (AType:TGtkWindowType);
     destructor Destroy; Override;
     property WindowType : TGtkWindowType read GetWindowType write SetWindowType;
-    property Title : string read GetTitle write SetTitle;
+    property Title : AnsiString read GetTitle write SetTitle;
     property Modal : boolean read GetModal write SetModal;
     property OnDialogResult : DialogResultCallback read FOnDialogResult write FOnDialogResult;
     property OnDialogInit : DialogInitCallback read FOnDialogInit write FOnDialogInit;
@@ -1115,7 +1119,7 @@ TYPE
     property AccelGroups [ID:integer]  : PGtkAccelGroup read GetAccelGroups;
     function AccelGroupNew : integer;
     procedure AccelGroupDelete (ID:integer);
-    procedure AcceleratorAdd (AG:integer; aWidget:TFPgtkWidget; aSignal:string; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
+    procedure AcceleratorAdd (AG:integer; aWidget:TFPgtkWidget; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
     procedure AcceleratorRemove (AG:integer; aWidget:TFPgtkWidget; Key:guint; Mods:TGdkModifierType); Overload;
     procedure AccelGroupLock (AG:integer);
     procedure AccelGroupUnlock (AG:integer);
@@ -1165,8 +1169,8 @@ TYPE
     function TheGtkObject : PGtkInputDialog;
     property ButtonClose : TFPgtkButton read GetButtonClose;
     property ButtonSave : TFPgtkButton read GetButtonSave;
-    function DeviceSignalConnect (Signal:string; Proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
-    function DeviceSignalConnectAfter (Signal:string; Proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
+    function DeviceSignalConnect (Signal:AnsiString; Proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
+    function DeviceSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
     function ConnectEnableDevice (proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
     function ConnectAfterEnableDevice (proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
     function ConnectDisableDevice (proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
@@ -1176,8 +1180,8 @@ TYPE
 
   TFPgtkFileSelection = class (TFPgtkWindow)
   Private
-    function GetFilename : string;
-    procedure SetFilename (TheValue : string);
+    function GetFilename : AnsiString;
+    procedure SetFilename (TheValue : AnsiString);
     function GetDirList : TFPgtkCList;
     function GetFileList : TFPgtkCList;
     function GetOkButton : TFPgtkButton;
@@ -1191,8 +1195,8 @@ TYPE
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkFileSelection;
-    property Filename : string read GetFilename write SetFilename;
-    procedure Complete (Pattern:string);
+    property Filename : AnsiString read GetFilename write SetFilename;
+    procedure Complete (Pattern:AnsiString);
     procedure ShowFileOpButtons;
     procedure HideFileOpButtons;
     property DirList : TFPgtkCList read GetDirList;
@@ -1446,24 +1450,24 @@ TYPE
     property UseArrows : longbool read GetUseArrows write SetUseArrows;
     property UseArrowsAlways : longbool read GetUseArrowsAlways write SetUseArrowsAlways;
     property CaseSensitive : longbool read GetCaseSensitive write SetCaseSensitive;
-    procedure SetItemString (Item:TFPgtkItem; ItemValue:string);
+    procedure SetItemString (Item:TFPgtkItem; ItemValue:AnsiString);
     procedure DisableActivate;
     procedure SetValueInList (Val:longbool; IsOkIfEmpty:longbool);
   end;
 
-  TFPgtkStatusbarSignalFunction = procedure (Sender:TFPgtkObject; contextID:integer; text:string; data:pointer) of Object;
+  TFPgtkStatusbarSignalFunction = procedure (Sender:TFPgtkObject; contextID:integer; text:AnsiString; data:pointer) of Object;
 
   TFPgtkStatusbar = class (TFPgtkHBox)
   Protected
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkStatusbar;
-    function GetContextID (ContextDescr:string) : integer;
-    function Push (contextID:integer; text:string) : integer;
+    function GetContextID (ContextDescr:AnsiString) : integer;
+    function Push (contextID:integer; text:AnsiString) : integer;
     procedure Pop (contextID:integer);
     procedure Remove (contextID:integer; MessageID:integer);
-    function StatusbarSignalConnect (Signal:string; Proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
-    function StatusbarSignalConnectAfter (Signal:string; Proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
+    function StatusbarSignalConnect (Signal:AnsiString; Proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
+    function StatusbarSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
     function ConnectTextPopped (proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
     function ConnectAfterTextPopped (proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
     function ConnectTextPushed (proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
@@ -1485,12 +1489,12 @@ TYPE
     procedure SetShadowType (TheValue : TGtkShadowType);
     function GetSelectionMode : TGtkSelectionMode;
     procedure SetSelectionMode (TheValue : TGtkSelectionMode);
-    function GetColumnTitle(column:integer) : string;
-    procedure SetColumnTitle (column:integer; TheValue : string);
+    function GetColumnTitle(column:integer) : AnsiString;
+    procedure SetColumnTitle (column:integer; TheValue : AnsiString);
     function GetColumnWidget(column:integer) : TFPgtkWidget;
     procedure SetColumnWidget (column:integer; TheValue : TFPgtkWidget);
-    function GetCellText(Row:integer; Column:integer) : string;
-    procedure SetCellText (Row:integer; Column:integer; TheValue : string);
+    function GetCellText(Row:integer; Column:integer) : AnsiString;
+    procedure SetCellText (Row:integer; Column:integer; TheValue : AnsiString);
     function GetCellStyle(row:integer; column:integer) : PGtkStyle;
     procedure SetCellStyle (row:integer; column:integer; TheValue : PGtkStyle);
     function GetRowStyle(row:integer) : PGtkStyle;
@@ -1522,7 +1526,7 @@ TYPE
     procedure PassiveTitles;
     procedure ActiveTitle (column:integer);
     procedure PassiveTitle (column:integer);
-    property ColumnTitle [column:integer]  : string read GetColumnTitle write SetColumnTitle;
+    property ColumnTitle [column:integer]  : AnsiString read GetColumnTitle write SetColumnTitle;
     property ColumnWidget [column:integer]  : TFPgtkWidget read GetColumnWidget write SetColumnWidget;
     procedure SetColumnJustification (column:integer; justification:TGtkJustification);
     procedure SetColumnVisibility (column:integer; aVisible:boolean);
@@ -1539,11 +1543,11 @@ TYPE
     procedure MoveTo (row:integer; column:integer; RowAlign:gfloat; ColAlign:gfloat);
     function RowIsVisible (Row:integer) : TGtkVisibility;
     function GetCellType (Row:integer; column:integer) : TGtkCellType;
-    property CellText [Row:integer; Column:integer]  : string read GetCellText write SetCellText;
+    property CellText [Row:integer; Column:integer]  : AnsiString read GetCellText write SetCellText;
     procedure SetPixmap (row:integer; column:integer; pixmap:PGdkPixmap; mask:PGdkBitmap);
     procedure GetPixmap (row:integer; column:integer; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
-    procedure SetPixText (row:integer; column:integer; text:string; spacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
-    procedure GetPixText (row:integer; column:integer; var text:string; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
+    procedure SetPixText (row:integer; column:integer; text:AnsiString; spacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
+    procedure GetPixText (row:integer; column:integer; var text:AnsiString; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
     procedure SetForeground (row:integer; color:PGdkColor);
     procedure SetBackground (row:integer; color:PGdkColor);
     property CellStyle [row:integer; column:integer]  : PGtkStyle read GetCellStyle write SetCellStyle;
@@ -1551,14 +1555,14 @@ TYPE
     procedure SetShift (row:integer; column:integer; vertical:integer; horizontal:integer);
     procedure Remove (row:integer);
     procedure Prepend (Data:TStrings); Overload;
-    procedure Prepend (Text:string; separator:string); Overload;
-    procedure Prepend (data:array of string); Overload;
+    procedure Prepend (Text:AnsiString; separator:AnsiString); Overload;
+    procedure Prepend (data:array of AnsiString); Overload;
     function Append (data:TStrings) : Integer; Overload;
-    function Append (Text:string; Separator:string) : Integer; Overload;
-    function Append (data:array of string) : Integer; Overload;
+    function Append (Text:AnsiString; Separator:AnsiString) : Integer; Overload;
+    function Append (data:array of AnsiString) : Integer; Overload;
     procedure Insert (row:integer; data:TStrings); Overload;
-    procedure Insert (row:integer; Text:string; Separator:string); Overload;
-    procedure Insert (row:integer; data:array of string); Overload;
+    procedure Insert (row:integer; Text:AnsiString; Separator:AnsiString); Overload;
+    procedure Insert (row:integer; data:array of AnsiString); Overload;
     property RowData [row:integer]  : pointer read GetRowData write SetRowData;
     function FindRowFromData (data:pointer) : integer;
     procedure SelectRow (row:integer; column:integer);
@@ -1577,18 +1581,18 @@ TYPE
     property VAdjustment : TFPgtkAdjustment read GetVAdjustment write SetVAdjustment;
     procedure SetReorderable (reorderable:boolean);
     function Count : integer;
-    function CListScrollSignalConnect (Signal:string; Proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
-    function CListScrollSignalConnectAfter (Signal:string; Proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
-    function CListScrollBooleanSignalConnect (Signal:string; Proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
-    function CListScrollBooleanSignalConnectAfter (Signal:string; Proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
-    function SelectRowSignalConnect (Signal:string; Proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
-    function SelectRowSignalConnectAfter (Signal:string; Proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
+    function CListScrollSignalConnect (Signal:AnsiString; Proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
+    function CListScrollSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
+    function CListScrollBooleanSignalConnect (Signal:AnsiString; Proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
+    function CListScrollBooleanSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
+    function SelectRowSignalConnect (Signal:AnsiString; Proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
+    function SelectRowSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
     function ConnectSelectRow (proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
     function ConnectAfterSelectRow (proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
     function ConnectUnselectRow (proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
     function ConnectAfterUnselectRow (proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
-    function MoveSignalConnect (Signal:string; Proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
-    function MoveSignalConnectAfter (Signal:string; Proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
+    function MoveSignalConnect (Signal:AnsiString; Proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
+    function MoveSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
     function ConnectRowMove (proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
     function ConnectAfterRowMove (proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
     function ConnectScrollVertical (proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
@@ -1613,12 +1617,12 @@ TYPE
     function ConnectAfterAbortColumnResize (proc:TFPgtksignalFunction; data:pointer) : guint;
     function ConnectExtendSelection (proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
     function ConnectAfterExtendSelection (proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
-    function ColumnClickedSignalConnect (Signal:string; Proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
-    function ColumnClickedSignalConnectAfter (Signal:string; Proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
+    function ColumnClickedSignalConnect (Signal:AnsiString; Proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
+    function ColumnClickedSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
     function ConnectClickColumn (proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
     function ConnectAfterClickColumn (proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
-    function ResizeColumnSignalConnect (Signal:string; Proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
-    function ResizeColumnSignalConnectAfter (Signal:string; Proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
+    function ResizeColumnSignalConnect (Signal:AnsiString; Proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
+    function ResizeColumnSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
     function ConnectResizeColumn (proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
     function ConnectAfterResizeColumn (proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
   end;
@@ -1639,8 +1643,8 @@ TYPE
     function GetIndent : guint;
     procedure SetIndent (TheValue : guint);
     function GetTreeColumn : integer;
-    function GetNodeCellText(Node:PGtkCTreeNode; Column:integer) : string;
-    procedure SetNodeCellText (Node:PGtkCTreeNode; Column:integer; TheValue : string);
+    function GetNodeCellText(Node:PGtkCTreeNode; Column:integer) : AnsiString;
+    procedure SetNodeCellText (Node:PGtkCTreeNode; Column:integer; TheValue : AnsiString);
     function GetNodeSelectable(Node:PGtkCTreeNode) : boolean;
     procedure SetNodeSelectable (Node:PGtkCTreeNode; TheValue : boolean);
     function GetNodeCellStyle(Node:PGtkCTreeNode; column:integer) : PGtkStyle;
@@ -1661,8 +1665,8 @@ TYPE
     property TreeColumn : integer read GetTreeColumn;
     constructor Create (aColumnCount:integer; aTreeColumn:integer);
     procedure RemoveNode (node:PGtkCTreeNode);
-    function InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
-    function InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
+    function InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:AnsiString; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
+    function InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:AnsiString; aSpacing:guint8; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
     procedure PostRecursive (aNode:PGtkCTreeNode; func:TFPgtkCTreeFunction; data:pointer);
     procedure PostRecursiveToDepth (aNode:PGtkCTreeNode; aDepth:integer; func:TFPgtkCTreeFunction; data:pointer);
     procedure PreRecursive (aNode:PGtkCTreeNode; func:TFPgtkCTreeFunction; data:pointer);
@@ -1685,13 +1689,13 @@ TYPE
     procedure UnselectRecursive (aNode:PGtkCTreeNode);
     procedure RealSelectRecursive (aNode:PGtkCTreeNode; aState:boolean);
     function NodeGetCellType (Node:PGtkCTreeNode; column:integer) : TGtkCellType;
-    property NodeCellText [Node:PGtkCTreeNode; Column:integer]  : string read GetNodeCellText write SetNodeCellText;
+    property NodeCellText [Node:PGtkCTreeNode; Column:integer]  : AnsiString read GetNodeCellText write SetNodeCellText;
     procedure NodeSetPixmap (Node:PGtkCTreeNode; column:integer; pixmap:PGdkPixmap; mask:PGdkBitmap);
     procedure NodeGetPixmap (Node:PGtkCTreeNode; column:integer; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
-    procedure NodeSetPixText (Node:PGtkCTreeNode; column:integer; text:string; aspacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
-    procedure NodeGetPixText (Node:PGtkCTreeNode; column:integer; var text:string; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
-    procedure SetNodeInfo (aNode:PGtkCTreeNode; aText:string; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean); Overload;
-    procedure GetNodeInfo (aNode:PGtkCTreeNode; var aText:string; var aSpacing:guint8; var PixmapClosed:PGdkPixmap; var MaskClosed:PGdkBitmap; var PixmapOpened:PGdkPixmap; var MaskOpened:PGdkBitmap; var IsLeaf:boolean; var Expanded:boolean); Overload;
+    procedure NodeSetPixText (Node:PGtkCTreeNode; column:integer; text:AnsiString; aspacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
+    procedure NodeGetPixText (Node:PGtkCTreeNode; column:integer; var text:AnsiString; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
+    procedure SetNodeInfo (aNode:PGtkCTreeNode; aText:AnsiString; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean); Overload;
+    procedure GetNodeInfo (aNode:PGtkCTreeNode; var aText:AnsiString; var aSpacing:guint8; var PixmapClosed:PGdkPixmap; var MaskClosed:PGdkBitmap; var PixmapOpened:PGdkPixmap; var MaskOpened:PGdkBitmap; var IsLeaf:boolean; var Expanded:boolean); Overload;
     procedure NodeSetShift (Node:PGtkCTreeNode; column:integer; vertical:integer; horizontal:integer);
     property NodeSelectable [Node:PGtkCTreeNode]  : boolean read GetNodeSelectable write SetNodeSelectable;
     procedure NodeSetForeground (Node:PGtkCTreeNode; color:PGdkColor);
@@ -1774,8 +1778,8 @@ TYPE
     procedure SetTabLabelPacking (Widget:TFPgtkWidget; Expand:boolean; Fill:boolean; PackType:TGtkPackType);
     procedure EnablePopup;
     procedure DisablePopup;
-    function PageSwitchSignalConnect (Signal:string; Proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
-    function PageSwitchSignalConnectAfter (Signal:string; Proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
+    function PageSwitchSignalConnect (Signal:AnsiString; Proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
+    function PageSwitchSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
     function ConnectSwitchPage (proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
     function ConnectAfterSwitchPage (proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
   end;
@@ -1783,18 +1787,18 @@ TYPE
 
   TFPgtkFontSelection = class (TFPgtkNotebook)
   Private
-    function GetFontName : string;
-    procedure SetFontName (TheValue : string);
-    function GetPreviewText : string;
-    procedure SetPreviewText (TheValue : string);
+    function GetFontName : AnsiString;
+    procedure SetFontName (TheValue : AnsiString);
+    function GetPreviewText : AnsiString;
+    procedure SetPreviewText (TheValue : AnsiString);
   Protected
     procedure CreateGtkObject; override;
   Public
     function TheGtkObject : PGtkFontSelection;
-    property FontName : string read GetFontName write SetFontName;
+    property FontName : AnsiString read GetFontName write SetFontName;
     function GetFont : PGdkFont;
-    property PreviewText : string read GetPreviewText write SetPreviewText;
-    procedure SetFilter (FilterType:TGtkFontFilterType; FontType:TGtkFontType; Foundries:array of string; Weights:array of string; Slants:array of string; SetWidths:array of string; Spacings:array of string; CharSets:array of string);
+    property PreviewText : AnsiString read GetPreviewText write SetPreviewText;
+    procedure SetFilter (FilterType:TGtkFontFilterType; FontType:TGtkFontType; Foundries:array of AnsiString; Weights:array of AnsiString; Slants:array of AnsiString; SetWidths:array of AnsiString; Spacings:array of AnsiString; CharSets:array of AnsiString);
   end;
 
 
@@ -1911,8 +1915,8 @@ TYPE
     procedure GtkAppend (MenuItem:TFPgtkWidget); Virtual;
   Public
     function TheGtkObject : PGtkMenuShell;
-    function MoveCurrentSignalConnect (Signal:string; Proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
-    function MoveCurrentSignalConnectAfter (Signal:string; Proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
+    function MoveCurrentSignalConnect (Signal:AnsiString; Proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
+    function MoveCurrentSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
     procedure ActivateItem (MenuItem:TFPgtkWidget; ForceDeactivate:boolean);
     procedure SelectItem (MenuItem:TFPgtkWidget);
     procedure DeActivate;
@@ -1954,7 +1958,7 @@ TYPE
 
   TFPgtkMenu = class (TFPgtkMenuShell)
   Private
-    procedure SetTitle (TheValue : string);
+    procedure SetTitle (TheValue : AnsiString);
     function GetActive : TFPgtkWidget;
     procedure SetActive (TheValue : TFPgtkWidget);
     function GetActiveIndex : integer;
@@ -1980,7 +1984,7 @@ TYPE
     procedure Reposition;
     procedure AttachToWidget (Widget:TFPgtkWidget; detacher:TFPgtkMenuDetachFunction);
     procedure Detach;
-    property Title : string write SetTitle;
+    property Title : AnsiString write SetTitle;
     property Active : TFPgtkWidget read GetActive write SetActive;
     property ActiveIndex : integer read GetActiveIndex write SetActiveIndex;
     property TearOffState : boolean read GetTearOffState write SetTearOffState;
@@ -2066,18 +2070,18 @@ TYPE
     property SpaceSize : integer read GetSpaceSize write SetSpaceSize;
     property Style : TGtkToolbarStyle read GetStyle write SetStyle;
     property Orientation : tGtkOrientation read GetOrientation write SetOrientation;
-    procedure InsertWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string; Position:integer);
-    procedure PrependWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string);
-    procedure AppendWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string);
-    function InsertElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget;
-    function AppendElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
-    function PrependElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
-    function InsertItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
-    function AppendItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
-    function PrependItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
-    function InsertItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
-    function AppendItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
-    function PrependItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+    procedure InsertWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString; Position:integer);
+    procedure PrependWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString);
+    procedure AppendWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString);
+    function InsertElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget;
+    function AppendElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
+    function PrependElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
+    function InsertItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
+    function AppendItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+    function PrependItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+    function InsertItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
+    function AppendItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+    function PrependItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
     procedure InsertSpace (position:integer);
     procedure AppendSpace;
     procedure PrependSpace;
@@ -2181,7 +2185,7 @@ TYPE
     property CurveType : TGtkCurveType read GetCurveType write SetCurveType;
   end;
 
-  TFPgtkInsertSignalFunction = procedure (Sender:TFPgtkObject; NewText:string; TextLength:integer; var Position:integer; data:pointer) of Object;
+  TFPgtkInsertSignalFunction = procedure (Sender:TFPgtkObject; NewText:AnsiString; TextLength:integer; var Position:integer; data:pointer) of Object;
   TFPgtkDeleteSignalFunction = procedure (Sender:TFPgtkObject; StartPos:integer; EndPos:integer; data:pointer) of Object;
   TFPgtkXYSignalFunction = procedure (Sender:TFPgtkObject; x:integer; y:integer; data:pointer) of Object;
   TFPgtkDirectionSignalFunction = procedure (Sender:TFPgtkObject; Direction:integer; data:pointer) of Object;
@@ -2200,12 +2204,12 @@ TYPE
     procedure SetSelectionStart (TheValue : integer);
     function GetSelectionEnd : integer;
     procedure SetSelectionEnd (TheValue : integer);
-    function GetSelection : string;
+    function GetSelection : AnsiString;
   Protected
     function GetHasSelection : boolean; Dynamic;
-    procedure SetSelection (TheValue:string); Dynamic;
-    function GetText : string; Dynamic;
-    procedure SetText (TheValue:string); Dynamic; Abstract;
+    procedure SetSelection (TheValue:AnsiString); Dynamic;
+    function GetText : AnsiString; Dynamic;
+    procedure SetText (TheValue:AnsiString); Dynamic; Abstract;
   Public
     function TheGtkObject : PGtkEditable;
     property HasSelection : boolean read GetHasSelection;
@@ -2214,10 +2218,10 @@ TYPE
     property Position : integer read GetPosition write SetPosition;
     property SelectionStart : integer read GetSelectionStart write SetSelectionStart;
     property SelectionEnd : integer read GetSelectionEnd write SetSelectionEnd;
-    property Selection : string read GetSelection write SetSelection;
-    property Text : string read GetText write SetText;
+    property Selection : AnsiString read GetSelection write SetSelection;
+    property Text : AnsiString read GetText write SetText;
     procedure Changed;
-    procedure InsertText (NewText:string; AtPosition:integer);
+    procedure InsertText (NewText:AnsiString; AtPosition:integer);
     procedure DeleteText (StartPos:integer; EndPos:integer);
     procedure GetChars (StartPos:integer; EndPos:integer);
     procedure CutClipboard;
@@ -2227,18 +2231,18 @@ TYPE
     procedure ClaimSelection (claim:boolean; time:guint32);
     procedure DeleteSelection;
     procedure Clear;
-    function InsertSignalConnect (Signal:string; Proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
-    function InsertSignalConnectAfter (Signal:string; Proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
-    function DeleteSignalConnect (Signal:string; Proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
-    function DeleteSignalConnectAfter (Signal:string; Proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
-    function XYSignalConnect (Signal:string; Proc:TFPgtkXYSignalFunction; data:pointer) : guint;
-    function XYSignalConnectAfter (Signal:string; Proc:TFPgtkXYSignalFunction; data:pointer) : guint;
-    function DirectionSignalConnect (Signal:string; Proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
-    function DirectionSignalConnectAfter (Signal:string; Proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
-    function MoveWordSignalConnect (Signal:string; Proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
-    function MoveWordSignalConnectAfter (Signal:string; Proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
-    function MovetoSignalConnect (Signal:string; Proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
-    function MovetoSignalConnectAfter (Signal:string; Proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
+    function InsertSignalConnect (Signal:AnsiString; Proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
+    function InsertSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
+    function DeleteSignalConnect (Signal:AnsiString; Proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
+    function DeleteSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
+    function XYSignalConnect (Signal:AnsiString; Proc:TFPgtkXYSignalFunction; data:pointer) : guint;
+    function XYSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkXYSignalFunction; data:pointer) : guint;
+    function DirectionSignalConnect (Signal:AnsiString; Proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
+    function DirectionSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
+    function MoveWordSignalConnect (Signal:AnsiString; Proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
+    function MoveWordSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
+    function MovetoSignalConnect (Signal:AnsiString; Proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
+    function MovetoSignalConnectAfter (Signal:AnsiString; Proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
     function ConnectChanged (proc:TFPgtkSignalFunction; data:pointer) : guint;
     function ConnectAfterChanged (proc:TFPgtkSignalFunction; data:pointer) : guint;
     function ConnectActivate (proc:TFPgtkSignalFunction; data:pointer) : guint;
@@ -2282,11 +2286,11 @@ TYPE
     procedure SetMaxLength (TheValue : word);
   Protected
     procedure CreateGtkObject; override;
-    procedure SetText (TheValue:string); Override;
+    procedure SetText (TheValue:AnsiString); Override;
   Public
     function TheGtkObject : PGtkEntry;
-    procedure AppendText (aText:string);
-    procedure PrependText (aText:string);
+    procedure AppendText (aText:AnsiString);
+    procedure PrependText (aText:AnsiString);
     property Visibility : boolean read GetVisibility write SetVisibility;
     property MaxLength : word read GetMaxLength write SetMaxLength;
   end;
@@ -2353,7 +2357,7 @@ TYPE
   Protected
     procedure CreateGtkObject; override;
     procedure RefreshLines;
-    procedure SetText (TheValue:string); Override;
+    procedure SetText (TheValue:AnsiString); Override;
   Public
     function TheGtkObject : PGtkText;
     constructor Create;
@@ -2362,7 +2366,7 @@ TYPE
     procedure Freeze;
     procedure Thaw;
     function TextLength : guint;
-    procedure Insert (font:PgdkFont; fore:PgdkColor; back:PgdkColor; TheText:string);
+    procedure Insert (font:PgdkFont; fore:PgdkColor; back:PgdkColor; TheText:AnsiString);
     procedure DeleteBackward (number:longword);
     procedure DeleteForward (number:longword);
     property WordWrap : boolean read GetWordWrap write SetWordWrap;
@@ -2531,8 +2535,8 @@ TYPE
     procedure SetCurrentValue (TheValue : float);
     function GetPercentage : float;
     procedure SetPercentage (TheValue : float);
-    function GetFormatString : string;
-    procedure SetFormatString (TheValue : string);
+    function GetFormatString : AnsiString;
+    procedure SetFormatString (TheValue : AnsiString);
     function GetAdjustment : TFPgtkAdjustment;
     procedure SetAdjustment (TheValue : TFPgtkAdjustment);
     function GetActivityMode : longbool;
@@ -2546,11 +2550,11 @@ TYPE
     property CurrentValue : float read GetCurrentValue write SetCurrentValue;
     property Percentage : float read GetPercentage write SetPercentage;
     function PercentageFromValue (aValue:gfloat) : gfloat;
-    property FormatString : string read GetFormatString write SetFormatString;
+    property FormatString : AnsiString read GetFormatString write SetFormatString;
     property Adjustment : TFPgtkAdjustment read GetAdjustment write SetAdjustment;
     property ActivityMode : longbool read GetActivityMode write SetActivityMode;
-    function CurrentText : string;
-    function TextFromValue (aValue:gfloat) : string;
+    function CurrentText : AnsiString;
+    function TextFromValue (aValue:gfloat) : AnsiString;
     procedure Configure (aValue:gfloat; aMin:gfloat; aMax:gfloat);
   end;
 
@@ -2731,7 +2735,7 @@ Const
   sgMovePage = 'move-page';
   sgMoveToRow = 'move-to-row';
   sgMoveToCol = 'move-to-column';
-  sgKillChar = 'kill-char';
+  sgKillChar = 'kill-AnsiChar';
   sgKillWord = 'kill-word';
   sgKillLine = 'kill-line';
   sgCutClipboard = 'cut-clipboard';
@@ -2742,15 +2746,15 @@ Const
 function GetPascalInstance (gtkObject:PGtkObject; ObjClass:TFPgtkObjectClass) : TFPgtkObject; Overload;
 function GetPascalInstance (gtkObject:PGtkObject) : TFPgtkObject; Overload;
 function ConvertToGtkObject (AnObject:TFPgtkObject) : PGtkObject;
-function ConvertToPgChar (AString:string) : PgChar;
+function ConvertToPgChar (AString:AnsiString) : PgChar;
 function FreeFPgtkObjects (Data:pointer) : longbool; Cdecl;
 procedure DestroyData (data:pointer); Cdecl;
 function IntToPointer (Value:integer) : pointer;
 function PointerToInt (Value:pointer) : integer;
 // TFPgtkToolTips
 function GetTooltipsData (Widget:TFPgtkWidget) : PGtkTooltipsData;
-function ComposeTooltip (TooltipText:string; PrivText:string) : string;
-procedure DecomposeTooltip (Tooltip:string; var TooltipText:string; var PrivText:string);
+function ComposeTooltip (TooltipText:AnsiString; PrivText:AnsiString) : AnsiString;
+procedure DecomposeTooltip (Tooltip:AnsiString; var TooltipText:AnsiString; var PrivText:AnsiString);
 // TFPgtkWidget
 function GetPascalInstance (Widget:PGtkWidget) : TFPgtkWidget; Overload;
 function GetPascalInstance (Widget:PGtkWidget; ObjClass:TFPgtkObjectClass) : TFPgtkWidget; Overload;
@@ -2759,17 +2763,17 @@ function ConvertToGtkWidget (AnObject:TFPgtkWidget) : PGtkWidget;
 function NewImage (aWidth:integer; aHeight:integer) : PGdkImage;
 // TFPgtkPixmap
 function StringsToPPgchar (Data:TStrings) : PPgchar;
-function ArrayToPPgchar (Data:array of string) : PPgchar;
-procedure CreateGdkPixmap (var ThePixmap:PGdkPixmap; var TheMask:PGdkBitmap; aWindow:PGdkWindow; data:array of string);
+function ArrayToPPgchar (Data:array of AnsiString) : PPgchar;
+procedure CreateGdkPixmap (var ThePixmap:PGdkPixmap; var TheMask:PGdkBitmap; aWindow:PGdkWindow; data:array of AnsiString);
 // TFPgtkRadioButtonGroup
 function RadioButtonGroupCreateFromStrings (TheItems:TStrings; ToggledFunction:TFPgtkSignalFunction) : TFPgtkRadioButtonGroup;
 // TFPgtkWindow
-procedure AcceleratorAdd (AG:PGtkAccelGroup; aWidget:TFPgtkWidget; aSignal:string; Key:guint; Mods:TGdkModifierType; Flags:TGtkAccelFlags);
+procedure AcceleratorAdd (AG:PGtkAccelGroup; aWidget:TFPgtkWidget; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; Flags:TGtkAccelFlags);
 procedure AcceleratorRemove (AG:PGtkAccelGroup; aWidget:TFPgtkWidget; Key:guint; Mods:TGdkModifierType); Overload;
 procedure AccelGroupLock (AG:PGtkAccelGroup);
 procedure AccelGroupUnlock (AG:PGtkAccelGroup);
-function AccelKeyName (Key:guint; Mods:TGdkModifierType) : string;
-procedure AccelKeyParse (AccelName:string; var Key:guint; var Mods:TGdkModifierType);
+function AccelKeyName (Key:guint; Mods:TGdkModifierType) : AnsiString;
+procedure AccelKeyParse (AccelName:AnsiString; var Key:guint; var Mods:TGdkModifierType);
 procedure AccelGroupActivate (AG:PGtkAccelGroup; Key:guint; Mods:TGdkModifierType);
 // TFPgtkButtonBox
 procedure SetButtonBoxDefaultSize (aMinWidth:integer; aMinHeight:integer);
@@ -2812,12 +2816,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkObject.SignalConnect (signal:string; proc:TFPgtkSignalFunction; data:pointer) : guint;
+function TFPgtkObject.SignalConnect (signal:AnsiString; proc:TFPgtkSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@Signalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkObject.SignalConnectAfter (signal:string; proc:TFPgtkSignalFunction; data:pointer) : guint;
+function TFPgtkObject.SignalConnectAfter (signal:AnsiString; proc:TFPgtkSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@Signalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -2832,12 +2836,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkObject.BooleanSignalConnect (signal:string; proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkObject.BooleanSignalConnect (signal:AnsiString; proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@BooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkObject.BooleanSignalConnectAfter (signal:string; proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkObject.BooleanSignalConnectAfter (signal:AnsiString; proc:TFPgtkBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@BooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -2872,7 +2876,7 @@ begin
 end;
 
 
-function ConvertToPgChar (AString:string) : PgChar;
+function ConvertToPgChar (AString:AnsiString) : PgChar;
 begin
   result := pointer(aString);
 end;
@@ -3041,22 +3045,22 @@ begin
   gtk_signal_handler_unblock (TheGtkObject, SignalHandler);
 end;
 
-procedure TFPgtkObject.SignalEmit (aName:string; Args:array of const);
+procedure TFPgtkObject.SignalEmit (aName:AnsiString; Args:array of const);
 begin
 //  gtk_signal_emit_by_name (TheGtkObject, pgchar(aName), Args);
 end;
 
-function TFPgtkObject.SignalNEmissions (aName:string) : guint;
+function TFPgtkObject.SignalNEmissions (aName:AnsiString) : guint;
 begin
   result := gtk_signal_n_emissions_by_name (FGtkObject, pgchar(aName));
 end;
 
-procedure TFPgtkObject.SignalEmitStop (aName:string);
+procedure TFPgtkObject.SignalEmitStop (aName:AnsiString);
 begin
   gtk_signal_emit_stop_by_name (FGtkObject, pgchar(aName));
 end;
 
-procedure TFPgtkObject.SetData (Key:string; Data:pointer);
+procedure TFPgtkObject.SetData (Key:AnsiString; Data:pointer);
 begin
   gtk_object_set_data (TheGtkObject, ConvertToPgchar(Key), Data);
 end;
@@ -3071,14 +3075,14 @@ begin
   gtk_object_set_user_data(TheGtkObject,TheValue);
 end;
 
-procedure TFPgtkObject.SetDataFull (Key:string; Data:pointer; Destroyer:TFPgtkSignalFunction);
+procedure TFPgtkObject.SetDataFull (Key:AnsiString; Data:pointer; Destroyer:TFPgtkSignalFunction);
 begin
   gtk_object_set_data_full (TheGtkObject, pgChar(Key), ConvertSignalData (Destroyer, data, false), TGtkDestroyNotify(@DestroyData));
   CheckConvertDatas;
   ConvertDatas.Add (Key);
 end;
 
-procedure TFPgtkObject.RemoveData (Key:string);
+procedure TFPgtkObject.RemoveData (Key:AnsiString);
 var r : integer;
 begin
   gtk_object_remove_data (TheGtkObject, pgChar(Key));
@@ -3090,7 +3094,7 @@ begin
     end;
 end;
 
-function TFPgtkObject.GetData (Key:string) : pointer;
+function TFPgtkObject.GetData (Key:AnsiString) : pointer;
 var p  : pointer;
 begin
   p := gtk_object_get_data (TheGtkObject, pgChar(Key));
@@ -3315,7 +3319,7 @@ begin
   gtk_tooltips_set_colors (TheGtkObject, Fore, Back);
 end;
 
-procedure TFPgtkToolTips.SetTip (Widget:TFPgtkWidget; TipText:string; TipPrivate:string);
+procedure TFPgtkToolTips.SetTip (Widget:TFPgtkWidget; TipText:AnsiString; TipPrivate:AnsiString);
 begin
   gtk_tooltips_set_tip (TheGtkObject, PGtkwidget(ConvertToGtkObject(Widget)), ConvertToPgchar(TipText), ConvertToPgchar(TipPrivate));
 end;
@@ -3369,7 +3373,7 @@ begin
 end;
 
 
-function ComposeTooltip (TooltipText:string; PrivText:string) : string;
+function ComposeTooltip (TooltipText:AnsiString; PrivText:AnsiString) : AnsiString;
 begin
   result := TooltipText;
   if PrivText <> '' then
@@ -3377,7 +3381,7 @@ begin
 end;
 
 
-procedure DecomposeTooltip (Tooltip:string; var TooltipText:string; var PrivText:string);
+procedure DecomposeTooltip (Tooltip:AnsiString; var TooltipText:AnsiString; var PrivText:AnsiString);
 var r : integer;
 begin
   r := pos ('|', tooltip);
@@ -3455,12 +3459,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.WidgetSignalConnect (signal:string; proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
+function TFPgtkWidget.WidgetSignalConnect (signal:AnsiString; proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@WidgetSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.WidgetSignalConnectAfter (signal:string; proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
+function TFPgtkWidget.WidgetSignalConnectAfter (signal:AnsiString; proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@WidgetSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -3572,12 +3576,12 @@ begin
   gtk_widget_set_usize (TheGtkObject, width, height);
 end;
 
-function TFPgtkWidget.GetName : string;
+function TFPgtkWidget.GetName : AnsiString;
 begin
   result := gtk_widget_get_name(TheGtkObject);
 end;
 
-procedure TFPgtkWidget.SetName (TheValue:string);
+procedure TFPgtkWidget.SetName (TheValue:AnsiString);
 begin
   gtk_widget_set_name(TheGtkObject,ConvertToPgchar(TheValue));
 end;
@@ -3804,7 +3808,7 @@ begin
   result := gtk_widget_Composite_Child(TheGtkObject);
 end;
 
-function TFPgtkWidget.GetTooltip : string;
+function TFPgtkWidget.GetTooltip : AnsiString;
 var data : PGtkTooltipsData;
 begin
   data := Gtk_Tooltips_Data_Get (TheGtkObject);
@@ -3815,8 +3819,8 @@ begin
     result := '';
 end;
 
-procedure TFPgtkWidget.SetTooltip (TheValue:string);
-var t, p : string;
+procedure TFPgtkWidget.SetTooltip (TheValue:AnsiString);
+var t, p : AnsiString;
     ttdata : PGtkTooltipsData;
 begin
   if TheValue = '' then
@@ -3958,12 +3962,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventConnect (signal:string; proc:TFPgtkEventFunction; data:pointer) : guint;
+function TFPgtkWidget.EventConnect (signal:AnsiString; proc:TFPgtkEventFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@Eventfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventConnectAfter (signal:string; proc:TFPgtkEventFunction; data:pointer) : guint;
+function TFPgtkWidget.EventConnectAfter (signal:AnsiString; proc:TFPgtkEventFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@Eventfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -3988,12 +3992,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventButtonConnect (signal:string; proc:TFPgtkEventButtonFunction; data:pointer) : guint;
+function TFPgtkWidget.EventButtonConnect (signal:AnsiString; proc:TFPgtkEventButtonFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventButtonfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventButtonConnectAfter (signal:string; proc:TFPgtkEventButtonFunction; data:pointer) : guint;
+function TFPgtkWidget.EventButtonConnectAfter (signal:AnsiString; proc:TFPgtkEventButtonFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventButtonfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4028,12 +4032,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventMotionConnect (signal:string; proc:TFPgtkEventMotionFunction; data:pointer) : guint;
+function TFPgtkWidget.EventMotionConnect (signal:AnsiString; proc:TFPgtkEventMotionFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventMotionfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventMotionConnectAfter (signal:string; proc:TFPgtkEventMotionFunction; data:pointer) : guint;
+function TFPgtkWidget.EventMotionConnectAfter (signal:AnsiString; proc:TFPgtkEventMotionFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventMotionfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4078,12 +4082,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventExposeConnect (signal:string; proc:TFPgtkEventExposeFunction; data:pointer) : guint;
+function TFPgtkWidget.EventExposeConnect (signal:AnsiString; proc:TFPgtkEventExposeFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventExposefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventExposeConnectAfter (signal:string; proc:TFPgtkEventExposeFunction; data:pointer) : guint;
+function TFPgtkWidget.EventExposeConnectAfter (signal:AnsiString; proc:TFPgtkEventExposeFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventExposefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4108,12 +4112,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventKeyConnect (signal:string; proc:TFPgtkEventKeyFunction; data:pointer) : guint;
+function TFPgtkWidget.EventKeyConnect (signal:AnsiString; proc:TFPgtkEventKeyFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventKeyfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventKeyConnectAfter (signal:string; proc:TFPgtkEventKeyFunction; data:pointer) : guint;
+function TFPgtkWidget.EventKeyConnectAfter (signal:AnsiString; proc:TFPgtkEventKeyFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventKeyfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4148,12 +4152,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventCrossingConnect (signal:string; proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
+function TFPgtkWidget.EventCrossingConnect (signal:AnsiString; proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventCrossingfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventCrossingConnectAfter (signal:string; proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
+function TFPgtkWidget.EventCrossingConnectAfter (signal:AnsiString; proc:TFPgtkEventCrossingFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventCrossingfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4188,12 +4192,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventConfigureConnect (signal:string; proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
+function TFPgtkWidget.EventConfigureConnect (signal:AnsiString; proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventConfigurefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventConfigureConnectAfter (signal:string; proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
+function TFPgtkWidget.EventConfigureConnectAfter (signal:AnsiString; proc:TFPgtkEventConfigureFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventConfigurefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4218,12 +4222,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventFocusConnect (signal:string; proc:TFPgtkEventFocusFunction; data:pointer) : guint;
+function TFPgtkWidget.EventFocusConnect (signal:AnsiString; proc:TFPgtkEventFocusFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventFocusfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventFocusConnectAfter (signal:string; proc:TFPgtkEventFocusFunction; data:pointer) : guint;
+function TFPgtkWidget.EventFocusConnectAfter (signal:AnsiString; proc:TFPgtkEventFocusFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventFocusfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4278,12 +4282,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventPropertyConnect (signal:string; proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
+function TFPgtkWidget.EventPropertyConnect (signal:AnsiString; proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventPropertyfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventPropertyConnectAfter (signal:string; proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
+function TFPgtkWidget.EventPropertyConnectAfter (signal:AnsiString; proc:TFPgtkEventPropertyFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventPropertyfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4308,12 +4312,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventSelectionConnect (signal:string; proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
+function TFPgtkWidget.EventSelectionConnect (signal:AnsiString; proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventSelectionfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventSelectionConnectAfter (signal:string; proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
+function TFPgtkWidget.EventSelectionConnectAfter (signal:AnsiString; proc:TFPgtkEventSelectionFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventSelectionfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4358,12 +4362,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventProximityConnect (signal:string; proc:TFPgtkEventProximityFunction; data:pointer) : guint;
+function TFPgtkWidget.EventProximityConnect (signal:AnsiString; proc:TFPgtkEventProximityFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventProximityfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventProximityConnectAfter (signal:string; proc:TFPgtkEventProximityFunction; data:pointer) : guint;
+function TFPgtkWidget.EventProximityConnectAfter (signal:AnsiString; proc:TFPgtkEventProximityFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventProximityfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4398,12 +4402,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventClientConnect (signal:string; proc:TFPgtkEventClientFunction; data:pointer) : guint;
+function TFPgtkWidget.EventClientConnect (signal:AnsiString; proc:TFPgtkEventClientFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventClientfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventClientConnectAfter (signal:string; proc:TFPgtkEventClientFunction; data:pointer) : guint;
+function TFPgtkWidget.EventClientConnectAfter (signal:AnsiString; proc:TFPgtkEventClientFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventClientfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4428,12 +4432,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkWidget.EventNoExposeConnect (signal:string; proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
+function TFPgtkWidget.EventNoExposeConnect (signal:AnsiString; proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@EventNoExposefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkWidget.EventNoExposeConnectAfter (signal:string; proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
+function TFPgtkWidget.EventNoExposeConnectAfter (signal:AnsiString; proc:TFPgtkEventNoExposeFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@EventNoExposefunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -4468,7 +4472,7 @@ begin
   gtk_widget_unlock_accelerators (TheGtkObject);
 end;
 
-procedure TFPgtkWidget.RemoveAccelerators (aSignal:string; OnlyVisible:boolean);
+procedure TFPgtkWidget.RemoveAccelerators (aSignal:AnsiString; OnlyVisible:boolean);
 begin
   gtk_widget_remove_accelerators (TheGtkObject, ConvertToPgchar(aSignal), OnlyVisible);
 end;
@@ -4478,7 +4482,7 @@ begin
   gtk_accel_groups_activate (FGtkObject, Key, Mods);
 end;
 
-procedure TFPgtkWidget.AcceleratorAdd (AG:PGtkAccelGroup; aSignal:string; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
+procedure TFPgtkWidget.AcceleratorAdd (AG:PGtkAccelGroup; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
 begin
   gtk_widget_add_accelerator (TheGtkWidget, pgchar(aSignal),
         AG, Key, Mods, acFlags);
@@ -4728,12 +4732,12 @@ begin
   inherited items[index] := TheValue;
 end;
 
-function TFPgtkWidgetGroup.GetTooltips (index:integer) : string;
+function TFPgtkWidgetGroup.GetTooltips (index:integer) : AnsiString;
 begin
   result := items[index].Tooltip;
 end;
 
-procedure TFPgtkWidgetGroup.SetTooltips (index:integer; TheValue:string);
+procedure TFPgtkWidgetGroup.SetTooltips (index:integer; TheValue:AnsiString);
 begin
   Items[index].Tooltip := TheValue;
 end;
@@ -4809,7 +4813,7 @@ begin
 end;
 
 
-constructor TFPgtkLabel.Create (aText:string);
+constructor TFPgtkLabel.Create (aText:AnsiString);
 begin
   inherited create;
   Text := aText;
@@ -4817,22 +4821,22 @@ begin
 end;
 
 
-function TFPgtkLabel.GetText : string;
+function TFPgtkLabel.GetText : AnsiString;
 begin
   result := TheGtkObject^.TheLabel;
 end;
 
-procedure TFPgtkLabel.SetText (TheValue:string);
+procedure TFPgtkLabel.SetText (TheValue:AnsiString);
 begin
   gtk_label_set_text(TheGtkObject,ConvertToPgchar(TheValue));
 end;
 
-function TFPgtkLabel.GetPattern : string;
+function TFPgtkLabel.GetPattern : AnsiString;
 begin
   result := TheGtkObject^.pattern;
 end;
 
-procedure TFPgtkLabel.SetPattern (TheValue:string);
+procedure TFPgtkLabel.SetPattern (TheValue:AnsiString);
 begin
   gtk_label_set_pattern(TheGtkObject,ConvertToPgchar(TheValue));
 end;
@@ -4857,7 +4861,7 @@ begin
   gtk_label_set_line_wrap(TheGtkObject,TheValue);
 end;
 
-function TFPgtkLabel.ParseUline (aText:string) : guint;
+function TFPgtkLabel.ParseUline (aText:AnsiString) : guint;
 begin
   result := gtk_label_parse_uline (TheGtkObject, ConvertToPgchar(aText));
 end;
@@ -4885,7 +4889,7 @@ begin
   gtk_accel_label_set_accel_widget(TheGtkObject,PGtkwidget(ConvertToGtkObject(TheValue)));
 end;
 
-function TFPgtkAccelLabel.AccelText : string;
+function TFPgtkAccelLabel.AccelText : AnsiString;
 begin
   result := TheGtkObject^.accel_string;
 end;
@@ -5028,12 +5032,12 @@ var r : integer;
 begin
   getmem (a, sizeof (pgchar) * Data.count);
   for r := 0 to Data.Count-1 do
-    a^[r] := pchar (Data[r]);
+    a^[r] := PAnsiChar (Data[r]);
   result := ppgchar (a);
 end;
 
 
-function ArrayToPPgchar (Data:array of string) : PPgchar;
+function ArrayToPPgchar (Data:array of AnsiString) : PPgchar;
 var r,t : integer;
     a : PStringArray;
 begin
@@ -5041,7 +5045,7 @@ begin
   t := 0;
   for r := low(data) to high(data) do
     begin
-    a^[r] := pchar (data[t]);
+    a^[r] := PAnsiChar (data[t]);
     inc (t);
     end;
   result := ppgchar (a);
@@ -5068,7 +5072,7 @@ begin
 end;
 
 
-constructor TFPgtkPixmap.CreateFromFile (Filename:string; Window:TFPgtkWidget);
+constructor TFPgtkPixmap.CreateFromFile (Filename:AnsiString; Window:TFPgtkWidget);
 begin
   FPixMap := gdk_pixmap_create_from_xpm (ConvertToGtkWidget(Window)^.window, @FMask, nil, pgchar(Filename));
   inherited create;
@@ -5085,7 +5089,7 @@ begin
 end;
 
 
-constructor TFPgtkPixmap.CreateFromText (Data:string; Window:TFPgtkWidget);
+constructor TFPgtkPixmap.CreateFromText (Data:AnsiString; Window:TFPgtkWidget);
 var l : TStrings;
 begin
   l := TStringList.Create;
@@ -5134,7 +5138,7 @@ begin
   amask := m;
 end;
 
-procedure TFPgtkPixmap.LoadFromFile (Filename:string);
+procedure TFPgtkPixmap.LoadFromFile (Filename:AnsiString);
 var bm : PGdkBitmap;
     pm : PGdkPixmap;
 begin
@@ -5153,7 +5157,7 @@ begin
   freemem (ppdata, sizeof (pgchar) * Data.count);
 end;
 
-procedure TFPgtkPixmap.LoadFromText (data:string);
+procedure TFPgtkPixmap.LoadFromText (data:AnsiString);
 var l : TStrings;
 begin
   l := TStringList.Create;
@@ -5165,7 +5169,7 @@ begin
   end;
 end;
 
-procedure TFPgtkPixmap.LoadFromArray (data:array of string);
+procedure TFPgtkPixmap.LoadFromArray (data:array of AnsiString);
 var bm : PGdkBitmap;
     pm : PGdkPixmap;
     ppdata : ppgchar;
@@ -5176,7 +5180,7 @@ begin
   freemem (ppdata, sizeof (pgchar) * (high(data)-low(data)+1));
 end;
 
-procedure CreateGdkPixmap (var ThePixmap:PGdkPixmap; var TheMask:PGdkBitmap; aWindow:PGdkWindow; data:array of string);
+procedure CreateGdkPixmap (var ThePixmap:PGdkPixmap; var TheMask:PGdkBitmap; aWindow:PGdkWindow; data:array of AnsiString);
 var ppdata : ppgchar;
 begin
   ppdata := ArrayToPPgchar(Data);
@@ -5277,12 +5281,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkContainer.DirectionFunctionSignalConnect (signal:string; proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
+function TFPgtkContainer.DirectionFunctionSignalConnect (signal:AnsiString; proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@DirectionFunctionSignalfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkContainer.DirectionFunctionSignalConnectAfter (signal:string; proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
+function TFPgtkContainer.DirectionFunctionSignalConnectAfter (signal:AnsiString; proc:TFPgtkDirectionFunctionSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@DirectionFunctionSignalfunc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -5381,12 +5385,12 @@ begin
 end;
 
 
-function TFPgtkFrame.GetText : string;
+function TFPgtkFrame.GetText : AnsiString;
 begin
   result := TheGtkObject^.thelabel;
 end;
 
-procedure TFPgtkFrame.SetText (TheValue:string);
+procedure TFPgtkFrame.SetText (TheValue:AnsiString);
 begin
   gtk_frame_set_label(TheGtkObject,ConvertToPgchar(TheValue));
 end;
@@ -5447,7 +5451,7 @@ begin
   result := TFPgtkLabel;
 end;
 
-procedure TFPgtkButton.CreateLabel (aText:string);
+procedure TFPgtkButton.CreateLabel (aText:AnsiString);
 begin
 if not assigned (FLabel) then
   begin
@@ -5554,14 +5558,14 @@ begin
 end;
 
 
-constructor TFPgtkButton.CreateWithLabel (aText:string);
+constructor TFPgtkButton.CreateWithLabel (aText:AnsiString);
 begin
   create;
   Text := aText;
 end;
 
 
-constructor TFPgtkButton.CreateWithLabel (aText:string; AccelGroup:PGtkAccelGroup);
+constructor TFPgtkButton.CreateWithLabel (aText:AnsiString; AccelGroup:PGtkAccelGroup);
 begin
   create;
   Text := aText;
@@ -5570,7 +5574,7 @@ begin
 end;
 
 
-function TFPgtkButton.GetText : string;
+function TFPgtkButton.GetText : AnsiString;
 begin
   if assigned (FLabel) then
     result := FLabel.Text
@@ -5578,7 +5582,7 @@ begin
     result := '';
 end;
 
-procedure TFPgtkButton.SetText (TheValue:string);
+procedure TFPgtkButton.SetText (TheValue:AnsiString);
 begin
   if assigned (FLabel) then
     FLabel.Text := TheValue
@@ -5678,7 +5682,7 @@ begin
 end;
 
 
-constructor TFPgtkRadioButton.CreateWithLabel (AGroup:TFPgtkRadioButtonGroup; aText:string);
+constructor TFPgtkRadioButton.CreateWithLabel (AGroup:TFPgtkRadioButtonGroup; aText:AnsiString);
 begin
   FGroup := AGroup;
   inherited CreateWithLabel (aText);
@@ -5706,7 +5710,7 @@ begin
   inherited items[index] := TheValue;
 end;
 
-function TFPgtkRadioButtonGroup.ActiveButtonText : string;
+function TFPgtkRadioButtonGroup.ActiveButtonText : AnsiString;
 begin
   result := ActiveButton.Text;
 end;
@@ -5803,7 +5807,7 @@ begin
   result := TFPgtkLabel;
 end;
 
-procedure TFPgtkItem.CreateLabel (aText:string);
+procedure TFPgtkItem.CreateLabel (aText:AnsiString);
 begin
   if not assigned (FLabel) then
     begin
@@ -5880,14 +5884,14 @@ begin
 end;
 
 
-constructor TFPgtkItem.CreateWithLabel (aText:string);
+constructor TFPgtkItem.CreateWithLabel (aText:AnsiString);
 begin
   inherited create;
   Text := aText;
 end;
 
 
-function TFPgtkItem.GetText : string;
+function TFPgtkItem.GetText : AnsiString;
 begin
   if assigned (FLabel) then
     result := FLabel.Text
@@ -5895,7 +5899,7 @@ begin
     result := '';
 end;
 
-procedure TFPgtkItem.SetText (TheValue:string);
+procedure TFPgtkItem.SetText (TheValue:AnsiString);
 begin
   if assigned (FLabel) then
     FLabel.Text := TheValue
@@ -5935,7 +5939,7 @@ begin
   EndUpdate;
 end;
 
-procedure TFPgtkItemGroup.FillFromCommaText (aList:string);
+procedure TFPgtkItemGroup.FillFromCommaText (aList:AnsiString);
 var l : TStrings;
 begin
   l := TStringList.Create;
@@ -5947,7 +5951,7 @@ begin
   end;
 end;
 
-procedure TFPgtkItemGroup.FillFromArray (aList:array of string);
+procedure TFPgtkItemGroup.FillFromArray (aList:array of AnsiString);
 var r : integer;
     l : TStrings;
 begin
@@ -5961,7 +5965,7 @@ begin
   end;
 end;
 
-procedure TFPgtkItemGroup.SignalConnect (Signal:string; proc:TFPgtkSignalFunction; data:pointer);
+procedure TFPgtkItemGroup.SignalConnect (Signal:AnsiString; proc:TFPgtkSignalFunction; data:pointer);
 var r : integer;
 begin
   if assigned (Proc) then
@@ -5976,7 +5980,7 @@ begin
 end;
 
 
-function TFPgtkItemGroup.AddTextItem (aText:string) : TFPgtkItem;
+function TFPgtkItemGroup.AddTextItem (aText:AnsiString) : TFPgtkItem;
 begin
   result := FItemClass.CreateWithLabel (aText);
   Add (result);
@@ -6173,7 +6177,7 @@ begin
 end;
 
 
-constructor TFPgtkRadioMenuItem.CreateWithLabel (Agroup:TFPgtkRadioMenuGroup; aText:string);
+constructor TFPgtkRadioMenuItem.CreateWithLabel (Agroup:TFPgtkRadioMenuGroup; aText:AnsiString);
 begin
   FGroup := Agroup;
   inherited CreateWithLabel (aText);
@@ -6193,7 +6197,7 @@ begin
   inherited items[index] := TheValue;
 end;
 
-function TFPgtkRadioMenuGroup.ActiveMenuText : string;
+function TFPgtkRadioMenuGroup.ActiveMenuText : AnsiString;
 begin
   result := ActiveMenu.Text;
 end;
@@ -6257,12 +6261,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkListItem.ScrollSignalConnect (signal:string; proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
+function TFPgtkListItem.ScrollSignalConnect (signal:AnsiString; proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@ScrollSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkListItem.ScrollSignalConnectAfter (signal:string; proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
+function TFPgtkListItem.ScrollSignalConnectAfter (signal:AnsiString; proc:TFPgtkScrollSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@ScrollSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -6277,12 +6281,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkListItem.ScrollBooleanSignalConnect (signal:string; proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkListItem.ScrollBooleanSignalConnect (signal:AnsiString; proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@ScrollBooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkListItem.ScrollBooleanSignalConnectAfter (signal:string; proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkListItem.ScrollBooleanSignalConnectAfter (signal:AnsiString; proc:TFPgtkScrollBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@ScrollBooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -6535,12 +6539,12 @@ begin
   TheGtkObject^.thetype := TheValue;
 end;
 
-function TFPgtkWindow.GetTitle : string;
+function TFPgtkWindow.GetTitle : AnsiString;
 begin
   result := TheGtkObject^.title;
 end;
 
-procedure TFPgtkWindow.SetTitle (TheValue:string);
+procedure TFPgtkWindow.SetTitle (TheValue:AnsiString);
 begin
   gtk_window_set_title(TheGtkObject,ConvertToPgchar(TheValue));
 end;
@@ -6705,13 +6709,13 @@ begin
   FAccelGroups[ID] := nil;
 end;
 
-procedure TFPgtkWindow.AcceleratorAdd (AG:integer; aWidget:TFPgtkWidget; aSignal:string; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
+procedure TFPgtkWindow.AcceleratorAdd (AG:integer; aWidget:TFPgtkWidget; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; acFlags:TGtkAccelFlags); Overload;
 begin
   gtk_widget_add_accelerator (ConvertToGtkWidget(aWidget), pgchar(aSignal),
         AccelGroups[AG], Key, Mods, acFlags);
 end;
 
-procedure AcceleratorAdd (AG:PGtkAccelGroup; aWidget:TFPgtkWidget; aSignal:string; Key:guint; Mods:TGdkModifierType; Flags:TGtkAccelFlags);
+procedure AcceleratorAdd (AG:PGtkAccelGroup; aWidget:TFPgtkWidget; aSignal:AnsiString; Key:guint; Mods:TGdkModifierType; Flags:TGtkAccelFlags);
 begin
   gtk_widget_add_accelerator (ConvertToGtkWidget(aWidget), pgchar(aSignal),
         AG, Key, Mods, Flags);
@@ -6751,13 +6755,13 @@ begin
 end;
 
 
-function AccelKeyName (Key:guint; Mods:TGdkModifierType) : string;
+function AccelKeyName (Key:guint; Mods:TGdkModifierType) : AnsiString;
 begin
-  result := string (gtk_accelerator_name(Key, Mods));
+  result := AnsiString (gtk_accelerator_name(Key, Mods));
 end;
 
 
-procedure AccelKeyParse (AccelName:string; var Key:guint; var Mods:TGdkModifierType);
+procedure AccelKeyParse (AccelName:AnsiString; var Key:guint; var Mods:TGdkModifierType);
 var k : guint;
     m : TGdkModifierType;
 begin
@@ -6873,12 +6877,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkInputDialog.DeviceSignalConnect (signal:string; proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
+function TFPgtkInputDialog.DeviceSignalConnect (signal:AnsiString; proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@DeviceSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkInputDialog.DeviceSignalConnectAfter (signal:string; proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
+function TFPgtkInputDialog.DeviceSignalConnectAfter (signal:AnsiString; proc:TFPgtkDeviceSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@DeviceSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -6916,17 +6920,17 @@ begin
 end;
 
 
-function TFPgtkFileSelection.GetFilename : string;
+function TFPgtkFileSelection.GetFilename : AnsiString;
 begin
   result := gtk_file_selection_get_filename(TheGtkObject);
 end;
 
-procedure TFPgtkFileSelection.SetFilename (TheValue:string);
+procedure TFPgtkFileSelection.SetFilename (TheValue:AnsiString);
 begin
   gtk_file_selection_set_filename(TheGtkObject,Pgchar(TheValue));
 end;
 
-procedure TFPgtkFileSelection.Complete (Pattern:string);
+procedure TFPgtkFileSelection.Complete (Pattern:AnsiString);
 begin
   gtk_file_selection_complete (TheGtkObject, ConvertToPgchar(Pattern));
 end;
@@ -7679,7 +7683,7 @@ begin
   gtk_combo_set_case_sensitive(TheGtkObject,gint(TheValue));
 end;
 
-procedure TFPgtkCombo.SetItemString (Item:TFPgtkItem; ItemValue:string);
+procedure TFPgtkCombo.SetItemString (Item:TFPgtkItem; ItemValue:AnsiString);
 begin
   gtk_combo_set_item_string (TheGtkObject, PGtkitem(ConvertToGtkObject(Item)), ConvertToPgchar(ItemValue));
 end;
@@ -7707,12 +7711,12 @@ begin
 end;
 
 
-function TFPgtkStatusbar.GetContextID (ContextDescr:string) : integer;
+function TFPgtkStatusbar.GetContextID (ContextDescr:AnsiString) : integer;
 begin
   result := gtk_statusbar_get_context_id (TheGtkObject, ConvertToPgchar(ContextDescr));
 end;
 
-function TFPgtkStatusbar.Push (contextID:integer; text:string) : integer;
+function TFPgtkStatusbar.Push (contextID:integer; text:AnsiString) : integer;
 begin
   result := gtk_statusbar_push (TheGtkObject, contextID, ConvertToPgchar(text));
 end;
@@ -7737,12 +7741,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkStatusbar.StatusbarSignalConnect (signal:string; proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
+function TFPgtkStatusbar.StatusbarSignalConnect (signal:AnsiString; proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@StatusbarSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkStatusbar.StatusbarSignalConnectAfter (signal:string; proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
+function TFPgtkStatusbar.StatusbarSignalConnectAfter (signal:AnsiString; proc:TFPgtkStatusbarSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@StatusbarSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -7847,12 +7851,12 @@ begin
   gtk_clist_column_title_passive (TheGtkObject, column);
 end;
 
-function TFPgtkCList.GetColumnTitle (column:integer) : string;
+function TFPgtkCList.GetColumnTitle (column:integer) : AnsiString;
 begin
   result := gtk_clist_get_column_title(TheGtkObject,column);
 end;
 
-procedure TFPgtkCList.SetColumnTitle (column:integer; TheValue:string);
+procedure TFPgtkCList.SetColumnTitle (column:integer; TheValue:AnsiString);
 begin
   gtk_clist_set_column_title(TheGtkObject,column,ConvertToPgchar(TheValue));
 end;
@@ -7947,7 +7951,7 @@ begin
   result := gtk_clist_get_cell_type (TheGtkObject, Row, column);
 end;
 
-function TFPgtkCList.GetCellText (Row:integer; Column:integer) : string;
+function TFPgtkCList.GetCellText (Row:integer; Column:integer) : AnsiString;
 var s : pgchar;
     r : integer;
 begin
@@ -7958,7 +7962,7 @@ begin
     result := strpas(s);
 end;
 
-procedure TFPgtkCList.SetCellText (Row:integer; Column:integer; TheValue:string);
+procedure TFPgtkCList.SetCellText (Row:integer; Column:integer; TheValue:AnsiString);
 begin
   gtk_clist_set_text(TheGtkObject,Row, Column,ConvertToPgchar(TheValue));
 end;
@@ -7973,12 +7977,12 @@ begin
   gtk_clist_get_pixmap (TheGtkObject, row, column, @pixmap, @mask);
 end;
 
-procedure TFPgtkCList.SetPixText (row:integer; column:integer; text:string; spacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
+procedure TFPgtkCList.SetPixText (row:integer; column:integer; text:AnsiString; spacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
 begin
   gtk_clist_set_pixtext (TheGtkObject, row, column, ConvertToPgchar(text), spacing, pixmap, mask);
 end;
 
-procedure TFPgtkCList.GetPixText (row:integer; column:integer; var text:string; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
+procedure TFPgtkCList.GetPixText (row:integer; column:integer; var text:AnsiString; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
 var r : integer;
     s : PPgchar;
 begin
@@ -7991,7 +7995,7 @@ begin
     mask := nil;
     end
   else
-    text := string (s^);
+    text := AnsiString (s^);
 end;
 
 procedure TFPgtkCList.SetForeground (row:integer; color:PGdkColor);
@@ -8042,9 +8046,9 @@ begin
   freemem (ppdata, sizeof (pgchar) * data.count);
 end;
 
-procedure TFPgtkCList.Prepend (Text:string; separator:string); Overload;
+procedure TFPgtkCList.Prepend (Text:AnsiString; separator:AnsiString); Overload;
 var l : TStrings;
-    s : string;
+    s : AnsiString;
 begin
   l := TStringList.Create;
   try
@@ -8059,7 +8063,7 @@ begin
   end;
 end;
 
-procedure TFPgtkCList.Prepend (data:array of string); Overload;
+procedure TFPgtkCList.Prepend (data:array of AnsiString); Overload;
 var ppdata : ppgchar;
 begin
   ppdata := ArrayToPPgchar (Data);
@@ -8075,9 +8079,9 @@ begin
   freemem (ppdata, sizeof (pgchar) * data.count);
 end;
 
-Function TFPgtkCList.Append (Text:string; Separator:string) : Integer; Overload;
+Function TFPgtkCList.Append (Text:AnsiString; Separator:AnsiString) : Integer; Overload;
 var l : TStrings;
-    s : string;
+    s : AnsiString;
 begin
   l := TStringList.Create;
   try
@@ -8092,7 +8096,7 @@ begin
   end;
 end;
 
-Function TFPgtkCList.Append (data:array of string) : Integer; Overload;
+Function TFPgtkCList.Append (data:array of AnsiString) : Integer; Overload;
 var ppdata : ppgchar;
 begin
   ppdata := ArrayToPPgchar (Data);
@@ -8108,9 +8112,9 @@ begin
   freemem (ppdata, sizeof (pgchar) * data.count);
 end;
 
-procedure TFPgtkCList.Insert (row:integer; Text:string; Separator:string); Overload;
+procedure TFPgtkCList.Insert (row:integer; Text:AnsiString; Separator:AnsiString); Overload;
 var l : TStrings;
-    s : string;
+    s : AnsiString;
 begin
   l := TStringList.Create;
   try
@@ -8125,7 +8129,7 @@ begin
   end;
 end;
 
-procedure TFPgtkCList.Insert (row:integer; data:array of string); Overload;
+procedure TFPgtkCList.Insert (row:integer; data:array of AnsiString); Overload;
 var ppdata : ppgchar;
 begin
   ppdata := ArrayToPPgchar (Data);
@@ -8260,12 +8264,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.CListScrollSignalConnect (signal:string; proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
+function TFPgtkCList.CListScrollSignalConnect (signal:AnsiString; proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@CListScrollSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.CListScrollSignalConnectAfter (signal:string; proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
+function TFPgtkCList.CListScrollSignalConnectAfter (signal:AnsiString; proc:TFPgtkCListScrollSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@CListScrollSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8280,12 +8284,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.CListScrollBooleanSignalConnect (signal:string; proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkCList.CListScrollBooleanSignalConnect (signal:AnsiString; proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@CListScrollBooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.CListScrollBooleanSignalConnectAfter (signal:string; proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
+function TFPgtkCList.CListScrollBooleanSignalConnectAfter (signal:AnsiString; proc:TFPgtkCListScrollBooleanSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@CListScrollBooleanSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8300,12 +8304,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.SelectRowSignalConnect (signal:string; proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
+function TFPgtkCList.SelectRowSignalConnect (signal:AnsiString; proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@SelectRowSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.SelectRowSignalConnectAfter (signal:string; proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
+function TFPgtkCList.SelectRowSignalConnectAfter (signal:AnsiString; proc:TFPgtkSelectRowSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@SelectRowSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8340,12 +8344,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.MoveSignalConnect (signal:string; proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
+function TFPgtkCList.MoveSignalConnect (signal:AnsiString; proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@MoveSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.MoveSignalConnectAfter (signal:string; proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
+function TFPgtkCList.MoveSignalConnectAfter (signal:AnsiString; proc:TFPgtkMoveSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@MoveSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8480,12 +8484,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.ColumnClickedSignalConnect (signal:string; proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
+function TFPgtkCList.ColumnClickedSignalConnect (signal:AnsiString; proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@ColumnClickedSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.ColumnClickedSignalConnectAfter (signal:string; proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
+function TFPgtkCList.ColumnClickedSignalConnectAfter (signal:AnsiString; proc:TFPgtkColumnClickedSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@ColumnClickedSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8510,12 +8514,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkCList.ResizeColumnSignalConnect (signal:string; proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
+function TFPgtkCList.ResizeColumnSignalConnect (signal:AnsiString; proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@ResizeColumnSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkCList.ResizeColumnSignalConnectAfter (signal:string; proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
+function TFPgtkCList.ResizeColumnSignalConnectAfter (signal:AnsiString; proc:TFPgtkResizeColumnSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@ResizeColumnSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -8605,7 +8609,7 @@ begin
   gtk_ctree_remove_node (TheGtkObject, node);
 end;
 
-function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
+function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:AnsiString; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
 var
   temppgc : pgchar;
 begin
@@ -8613,7 +8617,7 @@ begin
   result := gtk_ctree_insert_node (TheGtkObject, aParent, Sibling, @temppgc, aSpacing, PixmapClosed, MaskClosed, PixmapOpened, MaskOpened, IsLeaf, Expanded);
 end;
 
-function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
+function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:AnsiString; aSpacing:guint8; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
 begin
   result := InsertNode (aParent, Sibling, data, aSpacing, nil, nil, nil, nil, IsLeaf, Expanded);
 end;
@@ -8743,7 +8747,7 @@ begin
   result := gtk_ctree_node_get_cell_type (TheGtkObject, Node, column);
 end;
 
-function TFPgtkCTree.GetNodeCellText (Node:PGtkCTreeNode; Column:integer) : string;
+function TFPgtkCTree.GetNodeCellText (Node:PGtkCTreeNode; Column:integer) : AnsiString;
 var s : pgchar;
     r : integer;
 begin
@@ -8751,10 +8755,10 @@ begin
   if (r = 0) then
     result := ''
   else
-    result := string(s^);
+    result := AnsiString(s^);
 end;
 
-procedure TFPgtkCTree.SetNodeCellText (Node:PGtkCTreeNode; Column:integer; TheValue:string);
+procedure TFPgtkCTree.SetNodeCellText (Node:PGtkCTreeNode; Column:integer; TheValue:AnsiString);
 begin
   gtk_ctree_node_set_text(TheGtkObject,Node, Column,ConvertToPgchar(TheValue));
 end;
@@ -8769,12 +8773,12 @@ begin
   gtk_ctree_node_get_pixmap (TheGtkObject, node, column, @pixmap, @mask);
 end;
 
-procedure TFPgtkCTree.NodeSetPixText (Node:PGtkCTreeNode; column:integer; text:string; aspacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
+procedure TFPgtkCTree.NodeSetPixText (Node:PGtkCTreeNode; column:integer; text:AnsiString; aspacing:guint8; pixmap:PGdkPixmap; mask:PGdkBitmap);
 begin
   gtk_ctree_node_set_pixtext (TheGtkObject, Node, column, ConvertToPgchar(text), aspacing, pixmap, mask);
 end;
 
-procedure TFPgtkCTree.NodeGetPixText (Node:PGtkCTreeNode; column:integer; var text:string; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
+procedure TFPgtkCTree.NodeGetPixText (Node:PGtkCTreeNode; column:integer; var text:AnsiString; var aspacing:guint8; var pixmap:PGdkPixmap; var mask:PGdkBitmap);
 var r : integer;
     s : PPgchar;
 begin
@@ -8787,15 +8791,15 @@ begin
     mask := nil;
     end
   else
-    text := string (s^);
+    text := AnsiString (s^);
 end;
 
-procedure TFPgtkCTree.SetNodeInfo (aNode:PGtkCTreeNode; aText:string; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean); Overload;
+procedure TFPgtkCTree.SetNodeInfo (aNode:PGtkCTreeNode; aText:AnsiString; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean); Overload;
 begin
   gtk_ctree_set_node_info (TheGtkObject, aNode, ConvertToPgchar(aText), aSpacing, PixmapClosed, MaskClosed, PixmapOpened, MaskOpened, IsLeaf, Expanded);
 end;
 
-procedure TFPgtkCTree.GetNodeInfo (aNode:PGtkCTreeNode; var aText:string; var aSpacing:guint8; var PixmapClosed:PGdkPixmap; var MaskClosed:PGdkBitmap; var PixmapOpened:PGdkPixmap; var MaskOpened:PGdkBitmap; var IsLeaf:boolean; var Expanded:boolean); Overload;
+procedure TFPgtkCTree.GetNodeInfo (aNode:PGtkCTreeNode; var aText:AnsiString; var aSpacing:guint8; var PixmapClosed:PGdkPixmap; var MaskClosed:PGdkBitmap; var PixmapOpened:PGdkPixmap; var MaskOpened:PGdkBitmap; var IsLeaf:boolean; var Expanded:boolean); Overload;
 var r : integer;
     s : PPgchar;
 begin
@@ -8815,7 +8819,7 @@ begin
     Expanded := false;
     end
   else
-    atext := string (s^);
+    atext := AnsiString (s^);
 end;
 
 procedure TFPgtkCTree.NodeSetShift (Node:PGtkCTreeNode; column:integer; vertical:integer; horizontal:integer);
@@ -9196,12 +9200,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkNotebook.PageSwitchSignalConnect (signal:string; proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
+function TFPgtkNotebook.PageSwitchSignalConnect (signal:AnsiString; proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@PageSwitchSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkNotebook.PageSwitchSignalConnectAfter (signal:string; proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
+function TFPgtkNotebook.PageSwitchSignalConnectAfter (signal:AnsiString; proc:TFPgtkPageSwitchSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@PageSwitchSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -9229,12 +9233,12 @@ begin
 end;
 
 
-function TFPgtkFontSelection.GetFontName : string;
+function TFPgtkFontSelection.GetFontName : AnsiString;
 begin
   result := gtk_font_selection_get_font_name(TheGtkObject);
 end;
 
-procedure TFPgtkFontSelection.SetFontName (TheValue:string);
+procedure TFPgtkFontSelection.SetFontName (TheValue:AnsiString);
 begin
   if not gtk_font_selection_set_font_name (TheGtkObject, pgchar(TheValue)) then
     raise exception.CreateFmt (sFontNotFound, [TheValue]);
@@ -9245,20 +9249,20 @@ begin
   result := gtk_font_selection_get_font (TheGtkObject);
 end;
 
-function TFPgtkFontSelection.GetPreviewText : string;
+function TFPgtkFontSelection.GetPreviewText : AnsiString;
 begin
   result := gtk_font_selection_get_preview_text(TheGtkObject);
 end;
 
-procedure TFPgtkFontSelection.SetPreviewText (TheValue:string);
+procedure TFPgtkFontSelection.SetPreviewText (TheValue:AnsiString);
 begin
   gtk_font_selection_set_preview_text(TheGtkObject,ConvertToPgchar(TheValue));
 end;
 
-procedure TFPgtkFontSelection.SetFilter (FilterType:TGtkFontFilterType; FontType:TGtkFontType; Foundries:array of string; Weights:array of string; Slants:array of string; SetWidths:array of string; Spacings:array of string; CharSets:array of string);
+procedure TFPgtkFontSelection.SetFilter (FilterType:TGtkFontFilterType; FontType:TGtkFontType; Foundries:array of AnsiString; Weights:array of AnsiString; Slants:array of AnsiString; SetWidths:array of AnsiString; Spacings:array of AnsiString; CharSets:array of AnsiString);
 var ppF, ppW, ppSl, ppSW, ppSp, ppC : ppgchar;
 
-  function MakePP (data : array of string) : ppgchar;
+  function MakePP (data : array of AnsiString) : ppgchar;
   begin
     if high(data) > low(data) then
       result := ArrayToPPgchar(data)
@@ -9266,7 +9270,7 @@ var ppF, ppW, ppSl, ppSW, ppSp, ppC : ppgchar;
       result := nil;
   end;
 
-  procedure FreePP (ppdata : ppgchar; data : array of string);
+  procedure FreePP (ppdata : ppgchar; data : array of AnsiString);
   begin
     if assigned (ppdata) then
       freemem (ppdata, sizeof (pgchar) * (high(data)-low(data)+1));
@@ -9681,12 +9685,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkMenuShell.MoveCurrentSignalConnect (signal:string; proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
+function TFPgtkMenuShell.MoveCurrentSignalConnect (signal:AnsiString; proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@MoveCurrentSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkMenuShell.MoveCurrentSignalConnectAfter (signal:string; proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
+function TFPgtkMenuShell.MoveCurrentSignalConnectAfter (signal:AnsiString; proc:TFPgtkMoveCurrentSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@MoveCurrentSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -9937,7 +9941,7 @@ begin
   gtk_menu_detach (TheGtkObject);
 end;
 
-procedure TFPgtkMenu.SetTitle (TheValue:string);
+procedure TFPgtkMenu.SetTitle (TheValue:AnsiString);
 begin
   gtk_menu_set_title(TheGtkObject,Pgchar(TheValue));
 end;
@@ -10250,25 +10254,25 @@ begin
   gtk_toolbar_set_orientation(TheGtkObject,TheValue);
 end;
 
-procedure TFPgtkToolbar.InsertWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string; Position:integer);
+procedure TFPgtkToolbar.InsertWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString; Position:integer);
 begin
   gtk_toolbar_insert_widget (TheGtkObject, ConvertToGtkWidget(Widget), ConvertToPgchar(TooltipText), ConvertTopgchar(TooltipPrivate), Position);
   Widget.Show;
 end;
 
-procedure TFPgtkToolbar.PrependWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string);
+procedure TFPgtkToolbar.PrependWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString);
 begin
   gtk_toolbar_prepend_widget (TheGtkObject, ConvertToGtkWidget(Widget), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate));
   Widget.Show;
 end;
 
-procedure TFPgtkToolbar.AppendWidget (Widget:TFPgtkWidget; TooltipText:string; TooltipPrivate:string);
+procedure TFPgtkToolbar.AppendWidget (Widget:TFPgtkWidget; TooltipText:AnsiString; TooltipPrivate:AnsiString);
 begin
   gtk_toolbar_append_widget (TheGtkObject, ConvertToGtkWidget(Widget), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate));
   Widget.Show;
 end;
 
-function TFPgtkToolbar.InsertElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget;
+function TFPgtkToolbar.InsertElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget;
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
@@ -10300,7 +10304,7 @@ begin
     result := nil;
 end;
 
-function TFPgtkToolbar.AppendElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
+function TFPgtkToolbar.AppendElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
@@ -10329,7 +10333,7 @@ begin
     result := nil;
 end;
 
-function TFPgtkToolbar.PrependElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
+function TFPgtkToolbar.PrependElement (ButtonType:TGtkToolbarChildType; PrevRadioBut:TFPgtkWidget; Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget;
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
@@ -10358,7 +10362,7 @@ begin
     result := nil;
 end;
 
-function TFPgtkToolbar.InsertItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.InsertItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
       gtk_toolbar_insert_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), ConvertToGtkWidget(Icon),
@@ -10366,7 +10370,7 @@ begin
       TFPgtkButton);
 end;
 
-function TFPgtkToolbar.AppendItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.AppendItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
       gtk_toolbar_append_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
@@ -10374,7 +10378,7 @@ begin
       TFPgtkButton);
 end;
 
-function TFPgtkToolbar.PrependItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.PrependItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
       gtk_toolbar_prepend_item (TheGtkObject, Converttopgchar(Text), Converttopgchar(TooltipText),
@@ -10383,7 +10387,7 @@ begin
       TFPgtkButton);
 end;
 
-function TFPgtkToolbar.InsertItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.InsertItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
 var pm : TFPgtkPixmap;
 begin
   if low(icon) < high(icon) then
@@ -10399,7 +10403,7 @@ begin
       TFPgtkButton);
 end;
 
-function TFPgtkToolbar.AppendItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.AppendItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 var pm : TFPgtkPixmap;
 begin
   if low(icon) < high(icon) then
@@ -10415,7 +10419,7 @@ begin
       TFPgtkButton);
 end;
 
-function TFPgtkToolbar.PrependItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:array of string; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
+function TFPgtkToolbar.PrependItem (Text:AnsiString; TooltipText:AnsiString; TooltipPrivate:AnsiString; Icon:array of AnsiString; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 var pm : TFPgtkPixmap;
 begin
   if low(icon) < high(icon) then
@@ -10864,7 +10868,7 @@ begin
   gtk_editable_select_region (TheGtkObject, SelectionStart, TheValue);
 end;
 
-procedure TFPgtkEditable.SetSelection (TheValue:string);
+procedure TFPgtkEditable.SetSelection (TheValue:AnsiString);
 var b : integer;
 begin
   if HasSelection then
@@ -10879,19 +10883,19 @@ begin
   SelectRegion (b, position);
 end;
 
-function TFPgtkEditable.GetSelection : string;
+function TFPgtkEditable.GetSelection : AnsiString;
 var c : pgchar;
 begin
   c := gtk_editable_get_chars (TheGtkObject, SelectionStart, SelectionEnd);
-  result := string (c);
+  result := AnsiString (c);
   g_free (c);
 end;
 
-function TFPgtkEditable.GetText : string;
+function TFPgtkEditable.GetText : AnsiString;
 var c : pgchar;
 begin
   c := gtk_editable_get_chars (TheGtkObject, 0, -1);
-  result := string (c);
+  result := AnsiString (c);
   g_free (c);
 end;
 
@@ -10900,7 +10904,7 @@ begin
   gtk_Editable_Changed (TheGtkObject);
 end;
 
-procedure TFPgtkEditable.InsertText (NewText:string; AtPosition:integer);
+procedure TFPgtkEditable.InsertText (NewText:AnsiString; AtPosition:integer);
 var p : integer;
 begin
   p := AtPosition;
@@ -10962,12 +10966,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.InsertSignalConnect (signal:string; proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.InsertSignalConnect (signal:AnsiString; proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@InsertSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.InsertSignalConnectAfter (signal:string; proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.InsertSignalConnectAfter (signal:AnsiString; proc:TFPgtkInsertSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@InsertSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -10982,12 +10986,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.DeleteSignalConnect (signal:string; proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.DeleteSignalConnect (signal:AnsiString; proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@DeleteSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.DeleteSignalConnectAfter (signal:string; proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.DeleteSignalConnectAfter (signal:AnsiString; proc:TFPgtkDeleteSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@DeleteSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -11002,12 +11006,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.XYSignalConnect (signal:string; proc:TFPgtkXYSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.XYSignalConnect (signal:AnsiString; proc:TFPgtkXYSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@XYSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.XYSignalConnectAfter (signal:string; proc:TFPgtkXYSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.XYSignalConnectAfter (signal:AnsiString; proc:TFPgtkXYSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@XYSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -11022,12 +11026,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.DirectionSignalConnect (signal:string; proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.DirectionSignalConnect (signal:AnsiString; proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@DirectionSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.DirectionSignalConnectAfter (signal:string; proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.DirectionSignalConnectAfter (signal:AnsiString; proc:TFPgtkDirectionSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@DirectionSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -11042,12 +11046,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.MoveWordSignalConnect (signal:string; proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.MoveWordSignalConnect (signal:AnsiString; proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@MoveWordSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.MoveWordSignalConnectAfter (signal:string; proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.MoveWordSignalConnectAfter (signal:AnsiString; proc:TFPgtkMoveWordSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@MoveWordSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -11062,12 +11066,12 @@ with PSignalData(data)^ do
   end;
 end;
 
-function TFPgtkEditable.MovetoSignalConnect (signal:string; proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.MovetoSignalConnect (signal:AnsiString; proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect (FGtkObject, pgChar(signal), gtk_signal_func(@MovetoSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
 
-function TFPgtkEditable.MovetoSignalConnectAfter (signal:string; proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
+function TFPgtkEditable.MovetoSignalConnectAfter (signal:AnsiString; proc:TFPgtkMovetoSignalFunction; data:pointer) : guint;
 begin
   result := gtk_signal_connect_After (FGtkObject, pgChar(signal), gtk_signal_func(@MovetoSignalproc), ConvertSignalData(TFPgtkSignalFunction(proc), data, true));
 end;
@@ -11245,17 +11249,17 @@ begin
 end;
 
 
-procedure TFPgtkEntry.SetText (TheValue:string);
+procedure TFPgtkEntry.SetText (TheValue:AnsiString);
 begin
   gtk_Entry_set_text (TheGtkObject, Pgchar(TheValue));
 end;
 
-procedure TFPgtkEntry.AppendText (aText:string);
+procedure TFPgtkEntry.AppendText (aText:AnsiString);
 begin
   gtk_Entry_append_text (TheGtkObject, ConvertToPgchar(aText));
 end;
 
-procedure TFPgtkEntry.PrependText (aText:string);
+procedure TFPgtkEntry.PrependText (aText:AnsiString);
 begin
   gtk_Entry_prepend_text (TheGtkObject, ConvertToPgchar(aText));
 end;
@@ -11476,7 +11480,7 @@ begin
   result := gtk_Text_get_length (TheGtkObject);
 end;
 
-procedure TFPgtkText.Insert (font:PgdkFont; fore:PgdkColor; back:PgdkColor; TheText:string);
+procedure TFPgtkText.Insert (font:PgdkFont; fore:PgdkColor; back:PgdkColor; TheText:AnsiString);
 begin
   gtk_text_insert (TheGtkObject, font, fore, back, pgchar(TheText), length(TheText));
 end;
@@ -11550,7 +11554,7 @@ begin
   gtk_Text_Set_Adjustments(TheGtkObject, TheGtkObject^.hadj, TheValue.TheGtkObject);
 end;
 
-procedure TFPgtkText.SetText (TheValue:string);
+procedure TFPgtkText.SetText (TheValue:AnsiString);
 begin
   Freeze;
   {$ifdef gtkwin}
@@ -11967,12 +11971,12 @@ begin
   result := gtk_progress_get_percentage_from_value (TheGtkObject, aValue);
 end;
 
-function TFPgtkProgress.GetFormatString : string;
+function TFPgtkProgress.GetFormatString : AnsiString;
 begin
   result := TheGtkObject^.format;
 end;
 
-procedure TFPgtkProgress.SetFormatString (TheValue:string);
+procedure TFPgtkProgress.SetFormatString (TheValue:AnsiString);
 begin
   gtk_progress_set_format_string(TheGtkObject,ConvertToPgchar(TheValue));
 end;
@@ -11997,12 +12001,12 @@ begin
   gtk_progress_set_activity_mode(TheGtkObject,gint(TheValue));
 end;
 
-function TFPgtkProgress.CurrentText : string;
+function TFPgtkProgress.CurrentText : AnsiString;
 begin
   result := gtk_progress_get_current_text (TheGtkObject);
 end;
 
-function TFPgtkProgress.TextFromValue (aValue:gfloat) : string;
+function TFPgtkProgress.TextFromValue (aValue:gfloat) : AnsiString;
 begin
   result := gtk_progress_get_text_from_value (TheGtkObject, aValue);
 end;

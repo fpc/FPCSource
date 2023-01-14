@@ -19,7 +19,7 @@ interface
 
 const
 
-  XPMFileNew : array [0..16] of string = (
+  XPMFileNew : array [0..16] of AnsiString = (
       '11 13 3 1',
       '. c None',
       'x c #000000',  // black
@@ -38,7 +38,7 @@ const
       'xooooooooox',
       'xxxxxxxxxxx');
 
-  XPMFileOpen : array [0..17] of string = (
+  XPMFileOpen : array [0..17] of AnsiString = (
       '16 13 4 1',
       '. c None',     // no color
       '# c #000000',  // black
@@ -58,7 +58,7 @@ const
       '##ggggggggg#....',
       '###########.....');
 
-  XPMFileSave : array [0..17] of string = (
+  XPMFileSave : array [0..17] of AnsiString = (
       '14 14 4 1',
       '. c None',     // no color
       '# c #000000',  // black
@@ -78,7 +78,7 @@ const
       '#gg#######*#g#',
       '.#############');
 
-  XPMEditAdd : array [0..16] of string = (
+  XPMEditAdd : array [0..16] of AnsiString = (
           '15 13 3 1',
           '. c None',      // None
           'o c #000000',   // Black
@@ -97,7 +97,7 @@ const
           '...............',
           '...............');
 
-  XPMEditCopy : array [0..17] of string = (
+  XPMEditCopy : array [0..17] of AnsiString = (
           '15 13 4 1',
           '. c None',      // None
           '# c #000000',   // Black
@@ -117,7 +117,7 @@ const
           '......o-------o',
           '......ooooooooo');
 
-  XPMEditDelete : array [0..17] of string = (
+  XPMEditDelete : array [0..17] of AnsiString = (
           '14 13 4 1',
           '. c None',      // None
           '# c #000000',   // Black
@@ -137,7 +137,7 @@ const
           '..r-..........',
           '............r-');
 
-  XPMEditUp : array [0..15] of string = (
+  XPMEditUp : array [0..15] of AnsiString = (
           '7 13 2 1',
           '. c None',
           'x c #000000',
@@ -154,7 +154,7 @@ const
           '..xxx..',
           '..xxx..',
           '..xxx..');
-  XPMEditDown : array [0..15] of string = (
+  XPMEditDown : array [0..15] of AnsiString = (
           '7 13 2 1',
           '. c None',
           'x c #000000',
@@ -172,7 +172,7 @@ const
           '...x...',
           '...x...');
 
-  XPMGenerate : array [0..24] of string = (
+  XPMGenerate : array [0..24] of AnsiString = (
           '15 17 7 1',
           '. c None',      // None
           '# c #000000',   // Black
@@ -199,7 +199,7 @@ const
           'x-------------#',
           '.#############.');
 
-  XPMPropField : array [0..18] of string = (
+  XPMPropField : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -220,7 +220,7 @@ const
       '...............',
       '...............');
 
-  XPMPropProperty : array [0..18] of string = (
+  XPMPropProperty : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -241,7 +241,7 @@ const
       '.+++++++++++++.',
       '...............');
 
-  XPMPropFunction : array [0..18] of string = (
+  XPMPropFunction : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -262,7 +262,7 @@ const
       '...............',
       '...............');
 
-  XPMPropProcedure : array [0..18] of string = (
+  XPMPropProcedure : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -283,7 +283,7 @@ const
       '...............',
       '...............');
 
-  XPMPropHelperProc : array [0..18] of string = (
+  XPMPropHelperProc : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -304,7 +304,7 @@ const
       '...............',
       '...............');
 
-  XPMPropHelperFunc : array [0..18] of string = (
+  XPMPropHelperFunc : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -325,7 +325,7 @@ const
       '...............',
       '...............');
 
-  XPMPropSignalType : array [0..18] of string = (
+  XPMPropSignalType : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -346,7 +346,7 @@ const
       '+++.........+++',
       '...............');
 
-  XPMPropSignal : array [0..18] of string = (
+  XPMPropSignal : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -367,7 +367,7 @@ const
       '+++.........+++',
       '...............');
 
-  XPMPropdeclar : array [0..18] of string = (
+  XPMPropdeclar : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #FFFFFF',  // white
@@ -388,7 +388,7 @@ const
       '......+++**....',
       '.......+**.....');
 
-  XPMPropTypeDecl : array [0..18] of string = (
+  XPMPropTypeDecl : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #FFFFFF',  // white
@@ -409,7 +409,7 @@ const
       '......+++**....',
       '.......+**.....');
 
-  XPMPropConstr : array [0..18] of string = (
+  XPMPropConstr : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -430,7 +430,7 @@ const
       '...............',
       '...............');
 
-  XPMPropDestr : array [0..19] of string = (
+  XPMPropDestr : array [0..19] of AnsiString = (
       '15 15 4 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -452,7 +452,7 @@ const
       '-..............',
       '...............');
 
-  XPMPropInitial : array [0..18] of string = (
+  XPMPropInitial : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
@@ -473,7 +473,7 @@ const
       '+*.............',
       '+*.............');
 
-  XPMPropFinal : array [0..18] of string = (
+  XPMPropFinal : array [0..18] of AnsiString = (
       '15 15 3 1',
       '. c None',     // no color
       '* c #000000',  // black
