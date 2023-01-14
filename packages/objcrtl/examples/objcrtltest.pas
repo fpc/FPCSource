@@ -95,7 +95,7 @@ begin
 end;
 
 
-procedure RegisterSubclass(NewClassName: PChar);
+procedure RegisterSubclass(NewClassName: PAnsiChar);
 var
   cl  : _Class;
   b   : Boolean;
