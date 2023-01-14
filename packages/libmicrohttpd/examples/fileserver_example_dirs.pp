@@ -106,7 +106,7 @@ const
       &file := nil;
     if &file = nil then
     begin
-      dir := FpOpendir(PChar('.'));
+      dir := FpOpendir(PAnsiChar('.'));
       if dir = nil then
       begin
         (* most likely cause: more concurrent requests than
