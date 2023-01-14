@@ -79,7 +79,7 @@ GDBM_OPT_ILLEGAL = 29;
 type
 
   TDatum = record
-        dptr : Pchar;
+        dptr : PAnsiChar;
         dsize : longint;
      end;
   PDatum = ^TDatum;
@@ -93,9 +93,9 @@ type
 
 
 var
-  gdbm_version : Pchar;cvar; external; {name 'gdbm_version' not accepted ??}
+  gdbm_version : PAnsiChar;cvar; external; {name 'gdbm_version' not accepted ??}
 
-function gdbm_open(para1:Pchar; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;cdecl;external External_library name 'gdbm_open';
+function gdbm_open(para1:PAnsiChar; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;cdecl;external External_library name 'gdbm_open';
 procedure gdbm_close(para1:PGDBM_FILE);cdecl;external External_library name 'gdbm_close';
 function gdbm_store(para1:PGDBM_FILE; para2:TDatum; para3:TDatum; para4:longint):longint;cdecl;external External_library name 'gdbm_store';
 function gdbm_fetch(para1:PGDBM_FILE; para2:TDatum):TDatum;cdecl;external External_library name 'gdbm_fetch';
@@ -110,13 +110,13 @@ function gdbm_fdesc(para1:PGDBM_FILE):longint;cdecl;external External_library na
 
 { Easy Pascal access routines }
 
-function gdbm_open(Const para1:string; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;
-function gdbm_store(para1:PGDBM_FILE; Const para2:string; Const para3:string; para4:longint):Boolean;
-function gdbm_fetch(para1:PGDBM_FILE; Const para2:string):string;
-function gdbm_delete(para1:PGDBM_FILE; Const para2:string):boolean;
-procedure gdbm_firstkey(para1:PGDBM_FILE; var key :string);
-function gdbm_nextkey(para1:PGDBM_FILE; Const para2:string):string;
-function gdbm_exists(para1:PGDBM_FILE; Const para2:string):boolean;
+function gdbm_open(Const para1:AnsiString; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;
+function gdbm_store(para1:PGDBM_FILE; Const para2:AnsiString; Const para3:AnsiString; para4:longint):Boolean;
+function gdbm_fetch(para1:PGDBM_FILE; Const para2:AnsiString):AnsiString;
+function gdbm_delete(para1:PGDBM_FILE; Const para2:AnsiString):boolean;
+procedure gdbm_firstkey(para1:PGDBM_FILE; var key :AnsiString);
+function gdbm_nextkey(para1:PGDBM_FILE; Const para2:AnsiString):AnsiString;
+function gdbm_exists(para1:PGDBM_FILE; Const para2:AnsiString):boolean;
 
 
 type
@@ -124,11 +124,11 @@ type
   var
      gdbm_errno : gdbm_error;cvar;external{ 'gdbm_errno'};
 
-function gdbm_strerror(para1:gdbm_error):Pchar;cdecl;external External_library name 'gdbm_strerror';
+function gdbm_strerror(para1:gdbm_error):PAnsiChar;cdecl;external External_library name 'gdbm_strerror';
 
 implementation
 
-function gdbm_open(Const para1:string; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;
+function gdbm_open(Const para1:AnsiString; para2:longint; para3:longint; para4:longint; para5:TGDBMErrorCallBack ):PGDBM_FILE;
 
 begin
   gdbm_open:=gdbm_open(@para1[1],para2,para3,para4,para5);
@@ -136,7 +136,7 @@ end;
 
 procedure cfree (P : pointer);cdecl; external 'c' name 'free';
 
-Function DatumToString(Key : TDatum) : String;
+Function DatumToString(Key : TDatum) : AnsiString;
 
 begin
   SetLength(DatumToString,Key.dsize);
@@ -146,7 +146,7 @@ begin
     cfree(Key.dptr);
 end;
 
-Function StringToDatum(Value : String) : TDatum;
+Function StringToDatum(Value : AnsiString) : TDatum;
 
 begin
   StringToDatum.dptr:=@Value[1];
@@ -154,7 +154,7 @@ begin
 end;
 
 
-function gdbm_store(para1:PGDBM_FILE; Const para2:string; Const para3:string; para4:longint):Boolean;
+function gdbm_store(para1:PGDBM_FILE; Const para2:AnsiString; Const para3:AnsiString; para4:longint):Boolean;
 
 Var
   Data,Key : TDatum;
@@ -165,31 +165,31 @@ begin
   gdbm_store:=gdbm_store(para1,key,data,para4)=0;
 end;
 
-function gdbm_fetch(para1:PGDBM_FILE; Const para2:string):string;
+function gdbm_fetch(para1:PGDBM_FILE; Const para2:AnsiString):AnsiString;
 
 begin
   gdbm_fetch:=DatumToString(gdbm_fetch(para1,StringToDatum(Para2)));
 end;
 
-function gdbm_delete(para1:PGDBM_FILE; Const para2:string):boolean;
+function gdbm_delete(para1:PGDBM_FILE; Const para2:AnsiString):boolean;
 
 begin
   gdbm_delete:=gdbm_delete(Para1,StringToDatum(para2))=0;
 end;
 
-Procedure gdbm_firstkey(para1:PGDBM_FILE; var key : String);
+Procedure gdbm_firstkey(para1:PGDBM_FILE; var key : AnsiString);
 
 begin
   Key:=DatumToString(gdbm_firstkey(para1));
 end;
 
-function gdbm_nextkey(para1:PGDBM_FILE; Const Para2 :string):string;
+function gdbm_nextkey(para1:PGDBM_FILE; Const Para2 :AnsiString):AnsiString;
 
 begin
   gdbm_nextkey:=DatumToString(gdbm_nextkey(para1,StringToDatum(para2)));
 end;
 
-function gdbm_exists(para1:PGDBM_FILE; const para2:string):boolean;
+function gdbm_exists(para1:PGDBM_FILE; const para2:AnsiString):boolean;
 
 begin
   gdbm_exists:=gdbm_exists(para1,StringToDatum(para2))<>0;

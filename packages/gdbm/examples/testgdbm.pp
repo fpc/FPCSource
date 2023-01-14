@@ -22,7 +22,7 @@ uses sysutils,gdbm;
 Var
   dbf : pgdbm_file;
   Key,Data : TDatum;
-  A,B : String;
+  A,B : AnsiString;
   i : longint;
 
 begin
@@ -33,9 +33,9 @@ begin
     begin
     A:=Format('data for string %d',[i]);
     B:=Format('string %d',[i]);
-    Data.dptr:=Pchar(A);
+    Data.dptr:=PAnsiChar(A);
     Data.dsize:=length(A);
-    key.dptr:=pchar(B);
+    key.dptr:=PAnsiChar(B);
     key.dsize:=length(B);
     if gdbm_store(dbf,key,data,gdbm_insert)<>0 then
       Writeln('Error inserting data')
