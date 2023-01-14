@@ -25,8 +25,8 @@ const
   output_file:string='';
 
 var
-  version : array[0..0] of char;cvar;external;
-  gdbversion : pchar;
+  version : array[0..0] of AnsiChar;cvar;external;
+  gdbversion : PAnsiChar;
   subver_str : string;
   i, version_number,
   subversion_number : longint;
@@ -48,7 +48,7 @@ begin
   if (gdbversion[0] in ['4','5','6','7','8','9']) and (gdbversion[1]='.') then
     begin
       if not only_ver then
-        Writeln('GDB version is ',pchar(@version));
+        Writeln('GDB version is ',PAnsiChar(@version));
       version_number:=ord(gdbversion[0])-ord('0');
       i:=2;
       subver_str:='';
