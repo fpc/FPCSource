@@ -36,7 +36,7 @@ const
 Type
   TSockAddr = Array [1..112] of byte;
   TPGresAttDesc = record
-       name : Pchar;
+       name : PAnsiChar;
        adtid : Oid;
        adtsize : integer;
     end;
@@ -44,7 +44,7 @@ Type
   PPPGresAttDesc= ^PPGresAttDesc;
   TPGresAttValue = record
        len : longint;
-       value : Pchar;
+       value : PAnsiChar;
     end;
   PPGresAttValue= ^TPGresAttValue;
   PPPGresAttValue= ^PPGresAttValue;
@@ -75,24 +75,24 @@ Type
        CONNECTION_SSL_STARTUP,CONNECTION_NEEDED);
 
    TPGconn = record
-        pghost : Pchar;
-        pgtty : Pchar;
-        pgport : Pchar;
-        pgoptions : Pchar;
-        dbName : Pchar;
+        pghost : PAnsiChar;
+        pgtty : PAnsiChar;
+        pgport : PAnsiChar;
+        pgoptions : PAnsiChar;
+        dbName : PAnsiChar;
         status : TConnStatusType;
-        errorMessage : array[0..(ERROR_MSG_LENGTH)-1] of char;
+        errorMessage : array[0..(ERROR_MSG_LENGTH)-1] of AnsiChar;
         Pfin : PFILE;
         Pfout : PFILE;
         Pfdebug : PFILE;
         sock : longint;
         laddr : TSockAddr;
         raddr : TSockAddr;
-        salt : array[0..(2)-1] of char;
+        salt : array[0..(2)-1] of AnsiChar;
         asyncNotifyWaiting : longint;
         notifyList : PDllist;
-        pguser : Pchar;
-        pgpass : Pchar;
+        pguser : PAnsiChar;
+        pgpass : PAnsiChar;
         lobjfuncs : PPGlobjfuncs;
     end;
   PPGconn= ^TPGconn;
@@ -104,7 +104,7 @@ Type
         tuples : PPPGresAttValue;
         tupArrSize : longint;
         resultStatus : TExecStatusType;
-        cmdStatus : array[0..(CMDSTATUS_LEN)-1] of char;
+        cmdStatus : array[0..(CMDSTATUS_LEN)-1] of AnsiChar;
         binary : longint;
         conn : PPGconn;
     end;
@@ -129,17 +129,17 @@ Type
 
   PpgNotify = ^pgNotify;
   pgNotify = record
-          relname : Pchar;
+          relname : PAnsiChar;
           be_pid : longint;
-          extra : Pchar;
+          extra : PAnsiChar;
     end;
 
 { Function types for notice-handling callbacks  }
   PQnoticeReceiver = procedure (arg:pointer; res:PPGresult);cdecl;
-  PQnoticeProcessor = procedure (arg:pointer; message:Pchar);cdecl;
+  PQnoticeProcessor = procedure (arg:pointer; message:PAnsiChar);cdecl;
 { Print options for PQprint()  }
   Ppqbool = ^pqbool;
-  pqbool = char;
+  pqbool = AnsiChar;
 
   P_PQprintOpt = ^_PQprintOpt;
   _PQprintOpt = record
@@ -149,10 +149,10 @@ Type
           html3 : pqbool;
           expanded : pqbool;
           pager : pqbool;
-          fieldSep : Pchar;
-          tableOpt : Pchar;
-          caption : Pchar;
-          fieldName : ^Pchar;
+          fieldSep : PAnsiChar;
+          tableOpt : PAnsiChar;
+          caption : PAnsiChar;
+          fieldName : ^PAnsiChar;
     end;
   PQprintOpt = _PQprintOpt;
   PPQprintOpt = ^PQprintOpt;
@@ -168,12 +168,12 @@ Type
 
      P_PQconninfoOption = ^_PQconninfoOption;
      _PQconninfoOption = record
-          keyword : Pchar;
-          envvar : Pchar;
-          compiled : Pchar;
-          val : Pchar;
-          _label : Pchar;
-          dispchar : Pchar;
+          keyword : PAnsiChar;
+          envvar : PAnsiChar;
+          compiled : PAnsiChar;
+          val : PAnsiChar;
+          _label : PAnsiChar;
+          dispchar : PAnsiChar;
           dispsize : longint;
        end;
      PQconninfoOption = _PQconninfoOption;
