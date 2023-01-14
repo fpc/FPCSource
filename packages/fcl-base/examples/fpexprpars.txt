@@ -4,7 +4,7 @@ The parser compiles the expression into a node tree, which is
 type checked after it was compiled.
 
 The expression parser handles the following types:
-  String 
+
   Integer (64-bit)
   Float (TExprFloat, normally Double) 
   TDateTime
@@ -72,7 +72,7 @@ The arguments are:
   Name : Name of the function
   Result type : Character with result type:
     I : integer
-    S : String
+    S :
     F : FLoat
     D : TDateTime
     B : Boolean

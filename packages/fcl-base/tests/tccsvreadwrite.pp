@@ -15,8 +15,8 @@ type
   private
     FData: TStrings;
     FParser: TCSVParser;
-    procedure AssertLine(ARow: Integer; AValues: array of string);
-    procedure HaveNext(ARow, ACol: integer; AValue: String);
+    procedure AssertLine(ARow: Integer; AValues: array of );
+    procedure HaveNext(ARow, ACol: integer; AValue: );
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -39,10 +39,10 @@ begin
   AssertNotNull('Have parser',Parser);
 end;
 
-procedure TTestCSVReadWrite.HaveNext(ARow,ACol: integer; AValue : String);
+procedure TTestCSVReadWrite.HaveNext(ARow,ACol: integer; AValue : );
 
 Var
-  CN : String;
+  CN : ;
 
 begin
   CN:=Format('Cell(row: %d, col: %d)',[ARow,ACol]);
@@ -52,7 +52,7 @@ begin
   AssertEquals(CN+': Value',AValue,Parser.CurrentCellText);
 end;
 
-procedure TTestCSVReadWrite.AssertLine(ARow: Integer; AValues: array of string);
+procedure TTestCSVReadWrite.AssertLine(ARow: Integer; AValues: array of );
 
 Var
   I : Integer;

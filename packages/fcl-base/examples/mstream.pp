@@ -3,7 +3,7 @@ Program TestStream;
 uses classes;
 
 Var Stream : TMemoryStream;
-    S,T : String;
+    S,T : AnsiString;
 
 begin
   S:='ABCDEFGHIJKLMNOPQRSTUVWXYZ';

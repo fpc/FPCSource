@@ -14,7 +14,8 @@
 
  **********************************************************************}
 program demobasenenc;
-
+{$mode objfpc}
+{$h+}
 uses sysutils, basenenc, typinfo, custapp, Classes;
 
 Type

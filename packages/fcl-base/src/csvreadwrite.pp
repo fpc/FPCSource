@@ -37,7 +37,8 @@
 
 unit csvreadwrite;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H+}
 
 interface
 
@@ -211,7 +212,8 @@ begin
   DestLength := Length(AString);
 
   Src := PChar(AString);
-  EndPos := Src + DestLength;
+  EndPos := Src;
+  Inc(EndPos,DestLength);
   while Src < EndPos do
   begin
     if (Src^ = CR) then
@@ -371,9 +373,9 @@ procedure TCSVParser.ParseQuotedValue;
 var
   QuotationEnd: Boolean;
 begin
-  NextChar; // skip opening quotation char
+  NextChar; // skip opening quotation AnsiChar
   repeat
-    // read value up to next quotation char
+    // read value up to next quotation AnsiChar
     while not ((FCurrentChar = FQuoteChar) or EndOfFile) do
     begin
       if EndOfLine then
@@ -386,7 +388,7 @@ begin
         NextChar;
       end;
     end;
-    // skip quotation char (closing or escaping)
+    // skip quotation AnsiChar (closing or escaping)
     if not EndOfFile then
       NextChar;
     // check if it was escaping
@@ -553,6 +555,7 @@ var
   I: Integer;
   ValueLen: Integer;
   NeedQuotation: Boolean;
+  S : String;
 begin
   ValueLen := Length(AValue);
 
@@ -573,8 +576,8 @@ begin
   begin
     // double existing quotes
     Result := FDoubleQuote;
-    Insert(StringReplace(AValue, FQuoteChar, FDoubleQuote, [rfReplaceAll]),
-      Result, 2);
+    S:=StringReplace(AValue, FQuoteChar, FDoubleQuote, [rfReplaceAll]);
+    Insert(S,Result, 2);
   end else
     Result := AValue;
 end;

@@ -183,10 +183,10 @@ procedure TBufStream.FillBuffer;
 
 Var
   RCount : Integer;
-  P : PChar;
+  P : PAnsiChar;
 
 begin
-  P:=Pchar(FBuffer);
+  P:=PAnsiChar(FBuffer);
   // Reset at beginning if empty.
   If (FBufSize-FBufPos)<=0 then
    begin
@@ -207,10 +207,10 @@ procedure TBufStream.FlushBuffer;
 
 Var
   WCount : Integer;
-  P : PChar;
+  P : PAnsiChar;
 
 begin
-  P:=Pchar(FBuffer);
+  P:=PAnsiChar(FBuffer);
   Inc(P,FBufPos);
   WCount:=1;
   While (WCount<>0) and ((FBufSize-FBufPos)>0) do
@@ -258,12 +258,12 @@ end;
 function TReadBufStream.Read(var ABuffer; ACount: LongInt): Integer;
 
 Var
-  P,PB : PChar;
+  P,PB : PAnsiChar;
   Avail,MSize,RCount : Integer;
 
 begin
   Result:=0;
-  P:=PChar(@ABuffer);
+  P:=PAnsiChar(@ABuffer);
   Avail:=1;
   While (Result<ACount) and (Avail>0) do
     begin
@@ -275,7 +275,7 @@ begin
       MSize:=ACount-Result;
       If (MSize>Avail) then
         MSize:=Avail;
-      PB:=PChar(FBuffer);
+      PB:=PAnsiChar(FBuffer);
       Inc(PB,FBufPos);
       Move(PB^,P^,MSIze);
       Inc(FBufPos,MSize);
@@ -306,12 +306,12 @@ end;
 function TWriteBufStream.Write(const ABuffer; ACount: LongInt): Integer;
 
 Var
-  P,PB : PChar;
+  P,PB : PAnsiChar;
   Avail,MSize,RCount : Integer;
 
 begin
   Result:=0;
-  P:=PChar(@ABuffer);
+  P:=PAnsiChar(@ABuffer);
   While (Result<ACount) do
     begin
     If (FBufSize=FCapacity) then
@@ -320,7 +320,7 @@ begin
     MSize:=ACount-Result;
     If (MSize>Avail) then
       MSize:=Avail;
-    PB:=PChar(FBuffer);
+    PB:=PAnsiChar(FBuffer);
     Inc(PB,FBufSize);
     Move(P^,PB^,MSIze);
     Inc(FBufSize,MSize);

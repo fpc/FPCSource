@@ -18,9 +18,9 @@ program testbasenenc;
 uses sysutils, basenenc;
 
 
-Procedure AssertEquals(Const aActual,aExpected : TBytes; aMsg : String);
+Procedure AssertEquals(Const aActual,aExpected : TBytes; aMsg : );
 
-  function ToStr(aBytes : TBytes) : string;
+  function ToStr(aBytes : TBytes) : ;
 
   Var
     I : Integer;
@@ -45,7 +45,7 @@ begin
     end;
 end;
 
-Procedure AssertEquals(Const aActual,aExpected,aMsg : String);
+Procedure AssertEquals(Const aActual,aExpected,aMsg : );
 
 begin
   if aActual<>aExpected then
@@ -55,7 +55,7 @@ begin
     end;
 end;
 
-Procedure DoTest(B : Tbytes; aExpected : String; aURL : Boolean = False);
+Procedure DoTest(B : Tbytes; aExpected : ; aURL : Boolean = False);
 
 Var
   B2 : TBytes;
@@ -74,13 +74,13 @@ begin
   AssertEquals(B2,B,'DoTest Wrong decode');
 end;
 
-Procedure DoTest64(aValue, aExpected : String);
+Procedure DoTest64(aValue, aExpected : );
 
 begin
   DoTest(TEncoding.UTF8.GetAnsiBytes(aValue),aExpected);
 end;
 
-Procedure DoTest32(aValue, aExpected : String);
+Procedure DoTest32(aValue, aExpected : );
 
 Var
   B2 : TBytes;
@@ -93,7 +93,7 @@ begin
   AssertEquals(b2,TEncoding.UTF8.GetAnsiBytes(aValue),'Base32 Wrong encode for '+aValue);
 end;
 
-Procedure DoTest32Hex(aValue, aExpected : String);
+Procedure DoTest32Hex(aValue, aExpected : );
 
 Var
   B2 : TBytes;
@@ -106,7 +106,7 @@ begin
   AssertEquals(B2,TEncoding.UTF8.GetAnsiBytes(aValue),'Base32Hex Wrong encode for '+aValue);
 end;
 
-Procedure DoTest16(aValue, aExpected : String);
+Procedure DoTest16(aValue, aExpected : );
 
 Var
   B2 : TBytes;

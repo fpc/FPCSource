@@ -25,11 +25,11 @@ procedure TMyCustomApplication.ServerReceivedCustomRequest(
   Sender: TBaseSingleInstance; MsgID: Integer; aMsgType: TMessageType;
   MsgData: TStream);
 var
-  xData: string;
+  xData: AnsiString;
   xStringStream: TStringStream;
 begin
   MsgData.Position := 0;
-  SetLength(xData, MsgData.Size div SizeOf(Char));
+  SetLength(xData, MsgData.Size div SizeOf(AnsiChar));
   if MsgData.Size > 0 then
     MsgData.ReadBuffer(xData[1], MsgData.Size);
 

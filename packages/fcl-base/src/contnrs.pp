@@ -220,7 +220,7 @@ type
     FHashTable    : PHashTable;
     FHashCapacity : Integer;
     { Strings }
-    FStrs     : PChar;
+    FStrs     : PAnsiChar;
     FStrCount,
     FStrCapacity : Integer;
     Function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
@@ -245,7 +245,7 @@ type
     Function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
     Function GetNextCollision(Index: Integer): Integer;
     Procedure Delete(Index: Integer);
-    class Procedure Error(const Msg: string; Data: PtrInt);
+    class Procedure Error(const Msg: AnsiString; Data: PtrInt);
     Function Expand: TFPHashList;
     Function Extract(item: Pointer): Pointer;
     Function IndexOf(Item: Pointer): Integer;
@@ -262,7 +262,7 @@ type
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
     property List: PHashItemList read FHashList;
-    property Strs: PChar read FStrs;
+    property Strs: PAnsiChar read FStrs;
   end;
 
 
@@ -340,18 +340,18 @@ type
 
   { Must return a Longword value in the range 0..TableSize,
    usually via a mod operator;  }
-  THashFunction = Function(const S: string; const TableSize: Longword): Longword;
+  THashFunction = Function(const S: AnsiString; const TableSize: Longword): Longword;
 
 
   { THTNode }
 
   THTCustomNode = class(TObject)
   private
-    FKey: string;
+    FKey: AnsiString;
   public
-    constructor CreateWith(const AString: String);
-    Function HasKey(const AKey: string): boolean;
-    property Key: string read FKey;
+    constructor CreateWith(const AString: AnsiString);
+    Function HasKey(const AKey: AnsiString): boolean;
+    property Key: AnsiString read FKey;
   end;
   THTCustomNodeClass = Class of THTCustomNode;
 
@@ -374,20 +374,20 @@ type
   protected
     FHashTableSize: Longword;
     Function Chain(const index: Longword):TFPObjectList;
-    Function CreateNewNode(const aKey : string) : THTCustomNode; virtual; abstract;
+    Function CreateNewNode(const aKey : AnsiString) : THTCustomNode; virtual; abstract;
     Procedure AddNode(ANode : THTCustomNode); virtual; abstract;
     Function ChainLength(const ChainIndex: Longword): Longword; virtual;
-    Function FindOrCreateNew(const aKey: string): THTCustomNode; virtual;
+    Function FindOrCreateNew(const aKey: AnsiString): THTCustomNode; virtual;
     Procedure SetHashFunction(AHashFunction: THashFunction); virtual;
-    Function FindChainForAdd(Const aKey : String) : TFPObjectList;
+    Function FindChainForAdd(Const aKey : AnsiString) : TFPObjectList;
   public
     constructor Create;
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction);
     destructor Destroy; override;
     Procedure ChangeTableSize(const ANewSize: Longword); virtual;
     Procedure Clear; virtual;
-    Procedure Delete(const aKey: string); virtual;
-    Function Find(const aKey: string): THTCustomNode;
+    Procedure Delete(const aKey: AnsiString); virtual;
+    Function Find(const aKey: AnsiString): THTCustomNode;
     Function IsEmpty: boolean;
     property HashFunction: THashFunction read FHashFunction write SetHashFunction;
     property Count: Longword read FCount;
@@ -412,8 +412,8 @@ type
   // For compatibility
   THTNode = THTDataNode;
 
-  TDataIteratorMethod = Procedure(Item: Pointer; const Key: string; var Continue: Boolean) of object;
-  TDataIteratorCallBack = Procedure(Item: Pointer; const Key: string; var Continue: Boolean);
+  TDataIteratorMethod = Procedure(Item: Pointer; const Key: AnsiString; var Continue: Boolean) of object;
+  TDataIteratorCallBack = Procedure(Item: Pointer; const Key: AnsiString; var Continue: Boolean);
 
   // For compatibility
   TIteratorMethod = TDataIteratorMethod;
@@ -421,46 +421,46 @@ type
   TFPDataHashTable = Class(TFPCustomHashTable)
   Private
     FIteratorCallBack: TDataIteratorCallBack;
-    Procedure CallbackIterator(Item: Pointer; const Key: string; var Continue: Boolean);
+    Procedure CallbackIterator(Item: Pointer; const Key: AnsiString; var Continue: Boolean);
   Protected
-    Function CreateNewNode(const aKey : String) : THTCustomNode; override;
+    Function CreateNewNode(const aKey : AnsiString) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    Procedure SetData(const index: string; const AValue: Pointer); virtual;
-    Function GetData(const index: string):Pointer; virtual;
+    Procedure SetData(const index: AnsiString; const AValue: Pointer); virtual;
+    Function GetData(const index: AnsiString):Pointer; virtual;
     Function ForEachCall(aMethod: TDataIteratorMethod): THTDataNode; virtual;
   Public
     Function Iterate(aMethod: TDataIteratorMethod): Pointer; virtual;
     Function Iterate(aMethod: TDataIteratorCallBack): Pointer; virtual;
-    Procedure Add(const aKey: string; AItem: pointer); virtual;
-    property Items[const index: string]: Pointer read GetData write SetData; default;
+    Procedure Add(const aKey: AnsiString; AItem: pointer); virtual;
+    property Items[const index: AnsiString]: Pointer read GetData write SetData; default;
   end;
 
   { TFPStringHashTable : Hash table with simple strings as data }
   THTStringNode = Class(THTCustomNode)
   Private
-    FData : String;
+    FData : AnsiString;
   public
-    property Data: String read FData write FData;
+    property Data: AnsiString  read FData write FData;
   end;
   
-  TStringIteratorMethod = Procedure(Item: String; const Key: string; var Continue: Boolean) of object;
-  TStringIteratorCallback = Procedure(Item: String; const Key: string; var Continue: Boolean);
+  TStringIteratorMethod = Procedure(Item: AnsiString; const Key: AnsiString; var Continue: Boolean) of object;
+  TStringIteratorCallback = Procedure(Item: AnsiString; const Key: AnsiString; var Continue: Boolean);
 
   TFPStringHashTable = Class(TFPCustomHashTable)
   Private
     FIteratorCallBack: TStringIteratorCallback;
-    Procedure CallbackIterator(Item: String; const Key: string; var Continue: Boolean);
+    Procedure CallbackIterator(Item: AnsiString; const Key: AnsiString; var Continue: Boolean);
   Protected
-    Function CreateNewNode(const aKey : String) : THTCustomNode; override;
+    Function CreateNewNode(const aKey : AnsiString) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    Procedure SetData(const Index, AValue: string); virtual;
-    Function GetData(const index: string): String; virtual;
+    Procedure SetData(const Index, AValue: AnsiString); virtual;
+    Function GetData(const index: AnsiString): AnsiString; virtual;
     Function ForEachCall(aMethod: TStringIteratorMethod): THTStringNode; virtual;
   Public
-    Function Iterate(aMethod: TStringIteratorMethod): String; virtual;
-    Function Iterate(aMethod: TStringIteratorCallback): String; virtual;
-    Procedure Add(const aKey,aItem: string); virtual;
-    property Items[const index: string]: String read GetData write SetData; default;
+    Function Iterate(aMethod: TStringIteratorMethod): AnsiString; virtual;
+    Function Iterate(aMethod: TStringIteratorCallback): AnsiString; virtual;
+    Procedure Add(const aKey,aItem: AnsiString); virtual;
+    property Items[const index: AnsiString]: AnsiString read GetData write SetData; default;
   end;
 
   { TFPStringHashTable : Hash table with simple strings as data }
@@ -478,34 +478,34 @@ type
     destructor Destroy; override;
   end;
 
-  TObjectIteratorMethod = Procedure(Item: TObject; const Key: string; var Continue: Boolean) of object;
-  TObjectIteratorCallback = Procedure(Item: TObject; const Key: string; var Continue: Boolean);
+  TObjectIteratorMethod = Procedure(Item: TObject; const Key: AnsiString; var Continue: Boolean) of object;
+  TObjectIteratorCallback = Procedure(Item: TObject; const Key: AnsiString; var Continue: Boolean);
 
   TFPObjectHashTable = Class(TFPCustomHashTable)
   Private
     FOwnsObjects : Boolean;
     FIteratorCallBack: TObjectIteratorCallback;
-    procedure CallbackIterator(Item: TObject; const Key: string; var Continue: Boolean);
+    procedure CallbackIterator(Item: TObject; const Key: AnsiString; var Continue: Boolean);
   Protected
-    Function CreateNewNode(const aKey : String) : THTCustomNode; override;
+    Function CreateNewNode(const aKey : AnsiString) : THTCustomNode; override;
     Procedure AddNode(ANode : THTCustomNode); override;
-    Procedure SetData(const Index: string; AObject : TObject); virtual;
-    Function GetData(const index: string): TObject; virtual;
+    Procedure SetData(const Index: AnsiString; AObject : TObject); virtual;
+    Function GetData(const index: AnsiString): TObject; virtual;
     Function ForEachCall(aMethod: TObjectIteratorMethod): THTObjectNode; virtual;
   Public
     constructor Create(AOwnsObjects : Boolean = True);
     constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction; AOwnsObjects : Boolean = True);
     Function Iterate(aMethod: TObjectIteratorMethod): TObject; virtual;
     Function Iterate(aMethod: TObjectIteratorCallback): TObject; virtual;
-    Procedure Add(const aKey: string; AItem : TObject); virtual;
-    property Items[const index: string]: TObject read GetData write SetData; default;
+    Procedure Add(const aKey: AnsiString; AItem : TObject); virtual;
+    property Items[const index:Ansistring ]: TObject read GetData write SetData; default;
     Property OwnsObjects : Boolean Read FOwnsObjects;
   end;
 
   EDuplicate = class(Exception);
   EKeyNotFound = class(Exception);
 
-  Function RSHash(const S: string; const TableSize: Longword): Longword;
+  Function RSHash(const S: AnsiString; const TableSize: Longword): Longword;
 
 { ---------------------------------------------------------------------
     Bucket lists as in Delphi
@@ -546,7 +546,7 @@ Type
     Function AddItem(ABucket: Integer; AItem, AData: Pointer): Pointer; virtual;
     Function BucketFor(AItem: Pointer): Integer; virtual; abstract;
     Function DeleteItem(ABucket: Integer; AIndex: Integer): Pointer; virtual;
-    Procedure Error(Msg : String; Args : Array of Const);
+    Procedure Error(Msg : AnsiString; Args : Array of Const);
     Function FindItem(AItem: Pointer; out ABucket, AIndex: Integer): Boolean; virtual;
     property Buckets: TBucketArray read FBuckets;
     property BucketCount: Integer read GetBucketCount write SetBucketCount;
@@ -1158,7 +1158,7 @@ end;
 
     Function FPHash(const s:shortstring):LongWord;
     var
-      p,pmax : PChar;
+      p,pmax : PAnsiChar;
     begin
 {$push}
 {$Q-}
@@ -1173,9 +1173,9 @@ end;
 {$pop}
     end;
 
-    Function FPHash(P: PChar; Len: Integer): LongWord;
+    Function FPHash(P: PAnsiChar; Len: Integer): LongWord;
     var
-      pmax : PChar;
+      pmax : PAnsiChar;
     begin
 {$push}
 {$Q-}
@@ -1418,7 +1418,7 @@ begin
     Self.Delete(Result);
 end;
 
-class Procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
+class Procedure TFPHashList.Error(const Msg: AnsiString; Data: PtrInt);
 begin
   raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -1474,11 +1474,11 @@ Function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out Pre
 var
   HashIndex : Integer;
   Len,
-  LastChar  : Char;
+  LastChar  : AnsiChar;
 begin
   HashIndex:=AHash mod LongWord(FHashCapacity);
   Result:=FHashTable^[HashIndex];
-  Len:=Char(Length(AName));
+  Len:=AnsiChar(Length(AName));
   LastChar:=AName[Byte(Len)];
   PrevIndex:=-1;
   while Result<>-1 do
@@ -1564,7 +1564,7 @@ var
   i : integer;
   pdest,
   psrc : PHashItem;
-  FOldStr : Pchar;
+  FOldStr : PAnsiChar;
 begin
   NewCount:=0;
   psrc:=@FHashList^[0];
@@ -1930,7 +1930,7 @@ end;
 { Default hash Function }
 
 {$IFDEF RangeChecking}{$R-}{$ENDIF}
-Function RSHash(const S: string; const TableSize: Longword): Longword;
+Function RSHash(const S: AnsiString; const TableSize: Longword): Longword;
 const
   b = 378551;
 var
@@ -1951,13 +1951,13 @@ end;
 
 { THTNode }
 
-constructor THTCustomNode.CreateWith(const AString: string);
+constructor THTCustomNode.CreateWith(const AString: AnsiString);
 begin
   inherited Create;
   FKey:=AString;
 end;
 
-Function THTCustomNode.HasKey(const AKey: string): boolean;
+Function THTCustomNode.HasKey(const AKey: AnsiString): boolean;
 begin
   Result:=(AKey=FKey);
 end;
@@ -2056,7 +2056,7 @@ begin
     raise Exception.Create(NotEmptyMsg);
 end;
 
-Function TFPCustomHashTable.Find(const aKey: string): THTCustomNode;
+Function TFPCustomHashTable.Find(const aKey: AnsiString): THTCustomNode;
 var
   hashCode: Longword;
   chn: TFPObjectList;
@@ -2072,7 +2072,7 @@ begin
   Result:=nil;
 end;
 
-Function TFPCustomHashTable.FindChainForAdd(Const aKey : String) : TFPObjectList;
+Function TFPCustomHashTable.FindChainForAdd(Const aKey : AnsiString) : TFPObjectList;
 var
   hashCode: Longword;
   i: Longword;
@@ -2095,7 +2095,7 @@ begin
 end;
 
 
-Procedure TFPCustomHashTable.Delete(const aKey: string);
+Procedure TFPCustomHashTable.Delete(const aKey: AnsiString);
 var
   hashCode: Longword;
   chn: TFPObjectList;
@@ -2158,7 +2158,7 @@ begin
         Result:=ChainLength(i);
 end;
 
-Function TFPCustomHashTable.FindOrCreateNew(const aKey: string): THTCustomNode;
+Function TFPCustomHashTable.FindOrCreateNew(const aKey: AnsiString): THTCustomNode;
 var
   hashCode: Longword;
   chn: TFPObjectList;
@@ -2206,7 +2206,7 @@ end;
 
 { TFPDataHashTable }
 
-Procedure TFPDataHashTable.Add(const aKey: string; aItem: pointer);
+Procedure TFPDataHashTable.Add(const aKey: AnsiString; aItem: pointer);
 var
   chn: TFPObjectList;
   NewNode: THtDataNode;
@@ -2217,7 +2217,7 @@ begin
   chn.Add(NewNode);
 end;
 
-Function TFPDataHashTable.GetData(const Index: string): Pointer;
+Function TFPDataHashTable.GetData(const Index: AnsiString): Pointer;
 var
   node: THTDataNode;
 begin
@@ -2228,12 +2228,12 @@ begin
     Result:=nil;
 end;
 
-Procedure TFPDataHashTable.SetData(const index: string; const AValue: Pointer);
+Procedure TFPDataHashTable.SetData(const index: AnsiString; const AValue: Pointer);
 begin
   THTDataNode(FindOrCreateNew(index)).Data:=AValue;
 end;
 
-Function TFPDataHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
+Function TFPDataHashTable.CreateNewNode(const aKey : AnsiString) : THTCustomNode;
 
 begin
   Result:=THTDataNode.CreateWith(aKey);
@@ -2250,7 +2250,7 @@ begin
     Result:=nil;
 end;
 
-Procedure TFPDataHashTable.CallbackIterator(Item: Pointer; const Key: string; var Continue: Boolean);
+Procedure TFPDataHashTable.CallbackIterator(Item: Pointer; const Key: AnsiString; var Continue: Boolean);
 begin
   FIteratorCallBack(Item, Key, Continue);
 end;
@@ -2297,7 +2297,7 @@ begin
     Add(Key,Data);
 end;
 
-Function TFPStringHashTable.GetData(const Index: string): String;
+Function TFPStringHashTable.GetData(const Index: AnsiString): AnsiString;
 var
   node: THTStringNode;
 begin
@@ -2308,12 +2308,12 @@ begin
     Result:='';
 end;
 
-Procedure TFPStringHashTable.SetData(const index, AValue: string);
+Procedure TFPStringHashTable.SetData(const index, AValue: AnsiString);
 begin
   THTStringNode(FindOrCreateNew(index)).Data:=AValue;
 end;
 
-Procedure TFPStringHashTable.Add(const aKey, aItem: string);
+Procedure TFPStringHashTable.Add(const aKey, aItem: AnsiString);
 var
   chn: TFPObjectList;
   NewNode: THtStringNode;
@@ -2324,12 +2324,12 @@ begin
   chn.Add(NewNode);
 end;
 
-Function TFPStringHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
+Function TFPStringHashTable.CreateNewNode(const aKey : AnsiString) : THTCustomNode;
 begin
   Result:=THTStringNode.CreateWith(aKey);
 end;
 
-Function TFPStringHashTable.Iterate(aMethod: TStringIteratorMethod): String;
+Function TFPStringHashTable.Iterate(aMethod: TStringIteratorMethod): AnsiString;
 var
   N : THTStringNode;
 begin
@@ -2340,12 +2340,12 @@ begin
     Result:='';
 end;
 
-Procedure TFPStringHashTable.CallbackIterator(Item: String; const Key: string; var Continue: Boolean);
+Procedure TFPStringHashTable.CallbackIterator(Item: AnsiString; const Key: AnsiString; var Continue: Boolean);
 begin
   FIteratorCallBack(Item, Key, Continue);
 end;
 
-Function TFPStringHashTable.Iterate(aMethod: TStringIteratorCallback): String;
+Function TFPStringHashTable.Iterate(aMethod: TStringIteratorCallback): AnsiString;
 begin
   FIteratorCallBack := aMethod;
   Result := Iterate(@CallbackIterator);
@@ -2381,7 +2381,7 @@ begin
     Add(Key,Data);
 end;
 
-Function TFPObjectHashTable.GetData(const Index: string): TObject;
+Function TFPObjectHashTable.GetData(const Index: AnsiString): TObject;
 var
   node: THTObjectNode;
 begin
@@ -2392,12 +2392,12 @@ begin
     Result:=nil;
 end;
 
-Procedure TFPObjectHashTable.SetData(const index : string; AObject : TObject);
+Procedure TFPObjectHashTable.SetData(const index : AnsiString; AObject : TObject);
 begin
   THTObjectNode(FindOrCreateNew(index)).Data:=AObject;
 end;
 
-Procedure TFPObjectHashTable.Add(const aKey: string; AItem : TObject);
+Procedure TFPObjectHashTable.Add(const aKey: AnsiString; AItem : TObject);
 var
   chn: TFPObjectList;
   NewNode: THTObjectNode;
@@ -2408,7 +2408,7 @@ begin
   chn.Add(NewNode);
 end;
 
-Function TFPObjectHashTable.CreateNewNode(const aKey : string) : THTCustomNode;
+Function TFPObjectHashTable.CreateNewNode(const aKey : AnsiString) : THTCustomNode;
 begin
   if OwnsObjects then
     Result:=THTOwnedObjectNode.CreateWith(aKey)
@@ -2428,7 +2428,7 @@ begin
     Result:=nil;
 end;
 
-Procedure TFPObjectHashTable.CallbackIterator(Item: TObject; const Key: string; var Continue: Boolean);
+Procedure TFPObjectHashTable.CallbackIterator(Item: TObject; const Key: AnsiString; var Continue: Boolean);
 begin
   FIteratorCallBack(Item, Key, Continue);
 end;
@@ -2558,7 +2558,7 @@ begin
   Dec(B^.Count);
 end;
 
-Procedure TCustomBucketList.Error(Msg: String; Args: array of const);
+Procedure TCustomBucketList.Error(Msg: AnsiString; Args: array of const);
 begin
   raise ElistError.CreateFmt(Msg,Args);
 end;

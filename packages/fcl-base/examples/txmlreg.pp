@@ -5,7 +5,7 @@ program txmlreg;
 uses xmlreg;
 
 Var
-  S : String;
+  S : AnsiString;
   C : Cardinal;
   A : Array[0..15] of byte;
 

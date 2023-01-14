@@ -40,7 +40,7 @@ type
     function GetIsClient: Boolean; virtual; abstract;
     function GetIsServer: Boolean; virtual; abstract;
     function GetStartResult: TSingleInstanceStart; virtual;
-    procedure DoServerReceivedParams(const aParamsDelimitedText: string);
+    procedure DoServerReceivedParams(const aParamsDelimitedText: AnsiString);
     Procedure SetStartResult(AValue : TSingleInstanceStart); 
   public
     constructor Create(aOwner: TComponent); override;
@@ -91,7 +91,7 @@ begin
 end;
 
 procedure TBaseSingleInstance.DoServerReceivedParams(
-  const aParamsDelimitedText: string);
+  const aParamsDelimitedText: AnsiString);
 var
   xSL: TStringList;
 begin

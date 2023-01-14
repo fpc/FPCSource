@@ -15,9 +15,9 @@
 
 { taken from dos unit }
 
-function EnvStr (Index: longint): string;
+function EnvStr (Index: longint): ;
 
-var HP: PChar;
+var HP: PAnsiChar;
 
 begin
     if (Index <= 0) or (Index > EnvC) then
@@ -33,7 +33,7 @@ end;
 procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 Var
-  S : String;
+  S : ;
   J,I : Integer;
 
 begin

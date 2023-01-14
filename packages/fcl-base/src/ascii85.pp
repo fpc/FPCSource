@@ -138,7 +138,7 @@ begin
     For I:=FCount+1 downto 0 do
       begin
       Inc(j);
-      S[J]:=Char(Buf[i]+Ord('!'));
+      S[J]:=AnsiChar(Buf[i]+Ord('!'));
       SetLength(S,J);
       Inc(FPos);
       If (FPos>FWidth) then
@@ -162,7 +162,7 @@ Const
   Boundary2 = slinebreak+Boundary1;
   
 Var
-  S : String;
+  S : Ansistring;
 
 begin
   If FCount>0 then
