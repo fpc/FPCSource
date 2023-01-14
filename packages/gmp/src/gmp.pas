@@ -234,29 +234,29 @@ function mp_urandomm_ui(var state: randstate_t; n: valuint): valuint; cdecl; ext
 // ---- Formatted Input/Output ----
 
 { Form a null-terminated string in a block of memory obtained from the current memory allocation function }
-function mp_asprintf(out pp: pchar; fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_asprintf';
+function mp_asprintf(out pp: PAnsiChar; fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_asprintf';
 { Form a null-terminated string in a block of memory obtained from the current memory allocation function }
-function mp_asprintf(out pp: pchar; fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_asprintf';
+function mp_asprintf(out pp: PAnsiChar; fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_asprintf';
 { Print to the standard output stdout. Return the number of characters written, or −1 if an error occurred. }
-function mp_printf(fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_printf';
+function mp_printf(fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_printf';
 { Print to the standard output stdout. Return the number of characters written, or −1 if an error occurred. }
-function mp_printf(fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_printf';
+function mp_printf(fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_printf';
 { Form a null-terminated string in buf. No more than size bytes will be written. }
-function mp_snprintf(buf: pchar; size: sizeuint; fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_snprintf';
+function mp_snprintf(buf: PAnsiChar; size: sizeuint; fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_snprintf';
 { Form a null-terminated string in buf. No more than size bytes will be written. }
-function mp_snprintf(buf: pchar; size: sizeuint; fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_snprintf';
+function mp_snprintf(buf: PAnsiChar; size: sizeuint; fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_snprintf';
 { Form a null-terminated string in buf. Return the number of characters written, excluding the terminating null. }
-function mp_sprintf(buf, fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_sprintf';
+function mp_sprintf(buf, fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_sprintf';
 { Form a null-terminated string in buf. Return the number of characters written, excluding the terminating null. }
-function mp_sprintf(buf, fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_sprintf';
+function mp_sprintf(buf, fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_sprintf';
 { Read from the standard input stdin }
-function mp_scanf(fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_scanf';
+function mp_scanf(fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_scanf';
 { Read from the standard input stdin }
-function mp_scanf(fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_scanf';
+function mp_scanf(fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_scanf';
 { Read from a null-terminated string s }
-function mp_sscanf(s, fmt: pchar; args: array of const): longint; cdecl; external LIB name '__gmp_sscanf';
+function mp_sscanf(s, fmt: PAnsiChar; args: array of const): longint; cdecl; external LIB name '__gmp_sscanf';
 { Read from a null-terminated string s }
-function mp_sscanf(s, fmt: pchar): longint; cdecl; varargs; external LIB name '__gmp_sscanf';
+function mp_sscanf(s, fmt: PAnsiChar): longint; cdecl; varargs; external LIB name '__gmp_sscanf';
 
 // ---- integer Functions ----
 
@@ -390,7 +390,7 @@ function mpz_get_d_2exp(out exp: valsint; var op: mpz_t): double; cdecl; externa
 { Return the value of op as a signed long }
 function mpz_get_si(var op: mpz_t): valsint; cdecl; external LIB name '__gmpz_get_si';
 { Convert op to a string of digits in base base. The base argument may vary from 2 to 62 or from −2 to −36. If str is NULL, the result string is allocated using the current allocation function }
-function mpz_get_str(str: pchar; base: longint; var op: mpz_t): pchar; cdecl; external LIB name '__gmpz_get_str';
+function mpz_get_str(str: PAnsiChar; base: longint; var op: mpz_t): PAnsiChar; cdecl; external LIB name '__gmpz_get_str';
 { Return the value of op as an unsigned long }
 function mpz_get_ui(var op: mpz_t): valuint; cdecl; external LIB name '__gmpz_get_ui';
 { Return limb number n from op }
@@ -410,7 +410,7 @@ procedure mpz_init_set_d(out rop: mpz_t; op: double); cdecl; external LIB name '
 { Initialize rop with limb space and set the initial numeric value from op }
 procedure mpz_init_set_si(out rop: mpz_t; op: valsint); cdecl; external LIB name '__gmpz_init_set_si';
 { Initialize rop and set its value like mpz_set_str }
-function mpz_init_set_str(out rop: mpz_t; str: pchar; base: longint): longint; cdecl; external LIB name '__gmpz_init_set_str';
+function mpz_init_set_str(out rop: mpz_t; str: PAnsiChar; base: longint): longint; cdecl; external LIB name '__gmpz_init_set_str';
 { Initialize rop with limb space and set the initial numeric value from op }
 procedure mpz_init_set_ui(out rop: mpz_t; op: valuint); cdecl; external LIB name '__gmpz_init_set_ui';
 { Compute the inverse of op1 modulo op2 and put the result in rop }
@@ -497,7 +497,7 @@ procedure mpz_set_q(var rop: mpz_t; var op: mpq_t); cdecl; external LIB name '__
 { Set the value of rop from op }
 procedure mpz_set_si(var rop: mpz_t; op: valsint); cdecl; external LIB name '__gmpz_set_si';
 { Set the value of rop from str, a null-terminated C string in base base. White space is allowed in the string, and is simply ignored. }
-function mpz_set_str(var rop: mpz_t; str: pchar; base: longint): longint; cdecl; external LIB name '__gmpz_set_str';
+function mpz_set_str(var rop: mpz_t; str: PAnsiChar; base: longint): longint; cdecl; external LIB name '__gmpz_set_str';
 { Set the value of rop from op }
 procedure mpz_set_ui(var rop: mpz_t; op: valuint); cdecl; external LIB name '__gmpz_set_ui';
 { Set bit bit_index in rop }
@@ -580,7 +580,7 @@ procedure mpq_get_den(var denominator: mpz_t; var rational: mpq_t); cdecl; exter
 { Convert op to a double, truncating if necessary (ie. rounding towards zero) }
 function mpq_get_d(var op: mpq_t): double; cdecl; external LIB name '__gmpq_get_d';
 { Convert op to a string of digits in base base }
-function mpq_get_str(str: pchar; base: longint; var op: mpq_t): pchar; cdecl; external LIB name '__gmpq_get_str';
+function mpq_get_str(str: PAnsiChar; base: longint; var op: mpq_t): PAnsiChar; cdecl; external LIB name '__gmpq_get_str';
 { Initialize dest rational and set it to 0/1 }
 procedure mpq_init(out dest_rational: mpq_t); cdecl; external LIB name '__gmpq_init';
 { Set inverted_number to 1/number }
@@ -604,7 +604,7 @@ procedure mpq_set_num(var rational: mpq_t; var numerator: mpz_t); cdecl; externa
 { Set the value of rop to op1/op2 }
 procedure mpq_set_si(var rop: mpq_t; op1: valsint; op2: valuint); cdecl; external LIB name '__gmpq_set_si';
 { Set rop from a null-terminated string str in the given base }
-function mpq_set_str(var rop: mpq_t; str: pchar; base: longint): longint; cdecl; external LIB name '__gmpq_set_str';
+function mpq_set_str(var rop: mpq_t; str: PAnsiChar; base: longint): longint; cdecl; external LIB name '__gmpq_set_str';
 { Set the value of rop to op1/op2 }
 procedure mpq_set_ui(var rop: mpq_t; op1, op2: valuint); cdecl; external LIB name '__gmpq_set_ui';
 { Assign rop from op }
@@ -670,7 +670,7 @@ function mpf_get_prec(var op: mpf_t): valuint; cdecl; external LIB name '__gmpf_
 { Convert op to a long, truncating any fraction part }
 function mpf_get_si(var op: mpf_t): valsint; cdecl; external LIB name '__gmpf_get_si';
 { Convert op to a string of digits in base base }
-function mpf_get_str(str: pchar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: mpf_t): pchar; cdecl; external LIB name '__gmpf_get_str';
+function mpf_get_str(str: PAnsiChar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: mpf_t): PAnsiChar; cdecl; external LIB name '__gmpf_get_str';
 { Convert op to a unsigned long, truncating any fraction part }
 function mpf_get_ui(var op: mpf_t): valuint; cdecl; external LIB name '__gmpf_get_ui';
 { Initialize x to 0 }
@@ -684,7 +684,7 @@ procedure mpf_init_set_d(out rop: mpf_t; op: double); cdecl; external LIB name '
 { Initialize rop and set its value from op }
 procedure mpf_init_set_si(out rop: mpf_t; op: valsint); cdecl; external LIB name '__gmpf_init_set_si';
 { Initialize rop and set its value from the string in str }
-function mpf_init_set_str(out rop: mpf_t; str: pchar; base: longint): longint; cdecl; external LIB name '__gmpf_init_set_str';
+function mpf_init_set_str(out rop: mpf_t; str: PAnsiChar; base: longint): longint; cdecl; external LIB name '__gmpf_init_set_str';
 { Initialize rop and set its value from op }
 procedure mpf_init_set_ui(out rop: mpf_t; op: valuint); cdecl; external LIB name '__gmpf_init_set_ui';
 { Return non-zero if op is an integer }
@@ -718,7 +718,7 @@ procedure mpf_set_q(var rop: mpf_t; var op: mpq_t); cdecl; external LIB name '__
 { Set the value of rop from op }
 procedure mpf_set_si(var rop: mpf_t; op: valsint); cdecl; external LIB name '__gmpf_set_si';
 { Set the value of rop from the string in str }
-function mpf_set_str(var rop: mpf_t; str: pchar; base: longint): longint; cdecl; external LIB name '__gmpf_set_str';
+function mpf_set_str(var rop: mpf_t; str: PAnsiChar; base: longint): longint; cdecl; external LIB name '__gmpf_set_str';
 { Set the value of rop from op }
 procedure mpf_set_ui(var rop: mpf_t; op: valuint); cdecl; external LIB name '__gmpf_set_ui';
 { Set the value of rop from op }
@@ -778,7 +778,7 @@ function mpn_gcd(rp, s1p: mpn_ptr; s1n: mp_size_t; s2p: mpn_ptr; s2n: mp_size_t)
 function mpn_gcd_1(s1p: mpn_ptr; s1n: mp_size_t; s2limb: mp_limb_t): mp_limb_t; cdecl; external LIB name '__gmpn_gcd_1';
 { Calculate the greatest common divisor of [s1p, s1n] and [s2p, s2n] }
 function mpn_gcdext(r1p, r2p: mpn_ptr; out r2n: mp_size_t; s1p: mpn_ptr; s1n: mp_size_t; s2p: mpn_ptr; s2n: mp_size_t): mp_size_t; cdecl; external LIB name '__gmpn_gcdext';
-{ Convert [s1p, s1n] to a raw unsigned char array at str in base base, and return the number of characters produced }
+{ Convert [s1p, s1n] to a raw unsigned AnsiChar array at str in base base, and return the number of characters produced }
 function mpn_get_str(str: pbyte; base: longint; s1p: mpn_ptr; s1n: mp_size_t):sizeuint; cdecl; external LIB name '__gmpn_get_str';
 { Compute the hamming distance between [s1p, n] and [s2p, n], which is the number of bit positions where the two operands have different bit values }
 function mpn_hamdist(s1p, s2p: mpn_ptr; n: mp_size_t): valuint; cdecl; external LIB name '__gmpn_hamdist';
@@ -831,8 +831,8 @@ procedure mpn_tdiv_qr(qp, rp: mpn_ptr; qxn: mp_size_t; np: mpn_ptr; nn: mp_size_
 function bits_per_limb: longint;
 { Some GMP functions may set this thread unsafe variable. Better avoid using it. }
 function errno: longint;
-{ GMP version string a.b.c }
-function version: string;
+{ GMP version String a.b.c }
+function version: Ansistring;
 
 // ==== ext bindings =====
 
@@ -1030,9 +1030,9 @@ function z_get_d_2exp(out exp: valsint; var op: MPInteger): double;
 { Return the value of op as a signed long }
 function z_get_si(op: MPInteger): valsint;
 { Convert op to a string of digits in base base. The base argument may vary from 2 to 62 or from −2 to −36. }
-function z_get_str(base: longint; var op: MPInteger): string;
+function z_get_str(base: longint; var op: MPInteger): AnsiString;
 { Convert op to a string of digits in base base. The base argument may vary from 2 to 62 or from −2 to −36. If str is NULL, the result string is allocated using the current allocation function }
-function z_get_str(str: pchar; base: longint; var op: MPInteger): pchar;
+function z_get_str(str: PAnsiChar; base: longint; var op: MPInteger): PAnsiChar;
 { Return the value of op as an unsigned long }
 function z_get_ui(op: MPInteger): valuint;
 { Return limb number n from op }
@@ -1052,7 +1052,7 @@ procedure z_init_set_d(out rop: MPInteger; op: double);
 { Initialize rop with limb space and set the initial numeric value from op }
 procedure z_init_set_si(out rop: MPInteger; op: valsint);
 { Initialize rop and set its value like z_set_str. If the string is a correct base base number, the function returns true. }
-function z_init_set_str(out rop: MPInteger; str: string; base: longint): boolean;
+function z_init_set_str(out rop: MPInteger; str: ansistring; base: longint): boolean;
 { Initialize rop with limb space and set the initial numeric value from op }
 procedure z_init_set_ui(out rop: MPInteger; op: valuint);
 { Compute the inverse of op1 modulo op2 and put the result in rop }
@@ -1162,7 +1162,7 @@ procedure z_set_q(var rop: MPInteger; var op: MPRational);
 { Set the value of rop from op }
 procedure z_set_si(var rop: MPInteger; op: valsint);
 { Set the value of rop from str, a null-terminated C string in base base. If the string is a correct base base number, the function returns true. }
-function z_set_str(var rop: MPInteger; str: string; base: longint): boolean;
+function z_set_str(var rop: MPInteger; str: AnsiString; base: longint): boolean;
 { Set the value of rop from op }
 procedure z_set_ui(var rop: MPInteger; op: valuint);
 { Set bit bit_index in rop }
@@ -1281,9 +1281,9 @@ function q_get_den(var rational: MPRational): MPInteger;
 { Convert op to a double, truncating if necessary (ie. rounding towards zero) }
 function q_get_d(var op: MPRational): double;
 { Convert op to a string of digits in base base }
-function q_get_str(base: longint; var op: MPRational): string;
+function q_get_str(base: longint; var op: MPRational): ansistring;
 { Convert op to a string of digits in base base. If str is NULL, the result string is allocated using the current allocation function. }
-function q_get_str(str: pchar; base: longint; var op: MPRational): pchar;
+function q_get_str(str: PAnsiChar; base: longint; var op: MPRational): PAnsiChar;
 { Initialize dest rational and set it to 0/1 }
 procedure q_init(out dest_rational: MPRational);
 { Set inverted_number to 1/number }
@@ -1315,7 +1315,7 @@ procedure q_set_num(var rational: MPRational; var numerator: MPInteger);
 { Set the value of rop to op1/op2 }
 procedure q_set_si(var rop: MPRational; op1: valsint; op2: valuint);
 { Set rop from a null-terminated string str in the given base. The return value is true if the entire string is a valid number. }
-function q_set_str(var rop: MPRational; str: string; base: longint): boolean;
+function q_set_str(var rop: MPRational; str: AnsiString; base: longint): boolean;
 { Set the value of rop to op1/op2 }
 procedure q_set_ui(var rop: MPRational; op1, op2: valuint);
 { Assign rop from op }
@@ -1396,9 +1396,9 @@ function f_get_prec(var op: MPFloat): valuint;
 { Convert op to a long, truncating any fraction part }
 function f_get_si(var op: MPFloat): valsint;
 { Convert op to a string of digits in base base }
-function f_get_str(out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): string;
+function f_get_str(out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): ansistring;
 { Convert op to a string of digits in base base. If str is NULL, the result string is allocated using the current allocation function. }
-function f_get_str(str: pchar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): pchar;
+function f_get_str(str: PAnsiChar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): PAnsiChar;
 { Convert op to a unsigned long, truncating any fraction part }
 function f_get_ui(var op: MPFloat): valuint;
 { Initialize x to 0 }
@@ -1412,7 +1412,7 @@ procedure f_init_set_d(out rop: MPFloat; op: double);
 { Initialize rop and set its value from op }
 procedure f_init_set_si(out rop: MPFloat; op: valsint);
 { Initialize rop and set its value from the string in str. Returns true if the entire string is a valid number in base base. }
-function f_init_set_str(out rop: MPFloat; str: string; base: longint): boolean;
+function f_init_set_str(out rop: MPFloat; str: AnsiString; base: longint): boolean;
 { Initialize rop and set its value from op }
 procedure f_init_set_ui(out rop: MPFloat; op: valuint);
 { Return true if op is an integer }
@@ -1460,7 +1460,7 @@ procedure f_set_q(var rop: MPFloat; var op: MPRational);
 { Set the value of rop from op }
 procedure f_set_si(var rop: MPFloat; op: valsint);
 { Set the value of rop from the string in str. Returns true if the entire string is a valid number in base base. }
-function f_set_str(var rop: MPFloat; str: string; base: longint): boolean;
+function f_set_str(var rop: MPFloat; str: AnsiString; base: longint): boolean;
 { Set the value of rop from op }
 procedure f_set_ui(var rop: MPFloat; op: valuint);
 { Set the value of rop from op }
@@ -1528,7 +1528,7 @@ operator := (op: MPFloat): integer; inline;
 operator := (op: MPFloat): mpf_t; inline;
 operator := (op: MPFloat): MPInteger; inline;
 operator := (op: MPFloat): MPRational; inline;
-operator := (op: MPFloat): string; inline;
+operator := (op: MPFloat): AnsiString; inline;
 {$ifdef CPU64}
 operator := (op: MPFloat): valsint; inline;
 operator := (op: MPFloat): valuint; inline;
@@ -1540,7 +1540,7 @@ operator := (op: MPInteger): integer; inline;
 operator := (op: MPInteger): MPFloat; inline;
 operator := (op: MPInteger): MPRational; inline;
 operator := (op: MPInteger): mpz_t; inline;
-operator := (op: MPInteger): string; inline;
+operator := (op: MPInteger): AnsiString; inline;
 {$ifdef CPU64}
 operator := (op: MPInteger): valsint; inline;
 operator := (op: MPInteger): valuint; inline;
@@ -1551,12 +1551,12 @@ operator := (op: MPRational): double; inline;
 operator := (op: MPRational): MPFloat; inline;
 operator := (op: MPRational): MPInteger; inline;
 operator := (op: MPRational): mpq_t; inline;
-operator := (op: MPRational): string; inline;
+operator := (op: MPRational): AnsiString; inline;
 operator := (var op: mpz_t): MPInteger; inline;
 operator := (var op: randstate_t): MPRandState; inline;
-operator := (op: string): MPFloat; inline;
-operator := (op: string): MPInteger; inline;
-operator := (op: string): MPRational; inline;
+operator := (op: AnsiString): MPFloat; inline;
+operator := (op: AnsiString): MPInteger; inline;
+operator := (op: AnsiString): MPRational; inline;
 operator := (op: valsint): MPFloat; inline;
 operator := (op: valsint): MPInteger; inline;
 operator := (op: valsint): MPRational; inline;
@@ -1589,7 +1589,7 @@ uses
 var
   __gmp_bits_per_limb: longint; cvar; external;
   __gmp_errno: longint; cvar; external;
-  __gmp_version: pchar; cvar; external;
+  __gmp_version: PAnsiChar; cvar; external;
 
 function bits_per_limb: longint;
 begin
@@ -1601,7 +1601,7 @@ begin
   result := __gmp_errno;
 end;
 
-function version: string;
+function version: AnsiString;
 begin
   result := __gmp_version;
 end;
@@ -1618,7 +1618,7 @@ begin
   result := 0;
 end;
 
-function version: string;
+function version: AnsiString;
 const NO_VER = '0.0.0';
 begin
   result := NO_VER;
@@ -2226,15 +2226,15 @@ begin
   result := mpz_get_si(src(op)^);
 end;
 
-function z_get_str(base: longint; var op: MPInteger): string;
-var p: pchar;
+function z_get_str(base: longint; var op: MPInteger): AnsiString;
+var p: PAnsiChar;
 begin
   p := mpz_get_str(nil, base, src(op)^);
   result := p;
   freemem(p);
 end;
 
-function z_get_str(str: pchar; base: longint; var op: MPInteger): pchar;
+function z_get_str(str: PAnsiChar; base: longint; var op: MPInteger): PAnsiChar;
 begin
   result := mpz_get_str(str, base, src(op)^);
 end;
@@ -2289,10 +2289,10 @@ begin
   mpz_init_set_si(rop.ptr^, op);
 end;
 
-function z_init_set_str(out rop: MPInteger; str: string; base: longint): boolean;
+function z_init_set_str(out rop: MPInteger; str: AnsiString; base: longint): boolean;
 begin
   rop := TMPInteger.Create;
-  result := mpz_set_str(rop.ptr^, pchar(str), base) = 0;
+  result := mpz_set_str(rop.ptr^, PAnsiChar(str), base) = 0;
 end;
 
 procedure z_init_set_ui(out rop: MPInteger; op: valuint);
@@ -2566,9 +2566,9 @@ begin
   mpz_set_si(dest(rop)^, op);
 end;
 
-function z_set_str(var rop: MPInteger; str: string; base: longint): boolean;
+function z_set_str(var rop: MPInteger; str: AnsiString; base: longint): boolean;
 begin
-  result := mpz_set_str(dest(rop)^, pchar(str), base) = 0;
+  result := mpz_set_str(dest(rop)^, PAnsiChar(str), base) = 0;
 end;
 
 procedure z_set_ui(var rop: MPInteger; op: valuint);
@@ -2856,15 +2856,15 @@ begin
   result := mpq_get_d(src(op)^);
 end;
 
-function q_get_str(base: longint; var op: MPRational): string;
-var p: pchar;
+function q_get_str(base: longint; var op: MPRational): AnsiString;
+var p: PAnsiChar;
 begin
   p := mpq_get_str(nil, base, src(op)^);
   result := p;
   freemem(p);
 end;
 
-function q_get_str(str: pchar; base: longint; var op: MPRational): pchar;
+function q_get_str(str: PAnsiChar; base: longint; var op: MPRational): PAnsiChar;
 begin
   result := mpq_get_str(str, base, src(op)^);
 end;
@@ -2945,9 +2945,9 @@ begin
   mpq_set_si(dest(rop)^, op1, op2);
 end;
 
-function q_set_str(var rop: MPRational; str: string; base: longint): boolean;
+function q_set_str(var rop: MPRational; str: AnsiString; base: longint): boolean;
 begin
-  result := mpq_set_str(dest(rop)^, pchar(str), base) = 0;
+  result := mpq_set_str(dest(rop)^, PAnsiChar(str), base) = 0;
 end;
 
 procedure q_set_ui(var rop: MPRational; op1, op2: valuint);
@@ -3140,15 +3140,15 @@ begin
   result := mpf_get_si(src(op)^);
 end;
 
-function f_get_str(out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): string;
-var p: pchar;
+function f_get_str(out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): AnsiString;
+var p: PAnsiChar;
 begin
   p := mpf_get_str(nil, exp, base, ndigits, src(op)^);
   result := p;
   freemem(p);
 end;
 
-function f_get_str(str: pchar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): pchar;
+function f_get_str(str: PAnsiChar; out exp: mp_exp_t; base: longint; ndigits: sizeuint; var op: MPFloat): PAnsiChar;
 begin
   result := mpf_get_str(str, exp, base, ndigits, src(op)^);
 end;
@@ -3188,10 +3188,10 @@ begin
   mpf_init_set_si(rop.ptr^, op);
 end;
 
-function f_init_set_str(out rop: MPFloat; str: string; base: longint): boolean;
+function f_init_set_str(out rop: MPFloat; str: AnsiString; base: longint): boolean;
 begin
   rop := TMPFloat.Create;
-  result := mpf_init_set_str(rop.ptr^, pchar(str), base) = 0;
+  result := mpf_init_set_str(rop.ptr^, PAnsiChar(str), base) = 0;
 end;
 
 procedure f_init_set_ui(out rop: MPFloat; op: valuint);
@@ -3310,9 +3310,9 @@ begin
   mpf_set_si(dest(rop)^, op);
 end;
 
-function f_set_str(var rop: MPFloat; str: string; base: longint): boolean;
+function f_set_str(var rop: MPFloat; str: AnsiString; base: longint): boolean;
 begin
-  result := mpf_set_str(dest(rop)^, pchar(str), base) = 0;
+  result := mpf_set_str(dest(rop)^, PAnsiChar(str), base) = 0;
 end;
 
 procedure f_set_ui(var rop: MPFloat; op: valuint);
@@ -3548,9 +3548,9 @@ begin
   q_set_f(result, op);
 end;
 
-operator := (op: MPFloat): string;
+operator := (op: MPFloat): AnsiString;
 const FMT = '%.*Fg';
-var p: pchar;
+var p: PAnsiChar;
 begin
   mp_asprintf(p, FMT, floor(f_get_prec(op) * LOG_10_2), src(op));
   result := p;
@@ -3604,9 +3604,9 @@ begin
   mpz_init_set(result, src(op)^);
 end;
 
-operator := (op: MPInteger): string;
+operator := (op: MPInteger): AnsiString;
 const FMT = '%Zd';
-var p: pchar;
+var p: PAnsiChar;
 begin
   mp_asprintf(p, FMT, src(op));
   result := p;
@@ -3656,9 +3656,9 @@ begin
   mpq_set(result, src(op)^);
 end;
 
-operator := (op: MPRational): string;
+operator := (op: MPRational): AnsiString;
 const FMT = '%Qd';
-var p: pchar;
+var p: PAnsiChar;
 begin
   mp_asprintf(p, FMT, src(op));
   result := p;
@@ -3676,18 +3676,18 @@ begin
   mp_randinit_set(result.ptr^, op);
 end;
 
-operator := (op: string): MPFloat;
+operator := (op: AnsiString): MPFloat;
 begin
   f_set_prec(result, ceil(length(op) / LOG_10_2));
   f_set_str(result, op, BASE10);
 end;
 
-operator := (op: string): MPInteger;
+operator := (op: AnsiString): MPInteger;
 begin
   z_set_str(result, op, BASE10);
 end;
 
-operator := (op: string): MPRational;
+operator := (op: AnsiString): MPRational;
 begin
   q_set_str(result, op, BASE10);
 end;
