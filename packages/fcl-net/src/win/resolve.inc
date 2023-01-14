@@ -23,7 +23,7 @@ Type
 Const
   DNSErr : Integer = 0;
 
-function getnetbyname ( Name : pchar) : PNetEntry;
+function getnetbyname ( Name : PAnsiChar) : PNetEntry;
 
 begin
   DNSErr:=-1;
