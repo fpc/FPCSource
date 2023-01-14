@@ -5,7 +5,7 @@ unit tcwebidl2wasmjob;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, webidltowasmjob, pascodegen;
+  Classes, SysUtils, fpcunit, testregistry, webidlscanner, webidltowasmjob, pascodegen;
 
 type
 
@@ -13,7 +13,7 @@ type
 
   TCustomTestWebIDL2WasmJob = Class(TTestCase)
   private
-    FHeaderSrc: String;
+    FHeaderSrc: TIDLString;
     FWebIDLToPas: TWebIDLToPasWasmJob;
     procedure OnLog(Sender: TObject; LogType: TCodegenLogType; const Msg: String
       );
@@ -53,23 +53,43 @@ function CheckSrcDiff(Expected, Actual: string; out Msg: string): boolean;
 
 implementation
 
-function LinesToStr(Args: array of const): string;
+
+function LinesToStr(Args: array of const): TIDLString;
 var
-  s: String;
+  s,a: TIDLString;
+  U : UnicodeString;
   i: Integer;
 begin
   s:='';
   for i:=Low(Args) to High(Args) do
+    begin
     case Args[i].VType of
-      vtChar:         s += Args[i].VChar+LineEnding;
-      vtString:       s += Args[i].VString^+LineEnding;
-      vtPChar:        s += Args[i].VPChar+LineEnding;
-      vtWideChar:     s += AnsiString(Args[i].VWideChar)+LineEnding;
-      vtPWideChar:    s += AnsiString(Args[i].VPWideChar)+LineEnding;
-      vtAnsiString:   s += AnsiString(Args[i].VAnsiString)+LineEnding;
-      vtWidestring:   s += AnsiString(WideString(Args[i].VWideString))+LineEnding;
-      vtUnicodeString:s += AnsiString(UnicodeString(Args[i].VUnicodeString))+LineEnding;
+      vtChar:         A:=Args[i].VChar;
+      vtString:       A:=Args[i].VString^;
+      vtPChar:        A:=Args[i].VPChar;
+      vtWideChar:     begin
+                      U:=Args[i].VWideChar;
+                      A:=U;
+                      end;
+      vtPWideChar:    begin
+                      U:=Args[i].VPWideChar;
+                      A:=U;
+                      end;
+      vtAnsiString:   begin
+                      A:=AnsiString(Args[i].VAnsiString);
+                      end;
+      vtWidestring:   begin
+                      U:=WideString(Args[i].VWideString);
+                      A:=U;
+                      end;
+      vtUnicodeString: begin
+                       U:=UnicodeString(Args[i].VUnicodeString);
+                       A:=U;
+                       end;
     end;
+    S:=S+A+LineEnding;
+    end;
+//  Writeln('LinesToStr : ',S);
   Result:=s;
 end;
 
@@ -286,7 +306,6 @@ begin
   FWebIDLToPas:=TWebIDLToPasWasmJob.Create(nil);
   WebIDLToPas.OnLog:=@OnLog;
   WebIDLToPas.InputFileName:='test1.webidl';
-  WebIDLToPas.InputStream:=TMemoryStream.Create;
   WebIDLToPas.OutputFileName:='test1.pas';
   WebIDLToPas.OutputStream:=TMemoryStream.Create;
   HeaderSrc:=LinesToStr([
@@ -320,17 +339,16 @@ begin
   {$IFDEF VerboseWebidl2WasmJob}
   writeln('TCustomTestWebIDL2WasmJob.TestWebIDL WebIDL:----------------------');
   {$ENDIF}
-  InputMS:=WebIDLToPas.InputStream as TMemoryStream;
+  InputSrc:='';
   for i:=0 to high(WebIDLSrc) do
     begin
     Line:=WebIDLSrc[i]+sLineBreak;
-    InputMS.Write(Line[1],length(Line));
+    InputSrc:=InputSrc+Line;
     {$IFDEF VerboseWebidl2WasmJob}
     write(Line);
     {$ENDIF}
     end;
-  InputMS.Position:=0;
-
+  WebIDLToPas.InputStream:=TStringStream.Create(InputSrc);
   {$IFDEF VerboseWebidl2WasmJob}
   writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ExpectedPascal: BEGIN--------');
   {$ENDIF}
@@ -343,11 +361,6 @@ begin
   {$ENDIF}
 
   WebIDLToPas.Execute;
-
-  SetLength(InputSrc{%H-},InputMS.Size);
-  if length(InputSrc)>0 then
-    Move(InputMS.Memory^,InputSrc[1],length(InputSrc));
-
   OutputSrc:=WebIDLToPas.Source.Text;
   {$IFDEF VerboseWebidl2WasmJob}
   writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ActualPascal: BEGIN----------');
@@ -435,7 +448,7 @@ begin
   '    function _GetaBoolean: Boolean;',
   '    procedure _SetaBoolean(const aValue: Boolean);',
   '  Public',
-  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
   '    property aBoolean: Boolean read _GetaBoolean write _SetaBoolean;',
   '  end;',
   '',
@@ -451,7 +464,7 @@ begin
   '  WriteJSPropertyBoolean(''aBoolean'',aValue);',
   'end;',
   '',
-  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
   'begin',
   '  Result:=TJSAttr.JOBCast(Intf);',
   'end;',
@@ -484,7 +497,7 @@ begin
   '  Private',
   '  Public',
   '    procedure append(aNode: IJSAttr);',
-  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
   '  end;',
   '',
   'implementation',
@@ -494,7 +507,7 @@ begin
   '  InvokeJSNoResult(''append'',[aNode]);',
   'end;',
   '',
-  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
   'begin',
   '  Result:=TJSAttr.JOBCast(Intf);',
   'end;',
@@ -534,7 +547,7 @@ begin
   '  Private',
   '  Public',
   '    procedure setEventHandler(const aHandler: TEventHandler);',
-  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
   '  end;',
   '',
   'implementation',
@@ -559,7 +572,7 @@ begin
   '  end;',
   'end;',
   '',
-  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
   'begin',
   '  Result:=TJSAttr.JOBCast(Intf);',
   'end;',
@@ -599,7 +612,7 @@ begin
   '    function exitFullscreen: IJSPromise; // Promise<void>',
   '    function addCertException(aIsTemporary: Boolean): IJSPromise; // Promise<any>',
   '    function fly: IJSPromise; // Promise<Attr>',
-  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
   '  end;',
   '',
   'implementation',
@@ -619,7 +632,7 @@ begin
   '  Result:=InvokeJSObjectResult(''fly'',[],TJSPromise) as IJSPromise;',
   'end;',
   '',
-  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
   'begin',
   '  Result:=TJSAttr.JOBCast(Intf);',
   'end;',
@@ -652,7 +665,7 @@ begin
   '  Private',
   '  Public',
   '    procedure append(const aNode: Variant);',
-  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    class function Cast(const Intf: IJSObject): IJSAttr;',
   '  end;',
   '',
   'implementation',
@@ -662,7 +675,7 @@ begin
   '  InvokeJSNoResult(''append'',[aNode]);',
   'end;',
   '',
-  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'class function TJSAttr.Cast(const Intf: IJSObject): IJSAttr;',
   'begin',
   '  Result:=TJSAttr.JOBCast(Intf);',
   'end;',
