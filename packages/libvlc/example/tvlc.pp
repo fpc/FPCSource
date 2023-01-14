@@ -9,7 +9,7 @@ program tvlc;
 uses  {$ifdef unix}cthreads,{$endif}libvlc, math;
 
 Var
-  Args: Array[0..3] of pchar;
+  Args: Array[0..3] of PAnsiChar;
   fhandle : pointer;
  
 begin
