@@ -216,9 +216,9 @@ Type
   TFcCache = record end;
   PPFcCache = ^PFcCache;
 
-  PFcChar8 = Pchar;
-  TFcChar8 = char;
-  PPFcChar8 = PPChar;
+  PFcChar8 = PAnsiChar;
+  TFcChar8 = AnsiChar;
+  PPFcChar8 = PPAnsiChar;
 
   PFcChar16 = PWideChar;
   TFcChar16 = WideChar;
@@ -799,7 +799,7 @@ begin
 end;
 
 
-Function Loadfc(lib : pchar) : Boolean;
+Function Loadfc(lib : PAnsiChar) : Boolean;
 
 begin
   Freefc;
@@ -1038,7 +1038,7 @@ begin
     end
   else
     begin
-    if LoadFC(PChar(FN)) then
+    if LoadFC(PAnsiChar(FN)) then
       begin
       inc(HCount);
       LoadedLib:=FN;
