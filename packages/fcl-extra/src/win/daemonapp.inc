@@ -40,11 +40,11 @@ begin
     Application.Log(etError,Format(SerrNoControlContext,[dwControl,dwEventType,ptrint(lpEventData)]));
 end;
 
-Procedure ServiceMainEntry(Argc : DWord; Args : Pchar); stdcall;
+Procedure ServiceMainEntry(Argc : DWord; Args : PAnsiChar); stdcall;
 
 begin
   If Assigned(Application) then
-    Application.Main(Argc,PPChar(Args));
+    Application.Main(Argc,PPAnsiChar(Args));
 {$ifdef svcdebug}Debuglog('Main end');{$endif}
 end;
 
@@ -150,11 +150,11 @@ const
 
 // Careful, result of this function must be freed !!
 
-Function GetDependencies(D : TDependencies) : PChar;
+Function GetDependencies(D : TDependencies) : PAnsiChar;
   
 var
   I,L : Integer;
-  P   : PChar;
+  P   : PAnsiChar;
 
 begin
   Result:=Nil;
@@ -170,10 +170,10 @@ begin
       begin
       if D[i].IsGroup then
         begin
-        P^:=Char(SC_GROUP_IDENTIFIER);
+        P^:=AnsiChar(SC_GROUP_IDENTIFIER);
         Inc(P);
         end;
-      P:=StrECopy(P,PChar(D[i].Name));
+      P:=StrECopy(P,PAnsiChar(D[i].Name));
       Inc(P);
       end;
     P^:=#0;
@@ -184,12 +184,12 @@ Procedure TCustomDaemonApplication.SysInstallDaemon(Daemon : TCustomDaemon);
 
 Var
   SM,SV: SC_HANDLE;
-  SD,N,DN,E,LG,UN,UP : String;
+  SD,N,DN,E,LG,UN,UP : AnsiString;
   DD : TDaemonDef;
   ST,STT,ES: Integer;
   IDTag : DWord;
   PIDTag : LPDWord;
-  PDeps,PN,PP : PChar;
+  PDeps,PN,PP : PAnsiChar;
   D : TServiceDescriptionA;
   
 begin
@@ -211,12 +211,12 @@ begin
     If (UN='') then
       PN:=Nil
     else
-      PN:=PChar(UN);
+      PN:=PAnsiChar(UN);
     UP:=Password;
     if (UP='') then
       PP:=Nil
     else
-      PP:=PChar(UP);
+      PP:=PAnsiChar(UP);
     // ServiceType ST
       ST:=WinServiceTypes[ServiceType];
     if (doInteractive in DD.Options) and (ServiceType=stWin32)  then
@@ -237,13 +237,13 @@ begin
     PDeps:=GetDependencies(Dependencies);
     end;
   Try
-    SV:=CreateService(SM, PChar(N), PChar(DN), SERVICE_ALL_ACCESS, ST, STT, ES,
-                      PChar(E), PChar(LG), PIDTag, PDeps, PN, PP);
+    SV:=CreateService(SM, PAnsiChar(N), PAnsiChar(DN), SERVICE_ALL_ACCESS, ST, STT, ES,
+                      PAnsiChar(E), PAnsiChar(LG), PIDTag, PDeps, PN, PP);
     If (SV=0) then
       RaiseLastOSError;
     Try
       SD:=DD.Description;
-      D.lpDescription:=Pchar(SD);
+      D.lpDescription:=PAnsiChar(SD);
       ChangeServiceConfig2(SV,SERVICE_CONFIG_DESCRIPTION,@D);
       If (PIDTag<>Nil) then
         DD.WinBindings.IDTag:=IDTag;
@@ -260,11 +260,11 @@ procedure TCustomDaemonApplication.SysUnInstallDaemon(Daemon: TCustomDaemon);
 
 var
   SM,SV : SC_HANDLE;
-  DN : String;
+  DN : AnsiString;
 begin
   SM:=TSMData(FSysData).FHandle;
   DN:=Daemon.Definition.Name;
-  SV:=OpenService(SM,PChar(DN),SERVICE_ALL_ACCESS);
+  SV:=OpenService(SM,PAnsiChar(DN),SERVICE_ALL_ACCESS);
   if (SV=0) then
     RaiseLastOSError;
   try
@@ -346,7 +346,7 @@ begin
       if Windows.RegisterClassA(AWClass) = 0 then
         DaemonError(SErrWindowClass);
       end;
-    GUIHandle := CreateWindowA(AWClass.lpszClassName, Pchar(Title),
+    GUIHandle := CreateWindowA(AWClass.lpszClassName, PAnsiChar(Title),
       HandleOpts, 1,1, 0, 0, 0, 0, HInstance, nil);
     end;
   T:=TDaemonStartThread.Create(P,GUIHandle);
@@ -392,7 +392,7 @@ begin
     For I:=0 to C-1 do
       If Assigned(FMapper.DaemonDefs[i].Instance) then
         begin
-        P[i].lpServiceName:=Pchar(FMapper.DaemonDefs[i].Name);
+        P[i].lpServiceName:=PAnsiChar(FMapper.DaemonDefs[i].Name);
         P[i].lpServiceProc:=@ServiceMainEntry;
         end;
     // Set last entry to Nil.
@@ -506,7 +506,7 @@ begin
 end;
 
 
-procedure TDaemonController.Main(Argc: DWord; Args: PPChar);
+procedure TDaemonController.Main(Argc: DWord; Args: PPAnsiChar);
 
 Var
   T : TThread;
