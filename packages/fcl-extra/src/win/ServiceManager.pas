@@ -203,7 +203,7 @@ ResourceString
 {$ifdef ver130}
 
 Type
-  PCharArray = Array[Word] of PChar;
+  PCharArray = Array[Word] of PAnsiChar;
   PPCharArray = ^PCharArray;
 
 Procedure RaiseLastOSError;
@@ -227,14 +227,14 @@ end;
 procedure TServiceManager.Connect;
 
 Var
-   P : PChar;
+   P : PAnsiChar;
 
 begin
   If (FHandle=0) then
     begin
     P:=Nil;
     If (MachineName<>'') then
-      P:=PChar(MachineName);
+      P:=PAnsiChar(MachineName);
     FHandle:=OpenSCManager(P,Nil,FAccess);
     If (FHandle=0) then
       RaiseLastOSError;
@@ -308,7 +308,7 @@ begin
         FDisplayName:=StrPas(lpDisplayName);
         SetStatusFields(ServiceStatus);
         end;
-      PChar(P):=Pchar(P)+SizeOf(TEnumServiceStatus);
+      PAnsiChar(P):=PAnsiChar(P)+SizeOf(TEnumServiceStatus);
       end;
     Finally
     FreeMem(Info);
@@ -424,7 +424,7 @@ begin
     FBeforeDisconnect(Self);
 end;
 
-Function AllocDependencyList (Const S : String) : PChar;
+Function AllocDependencyList (Const S : String) : PAnsiChar;
 
 Var
   I,L : Integer;
@@ -448,7 +448,7 @@ end;
 Function TServiceManager.RegisterService(var Desc: TServiceDescriptor) : Thandle;
 
 Var
-  PDep,PLO,PUser,PPWd : PChar; // We need Nil for some things.
+  PDep,PLO,PUser,PPWd : PAnsiChar; // We need Nil for some things.
   N,D : String;
   ReturnTag : DWord;
 
@@ -460,19 +460,19 @@ begin
     If (LoadOrderGroup='') then
       PLO:=Nil
     else
-      PLO:=PChar(LoadOrderGroup);
+      PLO:=PAnsiChar(LoadOrderGroup);
     PPwd:=Nil;
     PUser:=Nil;
     If (UserName<>'') then
       begin
-      PUser:=PChar(UserName);
+      PUser:=PAnsiChar(UserName);
       If (Password<>'') then
-        PPWd:=PChar(Password);
+        PPWd:=PAnsiChar(Password);
       end;
     PDep:=AllocDependencyList(Dependencies);
     Try
-      Result:=CreateService(Self.Handle,PChar(N),PChar(D),DesiredAccess,ServiceType,
-                            StartType,ErrorControl,PChar(CommandLine),PLO,Nil,
+      Result:=CreateService(Self.Handle,PAnsiChar(N),PAnsiChar(D),DesiredAccess,ServiceType,
+                            StartType,ErrorControl,PAnsiChar(CommandLine),PLO,Nil,
                             PDep,PUser,PPwd);
       If (Result=0) then
         RaiseLastOSError;
@@ -489,7 +489,7 @@ Var
   H : THandle;
 
 begin
-  H:=OpenService(Handle,PChar(ServiceName),SERVICE_ENUMERATE_DEPENDENTS);
+  H:=OpenService(Handle,PAnsiChar(ServiceName),SERVICE_ENUMERATE_DEPENDENTS);
   try
     ListDependentServices(H,ServiceState,List);
   Finally
@@ -520,7 +520,7 @@ begin
       For I:=0 to Count-1 do
         begin
         List.Add(StrPas(E^.lpServiceName));
-        Pchar(E):=PChar(E)+SizeOf(TEnumServiceStatus);
+        PAnsiChar(E):=PAnsiChar(E)+SizeOf(TEnumServiceStatus);
         end;
     Finally
       FreeMem(P);
@@ -567,7 +567,7 @@ begin
   A:=SERVICE_STOP or SERVICE_QUERY_STATUS;
   If StopDependent then
     A:=A or SERVICE_ENUMERATE_DEPENDENTS;
-  H:=OpenService(Handle,PChar(ServiceName),A);
+  H:=OpenService(Handle,PAnsiChar(ServiceName),A);
   Try
     StopService(H,StopDependent);
   Finally
@@ -579,7 +579,7 @@ end;
 Function TServiceManager.GetServiceHandle(const ServiceName : String; SAccess : DWord) : THandle;
 
 begin
-  Result:=OpenService(Handle,PChar(ServiceName),SAccess);
+  Result:=OpenService(Handle,PAnsiChar(ServiceName),SAccess);
   If (Result=0) then
     RaiseLastOSError;
 end;
@@ -649,7 +649,7 @@ begin
   end;
 end;
 
-Function StringsToPCharList(List : TStrings) : PPChar;
+Function StringsToPCharList(List : TStrings) : PPAnsiChar;
 
 Var
   I : Integer;
@@ -657,25 +657,25 @@ Var
 
 begin
   I:=(List.Count)+1;
-  GetMem(Result,I*sizeOf(PChar));
+  GetMem(Result,I*sizeOf(PAnsiChar));
   PPCharArray(Result)^[List.Count]:=Nil;
   For I:=0 to List.Count-1 do
     begin
     S:=List[i];
-    PPCharArray(Result)^[i]:=StrNew(PChar(S));
+    PPCharArray(Result)^[i]:=StrNew(PAnsiChar(S));
     end;
 end;
 
-Procedure FreePCharList(List : PPChar);
+Procedure FreePCharList(List : PPAnsiChar);
 
 Var
   I : integer;
 
 begin
   I:=0;
-  While PPChar(List)[i]<>Nil do
+  While PPAnsiChar(List)[i]<>Nil do
     begin
-    StrDispose(PPChar(List)[i]);
+    StrDispose(PPAnsiChar(List)[i]);
     Inc(I);
     end;
   FreeMem(List);
@@ -685,7 +685,7 @@ Procedure TServiceManager.StartService(SHandle : THandle; Args : TStrings);
 
 Var
   Argc : DWord;
-  PArgs : PPchar;
+  PArgs : PPAnsiChar;
 
 begin
   If (Args=Nil) or (Args.Count>0) then
@@ -699,7 +699,7 @@ begin
     Pargs:=StringsToPcharList(Args);
     end;
   Try
-    If not jwawinsvc.StartService(SHandle,Argc,Pchar(PArgs)) then
+    If not jwawinsvc.StartService(SHandle,Argc,PAnsiChar(PArgs)) then
       RaiseLastOSError;
   Finally
     If (PArgs<>Nil) then
@@ -817,17 +817,17 @@ end;
 
 procedure TServiceManager.ConfigService(SHandle : THandle ; Config : TServiceDescriptor);
 
-  Function SToPchar(Var S : String) : PChar;
+  Function SToPchar(Var S : String) : PAnsiChar;
 
   begin
     If (S='') then
       Result:=Nil
     else
-      Result:=PChar(S);
+      Result:=PAnsiChar(S);
   end;
 
 Var
-  PDep,PLO,PUser,PPWd,PCmd,PDisp : PChar; // We need Nil for some things.
+  PDep,PLO,PUser,PPWd,PCmd,PDisp : PAnsiChar; // We need Nil for some things.
   D : String;
   ReturnTag : DWord;
 
