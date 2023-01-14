@@ -23,8 +23,8 @@ uses
   Math, Strings, md5;
 
 
-function LMGenerate(const Password: PChar): TMDDigest;
-function NTGenerate(const Password: PChar): TMDDigest;
+function LMGenerate(const Password: PAnsiChar): TMDDigest;
+function NTGenerate(const Password: PAnsiChar): TMDDigest;
 
 implementation
 
@@ -331,7 +331,7 @@ begin
 end;*)
 
 
-function LMGenerate(const Password: PChar): TMDDigest;
+function LMGenerate(const Password: PAnsiChar): TMDDigest;
 var
   dospwd: array[0..14] of Byte;
 begin
@@ -341,8 +341,8 @@ begin
   FillChar(dospwd, Sizeof(dospwd), 0);
 
   (* Password must be converted to DOS charset - null terminated, uppercase *)
-  StrLCopy(PChar(@dospwd[0]), PChar(@Password[0]), SizeOf(dospwd)-1);
-  StrUpper(PChar(@dospwd[0]));
+  StrLCopy(PAnsiChar(@dospwd[0]), PAnsiChar(@Password[0]), SizeOf(dospwd)-1);
+  StrUpper(PAnsiChar(@dospwd[0]));
 
   (* Only the first 14 chars are considered, password need not be null terminated *)
   E_P16(@dospwd[0], @Result);
@@ -351,7 +351,7 @@ begin
 end;
 
 
-function NTGenerate(const Password: PChar): TMDDigest;
+function NTGenerate(const Password: PAnsiChar): TMDDigest;
 var
   pos: Integer;
   wpwd: array[0..127] of WideChar;

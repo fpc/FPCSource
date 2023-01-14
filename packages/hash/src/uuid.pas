@@ -93,10 +93,10 @@ function uuid_create(out uuid: uuid_t): boolean;
 procedure uuid_finalize(out state: uuid_state);
 
 { uuid_create_md5_from_name -- create a version 3 (MD5) UUID using a "name" from a "name space" }
-procedure uuid_create_md5_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: string);
+procedure uuid_create_md5_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: RawByteString);
 
 { uuid_create_sha1_from_name -- create a version 5 (SHA-1) UUID using a "name" from a "name space" }
-procedure uuid_create_sha1_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: string);
+procedure uuid_create_sha1_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: RawByteString);
 
 { uuid_compare --  Compare two UUID's "lexically" }
 function uuid_compare(const u1, u2: uuid_t): integer;
@@ -202,7 +202,7 @@ end;
 
 { uuid_create_md5_from_name }
 
-procedure uuid_create_md5_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: string);
+procedure uuid_create_md5_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: RawByteString);
 var
   net_nsid: uuid_t;
   c: TMDContext;
@@ -217,7 +217,7 @@ begin
 
   MDInit(c, MD_VERSION_5);
   MDUpdate(c, net_nsid, sizeof(net_nsid));
-  MDUpdate(c, pchar(name)^, Length(name));
+  MDUpdate(c, PAnsiChar(name)^, Length(name));
   MDFinal(c, hash);
 
   (* the hash is in network byte order at this point *)
@@ -227,7 +227,7 @@ end;
 
 { uuid_create_sha1_from_name }
 
-procedure uuid_create_sha1_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: string);
+procedure uuid_create_sha1_from_name(out uuid: uuid_t; const nsid: uuid_t; const name: RawByteString);
 var
   net_nsid: uuid_t;
   c: TSHA1Context;
@@ -242,7 +242,7 @@ begin
 
   SHA1Init(c);
   SHA1Update(c, net_nsid, sizeof(net_nsid));
-  SHA1Update(c, pchar(name)^, Length(name));
+  SHA1Update(c, PAnsiChar(name)^, Length(name));
   SHA1Final(c, hash);
 
   (* the hash is in network byte order at this point *)
