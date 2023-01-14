@@ -63,12 +63,12 @@ const
   EsockADDRINUSE        = ESysEADDRINUSE;
 
 { unix socket specific functions }
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;
-Function Bind(Sock:longint;const addr:string):boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean; deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;    deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;    deprecated;
+Procedure Str2UnixSockAddr(const addr:ansistring;var t:TUnixSockAddr;var len:longint); deprecated;
+Function Bind(Sock:longint;const addr:ansistring):boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:file):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:text):Boolean;    deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolean;    deprecated;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
