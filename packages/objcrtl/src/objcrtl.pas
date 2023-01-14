@@ -113,13 +113,13 @@ type
   end;
 
 var
-  sel_getName : function (sel: SEL): PChar; cdecl = nil;
-  sel_registerName : function (str: PChar): SEL; cdecl = nil;
-  object_getClassName : function (obj: id): PChar; cdecl = nil;
+  sel_getName : function (sel: SEL): PAnsiChar; cdecl = nil;
+  sel_registerName : function (str: PAnsiChar): SEL; cdecl = nil;
+  object_getClassName : function (obj: id): PAnsiChar; cdecl = nil;
   object_getIndexedIvars : function (obj: id ): Pointer; cdecl = nil;
 
   sel_isMapped: function (sel: SEL): Boolean; cdecl = nil;
-  sel_getUid: function (const str: PChar): SEL; cdecl = nil;
+  sel_getUid: function (const str: PAnsiChar): SEL; cdecl = nil;
 
   object_copy : function (obj:id; size:size_t):id; cdecl = nil;
   object_dispose : function (obj:id):id; cdecl = nil;
@@ -130,21 +130,21 @@ var
   object_getIvar : function (obj:id; ivar:Ivar):id; cdecl = nil;
   object_setIvar : procedure (obj:id; ivar:Ivar; value:id); cdecl = nil;
 
-  object_setInstanceVariable : function (obj:id; name:pchar; value:pointer):Ivar; cdecl = nil;
-  object_getInstanceVariable : function (obj:id; name:pchar; var outValue: Pointer):Ivar; cdecl = nil;
+  object_setInstanceVariable : function (obj:id; name:PAnsiChar; value:pointer):Ivar; cdecl = nil;
+  object_getInstanceVariable : function (obj:id; name:PAnsiChar; var outValue: Pointer):Ivar; cdecl = nil;
 
-  objc_getClass : function (name:pchar):id; cdecl = nil;
-  objc_getMetaClass : function (name:pchar):id; cdecl = nil;
-  objc_lookUpClass : function (name:pchar):id; cdecl = nil;
-  objc_getRequiredClass : function (name:pchar):id; cdecl = nil;
-  objc_getFutureClass : function (name:pchar):_Class; cdecl = nil;
-  objc_setFutureClass : procedure (cls:_Class; name:pchar); cdecl = nil;
+  objc_getClass : function (name:PAnsiChar):id; cdecl = nil;
+  objc_getMetaClass : function (name:PAnsiChar):id; cdecl = nil;
+  objc_lookUpClass : function (name:PAnsiChar):id; cdecl = nil;
+  objc_getRequiredClass : function (name:PAnsiChar):id; cdecl = nil;
+  objc_getFutureClass : function (name:PAnsiChar):_Class; cdecl = nil;
+  objc_setFutureClass : procedure (cls:_Class; name:PAnsiChar); cdecl = nil;
   objc_getClassList : function (buffer:pClass; bufferCount:longint):longint; cdecl = nil;
 
-  objc_getProtocol : function (name:pchar): PProtocol; cdecl = nil;
+  objc_getProtocol : function (name:PAnsiChar): PProtocol; cdecl = nil;
   objc_copyProtocolList : function (outCount:pdword):PArrayPProtocol; cdecl = nil;
 
-  class_getName : function (cls:_Class):PChar; cdecl = nil;
+  class_getName : function (cls:_Class):PAnsiChar; cdecl = nil;
   class_isMetaClass : function (cls:_Class):BOOL; cdecl = nil;
   class_getSuperclass : function (cls:_Class):_Class; cdecl = nil;
   class_setSuperclass : function (cls: _Class; newSuper: _Class): _Class; cdecl = nil;
@@ -155,8 +155,8 @@ var
 
   class_getInstanceSize : function (cls:_Class):size_t; cdecl = nil;
 
-  class_getInstanceVariable : function (cls:_Class; name:pchar):Ivar; cdecl = nil;
-  class_getClassVariable : function (cls:_Class; name:pchar):Ivar; cdecl = nil;
+  class_getInstanceVariable : function (cls:_Class; name:PAnsiChar):Ivar; cdecl = nil;
+  class_getClassVariable : function (cls:_Class; name:PAnsiChar):Ivar; cdecl = nil;
   class_copyIvarList : function (cls:_Class; outCount:pdword):PIvar; cdecl = nil;
 
   class_getInstanceMethod : function (cls:_Class; name:SEL):Method; cdecl = nil;
@@ -169,59 +169,59 @@ var
   class_conformsToProtocol : function (cls:_Class; var protocol: Protocol):BOOL; cdecl = nil;
   class_copyProtocolList : function (cls:_Class; var outCount: dword):PArrayPProtocol; cdecl = nil;
 
-  class_getProperty : function (cls:_Class; name: pchar): objc_property_t; cdecl = nil;
+  class_getProperty : function (cls:_Class; name: PAnsiChar): objc_property_t; cdecl = nil;
   class_copyPropertyList : function (cls:_Class; var Count:dword):Pobjc_property_t; cdecl = nil;
 
-  class_getIvarLayout : function (cls:_Class):Pchar; cdecl = nil;
-  class_getWeakIvarLayout : function (cls:_Class):Pchar; cdecl = nil;
+  class_getIvarLayout : function (cls:_Class):PAnsiChar; cdecl = nil;
+  class_getWeakIvarLayout : function (cls:_Class):PAnsiChar; cdecl = nil;
 
   class_createInstance : function (cls:_Class; extraBytes:size_t):id; cdecl = nil;
 
-  objc_allocateClassPair : function (superclass:_Class; name:pchar; extraBytes:size_t):_Class; cdecl = nil;
+  objc_allocateClassPair : function (superclass:_Class; name:PAnsiChar; extraBytes:size_t):_Class; cdecl = nil;
   objc_registerClassPair : procedure (cls:_Class); cdecl = nil;
-  objc_duplicateClass : function (original:_Class; name:pchar; extraBytes:size_t):_Class; cdecl = nil;
+  objc_duplicateClass : function (original:_Class; name:PAnsiChar; extraBytes:size_t):_Class; cdecl = nil;
   objc_disposeClassPair : procedure (cls:_Class); cdecl = nil;
 
-  class_addMethod : function (cls:_Class; name:SEL; imp:IMP; types:pchar):BOOL; cdecl = nil;
-  class_replaceMethod : function (cls:_Class; name:SEL; imp:IMP; types:pchar):IMP; cdecl = nil;
-  class_addIvar: function (cls:_Class; name:pchar; size:size_t; alignment:uint8_t; types:pchar):BOOL; cdecl = nil;
+  class_addMethod : function (cls:_Class; name:SEL; imp:IMP; types:PAnsiChar):BOOL; cdecl = nil;
+  class_replaceMethod : function (cls:_Class; name:SEL; imp:IMP; types:PAnsiChar):IMP; cdecl = nil;
+  class_addIvar: function (cls:_Class; name:PAnsiChar; size:size_t; alignment:uint8_t; types:PAnsiChar):BOOL; cdecl = nil;
   class_addProtocol : function (cls:_Class; protocol:pProtocol):BOOL; cdecl = nil;
-  class_setIvarLayout : procedure (cls:_Class; layout:pchar); cdecl = nil;
-  class_setWeakIvarLayout : procedure (cls:_Class; layout:pchar); cdecl = nil;
+  class_setIvarLayout : procedure (cls:_Class; layout:PAnsiChar); cdecl = nil;
+  class_setWeakIvarLayout : procedure (cls:_Class; layout:PAnsiChar); cdecl = nil;
 
   method_getName : function (m:Method):SEL; cdecl = nil;
   method_getImplementation : function (m:Method):IMP; cdecl = nil;
-  method_getTypeEncoding : function (m:Method):Pchar; cdecl = nil;
+  method_getTypeEncoding : function (m:Method):PAnsiChar; cdecl = nil;
 
   method_getNumberOfArguments : function (m:Method):dword; cdecl = nil;
-  method_copyReturnType : function (m:Method):Pchar; cdecl = nil;
-  method_copyArgumentType : function (m:Method; index:dword):Pchar; cdecl = nil;
-  method_getReturnType : procedure (m:Method; dst:pchar; dst_len:size_t); cdecl = nil;
-  method_getArgumentType : procedure (m:Method; index:dword; dst:pchar; dst_len:size_t); cdecl = nil;
+  method_copyReturnType : function (m:Method):PAnsiChar; cdecl = nil;
+  method_copyArgumentType : function (m:Method; index:dword):PAnsiChar; cdecl = nil;
+  method_getReturnType : procedure (m:Method; dst:PAnsiChar; dst_len:size_t); cdecl = nil;
+  method_getArgumentType : procedure (m:Method; index:dword; dst:PAnsiChar; dst_len:size_t); cdecl = nil;
   method_getDescription : function (m: Method) : Pobjc_method_description; cdecl = nil;
 
   method_setImplementation: function (m:Method; imp:IMP):IMP; cdecl = nil;
   method_exchangeImplementations : procedure (m1:Method; m2:Method); cdecl = nil;
 
-  ivar_getName : function (v:Ivar):Pchar; cdecl = nil;
-  ivar_getTypeEncoding : function (v:Ivar):Pchar; cdecl = nil;
+  ivar_getName : function (v:Ivar):PAnsiChar; cdecl = nil;
+  ivar_getTypeEncoding : function (v:Ivar):PAnsiChar; cdecl = nil;
   ivar_getOffset : function (v:Ivar):ptrdiff_t; cdecl = nil;
 
-  property_getName :function (_property:objc_property_t):Pchar; cdecl = nil;
-  property_getAttributes : function (_property:objc_property_t):Pchar; cdecl = nil;
+  property_getName :function (_property:objc_property_t):PAnsiChar; cdecl = nil;
+  property_getAttributes : function (_property:objc_property_t):PAnsiChar; cdecl = nil;
 
 
   protocol_conformsToProtocol : function (proto:pProtocol; other:pProtocol):BOOL; cdecl = nil;
   protocol_isEqual : function (proto:pProtocol; other:pProtocol):BOOL; cdecl = nil;
   protocol_getMethodDescription : function (p: PProtocol; aSel: SEL; isRequiredMethod, isInstanceMethod: BOOL): objc_method_description; cdecl = nil;
   protocol_copyMethodDescriptionList : function (p: PProtocol; isRequiredMethod, isInstanceMethod: BOOL ; var outCount: LongWord): Pobjc_method_description; cdecl = nil;
-  protocol_getProperty : function (proto:PProtocol; name:pchar; isRequiredProperty:BOOL; isInstanceProperty:BOOL):objc_property_t; cdecl = nil;
+  protocol_getProperty : function (proto:PProtocol; name:PAnsiChar; isRequiredProperty:BOOL; isInstanceProperty:BOOL):objc_property_t; cdecl = nil;
   protocol_copyPropertyList : function (proto:PProtocol; outCount:pdword):Pobjc_property_t; cdecl = nil;
   protocol_copyProtocolList : function (proto:PProtocol; outCount:pdword):PArrayPProtocol; cdecl = nil;
 
-  objc_copyImageNames : function (var outCount:dword): PPchar; cdecl = nil;
-  class_getImageName : function (cls:_Class):Pchar; cdecl = nil;
-  objc_copyClassNamesForImage : function (image:pchar; var outCount: Dword):PPchar; cdecl = nil;
+  objc_copyImageNames : function (var outCount:dword): PPAnsiChar; cdecl = nil;
+  class_getImageName : function (cls:_Class):PAnsiChar; cdecl = nil;
+  objc_copyClassNamesForImage : function (image:PAnsiChar; var outCount: Dword):PPAnsiChar; cdecl = nil;
 
   sel_isEqual : function (lhs:SEL; rhs:SEL):BOOL; cdecl = nil;
   objc_enumerationMutation : procedure (_para1:id); cdecl = nil;
