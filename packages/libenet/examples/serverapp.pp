@@ -122,10 +122,10 @@ end;
 procedure TServerApplication.OnReceive(const Event: ENetEvent; var BroadcastMsg: Boolean;
   var BroadcastChannel: Byte);
 var
-  msg : string;
+  msg : AnsiString;
 begin
   ResetIdle;
-  msg := PChar(Event.packet^.data);
+  msg := PAnsiChar(Event.packet^.data);
   Writeln('Received message on channel : ',Event.channelID,' connected ID ,',Event.peer^.connectID,' (peer : ',Event.peer^.address.host,' port ',Event.peer^.address.port,')');
   Writeln('Message reads : "',Msg,'"');
 end;
