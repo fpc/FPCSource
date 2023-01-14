@@ -4,16 +4,16 @@ Program TestList;
 
 Uses classes;
 
-const a1 : pchar = '0';
-      a2 : pchar = '1';
-      a3 : pchar = '2';
-      a4 : pchar = '3';
-      a5 : pchar = '4';
-      a6 : pchar = '5';
-      a7 : pchar = '6';
-      a8 : pchar = '7';
-      a9 : pchar = '8';
-      a10 : pchar = '9';
+const a1 : PAnsiChar = '0';
+      a2 : PAnsiChar = '1';
+      a3 : PAnsiChar = '2';
+      a4 : PAnsiChar = '3';
+      a5 : PAnsiChar = '4';
+      a6 : PAnsiChar = '5';
+      a7 : PAnsiChar = '6';
+      a8 : PAnsiChar = '7';
+      a9 : PAnsiChar = '8';
+      a10 : PAnsiChar = '9';
 
 Var List : TList;
     StartMem,Runner : longint;
@@ -41,7 +41,7 @@ begin
   If List.Count>0 then
     begin
     For i:=0 to List.Count-1 do
-      if assigned(List.items[I]) then write (Pchar(List.items[i])) else write ('*');
+      if assigned(List.items[I]) then write (PAnsiChar(List.items[i])) else write ('*');
     Writeln;
     end;
 end;

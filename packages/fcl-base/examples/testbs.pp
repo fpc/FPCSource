@@ -25,7 +25,7 @@ Var
   MBSize     : Integer = 1024*100;
   SBCapacity : Integer = 1024*16;
 
-procedure TestRead(Buffer : PChar; ACapacity : Integer);
+procedure TestRead(Buffer : PAnsiChar; ACapacity : Integer);
 
 Var
   F2 : TFileStream;
@@ -36,7 +36,7 @@ begin
   B:=TReadBufStream.Create(TFileStream.Create(PAramStr(0),fmOpenRead),ACapacity);
   Try
     B.SourceOwner:=True;
-    F2:=TFileStream.Create(ChangeFileExt(PAramStr(0),'.tr'),fmCreate);
+    F2:=TFileStream.Create(ChangeFileExt(PAramStr(0),RTLString('.tr')),fmCreate);
     Try
       Repeat
         C:=B.Read(Buffer^,MBSize);
@@ -50,7 +50,7 @@ begin
   end;
 end;
 
-procedure TestWrite(Buffer : PChar; ACapacity : Integer);
+procedure TestWrite(Buffer : PAnsiChar; ACapacity : Integer);
 
 Var
   F : TFileStream;
@@ -60,7 +60,7 @@ Var
 begin
   F:=TFileStream.Create(PAramStr(0),fmOpenRead);
   Try
-    B:=TWriteBufStream.Create(TFileStream.Create(ChangeFileExt(PAramStr(0),'.tw'),fmCreate),ACapacity);
+    B:=TWriteBufStream.Create(TFileStream.Create(ChangeFileExt(PAramStr(0),RTLString('.tw')),fmCreate),ACapacity);
     Try
       B.SourceOwner:=True;
       Repeat
@@ -76,7 +76,7 @@ begin
 end;
 
 Var
-  Buffer : PChar;
+  Buffer : PAnsiChar;
 
 begin
   If ParamCount>0 then

@@ -52,7 +52,7 @@ type
   public
      constructor Create(AOwner: TComponent);  override;
      destructor Destroy; override;
-     function getVersionSetting(inp : string): String;
+     function getVersionSetting(inp : ): ;
   published
     property fileName : widestring  read FFileName write SetFileName;
     property VersionStrings  : TStringList  read FmyVersionStrings;
@@ -155,8 +155,8 @@ begin
   finally ts.Free end;
 end;
 
-{ get single version string }
-function TFileVersionInfo.getVersionSetting(inp : string): String;
+{ get single version  }
+function TFileVersionInfo.getVersionSetting(inp : ): ;
 var i : integer;
 begin
   inp:=LowerCase(inp);

@@ -9,11 +9,11 @@ uses
 type
   TMyThread=class(TThread)
   private
-    ch : char;
+    ch : AnsiChar;
   protected
     procedure Execute; override;
   public
-    constructor Create(c:char);
+    constructor Create(c:AnsiChar);
   end;
 
 procedure TMyThread.Execute;
@@ -24,7 +24,7 @@ begin
 end;
 
 
-constructor TMyThread.Create(c:char);
+constructor TMyThread.Create(c:AnsiChar);
 begin
   ch:=c;
   inherited Create(false);

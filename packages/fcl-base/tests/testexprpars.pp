@@ -29,15 +29,15 @@ type
   TTestExpressionScanner = class(TTestCase)
   Private
     FP : TFPExpressionScanner;
-    FInvalidString : String;
-    procedure DoInvalidNumber(AString: String);
-    procedure TestIdentifier(const ASource, ATokenName: string);
+    FInvalidString : ;
+    procedure DoInvalidNumber(AString: );
+    procedure TestIdentifier(const ASource, ATokenName: );
     procedure TestInvalidNumber;
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
-    Procedure AssertEquals(Msg : string; AExpected, AActual : TTokenType); overload;
-    Procedure TestString(Const AString : String; AToken : TTokenType);
+    Procedure AssertEquals(Msg : ; AExpected, AActual : TTokenType); overload;
+    Procedure TestString(Const AString : ; AToken : TTokenType);
   published
     procedure TestCreate;
     procedure TestSetSource;
@@ -68,16 +68,16 @@ type
   Protected
     FDestroyCalled : Integer;
     FCheckNode : TFPExprNode;
-    procedure AssertNodeType(Msg: String; AClass: TClass; ANode: TFPExprNode); overload;
-    procedure AssertEquals(Msg: String; AResultType : TResultType; ANode: TFPExprNode); overload;
-    procedure AssertEquals(Msg: String; AExpected,AActual : TResultType); overload;
+    procedure AssertNodeType(Msg: ; AClass: TClass; ANode: TFPExprNode); overload;
+    procedure AssertEquals(Msg: ; AResultType : TResultType; ANode: TFPExprNode); overload;
+    procedure AssertEquals(Msg: ; AExpected,AActual : TResultType); overload;
     Function CreateBoolNode(ABoolean: Boolean) : TFPExprNode;
     Function CreateIntNode(AInteger: Integer) : TFPExprNode;
     Function CreateFloatNode(AFloat : TExprFloat) : TFPExprNode;
-    Function CreateStringNode(Astring : String) : TFPExprNode;
+    Function CreateStringNode(Astring : ) : TFPExprNode;
     Function CreateDateTimeNode(ADateTime : TDateTime) : TFPExprNode;
     Procedure AssertNodeOK(FN : TFPExprNode);
-    Procedure AssertNodeNotOK(Const Msg : String; FN : TFPExprNode);
+    Procedure AssertNodeNotOK(Const Msg : ; FN : TFPExprNode);
     Procedure Setup; override;
   end;
 
@@ -272,7 +272,7 @@ type
     Procedure TearDown; override;
     Class Function NodeClass : TFPBooleanResultOperationClass; virtual;
     Class Function ExpectedResult : Boolean; virtual;
-    Class Function OperatorString : String; virtual;
+    Class Function OperatorString : ; virtual;
   Published
     Procedure TestCreateIntegerEqual;
     procedure TestCreateIntegerUnEqual;
@@ -299,7 +299,7 @@ type
   Protected
     Class Function NodeClass : TFPBooleanResultOperationClass; override;
     Class Function ExpectedResult : Boolean; override;
-    Class Function OperatorString : String; override;
+    Class Function OperatorString : ; override;
   end;
 
   { TTestLessThanNode }
@@ -311,7 +311,7 @@ type
     Class Function NodeClass : TFPBooleanResultOperationClass; virtual;
     Class Function Larger : Boolean; virtual;
     Class Function AllowEqual : Boolean; virtual;
-    Class Function OperatorString : String; virtual;
+    Class Function OperatorString : ; virtual;
     Procedure TearDown; override;
   Published
     Procedure TestCreateIntegerEqual;
@@ -343,7 +343,7 @@ type
   protected
     Class Function NodeClass : TFPBooleanResultOperationClass; override;
     Class Function AllowEqual : Boolean; override;
-    Class Function OperatorString : String; override;
+    Class Function OperatorString : ; override;
   end;
 
   { TTestLargerThanNode }
@@ -352,7 +352,7 @@ type
   protected
     Class Function NodeClass : TFPBooleanResultOperationClass; override;
     Class Function Larger : Boolean; override;
-    Class Function OperatorString : String; override;
+    Class Function OperatorString : ; override;
   end;
   { TTestLargerThanEqualNode }
 
@@ -360,7 +360,7 @@ type
   protected
     Class Function NodeClass : TFPBooleanResultOperationClass; override;
     Class Function AllowEqual : Boolean; override;
-    Class Function OperatorString : String; override;
+    Class Function OperatorString : ; override;
   end;
 
   { TTestAddNode }
@@ -423,7 +423,7 @@ type
   Protected
     Procedure Setup; override;
     Procedure TearDown; override;
-    procedure Calc(AExpr: String; Expected: Double = NaN);
+    procedure Calc(AExpr: ; Expected: Double = NaN);
   Published
     Procedure TestCreateInteger;
     Procedure TestCreateFloat;
@@ -498,7 +498,7 @@ type
   TTestExpressionParser = class(TTestBaseParser)
   Private
     FP : TMyFPExpressionParser;
-    FTestExpr : String;
+    FTestExpr : ;
     procedure DoAddInteger(var Result: TFPExpressionResult;
       const Args: TExprParameterArray);
     procedure DoDeleteString(var Result: TFPExpressionResult;
@@ -511,7 +511,7 @@ type
     procedure DoEchoString(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
     procedure DoGetDate(var Result: TFPExpressionResult; Const Args: TExprParameterArray);
     procedure DoParse;
-    procedure TestParser(AExpr: string);
+    procedure TestParser(AExpr: );
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -521,7 +521,7 @@ type
     Procedure AssertResult(F : TExprFloat);
     Procedure AssertCurrencyResult(C : Currency);
     Procedure AssertResult(I : Int64);
-    Procedure AssertResult(S : String);
+    Procedure AssertResult(S : );
     Procedure AssertResult(B : Boolean);
     Procedure AssertDateTimeResult(D : TDateTime);
   end;
@@ -728,11 +728,11 @@ type
   TTestParserVariables = Class(TTestExpressionParser)
   private
     FAsWrongType : TResultType;
-    FEventName: String;
+    FEventName: ;
     FBoolValue : Boolean;
     FTest33 : TFPExprIdentifierDef;
     FIdentifiers : TStrings;
-    procedure AddIdentifier(Sender: TObject; const aIdentifier: String; var aIdent : TFPExprIdentifierDef);
+    procedure AddIdentifier(Sender: TObject; const aIdentifier: ; var aIdent : TFPExprIdentifierDef);
     procedure DoGetBooleanVar(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure TestAccess(Skip: TResultType);
@@ -911,23 +911,23 @@ type
   private
     FValue : Integer;
     FM : TExprBuiltInManager;
-    FExpr : String;
+    FExpr : ;
     procedure DoAverage(Var Result : TFPExpressionResult; ConstRef AName : ShortString);
     procedure DoSeries(var Result: TFPExpressionResult; ConstRef AName: ShortString);
   Protected
     procedure Setup; override;
     procedure Teardown; override;
-    Procedure SetExpression(Const AExpression : String);
-    Procedure AssertVariable(Const ADefinition : String; AResultType : TResultType);
-    Procedure AssertFunction(Const ADefinition,AResultType,ArgumentTypes : String; ACategory : TBuiltinCategory);
-    procedure AssertExpression(Const AExpression : String; AResult : Int64);
-    procedure AssertExpression(Const AExpression : String; Const AResult : String);
-    procedure AssertExpression(Const AExpression : String; Const AResult : TExprFloat);
-    procedure AssertExpression(Const AExpression : String; Const AResult : Boolean);
-    procedure AssertDateTimeExpression(Const AExpression : String; Const AResult : TDateTime);
-    procedure AssertAggregateExpression(Const AExpression : String; AResult : Int64; AUpdateCount : integer);
-    procedure AssertAggregateExpression(Const AExpression : String; AResult : TExprFloat; AUpdateCount : integer);
-    procedure AssertAggregateCurrExpression(Const AExpression : String; AResult : Currency; AUpdateCount : integer);
+    Procedure SetExpression(Const AExpression : );
+    Procedure AssertVariable(Const ADefinition : ; AResultType : TResultType);
+    Procedure AssertFunction(Const ADefinition,AResultType,ArgumentTypes : ; ACategory : TBuiltinCategory);
+    procedure AssertExpression(Const AExpression : ; AResult : Int64);
+    procedure AssertExpression(Const AExpression : ; Const AResult : );
+    procedure AssertExpression(Const AExpression : ; Const AResult : TExprFloat);
+    procedure AssertExpression(Const AExpression : ; Const AResult : Boolean);
+    procedure AssertDateTimeExpression(Const AExpression : ; Const AResult : TDateTime);
+    procedure AssertAggregateExpression(Const AExpression : ; AResult : Int64; AUpdateCount : integer);
+    procedure AssertAggregateExpression(Const AExpression : ; AResult : TExprFloat; AUpdateCount : integer);
+    procedure AssertAggregateCurrExpression(Const AExpression : ; AResult : Currency; AUpdateCount : integer);
   Published
     procedure TestRegister;
     Procedure TestVariablepi;
@@ -1392,7 +1392,7 @@ end;
 procedure TTestExpressionScanner.TestTokens;
 
 Const
-  TestStrings : Array[TTokenType] of String
+  TestStrings : Array[TTokenType] of
   (*
   TTokenType = (ttPlus, ttMinus, ttLessThan, ttLargerThan, ttEqual, ttDiv,
                 ttMod, ttMul, ttLeft, ttRight, ttLessThanEqual,
@@ -1421,7 +1421,7 @@ begin
   TestString(FInvalidString,ttNumber);
 end;
 
-procedure TTestExpressionScanner.DoInvalidNumber(AString : String);
+procedure TTestExpressionScanner.DoInvalidNumber(AString : );
 
 begin
   FInvalidString:=AString;
@@ -1466,7 +1466,7 @@ begin
   TestString('''s it''''''',ttString);
 end;
 
-procedure TTestExpressionScanner.TestIdentifier(Const ASource,ATokenName : string);
+procedure TTestExpressionScanner.TestIdentifier(Const ASource,ATokenName : );
 
 begin
   FP.Source:=ASource;
@@ -1497,11 +1497,11 @@ begin
   FreeAndNil(FP);
 end;
 
-procedure TTestExpressionScanner.AssertEquals(Msg: string; AExpected,
+procedure TTestExpressionScanner.AssertEquals(Msg: ; AExpected,
   AActual: TTokenType);
 
 Var
-  S1,S2 : String;
+  S1,S2 : ;
 
 begin
   S1:=TokenName(AExpected);
@@ -1509,7 +1509,7 @@ begin
   AssertEquals(Msg,S1,S2);
 end;
 
-procedure TTestExpressionScanner.TestString(const AString: String;
+procedure TTestExpressionScanner.TestString(const AString: ;
   AToken: TTokenType);
 begin
   FP.Source:=AString;
@@ -1529,21 +1529,21 @@ begin
   FCheckNode.Check;
 end;
 
-procedure TTestBaseParser.AssertNodeType(Msg: String; AClass: TClass;
+procedure TTestBaseParser.AssertNodeType(Msg: ; AClass: TClass;
   ANode: TFPExprNode);
 begin
   AssertNotNull(Msg+': Not null',ANode);
   AssertEquals(Msg+': Class OK',AClass,ANode.ClassType);
 end;
 
-procedure TTestBaseParser.AssertEquals(Msg: String; AResultType: TResultType;
+procedure TTestBaseParser.AssertEquals(Msg: ; AResultType: TResultType;
   ANode: TFPExprNode);
 begin
   AssertNotNull(Msg+': Node not null',ANode);
   AssertEquals(Msg,AResultType,Anode.NodeType);
 end;
 
-procedure TTestBaseParser.AssertEquals(Msg: String; AExpected,
+procedure TTestBaseParser.AssertEquals(Msg: ; AExpected,
   AActual: TResultType);
 
 begin
@@ -1560,7 +1560,7 @@ begin
   Result:=TFPConstExpression.CreateFloat(AFloat);
 end;
 
-function TTestBaseParser.CreateStringNode(Astring: String): TFPExprNode;
+function TTestBaseParser.CreateStringNode(Astring: ): TFPExprNode;
 begin
   Result:=TFPConstExpression.CreateString(AString);
 end;
@@ -1574,7 +1574,7 @@ procedure TTestBaseParser.AssertNodeOK(FN: TFPExprNode);
 
 Var
   B : Boolean;
-  Msg : String;
+  Msg : ;
 
 begin
   AssertNotNull('Node to test OK',FN);
@@ -1590,7 +1590,7 @@ begin
     Fail(Format('Node %s not OK: %s',[FN.ClassName,Msg]));
 end;
 
-procedure TTestBaseParser.AssertNodeNotOK(const MSg : String; FN: TFPExprNode);
+procedure TTestBaseParser.AssertNodeNotOK(const MSg : ; FN: TFPExprNode);
 begin
   FCheckNode:=FN;
   AssertException(Msg,EExprParser,@DoCheck);
@@ -1657,7 +1657,7 @@ procedure TTestConstExprNode.TestCreateDateTime;
 
 Var
   D : TDateTime;
-  S : String;
+  S : ;
 
 begin
   D:=Now;
@@ -1672,7 +1672,7 @@ end;
 procedure TTestConstExprNode.TestCreateString;
 
 Var
-  S : String;
+  S : ;
 
 begin
   S:='Ohlala';
@@ -1705,7 +1705,7 @@ end;
 procedure TTestNegateExprNode.TestCreateFloat;
 
 Var
-  S : String;
+  S : ;
 
 begin
   FN:=TFPNegateOperation.Create(CreateFloatNode(1.23));
@@ -1956,7 +1956,7 @@ begin
   Result:=True
 end;
 
-class function TTestEqualNode.OperatorString: String;
+class function TTestEqualNode.OperatorString: ;
 begin
   Result:='=';
 end;
@@ -2108,7 +2108,7 @@ begin
   Result:=False;
 end;
 
-class function TTestUnEqualNode.OperatorString: String;
+class function TTestUnEqualNode.OperatorString: ;
 begin
   Result:='<>';
 end;
@@ -2130,7 +2130,7 @@ begin
   Result:=False;
 end;
 
-class function TTestLessThanNode.OperatorString: String;
+class function TTestLessThanNode.OperatorString: ;
 begin
   Result:='<';
 end;
@@ -2318,7 +2318,7 @@ begin
   Result:=True;
 end;
 
-class function TTestLessThanEqualNode.OperatorString: String;
+class function TTestLessThanEqualNode.OperatorString: ;
 begin
   Result:='<=';
 end;
@@ -2335,7 +2335,7 @@ begin
   Result:=True;
 end;
 
-class function TTestLargerThanNode.OperatorString: String;
+class function TTestLargerThanNode.OperatorString: ;
 begin
   Result:='>';
 end;
@@ -2352,7 +2352,7 @@ begin
   Result:=True;
 end;
 
-class function TTestLargerThanEqualNode.OperatorString: String;
+class function TTestLargerThanEqualNode.OperatorString: ;
 begin
   Result:='>=';
 end;
@@ -2553,7 +2553,7 @@ begin
   FE.Builtins := [bcMath];
 end;
 
-procedure TTestPowerNode.Calc(AExpr: String; Expected: Double =NaN);
+procedure TTestPowerNode.Calc(AExpr: ; Expected: Double =NaN);
 const
   EPS = 1e-9;
 var
@@ -2825,7 +2825,7 @@ end;
 procedure TTestFloatToDateTimeNode.TestAsString;
 
 Var
-  S : String;
+  S : ;
 
 begin
   FN:=TFloatToDateTimeNode.Create(CreateFloatNode(1.2));
@@ -2860,7 +2860,7 @@ begin
   FP.Expression:=FTestExpr;
 end;
 
-procedure TTestExpressionParser.TestParser(AExpr : string);
+procedure TTestExpressionParser.TestParser(AExpr : );
 
 begin
   FTestExpr:=AExpr;
@@ -2913,9 +2913,9 @@ begin
   AssertEquals('Correct integer result',I,FP.Evaluate.ResInteger);
 end;
 
-procedure TTestExpressionParser.AssertResult(S: String);
+procedure TTestExpressionParser.AssertResult(S: );
 begin
-  AssertEquals('Correct string result',S,FP.ExprNode.NodeValue.ResString);
+  AssertEquals('Correct  result',S,FP.ExprNode.NodeValue.ResString);
   AssertEquals('Correct string result',S,FP.Evaluate.ResString);
 end;
 
@@ -2940,7 +2940,7 @@ end;
 
 procedure TTestParserExpressions.TestNumberValues;
 
-  Procedure DoTest(E :  String; V : integer);
+  Procedure DoTest(E :  ; V : integer);
 
   var
     res: TFPExpressionResult;
@@ -5016,7 +5016,7 @@ begin
   Res.ResBoolean:=FBoolValue;
 end;
 
-procedure TTestParserVariables.AddIdentifier(Sender: TObject; const aIdentifier: String; var aIdent : TFPExprIdentifierDef);
+procedure TTestParserVariables.AddIdentifier(Sender: TObject; const aIdentifier: ; var aIdent : TFPExprIdentifierDef);
 begin
   aIdent:=Nil;
   AssertNotNull('Have identifier list',FIdentifiers);
@@ -5044,7 +5044,7 @@ begin
 end;
 
 Var
-  FVarCallBackName:String;
+  FVarCallBackName:;
   FVarBoolValue : Boolean;
 
 procedure DoGetBooleanVar2(var Res: TFPExpressionResult; ConstRef AName: ShortString);
@@ -6097,10 +6097,10 @@ begin
   inherited Teardown;
 end;
 
-procedure TTestBuiltins.SetExpression(const AExpression: String);
+procedure TTestBuiltins.SetExpression(const AExpression: );
 
 Var
-  Msg : String;
+  Msg : ;
 
 begin
   Msg:='';
@@ -6114,7 +6114,7 @@ begin
     Fail('Parsing of expression "'+AExpression+'" failed :'+Msg);
 end;
 
-procedure TTestBuiltins.AssertVariable(const ADefinition: String;
+procedure TTestBuiltins.AssertVariable(const ADefinition: ;
   AResultType: TResultType);
 
 Var
@@ -6127,7 +6127,7 @@ begin
 end;
 
 procedure TTestBuiltins.AssertFunction(const ADefinition, AResultType,
-  ArgumentTypes: String; ACategory : TBuiltinCategory);
+  ArgumentTypes: ; ACategory : TBuiltinCategory);
 
 Var
   I : TFPBuiltinExprIdentifierDef;
@@ -6141,7 +6141,7 @@ begin
   AssertEquals(ADefinition+' has correct category',Ord(ACategory),Ord(I.Category));
 end;
 
-procedure TTestBuiltins.AssertExpression(const AExpression: String;
+procedure TTestBuiltins.AssertExpression(const AExpression: ;
   AResult: Int64);
 
 begin
@@ -6150,15 +6150,15 @@ begin
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertExpression(const AExpression: String;
-  const AResult: String);
+procedure TTestBuiltins.AssertExpression(const AExpression: ;
+  const AResult: );
 begin
   FP.BuiltIns:=AllBuiltIns;
   SetExpression(AExpression);
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertExpression(const AExpression: String;
+procedure TTestBuiltins.AssertExpression(const AExpression: ;
   const AResult: TExprFloat);
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6166,7 +6166,7 @@ begin
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertExpression(const AExpression: String;
+procedure TTestBuiltins.AssertExpression(const AExpression: ;
   const AResult: Boolean);
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6174,7 +6174,7 @@ begin
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertDateTimeExpression(const AExpression: String;
+procedure TTestBuiltins.AssertDateTimeExpression(const AExpression: ;
   const AResult: TDateTime);
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6182,7 +6182,7 @@ begin
   AssertDatetimeResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertAggregateExpression(const AExpression: String;
+procedure TTestBuiltins.AssertAggregateExpression(const AExpression: ;
   AResult: Int64; AUpdateCount: integer);
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6197,7 +6197,7 @@ begin
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertAggregateExpression(const AExpression: String;
+procedure TTestBuiltins.AssertAggregateExpression(const AExpression: ;
   AResult: TExprFloat; AUpdateCount: integer);
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6212,7 +6212,7 @@ begin
   AssertResult(AResult);
 end;
 
-procedure TTestBuiltins.AssertAggregateCurrExpression(Const AExpression : String; AResult : Currency; AUpdateCount : integer);
+procedure TTestBuiltins.AssertAggregateCurrExpression(Const AExpression : ; AResult : Currency; AUpdateCount : integer);
 
 begin
   FP.BuiltIns:=AllBuiltIns;
@@ -6647,7 +6647,7 @@ end;
 procedure TTestBuiltins.TestFunctionstrtofloat;
 
 Var
-  S : String;
+  S : ;
 
 begin
   S:='1.23';
@@ -6731,7 +6731,7 @@ procedure TTestBuiltins.TestFunctionstrtodatetime;
 
 Var
   T : TDateTime;
-  S : String;
+  S : ;
 
 begin
   T:=Now;
@@ -6743,7 +6743,7 @@ procedure TTestBuiltins.TestFunctionstrtodatetimedef;
 
 Var
   T : TDateTime;
-  S : String;
+  S : ;
 
 begin
   T:=Now;

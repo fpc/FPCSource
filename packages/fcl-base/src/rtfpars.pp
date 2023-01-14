@@ -39,7 +39,7 @@ TRTFParser = class(TObject)
     FrtfParam : Integer;
     rtfTextBuf : string [rtfBufSiz];
     rtfTextLen : Integer;
-    pushedChar : Integer;               { pushback char if read too far }
+    pushedChar : Integer;               { pushback AnsiChar if read too far }
     pushedClass : Integer;      { pushed token info for RTFUngetToken() }
     pushedMajor,
     pushedMinor,
@@ -62,7 +62,7 @@ TRTFParser = class(TObject)
     Function  CheckMM (major, minor : Integer) : Boolean;
     Procedure Real_RTFGetToken;
     Function  GetChar : Integer;
-    Procedure Lookup (S : String);
+    Procedure Lookup (S : AnsiString );
     Function  GetFont (num : Integer) : PRTFFont;
     Function  GetColor (num : Integer) : PRTFColor;
     Function  GetStyle (num : Integer) : PRTFStyle;
@@ -83,9 +83,9 @@ TRTFParser = class(TObject)
     Procedure StartReading;
     Procedure SetReadHook (Hook : TRTFFuncPtr);
     Procedure UngetToken;
-    Procedure SetToken (Aclass, major, minor, param : Integer; const text : string);
+    Procedure SetToken (Aclass, major, minor, param : Integer; const text : String);
     Procedure ExpandStyle (n : Integer);
-    Function GetRtfBuf : String;
+    Function GetRtfBuf : AnsiString;
     { Properties }
     Property Colors [Index : Integer]: PRTFColor Read GetColor;
     Property ClassCallBacks [AClass : Integer]: TRTFFuncptr
@@ -112,7 +112,7 @@ Const EOF = -255;
          Utility functions
   ---------------------------------------------------------------------}
 
-Function Hash (const s : String) : Integer;
+Function Hash (const s : AnsiString) : Integer;
 
 var
   val,i : integer;
@@ -505,7 +505,7 @@ if c<>ord('\') then
   Begin
   { Two possibilities here:
     1) ASCII 9, effectively like \tab control symbol
-    2) literal text char }
+    2) literal text AnsiChar }
   if c=ord(#8) then                     { ASCII 9 }
     Begin
     FrtfClass := rtfControl;
@@ -526,10 +526,10 @@ if (c=EOF) then
 if ( not isalpha (c)) then
   Begin
   { Three possibilities here:
-   1) hex encoded text char, e.g., \'d5, \'d3
-   2) special escaped text char, e.g., \, \;
+   1) hex encoded text AnsiChar, e.g., \'d5, \'d3
+   2) special escaped text AnsiChar, e.g., \, \;
    3) control symbol, e.g., \_, \-, \|, \<10> }
-  if c=ord('''') then { hex char }
+  if c=ord('''') then { hex AnsiChar }
      Begin
      c:=getchar;
      if (c<>EOF) then
@@ -546,7 +546,7 @@ if ( not isalpha (c)) then
        { early eof, whoops (class is rtfUnknown) }
        exit;
        End;
-  if pos (chr(c),':{};\')<>0 then { escaped char }
+  if pos (chr(c),':{};\')<>0 then { escaped AnsiChar }
     Begin
     FrtfClass := rtfText;
     FrtfMajor := c;
@@ -576,8 +576,8 @@ FTokenClass:=rtfControl;
 if (c <>EOF) then
   rtfTextBuf:=rtfTextBuf+chr(c);
 { Should be looking at first digit of parameter if there
-  is one, unless it's negative.  In that case, next char
-  is '-', so need to gobble next char, and remember sign. }
+  is one, unless it's negative.  In that case, next AnsiChar
+  is '-', so need to gobble next AnsiChar, and remember sign. }
 sign := 1;
 if c = ord('-') then
   Begin
@@ -598,7 +598,7 @@ if (c<>EOF) then
   FrtfParam:= sign*FrtfParam;
   End;
 { If control symbol delimiter was a blank, gobble it.
- Otherwise the character is first char of next token, so
+ Otherwise the character is first AnsiChar of next token, so
  push it back for next call.  In either case, delete the
  delimiter from the token buffer. }
 if (c<>EOF) then
@@ -1003,7 +1003,7 @@ while se<>nil do
 s^.rtfExpanding:=0;     { done - clear expansion flag }
 End;
 
-function TRTFParser.GetRtfBuf: String;
+function TRTFParser.GetRtfBuf: AnsiString;
 begin
   Result:=rtfTextBuf;
 end;
@@ -1032,7 +1032,7 @@ End;
        not found, the class turns into rtfUnknown.
   ---------------------------------------------------------------------}
 
-Procedure TRTFParser.Lookup(S : String);
+Procedure TRTFParser.Lookup (S : AnsiString);
 
 var
  thehash,rp : Integer;

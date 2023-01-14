@@ -64,26 +64,26 @@ type
     Len: word;          { length of this record (including the Len field) }
     Rec_ID: word;       { record ID }
     Status: cardinal;   { record status bits (see lf_Bit_* constants) }
-    Qualifier: array [1..4] of char;    { qualifier tag }
+    Qualifier: array [1..4] of AnsiChar;    { qualifier tag }
     Reserved: cardinal;
     Time: cardinal;     { hours, minutes, seconds, hundreds }
     Date: cardinal;     { day, month, year (stored as word) }
     case byte of
-     0: (Data: array [1..MaxDataSize] of char);
-     1: (Originator256: array [0..255] of char;
-         ProcessName_O256: array [1..260] of char;
-         FormatDLLName_O256_ProcName: array [1..12] of char;
-         Data_O256_ProcName: array [1..MaxDataSize] of char);
-     2: (Originator256b: array [0..255] of char;
-         FormatDLLName_O256: array [1..12] of char;
-         Data_O256: array [1..MaxDataSize] of char);
-     3: (Originator8: array [0..7] of char;
-         ProcessName_O8: array [1..260] of char;
-         FormatDLLName_O8_ProcName: array [1..12] of char;
-         Data_O8_ProcName: array [1..MaxDataSize] of char);
-     4: (Originator8b: array [0..7] of char;
-         FormatDLLName_O8: array [1..12] of char;
-         Data_O8: array [1..MaxDataSize] of char);
+     0: (Data: array [1..MaxDataSize] of AnsiChar);
+     1: (Originator256: array [0..255] of AnsiChar;
+         ProcessName_O256: array [1..260] of AnsiChar;
+         FormatDLLName_O256_ProcName: array [1..12] of AnsiChar;
+         Data_O256_ProcName: array [1..MaxDataSize] of AnsiChar);
+     2: (Originator256b: array [0..255] of AnsiChar;
+         FormatDLLName_O256: array [1..12] of AnsiChar;
+         Data_O256: array [1..MaxDataSize] of AnsiChar);
+     3: (Originator8: array [0..7] of AnsiChar;
+         ProcessName_O8: array [1..260] of AnsiChar;
+         FormatDLLName_O8_ProcName: array [1..12] of AnsiChar;
+         Data_O8_ProcName: array [1..MaxDataSize] of AnsiChar);
+     4: (Originator8b: array [0..7] of AnsiChar;
+         FormatDLLName_O8: array [1..12] of AnsiChar;
+         Data_O8: array [1..MaxDataSize] of AnsiChar);
   end;
   LogRecord = TLogRecord;
   PLogRecord = ^TLogRecord;
@@ -113,7 +113,7 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
   var LogEntries: TLogEntryRec): longint; cdecl; external 'DOSCALLS' index 432;
 
 
-function TEventLog.DefaultFileName: string;
+function TEventLog.DefaultFileName: ;
 
 begin
   Result := GetEnvironmentVariable ('TEMP');
@@ -164,14 +164,14 @@ begin
 end;
 
 
-procedure TEventLog.WriteSystemLog (EventType: TEventType; const Msg: string);
+procedure TEventLog.WriteSystemLog (EventType: TEventType; const Msg: );
 
 const
   WinET: array [TEventType] of Str3 = ('USR', 'INF', 'WRN', 'ERR', 'DBG');
 
 var
   P: PLogEntryRec;
-  S: string;
+  S: ;
   Cnt, TSize, DSize: cardinal;
   W: word;
 
@@ -222,7 +222,7 @@ begin
     end;
 end;
 
-Function TEventLog.RegisterMessageFile(AFileName : String) : Boolean;
+Function TEventLog.RegisterMessageFile(AFileName : ) : Boolean;
 
 begin
   Result:=True;
