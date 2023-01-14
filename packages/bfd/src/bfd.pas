@@ -157,14 +157,14 @@ is in practice already 0 *)
 (* A canonical archive symbol.  *)
 (* This is a type pun with struct ranlib on purpose! *)
   carsym = record
-    name: pchar;
+    name: PAnsiChar;
     file_offset: file_ptr;  (* look here to find the file *)
   end;                      (* to make these you call a carsymogen *)
 
 (* Used in generating armaps (archive tables of contents).
    Perhaps just a forward definition would do? *)
   orl = record                  (* output ranlib *)
-    name:    ppchar;            (* symbol name *)
+    name:    PPAnsiChar;            (* symbol name *)
     pos:     file_ptr;          (* TBFD* or file position *)
     nameidx: integer;           (* index into string table *)
   end;
@@ -193,11 +193,11 @@ is in practice already 0 *)
   symbol_info = record
     value:     symvalue;
     typ:       ShortInt;
-    name:      pchar;    (* Symbol name.  *)
+    name:      PAnsiChar;    (* Symbol name.  *)
     stab_type: Byte;     (* Stab type.  *)
     stab_other:ShortInt; (* Stab other.  *)
     stab_desc: SmallInt; (* Stab desc.  *)
-    stab_name: pchar;    (* String for stab type.  *)
+    stab_name: PAnsiChar;    (* String for stab type.  *)
   end;
 
 (* Hash table routines.  There is no way to free up a hash table.  *)
@@ -210,7 +210,7 @@ is in practice already 0 *)
      (* Next entry for this hash code.  *)
      next: Pbfd_hash_entry;
      (* String being hashed.  *)
-     strng: pchar;
+     strng: PAnsiChar;
      (* Hash code.  This is the full hash code, not the index into the
         table.  *)
      hash: LongWord;
@@ -220,7 +220,7 @@ is in practice already 0 *)
   Pbfd_hash_table = ^bfd_hash_table;
 
   bfd_hash_table_newfunc = function( entry: Pbfd_hash_entry;
-    table: Pbfd_hash_table; v: pchar): Pbfd_hash_entry;
+    table: Pbfd_hash_table; v: PAnsiChar): Pbfd_hash_entry;
 
   bfd_hash_table = record
     (* The hash array.  *)
@@ -259,7 +259,7 @@ is in practice already 0 *)
   bfd_link_needed_lists = record
     next: Pbfd_link_needed_lists;
     by: PBFD;
-    name: pchar;
+    name: PAnsiChar;
   end;
 
   bfd_direction = (no_direction    = 0,
@@ -269,7 +269,7 @@ is in practice already 0 *)
 
   TBFD = record
     (* The filename the application opened the BFD with.  *)
-     filename: pchar;
+     filename: PAnsiChar;
 
     (* A pointer to the target jump table.             *)
     xvec: Pbfd_target;
@@ -436,7 +436,7 @@ is in practice already 0 *)
 
        (* The text of the symbol. The name is left alone, and not copied; the
           application may not alter it. *)
-    name: pchar;
+    name: PAnsiChar;
 
        (* The value of the symbol.  This really should be a union of a
           numeric value with a pointer, since some flags indicate that
@@ -464,7 +464,7 @@ is in practice already 0 *)
   sec = record
     (* The name of the section; the name isn't a copy, the pointer is
      the same as that passed to bfd_make_section.  *)
-    name: pchar;
+    name: PAnsiChar;
 
     (* A unique sequence number.  *)
     id: integer;
@@ -1552,7 +1552,7 @@ is in practice already 0 *)
   write_contents_proc = function (a:PBFD):bfd_boolean;cdecl;
 
   bfd_target = record
-    name: pchar;
+    name: PAnsiChar;
     flavour: bfd_flavour;
     byteorder: bfd_endian;
     header_byteorder: bfd_endian;
@@ -1621,8 +1621,8 @@ is in practice already 0 *)
 
     _bfd_slurp_armap: function(a: PBFD):bfd_boolean;cdecl;
     _bfd_slurp_extended_name_table: function(a: PBFD  ):bfd_boolean;cdecl;
-    _bfd_construct_extended_name_table: function(a: PBFD; b: Ppchar; c: Pbfd_size_type; d: Ppchar):bfd_boolean;cdecl;
-    _bfd_truncate_arname: procedure (a: PBFD; b: pchar; c: pchar);cdecl;
+    _bfd_construct_extended_name_table: function(a: PBFD; b: PPAnsiChar; c: Pbfd_size_type; d: PPAnsiChar):bfd_boolean;cdecl;
+    _bfd_truncate_arname: procedure (a: PBFD; b: PAnsiChar; c: PAnsiChar);cdecl;
     write_armap: function(arch: PBFD; elength: LongWord; map: Porl; orl_count: LongWord; stridx: integer):bfd_boolean;cdecl;
     _bfd_read_ar_hdr_fn: function(a: PBFD  ):pointer;cdecl;
     openr_next_archived_file: function(arch: PBFD; prev: PBFD):PBFD;cdecl;
@@ -1642,10 +1642,10 @@ is in practice already 0 *)
 
     _bfd_print_symbol: procedure(a: PBFD; b: pointer; c: Psymbol_cache_entry; d: bfd_print_symbol);cdecl;
     _bfd_get_symbol_info: procedure (a: PBFD; b: Psymbol_cache_entry; c:Psymbol_info);cdecl;
-    _bfd_is_local_label_name: function(a: PBFD; b: pchar):bfd_boolean;cdecl;
+    _bfd_is_local_label_name: function(a: PBFD; b: PAnsiChar):bfd_boolean;cdecl;
 
     _get_lineno: function( a: PBFD; b: Psymbol_cache_entry):Palent;cdecl;
-    _bfd_find_nearest_line: function(abfd: PBFD; section: Psec; symbols: PPsymbol_cache_entry; offset: bfd_vma; fil: pchar; func: Ppchar;  lin: PLongWord):bfd_boolean;cdecl;
+    _bfd_find_nearest_line: function(abfd: PBFD; section: Psec; symbols: PPsymbol_cache_entry; offset: bfd_vma; fil: PAnsiChar; func: PPAnsiChar;  lin: PLongWord):bfd_boolean;cdecl;
    (* Back-door to allow format-aware applications to create debug symbols
       while using BFD for everything else.  Currently used by the assembler
       when creating COFF files.  *)
@@ -1801,10 +1801,10 @@ is in practice already 0 *)
                                 data: pointer;
                                 input_section: Pasection;
                                 output_bfd: PBFD;
-                                error_message: ppchar):  bfd_reloc_status;cdecl;
+                                error_message: PPAnsiChar):  bfd_reloc_status;cdecl;
 
          (* The textual name of the relocation type. *)
-    name: pchar;
+    name: PAnsiChar;
 
          (* Some formats record a relocation addend in the section contents
             rather than with the relocation.  For ELF formats this is the
@@ -1854,14 +1854,14 @@ is in practice already 0 *)
     bits_per_byte: integer;
     arch: bfd_architecture;
     mach: LongWord;
-    arch_name: pchar;
-    printable_name: pchar;
+    arch_name: PAnsiChar;
+    printable_name: PAnsiChar;
     section_align_power: LongWord;
     (* True if this is the default machine for the architecture.  *)
     the_default: bfd_boolean;
 
     compatible: function(a: Pbfd_arch_info; b: Pbfd_arch_info):Pbfd_arch_info;cdecl;
-    scan: function(a: Pbfd_arch_info; b: pchar): bfd_boolean;cdecl;
+    scan: function(a: Pbfd_arch_info; b: PAnsiChar): bfd_boolean;cdecl;
 
     next: Pbfd_arch_info;
   end; { bfd_arch_info }
@@ -1889,7 +1889,7 @@ is in practice already 0 *)
 
    bfd_comdat_info = record
     (* The name of the symbol associated with a comdat section.  *)
-      name: pchar;
+      name: PAnsiChar;
 
     (* The local symbol table index of the symbol associated with a
        comdat section.  This is only meaningful to the object file format
@@ -2315,10 +2315,10 @@ function bfd_tell  (abfd: PBFD): LongInt;cdecl; external BFD_LIB_NAME;
 function bfd_flush (abfd: PBFD): integer;cdecl; external BFD_LIB_NAME;
 function bfd_stat  (abfd: PBFD; a: Pstat): integer;cdecl; external BFD_LIB_NAME;
 
-(* Cast from const pchar to pchar so that caller can assign to
-   a pchar without a warning.  *)
+(* Cast from const PAnsiChar to PAnsiChar so that caller can assign to
+   a PAnsiChar without a warning.  *)
 
-function bfd_get_filename(abfd: PBFD): pchar;
+function bfd_get_filename(abfd: PBFD): PAnsiChar;
 
 function bfd_record_phdr(abfd: PBFD; a: LongWord; b: bfd_boolean; c: flagword; d: bfd_boolean; e: bfd_vma;
            f: bfd_boolean; g: bfd_boolean; h: LongWord; i: PPsec):bfd_boolean;cdecl; external BFD_LIB_NAME;
@@ -2427,20 +2427,20 @@ function bfd_ecoff_debug_accumulate(
            struct bfd_link_info *,
            struct sec *,
            struct sec *,
-           pchar*
+           PAnsiChar*
            ):bfd_boolean;cdecl; external BFD_LIB_NAME;
 *)
 
 (* Externally visible ELF routines.  *)
 
-//todo:function bfd_elf32_record_link_assignment(PBFD ; struct bfd_link_info *; const pchar; bfd_boolean):bfd_boolean;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_elf64_record_link_assignment(PBFD ; struct bfd_link_info *; const pchar; bfd_boolean):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf32_record_link_assignment(PBFD ; struct bfd_link_info *; const PAnsiChar; bfd_boolean):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf64_record_link_assignment(PBFD ; struct bfd_link_info *; const PAnsiChar; bfd_boolean):bfd_boolean;cdecl; external BFD_LIB_NAME;
 //todo:function bfd_link_needed_list *bfd_elf_get_needed_list(PBFD ; struct bfd_link_info *):struct;cdecl; external BFD_LIB_NAME;
 //todo:function bfd_elf_get_bfd_needed_list(PBFD ; struct bfd_link_needed_list **):bfd_boolean;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_elf32_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;      const pchar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_elf64_size_dynamic_sections (PBFD ; const pchar; const pchar; bfd_boolean; const pchar;      const pchar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_elf_set_dt_needed_name(PBFD ; const pchar):void;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_elf_set_dt_needed_soname(PBFD ; const pchar):void;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf32_size_dynamic_sections (PBFD ; const PAnsiChar; const PAnsiChar; bfd_boolean; const PAnsiChar;      const PAnsiChar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf64_size_dynamic_sections (PBFD ; const PAnsiChar; const PAnsiChar; bfd_boolean; const PAnsiChar;      const PAnsiChar const *; struct bfd_link_info *; struct sec **;     struct bfd_elf_version_tree *):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf_set_dt_needed_name(PBFD ; const PAnsiChar):void;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_elf_set_dt_needed_soname(PBFD ; const PAnsiChar):void;cdecl; external BFD_LIB_NAME;
 //todo:function const ShortInt *bfd_elf_get_dt_soname (PBFD );cdecl; external BFD_LIB_NAME;
 //todo:function struct bfd_link_needed_list *bfd_elf_get_runpath_list (PBFD ; struct bfd_link_info *);cdecl; external BFD_LIB_NAME;
 
@@ -2464,12 +2464,12 @@ function bfd_ecoff_debug_accumulate(
 (* Return true if address "naturally" sign extends, or -1 if not elf.  *)
 //todo:function bfd_get_sign_extend_vma(PBFD  ):integer;cdecl; external BFD_LIB_NAME;
 
-//todo:function bfd_m68k_elf32_create_embedded_relocs(PBFD , struct bfd_link_info *, struct sec *, struct sec *,           pchar*):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_m68k_elf32_create_embedded_relocs(PBFD , struct bfd_link_info *, struct sec *, struct sec *,           PAnsiChar*):bfd_boolean;cdecl; external BFD_LIB_NAME;
 
 (* SunOS shared library support routines for the linker.  *)
 
 //todo:function *bfd_sunos_get_needed_list(PBFD , struct bfd_link_info *):bfd_link_needed_list;cdecl; external BFD_LIB_NAME;
-//todo:function bfd_sunos_record_link_assignment(PBFD , struct bfd_link_info *, const pchar):bfd_boolean;cdecl; external BFD_LIB_NAME;
+//todo:function bfd_sunos_record_link_assignment(PBFD , struct bfd_link_info *, const PAnsiChar):bfd_boolean;cdecl; external BFD_LIB_NAME;
 //todo:function bfd_sunos_size_dynamic_sections (PBFD , struct bfd_link_info *, struct sec **, struct sec **, struct sec **):bfd_boolean;cdecl; external BFD_LIB_NAME;
 
 (* Linux shared library support routines for the linker.  *)
@@ -2484,18 +2484,18 @@ function bfd_ecoff_debug_accumulate(
 
 (* XCOFF support routines for the linker.  *)
 //todo:function bfd_boolean bfd_xcoff_link_record_set (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,        bfd_size_type));cdecl; external BFD_LIB_NAME;
-//todo:function bfd_boolean bfd_xcoff_import_symbol (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,          bfd_vma, const pchar, const pchar, const pchar));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_xcoff_import_symbol (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,          bfd_vma, const PAnsiChar, const PAnsiChar, const PAnsiChar));cdecl; external BFD_LIB_NAME;
 //todo:function bfd_boolean bfd_xcoff_export_symbol  (PBFD , struct bfd_link_info *, struct bfd_link_hash_entry *,         bfd_boolean));cdecl; external BFD_LIB_NAME;
-//todo:function bfd_boolean bfd_xcoff_link_count_reloc  (PBFD , struct bfd_link_info *, const pchar));cdecl; external BFD_LIB_NAME;
-//todo:function bfd_boolean bfd_xcoff_record_link_assignment  (PBFD , struct bfd_link_info *, const pchar));cdecl; external BFD_LIB_NAME;
-//todo:function bfd_boolean bfd_xcoff_size_dynamic_sections  (PBFD , struct bfd_link_info *, const pchar, const pchar,     LongWord, LongWord, LongWord, bfd_boolean,      integer, bfd_boolean, bfd_boolean, struct sec **));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_xcoff_link_count_reloc  (PBFD , struct bfd_link_info *, const PAnsiChar));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_xcoff_record_link_assignment  (PBFD , struct bfd_link_info *, const PAnsiChar));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_xcoff_size_dynamic_sections  (PBFD , struct bfd_link_info *, const PAnsiChar, const PAnsiChar,     LongWord, LongWord, LongWord, bfd_boolean,      integer, bfd_boolean, bfd_boolean, struct sec **));cdecl; external BFD_LIB_NAME;
 
 (* Externally visible COFF routines.  *)
 
 //todo:function bfd_boolean bfd_coff_get_syment (PBFD , struct symbol_cache_entry *, struct internal_syment *));cdecl; external BFD_LIB_NAME;
 //todo:function bfd_boolean bfd_coff_get_auxent (PBFD , struct symbol_cache_entry *, integer, union internal_auxent *));cdecl; external BFD_LIB_NAME;
 //todo:function bfd_boolean bfd_coff_set_symbol_class (PBFD , struct symbol_cache_entry *, LongWord));cdecl; external BFD_LIB_NAME;
-//todo:function bfd_boolean bfd_m68k_coff_create_embedded_relocs (PBFD , struct bfd_link_info *, struct sec *, struct sec *,       pchar*));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_m68k_coff_create_embedded_relocs (PBFD , struct bfd_link_info *, struct sec *, struct sec *,       PAnsiChar*));cdecl; external BFD_LIB_NAME;
 
 (* ARM Interworking support.  Called from linker.  *)
 //todo:function bfd_boolean bfd_arm_allocate_interworking_sections (struct bfd_link_info *));cdecl; external BFD_LIB_NAME;
@@ -2518,13 +2518,13 @@ function bfd_ecoff_debug_accumulate(
 
 (* And more from the source.  *)
 procedure bfd_init;cdecl; external BFD_LIB_NAME;
-function bfd_openr( filename: pchar ;  target: pchar ):PBFD;cdecl; external BFD_LIB_NAME;
-function bfd_fdopenr( filename: pchar ;  target: pchar ; fd: integer):PBFD;cdecl; external BFD_LIB_NAME;
-function bfd_openstreamr(a: pchar; b: pchar; c: pointer):PBFD;cdecl; external BFD_LIB_NAME;
-function bfd_openw( filename: pchar ;  target: pchar):PBFD;cdecl; external BFD_LIB_NAME;
+function bfd_openr( filename: PAnsiChar ;  target: PAnsiChar ):PBFD;cdecl; external BFD_LIB_NAME;
+function bfd_fdopenr( filename: PAnsiChar ;  target: PAnsiChar ; fd: integer):PBFD;cdecl; external BFD_LIB_NAME;
+function bfd_openstreamr(a: PAnsiChar; b: PAnsiChar; c: pointer):PBFD;cdecl; external BFD_LIB_NAME;
+function bfd_openw( filename: PAnsiChar ;  target: PAnsiChar):PBFD;cdecl; external BFD_LIB_NAME;
 function bfd_close(abfd: PBFD):bfd_boolean;cdecl; external BFD_LIB_NAME;
 function bfd_close_all_done(abfd: PBFD  ):bfd_boolean;cdecl; external BFD_LIB_NAME;
-function bfd_create( filename: pchar ; templ: PBFD):PBFD;cdecl; external BFD_LIB_NAME;
+function bfd_create( filename: PAnsiChar ; templ: PBFD):PBFD;cdecl; external BFD_LIB_NAME;
 function bfd_make_writable(abfd: PBFD ):bfd_boolean;cdecl; external BFD_LIB_NAME;
 function bfd_make_readable(abfd: PBFD ):bfd_boolean;cdecl; external BFD_LIB_NAME;
 
@@ -2665,7 +2665,7 @@ const
 //todo:#define bfd_get_section_size_after_reloc(section)    ((section)->reloc_done ? (section)->_cooked_size : (abort (), (bfd_size_type) 1))
 //todo:asection * bfd_get_section_by_name (PBFD abfd, const ShortInt *name));
 
-//todo:pchar bfd_get_unique_section_name (PBFD abfd, const ShortInt *templat,  integer *count));
+//todo:PAnsiChar bfd_get_unique_section_name (PBFD abfd, const ShortInt *templat,  integer *count));
 
 //todo:asection * bfd_make_section_old_way (PBFD abfd, const ShortInt *name));
 
@@ -2692,11 +2692,11 @@ function bfd_get_section_contents(abfd: PBFD; section: Pasection; location: poin
 //todo:void _bfd_strip_section_from_output (struct bfd_link_info *info, asection *section));
 
 
-//todo:const pchar bfd_printable_name (PBFD abfd));
+//todo:const PAnsiChar bfd_printable_name (PBFD abfd));
 
 //todo:const bfd_arch_info_type * bfd_scan_arch (const ShortInt *string));
 
-//todo:const pchar* bfd_arch_list (void));
+//todo:const PAnsiChar* bfd_arch_list (void));
 
 //todo:const bfd_arch_info_type * bfd_arch_get_compatible ( const PBFD abfd, const PBFD bbfd));
 
@@ -2714,7 +2714,7 @@ function bfd_get_mach( abfd: PBFD ): LongWord; cdecl; external BFD_LIB_NAME;
 
 //todo:const bfd_arch_info_type * bfd_lookup_arch  (enum bfd_architecture arch, LongWord machine));
 
-function bfd_printable_arch_mach(arch: bfd_architecture; machine: LongWord): pchar; cdecl; external BFD_LIB_NAME;
+function bfd_printable_arch_mach(arch: bfd_architecture; machine: LongWord): PAnsiChar; cdecl; external BFD_LIB_NAME;
 
 //todo:LongWord bfd_octets_per_byte (PBFD abfd));
 //todo:LongWord bfd_arch_mach_octets_per_byte (enum bfd_architecture arch, LongWord machine));
@@ -2737,15 +2737,15 @@ function bfd_printable_arch_mach(arch: bfd_architecture; machine: LongWord): pch
 
 //todo:bfd_reloc_status_type bfd_check_overflow (enum complain_overflow how, LongWord bitsize, LongWord rightshift, LongWord addrsize,  bfd_vma relocation));
 
-//todo:bfd_reloc_status_type bfd_perform_relocation (PBFD abfd,  arelent *reloc_entry, pointer data, asection *input_section, PBFD output_bfd, pchar*error_message));
+//todo:bfd_reloc_status_type bfd_perform_relocation (PBFD abfd,  arelent *reloc_entry, pointer data, asection *input_section, PBFD output_bfd, PAnsiChar*error_message));
 
-//todo:bfd_reloc_status_type bfd_install_relocation (PBFD abfd, arelent *reloc_entry, pointer data, bfd_vma data_start, asection *input_section,  pchar*error_message));
+//todo:bfd_reloc_status_type bfd_install_relocation (PBFD abfd, arelent *reloc_entry, pointer data, bfd_vma data_start, asection *input_section,  PAnsiChar*error_message));
 
 //todo:typedef enum bfd_reloc_code_real bfd_reloc_code_real_type;
 
 //todo:reloc_howto_type * bfd_reloc_type_lookup  (PBFD abfd, bfd_reloc_code_real_type code));
 
-//todo:const pchar bfd_get_reloc_code_name  (bfd_reloc_code_real_type code));
+//todo:const PAnsiChar bfd_get_reloc_code_name  (bfd_reloc_code_real_type code));
 
 //todo:#define bfd_get_symtab_upper_bound(abfd)  BFD_SEND (abfd, _bfd_get_symtab_upper_bound, (abfd))
 //todo:bfd_boolean bfd_is_local_label (PBFD abfd, asymbol *sym));
@@ -2775,16 +2775,16 @@ function bfd_get_error: bfd_error; cdecl; external BFD_LIB_NAME;
 
 //todo:void bfd_set_error  (bfd_error error_tag));
 
-function bfd_errmsg( error_tag: bfd_error ): pchar; cdecl; external BFD_LIB_NAME;
+function bfd_errmsg( error_tag: bfd_error ): PAnsiChar; cdecl; external BFD_LIB_NAME;
 
 //todo:void bfd_perror  ( ShortInt *message));
 
 type
-  bfd_error_handler_type = procedure( a: pchar { VARARGS! } ); cdecl;
+  bfd_error_handler_type = procedure( a: PAnsiChar { VARARGS! } ); cdecl;
 
 function bfd_set_error_handler( handler: bfd_error_handler_type ):bfd_error_handler_type; cdecl; external BFD_LIB_NAME;
 
-//todo:void bfd_set_error_program_name  (const pchar));
+//todo:void bfd_set_error_program_name  (const PAnsiChar));
 
 //todo:bfd_error_handler_type bfd_get_error_handler  (void));
 
@@ -2810,7 +2810,7 @@ function bfd_set_error_handler( handler: bfd_error_handler_type ):bfd_error_hand
 
 //todo:void bfd_set_gp_size (PBFD abfd, integer i));
 
-//todo:bfd_vma bfd_scan_vma ( ShortInt *string,  pchar*end, integer base));
+//todo:bfd_vma bfd_scan_vma ( ShortInt *string,  PAnsiChar*end, integer base));
 
 //todo:bfd_boolean bfd_copy_private_bfd_data (PBFD ibfd, PBFD obfd));
 
@@ -2865,7 +2865,7 @@ function bfd_set_error_handler( handler: bfd_error_handler_type ):bfd_error_hand
 //todo:symindex bfd_get_next_mapent (PBFD abfd, symindex previous, carsym **sym));cdecl; external BFD_LIB_NAME;
 //todo:bfd_boolean bfd_set_archive_head (PBFD output, PBFD new_head));cdecl; external BFD_LIB_NAME;
 //todo:PBFD bfd_openr_next_archived_file (PBFD archive, PBFD previous));cdecl; external BFD_LIB_NAME;
-//todo:pchar bfd_core_file_failing_command (PBFD abfd));cdecl; external BFD_LIB_NAME;
+//todo:PAnsiChar bfd_core_file_failing_command (PBFD abfd));cdecl; external BFD_LIB_NAME;
 //todo:integer bfd_core_file_failing_signal (PBFD abfd));cdecl; external BFD_LIB_NAME;
 //todo:bfd_boolean core_file_matches_executable_p (PBFD core_bfd, PBFD exec_bfd));cdecl; external BFD_LIB_NAME;
 
@@ -2874,13 +2874,13 @@ function bfd_set_error_handler( handler: bfd_error_handler_type ):bfd_error_hand
 
 //todo:bfd_boolean bfd_set_default_target  (const ShortInt *name));cdecl; external BFD_LIB_NAME;
 //todo:const bfd_target * bfd_find_target ( ShortInt *target_name, PBFD abfd));cdecl; external BFD_LIB_NAME;
-//todo:const pchar* bfd_target_list (void));cdecl; external BFD_LIB_NAME;
+//todo:const PAnsiChar* bfd_target_list (void));cdecl; external BFD_LIB_NAME;
 //todo:const bfd_target * bfd_search_for_target  (integer ( * search_func) (const bfd_target *, void * ), void * ));cdecl; external BFD_LIB_NAME;
 
 function bfd_check_format(abfd: PBFD; format: bfd_format): bfd_boolean;cdecl; external BFD_LIB_NAME;
-function bfd_check_format_matches(abfd: PBFD; format: bfd_format; matching: pppchar): bfd_boolean;cdecl; external BFD_LIB_NAME;
+function bfd_check_format_matches(abfd: PBFD; format: bfd_format; matching: PPPAnsiChar): bfd_boolean;cdecl; external BFD_LIB_NAME;
 //todo:bfd_boolean bfd_set_format (PBFD abfd, bfd_format format));cdecl; external BFD_LIB_NAME;
-//todo:pchar bfd_format_string (bfd_format format));cdecl; external BFD_LIB_NAME;
+//todo:PAnsiChar bfd_format_string (bfd_format format));cdecl; external BFD_LIB_NAME;
 
 (* Values that may appear in the flags field of a BFD.  These also
    appear in the object_flags field of the bfd_target structure, where
@@ -2942,13 +2942,13 @@ const
 
 (* Get the name of a stabs type code.  *)
 
-function bfd_get_stab_name(a:integer):pchar;cdecl; external BFD_LIB_NAME;
+function bfd_get_stab_name(a:integer):PAnsiChar;cdecl; external BFD_LIB_NAME;
 
 (* Initialize a hash table.  *)
-//todo:function bfd_boolean bfd_hash_table_init  (struct bfd_hash_table *,   struct bfd_hash_entry *( * ) (struct bfd_hash_entry *, struct bfd_hash_table *, const pchar)));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_hash_table_init  (struct bfd_hash_table *,   struct bfd_hash_entry *( * ) (struct bfd_hash_entry *, struct bfd_hash_table *, const PAnsiChar)));cdecl; external BFD_LIB_NAME;
 
 (* Initialize a hash table specifying a size.  *)
-//todo:function bfd_boolean bfd_hash_table_init_n (struct bfd_hash_table *, struct bfd_hash_entry *( * ) (struct bfd_hash_entry *,  struct bfd_hash_table *, const pchar),  LongWord size));cdecl; external BFD_LIB_NAME;
+//todo:function bfd_boolean bfd_hash_table_init_n (struct bfd_hash_table *, struct bfd_hash_entry *( * ) (struct bfd_hash_entry *,  struct bfd_hash_table *, const PAnsiChar),  LongWord size));cdecl; external BFD_LIB_NAME;
 
 (* Free up a hash table.  *)
 //todo:function void bfd_hash_table_free (struct bfd_hash_table *));cdecl; external BFD_LIB_NAME;
@@ -2957,13 +2957,13 @@ function bfd_get_stab_name(a:integer):pchar;cdecl; external BFD_LIB_NAME;
    will be created for this string if one does not already exist.  The
    COPY argument must be true if this routine should copy the string
    into newly allocated memory when adding an entry.  *)
-//todo:function struct bfd_hash_entry *bfd_hash_lookup (struct bfd_hash_table *, const pchar, bfd_boolean create,  bfd_boolean copy));cdecl; external BFD_LIB_NAME;
+//todo:function struct bfd_hash_entry *bfd_hash_lookup (struct bfd_hash_table *, const PAnsiChar, bfd_boolean create,  bfd_boolean copy));cdecl; external BFD_LIB_NAME;
 
 (* Replace an entry in a hash table.  *)
 //todo:function void bfd_hash_replace (struct bfd_hash_table *, struct bfd_hash_entry *old, struct bfd_hash_entry *nw));cdecl; external BFD_LIB_NAME;
 
 (* Base method for creating a hash table entry.  *)
-//todo:function struct bfd_hash_entry *bfd_hash_newfunc (struct bfd_hash_entry *, struct bfd_hash_table *,  const pchar));cdecl; external BFD_LIB_NAME;
+//todo:function struct bfd_hash_entry *bfd_hash_newfunc (struct bfd_hash_entry *, struct bfd_hash_table *,  const PAnsiChar));cdecl; external BFD_LIB_NAME;
 
 (* Grab some space for a hash table entry.  *)
 //todo:function pointer bfd_hash_allocate (struct bfd_hash_table *, LongWord));cdecl; external BFD_LIB_NAME;
@@ -2983,7 +2983,7 @@ implementation
 
 // Makros:
 
-function bfd_get_filename(abfd: PBFD): pchar;
+function bfd_get_filename(abfd: PBFD): PAnsiChar;
 begin
   result:=abfd.filename;
 end;
