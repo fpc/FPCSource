@@ -158,6 +158,15 @@ begin
 end;
 
 procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
+  var AChildPos: Integer; var CompClassName, CompName: String);
+var
+  CompUnitName: String;
+begin
+  CompUnitName:='';
+  BeginComponent(Flags, AChildPos, CompUnitName, CompClassName, CompName);
+end;
+
+procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
   var AChildPos: Integer; var CompUnitName, CompClassName, CompName: String);
 var
   Prefix: Byte;
