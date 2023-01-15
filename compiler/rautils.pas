@@ -91,6 +91,8 @@ type
 {$endif aarch64}
   end;
 
+  TInstruction = class;
+
   TOperand = class
     opr    : TOprRec;
     typesize : byte;
@@ -109,7 +111,7 @@ type
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
     Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
-    Function  CheckOperand: boolean; virtual;
+    function CheckOperand(ins : TInstruction): boolean; virtual;
     Procedure InitRef;
     Procedure InitRefConvertLocal;
    protected
@@ -1229,7 +1231,7 @@ begin
   Fillchar(opr.ref,sizeof(treference),0);
 end;
 
-Function TOperand.CheckOperand: boolean;
+Function TOperand.CheckOperand(ins : TInstruction): boolean;
 {*********************************************************************}
 {  Description: This routine checks if the operand is of              }
 {  valid, and returns false if it isn't. Does nothing by default.     }
@@ -1274,7 +1276,7 @@ end;
       i : longint;
     begin
       for i:=1 to Ops do
-        operands[i].CheckOperand;
+        operands[i].CheckOperand(self);
 
       ai:=taicpu.op_none(opcode);
       ai.fileinfo:=filepos;
