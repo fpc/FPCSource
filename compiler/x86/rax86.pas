@@ -46,7 +46,7 @@ type
     vbcst   : byte;
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
-    Function CheckOperand: boolean; override;
+    Function CheckOperand(ins : TInstruction): boolean; override;
     { handles the @Code symbol }
     Procedure SetupCode;
     { handles the @Data symbol }
@@ -258,7 +258,7 @@ begin
     end;
 end;
 
-Function Tx86Operand.CheckOperand: boolean;
+Function Tx86Operand.CheckOperand(ins : TInstruction): boolean;
 var
   ErrorRefStr: string;
 begin
@@ -330,7 +330,8 @@ begin
                 end;
               message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
             end
-          else if (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0) then
+          else if ((ins.opcode<>A_LEA) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) or
+            ((ins.opcode=A_LEA) and (getsupreg(ins.operands[2].opr.reg)<>RS_ESP) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) then
             begin
               if current_settings.asmmode in asmmodes_x86_intel then
                 begin
@@ -1837,7 +1838,7 @@ begin
 
   ai:=nil;
   for i:=1 to Ops do
-    if not operands[i].CheckOperand then
+    if not operands[i].CheckOperand(self) then
       exit;
 
 { Get Opsize }
