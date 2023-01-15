@@ -1400,9 +1400,9 @@ type
     function ReadValue: TValueType; virtual; abstract;
     procedure BeginRootComponent; virtual; abstract;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
-      var CompClassName, CompName: String); virtual; abstract;
+      var CompClassName, CompName: String); virtual; abstract; overload;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
-      var CompUnitName, CompClassName, CompName: String); virtual;
+      var CompUnitName, CompClassName, CompName: String); virtual; overload;
     function BeginProperty: String; virtual; abstract;
 
     //Please don't use read, better use ReadBinary whenever possible
@@ -1466,7 +1466,9 @@ type
     function ReadValue: TValueType; override;
     procedure BeginRootComponent; override;
     procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
-      var CompUnitName, CompClassName, CompName: String); override;
+      var CompClassName, CompName: String); override; overload;
+    procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+      var CompUnitName, CompClassName, CompName: String); override; overload;
     function BeginProperty: String; override;
 
     //Please don't use read, better use ReadBinary whenever possible
