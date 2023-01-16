@@ -23,7 +23,7 @@ type
   var
     stack: array[0..yi_maxlevels] of record
       yyinput           : Text;        (* input and output file *)
-      yyline            : String;      (* current input line *)
+      yyline            : AnsiString;      (* current input line *)
       yylineno, yycolno : Integer;     (* current input position *)
       fn                : AnsiString;
       prev_wrap         : yywrap_t;
@@ -50,7 +50,7 @@ begin
   Result:= yinclude.pop;
 end;
 
-function tyinclude.push(const incfile: ansistring): Boolean;
+function tyinclude.push(const incfile: string): Boolean;
 begin
   stack[level].yyinput:= yyinput;
   stack[level].yyline:= yyline;
@@ -90,7 +90,7 @@ begin
   end;
 end;
 
-function tyinclude.expand(fn: AnsiString): AnsiString;
+function tyinclude.expand(fn: string): string;
 var
   i: integer;
   f: string;

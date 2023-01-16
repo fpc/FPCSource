@@ -25,7 +25,7 @@ uses
   bitmapresource, versionresource, versiontypes, groupcursorresource;
 
 type
-  TStringHashTable = specialize TFPGMap<String, String>;
+  TStringHashTable = specialize TFPGMap<AnsiString, AnsiString>;
 
 function yyparse : Integer;
 
@@ -46,7 +46,7 @@ procedure PragmaCodePage(cp: string);
 
 implementation
 
-procedure yyerror ( msg : String );
+procedure yyerror ( msg : AnsiString );
 begin
   writeln(ErrOutput, yyfilename, '(',yylineno,':',yycolno,'): at "',yytext,'": ', msg);
   WriteLn(ErrOutput, yyline);
@@ -64,9 +64,9 @@ const max_chars = 2048;
 
 var
   bufptr : Integer;
-  buf    : array [1..max_chars] of Char;
+  buf    : array [1..max_chars] of AnsiChar;
 
-function rc_get_char : Char;
+function rc_get_char : AnsiChar;
   var i : Integer;
       ok : boolean;
   begin
@@ -94,7 +94,7 @@ function rc_get_char : Char;
       rc_get_char := #0;
   end(*get_char*);
 
-procedure rc_unget_char ( c : Char );
+procedure rc_unget_char ( c : AnsiChar );
   begin
     if bufptr=max_chars then yyerror('input buffer overflow');
     inc(bufptr);
@@ -102,7 +102,7 @@ procedure rc_unget_char ( c : Char );
     buf[bufptr] := c;
   end(*unget_char*);
 
-procedure unget_string(s: string);
+procedure unget_string(s: ansistring);
 var
   i: integer;
 begin
@@ -110,7 +110,7 @@ begin
     rc_unget_char(s[i]);
 end;
 
-procedure PragmaCodePage(cp: string);
+procedure PragmaCodePage(cp: ansistring);
 var cpi: integer;
 begin
   if Uppercase(cp) = 'DEFAULT' then
@@ -134,7 +134,7 @@ type
     cp: TSystemCodePage;
   end;
 
-function str_to_cbase(s: string): LongWord;
+function str_to_cbase(s: ansistring): LongWord;
 begin
   if s = '0' then
     Exit(0);
@@ -147,7 +147,7 @@ begin
   Result:= StrToInt(s);
 end;
 
-function str_to_num(s:string): rcnumtype;
+function str_to_num(s:ansistring): rcnumtype;
 begin
   // this does not handle empty strings - should never get them from the lexer
   Result.long:= s[Length(s)] = 'L';
@@ -166,7 +166,7 @@ type
 const
   MAX_RCSTR_LEN = 4096;
 var
-  strbuf: array[0..MAX_RCSTR_LEN + 1] of char;
+  strbuf: array[0..MAX_RCSTR_LEN + 1] of AnsiChar;
   strbuflen: Integer;
   stringpool: PStrPoolItem = nil;
 
@@ -176,7 +176,7 @@ begin
   strbuflen:= 0;
 end;
 
-procedure strbuf_append(s: string);
+procedure strbuf_append(s: ansistring);
 var
   rem: integer;
 begin
@@ -256,7 +256,7 @@ begin
             if cp = CP_UTF16 then
               wc^:= WideChar(StrToInt(h))
             else
-              wc^:= translateChar(Char(StrToInt(h)));
+              wc^:= translateChar(AnsiChar(StrToInt(h)));
           end;
           '0'..'7': begin
             h:= '&' + rc^;
@@ -271,7 +271,7 @@ begin
             if cp = CP_UTF16 then
               wc^:= WideChar(StrToInt(h))
             else
-              wc^:= translateChar(Char(StrToInt(h)));
+              wc^:= translateChar(AnsiChar(StrToInt(h)));
           end;
         else
           wc^:= translateChar(rc^);

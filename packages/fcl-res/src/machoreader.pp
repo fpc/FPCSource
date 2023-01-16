@@ -121,7 +121,7 @@ Generics don't work with record types, so use macros to do this task
 function TAbstractMachOSubReader.ReadString(aStream: TStream; aPos: longword
   ): string;
 var oldpos : int64;
-    c : char;
+    c : AnsiChar;
     maxleft : int64;
 begin
   Result:='';
