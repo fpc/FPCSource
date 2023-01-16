@@ -47,7 +47,7 @@ uses
   resdatastream, resfactory;
 
 type
-  TSignature = array[0..3] of char;
+  TSignature = array[0..3] of AnsiChar;
 
 const
   TypeLibSig1 = 'MSFT';
