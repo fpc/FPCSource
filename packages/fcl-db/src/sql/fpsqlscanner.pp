@@ -82,7 +82,7 @@ const
   sqlInvertableComparisons = [tsqlLike,tsqlContaining,tsqlStarting,tsqlIN,tsqlIS, tsqlBetween];
 
   // Strings that represent tokens in TSQLToken
-  TokenInfos: array[TSQLToken] of string = ('unknown',
+  TokenInfos: array[TSQLToken] of shortstring = ('unknown',
        // Specials
        'EOF','whitespace',
        'String',
@@ -359,7 +359,7 @@ begin
   Len:=TokenStr-TokenStart;
   SetLength(FCurTokenString, Len);
   if (Len>0) then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len * SizeOf(Char));
   Result := tsqlComment;
 end;
 
@@ -383,7 +383,7 @@ begin
       Len:=TokenStr-TokenStart+1;
       SetLength(FCurTokenString,OLen+Len);
       if Len>1 then
-        Move(TokenStart^,FCurTokenString[OLen+1],Len-1);
+        Move(TokenStart^,FCurTokenString[OLen+1],(Len-1)*SizeOf(Char));
       Inc(OLen,Len);
       FCurTokenString[OLen]:=#10;
       if not FetchLine then
@@ -405,7 +405,7 @@ begin
   SetLength(FCurTokenString, Olen+Len);
   if (Len>0) then
     begin
-    Move(TokenStart^, FCurTokenString[Olen + 1], Len);
+    Move(TokenStart^, FCurTokenString[Olen + 1], Len*SizeOf(Char));
     end;
   If TokenStr[0]<>#0 then
     Inc(TokenStr);
@@ -493,9 +493,9 @@ Var
   begin
     SetLength(FCurTokenString, OLen + Len+Length(S));
     if Len > 0 then
-      Move(TokenStart^, FCurTokenString[OLen + 1], Len);
+      Move(TokenStart^, FCurTokenString[OLen + 1], Len*Sizeof(Char));
     If Length(S)>0 then
-      Move(S[1],FCurTokenString[OLen + Len+1],Length(S));
+      Move(S[1],FCurTokenString[OLen + Len+1],Length(S)*Sizeof(Char));
     Inc(OLen, Len+Length(S));
     If DoNextToken then
       Inc(TokenStr);
@@ -628,7 +628,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*Sizeof(Char));
   If IsFloat then
     Result := tsqlFloatNumber
   else
@@ -654,7 +654,7 @@ begin
   Len:=(TokenStr-TokenStart);
   SetLength(FCurTokenString,Len);
   if Len > 0 then
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(Char));
   S:=UpperCase(FCurTokenString);
   // Check if this is a keyword or identifier
   // to do: Optimize this!
@@ -698,7 +698,7 @@ begin
     begin
     result:=tsqlSymbolString;
     SetLength(FCurTokenString,Len);
-    Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len*SizeOf(Char));
     if (AlternateTerminator<>'') and (CurtokenString=AlternateTerminator) then
       Exit(tsqlTerminator);
 
@@ -969,12 +969,24 @@ end;
 function TStreamLineReader.ReadLine: string;
 
 Var
-  FPos,OLen,Len: Integer;
+  FPos,Len: Integer;
   PRun : PByte;
+  Res : AnsiString;
+
+  Procedure AddToRes; inline;
+
+  Var
+    OLen : integer;
+
+  begin
+    Olen:=Length(Res);
+    SetLength(Res,OLen+Len);
+    Move(Buffer[FPos],Res[OLen+1],Len);
+  end;
 
 begin
   FPos:=FBufPos;
-  Result:='';
+  Res:='';
   Repeat
     PRun:=@Buffer[FBufPos];
     While (FBufPos<FBufLen) and Not (PRun^ in [10,13]) do
@@ -986,22 +998,14 @@ begin
       begin
       Len:=FBufPos-FPos;
       If (Len>0) then
-        begin
-        Olen:=Length(Result);
-        SetLength(Result,OLen+Len);
-        Move(Buffer[FPos],Result[OLen+1],Len);
-        end;
+        AddToRes;
       FillBuffer;
       FPos:=FBufPos;
       end;
   until (FBufPos=FBufLen) or (PRun^ in [10,13]);
   Len:=FBufPos-FPos+1;
   If (Len>0) then
-    begin
-    Olen:=Length(Result);
-    SetLength(Result,OLen+Len);
-    Move(Buffer[FPos],Result[OLen+1],Len);
-    end;
+    AddToRes;
   If (PRun^ in [10,13]) and (FBufPos<FBufLen) then
     begin
     Inc(FBufPos);
@@ -1013,10 +1017,11 @@ begin
       If (FBufPos<FBufLen) and (Buffer[FBufpos]=10) then
         begin
         Inc(FBufPos);
-        Result:=Result+#10;
+        Res:=Res+#10;
         end;
       end;
     end;
+  Result:=Res;
 end;
 
 end.
