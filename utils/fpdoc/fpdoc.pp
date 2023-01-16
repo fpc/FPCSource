@@ -423,7 +423,8 @@ end;
 Procedure TFPDocApplication.DoRun;
 
 begin
-   ExceptionExitCode:=1;
+  Terminate;
+  ExceptionExitCode:=1;
   try
   {$IFDEF Unix}
     gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
@@ -441,7 +442,6 @@ begin
     else
       FCreator.CreateDocumentation(FPackage,FDryRun);
     WriteLn(SDone);
-    Terminate;
   except
     ExitCode:=1;
     Raise;
@@ -451,7 +451,7 @@ end;
 constructor TFPDocApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  StopOnException:=false;
+  // StopOnException:=false;
   FCreator:=TFPDocCreator.Create(Self);
   FCreator.OnLog:=@OutputLog;
   OnException:= @ExceptProc;
