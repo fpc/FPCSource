@@ -1145,6 +1145,7 @@ function TFPDocEngine.FindAbsoluteLink(const AName: String): String;
 var
   LinkNode: TLinkNode;
 begin
+  // Writeln('Finding absolute link: ',aName);
   LinkNode := RootLinkNode.FindChild(AName);
   if Assigned(LinkNode) then
     Result := LinkNode.Link
