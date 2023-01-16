@@ -35,7 +35,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function Add(s : string) : longword;
+    function Add(s : AnsiString) : longword;
     procedure Clear;
     procedure WriteToStream(aStream : TStream);
     property StartOfs : longword read fStartOfs write fStartOfs;
@@ -54,8 +54,8 @@ type
   public
     constructor Create(aStream : TStream; aSize : longword);
     destructor Destroy; override;
-    function Get(aOffset : longword) : string;
-    function Add(aString : string) : longword;
+    function Get(aOffset : longword) : AnsiString;
+    function Add(aString : AnsiString) : longword;
     procedure Clear;
     procedure WriteToStream(aStream : TStream);
     property Size : longword read GetSize;
@@ -86,7 +86,7 @@ begin
   fData.Free;
 end;
 
-function TResStringTable.Add(s: string): longword;
+function TResStringTable.Add(s: AnsiString): longword;
 var b : byte;
 begin
   fUsed:=true;
@@ -146,8 +146,8 @@ begin
   fData.Free;
 end;
 
-function TObjectStringTable.Get(aOffset: longword): string;
-var c : char;
+function TObjectStringTable.Get(aOffset: longword): AnsiString;
+var c : AnsiChar;
 begin
   Result:='';
   fData.Position:=aOffset;
@@ -157,7 +157,7 @@ begin
   until (c=#0) or (fData.Position>=fData.Size);
 end;
 
-function TObjectStringTable.Add(aString: string) : longword;
+function TObjectStringTable.Add(aString: AnsiString) : longword;
 var b : byte;
 begin
   Result:=fData.Position;

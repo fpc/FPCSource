@@ -64,7 +64,7 @@ uses
 function TExternalResourceReader.ReadString(aStream: TStream; aOfs: longword
   ): string;
 var oldpos : int64;
-    c : char;
+    c : AnsiChar;
     maxleft : int64;
 begin
   Result:='';

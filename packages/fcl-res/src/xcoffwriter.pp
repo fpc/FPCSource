@@ -41,7 +41,7 @@ type
     procedure WriteNodeInfo(aStream: TStream; aNode: TResourceTreeNode);
     procedure WriteSubNodes(aStream : TStream; aNode : TResourceTreeNode);
     procedure WriteResStringTable(aStream: TStream); override;
-    procedure WriteDataSymbol(aStream: TStream; const name: String; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
+    procedure WriteDataSymbol(aStream: TStream; const name: AnsiString; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
     procedure WriteSymbolTable(aStream : TStream; aResources : TResources); override;
     procedure WriteResHeader(aStream : TStream; aResources : TResources);
     procedure Write(aResources : TResources; aStream : TStream); override;
@@ -275,7 +275,7 @@ begin
   Align(fDataAlignment,aStream);
 end;
 
-procedure TXCoffResourceWriter.WriteDataSymbol(aStream: TStream; const name: String; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
+procedure TXCoffResourceWriter.WriteDataSymbol(aStream: TStream; const name: AnsiString; aStorageClass, aAuxStorageType: byte; aSecNum, aSecOffset, aSize: qword);
 var
   st : TCoffSymtableEntry;
   aux : TXCoffAuxSymbol32;
