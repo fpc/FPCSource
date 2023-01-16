@@ -1188,7 +1188,7 @@ begin
     if (length(W)>0) then
       Move(W[1],Buffer^,Length(W)*SizeOf(Widechar)+1)
     else
-      PChar(Buffer)^:=#0;
+      PAnsiChar(Buffer)^:=#0;
     end;
     ftfixedchar,
     ftString:
@@ -1197,7 +1197,7 @@ begin
       if (length(s)>0) then
         Move(S[1],Buffer^,Length(S)+1)
       else
-        PChar(Buffer)^:=#0;
+        PAnsiChar(Buffer)^:=#0;
       end;
     ftBoolean:
       begin
