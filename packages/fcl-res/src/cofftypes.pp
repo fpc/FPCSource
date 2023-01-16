@@ -23,7 +23,7 @@ type
   TCoffMachineType = (cmti386, cmtarm, cmtx8664, cmtppc32aix, cmtppc64aix, cmtaarch64);
 
 type
-  TSectionName = array [0..7] of char;
+  TSectionName = array [0..7] of AnsiChar;
 
 const
   RSRCSectName : TSectionName = '.rsrc'+#0+#0+#0;

@@ -20,7 +20,7 @@ unit elftypes;
 interface
 
 type
-  TElfMagic = array[0..3] of char;
+  TElfMagic = array[0..3] of AnsiChar;
 
 type
   TElfIdent = packed record
