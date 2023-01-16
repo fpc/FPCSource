@@ -1040,7 +1040,12 @@ begin
   else if Element is TPasEnumValue then
     s := ResolveLinkID(Element.Parent.PathName)
   else if Element is TPasAliasType then
-    s := ResolveLinkID(TPasAliasType(Element).DestType.PathName)
+    begin
+    s := ResolveLinkID(TPasAliasType(Element).DestType.PathName);
+    // See if we find a page for the type alias ?
+    if (S='') then
+      s := ResolveLinkID(TPasAliasType(Element).Name)
+    end
   else
     s := ResolveLinkID(Element.PathName);
 
