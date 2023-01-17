@@ -14,7 +14,7 @@ Type
 
   TTestPEM = Class(TTestCase)
   protected
-    procedure GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: string);
+    procedure GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: Ansistring);
   Published
     Procedure TestECC_Load;
     Procedure TestRSA_RS256Verify;
@@ -36,7 +36,7 @@ end;
 Const
   PrivateKeyFile = 'private-key.pem';
 
-procedure TTestPEM.GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: string
+procedure TTestPEM.GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: Ansistring
   );
 begin
   // generated with
@@ -112,7 +112,10 @@ var
 begin
   List := TStringList.Create;
   try
+    PrivateKey:=Default(TEccPrivateKey);
+    PublicKey:=Default(TEccPublicKey);
     Res:=FileExists(PrivateKeyFile) and PemIsECDSA(PrivateKeyFile, List);
+    AssertTrue('Have file with Key',Res);
     if Res then
       PemLoadPublicKey64FromList(List, PrivateKey, PublicKey, PublicKeyX64, PublicKeyY64);
     AssertEquals('Private key',resprivatekey,BytesToHexStr(BytesFromVar(@PrivateKey,Sizeof(PrivateKey))));
@@ -140,7 +143,7 @@ procedure TTestPEM.TestRSA_PrivatePublicPEM_NoPassphrase;
 const
   SecretMsg = 'FreePascal RSA Test';
 var
-  PrivatePEM, PublicPEM, Original, Encrypted, Decrypted: string;
+  PrivatePEM, PublicPEM, Original, Encrypted, Decrypted: Ansistring;
   DER: TBytes;
   PrivateRSA, PublicRSA: TRSA;
   EncryptedLen, DecryptedLen: Integer;

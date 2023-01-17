@@ -81,9 +81,13 @@
       <Filename Value="testhash"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Other>
+      <CustomOptions Value="-tunicodertl"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

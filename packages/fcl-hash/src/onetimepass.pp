@@ -32,7 +32,7 @@ function HOTPCalculateToken(const aSecret: AnsiString; const Counter: LongInt): 
 function TOTPCalculateToken(const aSecret: AnsiString): LongInt;
 function TOTPGenerateToken(const aSecret: AnsiString): LongInt;
 function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
-Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : String;
+Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : AnsiString;
 
 implementation
 
@@ -51,13 +51,13 @@ begin
     Result:=Result+AnsiChar(B[I]);
 end;
 
-function TOTPCalculateToken(const aSecret: String): Longint;
+function TOTPCalculateToken(const aSecret: AnsiString): Longint;
 
 begin
   Result:=HOTPCalculateToken(aSecret,-1);
 end;
 
-function HOTPCalculateToken(const aSecret: String; const Counter: Longint): Longint;
+function HOTPCalculateToken(const aSecret: AnsiString; const Counter: Longint): Longint;
 
 var
   Digest: TSHA1Digest;
@@ -65,16 +65,17 @@ var
   Offset: Longint;
   Part1, Part2, Part3, Part4: UInt32;
   SecretBinBuf: TBytes;
-  STime, SSecretBin: String;
+  STime, SSecretBin: RawbyteString;
   Time: Longint;
 
 begin
   Time := Counter;
   if Time=-1 then
     Time := DateTimeToUnix(Now,False) div TOTP_KeyRegeneration;
+  SSecretBin:='';
   SecretBinBuf:=Base32.Decode(aSecret);
   STime:=Int64ToRawString(Time);
-  SetLength(SSecretBin{%H-},length(SecretBinBuf));
+  SetLength(SSecretBin,length(SecretBinBuf));
   Move(SecretBinBuf[0],SSecretBin[1],length(SecretBinBuf));
   Digest:=HMACSHA1Digest(SSecretBin, STime);
   Offset := Digest[19] and $0F;
@@ -91,7 +92,7 @@ begin
   Result := HOTPCalculateToken(aSecret, -1);
 end;
 
-Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : String;
+Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : AnsiString;
 
 var
   RandomKey: TByteDynArray;
@@ -109,7 +110,7 @@ begin
 end;
 
 // @Secret Base32 encoded, @WindowSize=1
-function TOTPValidate(const aSecret: String; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
+function TOTPValidate(const aSecret: AnsiString; const Token: LongInt; const WindowSize: LongInt; var Counter: LongInt): Boolean;
 var
   TimeStamp: Longint;
   UnixTime: Longint;
