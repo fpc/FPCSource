@@ -112,7 +112,7 @@ end;
 procedure TTestSHA512.TestSmallString;
 
 Var
-  S : String;
+  S : AnsiString;
 begin
   BytesToHexStr(S,@Test1Out,SizeOf(Test1Out));
   TestHexString('abc',S);
@@ -120,7 +120,7 @@ end;
 
 procedure TTestSHA512.TestLargeString;
 Var
-  S : String;
+  S : AnsiString;
 begin
   BytesToHexStr(S,@Test2Out,SizeOf(Test2Out));
   TestHexString('abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu',S);
@@ -153,7 +153,7 @@ procedure TTestSHA512.TestHMACStream;
 
 Var
   S : TStringStream;
-  res : String;
+  res : AnsiString;
 
 begin
   BytesToHexStr(Res,@Test1Out,SizeOf(Test1Out));
@@ -223,7 +223,7 @@ end;
 
 procedure TTestSHA384.TestSmallString;
 Var
-  S : String;
+  S : AnsiString;
 begin
   BytesToHexStr(S,@Test1Out384,SizeOf(Test1Out384));
   TestHexString('abc',S);
@@ -231,7 +231,7 @@ end;
 
 procedure TTestSHA384.TestLargeString;
 Var
-  S : String;
+  S : AnsiString;
 begin
   BytesToHexStr(S,@Test2Out384,SizeOf(Test2Out384));
   TestHexString('abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu',S);
@@ -264,7 +264,7 @@ procedure TTestSHA384.TestHMACStream;
 
 Var
   S : TStringStream;
-  res : String;
+  res : AnsiString;
 
 begin
   BytesToHexStr(Res,@Test1Out384,SizeOf(Test1Out384));

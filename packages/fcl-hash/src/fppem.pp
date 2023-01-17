@@ -65,7 +65,7 @@ end;
 procedure PemLoadPublicKey64FromList(List: TStrings; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64: AnsiString);
 
 var
-  SPrivateKeyHexa, SPublicKeyHexa: String;
+  SPrivateKeyHexa, SPublicKeyHexa: AnsiString;
   DecompressedPublicKey, SPrivateKey : TBytes;
 
 begin
@@ -149,6 +149,7 @@ begin
   ASNParsePemSection(Buffer, List, _BEGIN_EC_PRIVATE_KEY, _END_EC_PRIVATE_KEY);
   if List.Count < 7 then
     Exit;
+  Writeln(List.Text);
   CurveOID := List.Strings[4];
   Result := (CurveOID=ASN_secp256r1);
 end;
@@ -320,7 +321,8 @@ end;
 function PemToDER(const PEM, BeginTag, EndTag: String): TBytes;
 var
   sl: TStringList;
-  Line, TxtBase64: String;
+  Line :  AnsiString;
+  TxtBase64: AnsiString;
   StartIndex, EndIndex, i: Integer;
 begin
   Result:=[];
