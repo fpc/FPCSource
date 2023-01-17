@@ -15,6 +15,9 @@
  **********************************************************************}
 unit DBColl;
 
+{$mode objfpc}
+{$H+}
+
 interface
 
 uses db, classes, sysutils, fieldmap;

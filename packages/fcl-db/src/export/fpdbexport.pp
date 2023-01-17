@@ -24,7 +24,7 @@ uses
 Type
   TCustomDatasetExporter = Class;
 
-  // Quote string fields if value contains a space or delimiter char.
+  // Quote string fields if value contains a space or delimiter AnsiChar.
   TQuoteString = (qsAlways,qsSpace,qsDelimiter);
   TQuoteStrings = Set of TQuoteString;
 
@@ -86,14 +86,14 @@ Type
     FHandleNullField: Boolean;
     FTimeFormat : String;
     FDateTimeFormat : String;
-    FDecimalSeparator: Char;
+    FDecimalSeparator: AnsiChar;
     FUseDisplayText : Boolean;
   Protected
     Procedure InitSettings; virtual;
     Property HandleNullField : Boolean Read FHandleNullField Write FHandleNullField;
     Property UseDisplayText : Boolean Read FUseDisplayText Write FUseDisplayText;
     Property IntegerFormat : String Read FIntegerFormat Write FIntegerFormat;
-    Property DecimalSeparator : Char Read FDecimalSeparator Write FDecimalSeparator;
+    Property DecimalSeparator : AnsiChar Read FDecimalSeparator Write FDecimalSeparator;
     Property CurrencySymbol : String Read FCurrencySymbol Write FCurrencySymbol;
     Property CurrencyDigits : Integer Read FCurrencyDigits Write FCurrencyDigits;
     Property BooleanTrue : String Read FBooleanTrue Write FBooleanTrue;

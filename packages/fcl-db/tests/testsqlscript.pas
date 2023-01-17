@@ -816,9 +816,9 @@ var s : string;
 begin
   StopExecution := StopToSend;
   if Argument = '' then
-    s := Directive
+    s := UTF8Decode(Directive)
   else
-    s := format ('%s(%s)', [Directive, Argument]);
+    s := UTF8Decode(format ('%s(%s)', [UTF8Decode(Directive), UTF8Decode(Argument)]));
   if received <> '' then
     received := received + ';' + s
   else

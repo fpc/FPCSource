@@ -274,13 +274,13 @@ function UnlockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nN
 procedure GetLocalTime(var lpSystemTime: TSystemTime);
 function GetOEMCP: Cardinal;
 function GetACP: Cardinal;
-function OemToChar(lpszSrc: PChar; lpszDst: PChar): BOOL;
-function CharToOem(lpszSrc: PChar; lpszDst: PChar): BOOL;
-function OemToCharBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
-function CharToOemBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function OemToChar(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
+function CharToOem(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
+function OemToCharBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
+function CharToOemBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
 function MultiByteToWideChar(CodePage: DWORD; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lpWideCharStr: LPWSTR; cchWideChar: Integer): Integer;
 function WideCharToMultiByte(CodePage: DWORD; dwFlags: DWORD; lpWideCharStr: LPWSTR; cchWideChar: Integer; lpMultiByteStr: LPSTR; cchMultiByte: Integer; lpDefaultChar: LPCSTR; lpUsedDefaultChar: PBOOL): Integer;
-function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
+function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PAnsiChar; cchCount1: Integer; lpString2: PAnsiChar; cchCount2: Integer): Integer;
 function EnumSystemCodePages(lpCodePageEnumProc: TFNCodepageEnumProc; dwFlags: DWORD): BOOL;
 function EnumSystemLocales(lpLocaleEnumProc: TFNLocaleEnumProc; dwFlags: DWORD): BOOL;
 function GetUserDefaultLCID: LCID;

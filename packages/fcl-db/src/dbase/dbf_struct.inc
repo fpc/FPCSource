@@ -58,7 +58,7 @@ type
   // before the variable length part (e.g. the field descriptor array)
   PEndFixedHdrVII = ^rEndFixedHdrVII;
   rEndFixedHdrVII = packed record
-    LanguageDriverName  : array[32..63] of Char; //starting position 32 of header
+    LanguageDriverName  : array[32..63] of AnsiChar; //starting position 32 of header
     Dummy               : array[64..67] of Byte;
   end;
 //====================================================================
@@ -68,14 +68,14 @@ type
     { Relative path of an associated database (.dbc) file or filled with $00.
       If the first byte is $00, the file is a "free table", not associated with
       a database file. Therefore, database files always contain $00. }
-    Backlink  : array[0..262] of Char; //263 bytees
+    Backlink  : array[0..262] of AnsiChar; //263 bytees
   end;
 //====================================================================
 // DBase III,IV,FoxPro,VisualFoxPro field description
   PFieldDescIII = ^rFieldDescIII;
   rFieldDescIII = packed record
-    FieldName         : array[0..10] of Char;
-    FieldType         : Char;    // 11
+    FieldName         : array[0..10] of AnsiChar;
+    FieldType         : AnsiChar;    // 11
     // FieldOffset: (V)FoxPro only: displacement of field in record
     // DBase III uses it for address in memory
     FieldOffset       : Integer; // 12..15
@@ -83,7 +83,7 @@ type
     FieldPrecision    : Byte;    // 17, also known as decimal count
     // $01: system solumn (not user-visible)
     // $02: column can store null values
-    // $04: binary column, e.g. don't interpret codepage (char/memo fields)
+    // $04: binary column, e.g. don't interpret codepage (AnsiChar/memo fields)
     // $0C: column is autoincrementing (only integer fields)
     VisualFoxProFlags : Byte;    // 18 Field Flags; flags can be combined
     // (!!not the next value for a new record!!); the next is calculated by
@@ -104,8 +104,8 @@ type
 //====================================================================
 // OH 2000-11-15 dBase7 support. Header Update (add fields like Next AutoInc Value)
   rFieldDescVII = packed record
-    FieldName      : array [0..31] of Char;
-    FieldType      : Char;  // 32
+    FieldName      : array [0..31] of AnsiChar;
+    FieldType      : AnsiChar;  // 32
     FieldSize      : Byte;  // 33
     FieldPrecision : Byte;  // 34
     Reserved1      : Word;  // 35-36
@@ -142,7 +142,7 @@ type
                           //            06 Database constraint
     FieldType    : Byte;  // 5      ; Field Type:
                           //            00 No type - constraint
-                          //            01 Char
+                          //            01 AnsiChar
                           //            02 Numeric
                           //            03 Memo
                           //            04 Logical
@@ -155,7 +155,7 @@ type
                           //            13 Double
                           //            14 AutoIncrement (not settable from the Inspector)
     IsConstraint : Byte;  // 6      ; 0x00 if the array element is a constraint, 0x02 otherwise.
-    Reserved     : array[7..10] of Char;
+    Reserved     : array[7..10] of AnsiChar;
     DataOffset   : Word;  // 11..12 ; Offset from the start of this structure to the data for the property. The Required property has no data associated with it, so it is always 0.
     DataSize     : Word;  // 13..14 ; Width of database field associated with the property, and hence size of the data (includes 0 terminator in the case of a constraint).
   end;

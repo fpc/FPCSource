@@ -365,7 +365,7 @@ type
     FParamCheck: Boolean;
     FParams: TParams;
     FMacroCheck: Boolean;
-    FMacroChar: Char;
+    FMacroChar: AnsiChar;
     FMacros: TParams;
     FSQL: TStrings;
     FOrigSQL : String;
@@ -375,9 +375,10 @@ type
     FDoUnPrepare : Boolean;
     FDataLink : TDataLink;
     FRowsAffected : TRowsCount;
+    FInfoquery : Boolean;
     function ExpandMacros(const OrigSQL: String): String;
     procedure SetDatabase(AValue: TSQLConnection);
-    procedure SetMacroChar(AValue: Char);
+    procedure SetMacroChar(AValue: AnsiChar);
     procedure SetMacroCheck(AValue: Boolean);
     procedure SetParams(AValue: TParams);
     procedure SetMacros(AValue: TParams);
@@ -415,11 +416,12 @@ type
     Property SQL : TStrings Read FSQL Write SetSQL;
     Property Params : TParams Read FParams Write SetParams stored HasParams;
     Property Macros : TParams Read FMacros Write SetMacros stored HasMacros;
-    property MacroChar: Char read FMacroChar write SetMacroChar default DefaultMacroChar;
+    property MacroChar: AnsiChar read FMacroChar write SetMacroChar default DefaultMacroChar;
     Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
     Property ParamCheck : Boolean Read FParamCheck Write FParamCheck default true;
     Property MacroCheck : Boolean Read FMacroCheck Write SetMacroCheck default false;
+    Property InfoQuery : Boolean Read FInfoQuery Write FInfoQuery;
   Public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -504,10 +506,10 @@ type
     FUpdateQry,
     FDeleteQry           : TCustomSQLQuery;
     FSequence            : TSQLSequence;
-    procedure CheckPrepare;
+    procedure CheckPrepare(InfoQuery : Boolean);
     procedure CheckUnPrepare;
     procedure FreeFldBuffers;
-    function GetMacroChar: Char;
+    function GetMacroChar: AnsiChar;
     function GetParamCheck: Boolean;
     function GetParams: TParams;
     function GetMacroCheck: Boolean;
@@ -521,7 +523,7 @@ type
     function HasMacros: Boolean;
     Function HasParams : Boolean;
     Function NeedLastInsertID: TField;
-    procedure SetMacroChar(AValue: Char);
+    procedure SetMacroChar(AValue: AnsiChar);
     procedure SetOptions(AValue: TSQLQueryOptions);
     procedure SetParamCheck(AValue: Boolean);
     procedure SetMacroCheck(AValue: Boolean);
@@ -645,7 +647,7 @@ type
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     property Macros : TParams read GetMacros Write SetMacros stored HasMacros;
     Property MacroCheck : Boolean Read GetMacroCheck Write SetMacroCheck default false;
-    Property MacroChar : Char Read GetMacroChar Write SetMacroChar default DefaultMacroChar;
+    Property MacroChar : AnsiChar Read GetMacroChar Write SetMacroChar default DefaultMacroChar;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode default upWhereKeyOnly;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
@@ -967,7 +969,7 @@ begin
     end;
 end;
 
-procedure TCustomSQLStatement.SetMacroChar(AValue: Char);
+procedure TCustomSQLStatement.SetMacroChar(AValue: AnsiChar);
 begin
   if FMacroChar=AValue then Exit;
   FMacroChar:=AValue;
@@ -1228,8 +1230,8 @@ Const
 
 var
   I: Integer;
-  Ch : Char;
-  TermArr : Set of Char;
+  Ch : AnsiChar;
+  TermArr : Set of AnsiChar;
   TempStr, TempMacroName : String;
   MacroFlag : Boolean;
 
@@ -1293,13 +1295,17 @@ begin
   FServerSQL:=ExpandMacros( FOrigSQL );
   GetStatementInfo(FServerSQL,StmInfo);
   AllocateCursor;
+  if FInfoquery then
+    // We signal that we want to have field definitions.
+    // This is needed for e.g. postgres, where the result of the prepare statement is not enough to get field defs.
+    FCursor.FInitFieldDef:=True;
   FCursor.FSelectable:=True; // let PrepareStatement and/or Execute alter it
   FCursor.FStatementType:=StmInfo.StatementType;
   FCursor.FSchemaType:=GetSchemaType;
   If LogEvent(detPrepare) then
     Log(detPrepare,FServerSQL);
   Database.PrepareStatement(FCursor,Transaction,FServerSQL,FParams);
-  // Update
+  // Update FInitFieldDef with whatever we got from the server.
   FCursor.FInitFieldDef:=FCursor.FSelectable;
 end;
 
@@ -1738,7 +1744,7 @@ const
 
 var
   PSQL, CurrentP, SavedP,
-  PhraseP, PStatementPart : pchar;
+  PhraseP, PStatementPart : PChar;
   S                       : string;
   ParsePart               : TParsePart;
   BracketCount            : Integer;
@@ -2840,7 +2846,7 @@ end;
 procedure TCustomSQLQuery.OpenCursor(InfoQuery: Boolean);
 begin
   if InfoQuery then
-    CheckPrepare;
+    CheckPrepare(InfoQuery);
   try
     inherited OpenCursor(InfoQuery);
   finally
@@ -2993,7 +2999,7 @@ begin
      SQLConnection.FreeFldBuffers(Cursor);
 end;
 
-function TCustomSQLQuery.GetMacroChar: Char;
+function TCustomSQLQuery.GetMacroChar: AnsiChar;
 begin
   Result := FStatement.MacroChar;
 end;
@@ -3147,7 +3153,7 @@ begin
     end
   else
     begin
-    CheckPrepare;
+    CheckPrepare(False);
     if not Cursor.FSelectable then
       DatabaseError(SErrNoSelectStatement,Self);
 
@@ -3174,7 +3180,7 @@ begin
           if ixPrimary in ServerIndexDefs[counter].Options then
             begin
             IndexFields := TStringList.Create;
-            ExtractStrings([';'],[' '],pchar(ServerIndexDefs[counter].Fields),IndexFields);
+            ExtractStrings([';'],[' '],PAnsiChar(ServerIndexDefs[counter].Fields),IndexFields);
             for fieldc := 0 to IndexFields.Count-1 do
               begin
               F := FindField(IndexFields[fieldc]);
@@ -3205,13 +3211,18 @@ end;
 
 // public part
 
-procedure TCustomSQLQuery.CheckPrepare;
+procedure TCustomSQLQuery.CheckPrepare(InfoQuery : Boolean);
 
 begin
   if Not IsPrepared then
     begin
-    Prepare;
-    FDoUnPrepare:=True;
+    FStatement.FInfoquery:=InfoQuery;
+    try
+      Prepare;
+      FDoUnPrepare:=True;
+    finally
+      FStatement.FInfoquery:=False;
+    end;
     end;
 end;
 
@@ -3229,7 +3240,7 @@ end;
 procedure TCustomSQLQuery.ExecSQL;
 
 begin
-  CheckPrepare;
+  CheckPrepare(False);
   try
     Execute;
     // Always retrieve rows affected
@@ -3327,7 +3338,7 @@ begin
     end
 end;
 
-procedure TCustomSQLQuery.SetMacroChar(AValue: Char);
+procedure TCustomSQLQuery.SetMacroChar(AValue: AnsiChar);
 begin
   FStatement.MacroChar:=AValue;
 end;

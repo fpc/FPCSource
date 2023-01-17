@@ -7,6 +7,7 @@ unit TestDBExport;
 {$IFDEF FPC}
   {$mode Delphi}{$H+}
 {$ENDIF}
+{$codepage utf8}
 
 interface
 
@@ -30,7 +31,7 @@ type
     efJSON, efRTF, efSQL, efTeX, efXML, efXMLXSDAccess, efXMLXSDADONet, efXMLXSDClientDataset,
     efXMLXSDExcel, efVisualFoxpro);
 const
-  TDetailedExportExtensions: array [TDetailedExportFormats] of string[5] =
+  TDetailedExportExtensions: array [TDetailedExportFormats] of string =
     ('.dbf','.dbf','.dbf','.csv','.txt','.dbf','.json','.rtf','.sql','.tex',
     '.xml','.xml','.xml','.xml','.xml','.dbf'); //File extension for the corresponding TDetailedExportFormats
 type
@@ -83,7 +84,7 @@ type
 
 implementation
 
-uses xmlread,dom;
+uses bufdatasettoolsunit, xmlread,dom;
 
 
 function TTestDBExport.FieldSupported(const FieldType: TFieldType;
@@ -393,7 +394,7 @@ begin
     ExportSettings.ExportFormat:=AccessCompatible;
     ExportFormat:=efXMLXSDAccess;
     ExportSettings.CreateXSD:=true;
-    ExportSettings.DecimalSeparator:=char(#0); //don't override
+    ExportSettings.DecimalSeparator:=AnsiChar(#0); //don't override
     Exporter.FileName := FExportTempDir + inttostr(ord(ExportFormat)) +
       lowercase(rightstr(TestName,5)) +
       TDetailedExportExtensions[ExportFormat];
@@ -632,7 +633,7 @@ Var
   DS : TBufDataset;
 
 begin
-  DS:=TBufDataset.Create(Nil);
+  DS:=TPersistentBufDataset.Create(Nil);
   try
     DS.FieldDefs.Add('F',ftWideString,10);
     DS.CreateDataset;
@@ -742,7 +743,7 @@ Var
   DS : TBufDataset;
 
 begin
-  DS:=TBufDataset.Create(Nil);
+  DS:=TPersistentBufDataSet.Create(Nil);
   try
     DS.FieldDefs.Add('F',ftBoolean,0);
     DS.CreateDataset;
@@ -766,7 +767,7 @@ Var
   DS : TBufDataset;
 
 begin
-  DS:=TBufDataset.Create(Nil);
+  DS:=TPersistentBufDataset.Create(Nil);
   try
     DS.FieldDefs.Add('A',ftString,2);
     DS.FieldDefs.Add('B',ftString,2);
@@ -850,8 +851,9 @@ begin
     Exporter.FormatSettings.HeaderRow:=True;
     Exporter.Dataset:=DS;
     Exporter.FileName := FExportTempDir + lowercase(TestName) + '.txt';
+
     Exporter.BuildDefaultFieldMap(Exporter.ExportFields);
-    AssertEquals('Correct width',5, TFixedLengthExportFieldItem(Exporter.ExportFields[0]).Width);
+    AssertEquals('Correct width',2, TFixedLengthExportFieldItem(Exporter.ExportFields[0]).Width);
     AssertEquals('Output count',2,Exporter.Execute);
     AssertTrue('Output file must be created', FileExists(Exporter.FileName));
     AssertFalse('Output file must not be empty', (GetFileSize(Exporter.FileName) = 0));
@@ -859,11 +861,11 @@ begin
     Reset(F);
     haveFile:=True;
     Readln(F,S);
-    AssertEquals('Correct header line','F    ',S); // 1 extra
+    AssertEquals('Correct header line','A B C ',S); // 1 extra
     Readln(F,S);
-    AssertEquals('Correct first line','True ',S); // 1 extra
+    AssertEquals('Correct first line','xxy zz',S); // 1 extra
     Readln(F,S);
-    AssertEquals('Correct second line','false',S);
+    AssertEquals('Correct second line','x yyz ',S);
   finally
     if HaveFile then
       closeFile(F);

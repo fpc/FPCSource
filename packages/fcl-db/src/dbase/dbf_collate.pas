@@ -43,7 +43,7 @@ const
 
 
 function GetCollationTable( DbfLangId :integer ) :PCollationTable;
-function DbfCompareString( CollationTable :PCollationTable; String1 :PChar; nLength1 :integer; String2 :PChar; nLength2 :integer ) :integer;
+function DbfCompareString( CollationTable :PCollationTable; String1 :PAnsiChar; nLength1 :integer; String2 :PAnsiChar; nLength2 :integer ) :integer;
 function RegisterCollation( DbfLangId :integer; CollationTable :PCollationTable; BDEName :TCollationBDEName ) :Boolean;
 
 
@@ -78,7 +78,7 @@ begin
     end;
 end;
 
-function DbfCompareString( CollationTable :PCollationTable; String1 :PChar; nLength1 :integer; String2 :PChar; nLength2 :integer ) :integer;
+function DbfCompareString( CollationTable :PCollationTable; String1 :PAnsiChar; nLength1 :integer; String2 :PAnsiChar; nLength2 :integer ) :integer;
 var
   nCnt, nMax, nVal1, nVal2 :integer;
 const

@@ -420,7 +420,7 @@ end;
 
 class function TXMLDatapacketReader.RecognizeStream(AStream: TStream): boolean;
 const XmlStart = '<?xml';
-var s        : string;
+var s        : ansistring;
     len      : integer;
 begin
   Len := length(XmlStart);

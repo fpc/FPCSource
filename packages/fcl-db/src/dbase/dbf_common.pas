@@ -29,7 +29,7 @@ type
   EDbfError = class (EDatabaseError);
   EDbfWriteError = class (EDbfError);
 
-  TDbfFieldType = char;
+  TDbfFieldType = AnsiChar;
 
   TXBaseVersion   = (xUnknown, xClipper, xBaseIII, xBaseIV, xBaseV, xFoxPro, xBaseVII, xVisualFoxPro);
   TSearchKeyType = (stEqual, stGreaterEqual, stGreater);
@@ -46,7 +46,6 @@ type
   PSmallInt = ^SmallInt;
   PCardinal = ^Cardinal;
   PDouble = ^Double;
-  PString = ^String;
 
 {$ifdef DELPHI_3}
   dword = cardinal;
@@ -107,7 +106,7 @@ procedure SwapInt64LE(Value, Result: Pointer); register;
 {$endif}
 
 // Translate string between codepages
-function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
+function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 
 // Returns a pointer to the first occurence of Chr in Str within the first Length characters
 // Does not stop at null (#0) terminator!
@@ -371,7 +370,7 @@ end;
 
 {$endif}
 
-function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
+function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PAnsiChar; Length: Integer): Integer;
 var
   WideCharStr: array[0..1023] of WideChar;
   wideBytes: Cardinal;
@@ -416,7 +415,7 @@ function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 var
   I: Integer;
 begin
-  // Make sure we pass a buffer of bytes instead of a pchar otherwise
+  // Make sure we pass a buffer of bytes instead of a PAnsiChar otherwise
   // the call will always fail
   I := System.IndexByte(PByte(Buffer)^, Length, Chr);
   if I = -1 then

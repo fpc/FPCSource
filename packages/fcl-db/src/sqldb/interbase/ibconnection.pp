@@ -36,8 +36,8 @@ type
   TDatabaseInfo = record
     Dialect             : integer; //Dialect set in database
     ODSMajorVersion     : integer; //On-Disk Structure version of file
-    ServerVersion       : string;  //Representation of major.minor (.build)
-    ServerVersionString : string;  //Complete version string, including name, platform
+    ServerVersion       : ansistring;  //Representation of major.minor (.build)
+    ServerVersionString : ansistring;  //Complete version string, including name, platform
   end;
 
   TStatusVector = array [0..19] of ISC_STATUS;
@@ -63,7 +63,7 @@ type
     in_SQLDA             : PXSQLDA;
     ParamBinding         : array of integer;
     FieldBinding         : array of integer;
-    CursorName : String;
+    CursorName : AnsiString;
   end;
 
   TIBTrans = Class(TSQLHandle)
@@ -194,7 +194,7 @@ procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS
 var
   i,ErrorCode : longint;
   Msg, SQLState : string;
-  Buf : array [0..1023] of char;
+  Buf : array [0..1023] of AnsiChar;
   aStatusVector: TStatusVector;
   Exc : EIBDatabaseError;
 
@@ -305,7 +305,7 @@ begin
       Dec(P);
     Result:=P>0;
     if Result then
-      TPB:=Char(P);
+      TPB:=AnsiChar(P);
     end;
 end;
 
@@ -356,14 +356,14 @@ Begin
             Begin
             If prVal='' Then
               DatabaseErrorFmt('Table name must be specified for "%s"',[S],Self);
-            LTPB:=LTPB+Char(Length(prVal))+prVal;
+            LTPB:=LTPB+AnsiChar(Length(prVal))+prVal;
             End;
           isc_tpb_lock_timeout:
             Begin
             //In case of using lock timeout we need add timeout
             If prVal='' Then
               DatabaseErrorFmt('Timeout must be specified for "%s"',[S],Self);
-            LTPB:=LTPB+Char(SizeOf(ISC_LONG));
+            LTPB:=LTPB+AnsiChar(SizeOf(ISC_LONG));
             SetLength(LTPB,Length(LTPB)+SizeOf(ISC_LONG));
             pInt:=@LTPB[Length(LTPB)-SizeOf(ISC_LONG)+1];
             pInt^:=StrToInt(prVal);
@@ -379,7 +379,7 @@ Begin
   // Construct block.
   With IBTrans do
     begin
-    TPB:=Char(Ord(Version)-Ord('0'))+LTPB;
+    TPB:=AnsiChar(Ord(Version)-Ord('0'))+LTPB;
     TransactionHandle:=Nil;
     If isc_start_transaction(@Status[0],@TransactionHandle,1,[@DBHandle,Length(TPB),@TPB[1]])<>0 Then
       CheckError('StartTransaction',Status)
@@ -547,7 +547,7 @@ begin
     ReqBuf[2] := isc_info_db_sql_dialect;
     ReqBuf[3] := isc_info_end;
     if isc_database_info(@FStatus[0], @FDatabaseHandle, Length(ReqBuf),
-      pchar(@ReqBuf[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
+      PAnsiChar(@ReqBuf[0]), SizeOf(ResBuf), PAnsiChar(@ResBuf[0])) <> 0 then
         CheckError('CacheServerInfo', FStatus);
     x := 0;
     while x < ResBufHigh+1 do
@@ -555,23 +555,23 @@ begin
         isc_info_db_sql_dialect :
           begin
           Inc(x);
-          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Len := isc_vax_integer(PAnsiChar(@ResBuf[x]), 2);
           Inc(x, 2);
-          FDatabaseInfo.Dialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          FDatabaseInfo.Dialect := isc_vax_integer(PAnsiChar(@ResBuf[x]), Len);
           Inc(x, Len);
           end;
         isc_info_ods_version :
           begin
           Inc(x);
-          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Len := isc_vax_integer(PAnsiChar(@ResBuf[x]), 2);
           Inc(x, 2);
-          FDatabaseInfo.ODSMajorVersion := isc_vax_integer(pchar(@ResBuf[x]), Len);
+          FDatabaseInfo.ODSMajorVersion := isc_vax_integer(PAnsiChar(@ResBuf[x]), Len);
           Inc(x, Len);
           end;
         isc_info_version :
           begin
           Inc(x);
-          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
+          Len := isc_vax_integer(PAnsiChar(@ResBuf[x]), 2);
           Inc(x, 2);
           SetString(FDatabaseInfo.ServerVersionString, PAnsiChar(@ResBuf[x + 2]), Len-2);
           FDatabaseInfo.ServerVersion := ParseServerVersion(FDatabaseInfo.ServerVersionString);
@@ -1003,7 +1003,6 @@ procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;
 var
   TransactionHandle : pointer;
   out_SQLDA : PXSQLDA;
-  S: String;
 
 begin
   TransactionHandle := aTransaction.Handle;
@@ -1025,7 +1024,7 @@ begin
         Inc(FCursorCount);
         CursorName:='sqldbcursor'+IntToStr(FCursorCount);
         end;
-      if isc_dsql_set_cursor_name(@Status[0], @StatementHandle, PChar(CursorName) , 0) <> 0 then
+      if isc_dsql_set_cursor_name(@Status[0], @StatementHandle, PAnsiChar(CursorName) , 0) <> 0 then
         CheckError('Open Cursor', Status);
     end
     else
@@ -1068,7 +1067,7 @@ begin
       TranslateFldType(PSQLVar^.SQLType, PSQLVar^.sqlsubtype, PSQLVar^.SQLLen, PSQLVar^.SQLScale,
         TransType, TransLen, TransPrec);
 
-      // [var]char or blob column character set NONE or OCTETS overrides connection charset
+      // [var]AnsiChar or blob column character set NONE or OCTETS overrides connection charset
       if (((TransType in [ftString, ftFixedChar]) and (PSQLVar^.sqlsubtype and $FF in [CS_NONE,CS_BINARY])) and not UseConnectionCharSetIfNone)
          or
          ((TransType = ftMemo) and (PSQLVar^.relname_length>0) and (PSQLVar^.sqlname_length>0) and (GetBlobCharset(@PSQLVar^.relname,@PSQLVar^.sqlname) in [CS_NONE,CS_BINARY])) then
@@ -1183,7 +1182,7 @@ var
   SQLVarNr : integer;
   si       : smallint;
   li       : LargeInt;
-  CurrBuff : pchar;
+  CurrBuff : PAnsiChar;
   w        : word;
 
 begin
@@ -1282,7 +1281,7 @@ function TIBConnection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buff
 var
   VSQLVar    : PXSQLVAR;
   VarcharLen : word;
-  CurrBuff     : pchar;
+  CurrBuff     : PAnsiChar;
   c            : currency;
   AFmtBcd      : tBCD;
 
@@ -1375,7 +1374,7 @@ begin
         ftString, ftFixedChar  :
           begin
             Move(CurrBuff^, Buffer^, VarCharLen);
-            PChar(Buffer + VarCharLen)^ := #0;
+            PAnsiChar(Buffer + VarCharLen)^ := #0;
           end;
         ftFloat   :
           GetFloat(CurrBuff, Buffer, VSQLVar^.SQLLen);

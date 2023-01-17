@@ -30,12 +30,12 @@ Type
     FHeaderRow: Boolean;
     FIgnoreOuterWhiteSpace: Boolean;
     FRowDelimiter: String;
-    FQuoteChar: Char;
+    FQuoteChar: AnsiChar;
   Public
     Constructor Create(DoInitSettings : Boolean); override;
     Procedure Assign(Source : TPersistent); override;
     // Kept for compatibility with older versions; please replace with QuoteChar
-    Property StringQuoteChar : Char Read FQuoteChar Write FQuoteChar; deprecated 'Please replace with QuoteChar';
+    Property StringQuoteChar : AnsiChar Read FQuoteChar Write FQuoteChar; deprecated 'Please replace with QuoteChar';
   Published
     // Properties
     // Delimiter between fields/columns. Traditionally , for CSV.
@@ -47,7 +47,7 @@ Type
     // Whether or not the file should have a header row with field names
     Property HeaderRow : Boolean Read FHeaderRow Write FHeaderRow default true;
     // If fields need to be surrounded by quotes, use this character (e.g. ")
-    Property QuoteChar : Char Read FQuoteChar Write FQuoteChar;
+    Property QuoteChar : AnsiChar Read FQuoteChar Write FQuoteChar;
   end;
 
   { TCustomCSVExporter }

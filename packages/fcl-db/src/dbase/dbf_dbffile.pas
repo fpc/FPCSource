@@ -271,11 +271,11 @@ const
 // thanks to Bruno Depero from Italy
 // and Andreas W\F6llenstein from Denmark
 //====================================================================
-function DbfStrToFloat(const Src: PChar; const Size: Integer): Extended;
+function DbfStrToFloat(const Src: PAnsiChar; const Size: Integer): Extended;
 var
-  iPos: PChar;
+  iPos: PAnsiChar;
   eValue: extended;
-  endChar: Char;
+  endChar: AnsiChar;
 begin
   // temp null-term string
   endChar := (Src + Size)^;
@@ -298,15 +298,15 @@ begin
   // restore dec sep
   if iPos <> nil then
     iPos^ := sDBF_DEC_SEP;
-  // restore Char of null-term
+  // restore AnsiChar of null-term
   (Src + Size)^ := endChar;
 end;
 
-procedure FloatToDbfStr(const Val: Extended; const Size, Precision: Integer; const Dest: PChar);
+procedure FloatToDbfStr(const Val: Extended; const Size, Precision: Integer; const Dest: PAnsiChar);
 var
-  Buffer: array [0..24] of Char;
+  Buffer: array [0..24] of AnsiChar;
   resLen: Integer;
-  iPos: PChar;
+  iPos: PAnsiChar;
 begin
   // convert to temporary buffer
   resLen := FloatToText(@Buffer[0], Val, {$ifndef FPC_VERSION}fvExtended,{$endif} ffFixed, Size, Precision);
@@ -330,19 +330,19 @@ end;
 
 function GetIntFromStrLength(Src: Pointer; Size: Integer; Default: Integer): Integer;
 var
-  endChar: Char;
+  endChar: AnsiChar;
   Code: Integer;
 begin
-  // save Char at pos term. null
-  endChar := (PChar(Src) + Size)^;
-  (PChar(Src) + Size)^ := #0;
+  // save AnsiChar at pos term. null
+  endChar := (PAnsiChar(Src) + Size)^;
+  (PAnsiChar(Src) + Size)^ := #0;
   // convert
-  Val(PChar(Src), Result, Code);
+  Val(PAnsiChar(Src), Result, Code);
   // check success
   if Code <> 0 then
     Result := Default;
-  // restore prev. ending Char
-  (PChar(Src) + Size)^ := endChar;
+  // restore prev. ending AnsiChar
+  (PAnsiChar(Src) + Size)^ := endChar;
 end;
 
 //====================================================================
@@ -438,14 +438,14 @@ var
 
   procedure GetCodePage;
   var
-    LangStr: PChar;
+    LangStr: PAnsiChar;
   begin
     // determine codepage
     case FDbfVersion of
       xBaseVII:
       begin
         // cache language str
-        LangStr := @PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
+        LangStr := @PEndFixedHdrVII(PAnsiChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName;
         // VdBase 7 Language strings
         //  'DBWIN...' -> Charset 1252 (ansi)
         //  'DB999...' -> Code page 999, 9 any digit
@@ -496,7 +496,7 @@ var
     FBackLink:='';
     if FDBFVersion=xVisualFoxPro then //only format that supports it
     begin
-      FBackLink:= StrPas(@PEndHdrVFP(PChar(Header) + FBackLinkOffset)^.Backlink);
+      FBackLink:= StrPas(@PEndHdrVFP(PAnsiChar(Header) + FBackLinkOffset)^.Backlink);
     end;
   end;
 
@@ -722,10 +722,10 @@ begin
       RecordSize := SizeOf(rFieldDescVII);
       FillChar(Header^, HeaderSize, #0);
       PDbfHdr(Header)^.VerDBF := $04;
-      // write language string. FPC needs an explicit cast to pchar to avoid calling widestring version of StrPLCopy
+      // write language string. FPC needs an explicit cast to PAnsiChar to avoid calling widestring version of StrPLCopy
       StrPLCopy(
-        PChar(@PEndFixedHdrVII(PChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
-        PChar(ConstructLangName(FFileCodePage, lLocaleID, false)),
+        PAnsiChar(@PEndFixedHdrVII(PAnsiChar(Header)+SizeOf(rDbfHdr))^.LanguageDriverName[32]),
+        PAnsiChar(ConstructLangName(FFileCodePage, lLocaleID, false)),
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
@@ -1137,8 +1137,8 @@ var
   lSize,lPrec,I, lColumnCount: Integer;
   lAutoInc: Cardinal;
   lAutoIncStep: Byte;
-  dataPtr: PChar;
-  lNativeFieldType: Char;
+  dataPtr: PAnsiChar;
+  lNativeFieldType: AnsiChar;
   lFieldName: string;
   lCanHoldNull: boolean; //Can the field store nulls, i.e. is it nullable?
   lIsVFPSystemField: boolean; //Is this a Visual FoxPro system/hidden field?
@@ -1194,7 +1194,7 @@ begin
       if FDbfVersion = xBaseVII then
       begin
         ReadRecord(I, @lFieldDescVII);
-        lFieldName := AnsiUpperCase(PChar(@lFieldDescVII.FieldName[0]));
+        lFieldName := AnsiUpperCase(PAnsiChar(@lFieldDescVII.FieldName[0]));
         lSize := lFieldDescVII.FieldSize;
         lPrec := lFieldDescVII.FieldPrecision;
         lNativeFieldType := lFieldDescVII.FieldType;
@@ -1204,7 +1204,7 @@ begin
       end else begin
         // DBase III..V, FoxPro, Visual FoxPro
         ReadRecord(I, @lFieldDescIII);
-        lFieldName := AnsiUpperCase(PChar(@lFieldDescIII.FieldName[0]));
+        lFieldName := AnsiUpperCase(PAnsiChar(@lFieldDescIII.FieldName[0]));
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
@@ -1375,7 +1375,7 @@ end;
 function TDbfFile.GetLanguageStr: string;
 begin
   if FDbfVersion = xBaseVII then
-    Result := PEndFixedHdrVII(PChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName
+    Result := PEndFixedHdrVII(PAnsiChar(Header) + SizeOf(rDbfHdr))^.LanguageDriverName
   else
     Result := '';  // Only supported in DbaseVII
 end;
@@ -1394,7 +1394,7 @@ begin
         // go to _NULLFLAGS byte that has this field's null flag
         // Find out the byte where the null bit for the field is stored by doing
         // NullPosition shr3 (= NullPosition div 8)...
-        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
+        NullFlagByte := PAnsiChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
         // ... get the correct bit in the byte by the equivalent of getting the bit number in that byte:
         // NullPosition and $7 (=mod 8)... and going to the bit value in the byte (by shl)
         // The result is true if the field is null.
@@ -1407,7 +1407,7 @@ begin
         result:=false //field *never* has a varlength byte
       else
       begin
-        NullFlagByte := PChar(Src) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3);
+        NullFlagByte := PAnsiChar(Src) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3);
         Result := (PByte(NullFlagByte)^ and (1 shl (AFieldDef.VarLengthPosition and $7))) <> 0
       end;
     end;
@@ -1421,14 +1421,14 @@ end;
 procedure TDbfFile.FastPackTable;
 var
   iDel,iNormal: Integer;
-  pDel,pNormal: PChar;
+  pDel,pNormal: PAnsiChar;
 
   function FindFirstDel: Boolean;
   begin
     while iDel<=iNormal do
     begin
       ReadRecord(iDel, pDel);
-      if (PChar(pDel)^ <> ' ') then
+      if (PAnsiChar(pDel)^ <> ' ') then
       begin
         Result := true;
         exit;
@@ -1443,7 +1443,7 @@ var
     while iNormal>=iDel do
     begin
       ReadRecord(iNormal, pNormal);
-      if (PChar(pNormal)^= ' ') then
+      if (PAnsiChar(pNormal)^= ' ') then
       begin
         Result := true;
         exit;
@@ -1469,7 +1469,7 @@ begin
       begin
         // but is not anymore
         WriteRecord(iDel, pNormal);
-        PChar(pNormal)^ := '*';
+        PAnsiChar(pNormal)^ := '*';
         WriteRecord(iNormal, pNormal);
       end else begin
         // Cannot find a record after iDel so iDel must be deleted
@@ -1838,18 +1838,18 @@ var
 {$ifdef SUPPORT_INT64}
   function GetInt64FromStrLength(Src: Pointer; Size: Integer; Default: Int64): Int64;
   var
-    endChar: Char;
+    endChar: AnsiChar;
     Code: Integer;
   begin
-    // save Char at pos term. null
-    endChar := (PChar(Src) + Size)^;
-    (PChar(Src) + Size)^ := #0;
+    // save AnsiChar at pos term. null
+    endChar := (PAnsiChar(Src) + Size)^;
+    (PAnsiChar(Src) + Size)^ := #0;
     // convert
-    Val(PChar(Src), Result, Code);
+    Val(PAnsiChar(Src), Result, Code);
     // check success
     if Code <> 0 then Result := Default;
-    // restore prev. ending Char
-    (PChar(Src) + Size)^ := endChar;
+    // restore prev. ending AnsiChar
+    (PAnsiChar(Src) + Size)^ := endChar;
   end;
 {$endif}
 
@@ -1909,7 +1909,7 @@ begin
   FieldOffset := AFieldDef.Offset;
   FieldSize := AFieldDef.Size;
   SrcRecord := Src;
-  Src := PChar(Src) + FieldOffset;
+  Src := PAnsiChar(Src) + FieldOffset;
   asciiContents := false;
   Result := true;
   // field types that are binary and of which the fieldsize should not be truncated
@@ -1947,7 +1947,7 @@ begin
       end;
     '@':
       begin
-        Result := (Unaligned(PInteger(Src)^) <> 0) and (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) and (Unaligned(PInteger(PAnsiChar(Src)+4)^) <> 0);
         if Result and (Dst <> nil) then
         begin
           SwapInt64BE(Src, Dst);
@@ -1964,12 +1964,12 @@ begin
 {$ifdef SUPPORT_INT64}        
         Result := Unaligned(PInt64(Src)^) <> 0;
 {$else}        
-        Result := (Unaligned(PInteger(Src)^) <> 0) or (Unaligned(PInteger(PChar(Src)+4)^) <> 0);
+        Result := (Unaligned(PInteger(Src)^) <> 0) or (Unaligned(PInteger(PAnsiChar(Src)+4)^) <> 0);
 {$endif}        
         if Result and (Dst <> nil) then
         begin
           timeStamp.Date := SwapIntLE(Unaligned(PInteger(Src)^)) - JulianDateDelta;
-          timeStamp.Time := SwapIntLE(Unaligned(PInteger(PChar(Src)+4)^));
+          timeStamp.Time := SwapIntLE(Unaligned(PInteger(PAnsiChar(Src)+4)^));
           date := TimeStampToDateTime(timeStamp);
           SaveDateToDst;
         end;
@@ -2053,16 +2053,16 @@ begin
   end;
   if asciiContents then
   begin
-    //    SetString(s, PChar(Src) + FieldOffset, FieldSize );
+    //    SetString(s, PAnsiChar(Src) + FieldOffset, FieldSize );
     //    s := {TrimStr(s)} TrimRight(s);
     // truncate spaces at end by shortening fieldsize
-    while (FieldSize > 0) and ((PChar(Src) + FieldSize - 1)^ = ' ') do
+    while (FieldSize > 0) and ((PAnsiChar(Src) + FieldSize - 1)^ = ' ') do
       dec(FieldSize);
     // if not string field, truncate spaces at beginning too
     if DataType <> ftString then
-      while (FieldSize > 0) and (PChar(Src)^ = ' ') do
+      while (FieldSize > 0) and (PAnsiChar(Src)^ = ' ') do
       begin
-        inc(PChar(Src));
+        inc(PAnsiChar(Src));
         dec(FieldSize);
       end;
     // return if field is empty
@@ -2074,7 +2074,7 @@ begin
           // in DBase- FileDescription lowercase t is allowed too
           // with asking for Result= true s must be longer then 0
           // else an AV occurs, maybe field is NULL
-          if (PChar(Src)^ = 'T') or (PChar(Src)^ = 't') then
+          if (PAnsiChar(Src)^ = 'T') or (PAnsiChar(Src)^ = 't') then
             PWord(Dst)^ := 1
           else
             PWord(Dst)^ := 0;
@@ -2092,14 +2092,14 @@ begin
       ftDate, ftDateTime:
         begin
           // get year, month, day
-          ldy := GetIntFromStrLength(PChar(Src) + 0, 4, 1);
-          ldm := GetIntFromStrLength(PChar(Src) + 4, 2, 1);
-          ldd := GetIntFromStrLength(PChar(Src) + 6, 2, 1);
+          ldy := GetIntFromStrLength(PAnsiChar(Src) + 0, 4, 1);
+          ldm := GetIntFromStrLength(PAnsiChar(Src) + 4, 2, 1);
+          ldd := GetIntFromStrLength(PAnsiChar(Src) + 6, 2, 1);
           //if (ly<1900) or (ly>2100) then ly := 1900;
           //Year from 0001 to 9999 is possible
           //everyting else is an error, an empty string too
           //Do DateCorrection with Delphis possibillities for one or two digits
-          if (ldy < 100) and (PChar(Src)[0] = #32) and (PChar(Src)[1] = #32) then
+          if (ldy < 100) and (PAnsiChar(Src)[0] = #32) and (PAnsiChar(Src)[1] = #32) then
             CorrectYear(ldy);
           try
             date := EncodeDate(ldy, ldm, ldd);
@@ -2111,9 +2111,9 @@ begin
           if (AFieldDef.FieldType = ftDateTime) and (DataType = ftDateTime) then
           begin
             // get hour, minute, second
-            lth := GetIntFromStrLength(PChar(Src) + 8,  2, 1);
-            ltm := GetIntFromStrLength(PChar(Src) + 10, 2, 1);
-            lts := GetIntFromStrLength(PChar(Src) + 12, 2, 1);
+            lth := GetIntFromStrLength(PAnsiChar(Src) + 8,  2, 1);
+            ltm := GetIntFromStrLength(PAnsiChar(Src) + 10, 2, 1);
+            lts := GetIntFromStrLength(PAnsiChar(Src) + 12, 2, 1);
             // encode
             try
               date := date + EncodeTime(lth, ltm, lts, 0);
@@ -2130,7 +2130,7 @@ begin
       case DataType of
       ftString:
         if Dst <> nil then
-          PChar(Dst)[0] := #0;
+          PAnsiChar(Dst)[0] := #0;
       end;
     end;
   end;
@@ -2149,7 +2149,7 @@ begin
     begin
       // Find out the byte where the length bit for the field is stored by doing
       // NullPosition shr3 (= NullPosition div 8)...
-      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
+      NullDst := PByte(PAnsiChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
       // ... get the correct bit in the byte by the equivalent of
       // getting the bit number in that byte:
       // NullPosition and $7 (=mod 8)...
@@ -2158,7 +2158,7 @@ begin
     end;
   nfVarlengthFlag:
     begin
-      NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3));
+      NullDst := PByte(PAnsiChar(Buffer) + FNullField.Offset + (AFieldDef.VarLengthPosition shr 3));
       Mask := 1 shl (AFieldDef.VarLengthPosition and $7);
     end;
   end;
@@ -2176,7 +2176,7 @@ end;
 procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; 
   Src, Dst: Pointer; NativeFormat: boolean);
 const
-  IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
+  IsBlobFieldToPadChar: array[Boolean] of AnsiChar = (#32, '0');
   SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unfClear, unfSet);
 var
   DstRecord: Pointer;
@@ -2217,7 +2217,7 @@ begin
   FieldPrec := TempFieldDef.Precision;
 
   DstRecord:=Dst; //beginning of record
-  Dst := PChar(Dst) + TempFieldDef.Offset; //beginning of field
+  Dst := PAnsiChar(Dst) + TempFieldDef.Offset; //beginning of field
 
   // if src = nil then write empty field
   // symmetry with above loading code
@@ -2268,7 +2268,7 @@ begin
           Unaligned(PInt64(Dst)^) := 0;
 {$else}          
           Unaligned(PInteger(Dst)^) := 0;
-          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
+          Unaligned(PInteger(PAnsiChar(Dst)+4)^) := 0;
 {$endif}
         end else begin
           LoadDateFromSrc;
@@ -2286,13 +2286,13 @@ begin
           Unaligned(PInt64(Dst)^) := 0;
 {$else}          
           Unaligned(PInteger(Dst)^) := 0;
-          Unaligned(PInteger(PChar(Dst)+4)^) := 0;
+          Unaligned(PInteger(PAnsiChar(Dst)+4)^) := 0;
 {$endif}          
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
           Unaligned(PInteger(Dst)^) := SwapIntLE(timeStamp.Date + JulianDateDelta);
-          Unaligned(PInteger(PChar(Dst)+4)^) := SwapIntLE(timeStamp.Time);
+          Unaligned(PInteger(PAnsiChar(Dst)+4)^) := SwapIntLE(timeStamp.Time);
         end;
       end;
     'Y':
@@ -2348,7 +2348,7 @@ begin
         if Len < FieldSize then
         begin
           // Clear flag and store actual size byte in last data byte
-          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          PByte(PAnsiChar(Dst)+TempFieldDef.Size-1)^:=Len;
           UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
         end
         else
@@ -2359,9 +2359,9 @@ begin
         Move((Src+sizeof(word))^, Dst^, Len);
         // fill remaining data area with spaces, keeping room for size indicator if needed
         if Len=FieldSize then
-          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+          FillChar((PAnsiChar(Dst)+Len)^, FieldSize - Len, ' ')
         else
-          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+          FillChar((PAnsiChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
       end;
     'V': //Visual FoxPro varchar
       begin
@@ -2372,7 +2372,7 @@ begin
         if Len < FieldSize then
         begin
           // Clear flag and store actual size byte in last data byte
-          PByte(PChar(Dst)+TempFieldDef.Size-1)^:=Len;
+          PByte(PAnsiChar(Dst)+TempFieldDef.Size-1)^:=Len;
           UpdateNullField(DstRecord, TempFieldDef, unfSet, nfVarlengthFlag);
         end
         else
@@ -2383,9 +2383,9 @@ begin
         Move(Src^, Dst^, Len);
         // fill remaining data area with spaces, keeping room for size indicator if needed
         if Len=FieldSize then
-          FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ')
+          FillChar((PAnsiChar(Dst)+Len)^, FieldSize - Len, ' ')
         else
-          FillChar((PChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
+          FillChar((PAnsiChar(Dst)+Len)^, FieldSize - Len - 1, ' ');
       end
   else
     asciiContents := true;
@@ -2400,20 +2400,20 @@ begin
         ftBoolean:
           begin
             if PWord(Src)^ <> 0 then
-              PChar(Dst)^ := 'T'
+              PAnsiChar(Dst)^ := 'T'
             else
-              PChar(Dst)^ := 'F';
+              PAnsiChar(Dst)^ := 'F';
           end;
         ftSmallInt:
-          GetStrFromInt_Width(PSmallInt(Src)^, FieldSize, PChar(Dst), #32);
+          GetStrFromInt_Width(PSmallInt(Src)^, FieldSize, PAnsiChar(Dst), #32);
 {$ifdef SUPPORT_INT64}
         ftLargeInt:
-          GetStrFromInt64_Width(PLargeInt(Src)^, FieldSize, PChar(Dst), #32);
+          GetStrFromInt64_Width(PLargeInt(Src)^, FieldSize, PAnsiChar(Dst), #32);
 {$endif}
         ftFloat, ftCurrency:
-          FloatToDbfStr(PDouble(Src)^, FieldSize, FieldPrec, PChar(Dst));
+          FloatToDbfStr(PDouble(Src)^, FieldSize, FieldPrec, PAnsiChar(Dst));
         ftInteger:
-          GetStrFromInt_Width(PInteger(Src)^, FieldSize, PChar(Dst),
+          GetStrFromInt_Width(PInteger(Src)^, FieldSize, PAnsiChar(Dst),
             IsBlobFieldToPadChar[TempFieldDef.IsBlob]);
         ftDate, ftDateTime:
           begin
@@ -2421,17 +2421,17 @@ begin
             // decode
             DecodeDate(date, year, month, day);
             // format is yyyymmdd
-            GetStrFromInt_Width(year,  4, PChar(Dst),   '0');
-            GetStrFromInt_Width(month, 2, PChar(Dst)+4, '0');
-            GetStrFromInt_Width(day,   2, PChar(Dst)+6, '0');
+            GetStrFromInt_Width(year,  4, PAnsiChar(Dst),   '0');
+            GetStrFromInt_Width(month, 2, PAnsiChar(Dst)+4, '0');
+            GetStrFromInt_Width(day,   2, PAnsiChar(Dst)+6, '0');
             // do time too if datetime
             if DataType = ftDateTime then
             begin
               DecodeTime(date, hour, minute, sec, msec);
               // format is hhmmss
-              GetStrFromInt_Width(hour,   2, PChar(Dst)+8,  '0');
-              GetStrFromInt_Width(minute, 2, PChar(Dst)+10, '0');
-              GetStrFromInt_Width(sec,    2, PChar(Dst)+12, '0');
+              GetStrFromInt_Width(hour,   2, PAnsiChar(Dst)+8,  '0');
+              GetStrFromInt_Width(minute, 2, PAnsiChar(Dst)+10, '0');
+              GetStrFromInt_Width(sec,    2, PAnsiChar(Dst)+12, '0');
             end;
           end;
         ftString:
@@ -2442,7 +2442,7 @@ begin
               Len := FieldSize;
             Move(Src^, Dst^, Len);
             // fill remaining space with spaces
-            FillChar((PChar(Dst)+Len)^, FieldSize - Len, ' ');
+            FillChar((PAnsiChar(Dst)+Len)^, FieldSize - Len, ' ');
           end;
       end;  // case datatype
     end;
@@ -2463,7 +2463,7 @@ begin
   
   // set nullflags field so that all fields are null (and var* fields marked as full)
   if FNullField <> nil then
-    FillChar(PChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
+    FillChar(PAnsiChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
 
   // check binary and default fields
   for I := 0 to FFieldDefs.Count-1 do
@@ -2473,7 +2473,7 @@ begin
     if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'W', 'Y'])
         or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4) {Visual FoxPro?})
         or ((TempFieldDef.NativeFieldType = 'B') and (FDbfVersion in [xFoxPro, xVisualFoxPro])) then
-      FillChar(PChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
+      FillChar(PAnsiChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
     // copy default value?
     if TempFieldDef.HasDefault then
     begin
@@ -2490,7 +2490,7 @@ begin
             // Set flag and store actual size byte in last data byte
             UpdateNullField(FDefaultBuffer, TempFieldDef, unfSet, nfVarlengthFlag);
             //todo: verify pointer use
-            PByte(PChar(FDefaultBuffer)+TempFieldDef.Size)^:=strlen(FDefaultBuffer);
+            PByte(PAnsiChar(FDefaultBuffer)+TempFieldDef.Size)^:=strlen(FDefaultBuffer);
           end;
     end;
   end;
@@ -3267,9 +3267,9 @@ end;
 var
   TempCodePageList: TList;
 
-// LPTSTR = PChar ok?
+// LPTSTR = PAnsiChar ok?
 
-function CodePagesProc(CodePageString: PChar): Cardinal; stdcall;
+function CodePagesProc(CodePageString: PAnsiChar): Cardinal; stdcall;
 begin
   // add codepage to list
   TempCodePageList.Add(Pointer(GetIntFromStrLength(CodePageString, StrLen(CodePageString), -1)));
@@ -3312,7 +3312,7 @@ begin
 {$else}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
-  Windows.GetComputerName(PChar(FUserName), 
+  Windows.GetComputerName(PAnsiChar(FUserName), 
     {$ifdef DELPHI_3}Windows.DWORD({$endif}
       FUserNameLen
     {$ifdef DELPHI_3}){$endif}

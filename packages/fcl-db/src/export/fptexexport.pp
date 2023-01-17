@@ -136,14 +136,14 @@ function TCustomTexExporter.EscapeLaTeX(const S: String): String;
 
 Var
   I,J,L : Integer;
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PChar(S);
+  P:=PAnsiChar(S);
   While I<=L do
     begin
     if (P^ in ['&','{','}','#','_','$','%']) then
@@ -224,7 +224,7 @@ end;
 procedure TCustomTeXExporter.DoDataHeader;
 
 Const
-  AlChars : Array[TAlignment] of char = 'lcr';
+  AlChars : Array[TAlignment] of AnsiChar = 'lcr';
 
 Var
   I,TW : Integer;

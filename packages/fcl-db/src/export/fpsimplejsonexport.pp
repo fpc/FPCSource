@@ -149,14 +149,14 @@ function TCustomSimpleJSONExporter.TextString(const S: String): String;
 
 Var
   I,J,L : Integer;
-  P : Pchar;
+  P : PAnsiChar;
 
 begin
   I:=1;
   J:=1;
   Result:='';
   L:=Length(S);
-  P:=PChar(S);
+  P:=PAnsiChar(S);
   While I<=L do
     begin
     if (P^ in ['"','/','\',#8,#9,#10,#12,#13]) then

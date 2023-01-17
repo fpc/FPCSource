@@ -101,8 +101,8 @@ begin
    FErrorMessage:='';
    Source.Connected:=true;
    Destination.Connected:=true;
-   pBackup := sqlite3_backup_init(Destination.Handle, pchar(DestinationDBName),
-      Source.Handle, pchar(SourceDBName));
+   pBackup := sqlite3_backup_init(Destination.Handle, PAnsiChar(DestinationDBName),
+      Source.Handle, PAnsiChar(SourceDBName));
    if LockUntilFinished then
      nPage:=-1
    else

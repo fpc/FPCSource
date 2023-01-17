@@ -613,7 +613,11 @@ end;
 
 function TField.GetAsUTF8String: UTF8String;
 begin
-  Result := GetAsString;
+{$IF SIZEOF(CHAR)=2}
+  Result := UTF8Encode(GetAsUnicodeString);
+{$ELSE}
+  Result := GetAsAnsiString;
+{$ENDIF}
 end;
 
 function TField.GetAsWideString: WideString;
@@ -829,7 +833,7 @@ begin
   HasParent:=True;
 end;
 
-function TField.IsValidChar(InputChar: Char): Boolean;
+function TField.IsValidChar(InputChar: AnsiChar): Boolean;
 
 begin
   // FValidChars must be set in Create.
@@ -1250,7 +1254,8 @@ end;
 
 function TStringField.GetAsString: String;
 begin
-{$IFDEF UNICODE}
+{$IF SIZEOF(Char)=2}
+  // Not GetAsWideString, because in TStringField AsWideString calls GetAsString
   Result := GetAsAnsiString;
 {$ELSE}
   if GetValue(RawByteString(Result)) then
@@ -1316,12 +1321,13 @@ function TStringField.GetValue(out AValue: RawByteString): Boolean;
 
 var Buf, TBuf : TStringFieldBuffer;
     DynBuf, TDynBuf : Array of AnsiChar;
-
+    DS : Integer;
 begin
-  if DataSize <= dsMaxStringSize then
+  DS:=DataSize;
+  if DS <= dsMaxStringSize then
     begin
     Result:=GetData(@Buf);
-    Buf[DataSize-1]:=#0;  //limit string to Size
+    Buf[DS-1]:=#0;  //limit string to Size
     If Result then
       begin
       if Transliterate then
@@ -1335,14 +1341,14 @@ begin
     end
   else
     begin
-    SetLength(DynBuf,DataSize);
+    SetLength(DynBuf,DS);
     Result:=GetData(@DynBuf[0]);
-    DynBuf[DataSize-1]:=#0;  //limit string to Size
+    DynBuf[DS-1]:=#0;  //limit string to Size
     If Result then
       begin
       if Transliterate then
         begin
-        SetLength(TDynBuf,DataSize);
+        SetLength(TDynBuf,DS);
         DataSet.Translate(@DynBuf[0],@TDynBuf[0],False);
         AValue:=PAnsiChar(TDynBuf);
         end
@@ -1394,7 +1400,10 @@ end;
 procedure TStringField.SetValue(AValue: RawByteString);
 var Buf      : TStringFieldBuffer;
     DynBuf   : array of AnsiChar;
+    DS : Integer;
+
 begin
+  DS:=DataSize;
   if AValue='' then
     begin
     Buf := #0;
@@ -1404,16 +1413,16 @@ begin
     begin
     if StringCodePage(AValue) <> FCodePage then
       SetCodePage(AValue, FCodePage, FCodePage<>CP_NONE);
-    if DataSize <= dsMaxStringSize then
+    if DS <= dsMaxStringSize then
       begin
       if FTransliterate then
         DataSet.Translate(@AValue[1],Buf,True)
       else
         // The data is copied into the buffer, since some TDataset descendents copy
         // the whole buffer-length in SetData. (See bug 8477)
-        StrPLCopy(PAnsiChar(Buf), AValue, DataSize-1);
+        StrPLCopy(PAnsiChar(@Buf), AValue, DS-1);
       // If length(AValue) > Size the buffer isn't terminated properly ?
-      Buf[DataSize-1] := #0;
+      Buf[DS-1] := #0;
       SetData(@Buf);
       end
     else
@@ -1422,7 +1431,7 @@ begin
       if FTransliterate then
         DataSet.Translate(@AValue[1],@DynBuf[0],True)
       else
-        StrPLCopy(PAnsiChar(DynBuf), AValue, DataSize-1);
+        StrPLCopy(PAnsiChar(DynBuf), AValue, DS-1);
       SetData(@DynBuf[0]);
       end;
     end;
@@ -1430,7 +1439,7 @@ end;
 
 procedure TStringField.SetAsString(const AValue: String);
 begin
-{$IFDEF UNICODE}
+{$IF SIZEOF(CHAR)=2}
   SetAsAnsiString(AValue);
 {$ELSE}
   SetValue(AValue);
@@ -1501,7 +1510,7 @@ end;
 
 function TWideStringField.GetAsString: string;
 begin
-{$IFDEF UNICODE}
+{$IF SIZEOF(CHAR)=2}
   if not GetValue(Result) then
     Result := '';
 {$ELSE}
@@ -3016,14 +3025,30 @@ begin
     SetLength(Result, 0);
 end;
 
+function TBinaryField.GetAsUnicodeString: Unicodestring;
+var
+  B: TBytes;
+  L : Integer;
+begin
+  if not GetValue(B) then
+    Result := ''
+  else
+    begin
+    L:=Length(B);
+    SetLength(Result,((L+1) div 2));
+    if L>0 then
+      Move(B[0],PWideChar(Result)^,L);
+    end;
+end;
 
-function TBinaryField.GetAsString: string;
+
+function TBinaryField.GetAsAnsiString: Ansistring;
 var B: TBytes;
 begin
   if not GetValue(B) then
     Result := ''
   else
-    SetString(Result, @B[0], length(B) div SizeOf(Char));
+    SetString(Result, @B[0], length(B) div SizeOf(AnsiChar));
 end;
 
 
@@ -3047,18 +3072,40 @@ end;
 
 
 function TBinaryField.GetValue(var AValue: TBytes): Boolean;
-var B: TBytes;
+var
+   B: TBytes;
+   Len : word;
 begin
   SetLength(B, DataSize);
   Result := assigned(B) and GetData(Pointer(B), True);
   if Result then
     if DataType = ftVarBytes then
       begin
-      SetLength(AValue, PWord(B)^);
-      Move(B[sizeof(Word)], AValue[0], Length(AValue));
+      Len:=PWord(B)^;
+      SetLength(AValue, Len);
+      if Len>0 then
+        Move(B[sizeof(Word)], AValue[0], Length(AValue));
       end
     else // ftBytes
       AValue := B;
+end;
+
+function TBinaryField.GetAsString: String;
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=GetAsUnicodeString;
+{$ELSE}
+  Result:=GetAsAnsiString;
+{$ENDIF}
+end;
+
+procedure TBinaryField.SetAsString(Const S: String);
+begin
+{$IF SIZEOF(CHAR)=2}
+  SetAsUnicodeString(S);
+{$ELSE}
+  SetAsAnsiString(S);
+{$ENDIF}
 end;
 
 
@@ -3078,10 +3125,10 @@ begin
       SetLength(DynBuf, DataSize);
       P := @DynBuf[0];
     end;
-
     if DataType = ftVarBytes then begin
       PWord(P)^ := Len;
-      Move(AValue[0], P[sizeof(Word)], Len);
+      if Len>0 then
+        Move(AValue[0], P[sizeof(Word)], Len);
     end
     else begin // ftBytes
       Move(AValue[0], P^, Len);
@@ -3092,17 +3139,31 @@ begin
 end;
 
 
-procedure TBinaryField.SetAsString(const AValue: string);
+procedure TBinaryField.SetAsAnsiString(const AValue: ansistring);
 var B : TBytes;
 begin
   If Length(AValue) = DataSize then
-    SetData(PChar(AValue))
+    SetData(PAnsiChar(AValue))
   else
   begin
-    SetLength(B, Length(AValue) * SizeOf(Char));
+    SetLength(B, Length(AValue) * SizeOf(AnsiChar));
     Move(AValue[1], B[0], Length(B));
     SetAsBytes(B);
   end;
+end;
+
+procedure TBinaryField.SetAsUnicodeString(const AValue: unicodestring);
+
+Var
+  B : TBytes;
+  Len: Integer;
+
+begin
+  B:=TEncoding.Unicode.GetBytes(aValue);
+  Len:=Length(B);
+  if Len>Size then
+    B:=Copy(B,0,Size);
+  SetAsBytes(B);
 end;
 
 
@@ -3588,7 +3649,7 @@ end;
 
 function TBlobField.GetAsString: string;
 begin
-{$IFDEF UNICODE}
+{$IF SIZEOF(CHAR)=2}
   Result := GetAsUnicodeString;
 {$ELSE}
   Result := GetAsAnsiString;
@@ -3650,7 +3711,7 @@ end;
 function TBlobField.GetAsVariant: Variant;
 begin
   if not GetIsNull then
-    Result := GetAsString
+    Result := GetAsAnsiString
   else
     Result := Null;
 end;
@@ -3710,7 +3771,7 @@ end;
 
 procedure TBlobField.SetAsString(const AValue: string);
 begin
-{$IFDEF UNICODE}
+{$IF SIZEOF(CHAR)=2}
   SetAsUnicodeString(AValue);
 {$ELSE}
   SetAsAnsiString(AValue);

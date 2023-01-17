@@ -287,7 +287,7 @@ end;
 
 procedure TFBAdmin.CheckError(const ProcName: string; Status: PISC_STATUS);
 var
-  buf : array [0..1023] of char;
+  buf : array [0..1023] of AnsiChar;
   Msg : string;
   Err : longint;
 
@@ -427,7 +427,7 @@ begin
   spb:=chr(isc_spb_version)+chr(isc_spb_current_version)+
     IBParamSerialize(isc_spb_user_name,FUser)+
     IBParamSerialize(isc_spb_password,FPassword);
-  result:=isc_service_attach(@FStatus[0], 0,PChar(Service), @FSvcHandle,
+  result:=isc_service_attach(@FStatus[0], 0,PAnsiChar(Service), @FSvcHandle,
       length(spb), @spb[1]) = 0;
   if not result then
     CheckError('Connect',FStatus)
@@ -524,7 +524,7 @@ begin
           @spb[1],BUFFERSIZE,@buffer[1])=0;
   if Not Result then
     CheckError('ServiceRunning',FSTatus);
-  if (Buffer[1]=Char(isc_info_svc_running)) then
+  if (Buffer[1]=AnsiChar(isc_info_svc_running)) then
     begin
     res:=isc_vax_integer(@Buffer[2],4);
     Result:=res=1;
@@ -850,7 +850,7 @@ begin
     param := param or isc_spb_sts_record_versions;
   if (IBStatTables in Options) then
     param := param or isc_spb_sts_table;
-  spb  := Char(isc_action_svc_db_stats)+IBSPBParamSerialize(isc_spb_dbname,Database)+
+  spb  := AnsiChar(isc_action_svc_db_stats)+IBSPBParamSerialize(isc_spb_dbname,Database)+
     IBSPBParamSerialize(isc_spb_options, param);
   if (IBStatTables in Options) and (TableNames <> '') then
     spb := spb+IBSPBParamSerialize(isc_spb_command_line, TableNames);

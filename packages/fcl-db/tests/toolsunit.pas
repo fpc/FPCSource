@@ -30,6 +30,7 @@ type
      protected
        FChangedDatasets : array[0..MaxDataSet] of boolean;
        FUsedDatasets : TFPList;
+       procedure ClearDatasets; virtual;
        procedure SetTestUniDirectional(const AValue: boolean); virtual;
        function GetTestUniDirectional: boolean; virtual;
        // These methods should be implemented by all descendents
@@ -280,11 +281,18 @@ begin
   CreateNDatasets;
 end;
 
-destructor TDBConnector.Destroy;
+Procedure TDBConnector.ClearDatasets;
+
 begin
-  if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
+end;
+
+destructor TDBConnector.Destroy;
+begin
+  if assigned(FUsedDatasets) then
+    FUsedDatasets.Destroy;
+  ClearDatasets;
   Inherited;
 end;
 

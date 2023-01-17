@@ -546,7 +546,7 @@ begin
     // foxpro or dbase?
     if IsFoxPro then
     begin
-      Result := 'FOX' + PChar(@SubType);
+      Result := 'FOX' + PAnsiChar(@SubType);
       if CodePage = 1252 then
         Result := Result + 'WIN'
       else
@@ -565,7 +565,7 @@ begin
         else
           Result := Result + IntToStr(CodePage);
         // add subtype
-        Result := Result + PChar(@SubType);
+        Result := Result + PAnsiChar(@SubType);
       end;
     end;
   end;
@@ -614,7 +614,7 @@ begin
       // it seems delphi does not properly understand pointers?
       // what a mess :-(
       if ((LangId_To_CodePage[LangID] = CodePage) or (CodePage = 0)) and
-        (PCardinal(PChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
+        (PCardinal(PAnsiChar(LanguageIDToLocaleTable)+(LangID*4))^ = DesiredLocale) then
         // Ignore (V)FP results
         if LangID <= dBase_Regions[Region+1] then
           result := Byte(LangID);
@@ -651,7 +651,7 @@ var
   CodePageStr: string;
 begin
   // determine foxpro/dbase
-  IsFoxPro := CompareMem(PChar('FOX'), PChar(LocaleStr), 3);
+  IsFoxPro := CompareMem(PAnsiChar('FOX'), PAnsiChar(LocaleStr), 3);
   // get codepage/locale subtype
   if IsFoxPro then
   begin
