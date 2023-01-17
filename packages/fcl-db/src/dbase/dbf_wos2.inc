@@ -683,28 +683,28 @@ begin
   Result := DefaultSystemCodePage;
 end;
 
-function OemToChar(lpszSrc: PChar; lpszDst: PChar): BOOL;
+function OemToChar(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
   Result := true;
 end;
 
-function CharToOem(lpszSrc: PChar; lpszDst: PChar): BOOL;
+function CharToOem(lpszSrc: PAnsiChar; lpszDst: PAnsiChar): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrCopy(lpszDst, lpszSrc);
   Result := true;
 end;
 
-function OemToCharBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function OemToCharBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
   Result := true;
 end;
 
-function CharToOemBuffA(lpszSrc: PChar; lpszDst: PChar; cchDstLength: DWORD): BOOL;
+function CharToOemBuffA(lpszSrc: PAnsiChar; lpszDst: PAnsiChar; cchDstLength: DWORD): BOOL;
 begin
   if lpszDst <> lpszSrc then
     StrLCopy(lpszDst, lpszSrc, cchDstLength);
@@ -755,7 +755,7 @@ begin
    end;
 end;
 
-function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
+function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PAnsiChar; cchCount1: Integer; lpString2: PAnsiChar; cchCount2: Integer): Integer;
 begin
 {$WARNING To be rewritten using the UnicodeStringManager and LIBUNI.DLL functionality!}
   Result := StrLComp(lpString1, lpString2, cchCount1) + 2;
@@ -766,7 +766,7 @@ end;
 function EnumSystemCodePages(lpCodePageEnumProc: TFNCodepageEnumProc; dwFlags: DWORD): BOOL;
 
 type
-  TCodePagesProc = function (CodePageString: PChar): Cardinal; stdcall;
+  TCodePagesProc = function (CodePageString: PAnsiChar): Cardinal; stdcall;
 
 var
   CP: word;
@@ -793,7 +793,7 @@ begin
   if not (UniAPI) then
    begin
     Str (DefaultSystemCodepage, S);
-    CPProc (PChar (S));
+    CPProc (PAnsiChar (S));
    end
   else
    begin
@@ -801,22 +801,22 @@ begin
 (* Skip higher numbers which are not supported under OS/2 anyway *)
 (* and testing them would take considerable amount of time.      *)
      if TestCPNum then
-      CPProc (PChar (S));
+      CPProc (PAnsiChar (S));
     CP := 4946;
     if TestCPNum then
 (* This one might be recognized... *)
-     CPProc (PChar (S));
+     CPProc (PAnsiChar (S));
     CP := 28709;
     if TestCPNum then
 (* ...and this one as well. *)
-     CPProc (PChar (S));
+     CPProc (PAnsiChar (S));
    end;
   Result := True;
 end;
 
 function EnumSystemLocales(lpLocaleEnumProc: TFNLocaleEnumProc; dwFlags: DWORD): BOOL;
 type
-  TLocaleProc = function (LocaleString: PChar): Integer; stdcall;
+  TLocaleProc = function (LocaleString: PAnsiChar): Integer; stdcall;
 var
   S: AnsiString;
   Loc: PtrInt;
@@ -827,10 +827,10 @@ begin
     for Loc := MinRealLocale to High (LocaleMap) do
      begin
       S := LocaleMap [Loc].LangCode + LocaleMap [Loc].SubLangCode;
-      if Sys_UniCreateLocaleObject (2, PChar (S), LocObj) = 0 then
+      if Sys_UniCreateLocaleObject (2, PAnsiChar (S), LocObj) = 0 then
        begin
         S := HexStr (Pointer (PtrUInt (LocaleMap [Loc].LCID)));
-        TLocaleProc (lpLocaleEnumProc) (PChar (S));
+        TLocaleProc (lpLocaleEnumProc) (PAnsiChar (S));
         Sys_UniFreeLocaleObject (LocObj);
        end;
      end;
@@ -838,7 +838,7 @@ begin
   else
    begin
     Str (GetUserDefaultLCID, S);
-    TLocaleProc (lpLocaleEnumProc) (PChar (S));
+    TLocaleProc (lpLocaleEnumProc) (PAnsiChar (S));
    end;
   Result := True;
 end;

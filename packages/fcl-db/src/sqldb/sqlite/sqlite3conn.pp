@@ -165,7 +165,7 @@ type
    fhandle : psqlite3;
    fconnection: TSQLite3Connection;
    fstatement: psqlite3_stmt;
-   ftail: pchar;
+   ftail: PAnsiChar;
    fstate: integer;
    fparambinding: array of Integer;
    procedure checkerror(const aerror: integer);
@@ -268,7 +268,7 @@ begin
     S := AParams.ParseSQL(S,false,false,false,psInterbase,fparambinding);
   if (detActualSQL in fconnection.LogEvents) then
     fconnection.Log(detActualSQL,S);
-  checkerror(sqlite3_prepare(fhandle,pchar(S),length(S),@fstatement,@ftail));
+  checkerror(sqlite3_prepare(fhandle,PAnsiChar(S),length(S),@fstatement,@ftail));
   FPrepared:=True;
 end;
 
@@ -446,7 +446,7 @@ Const
    (n:'CURRENCY'; t: ftCurrency),
    (n:'MONEY'; t: ftCurrency),
    (n:'VARCHAR'; t: ftString),
-   (n:'CHAR'; t: ftFixedChar),
+   (n:'AnsiChar'; t: ftFixedChar),
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftMemo),
@@ -599,7 +599,7 @@ begin
   SC.Execute;
 end;
 
-Function NextWord(Var S : ShortString; Sep : Char) : String;
+Function NextWord(Var S : ShortString; Sep : AnsiChar) : String;
 
 Var
   P : Integer;
@@ -880,7 +880,7 @@ const
   PRAGMAS:array[0..1] of string=('foreign_keys','journal_mode');
 var
   filename: ansistring;
-  pvfs: PChar;
+  pvfs: PAnsiChar;
   i,j: integer;
 begin
   Inherited;
@@ -894,7 +894,7 @@ begin
     pvfs := Nil;
   checkerror(sqlite3_open_v2(PAnsiChar(filename),@fhandle,GetSQLiteOpenFlags,pvfs));
   if (Length(Password)>0) and assigned(sqlite3_key) then
-    checkerror(sqlite3_key(fhandle,PChar(Password),StrLen(PChar(Password))));
+    checkerror(sqlite3_key(fhandle,PAnsiChar(Password),StrLen(PAnsiChar(Password))));
   for i:=Low(PRAGMAS) to High(PRAGMAS) do begin
     j:=Params.IndexOfName(PRAGMAS[i]);
     if j <> -1 then
@@ -941,12 +941,12 @@ end;
 
 procedure TSQLite3Connection.execsql(const asql: string);
 var
- err  : pchar;
+ err  : PAnsiChar;
  str1 : string;
  res  : integer;
 begin
  err:= nil;
- Res := sqlite3_exec(fhandle,pchar(asql),nil,nil,@err);
+ Res := sqlite3_exec(fhandle,PAnsiChar(asql),nil,nil,@err);
  if err <> nil then 
    begin
    str1:= strpas(err);
@@ -962,7 +962,7 @@ begin
 end;
 
 function execcallback(adata: pointer; ncols: longint; //adata = PStringArray
-                avalues: PPchar; anames: PPchar):longint; cdecl;
+                avalues: PPAnsiChar; anames: PPAnsiChar):longint; cdecl;
 var
   P : PStringArray;
   i : integer;
@@ -976,7 +976,7 @@ begin
 end;
 
 function execscallback(adata: pointer; ncols: longint; //adata = PArrayStringArray
-                avalues: PPchar; anames: PPchar):longint; cdecl;
+                avalues: PPAnsiChar; anames: PPAnsiChar):longint; cdecl;
 var
  I,N : integer;
  PP : PArrayStringArray;
@@ -996,7 +996,7 @@ end;
 function TSQLite3Connection.stringsquery(const asql: string): TArrayStringArray;
 begin
   SetLength(result,0);
-  checkerror(sqlite3_exec(fhandle,pchar(asql),@execscallback,@result,nil));
+  checkerror(sqlite3_exec(fhandle,PAnsiChar(asql),@execscallback,@result,nil));
 end;
 
 function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
@@ -1180,7 +1180,7 @@ begin
     Compare := @UTF8CompareCallback;
   end;
   CheckConnected;
-  CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
+  CheckError(sqlite3_create_collation(fhandle, PAnsiChar(CollationName), eTextRep, Arg, Compare));
 end;
 
 procedure TSQLite3Connection.LoadExtension(const LibraryFile: string);
@@ -1193,7 +1193,7 @@ begin
     LoadResult:=sqlite3_enable_load_extension(fhandle, 1); //Make sure we are allowed to load
     if LoadResult=SQLITE_OK then
       begin
-      LoadResult:=sqlite3_load_extension(fhandle, PChar(LibraryFile), nil, nil); //Actually load extension
+      LoadResult:=sqlite3_load_extension(fhandle, PAnsiChar(LibraryFile), nil, nil); //Actually load extension
       if LoadResult=SQLITE_ERROR then
         begin
         DatabaseError('LoadExtension: failed to load SQLite extension (SQLite returned an error while loading).',Self);

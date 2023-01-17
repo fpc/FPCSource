@@ -61,7 +61,7 @@ type
 {$ifdef SUPPORT_VARIANTS}
     function  VariantToBuffer(Key: Variant; ABuffer: TRecordBuffer): TExpressionType;
 {$endif}
-    function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
+    function  CheckUserKey(Key: PAnsiChar; StringBuf: PAnsiChar): PAnsiChar;
 
     property IndexFile: TIndexFile read FIndexFile;
   end;
@@ -183,7 +183,7 @@ end;
 
 {$endif}
 
-function TIndexCursor.CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
+function TIndexCursor.CheckUserKey(Key: PAnsiChar; StringBuf: PAnsiChar): PAnsiChar;
 var
   keyLen, userLen: Integer;
 begin

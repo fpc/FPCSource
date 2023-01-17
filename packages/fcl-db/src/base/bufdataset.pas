@@ -426,9 +426,10 @@ type
     const
       FpcBinaryIdent1 = 'BinBufDataset'; // Old version 1; support for transient period;
       FpcBinaryIdent2 = 'BinBufDataSet';
-      StringFieldTypes = [ftString,ftFixedChar,ftWideString,ftFixedWideChar];
+      AnsiStringFieldTypes = [ftString,ftFixedChar];
+      UnicodeStringFieldTypes = [ftWideString,ftFixedWideChar];
       BlobFieldTypes = [ftBlob,ftMemo,ftGraphic,ftWideMemo];
-      VarLenFieldTypes = StringFieldTypes + BlobFieldTypes + [ftBytes,ftVarBytes];
+      VarLenFieldTypes = AnsiStringFieldTypes + UnicodeStringFieldTypes + BlobFieldTypes + [ftBytes,ftVarBytes];
     var
       FNullBitmapSize: integer;
       FNullBitmap: TBytes;
@@ -779,13 +780,13 @@ function DBCompareText(subValue, aValue: pointer; size: integer; options: TLocat
 
 begin
   if [loCaseInsensitive,loPartialKey]=options then
-    Result := AnsiStrLIComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
+    Result := AnsiStrLIComp(PAnsiChar(subValue),PAnsiChar(aValue),length(PAnsiChar(subValue)))
   else if [loPartialKey] = options then
-    Result := AnsiStrLComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
+    Result := AnsiStrLComp(PAnsiChar(subValue),PAnsiChar(aValue),length(PAnsiChar(subValue)))
   else if [loCaseInsensitive] = options then
-    Result := AnsiCompareText(pchar(subValue),pchar(aValue))
+    Result := AnsiCompareText(PAnsiChar(subValue),PAnsiChar(aValue))
   else
-    Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
+    Result := AnsiCompareStr(PAnsiChar(subValue),PAnsiChar(aValue));
 end;
 
 function DBCompareWideText(subValue, aValue: pointer; size: integer; options: TLocateOptions): LargeInt;
@@ -1059,8 +1060,8 @@ end;
     for b := 0 to ALength-1 do
       begin
       s1 := s1 + ' ' + hexStr(pbyte(Data)[b],2);
-      if pchar(Data)[b] in ['a'..'z','A'..'Z','1'..'9',' '..'/',':'..'@'] then
-        s2 := s2 + pchar(Data)[b]
+      if PAnsiChar(Data)[b] in ['a'..'z','A'..'Z','1'..'9',' '..'/',':'..'@'] then
+        s2 := s2 + PAnsiChar(Data)[b]
       else
         s2 := s2 + '.';
       if length(s2)=16 then
@@ -4344,14 +4345,14 @@ end;
 constructor TFpcBinaryDatapacketHandler.Create(ADataSet: TCustomBufDataset; AStream: TStream);
 begin
   inherited;
-  FVersion := 20; // default version 2.0
+  FVersion := 30; // default version 3.0
 end;
 
 procedure TFpcBinaryDatapacketHandler.LoadFieldDefs(var AnAutoIncValue: integer);
 
 var FldCount : word;
     i        : integer;
-    s        : string;
+    s        : ansistring;
 
 begin
   // Identify version
@@ -4388,8 +4389,10 @@ end;
 
 procedure TFpcBinaryDatapacketHandler.StoreFieldDefs(AnAutoIncValue: integer);
 var i : integer;
+    s : AnsiString;
 begin
-  Stream.Write(FpcBinaryIdent2[1], length(FpcBinaryIdent2));
+  S:=FpcBinaryIdent2;
+  Stream.Write(S[1], length(S));
   Stream.WriteByte(FVersion);
 
   Stream.WriteWord(DataSet.FieldDefs.Count);
@@ -4450,7 +4453,7 @@ begin
     case FVersion of
       10:
         Stream.ReadBuffer(GetCurrentBuffer^, FRecordSize);  // Ugly because private members of ADataset are used...
-      20:
+      20, 30:
         begin
         // Restore field's Null bitmap
         Stream.ReadBuffer(FNullBitmap[0], FNullBitmapSize);
@@ -4458,11 +4461,19 @@ begin
         for i:=0 to FieldDefs.Count-1 do
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
+          // This is actually wrong, because if there is data in the stream, we must read it.
           if AField=nil then continue;
           if GetFieldIsNull(PByte(FNullBitmap), i) then
             AField.SetData(nil)
-          else if AField.DataType in StringFieldTypes then
-            AField.AsString := Stream.ReadAnsiString
+          else if AField.DataType in AnsiStringFieldTypes then
+            AField.AsAnsiString := Stream.ReadAnsiString
+          else if AField.DataType in UnicodeStringFieldTypes then
+            begin
+            if FVersion=20 then
+              AField.AsUnicodeString := Stream.ReadAnsiString
+            else
+              AField.AsUnicodeString := Stream.ReadUnicodeString
+            end
           else
             begin
             if AField.DataType in VarLenFieldTypes then
@@ -4474,6 +4485,8 @@ begin
               Stream.ReadBuffer(B[0], L);
             if AField.DataType in BlobFieldTypes then
               RestoreBlobField(AField, @B[0], L)
+            else if aField.DataType=ftVarBytes then
+              aField.AsBytes:=B // Treats data specially, so we set bytes
             else
               AField.SetData(@B[0], False);  // set it to the FilterBuffer
             end;
@@ -4500,7 +4513,7 @@ begin
     case FVersion of
       10:
         Stream.WriteBuffer(GetCurrentBuffer^, FRecordSize); // Old 1.0 version
-      20:
+      20,30:
         begin
         // store fields Null bitmap
         FillByte(FNullBitmap[0], FNullBitmapSize, 0);
@@ -4516,8 +4529,10 @@ begin
           begin
           AField := Fields.FieldByNumber(FieldDefs[i].FieldNo);
           if not assigned(AField) or AField.IsNull then continue;
-          if AField.DataType in StringFieldTypes then
-            Stream.WriteAnsiString(AField.AsString)
+          if AField.DataType in AnsiStringFieldTypes then
+            Stream.WriteAnsiString(AField.AsAnsiString)
+          else if AField.DataType in UnicodeStringFieldTypes then
+            Stream.WriteUnicodeString(AField.AsUnicodeString)
           else
             begin
             B := AField.AsBytes;
@@ -4538,7 +4553,7 @@ begin
 end;
 
 class function TFpcBinaryDatapacketHandler.RecognizeStream(AStream: TStream): boolean;
-var s : string;
+var s : ansistring;
 begin
   SetLength(s, 13);
   if (AStream.Read(s[1], 13) = 13) then
