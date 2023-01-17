@@ -1176,7 +1176,7 @@ end;
 
 function BIToString(BI: PBigInt): AnsiString;
 const
-  Digits: Array[0..15] of char = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+  Digits: Array[0..15] of AnsiChar = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
 var
   I,J,K: Integer;
   Num: TBIComponent;
