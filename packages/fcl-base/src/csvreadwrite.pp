@@ -52,17 +52,21 @@ Type
 
   TCSVHandler = class(TPersistent)
   private
+    function GetDelimiter: TCSVChar;
+    function GetLineEnding: String;
+    function GetQuoteChar: TCSVChar;
     procedure SetDelimiter(const AValue: TCSVChar);
+    procedure SetLineEnding(AValue: String);
     procedure SetQuoteChar(const AValue: TCSVChar);
     procedure UpdateCachedChars;
   protected
     // special chars
-    FDelimiter: TCSVChar;
-    FQuoteChar: TCSVChar;
-    FLineEnding: String;
+    FDelimiter: AnsiChar;
+    FQuoteChar: AnsiChar;
+    FLineEnding: AnsiString;
     // cached values to speed up special chars operations
     FSpecialChars: TSysCharSet;
-    FDoubleQuote: String;
+    FDoubleQuote: AnsiString;
     // parser settings
     FIgnoreOuterWhitespace: Boolean;
     // builder settings
@@ -74,13 +78,13 @@ Type
     procedure Assign(ASource: TPersistent); override;
     procedure AssignCSVProperties(ASource: TCSVHandler);
     // Delimiter that separates the field, e.g. comma, semicolon, tab
-    property Delimiter: TCSVChar read FDelimiter write SetDelimiter;
+    property Delimiter: TCSVChar read GetDelimiter write SetDelimiter;
     // Character used to quote "problematic" data
     // (e.g. with delimiters or spaces in them)
     // A common quotechar is "
-    property QuoteChar: TCSVChar read FQuoteChar write SetQuoteChar;
+    property QuoteChar: TCSVChar read GetQuoteChar write SetQuoteChar;
     // String at the end of the line of data (e.g. CRLF)
-    property LineEnding: String read FLineEnding write FLineEnding;
+    property LineEnding: String read GetLineEnding write SetLineEnding;
     // Ignore whitespace between delimiters and field data
     property IgnoreOuterWhitespace: Boolean read FIgnoreOuterWhitespace write FIgnoreOuterWhitespace;
     // Use quotes when outer whitespace is found
@@ -106,14 +110,15 @@ Type
     // parser state
     EndOfFile: Boolean;
     EndOfLine: Boolean;
-    FCurrentChar: TCSVChar;
+    FCurrentChar: AnsiChar;
     FCurrentRow: Integer;
     FCurrentCol: Integer;
     FMaxColCount: Integer;
     // output buffers
-    FCellBuffer: String;
-    FWhitespaceBuffer: String;
+    FCellBuffer: RawByteString;
+    FWhitespaceBuffer: RawByteString;
     procedure ClearOutput;
+    function GetCurrentCell: String;
     // basic parsing
     procedure SkipEndOfLine;
     procedure SkipDelimiter;
@@ -140,7 +145,7 @@ Type
     // Current column (0 based); -1 if invalid/before beginning of file
     property CurrentCol: Integer read FCurrentCol;
     // Data in current cell
-    property CurrentCellText: String read FCellBuffer;
+    property CurrentCellText: String read GetCurrentCell;
     // The maximum number of columns found in the stream:
     property MaxColCount: Integer read FMaxColCount;
     // Does the parser own the stream ? If true, a previous stream is freed when set or when parser is destroyed.
@@ -192,6 +197,28 @@ const
   SPACE = #32;
   WhitespaceChars = [HTAB, SPACE];
   LineEndingChars = [CR, LF];
+
+Procedure AppendStr(Var Dest : RawByteString; Src : RawByteString); inline;
+
+begin
+  Dest:=Dest+Src;
+end;
+
+procedure RemoveTrailingChars(VAR S: RawByteString; const CSet: TSysCharset);
+
+VAR I,J: LONGINT;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=I;
+   While (j>0) and (S[J] IN CSet) DO DEC(J);
+   IF J<>I Then
+    SetLength(S,J);
+  End;
+End;
+
 
 // The following implementation of ChangeLineEndings function originates from
 // Lazarus CodeTools library by Mattias Gaertner. It was explicitly allowed
@@ -261,6 +288,21 @@ end;
 
 { TCSVHandler }
 
+function TCSVHandler.GetDelimiter: TCSVChar;
+begin
+  Result:=FDelimiter;
+end;
+
+function TCSVHandler.GetLineEnding: String;
+begin
+  Result:=UTF8Decode(FLineEnding);
+end;
+
+function TCSVHandler.GetQuoteChar: TCSVChar;
+begin
+  Result:=FQuoteChar;
+end;
+
 procedure TCSVHandler.SetDelimiter(const AValue: TCSVChar);
 begin
   if FDelimiter <> AValue then
@@ -268,6 +310,11 @@ begin
     FDelimiter := AValue;
     UpdateCachedChars;
   end;
+end;
+
+procedure TCSVHandler.SetLineEnding(AValue: String);
+begin
+  FLineEnding:=UTF8ENcode(AValue)
 end;
 
 procedure TCSVHandler.SetQuoteChar(const AValue: TCSVChar);
@@ -327,6 +374,11 @@ begin
   FMaxColCount := 0;
 end;
 
+function TCSVParser.GetCurrentCell: String;
+begin
+  Result:=FCellBuffer
+end;
+
 procedure TCSVParser.SkipEndOfLine;
 begin
   // treat LF+CR as two linebreaks, not one
@@ -350,7 +402,7 @@ end;
 
 procedure TCSVParser.NextChar;
 begin
-  if FSourceStream.Read(FCurrentChar, CsvCharSize) < CsvCharSize then
+  if FSourceStream.Read(FCurrentChar, SizeOf(FCurrentChar)) < SizeOf(FCurrentChar) then
   begin
     FCurrentChar := #0;
     EndOfFile := True;
@@ -544,10 +596,13 @@ end;
 procedure TCSVBuilder.AppendStringToStream(const AString: String; AStream: TStream);
 var
   StrLen: Integer;
+  S : AnsiString;
+
 begin
-  StrLen := Length(AString);
+  S:=aString;
+  StrLen := Length(S);
   if StrLen > 0 then
-    AStream.WriteBuffer(AString[1], StrLen);
+    AStream.WriteBuffer(S[1], StrLen);
 end;
 
 function TCSVBuilder.QuoteCSVString(const AValue: String): String;
@@ -622,7 +677,7 @@ var
   CellValue: String;
 begin
   if FNeedLeadingDelimiter then
-    FOutputStream.WriteBuffer(FDelimiter, CsvCharSize);
+    FOutputStream.WriteBuffer(FDelimiter, SizeOf(FDelimiter));
 
   CellValue := ChangeLineEndings(AValue, FLineEnding);
   CellValue := QuoteCSVString(CellValue);
