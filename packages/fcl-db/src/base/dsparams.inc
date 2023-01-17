@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-procedure SkipQuotesString(var p : pchar; QuoteChar : char; EscapeSlash, EscapeRepeat : Boolean);
+procedure SkipQuotesString(var p : PChar; QuoteChar : Char; EscapeSlash, EscapeRepeat : Boolean);
 var notRepeatEscaped : boolean;
 begin
   Inc(p);
@@ -355,7 +355,7 @@ var
   NewQueryLength:integer;
   NewQuery:string;
   NewQueryIndex,BufIndex,CopyLen,i:integer;    // Parambinding will have length ParamCount in the end
-  ParamDelim : Set of char;
+  ParamDelim : Set of Char;
   b:integer;
   tmpParam:TParam;
 
@@ -489,7 +489,7 @@ begin
     for i:=0 to High(ParamPart) do
     begin
       CopyLen:=ParamPart[i].Start-BufIndex;
-      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen*SizeOf(Char));
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
         psInterbase : begin
@@ -515,7 +515,7 @@ begin
     end;
     CopyLen:=Length(SQL)+1-BufIndex;
     if CopyLen > 0 then
-      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen*SizeOf(Char));
   end
   else
     NewQuery:=SQL;
@@ -1149,15 +1149,15 @@ begin
     ftAdt,
     ftFixedChar:
       begin
-      S:=AsString;
-      StrMove(PChar(Buffer),PChar(S),Length(S)+1);
+      S:=AsAnsiString;
+      StrMove(PAnsiChar(Buffer),PAnsiChar(S),Length(S)+1);
       end;
     ftWideString,
     ftWideMemo: begin
       ws := GetAsWideString;
       l := Length(ws);
       if l > 0 then
-        Move(ws[1], Buffer, Succ(l)*2)
+        Move(ws[1], Buffer^, Succ(l)*2)
       else
         PWideChar(Buffer)^ := #0
     end;
@@ -1169,8 +1169,8 @@ begin
     ftOraBlob,
     ftOraClob  :
       begin
-      S:=GetAsString;
-      Move(PChar(S)^, Buffer^, Length(S));
+      S:=GetAsAnsiString;
+      Move(PAnsiChar(S)^, Buffer^, Length(S));
       end;
     ftBytes, ftVarBytes:
       begin
@@ -1313,7 +1313,7 @@ begin
     ftBlob,
     ftGraphic..ftTypedBinary,
     ftOraBlob,
-    ftOraClob  : SetBlobData(Buffer, StrLen(PChar(Buffer)));
+    ftOraClob  : SetBlobData(Buffer, StrLen(PAnsiChar(Buffer)));
     ftFmtBCD   : AsFMTBCD:=PBCD(Buffer)^;
     ftShortInt : AsShortInt:=PShortInt(Buffer)^;
     ftByte     : AsByte:=PByte(Buffer)^;

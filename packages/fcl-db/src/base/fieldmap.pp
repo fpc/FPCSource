@@ -46,7 +46,7 @@ type
     Procedure LoadObject(AObject : TObject); virtual;
     Function GetFromField(F : TField; ADefault : TBCD) : TBCD; overload;
     Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
-    Function GetFromField(F : TField; const ADefault : String) : String; overload;
+    Function GetFromField(F : TField; const ADefault : AnsiString) : AnsiString; overload;
     Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
     Function GetFromDateTimeField(F : TField; ADefault : TDateTime) : TDateTime; overload;
     Function GetFromField(F : TField; ADefault : Double) : Double; overload;
@@ -553,7 +553,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; const ADefault: String): String;
+function TFieldMap.GetFromField(F: TField; const ADefault: AnsiString): AnsiString;
 begin
   If Assigned(F) then
     Result:=F.AsString

@@ -491,14 +491,13 @@ begin
     L := '';
     for I := 1 to 200 do
       L := L + S;
-    Write('Length(L) = ', Length(L));
 
     // insert the long text into DB
     Q.SQL.Text := 'INSERT INTO [dbo].[NVARCHARMAX] ([Longtext], [Shorttext]) VALUES (:longtext, :shorttext)';
     Q.Params[0].AsString := L;
     Q.Params[1].AsString := S;
     Q.ExecSQL;
-    WriteLn('. OK');
+
 
     // check L in WHERE
     Q.SQL.Text := 'SELECT [Shorttext] FROM [dbo].[NVARCHARMAX] WHERE [Shorttext]=:shorttext';
@@ -514,11 +513,9 @@ begin
     // build a long text with exactly 2001 characters (1 character above the maximum for SQL_WVARCHAR)
     Q.SQL.Text := 'INSERT INTO [dbo].[NVARCHARMAX] ([Longtext], [Shorttext]) VALUES (:longtext, :shorttext)';
     L := L + '1';
-    Write('Length(L) = ', Length(L));
     Q.Params[0].AsString := L;
     Q.Params[1].AsString := S;
     Q.ExecSQL;
-    WriteLn('. OK');
 
     // check L in WHERE
     Q.SQL.Text := 'SELECT [Longtext] FROM [dbo].[NVARCHARMAX] WHERE [Longtext]=convert(nvarchar(max), :longtext)';
@@ -692,13 +689,13 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    AssertEquals('Test this blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsAnsiString);
     close;
     end;
 end;
 
 procedure TTestFieldTypes.TestChangeBlob;
-var s : string;
+var s : ansistring;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).CommitDDL;
@@ -710,20 +707,20 @@ begin
     sql.clear;
     sql.add('select * from FPDEV2');
     Open;
-    AssertEquals('Test this blob', Fields[1].AsString);
+    AssertEquals('Test this blob', Fields[1].AsAnsiString);
     Fields[1].ProviderFlags := [pfInUpdate]; // Blob is not in the where
     UpdateMode := upWhereAll;
 
     Edit;
     s := 'This blob has changed!';
-    Fields[1].AsString := s;
-    AssertEquals(s, Fields[1].AsString); // test before Post
+    Fields[1].AsAnsiString := s;
+    AssertEquals(s, Fields[1].AsAnsiString); // test before Post
     Cancel;
-    AssertEquals('After Cancel', 'Test this blob', Fields[1].AsString); // original value
+    AssertEquals('After Cancel', 'Test this blob', Fields[1].AsAnsiString); // original value
 
     Append; // Blob is null
-    Fields[1].AsString := s; // Null flag must be unset
-    AssertEquals(s, Fields[1].AsString);
+    Fields[1].AsAnsiString := s; // Null flag must be unset
+    AssertEquals(s, Fields[1].AsAnsiString);
     Fields[1].Clear;
     AssertTrue('Clear', Fields[1].IsNull);
     Cancel;
@@ -736,14 +733,14 @@ begin
       Post;
       Free;
       end;
-    AssertEquals('After Post', s, Fields[1].AsString);
+    AssertEquals('After Post', s, Fields[1].AsAnsiString);
 
     ApplyUpdates(0);
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
     Close;
 
     Open;
-    AssertEquals(s, Fields[1].AsString);
+    AssertEquals('Reading again',s, Fields[1].AsAnsiString);
     Close;
     end;
 end;
@@ -761,11 +758,11 @@ begin
     Open;
     AssertFalse(fields[0].IsNull);
     AssertEquals('(BLOB)',fields[0].DisplayText);
-    AssertEquals('Test this blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsAnsiString);
     Next;
     AssertTrue(fields[0].IsNull);
     AssertEquals('(blob)',fields[0].Text);
-    AssertEquals('',fields[0].AsString);
+    AssertEquals('',fields[0].AsAnsiString);
     close;
     end;
 end;
@@ -1674,7 +1671,7 @@ end;
 
 procedure TTestFieldTypes.TestFixedStringParamQuery;
 begin
-  TestXXParamQuery(ftFixedChar,'CHAR(10)',testValuesCount);
+  TestXXParamQuery(ftFixedChar,'AnsiChar(10)',testValuesCount);
 end;
 
 procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
@@ -1708,6 +1705,7 @@ begin
 
     for i := 0 to ParamValuesCount-1 do
       begin
+      // Writeln('i : ',I,' (',Length(TEncoding.Default.GetAnsiBytes(testBlobValues[i])),')');
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
         ftSmallInt: Params.ParamByName('field1').AsSmallInt := testSmallIntValues[i];
@@ -1726,7 +1724,7 @@ begin
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
-        ftBlob    : Params.ParamByName('field1').AsBlob := BytesOf(testBlobValues[i]);
+        ftBlob    : Params.ParamByName('field1').AsBlob := TEncoding.Default.GetAnsiBytes(testBlobValues[i]);
         ftLongWord: Params.ParamByName('field1').AsLongWord := testLongWordValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
@@ -1769,14 +1767,14 @@ begin
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd   : AssertEquals(ParamValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
-        ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
+        ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsAnsiString);
         ftLongWord : AssertEquals(testLongWordValues[i], FieldByName('FIELD1').AsLongWord);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);
       end;
-      AssertEquals('IsNull', False, FieldByName('FIELD1').IsNull);
+      AssertEquals(IntToStr(i)+' May not be Null', False, FieldByName('FIELD1').IsNull);
       Next;
       end;
     AssertTrue('Expected IsNull', FieldByName('FIELD1').IsNull);
@@ -1799,7 +1797,7 @@ begin
       begin
       case asWhat of
         0: Params.ParamByName('blobParam').AsMemo   := TestBlobValues[i];
-        1: Params.ParamByName('blobParam').AsBlob   := BytesOf(TestBlobValues[i]);
+        1: Params.ParamByName('blobParam').AsBlob   := TEncoding.Default.GetAnsiBytes(TestBlobValues[i]);
         2: Params.ParamByName('blobParam').AsString := TestBlobValues[i];
       end;
       ExecSQL;
@@ -1811,7 +1809,7 @@ begin
     Open;
     for i:=0 to testBlobValuesCount - 1 do
       begin
-      AssertEquals(TestBlobValues[i], Fields[0].AsString);
+      AssertEquals(Format('What: %d - Val: %d',[asWhat,I]), TestBlobValues[i], Fields[0].AsAnsiString);
       Next;
       end;
     AssertTrue(Fields[0].IsNull);
@@ -2493,15 +2491,15 @@ begin
   AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['was'],['is'],[]));
   AssertEquals('dit is een string is een string',StringsReplace('dit was een string was een string',['was'],['is'],[rfReplaceAll]));
 
-  AssertEquals('dit is een char is een char',StringsReplace('dit was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
-  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['string','was'],['char','is'],[]));
+  AssertEquals('dit is een AnsiChar is een AnsiChar',StringsReplace('dit was een string was een string',['was','string'],['is','AnsiChar'],[rfReplaceAll]));
+  AssertEquals('dit is een string was een string',StringsReplace('dit was een string was een string',['string','was'],['AnsiChar','is'],[]));
 
-  AssertEquals('dit is een char is een strin',StringsReplace('dit was een string was een strin',['string','was'],['char','is'],[rfReplaceAll]));
+  AssertEquals('dit is een AnsiChar is een strin',StringsReplace('dit was een string was een strin',['string','was'],['AnsiChar','is'],[rfReplaceAll]));
 
-  AssertEquals('dit Was een char is een char',StringsReplace('dit Was een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
-  AssertEquals('dit wAs een char is een char',StringsReplace('dit wAs een string was een string',['was','string'],['is','char'],[rfReplaceAll]));
-  AssertEquals('dit is een char is een char',StringsReplace('dit Was een sTring was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
-  AssertEquals('dit is een char is een char',StringsReplace('dit wAs een STRING was een string',['was','string'],['is','char'],[rfReplaceAll,rfIgnoreCase]));
+  AssertEquals('dit Was een AnsiChar is een AnsiChar',StringsReplace('dit Was een string was een string',['was','string'],['is','AnsiChar'],[rfReplaceAll]));
+  AssertEquals('dit wAs een AnsiChar is een AnsiChar',StringsReplace('dit wAs een string was een string',['was','string'],['is','AnsiChar'],[rfReplaceAll]));
+  AssertEquals('dit is een AnsiChar is een AnsiChar',StringsReplace('dit Was een sTring was een string',['was','string'],['is','AnsiChar'],[rfReplaceAll,rfIgnoreCase]));
+  AssertEquals('dit is een AnsiChar is een AnsiChar',StringsReplace('dit wAs een STRING was een string',['was','string'],['is','AnsiChar'],[rfReplaceAll,rfIgnoreCase]));
 
   AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['straat','string'],['sa','si'],[rfReplaceAll]));
   AssertEquals('dit was een si was een sa',StringsReplace('dit was een string was een straat',['string','straat'],['si','sa'],[rfReplaceAll]));

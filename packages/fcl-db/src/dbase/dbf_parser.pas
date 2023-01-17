@@ -69,7 +69,7 @@ type
     procedure ClearExpressions; override;
 
     procedure ParseExpression(AExpression: string); virtual;
-    function ExtractFromBuffer(Buffer: TRecordBuffer): PChar; virtual;
+    function ExtractFromBuffer(Buffer: TRecordBuffer): PAnsiChar; virtual;
 
     property DbfFile: Pointer read FDbfFile write FDbfFile;
     property Expression: string read FCurrentExpression;
@@ -121,7 +121,7 @@ type
 
   TStringFieldVar = class(TFieldVar)
   protected
-    FFieldVal: PChar;
+    FFieldVal: PAnsiChar;
     FMode: TStringFieldMode;
 
     function GetFieldVal: Pointer; override;
@@ -589,7 +589,7 @@ begin
   FCurrentExpression := AExpression;
 end;
 
-function TDbfParser.ExtractFromBuffer(Buffer: TRecordBuffer): PChar;
+function TDbfParser.ExtractFromBuffer(Buffer: TRecordBuffer): PAnsiChar;
 var
   I: Integer;
 begin
@@ -608,7 +608,7 @@ begin
     Result := TFieldVar(FFieldVarList.Objects[0]).FieldVal;
     // if string then dereference
     if FFieldType = etString then
-      Result := PPChar(Result)^;
+      Result := PPAnsiChar(Result)^;
   end;
 end;
 

@@ -15,6 +15,9 @@
  **********************************************************************}
 unit SQLTypes;
 
+{$mode objfpc}
+{$H+}
+
 interface
 
 uses classes, sysutils;
@@ -31,7 +34,7 @@ type
   TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
   TDBEventTypes = set of TDBEventType;
 
-  TQuoteChars = array[0..1] of char;
+  TQuoteChars = array[0..1] of AnsiChar;
 
   TSqlObjectIdentifierList = class;
 

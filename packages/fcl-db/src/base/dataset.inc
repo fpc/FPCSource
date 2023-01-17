@@ -585,8 +585,8 @@ function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 
 Var
-  AStatBuffer : Array[0..dsMaxStringSize] of Char;
-  ADynBuffer : pchar;
+  AStatBuffer : Array[0..dsMaxStringSize] of AnsiChar;
+  ADynBuffer : PAnsiChar;
 
 begin
   If NativeFormat then
@@ -663,8 +663,8 @@ procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 
 Var
-  AStatBuffer : Array[0..dsMaxStringSize] of Char;
-  ADynBuffer : pchar;
+  AStatBuffer : Array[0..dsMaxStringSize] of AnsiChar;
+  ADynBuffer : PAnsiChar;
 
 begin
   if NativeFormat then
@@ -729,7 +729,7 @@ begin
       end
     else
       begin
-      ExtractStrings([';'],[' '],pchar(result[i].Fields),Indexfields);
+      ExtractStrings([';'],[' '],PAnsiChar(result[i].Fields),Indexfields);
       for f := 0 to IndexFields.Count-1 do if FindField(Indexfields[f]) = nil then
         begin
         result.Delete(i);
@@ -2211,7 +2211,7 @@ begin
     Fields[I].AssignValue(Values[I]);
 end;
 
-function TDataSet.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
+function TDataSet.Translate(Src, Dest: PAnsiChar; ToOem: Boolean): Integer;
 
 begin
   strcopy(dest,src);
