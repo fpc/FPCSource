@@ -18,6 +18,10 @@
 }
 {$MODE objfpc}
 {$H+}
+
+// Define this if you wish to dump the link/doc node tree.
+{.$DEFINE DEBUGTREE}
+
 unit dGlobals;
 
 
@@ -63,20 +67,24 @@ type
     members, and so on...
   }
 
+  { TLinkNode }
+
   TLinkNode = class
   private
-    FFirstChild, FNextSibling: TLinkNode;
+    FParent, FFirstChild, FNextSibling: TLinkNode;
     FName: String;
     FLink: String;
   public
-    constructor Create(const AName, ALink: String);
+    constructor Create(aParent : TLinkNode; const AName, ALink: String);
     destructor Destroy; override;
+    Function Path : String;
     function FindChild(const APathName: String): TLinkNode;
     function CreateChildren(const APathName, ALinkTo: String): TLinkNode;
     // Properties for tree structure
     property FirstChild: TLinkNode read FFirstChild;
     property NextSibling: TLinkNode read FNextSibling;
     // Link properties
+    Property Parent : TLinkNode Read FParent;
     property Name: String read FName;
     property Link: String read FLink;
   end;
@@ -99,6 +107,7 @@ type
     FName: String;
     FNode: TDOMElement;
     FIsSkipped: Boolean;
+    FParent: TDocNode;
     FShortDescr: TDOMElement;
     FDescr: TDOMElement;
     FErrorsDoc: TDOMElement;
@@ -110,8 +119,9 @@ type
     FRefCount : Integer;
     FVersion: TDomElement;
   public
-    constructor Create(const AName: String; ANode: TDOMElement);
+    constructor Create(aParent : TDocNode; const AName: String; ANode: TDOMElement);
     destructor Destroy; override;
+    Function Path : String;
     Function IncRefcount : Integer;
     function FindChild(const APathName: String): TDocNode;
     function CreateChildren(const APathName: String): TDocNode;
@@ -119,6 +129,7 @@ type
     property FirstChild: TDocNode read FFirstChild;
     property NextSibling: TDocNode read FNextSibling;
     // Basic properties
+    Property Parent : TDocNode read FParent;
     property Name: String read FName;
     property Node: TDOMElement read FNode;
     // Data fetched from the XML document
@@ -163,6 +174,8 @@ type
     Function LogEvent(E : TFPDocLogLevel) : Boolean;
     Procedure DoLog(Const Msg : String);overload;
     Procedure DoLog(Const Fmt : String; Args : Array of const);overload;
+    procedure DumpDocNode(aNode: TDocNode; aIndent: String);
+    procedure DumpLinkNode(aNode: TLinkNode; aIndent: String);
   public
     Output: String;
     HasContentFile: Boolean;
@@ -249,9 +262,11 @@ end;
 
 { TLinkNode }
 
-constructor TLinkNode.Create(const AName, ALink: String);
+constructor TLinkNode.Create(aParent : TLinkNode; const AName, ALink: String);
 begin
   inherited Create;
+  // Writeln('Creating link ',aName,' -> ',aLink);
+  FParent:=aParent;
   FName := AName;
   FLink := ALink;
 end;
@@ -263,6 +278,22 @@ begin
   if Assigned(NextSibling) then
     NextSibling.Free;
   inherited Destroy;
+end;
+
+function TLinkNode.Path: String;
+
+Var
+  P : TLinkNode;
+
+begin
+  Result:=Name;
+  P:=FParent;
+  While Assigned(P) do
+    begin
+    if P.Name<>'' then
+      Result:=P.Name+'.'+Result;
+    P:=P.FParent;
+    end;
 end;
 
 function TLinkNode.FindChild(const APathName: String): TLinkNode;
@@ -329,7 +360,7 @@ begin
       LastChild := Child;
       Child := Child.NextSibling;
     end;
-    Result := TLinkNode.Create(ChildName, ALinkTo);
+    Result := TLinkNode.Create(Self,ChildName, ALinkTo);
     if Assigned(LastChild) then
       LastChild.FNextSibling := Result
     else
@@ -340,9 +371,10 @@ end;
 
 { TDocNode }
 
-constructor TDocNode.Create(const AName: String; ANode: TDOMElement);
+constructor TDocNode.Create(aParent : TDocNode; const AName: String; ANode: TDOMElement);
 begin
   inherited Create;
+  FParent:=aParent;
   FName := AName;
   FNode := ANode;
 end;
@@ -356,7 +388,22 @@ begin
   inherited Destroy;
 end;
 
-Function TDocNode.IncRefcount : Integer;
+function TDocNode.Path: String;
+Var
+  P : TDocNode;
+
+begin
+  Result:=Name;
+  P:=FParent;
+  While Assigned(P) do
+    begin
+    if P.Name<>'' then
+      Result:=P.Name+'.'+Result;
+    P:=P.FParent;
+    end;
+end;
+
+function TDocNode.IncRefcount: Integer;
 
 begin
   Inc(FRefCount);
@@ -426,7 +473,7 @@ begin
       Child := Child.NextSibling;
     end;
     // No child found, let's create one
-    Result := TDocNode.Create(ChildName, nil);
+    Result := TDocNode.Create(Self,ChildName, nil);
     if Assigned(FirstChild) then
     begin
       Result.FNextSibling := FirstChild;
@@ -459,6 +506,27 @@ begin
   DoLog(Format(Fmt,Args));
 end;
 
+procedure TFPDocEngine.DumpLinkNode(aNode: TLinkNode; aIndent: String);
+Var
+  C : TLinkNode;
+  S,S2 : String;
+
+begin
+  WriteStr(S,aIndent,'LNode : ',aNode.Path);
+  if (aNode.Link<>'') then
+    begin
+    WriteStr(S2,' (',aNode.Link,')');
+    S:=S+S2;
+    end;
+  DoLog(S);
+  C:=aNode.FirstChild;
+  While Assigned(C) do
+    begin
+    DumpLinkNode(C,aIndent+'  ');
+    C:=C.NextSibling;
+    end;
+end;
+
 constructor TFPDocEngine.Create;
 begin
   inherited Create;
@@ -466,8 +534,8 @@ begin
   FAlwaysVisible := TStringList.Create;
   FAlwaysVisible.CaseSensitive:=True;
   DescrDocNames := TStringList.Create;
-  FRootLinkNode := TLinkNode.Create('', '');
-  FRootDocNode := TDocNode.Create('', nil);
+  FRootLinkNode := TLinkNode.Create(Nil,'', '');
+  FRootDocNode := TDocNode.Create(Nil,'', nil);
   HidePrivate := True;
   InterfaceOnly:=True;
   FPackages := TFPList.Create;
@@ -550,7 +618,7 @@ var
         Inc(i);
       if ALinkPrefix <> '' then
         tmpLinkPrefix := ExcludeTrailingPathDelimiter(ALinkPrefix)+'/';
-      NewNode := TLinkNode.Create(Copy(s, ThisSpaces + 1, i - ThisSpaces - 1),
+      NewNode := TLinkNode.Create(CurParent,Copy(s, ThisSpaces + 1, i - ThisSpaces - 1),
         tmpLinkPrefix + Copy(s, i + 1, Length(s)));
       if pos(' ',newnode.link)>0 then
         writeln(stderr,'Bad format imported node: name="',newnode.name,'" link="',newnode.link,'"');
@@ -1144,13 +1212,18 @@ end;
 function TFPDocEngine.FindAbsoluteLink(const AName: String): String;
 var
   LinkNode: TLinkNode;
+  P : String;
 begin
   // Writeln('Finding absolute link: ',aName);
   LinkNode := RootLinkNode.FindChild(AName);
   if Assigned(LinkNode) then
-    Result := LinkNode.Link
+    begin
+    Result := LinkNode.Link;
+    P:=LinkNode.Path;
+    end
   else
     SetLength(Result, 0);
+  // Writeln('Finding absolute link: ',aName,' (Node: ',P,') --> ',Result);
 end;
 
 function TFPDocEngine.ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;
@@ -1203,7 +1276,7 @@ begin
     Result := FindAbsoluteLink(ALinkDest)
   else if (AModule=Nil) then
     // Trying to add package name only
-    Result:= FindAbsoluteLink(RootLinkNode.FirstChild.Name+'.'+ALinkDest)
+    Result:= FindAbsoluteLink(Self.Package.Name+'.'+ALinkDest)
   else
     begin
     if Pos(LowerCase(AModule.Name)+'.',LowerCase(ALinkDest)) = 1 then
@@ -1507,9 +1580,36 @@ begin
   end;
 end;
 
+procedure TFPDocEngine.DumpDocNode(aNode : TDocNode; aIndent : String);
+
+Var
+  C : TDocNode;
+  S,S2 : String;
+
+begin
+  WriteStr(S,aIndent,'Node : ',aNode.Path);
+  if (aNode.Link<>'') then
+    begin
+    WriteStr(S2,' --> Link: ',aNode.Link);
+    S:=S+S2;
+    end;
+  DoLog(S);
+  C:=aNode.FirstChild;
+  While Assigned(C) do
+    begin
+    DumpDocNode(C,aIndent+'  ');
+    C:=C.NextSibling;
+    end;
+end;
+
+
 procedure TFPDocEngine.StartDocumenting;
 begin
   FAlwaysVisible.Sorted:=True;
+{$IFDEF DEBUGTREE}
+  DumpLinkNode(FRootLinkNode,'');
+  DumpDocNode(FRootDocNode,'');
+{$ENDIF}
 end;
 
 function TFPDocEngine.FindShortDescr(ARefModule: TPasModule;

@@ -768,7 +768,8 @@ Var
   L : TObjectList;
   ML : TFPList;
   I : Integer;
-
+  LD : TLinkData;
+  aFullLink : String;
 
 begin
   // Allocate page for the package itself, if a name is given (i.e. <> '#')
@@ -783,8 +784,11 @@ begin
       AllocateModulePages(TPasModule(ML[i]),L);
     // Resolve links
     For I:=0 to L.Count-1 do
-      With TLinkData(L[i]) do
-        Engine.AddLink(FPathName,UTF8Encode(ResolveLinkIDInUnit(FLink,FModuleName)));
+      begin
+      LD:=TLinkData(L[i]);
+      aFullLink:=ResolveLinkIDInUnit(LD.FLink,LD.FModuleName);
+      Engine.AddLink(LD.FPathName,UTF8Encode(aFullLink));
+      end;
   finally
     L.Free;
     ML.Free;
@@ -869,7 +873,7 @@ Var
   FN : String;
 
 begin
-  Writeln('Cmd : ',Cmd);
+  // Writeln('Cmd : ',Cmd);
   Result := True;
   if Cmd = '--use-subpagenames' then
     FSubPageNames:= True
