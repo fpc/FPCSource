@@ -34,8 +34,8 @@ Type
    end;
    TProcessStringList = TProcessStrings;
    {$else}
-   TprocessChar   = {Ansi}Char;
-   TProcessString = {Ansi}String;
+   TprocessChar   = Char;
+   TProcessString = String;
    TProcessStrings = TStrings;
    TProcessStringList = TStringList;
    {$endif}
@@ -228,7 +228,7 @@ Procedure CommandToList(S : TProcessString; List : TProcessStrings);
      Result:=Copy(S,WStart,WEnd-WStart);
 
      if  (Length(Result) > 0)
-     and (Result[1] = Result[Length(Result)]) // if 1st char = last char and..
+     and (Result[1] = Result[Length(Result)]) // if 1st AnsiChar = last AnsiChar and..
      and (Result[1] in Literals) then // it's one of the literals, then
        Result:=Copy(Result, 2, Length(Result) - 2); //delete the 2 (but not others in it)
 
