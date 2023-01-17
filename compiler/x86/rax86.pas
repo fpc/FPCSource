@@ -854,7 +854,7 @@ begin
                   ;
               end;
 
-              if memoffset < 0 then
+              if ((operands[i].opr.ref.base=NR_ESP) or (operands[i].opr.ref.index=NR_ESP)) and (memoffset < 0) then
               begin
                 Message2(asmr_w_check_mem_operand_negative_offset,
                          //std_op2str[opcode],
