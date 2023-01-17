@@ -38,8 +38,12 @@ Type
   EProcess = Process.EProcess;
 
 {$macro on}
+{$IF SIZEOF(CHAR)=1}
+// For unicode RTL, there is nothing to redefine.
 {$define processunicodestring}
+{$ENDIF}
 {$define TProcessnamemacro:=TProcess}
 
 {$i processbody.inc}
+
 end.
