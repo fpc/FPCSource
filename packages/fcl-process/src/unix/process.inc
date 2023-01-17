@@ -62,27 +62,31 @@ begin
 end;
 
 Type
-  TPCharArray = Array[Word] of pchar;
+  TPCharArray = Array[Word] of PAnsiChar;
   PPCharArray = ^TPcharArray;
 
-Function StringsToPCharList(List : TStrings) : PPChar;
+Function StringsToPCharList(List : TStrings) : PPAnsiChar;
 
 Var
   I : Integer;
-  S : String;
+  S : AnsiString;
 
 begin
   I:=(List.Count)+1;
-  GetMem(Result,I*sizeOf(PChar));
+  GetMem(Result,I*sizeOf(PAnsiChar));
   PPCharArray(Result)^[List.Count]:=Nil;
   For I:=0 to List.Count-1 do
     begin
+    {$if SIZEOF(CHAR)=2}
+    S:=UTF8Encode(List[i]);
+    {$ELSE}
     S:=List[i];
-    Result[i]:=StrNew(PChar(S));
+    {$ENDIF}
+    Result[i]:=StrNew(PAnsiChar(S));
     end;
 end;
 
-Procedure FreePCharList(List : PPChar);
+Procedure FreePCharList(List : PPAnsiChar);
 
 Var
   I : integer;
@@ -166,7 +170,7 @@ begin
     Raise EProcess.Create(SErrNoTerminalProgram);
 end;
 
-Function MakeCommand(P : TProcess) : PPchar;
+Function MakeCommand(P : TProcess) : PPAnsiChar;
 
 {$ifdef darwin}
 Const
@@ -181,23 +185,26 @@ Var
   Cmd : String;
   S  : TStringList;
   G : String;
+  PA,PC : String;
   
 begin
-  If (P.ApplicationName='') and (P.CommandLine='') and (P.Executable='') then
+  PA:=P.ApplicationName;
+  PC:=P.CommandLine;
+  If (PA='') and (PC='') and (P.Executable='') then
     Raise EProcess.Create(SNoCommandline);
   S:=TStringList.Create;
   try
-    if (P.ApplicationName='') and (P.CommandLine='') then
+    if (PA='') and (PC='') then
       begin
       S.Assign(P.Parameters);
       S.Insert(0,P.Executable);
       end
     else
       begin
-      If (P.CommandLine='') then
-        Cmd:=P.ApplicationName
+      If (PA='') then
+        Cmd:=PA
       else
-        Cmd:=P.CommandLine;
+        Cmd:=PC;
       CommandToList(Cmd,S);
       end;
     if poNewConsole in P.Options then
@@ -213,9 +220,9 @@ begin
       S.Insert(0,TerminalApp);
       {$else}
       S.Insert(0,'-e');
-      If (P.ApplicationName<>'') then
+      If (PA<>'') then
         begin
-        S.Insert(0,P.ApplicationName);
+        S.Insert(0,PA);
         S.Insert(0,'-title');
         end;
       if suoUseCountChars in P.StartupOptions then
@@ -230,10 +237,10 @@ begin
       {$endif}
       end;
     {$ifndef haiku}
-    if (P.ApplicationName<>'') then
+    if (PA<>'') then
       begin
       S.Add(TitleOption);
-      S.Add(P.ApplicationName);
+      S.Add(PA);
       end;
     G:='';
     if (suoUseSize in P.StartupOptions) then
@@ -311,8 +318,8 @@ Procedure TProcess.Execute;
 Var
   HI,HO,HE : TPipePair;
   PID      : Longint;
-  FEnv     : PPChar;
-  Argv     : PPChar;
+  FEnv     : PPAnsiChar;
+  Argv     : PPAnsiChar;
   fd       : Integer;
   res      : cint;
   FoundName,

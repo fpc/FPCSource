@@ -36,7 +36,7 @@ const
 var
   WStart: integer;
   InLiteral: boolean;
-  LastLiteral: char;
+  LastLiteral: AnsiChar;
 begin
   WStart := 1;
 (* Skip whitespaces at the beginning *)

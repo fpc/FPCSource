@@ -32,14 +32,14 @@ begin
   Result := true; (* Dummy version assumes always synchronous execution *)
 end;
 
-function GetNextWordPos (const S: string): integer;
+function GetNextWordPos (const S: ansistring): integer;
 const
   WhiteSpace = [' ', #9, #10, #13];
   Literals = ['"', ''''];
 var
   WStart: integer;
   InLiteral: boolean;
-  LastLiteral: char;
+  LastLiteral: ansiChar;
 begin
   WStart := 1;
 (* Skip whitespaces at the beginning *)
@@ -66,7 +66,7 @@ begin
   Result := WStart;
 end;
 
-function MaybeQuote (const S: string): string;
+function MaybeQuote (const S: ansistring): ansistring;
 begin
   if (Pos (' ', S) <> 0) then
    Result := '"' + S + '"'
@@ -87,11 +87,11 @@ const
 Procedure TProcess.Execute;
 var
   I: integer;
-  ExecName, FoundName: string;
+  ExecName, FoundName: ansistring;
   E2: EProcess;
-  OrigDir: string;
-  Params: string;
-  TempName: string;
+  OrigDir: ansistring;
+  Cmd,Params: ansistring;
+  TempName: ansistring;
   cos: BPTR;
   {$ifdef MorphOS}
   inA, inB, OutA, OutB: BPTR;
@@ -104,7 +104,8 @@ begin
    ExecName := FApplicationName;
   if (FCommandLine <> '') then
    begin
-    Params := FCommandLine;
+    Cmd:=FCommandLine;
+    Params := Cmd;
     if ExecName = '' then
      begin
       I := GetNextWordPos (Params);
@@ -112,7 +113,7 @@ begin
       ExecName := Trim (ExecName);
       Delete (Params, 1, Pred (I));
      end
-    else if Copy (FCommandLine, 1, Length (ExecName)) = ExecName then
+    else if Copy (Cmd, 1, Length (ExecName)) = ExecName then
      Delete (Params, 1, Succ (Length (ExecName)))
     else
      Delete (Params, 1, Pred (GetNextWordPos (Params)));
@@ -143,18 +144,18 @@ begin
       FProcessID := 0;
       // Pipenames, should be unique
       TempName := 'PIPE:PrO_' + HexStr(Self) + HexStr(GetTickCount, 8);
-      inA := DOSOpen(PChar(TempName), MODE_OLDFILE);
-      inB := DOSOpen(PChar(TempName), MODE_NEWFILE);
+      inA := DOSOpen(PAnsiChar(TempName), MODE_OLDFILE);
+      inB := DOSOpen(PAnsiChar(TempName), MODE_NEWFILE);
       TempName := TempName + 'o';
-      outA := DOSOpen(PChar(TempName), MODE_OLDFILE);
-      outB := DOSOpen(PChar(TempName), MODE_NEWFILE);
+      outA := DOSOpen(PAnsiChar(TempName), MODE_OLDFILE);
+      outB := DOSOpen(PAnsiChar(TempName), MODE_NEWFILE);
       // set buffer for all pipes
       SetVBuf(inA, nil, BUF_NONE, -1);
       SetVBuf(inB, nil, BUF_LINE, -1);
       SetVBuf(outA, nil, BUF_NONE, -1);
       SetVBuf(outB, nil, BUF_LINE, -1);
       // the actual Start of the command with given parameter and streams
-      Res := SystemTags(PChar(ExecName + ' ' + Params),
+      Res := SystemTags(PAnsiChar(ExecName + ' ' + Params),
                         [SYS_Input, AsTag(outA),
                          SYS_Output, AsTag(inB),
                          SYS_Asynch, AsTag(True),
@@ -186,8 +187,8 @@ begin
         TempName := 'T:PrO_'+ HexStr(FindTask(nil)) + '_' + IntToHex(UID,8);
       until not FileExists(TempName);
       //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
-      cos := AmigaDos.DosOpen(PChar(TempName), MODE_READWRITE);
-      FExitCode := LongInt(amigados.Execute(PChar(ExecName + ' ' + Params), BPTR(0), cos));
+      cos := AmigaDos.DosOpen(PAnsiChar(TempName), MODE_READWRITE);
+      FExitCode := LongInt(amigados.Execute(PAnsiChar(ExecName + ' ' + Params), BPTR(0), cos));
       DosSeek(cos, 0, OFFSET_BEGINNING);
       CreateStreams(0, THandle(cos),0);
     end;
