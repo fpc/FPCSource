@@ -1,49 +1,44 @@
-{
-    This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by the Free Pascal development team
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-{$mode objfpc}
-{$h+}
-unit processunicode;
-
-interface
-
-Uses Classes,
-     pipes,
-     SysUtils,
-     Math,
-     Process;
-
-Type
-  TProcessOption = process.TProcessOption;
-  TShowWindowOptions = process.TShowWindowOptions;
-  TStartupOption = process.TStartupOption ;
-  TProcessPriority = process.TProcessPriority;
-  TProcessOptions = process.TProcessOptions;
-  TStartupOptions = process.TStartupOptions;
-  {$ifdef UNIX}
-  TProcessForkEvent = Process.TProcessForkEvent;
-  {$endif UNIX}
-
-  TRunCommandEventCode = Process.TRunCommandEventCode;
-  TOnRunCommandEvent = Process.TOnRunCommandEvent;
-  EProcess = Process.EProcess;
-
-{$macro on}
-{$IF SIZEOF(CHAR)=1}
-// For unicode RTL, there is nothing to redefine.
-{$define processunicodestring}
-{$ENDIF}
-{$define TProcessnamemacro:=TProcess}
-
-{$i processbody.inc}
-
-end.
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <UseDefaultCompilerOptions Value="True"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="-1"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <BuildModes>
+      <Item Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+    </RunParams>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions>
+      <Item>
+        <Name Value="EAbort"/>
+      </Item>
+      <Item>
+        <Name Value="ECodetoolError"/>
+      </Item>
+      <Item>
+        <Name Value="EFOpenError"/>
+      </Item>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
