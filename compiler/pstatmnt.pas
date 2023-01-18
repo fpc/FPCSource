@@ -819,7 +819,7 @@ implementation
                if token<>_SEMICOLON then
                 statement;
              end;
-            result:=nil;
+            result:=cerrornode.create;
           end;
       end;
 
