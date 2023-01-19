@@ -699,6 +699,16 @@ begin
     Result := FileDateToUniversal(Time);
 end;
 
+function TUnicodeSearchRec.IsDirectory: Boolean;
+begin
+  Result:=(Attr and faDirectory)<>0;
+end;
+
+function TUnicodeSearchRec.IsCurrentOrParentDir: Boolean;
+begin
+  Result:=IsDirectory and ((Name='.') or (Name='..'));
+end;
+
 { TRawbyteSearchRec }
 
 function TRawbyteSearchRec.GetTimeStamp: TDateTime;
@@ -715,6 +725,16 @@ begin
   if not FindDataTimeToUTC(FindData.ftLastWriteTime, Result) then
 {$endif}
     Result := FileDateToUniversal(Time);
+end;
+
+function TRawbyteSearchRec.IsDirectory: Boolean;
+begin
+  Result:=(Attr and faDirectory)<>0;
+end;
+
+function TRawbyteSearchRec.IsCurrentOrParentDir: Boolean;
+begin
+  Result:=IsDirectory and ((Name='.') or (Name='..'));
 end;
 
 { TUnicodeSymLinkRec }

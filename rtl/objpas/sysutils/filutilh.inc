@@ -49,6 +49,9 @@ Type
 {$endif}
 
   // The actual unicode search record
+
+  { TUnicodeSearchRec }
+
   TUnicodeSearchRec = Record
     Time : Int64 deprecated 'use TimeStamp instead';
     Size : Int64;
@@ -66,9 +69,13 @@ Type
     function GetTimeStamp: TDateTime;
     function GetTimeStampUTC: TDateTime;
   public
+    Function IsDirectory : Boolean; inline;
+    function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
     property TimeStampUTC: TDateTime read GetTimeStampUTC;
   end;
+
+  { TRawbyteSearchRec }
 
   TRawbyteSearchRec = Record
     Time : Int64 deprecated 'use TimeStamp instead';
@@ -87,6 +94,8 @@ Type
     function GetTimeStamp: TDateTime;
     function GetTimeStampUTC: TDateTime;
   public
+    Function IsDirectory : Boolean; inline;
+    function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
     property TimeStampUTC: TDateTime read GetTimeStampUTC;
   end;
