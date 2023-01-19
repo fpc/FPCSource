@@ -429,68 +429,48 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
 var
-  aligncount : sizeint;
-  psrc,pdest,pend : pbyte;
-  b : ptrint;
+  psrc,pdest,pend,pendpart : pbyte;
 begin
-  b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if (len>4*sizeof(ptruint)-1)
+  pend:=psrc+len;
+  if (pend<psrc) then
+    pend:=pbyte(high(ptruint));
+  if (len>=2*sizeof(ptruint))
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     then
     begin
-      { Align on native pointer size }
-      aligncount:=(sizeof(PtrUInt)-(PtrUInt(pdest) and (sizeof(PtrUInt)-1))) and (sizeof(PtrUInt)-1);
-      dec(len,aligncount);
-      pend:=psrc+aligncount;
-      while psrc<pend do
+      { Align "psrc" on native pointer size. }
+      PtrUint(pendpart):=PtrUint(psrc+(sizeof(PtrUint)-1)) and PtrUint(not PtrUint(sizeof(PtrUint)-1));
+      if psrc<pendpart then
         begin
-          b:=(ptrint(psrc^)-ptrint(pdest^));
-          if b<>0 then
+          while (psrc<pendpart) and (psrc^=pdest^) do
             begin
-              if b<0 then
-                exit(-1)
-              else
-                exit(1);
+              inc(pdest);
+              inc(psrc);
             end;
-          inc(pdest);
-          inc(psrc);
+          if psrc<pendpart then
+            exit(sizeint(psrc^)-sizeint(pdest^));
         end;
-      { use sizeuint typecast to force shr optimization }
-      pptruint(pend):=pptruint(psrc)+(sizeuint(len) div sizeof(ptruint));
-      len:=len and (sizeof(PtrUInt)-1);
-      while psrc<pend do
+      { "pend" is the end of "psrc" and "psrc" is aligned, so aligned "pend" can be obtained this way. }
+      PtrUint(pendpart):=PtrUint(pend) and PtrUint(not PtrUint(sizeof(PtrUint)-1));
+      while (psrc<pendpart) and (pptruint(psrc)^=pptruint(pdest)^) do
         begin
-          b:=(pptrint(psrc)^-pptrint(pdest)^);
-          if b<>0 then
-            begin
-              len:=sizeof(ptruint);
-              break;
-            end;
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
+      if psrc<pendpart then
+        pend:=psrc+sizeof(ptruint);
     end;
-  if (psrc+len >= psrc) then
-    pend:=psrc+len
-  else
-    pend:=pbyte(high(ptruint)-1);
-  while psrc<pend do
+  while (psrc<pend) and (psrc^=pdest^) do
     begin
-      b:=(ptrint(psrc^)-ptrint(pdest^));
-      if b<>0 then
-        begin
-          if b<0 then
-            exit(-1)
-          else
-            exit(1);
-        end;
       inc(pdest);
       inc(psrc);
     end;
+  if psrc<pend then
+    exit(sizeint(psrc^)-sizeint(pdest^));
   result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREBYTE}
