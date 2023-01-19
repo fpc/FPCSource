@@ -158,6 +158,142 @@ type
      procedure ReadLine(out AString: string); override; overload;
    end;
 
+   { TTextWriter }
+
+   TTextWriter = class
+   public
+     procedure Close; virtual; abstract;
+     procedure Flush; virtual; abstract;
+     procedure Write(aValue: Boolean); overload; virtual; abstract;
+     procedure Write(aValue: Char); overload; virtual; abstract;
+     procedure Write(aValue: Char; aCount: Integer); overload; virtual;
+     procedure Write(const aValue: TCharArray); overload; virtual; abstract;
+     procedure Write(aValue: Double); overload; virtual; abstract;
+     procedure Write(aValue: Integer); overload; virtual; abstract;
+     procedure Write(aValue: Int64); overload; virtual; abstract;
+     procedure Write(aValue: TObject); overload; virtual; abstract;
+     procedure Write(aValue: Single); overload; virtual; abstract;
+     procedure Write(const aValue: string); overload; virtual; abstract;
+     procedure Write(aValue: Cardinal); overload; virtual; abstract;
+     procedure Write(aValue: UInt64); overload; virtual; abstract;
+     procedure Write(const Fmt: string; aArgs: array of const); overload; virtual; abstract;
+     procedure Write(const aValue: TCharArray; aIndex, aCount: Integer); overload; virtual; abstract;
+     procedure WriteLine; overload; virtual; abstract;
+     procedure WriteLine(aValue: Boolean); overload; virtual; abstract;
+     procedure WriteLine(aValue: Char); overload; virtual; abstract;
+     procedure WriteLine(const aValue: TCharArray); overload; virtual; abstract;
+     procedure WriteLine(aValue: Double); overload; virtual; abstract;
+     procedure WriteLine(aValue: Integer); overload; virtual; abstract;
+     procedure WriteLine(aValue: Int64); overload; virtual; abstract;
+     procedure WriteLine(aValue: TObject); overload; virtual; abstract;
+     procedure WriteLine(aValue: Single); overload; virtual; abstract;
+     procedure WriteLine(const aValue: string); overload; virtual; abstract;
+     procedure WriteLine(aValue: Cardinal); overload; virtual; abstract;
+     procedure WriteLine(aValue: UInt64); overload; virtual; abstract;
+     procedure WriteLine(const Format: string; Args: array of const); overload; virtual; abstract;
+     procedure WriteLine(const aValue: TCharArray; Index, Count: Integer); overload; virtual; abstract;
+   end;
+
+   { TStringWriter }
+
+   TStringWriter = class(TTextWriter)
+   private
+     FBuilder: TStringBuilder;
+     FFreeBuilder: Boolean;
+   public
+     constructor Create; overload;
+     constructor Create(aBuilder: TStringBuilder); overload;
+     destructor Destroy; override;
+     procedure Close; override;
+     procedure Flush; override;
+     procedure Write(aValue: Boolean); override;
+     procedure Write(aValue: Char); override;
+     procedure Write(aValue: Char; aCount: Integer); override;
+     procedure Write(const aValue: TCharArray); override;
+     procedure Write(aValue: Double); override;
+     procedure Write(aValue: Integer); override;
+     procedure Write(aValue: Int64); override;
+     procedure Write(aValue: TObject); override;
+     procedure Write(aValue: Single); override;
+     procedure Write(const aValue: string); override;
+     procedure Write(aValue: Cardinal); override;
+     procedure Write(aValue: QWord); override;
+     procedure Write(const aFmt: string; aArgs: array of const); override;
+     procedure Write(const aValue: TCharArray; aIndex, aCount: Integer); override;
+     procedure WriteLine; override;
+     procedure WriteLine(aValue: Boolean); override;
+     procedure WriteLine(aValue: Char); override;
+     procedure WriteLine(const aValue: TCharArray); override;
+     procedure WriteLine(aValue: Double); override;
+     procedure WriteLine(aValue: Integer); override;
+     procedure WriteLine(aValue: Int64); override;
+     procedure WriteLine(aValue: TObject); override;
+     procedure WriteLine(aValue: Single); override;
+     procedure WriteLine(const aValue: string); override;
+     procedure WriteLine(aValue: Cardinal); override;
+     procedure WriteLine(aValue: UInt64); override;
+     procedure WriteLine(const aFmt: string; aArgs: array of const); override;
+     procedure WriteLine(const aValue: TCharArray; aIndex, aCount: Integer); override;
+     function ToString: string; override;
+   end;
+
+   { TStreamWriter }
+
+   TStreamWriter = class(TTextWriter)
+   private
+     FStream: TStream;
+     FFreeStream: Boolean;
+     FEncoding: TEncoding;
+     FNewLine: string;
+     FAutoFlush: Boolean;
+   protected
+     FBufferIndex: Integer;
+     FBuffer: TBytes;
+     procedure WriteBytes(Bytes: TBytes);
+   public
+     constructor Create(aStream: TStream); overload;
+     constructor Create(aStream: TStream; aEncoding: TEncoding; aBufferSize: Integer = 4096); overload;
+     constructor Create(const aFilename: string; aAppend: Boolean = False); overload;
+     constructor Create(const aFilename: string; aAppend: Boolean; aEncoding: TEncoding; aBufferSize: Integer = 4096); overload;
+     destructor Destroy; override;
+     procedure Close; override;
+     procedure Flush; override;
+     procedure OwnStream; inline;
+     procedure Write(aValue: Boolean); override;
+     procedure Write(aValue: Char); override;
+     procedure Write(const aValue: TCharArray); override;
+     procedure Write(aValue: Double); override;
+     procedure Write(aValue: Integer); override;
+     procedure Write(aValue: Int64); override;
+     procedure Write(aValue: TObject); override;
+     procedure Write(aValue: Single); override;
+     procedure Write(const aValue: string); override;
+     procedure Write(aValue: Cardinal); override;
+     procedure Write(aValue: UInt64); override;
+     procedure Write(const Fmt: string; aArgs: array of const); override;
+     procedure Write(const aValue: TCharArray; aIndex, aCount: Integer); override;
+     procedure WriteLine; override;
+     procedure WriteLine(aValue: Boolean); override;
+     procedure WriteLine(aValue: Char); override;
+     procedure WriteLine(const aValue: TCharArray); override;
+     procedure WriteLine(aValue: Double); override;
+     procedure WriteLine(aValue: Integer); override;
+     procedure WriteLine(aValue: Int64); override;
+     procedure WriteLine(aValue: TObject); override;
+     procedure WriteLine(aValue: Single); override;
+     procedure WriteLine(const aValue: string); override;
+     procedure WriteLine(aValue: Cardinal); override;
+     procedure WriteLine(aValue: UInt64); override;
+     procedure WriteLine(const Fmt: string; Args: array of const); override;
+     procedure WriteLine(const aValue: TCharArray; aIndex, aCount: Integer); override;
+     property AutoFlush: Boolean read FAutoFlush write FAutoFlush;
+     property NewLine: string read FNewLine write FNewLine;
+     property Encoding: TEncoding read FEncoding;
+     property BaseStream: TStream read FStream;
+   end;
+
+
+
   { allows you to represent just a small window of a bigger stream as a substream. 
     also makes sure one is actually at the correct position before clobbering stuff. }
 
@@ -216,6 +352,453 @@ ResourceString
   SErrInvalidSeekWindow = 'Cannot seek outside allocated window.';
   SErrInvalidSeekOrigin = 'Invalid seek origin.';
   SErrCannotChangeWindowSize  = 'Cannot change the size of a windowed stream';
+
+{ TTextWriter }
+
+procedure TTextWriter.Write(aValue: Char; aCount: Integer);
+begin
+  Write(StringOfChar(aValue,aCount));
+end;
+
+{ TStreamWriter }
+
+procedure TStreamWriter.WriteBytes(Bytes: TBytes);
+var
+  ByteLen,Count,WritePos,ToWrite: Integer;
+  P : PByte;
+begin
+  ByteLen:=Length(Bytes);
+  ToWrite:=ByteLen;
+  WritePos:=0;
+  P:=PByte(Bytes);
+  while ToWrite>0 do
+    begin
+    Count:=ToWrite;
+    if Count>ByteLen-WritePos then
+      Count:=ByteLen-WritePos;
+    Move(P^, FBuffer[FBufferIndex], Count);
+    Inc(WritePos,Count);
+    Inc(P,Count);
+    Dec(ToWrite,Count);
+    if FBufferIndex >= Length(FBuffer) then
+      Flush;
+    end;
+  if FAutoFlush then
+    Flush;
+end;
+
+constructor TStreamWriter.Create(aStream: TStream);
+begin
+  Create(aStream,TEncoding.UTF8,1024)
+end;
+
+constructor TStreamWriter.Create(aStream: TStream; aEncoding: TEncoding;
+  aBufferSize: Integer);
+begin
+  FStream:=aStream;
+  FFreeStream:=False;
+  FEncoding:=aEncoding;
+  SetLength(FBuffer,aBufferSize);
+  FNewLine:=sLineBreak;
+end;
+
+constructor TStreamWriter.Create(const aFilename: string; aAppend: Boolean);
+
+begin
+  Create(aFileName,aAppend,TEncoding.UTF8,1024);
+end;
+
+constructor TStreamWriter.Create(const aFilename: string; aAppend: Boolean;
+  aEncoding: TEncoding; aBufferSize: Integer);
+
+var
+  F : TStream;
+begin
+  if (aAppend and FileExists(aFilename)) then
+    begin
+    F := TFileStream.Create(aFilename, fmOpenWrite);
+    F.Seek(0, soEnd);
+    end
+  else
+    F := TFileStream.Create(aFilename, fmCreate);
+  Create(F,aEncoding,aBufferSize);
+  OwnStream;
+end;
+
+destructor TStreamWriter.Destroy;
+begin
+  Close;
+  inherited Destroy;
+end;
+
+procedure TStreamWriter.Close;
+begin
+  Flush;
+  if FFreeStream then
+    FreeAndNil(FStream);
+end;
+
+procedure TStreamWriter.Flush;
+
+var
+  aCount: Integer;
+begin
+  if (FStream=Nil) or (FBufferIndex=0) then
+    exit;
+  aCount:=FBufferIndex;
+  FBufferIndex:=0;
+  FStream.WriteBuffer(FBuffer,aCount);
+end;
+
+procedure TStreamWriter.OwnStream;
+begin
+  FFreeStream:=True;
+end;
+
+procedure TStreamWriter.Write(aValue: Boolean);
+begin
+  Write(BoolToStr(aValue,True));
+end;
+
+procedure TStreamWriter.Write(aValue: Char);
+begin
+  Write(String(aValue));
+end;
+
+procedure TStreamWriter.Write(const aValue: TCharArray);
+begin
+  Write(aValue,0,Length(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: Double);
+begin
+  Write(FloatToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: Integer);
+begin
+  Write(IntToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: Int64);
+begin
+  Write(IntToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: TObject);
+begin
+  Write(aValue.ToString);
+end;
+
+procedure TStreamWriter.Write(aValue: Single);
+begin
+  Write(FloatToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(const aValue: string);
+begin
+  WriteBytes(FEncoding.GetAnsiBytes(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: Cardinal);
+begin
+  Write(IntToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(aValue: UInt64);
+begin
+  Write(IntToStr(aValue));
+end;
+
+procedure TStreamWriter.Write(const Fmt: string; aArgs: array of const);
+begin
+  Write(Format(Fmt,aArgs));
+end;
+
+procedure TStreamWriter.Write(const aValue: TCharArray; aIndex, aCount: Integer);
+var
+  S : String;
+begin
+  if aCount=0 then exit;
+  SetLength(S,aCount);
+  Move(aValue[aIndex],PChar(S)^,aCount*SizeOf(Char));
+  WriteBytes(FEncoding.GetAnsiBytes(S));
+end;
+
+procedure TStreamWriter.WriteLine;
+begin
+  Write(NewLine);
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Boolean);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Char);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(const aValue: TCharArray);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Double);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Integer);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Int64);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: TObject);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Single);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(const aValue: string);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: Cardinal);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(aValue: UInt64);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(const Fmt: string; Args: array of const);
+begin
+  Write(Fmt,Args);
+  WriteLine;
+end;
+
+procedure TStreamWriter.WriteLine(const aValue: TCharArray; aIndex, aCount: Integer
+  );
+begin
+  Write(aValue,aIndex,aCount);
+  WriteLine;
+end;
+
+{ TStringWriter }
+
+constructor TStringWriter.Create;
+begin
+  FBuilder := TStringBuilder.Create;
+  FFreeBuilder := True;
+end;
+
+constructor TStringWriter.Create(aBuilder: TStringBuilder);
+begin
+  FBuilder := TStringBuilder.Create;
+  FFreeBuilder := False;
+end;
+
+destructor TStringWriter.Destroy;
+begin
+  if FFreeBuilder then
+    FreeAndNil(FBuilder);
+  inherited Destroy;
+end;
+
+procedure TStringWriter.Close;
+begin
+  // nothing to do
+end;
+
+procedure TStringWriter.Flush;
+begin
+  // Nothing to do
+end;
+
+procedure TStringWriter.Write(aValue: Boolean);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Char);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Char; aCount: Integer);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(const aValue: TCharArray);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Double);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Integer);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Int64);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: TObject);
+begin
+  FBuilder.Append(aValue.ToString);
+end;
+
+procedure TStringWriter.Write(aValue: Single);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(const aValue: string);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: Cardinal);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(aValue: QWord);
+begin
+  FBuilder.Append(aValue);
+end;
+
+procedure TStringWriter.Write(const aFmt: string; aArgs: array of const);
+begin
+  FBuilder.Append(aFmt,aArgs);
+end;
+
+procedure TStringWriter.Write(const aValue: TCharArray; aIndex, aCount: Integer
+  );
+begin
+  FBuilder.Append(aValue,aIndex,aCount);
+end;
+
+procedure TStringWriter.WriteLine;
+begin
+   FBuilder.AppendLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Boolean);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Char);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(const aValue: TCharArray);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Double);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Integer);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Int64);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: TObject);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Single);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(const aValue: string);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: Cardinal);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(aValue: UInt64);
+begin
+  Write(aValue);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(const aFmt: string; aArgs: array of const);
+begin
+  Write(aFmt,aArgs);
+  WriteLine;
+end;
+
+procedure TStringWriter.WriteLine(const aValue: TCharArray; aIndex,
+  aCount: Integer);
+begin
+  Write(aValue,aIndex,aCount);
+  WriteLine;
+end;
+
+function TStringWriter.ToString: string;
+begin
+  Result:=FBuilder.ToString;
+end;
 
 
 { TBidirBinaryObjectReader }
