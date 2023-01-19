@@ -45,6 +45,9 @@ Type
 {$endif}
 
   // The actual unicode search record
+
+  { TUnicodeSearchRec }
+
   TUnicodeSearchRec = Record
     Time : Longint;
     Size : Int64;
@@ -61,8 +64,12 @@ Type
   private
     function GetTimeStamp: TDateTime;
   public
+    Function IsDirectory : Boolean; inline;
+    function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
   end;
+
+  { TRawbyteSearchRec }
 
   TRawbyteSearchRec = Record
     Time : Longint;
@@ -80,6 +87,8 @@ Type
   private
     function GetTimeStamp: TDateTime;
   public
+    Function IsDirectory : Boolean; inline;
+    function IsCurrentOrParentDir: Boolean; inline;
     property TimeStamp: TDateTime read GetTimeStamp;
   end;
 
