@@ -32,18 +32,18 @@ var argc:longint;
 var
    StackTopPtr : pointer;
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPUARM) or defined(CPUM68K)}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif defined(CPUARM) or defined(CPUM68K)}
 
 implementation
 
 
-{$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$if defined(CPUARM) or defined(CPUM68K)}
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
@@ -61,7 +61,7 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
-{$endif defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
+{$endif defined(CPUARM) or defined(CPUM68K)}
 
 { OS independant parts}
 
