@@ -159,7 +159,7 @@ begin
   softfloat_exception_flags := [];
   currentcw:=GetNativeFPUControlWord;
 {$ifdef aix}
-  currentcw.exceptionmask:=mode;
+  currentcw.exceptionmask:=ExceptionMask and not mode;
 {$else}
   currentcw:=(currentcw or ExceptionMask) and not mode and not ExceptionsPendingMask;
 {$endif}
