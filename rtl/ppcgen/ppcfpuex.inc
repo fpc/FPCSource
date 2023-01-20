@@ -104,15 +104,15 @@ function fpc_get_ppc_fpscr: TNativeFPUControlWord;
 begin
   result.rndmode:=fp_read_rnd;
   result.exceptionmask:=0;
-  if not fp_is_enabled(InvalidOperationMask) then
+  if fp_is_enabled(InvalidOperationMask) then
     result.exceptionmask:=result.exceptionmask or InvalidOperationMask;
-  if not fp_is_enabled(OverflowMask) then
+  if fp_is_enabled(OverflowMask) then
     result.exceptionmask:=result.exceptionmask or OverflowMask;
-  if not fp_is_enabled(UnderflowMask) then
+  if fp_is_enabled(UnderflowMask) then
     result.exceptionmask:=result.exceptionmask or UnderflowMask;
-  if not fp_is_enabled(InvalidOperationMask) then
+  if fp_is_enabled(InvalidOperationMask) then
     result.exceptionmask:=result.exceptionmask or ZeroDivideMask;
-  if not fp_is_enabled(InexactMask) then
+  if fp_is_enabled(InexactMask) then
     result.exceptionmask:=result.exceptionmask or InexactMask;
 end;
 
@@ -124,26 +124,31 @@ begin
   fp_swap_rnd(cw.rndmode);
   enablemask:=0;
   disablemask:=0;
+  { this inverts the "mask" functionality, but that's because it's how the
+    native PPC FPU control register works: the bits that are 1 enable the
+    exceptions, 0 disable them. This makes sure that we can use
+    SetNativeFPUControlWord in the same way regardless of what the underlying
+    implementation is }
   if (cw.exceptionmask and InvalidOperationMask)<>0 then
-    disablemask:=disablemask or InvalidOperationMask
+    enablemask:=enablemask or InvalidOperationMask
   else
-    enablemask:=enablemask or InvalidOperationMask;
+    disablemask:=disablemask or InvalidOperationMask;
   if (cw.exceptionmask and OverflowMask)<>0 then
-    disablemask:=disablemask or OverflowMask
+    enablemask:=enablemask or OverflowMask
   else
-    enablemask:=enablemask or OverflowMask;
+    disablemask:=disablemask or OverflowMask;
   if (cw.exceptionmask and UnderflowMask)<>0 then
-    disablemask:=disablemask or UnderflowMask
+    enablemask:=enablemask or UnderflowMask
   else
-    enablemask:=enablemask or UnderflowMask;
+    disablemask:=disablemask or UnderflowMask;
   if (cw.exceptionmask and ZeroDivideMask)<>0 then
-    disablemask:=disablemask or ZeroDivideMask
+    enablemask:=enablemask or ZeroDivideMask
   else
-    enablemask:=enablemask or ZeroDivideMask;
+    disablemask:=disablemask or ZeroDivideMask;
   if (cw.exceptionmask and InexactMask)<>0 then
-    disablemask:=disablemask or InexactMask
+    enablemask:=enablemask or InexactMask
   else
-    enablemask:=enablemask or InexactMask;
+    disablemask:=disablemask or InexactMask;
   fp_enable(enablemask);
   fp_disable(disablemask);
   DefaultFPUControlWord:=cw;
