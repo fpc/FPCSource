@@ -3984,7 +3984,7 @@ begin
   { external debug info is only supported for DWARF on darwin }
   if (target_info.system in systems_darwin) and
      (cs_link_separate_dbg_file in init_settings.globalswitches) and
-     not(paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) then
+     not(paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       Message(option_debug_external_unsupported);
       exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
