@@ -1086,6 +1086,8 @@ procedure TTestTPath.TestAltDirectorySeparatorChar;
 begin
   {$ifdef Windows}
     AssertEquals('/',TPath.AltDirectorySeparatorChar);
+  {$elseif defined(unix)}
+    AssertEquals('\',TPath.AltDirectorySeparatorChar);
   {$else}
     AssertEquals('/',TPath.AltDirectorySeparatorChar);
   {$endif}

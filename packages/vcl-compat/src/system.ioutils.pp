@@ -388,7 +388,7 @@ class constructor TPath.Create;
 var
   C : Char;
 begin
-  FAltDirectorySeparatorChar:=#0;;
+  FAltDirectorySeparatorChar:=#0;
   For C in AllowDirectorySeparators do
     if (C<>System.DirectorySeparator) and (FAltDirectorySeparatorChar=#0) then
       FAltDirectorySeparatorChar:=C;
