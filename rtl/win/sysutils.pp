@@ -37,6 +37,7 @@ uses
 {$DEFINE HAS_GETTICKCOUNT64}
 {$DEFINE HAS_FILEDATETIME}
 {$DEFINE OS_FILESETDATEBYNAME}
+{$DEFINE HAS_FILEGETDATETIMEINFO}
 
 // this target has an fileflush implementation, don't include dummy
 {$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
@@ -624,6 +625,46 @@ begin
     end;
 end;
 
+function GetFinalPathNameByHandle(aHandle : THandle; Buf : LPSTR; BufSize : DWord; Flags : DWord) : DWORD; external 'kernel32' name 'GetFinalPathNameByHandleA';
+
+Const
+  VOLUME_NAME_NT = $2;
+
+Function FollowSymlink(const aLink: String): String;
+Var
+  Attrs: Cardinal;
+  aHandle: THandle;
+  oFlags: DWord;
+  Buf : Array[0..Max_Path] of AnsiChar;
+  Len : Integer;
+
+begin
+  Result:='';
+  FillChar(Buf,MAX_PATH+1,0);
+  if Not FileExists(aLink,False) then 
+    exit;
+  if not CheckWin32Version(6, 0) then 
+    exit;
+  Attrs:=GetFileAttributes(PChar(aLink));
+  if (Attrs=INVALID_FILE_ATTRIBUTES) or ((Attrs and faSymLink)=0) then
+    exit;
+  oFLags:=0;
+  // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+  if (Attrs and faDirectory)=faDirectory then
+    oFlags:=FILE_FLAG_BACKUP_SEMANTICS;
+  aHandle:=CreateFile(PChar(aLink),GENERIC_READ,FILE_SHARE_READ,nil,OPEN_EXISTING,oFlags,0);
+  if aHandle=INVALID_HANDLE_VALUE then
+    exit;
+  try
+    Len:=GetFinalPathNameByHandle(aHandle,@Buf,MAX_PATH,VOLUME_NAME_NT);
+    If Len<=0 then 
+      exit; 
+    Result:=StrPas(PChar(@Buf));
+  finally
+    CloseHandle(aHandle);
+  end;
+end;
+
 Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
   Name:=Path;
@@ -653,6 +694,31 @@ begin
     Result := GetLastError;
 end;
 
+function FileGetDateTimeInfo(const FileName: string;
+  out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
+var
+  Data: TWin32FindData;
+  FN: string;
+begin
+  Result := False;
+  SetLastError(ERROR_SUCCESS);
+  FN:=FileName;
+  if Not GetFileAttributesEx(PAnsiChar(FileName), GetFileExInfoStandard, @Data) then
+    exit;
+  if ((Data.dwFileAttributes and faSymlink)=faSymlink) then
+    begin
+    if FollowLink then
+      begin
+      FN:=FollowSymlink(FileName);
+      if FN='' then 
+        exit; 
+      if not GetFileAttributesEx(PAnsiChar(FN), GetFileExInfoStandard, @Data) then
+        exit;
+      end;
+    end;     
+  DateTime.Data:=Data;
+  Result:=True;
+end;
 
 
 
