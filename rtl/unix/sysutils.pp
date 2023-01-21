@@ -612,7 +612,7 @@ begin
   flags:=0;
   if Not FollowLink then
     Flags:=AT_SYMLINK_NOFOLLOW;
-  if (statx(AT_FDCWD,PAnsiChar(FN),FLags,STATXMASK, stx)>=0 then
+  if (statx(AT_FDCWD,PAnsiChar(FN),FLags,STATXMASK, stx)>=0) then
     begin
     DateTime.Data:=stx;
     Exit(True);
