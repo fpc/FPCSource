@@ -515,7 +515,9 @@ Const
   S_IFLNK = &120000;
   S_IFSOCK= &140000;
   S_IFWHT = &160000;
-  S_ISVTX =   &1000;
+  S_ISUID = &4000;
+  S_ISGID = &2000;
+  S_ISVTX = &1000;
 
 {
  * Resource limits from FreeBSD5. To be checked for the others.
