@@ -26,7 +26,7 @@ interface
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
 {$endif}
-
+{$DEFINE HAS_FILEGETDATETIMEINFO}
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -49,7 +49,7 @@ interface
 uses
 {$IFDEF LINUX}linux,{$ENDIF}
 {$IFDEF FreeBSD}freebsd,{$ENDIF}
-  Unix,errors,sysconst,Unixtype;
+  baseunix, Unix,errors,sysconst,Unixtype;
 
 {$IF defined(LINUX) or defined(FreeBSD)}
 {$DEFINE HAVECLOCKGETTIME}
@@ -100,7 +100,7 @@ Uses
 {$ifdef android}
   dl,
 {$endif android}
-  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
+  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF},  unixutil;
 
 type
   tsiginfo = record
@@ -592,6 +592,41 @@ begin
   else 
     Result:=info.st_mtime;
 end;
+
+
+function FileGetDateTimeInfo(const FileName: string; out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
+
+var
+  FN : AnsiString;
+  st: tstat;
+{$IFDEF USE_STATX}
+  stx : tstatx;
+  flags : Integer;
+
+const
+  STATXMASK = STATX_MTIME or STATX_ATIME or STATX_CTIME;
+{$ENDIF}
+begin
+  FN:=FileName;
+  {$ifdef USE_STATX}
+  flags:=0;
+  if Not FollowLink then
+    Flags:=AT_SYMLINK_NOFOLLOW;
+  if (statx(AT_FDCWD,PAnsiChar(FN),FLags,STATXMASK, stx)>=0 then
+    begin
+    DateTime.Data:=stx;
+    Exit(True);
+    end;
+  {$else}
+  if (FollowLink and (fpstat(FN,st) = 0)) or
+    (not FollowLink and (fplstat(fn, st) = 0)) then
+  begin
+    DateTime.Data:=st;
+    Result := True;
+  end;
+  {$endif}
+end;
+
 
 
 Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;

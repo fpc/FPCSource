@@ -655,6 +655,7 @@ begin
   InternalFindClose(f.FindHandle{$ifdef SEARCHREC_USEFINDDATA},f.FindData{$endif});
 end;
 
+
 {$if defined(windows) and not defined(win16)}
 function FindDataTimeToDateTime(constref aFileTime: FILETIME; out aResult: TDateTime): Boolean;
 var
@@ -680,6 +681,73 @@ begin
     aResult := SystemTimeToDateTime(st);
 end;
 {$endif}
+
+{ TDateTimeInfoRec }
+
+function TDateTimeInfoRec.GetCreationTime: TDateTime;
+begin
+  {$if defined(windows) and not defined(win16)}
+    FindDataTimeToDateTime(Data.ftCreationTime,Result)
+  {$else}
+    {$ifdef unix}
+      {$ifdef use_statx}
+        Result:=FileDateToDateTime(data.stx_ctime.tv_sec)
+      {$else}
+        Result:=FileDateToDateTime(data.st_ctime)
+      {$endif}
+    {$else}
+      {$IFDEF SEARCHREC_USEFINDDATA}
+        FileDateToDateTime(Data.Time);
+      {$ELSE}
+        Result:=0;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+end;
+
+function TDateTimeInfoRec.GetLastAccessTime: TDateTime;
+begin
+  {$if defined(windows) and not defined(win16)}
+    FindDataTimeToDateTime(Data.ftLastAccessTime,Result)
+  {$else}
+    {$ifdef unix}
+      {$ifdef use_statx}
+        Result:=FileDateToDateTime(data.stx_atime.tv_sec)
+      {$else}
+        Result:=FileDateToDateTime(data.st_atime)
+      {$endif}
+    {$else}
+      {$IFDEF SEARCHREC_USEFINDDATA}
+        FileDateToDateTime(Data.Time);
+      {$ELSE}
+        Result:=0;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+
+end;
+
+function TDateTimeInfoRec.GetTimeStamp: TDateTime;
+begin
+  {$if defined(windows) and not defined(win16)}
+    FindDataTimeToDateTime(Data.ftLastWriteTime,Result)
+  {$else}
+    {$ifdef unix}
+      {$ifdef use_statx}
+        Result:=FileDateToDateTime(data.stx_mtime.tv_sec)
+      {$else}
+        Result:=FileDateToDateTime(data.st_mtime)
+      {$endif}
+    {$else}
+      {$IFDEF SEARCHREC_USEFINDDATA}
+        FileDateToDateTime(Data.Time);
+      {$ELSE}
+        Result:=0;
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF}
+end;
+
 
 { TUnicodeSearchRec }
 
@@ -919,4 +987,23 @@ begin
   Result:=FileNameCasePreserving;
 end;
 {$ENDIF HAS_ISFILENAMECASEPRESERVING}
+
+{$IFNDEF HAS_FILEGETDATETIMEINFO}
+function FileGetDateTimeInfo(const FileName: string;
+  out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
+{$IFDEF SEARCHREC_USEFINDDATA}
+var
+  Info : TSearchRec;
+{$ENDIF}
+begin
+  {$IFDEF SEARCHREC_USEFINDDATA}
+    Result:=FindFirst(FileName,0,Info)=0;
+    if Result then
+      DateTime.data:=Info.Data;
+  {$ELSE}
+    Result:=False;
+  {$ENDIF}
+end;
+{$ENDIF}
+
 
