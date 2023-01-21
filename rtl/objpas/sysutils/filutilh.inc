@@ -46,6 +46,29 @@ Type
 
   // The actual unicode search record
 
+  { TDateTimeInfoRec }
+
+  TDateTimeInfoRec = record
+  private
+{$IFDEF SEARCHREC_USEFINDDATA}
+    Data: TWin32FindData platform;
+{$ENDIF WINDOWS}
+{$IFDEF UNIX}
+  {$ifdef USE_STATX}
+    data : tstatx platform;
+  {$else}
+    data : baseunix.stat platform;
+  {$endif USE_STATX}
+{$ENDIF UNIX}
+
+    function GetCreationTime: TDateTime;
+    function GetLastAccessTime: TDateTime;
+    function GetTimeStamp: TDateTime;
+  public
+    property CreationTime: TDateTime read GetCreationTime;
+    property LastAccessTime: TDateTime read GetLastAccessTime;
+    property TimeStamp: TDateTime read GetTimeStamp;
+  end;
   { TUnicodeSearchRec }
 
   TUnicodeSearchRec = Record
