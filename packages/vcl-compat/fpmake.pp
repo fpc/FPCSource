@@ -38,6 +38,8 @@ begin
 
     T:=P.Targets.AddUnit('system.netencoding.pp');
     T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('system.ioutils.pp');
+    T.ResourceStrings := True;
 
 {$ifndef ALLPACKAGES}
     Run;

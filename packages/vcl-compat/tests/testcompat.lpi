@@ -17,12 +17,11 @@
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
+    <RequiredPackages>
+      <Item>
         <PackageName Value="FCL"/>
-      </Item1>
+      </Item>
     </RequiredPackages>
     <Units>
       <Unit>
@@ -31,6 +30,10 @@
       </Unit>
       <Unit>
         <Filename Value="tcnetencoding.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tciotuils.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -47,16 +50,16 @@
     </SearchPaths>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
-      <Item1>
+    <Exceptions>
+      <Item>
         <Name Value="EAbort"/>
-      </Item1>
-      <Item2>
+      </Item>
+      <Item>
         <Name Value="ECodetoolError"/>
-      </Item2>
-      <Item3>
+      </Item>
+      <Item>
         <Name Value="EFOpenError"/>
-      </Item3>
+      </Item>
     </Exceptions>
   </Debugging>
 </CONFIG>
