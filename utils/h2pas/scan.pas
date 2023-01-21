@@ -634,6 +634,11 @@ begin
   7:
                         if NotInCPlusBlock then
                         begin
+                           if yytext[1]='0' then
+                             begin
+                                delete(yytext,1,1);
+                                yytext:='&'+yytext;
+                             end;
                            while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
                            return(NUMBER);
