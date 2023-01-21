@@ -705,16 +705,37 @@ begin
 
 end;
 
-(*  We assume Standard values for linux/
-XDG_DESKTOP_DIR="$HOME/Desktop"
-XDG_DOWNLOAD_DIR="$HOME/Downloads"
-XDG_TEMPLATES_DIR="$HOME/Templates"
-XDG_PUBLICSHARE_DIR="$HOME/Public"
-XDG_DOCUMENTS_DIR="$HOME/Documents"
-XDG_MUSIC_DIR="$HOME/Music"
-XDG_PICTURES_DIR="$HOME/Pictures"
-XDG_VIDEOS_DIR="$HOME/Videos"
-*)
+{$IFDEF UNIX}
+//Names : array[TSpecialDir] of string
+//      = ('DESKTOP', 'DOCUMENTS', 'DOWNLOAD',  'MUSIC', 'PICTURES', 'PUBLICSHARE', 'TEMPLATES', 'VIDEOS');
+
+
+function UnixSpecialDir(const AType: String): string;
+
+var
+  cfg,varname: string;
+  L: TStringList;
+begin
+  Result := '';
+  // XDG variable name
+  varName:=Format('XDG_%s_DIR',[UpperCase(AType)]);
+  Cfg:=GetEnvironmentVariable('XDG_CONFIG_HOME');
+  if (Cfg='') then
+    Cfg:=GetUserDir+'.config/user-dirs.dirs'
+  else
+    CFG:=CFG+'user-dirs.dirs';
+  if not FileExists(Cfg) then
+    Exit;
+  L:=TStringList.Create;
+  try
+    L.LoadFromFile(Cfg);
+    Result:=AnsiDequotedStr(L.Values[VarName],'"');
+  finally
+    FreeAndNil(L);
+  end;
+  Result:=StringReplace(Result,'$HOME', ExcludeTrailingPathDelimiter(GetUserDir), [rfIgnoreCase]);
+end;
+{$ENDIF}
 
 procedure TTestTPath.TestGetDocumentsPath;
 
@@ -724,7 +745,7 @@ Var
 begin
   FN:=TPath.GetDocumentsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Documents',FN);
+  AssertEquals(UnixSpecialDir('Documents'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_PERSONAL),FN);
@@ -742,7 +763,7 @@ Var
 begin
   FN:=TPath.GetSharedDocumentsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_DOCUMENTS),FN);
@@ -797,7 +818,7 @@ Var
 begin
   FN:=TPath.GetPublicPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_APPDATA),FN);
@@ -815,7 +836,7 @@ Var
 begin
   FN:=TPath.GetPicturesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Pictures',FN);
+  AssertEquals(UnixSpecialDir('Pictures'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYPICTURES),FN);
@@ -833,7 +854,7 @@ Var
 begin
   FN:=TPath.GetSharedPicturesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_PICTURES),FN);
@@ -851,7 +872,7 @@ Var
 begin
   FN:=TPath.GetPicturesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Pictures',FN);
+  AssertEquals(UnixSpecialDir('Pictures'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYPICTURES),FN);
@@ -868,7 +889,7 @@ Var
 begin
   FN:=TPath.GetSharedCameraPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_PICTURES),FN);
@@ -887,7 +908,7 @@ Var
 begin
   FN:=TPath.GetMusicPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Music',FN);
+  AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
@@ -905,7 +926,7 @@ Var
 begin
   FN:=TPath.GetSharedMusicPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
@@ -922,7 +943,7 @@ Var
 begin
   FN:=TPath.GetMoviesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Videos',FN);
+  AssertEquals(UnixSpecialDir('Videos'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYVIDEO),FN);
@@ -941,7 +962,7 @@ Var
 begin
   FN:=TPath.GetSharedMoviesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_VIDEO),FN);
@@ -959,7 +980,7 @@ Var
 begin
   FN:=TPath.GetAlarmsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Music',FN);
+  AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
@@ -976,7 +997,7 @@ Var
 begin
   FN:=TPath.GetSharedAlarmsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
@@ -994,7 +1015,7 @@ Var
 begin
   FN:=TPath.GetDownloadsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Downloads',FN);
+  AssertEquals(UnixSpecialDir('Download'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
@@ -1012,7 +1033,7 @@ Var
 begin
   FN:=TPath.GetSharedDownloadsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_APPDATA),FN);
@@ -1029,7 +1050,7 @@ Var
 begin
   FN:=TPath.GetAlarmsPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Music',FN);
+  AssertEquals(UnixSpecialDir('Music'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_MYMUSIC),FN);
@@ -1046,7 +1067,7 @@ Var
 begin
   FN:=TPath.GetSharedRingtonesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Public',FN);
+  AssertEquals(UnixSpecialDir('PublicShare'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_COMMON_MUSIC),FN);
@@ -1063,7 +1084,7 @@ Var
 begin
   FN:=TPath.GetTemplatesPath;
 {$IFDEF UNIX}
-  AssertEquals(GetUserDir+'Templates',FN);
+  AssertEquals(UnixSpecialDir('Templates'),FN);
 {$ELSE}
 {$IFDEF WINDOWS}
   AssertEquals(GetSpecialDir(CSIDL_PERSONAL),FN);
@@ -1164,7 +1185,7 @@ begin
   {$elseif defined(unix)}
     AssertEquals('\',TPath.AltDirectorySeparatorChar);
   {$else}
-    AssertEquals('/',TPath.AltDirectorySeparatorChar);
+    AssertEquals('\',TPath.AltDirectorySeparatorChar);
   {$endif}
 end;
 
