@@ -1,11 +1,11 @@
 unit System.IOUtils;
-{ 
+{
    This file is part of the Free Pascal run time library.
     Copyright (c) 2022 the Free Pascal development team
 
    FPC/Lazarus Replacement for IOUtils from Delphi 10.4
    Initially written 2022 by Dirk Jansen, completed by Michael Van Canneyt
- 
+
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
@@ -44,12 +44,17 @@ type
                       faReparsePoint, faCompressed, faOffline,
                       faNotContentIndexed, faEncrypted, faSymLink) ;
   {$ELSE}
-    TFileAttribute = (faNamedPipe, faCharacterDevice, faDirectory, faBlockDevice,
-                      faNormal, faSymLink, faSocket, faWhiteout,
-                      faOwnerRead, faOwnerWrite, faOwnerExecute,
-                      faGroupRead, faGroupWrite, faGroupExecute,
-                      faOthersRead, faOthersWrite, faOthersExecute,
-                      faUserIDExecution, faGroupIDExecution, faStickyBit);
+    {$IFDEF UNIX}
+      TFileAttribute = (faNamedPipe, faCharacterDevice, faDirectory, faBlockDevice,
+                        faNormal, faSymLink, faSocket, faWhiteout,
+                        faOwnerRead, faOwnerWrite, faOwnerExecute,
+                        faGroupRead, faGroupWrite, faGroupExecute,
+                        faOthersRead, faOthersWrite, faOthersExecute,
+                        faUserIDExecution, faGroupIDExecution, faStickyBit);
+    {$ELSE}
+      TFileAttribute = (faReadOnly, faHidden, faSystem, faDirectory, faArchive,
+                        faNormal, faSymLink);
+    {$ENDIF}
   {$ENDIF}
 
   TFileAttributes = set of TFileAttribute;
@@ -395,8 +400,15 @@ begin
   FExtensionSeparatorChar   := System.ExtensionSeparator;
   FDirectorySeparatorChar   := System.DirectorySeparator;
   FPathSeparator            := System.PathSeparator;
+
   if Length(DriveSeparator)>0 then
+  begin
+    {$ifdef UNIX}
     FVolumeSeparatorChar     := DriveSeparator[1]
+    {$else}
+    FVolumeSeparatorChar     := DriveSeparator
+    {$endif}
+  end
   else
     FVolumeSeparatorChar    :=#0;
 end;
@@ -980,6 +992,22 @@ begin
 end;
 {$ENDIF MSWINDOWS}
 
+{$IFDEF HASAMIGA}
+class function TPath.IntGetPathRoot(const aPath: string): string;
+begin
+  if Pos(DriveSeparator, aPath) > 0 then
+    Result := Copy(aPath, 1, Pos(DriveSeparator, aPath))
+  else
+    Result := '';
+end;
+{$ENDIF}
+
+{$IF NOT DEFINED(WINDOWS) AND NOT DEFINED(UNIX) AND NOT DEFINED(HASAMIGA)}
+class function TPath.IntGetPathRoot(const aPath: string): string;
+begin
+  Result:='';
+end;
+{$ENDIF}
 
 
 class function TPath.GetRandomFileName: string;
@@ -1365,11 +1393,13 @@ end;
 
 class procedure TFile.GetFileTimestamps(const aFilename: TFileName;
   var CreateUTC, WriteUTC, AccessUTC: TDateTime);
-var
   {$IfDef MSWINDOWS}
+  var
     Info:    TWin32FileAttributeData;
     DosTime: DWORD;
-  {$Else}
+  {$endif}
+  {$ifdef UNIX}
+  var
     Info: stat;
   {$EndIf}
 begin
@@ -1385,12 +1415,22 @@ begin
     FileTimeToDosDateTime(info.ftLastAccessTime, LongRec(DosTime).Hi, LongRec(DosTime).Lo);
     AccessUTC:=FileDateToDateTime(DosTime);
   {$Else}
-   Info:=Default(Stat);
-   if fpstat(aFileName, info) <> 0 then
-      raise EInOutError.CreateFmt(errStatFailed, [aFileName, fpgeterrno]);
-    CreateUTC:=UnixToDateTime(info.st_ctime, True);
-    WriteUTC :=UnixToDateTime(info.st_mtime, True);
-    AccessUTC:=UnixToDateTime(info.st_atime, True);
+    {$ifdef UNIX}
+     Info:=Default(Stat);
+     if fpstat(aFileName, info) <> 0 then
+        raise EInOutError.CreateFmt(errStatFailed, [aFileName, fpgeterrno]);
+      CreateUTC:=UnixToDateTime(info.st_ctime, True);
+      WriteUTC :=UnixToDateTime(info.st_mtime, True);
+      AccessUTC:=UnixToDateTime(info.st_atime, True);
+    {$else}
+    if FileAge(aFilename, CreateUTC) then
+    begin
+      WriteUTC := CreateUTC;
+      AccessUTC := CreateUTC;
+    end
+    else
+      raise EInOutError.CreateFmt(SErrFileNotFound, [aFileName]);
+    {$endif}
   {$EndIf}
 end;
 
