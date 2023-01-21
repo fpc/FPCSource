@@ -385,16 +385,20 @@ begin
 { TPath }
 
 class constructor TPath.Create;
+var
+  C : Char;
 begin
-  FAltDirectorySeparatorChar:='/';
-  FExtensionSeparatorChar   :=system.ExtensionSeparator;
-  FDirectorySeparatorChar   :=system.DirectorySeparator;
-  FPathSeparator            :=system.PathSeparator;
-  {$IfDef MSWINDOWS}
-    FVolumeSeparatorChar    :=':';
-  {$Else}
+  FAltDirectorySeparatorChar:=#0;;
+  For C in AllowDirectorySeparators do
+    if (C<>System.DirectorySeparator) and (FAltDirectorySeparatorChar=#0) then
+      FAltDirectorySeparatorChar:=C;
+  FExtensionSeparatorChar   := System.ExtensionSeparator;
+  FDirectorySeparatorChar   := System.DirectorySeparator;
+  FPathSeparator            := System.PathSeparator;
+  if Length(DriveSeparator)>0 then
+    FVolumeSeparatorChar     := DriveSeparator[1]
+  else
     FVolumeSeparatorChar    :=#0;
-  {$EndIf}
 end;
 
 class function TPath.IsValidPathChar(const AChar: Char): Boolean;
