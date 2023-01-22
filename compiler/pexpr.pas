@@ -2184,7 +2184,7 @@ implementation
              begin
                consume(_CARET);
 
-               { support tp/mac procvar^ if the procvar returns a
+               { support in tp/mac procvar mode procvar^ if the procvar returns a
                  pointer type }
                if ((m_tp_procvar in current_settings.modeswitches) or
                    (m_mac_procvar in current_settings.modeswitches)) and
@@ -2230,6 +2230,17 @@ implementation
 
           _LECKKLAMMER:
              begin
+               { support in tp/mac procvar mode procvar[] if the procvar returns an
+                 array type }
+               if ((m_tp_procvar in current_settings.modeswitches) or
+                   (m_mac_procvar in current_settings.modeswitches)) and
+                  (p1.resultdef.typ=procvardef) and
+                  (tprocvardef(p1.resultdef).returndef.typ=arraydef) then
+                 begin
+                   p1:=ccallnode.create_procvar(nil,p1);
+                   typecheckpass(p1);
+                 end;
+
                if is_class_or_interface_or_object(p1.resultdef) or
                   is_dispinterface(p1.resultdef) or
                   is_record(p1.resultdef) or
