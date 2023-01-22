@@ -1100,6 +1100,12 @@ implementation
                       begin
                         result:=right.getcopy;
                         exit;
+                      end
+                    else if (trealconstnode(left).value_real=2) and (nodetype=muln) and not(might_have_sideeffects(right,[mhs_exceptions])) and
+                      (node_complexity(right)<=1) then
+                      begin
+                        result:=caddnode.create_internal(addn,right.getcopy,right.getcopy);
+                        exit;
                       end;
                   end
                 else if rt=realconstn then
@@ -1126,6 +1132,12 @@ implementation
                     else if (trealconstnode(right).value_real=1) and (nodetype in [muln,slashn]) then
                       begin
                         result:=left.getcopy;
+                        exit;
+                      end
+                    else if (trealconstnode(right).value_real=2) and (nodetype=muln) and not(might_have_sideeffects(left,[mhs_exceptions])) and
+                      (node_complexity(left)<=1) then
+                      begin
+                        result:=caddnode.create_internal(addn,left.getcopy,left.getcopy);
                         exit;
                       end;
                   end
