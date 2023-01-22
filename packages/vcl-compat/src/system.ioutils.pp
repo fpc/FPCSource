@@ -38,23 +38,22 @@ type
                       fmTruncate, fmAppend);
   TFileAccess      = (faRead, faWrite, faReadWrite);
   TFileShare       = (fsNone, fsRead, fsWrite, fsReadWrite);
-  {$IFDEF WINDOWS}
+  {$IF DEFINED(WINDOWS)}
     TFileAttribute = (faReadOnly, faHidden, faSystem, faDirectory, faArchive,
                       faDevice, faNormal, faTemporary, faSparseFile,
                       faReparsePoint, faCompressed, faOffline,
                       faNotContentIndexed, faEncrypted, faSymLink) ;
+  {$ELSEIF DEFINED(UNIX)}
+    TFileAttribute = (faNamedPipe, faCharacterDevice, faDirectory, faBlockDevice,
+                      faNormal, faSymLink, faSocket, faWhiteout,
+                      faOwnerRead, faOwnerWrite, faOwnerExecute,
+                      faGroupRead, faGroupWrite, faGroupExecute,
+                      faOthersRead, faOthersWrite, faOthersExecute,
+                      faUserIDExecution, faGroupIDExecution, faStickyBit);
   {$ELSE}
-    {$IFDEF UNIX}
-      TFileAttribute = (faNamedPipe, faCharacterDevice, faDirectory, faBlockDevice,
-                        faNormal, faSymLink, faSocket, faWhiteout,
-                        faOwnerRead, faOwnerWrite, faOwnerExecute,
-                        faGroupRead, faGroupWrite, faGroupExecute,
-                        faOthersRead, faOthersWrite, faOthersExecute,
-                        faUserIDExecution, faGroupIDExecution, faStickyBit);
-    {$ELSE}
-      TFileAttribute = (faReadOnly, faHidden, faSystem, faDirectory, faArchive,
-                        faNormal, faSymLink);
-    {$ENDIF}
+    TFileAttribute = (faReadOnly, faHidden, faSystem, faDirectory, faArchive,
+                      faNormal, faSymLink);
+
   {$ENDIF}
 
   TFileAttributes = set of TFileAttribute;
@@ -934,7 +933,7 @@ begin
   Result:=IntGetPathRoot(aPath);
 end;
 
-{$IFDEF Unix}
+{$IF DEFINED(Unix)}
 class function TPath.IntGetPathRoot(const aPath: string): string;
 
 begin
@@ -943,9 +942,7 @@ begin
   else
     Result:='';
 end;
-{$ENDIF POSIX}
-
-{$IFDEF WINDOWS}
+{$ELSEIF DEFINED(WINDOWS)}
 class function TPath.IntGetPathRoot(const aPath: string): string;
 
 var
@@ -990,9 +987,7 @@ begin
   if NeedSeparator then
     Result:=Result+PathDelim;
 end;
-{$ENDIF MSWINDOWS}
-
-{$IFDEF HASAMIGA}
+{$ELSEIF DEFINED(HASAMIGA)}
 class function TPath.IntGetPathRoot(const aPath: string): string;
 begin
   if Pos(DriveSeparator, aPath) > 0 then
@@ -1000,9 +995,7 @@ begin
   else
     Result := '';
 end;
-{$ENDIF}
-
-{$IF NOT DEFINED(WINDOWS) AND NOT DEFINED(UNIX) AND NOT DEFINED(HASAMIGA)}
+{$ELSE}
 class function TPath.IntGetPathRoot(const aPath: string): string;
 begin
   Result:='';
@@ -1403,8 +1396,7 @@ class procedure TFile.GetFileTimestamps(const aFilename: TFileName;
     Info: stat;
   {$EndIf}
 begin
-
-  {$IfDef MSWINDOWS}
+  {$If Defined(MSWINDOWS)}
     if not GetFileAttributesEx(PChar(aFileName), GetFileExInfoStandard, @info) then
       RaiseLastOSError;
     DosTime:=0;
@@ -1414,15 +1406,14 @@ begin
     WriteUTC :=FileDateToDateTime(DosTime);
     FileTimeToDosDateTime(info.ftLastAccessTime, LongRec(DosTime).Hi, LongRec(DosTime).Lo);
     AccessUTC:=FileDateToDateTime(DosTime);
+  {$ElseIf Defined(UNIX)}
+    Info:=Default(Stat);
+    if fpstat(aFileName, info) <> 0 then
+      raise EInOutError.CreateFmt(errStatFailed, [aFileName, fpgeterrno]);
+    CreateUTC:=UnixToDateTime(info.st_ctime, True);
+    WriteUTC :=UnixToDateTime(info.st_mtime, True);
+    AccessUTC:=UnixToDateTime(info.st_atime, True);
   {$Else}
-    {$ifdef UNIX}
-     Info:=Default(Stat);
-     if fpstat(aFileName, info) <> 0 then
-        raise EInOutError.CreateFmt(errStatFailed, [aFileName, fpgeterrno]);
-      CreateUTC:=UnixToDateTime(info.st_ctime, True);
-      WriteUTC :=UnixToDateTime(info.st_mtime, True);
-      AccessUTC:=UnixToDateTime(info.st_atime, True);
-    {$else}
     if FileAge(aFilename, CreateUTC) then
     begin
       WriteUTC := CreateUTC;
@@ -1430,7 +1421,6 @@ begin
     end
     else
       raise EInOutError.CreateFmt(SErrFileNotFound, [aFileName]);
-    {$endif}
   {$EndIf}
 end;
 
@@ -1442,25 +1432,23 @@ class function TFile.IntegerToFileAttributes(const Attributes: Integer
       FileAttribs:=FileAttribs + [FileAttrib];
   end;
 begin
-  {$IFDEF UNIX}
-  // Assume full mode
-  Result:=ModeToFileAttributes(Attributes);
-  {$ELSE}
-    {$IFDEF WINDOWS}
-      // Assume all flags
-      Result:=FlagsToFileAttributes(Attributes);
-    {$ELSE}
-      { Attributes supported by TSearchRec}
-      Result:=[];
-      AddIfSet(Result, SysUtils.faDirectory,         TFileAttribute.faDirectory);
-      AddIfSet(Result, SysUtils.faSymLink{%H-},      TFileAttribute.faSymLink);
-      AddIfSet(Result, SysUtils.faNormal,            TFileAttribute.faNormal);
-      AddIfSet(Result, SysUtils.faDirectory,  TFileAttribute.faDirectory);
-      AddIfSet(Result, SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
-      AddIfSet(Result, SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
-      AddIfSet(Result, SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
-      AddIfSet(Result, SysUtils.faArchive,    TFileAttribute.faArchive);
-     {$EndIf}
+  {$If Defined(UNIX)}
+    // Assume full mode
+    Result:=ModeToFileAttributes(Attributes);
+  {$ElseIf Defined(WINDOWS)}
+    // Assume all flags
+    Result:=FlagsToFileAttributes(Attributes);
+  {$Else}
+    { Attributes supported by TSearchRec}
+    Result:=[];
+    AddIfSet(Result, SysUtils.faDirectory,         TFileAttribute.faDirectory);
+    AddIfSet(Result, SysUtils.faSymLink{%H-},      TFileAttribute.faSymLink);
+    AddIfSet(Result, SysUtils.faNormal,            TFileAttribute.faNormal);
+    AddIfSet(Result, SysUtils.faDirectory,  TFileAttribute.faDirectory);
+    AddIfSet(Result, SysUtils.faSymLink{%H-},    TFileAttribute.faSymLink);
+    AddIfSet(Result, SysUtils.faHidden{%H-},     TFileAttribute.faHidden);
+    AddIfSet(Result, SysUtils.faSysFile{%H-},    TFileAttribute.faSystem);
+    AddIfSet(Result, SysUtils.faArchive,    TFileAttribute.faArchive);
   {$EndIf}
 end;
 
