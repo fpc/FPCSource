@@ -1408,7 +1408,7 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-      fpexecv(pchar(pointer(LPath)),Cmdline2);
+      fpexecve(pchar(pointer(LPath)),Cmdline2,envp);
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
