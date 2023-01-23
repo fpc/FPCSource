@@ -948,27 +948,24 @@ end;
 {$ifndef FPC_HAS_POS_SHORTSTR_ANSISTR}
 {$define FPC_HAS_POS_SHORTSTR_ANSISTR}
 Function Pos(Const Substr : ShortString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
-
 var
-  i,MaxLen : SizeInt;
-  pc : PAnsiChar;
+  i,MaxLen,nsource,nsub,d : SizeInt;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
+  nsource:=Length(Source);
+  nsub:=Length(Substr);
+  if (nsub>0) and (Offset>0) and (Offset<=nsource) then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
-     i:=Offset-1;
-     pc:=@source[Offset];
+     MaxLen:=nsource-nsub+1;
+     i:=Offset;
      while (i<=MaxLen) do
       begin
-        inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
-         begin
-           Pos:=i;
-           exit;
-         end;
-        inc(pc);
+        d:=IndexByte(Source[i],MaxLen-i+1,byte(Substr[1]));
+        if d<0 then
+          exit;
+        if CompareByte(Substr[1],Source[i+d],nsub)=0 then
+          exit(i+d);
+        i:=i+d+1;
       end;
    end;
 end;
@@ -979,25 +976,23 @@ end;
 {$define FPC_HAS_POS_ANSISTR_ANSISTR}
 Function Pos(Const Substr : RawByteString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
-  i,MaxLen : SizeInt;
-  pc : PAnsiChar;
+  i,MaxLen,nsource,nsub,d : SizeInt;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
+  nsource:=Length(Source);
+  nsub:=Length(Substr);
+  if (nsub>0) and (Offset>0) and (Offset<=nsource) then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
-     i:=Offset-1;
-     pc:=@source[Offset];
+     MaxLen:=nsource-nsub+1;
+     i:=Offset;
      while (i<=MaxLen) do
       begin
-        inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
-         begin
-           Pos:=i;
-           exit;
-         end;
-        inc(pc);
+        d:=IndexByte(Source[i],MaxLen-i+1,byte(Substr[1]));
+        if d<0 then
+          exit;
+        if CompareByte(Substr[1],Source[i+d],nsub)=0 then
+          exit(i+d);
+        i:=i+d+1;
       end;
    end;
 end;
@@ -1012,23 +1007,16 @@ end;
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
-  i: SizeInt;
-  pc : PAnsiChar;
+  ns,idx: SizeInt;
 begin
-  Pos:=0;
-  If (Offset<1) or (Offset>Length(S)) then 
-    exit;
-  pc:=@s[OffSet];
-  for i:=Offset to length(s) do
-   begin
-     if pc^=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
   pos:=0;
+  ns:=length(s);
+  if (Offset>0) and (Offset<=ns) then
+  begin
+    idx:=IndexByte(s[Offset],ns-Offset+1,byte(c));
+    if idx>=0 then
+      pos:=Offset+idx;
+  end;
 end;
 {$endif FPC_HAS_POS_ANSICHAR_ANSISTR}
 
