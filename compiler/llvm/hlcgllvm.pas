@@ -1687,6 +1687,11 @@ implementation
       implicitpointer: boolean;
     begin
       implicitpointer:=is_implicit_pointer_object_type(recdef);
+      (*
+         This doesn't work with the way anonymous functions migrate symbols,
+         TBD on how to fix it or whether to permanently disable it (even if it's
+         the clean way to do it at the IR level)
+
       currentstructdef:=recdef;
       { in case the field is part of a parent of the current object,
         index into the parents until we're at the parent containing the
@@ -1713,6 +1718,12 @@ implementation
           { go to the parent }
           currentstructdef:=parentdef;
         end;
+      *)
+      currentstructdef:=tdef(field.owner.defowner);
+      if implicitpointer then
+        g_ptrtypecast_ref(list,recdef,currentstructdef,recref)
+      else
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(recdef),cpointerdef.getreusable(currentstructdef),recref);
       { get the corresponding field in the llvm shadow symtable }
       llvmfield:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field];
       if implicitpointer then
