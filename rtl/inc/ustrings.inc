@@ -1187,25 +1187,23 @@ end;
 {$define FPC_HAS_POS_UNICODESTR_UNICODESTR}
 Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
-  i,MaxLen : SizeInt;
-  pc : punicodechar;
+  i,MaxLen,nsource,nsub,d : SizeInt;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
+  nsource:=Length(Source);
+  nsub:=Length(Substr);
+  if (nsub>0) and (Offset>0) and (Offset<=nsource) then
    begin
-     MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
-     i:=0;
-     pc:=@source[OffSet];
+     MaxLen:=nsource-nsub+1;
+     i:=Offset;
      while (i<=MaxLen) do
       begin
-        inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
-         begin
-           Pos:=Offset+i-1;
-           exit;
-         end;
-        inc(pc);
+        d:=IndexWord(Source[i],MaxLen-i+1,word(Substr[1]));
+        if d<0 then
+          exit;
+        if CompareWord(Substr[1],Source[i+d],nsub)=0 then
+          exit(i+d);
+        i:=i+d+1;
       end;
    end;
 end;
@@ -1217,23 +1215,16 @@ end;
 { Faster version for a unicodechar alone }
 Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
-  i: SizeInt;
-  pc : punicodechar;
+  ns,idx: SizeInt;
 begin
-  if (Offset>0) and (Offset<=length(s)) then
-   begin
-     pc:=@s[OffSet];
-     for i:=OffSet to length(s) do
-       begin
-         if pc^=c then
-           begin
-             pos:=i;
-             exit;
-           end;
-         inc(pc);
-       end;
-   end;
   pos:=0;
+  ns:=length(s);
+  if (Offset>0) and (Offset<=ns) then
+  begin
+    idx:=IndexWord(s[Offset],ns-Offset+1,word(c));
+    if idx>=0 then
+      pos:=Offset+idx;
+  end;
 end;
 {$endif FPC_HAS_POS_UNICODECHAR_UNICODESTR}
 
@@ -1274,25 +1265,16 @@ end;
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos (c : Char; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
-  i: SizeInt;
-  wc : unicodechar;
-  pc : punicodechar;
+  ns,idx: SizeInt;
 begin
-  if (Offset>0) and (Offset<=Length(S)) then
-    begin
-      wc:=c;
-      pc:=@s[OffSet];
-      for i:=OffSet to length(s) do
-       begin
-         if pc^=wc then
-          begin
-            pos:=i;
-            exit;
-          end;
-         inc(pc);
-       end;
-    end;
   pos:=0;
+  ns:=length(s);
+  if (Offset>0) and (Offset<=ns) then
+  begin
+    idx:=IndexWord(s[Offset],ns-Offset+1,word(unicodechar(c)));
+    if idx>=0 then
+      pos:=Offset+idx;
+  end;
 end;
 {$endif FPC_HAS_POS_CHAR_UNICODESTR}
 
