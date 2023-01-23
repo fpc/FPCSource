@@ -167,6 +167,7 @@ begin
   F:=TFileStream.Create(AFileName,fmOpenread or fmShareDenyWrite);
   try
     FFileName := '';
+    Doc.Free;
     ReadXMLFile(Doc, AFilename);
     FFileName:=AFileName;
   finally
@@ -176,6 +177,7 @@ end;
 
 procedure TXMLConfig.LoadFromStream(S: TStream);
 begin
+  Doc.Free;
   ReadXMLFile(Doc,S);
   FModified := False;
   if (Doc.DocumentElement.NodeName<>FRootName) then
