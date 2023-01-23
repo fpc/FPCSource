@@ -55,8 +55,8 @@ Type
   TDateTimeInfoRec = record
   private
 {$IFDEF SEARCHREC_USEFINDDATA}
-    Data: TWin32FindData platform;
-{$ENDIF WINDOWS}
+    Data: TFindData platform;
+{$ENDIF }
 {$IFDEF UNIX}
   {$ifdef USE_STATX}
     data : tstatx platform;
