@@ -697,13 +697,13 @@ end;
 function FileGetDateTimeInfo(const FileName: string;
   out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
 var
-  Data: TWin32FindData;
-  FN: string;
+  Data: TWin32FindDataW;
+  FN: unicodestring;
 begin
   Result := False;
   SetLastError(ERROR_SUCCESS);
   FN:=FileName;
-  if Not GetFileAttributesEx(PAnsiChar(FileName), GetFileExInfoStandard, @Data) then
+  if Not GetFileAttributesExW(PWideChar(FileName), GetFileExInfoStandard, @Data) then
     exit;
   if ((Data.dwFileAttributes and faSymlink)=faSymlink) then
     begin
@@ -712,7 +712,7 @@ begin
       FN:=FollowSymlink(FileName);
       if FN='' then 
         exit; 
-      if not GetFileAttributesEx(PAnsiChar(FN), GetFileExInfoStandard, @Data) then
+      if not GetFileAttributesExW(PWideChar(FN), GetFileExInfoStandard, @Data) then
         exit;
       end;
     end;     
