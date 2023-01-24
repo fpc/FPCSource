@@ -43,12 +43,20 @@ Type
     Property WorkingWebModuleCount;
   end;
 
+Function Application : TCustomApacheApplication;
+
 Implementation
+
+Function Application : TCustomApacheApplication;
+
+begin
+  Result:=CustApache.Application;
+end;
 
 Procedure InitApache;
 
 begin
-  Application:=TApacheApplication.Create(Nil);
+  custapache.Application:=TApacheApplication.Create(Nil);
   if not assigned(CustomApplication) then
     CustomApplication := Application;
 end;
@@ -57,9 +65,9 @@ Procedure DoneApache;
 
 begin
   Try
-    if CustomApplication=Application then
+    if CustomApplication=CustApache.Application then
       CustomApplication := nil;
-    FreeAndNil(Application);
+    FreeAndNil(CustApache.Application);
   except
     if ShowCleanUpErrors then
       Raise;

@@ -1,14 +1,18 @@
 program httppostfile;
 
+
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef unix}
+  cwstring,
+  {$endif}
   SysUtils, Classes, fphttpclient, opensslsockets;
 
 Var
   F : TFileStream;
   Vars : TStrings;
-  i : integer;
+
 begin
   With TFPHTTPClient.Create(Nil) do
     begin

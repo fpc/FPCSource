@@ -2352,7 +2352,7 @@ begin
   // Check & discard basepath parts of the URL
   Path:=aRequest.GetNextPathInfo;
   Full:=BasePath;
-  BasePaths:=Full.Split('/',TStringSplitOptions.ExcludeEmpty);
+  BasePaths:=Full.Split(RTLString('/'),TStringSplitOptions.ExcludeEmpty);
   I:=0;
   While (I<Length(BasePaths)) and SameText(Path,BasePaths[i]) do
     begin

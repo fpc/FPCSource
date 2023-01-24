@@ -1078,10 +1078,10 @@ procedure TFPHTTPConnection.ReadRequestContent(
 
 Var
   P,L,R : integer;
-  S : String;
+  S : TBytes;
 
 begin
-  S:='';
+  S:=[];
   L:=ARequest.ContentLength;
   If (L>0) then
     begin
@@ -1091,11 +1091,10 @@ begin
       begin
       if P>L then
         P:=L;
-      Move(FBuffer[1],S[1],P);
+      Move(FBuffer[1],S[0],P);
       FBuffer:='';
       L:=L-P;
       end;
-    P:=P+1;
     R:=1;
     While (L>0) and (R>0) do
       begin
@@ -1109,7 +1108,7 @@ begin
         end;
       end;  
     end;
-  ARequest.InitContent(S);
+  ARequest.ContentBytes:=S;
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
