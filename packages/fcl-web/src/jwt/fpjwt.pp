@@ -609,7 +609,7 @@ Var
   PL : PPropList;
   I,VI,Count : Integer;
   VF : Double;
-  C : Char;
+  C : AnsiChar;
   CW : WideChar;
   I64 : Int64;
   W : UnicodeString;
@@ -631,7 +631,7 @@ begin
             end;
           tkChar :
             begin
-            C:=Char(GetOrdProp(Self,P));
+            C:=AnsiChar(GetOrdProp(Self,P));
             if All or (C<>#0) then
               if C=#0 then
                 JSON.Add(p^.Name,'')
