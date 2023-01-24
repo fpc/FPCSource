@@ -16,7 +16,7 @@
 {$h+}
 
 { $DEFINE USEGNUTLS}
-{ $DEFINE USEMICROHTTP}
+{$DEFINE USEMICROHTTP}
 
 program simpleserver;
 
@@ -25,9 +25,10 @@ program simpleserver;
 {$ENDIF}
 
 uses
-
-
-
+{$IFDEF UNIX}
+  cwstring,
+  cthreads,
+{$ENDIF}
 {$IFNDEF USEMICROHTTP}
 {$ifdef USEGNUTLS}
   gnutlssockets,
@@ -36,9 +37,6 @@ uses
 {$endif}
   custhttpapp,
 {$ELSE}
-{$ifdef unix}
-  cthreads,
-{$endif}  
   custmicrohttpapp,
 {$ENDIF}
   {$ifdef unix}
