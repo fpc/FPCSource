@@ -8,6 +8,12 @@ object FPWebModule1: TFPWebModule1
       Template.AllowTagParams = False
     end>
   CreateSession = False
+  CORS.Enabled = False
+  CORS.Options = [coAllowCredentials, coEmptyDomainToOrigin]
+  CORS.AllowedMethods = 'GET, PUT, POST, OPTIONS, HEAD'
+  CORS.AllowedOrigins = '*'
+  CORS.AllowedHeaders = 'x-requested-with, content-type, authorization'
+  CORS.MaxAge = 0
   Height = 300
   HorizontalOffset = 290
   VerticalOffset = 149
