@@ -2134,11 +2134,13 @@ type
                                   begin
                                     result.free;
                                     result:=texprvalue.create_const(tconstsym(srsym));
+                                    tconstsym(srsym).IncRefCount;
                                   end;
                                 enumsym:
                                   begin
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
+//                                    tconstsym(srsym).IncRefCount;
                                   end;
                                 else
                                   ;
