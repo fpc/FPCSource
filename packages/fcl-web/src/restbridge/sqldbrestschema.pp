@@ -1533,7 +1533,7 @@ begin
     O:=aMinFieldOpts;
     if FD.Required then
        Include(O,foRequired);
-    If AnsiIndexStr(FN,aIndexFields)<>-1 then
+    If IndexStr(FN,aIndexFields)<>-1 then
       begin
       Include(O,foInKey);
       Exclude(O,foFilter);
