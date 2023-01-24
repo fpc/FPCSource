@@ -184,6 +184,8 @@ CONST
 
 
     { mode_t possible values                                 }
+    S_ISUID = &4000;          { set user id on execution    }
+    S_ISGID = &2000;          { set group id on execution   }
     S_IRUSR = $100;           { Read permission for owner   }
     S_IWUSR = $080;           { Write permission for owner  }
     S_IXUSR = $040;           { Exec  permission for owner  }
