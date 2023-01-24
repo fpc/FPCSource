@@ -53,7 +53,9 @@ Const
 
   S_IFSOCK= &0000000000; // not defined under BeOS
   S_IFWHT = &0000000000; // not defined under BeOS
-  S_ISVTX = &1000;
+  S_ISUID = &4000;       { set user id on execution }
+  S_ISGID = &2000;       { set group id on execution }
+  S_ISVTX = &1000;       { save swapped text even after use (sticky bit) }
 
 //      CONST SYS_NMLN=32;
 
