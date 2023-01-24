@@ -4,6 +4,9 @@ program httpget;
 {$DEFINE USEGNUTLS}
 
 uses
+  {$IFDEF UNIX}
+  fpwidestring, unicodeducet,
+  {$ENDIF}
   SysUtils, Classes, fphttpclient, ssockets,
 {$IFNDEF USEGNUTLS}
   fpopenssl, opensslsockets,
@@ -141,6 +144,9 @@ begin
 end;
 
 begin
+  {$IFDEF UNIX}
+  SetActiveCollation('DUCET');
+  {$ENDIF}
   With TTestApp.Create do
     try
       Run;

@@ -44,23 +44,31 @@ Type
   end;
 
 
+Function Application : TCustomApacheApplication;
+
 Implementation
+
+Function Application : TCustomApacheApplication;
+
+begin
+  Result:=CustApache24.Application;
+end;
 
 Procedure InitApache;
 
 begin
-  Application:=TApacheApplication.Create(Nil);
+  CustApache24.Application:=TApacheApplication.Create(Nil);
   if not assigned(CustomApplication) then
-    CustomApplication := Application;
+    CustomApplication := CustApache24.Application;
 end;
 
 Procedure DoneApache;
 
 begin
   Try
-    if CustomApplication=Application then
+    if CustomApplication=CustApache24.Application then
       CustomApplication := nil;
-    FreeAndNil(Application);
+    FreeAndNil(CustApache24.Application);
   except
     if ShowCleanUpErrors then
       Raise;
