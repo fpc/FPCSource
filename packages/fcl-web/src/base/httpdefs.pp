@@ -307,13 +307,13 @@ type
 
   TStreamingMimeItems = class(TMimeItems)
   private
-    FBuffer: string;
+    FBuffer: Ansistring;
     FBufferCount: SizeInt;
     FCurrentItem: TMimeItem;
     FMimeEndFound: Boolean;
     FAtStart: Boolean;
   protected
-    procedure SetBoundary(const AValue: string); override;
+    procedure SetBoundary(const AValue: String); override;
     procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); override;
     class function SupportsStreamingProcessing: Boolean; override;
   end;
@@ -831,15 +831,30 @@ end;
 { TStreamingMimeItems }
 
 procedure TStreamingMimeItems.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
+
+Const
+   DashDash : AnsiString = '--';
+   CRLFDashDash : AnsiString = #13#10'--';
+
 var
   bl: SizeInt;
   p: SizeInt;
   BufEnd: SizeInt;
   LeadingLineEndMissing: Boolean;
+  Bound,EndBound : AnsiString;
+  Sep : AnsiString;
+
 begin
   // The length of the boundary, including the leading CR/LF, '--' and trailing '--' or
   // CR/LF.
-  bl := Length(FBoundary)+6;
+  {$IF SIZEOF(CHAR)=2}
+    Bound:=UTF8Encode(Boundary);
+    EndBound:=UTF8Encode('--'+Boundary);
+  {$ELSE}
+    Bound:=Boundary;
+    EndBound:='--'+Boundary
+  {$ENDIF}
+  bl := Length(Bound)+6;
   LeadingLineEndMissing:=False;
   if State=cssStart then
     begin
@@ -859,14 +874,14 @@ begin
 
   FBufferCount := 1;
   repeat
-  if FAtStart and CompareMem(@FBuffer[1], PChar('--'+FBoundary), Length(FBoundary)+2) then
+  if FAtStart and CompareMem(@FBuffer[1], PAnsiChar(EndBound), Length(Bound)+2) then
     begin
     // Sometimes a mime-message (mistakenly) does not start with CR/LF.
     p := 1;
     LeadingLineEndMissing := True;
     end
   else
-    p := Pos(#13#10'--'+FBoundary, FBuffer, FBufferCount);
+    p := Pos(CRLFDashDash+Bound, FBuffer, FBufferCount);
   if (P > 0) and (P < Size) then
     begin
     if Assigned(FCurrentItem) then
@@ -877,8 +892,14 @@ begin
     else
       begin
       if FAtStart and (P > 1) then
+        begin
         // Add the preamble to the content
+        {$IF SIZEOF(CHAR)=2}
+        FPreamble := UTF8Decode(Copy(FBuffer, FBufferCount, P-1));
+        {$ELSE}
         FPreamble := Copy(FBuffer, FBufferCount, P-1);
+        {$ENDIF}
+        end;
       end;
     FAtStart := False;
     Inc(P, bl);
@@ -888,7 +909,8 @@ begin
       LeadingLineEndMissing := False;
       end;
     FBufferCount := P;
-    if (Copy(FBuffer,p-2,2)='--') then
+    Sep:=Copy(FBuffer,p-2,2);
+    if (Sep=DashDash) then
       FMimeEndFound := True;
     end;
   if not Assigned(FCurrentItem) and not FMimeEndFound then
@@ -2149,7 +2171,7 @@ begin
   P:=PathInfo;
 {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FReturnedPathInfo]));{$ENDIF}
   if (P <> '') and (P[length(P)] = '/') then
-    Delete(P, length(P), 1);//last char is '/'
+    Delete(P, length(P), 1); // last char is '/'
   If (P<>'') and (P[1]='/') then
     Delete(P,1,1);
   Delete(P,1,Length(IncludeHTTPPathDelimiter(FReturnedPathInfo)));
