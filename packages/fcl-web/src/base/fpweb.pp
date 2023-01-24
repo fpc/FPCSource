@@ -415,7 +415,11 @@ procedure TCustomFPWebModule.GetTemplateContent(ARequest: TRequest;
   
 begin
   TFPWebTemplate(FTemplate).Request:=ARequest;
+  {$IF SIZEOF(CHAR)=2}
+  AResponse.Content:=UTF8Encode(FTemplate.GetContent);
+  {$ELSE}
   AResponse.Content:=FTemplate.GetContent;
+  {$ENDIF}
 end;
 
 function TCustomFPWebModule.GetContent: String;
