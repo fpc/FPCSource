@@ -874,14 +874,14 @@ end;
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
 Var
-  S : String;
+  S : UTF8String;
   I : Integer;
 begin
   if Connection.IsUpgraded then
     exit;
   S:=Format('HTTP/1.1 %3d %s'#13#10,[Code,GetHTTPStatusText(Code)]);
   For I:=0 to Headers.Count-1 do
-    S:=S+Headers[i]+#13#10;
+    S:=S+UTF8Encode(Headers[i]+#13#10);
   // Last line in headers is empty.
   Connection.Socket.WriteBuffer(S[1],Length(S));
 end;
@@ -890,10 +890,11 @@ procedure TFPHTTPConnectionResponse.DoSendContent;
 begin
   if Connection.IsUpgraded then
     exit;
-  If Assigned(ContentStream) then
+  If Assigned(ContentStream) and (ContentStream.Size>0) then
     Connection.Socket.CopyFrom(ContentStream,0)
   else
-    Contents.SaveToStream(Connection.Socket);
+    if Length(Content)>0 then
+      Connection.Socket.WriteBuffer(Content[1],Length(Content));
 end;
 
 { TFPHTTPConnection }
