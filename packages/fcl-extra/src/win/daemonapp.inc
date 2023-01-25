@@ -23,8 +23,10 @@ Resourcestring
   SErrNoControlContext = 'Not handling Control message without control context: (%d %d %d).';
   SControlCodeReceived = 'Control message received: (%d %d %d).';
 
+{$IF SIZEOF(CHAR)=1}
 function StartServiceCtrlDispatcher(lpServiceStartTable: LPSERVICE_TABLE_ENTRY): BOOL; stdcall; external 'advapi32.dll' name 'StartServiceCtrlDispatcherA';
 function RegisterServiceCtrlHandlerEx(lpServiceName: LPCSTR;lpHandlerProc: LPHANDLER_FUNCTION_EX; lpContext: LPVOID): SERVICE_STATUS_HANDLE; stdcall;external 'advapi32.dll' name 'RegisterServiceCtrlHandlerExA';
+{$ENDIF}
 function SetServiceStatus(hServiceStatus: SERVICE_STATUS_HANDLE; const lpServiceStatus: SERVICE_STATUS): BOOL; stdcall; external 'advapi32.dll' name 'SetServiceStatus';
 
 { ---------------------------------------------------------------------
@@ -40,11 +42,11 @@ begin
     Application.Log(etError,Format(SerrNoControlContext,[dwControl,dwEventType,ptrint(lpEventData)]));
 end;
 
-Procedure ServiceMainEntry(Argc : DWord; Args : PAnsiChar); stdcall;
+Procedure ServiceMainEntry(Argc : DWord; Args : PChar); stdcall;
 
 begin
   If Assigned(Application) then
-    Application.Main(Argc,PPAnsiChar(Args));
+    Application.Main(Argc,PPChar(Args));
 {$ifdef svcdebug}Debuglog('Main end');{$endif}
 end;
 
@@ -150,11 +152,11 @@ const
 
 // Careful, result of this function must be freed !!
 
-Function GetDependencies(D : TDependencies) : PAnsiChar;
+Function GetDependencies(D : TDependencies) : PChar;
   
 var
   I,L : Integer;
-  P   : PAnsiChar;
+  P   : PChar;
 
 begin
   Result:=Nil;
@@ -170,10 +172,10 @@ begin
       begin
       if D[i].IsGroup then
         begin
-        P^:=AnsiChar(SC_GROUP_IDENTIFIER);
+        P^:=Char(SC_GROUP_IDENTIFIER);
         Inc(P);
         end;
-      P:=StrECopy(P,PAnsiChar(D[i].Name));
+      P:=StrECopy(P,PChar(D[i].Name));
       Inc(P);
       end;
     P^:=#0;
@@ -184,13 +186,13 @@ Procedure TCustomDaemonApplication.SysInstallDaemon(Daemon : TCustomDaemon);
 
 Var
   SM,SV: SC_HANDLE;
-  SD,N,DN,E,LG,UN,UP : AnsiString;
+  SD,N,DN,E,LG,UN,UP : String;
   DD : TDaemonDef;
   ST,STT,ES: Integer;
   IDTag : DWord;
   PIDTag : LPDWord;
-  PDeps,PN,PP : PAnsiChar;
-  D : TServiceDescriptionA;
+  PDeps,PN,PP : PChar;
+  D : TServiceDescription;
   
 begin
   SM:=TSMData(FSysData).FHandle;
@@ -211,12 +213,12 @@ begin
     If (UN='') then
       PN:=Nil
     else
-      PN:=PAnsiChar(UN);
+      PN:=PChar(UN);
     UP:=Password;
     if (UP='') then
       PP:=Nil
     else
-      PP:=PAnsiChar(UP);
+      PP:=PChar(UP);
     // ServiceType ST
       ST:=WinServiceTypes[ServiceType];
     if (doInteractive in DD.Options) and (ServiceType=stWin32)  then
@@ -237,13 +239,13 @@ begin
     PDeps:=GetDependencies(Dependencies);
     end;
   Try
-    SV:=CreateService(SM, PAnsiChar(N), PAnsiChar(DN), SERVICE_ALL_ACCESS, ST, STT, ES,
-                      PAnsiChar(E), PAnsiChar(LG), PIDTag, PDeps, PN, PP);
+    SV:=CreateService(SM, PChar(N), PChar(DN), SERVICE_ALL_ACCESS, ST, STT, ES,
+                      PChar(E), PChar(LG), PIDTag, PDeps, PN, PP);
     If (SV=0) then
       RaiseLastOSError;
     Try
       SD:=DD.Description;
-      D.lpDescription:=PAnsiChar(SD);
+      D.lpDescription:=PChar(SD);
       ChangeServiceConfig2(SV,SERVICE_CONFIG_DESCRIPTION,@D);
       If (PIDTag<>Nil) then
         DD.WinBindings.IDTag:=IDTag;
@@ -264,7 +266,7 @@ var
 begin
   SM:=TSMData(FSysData).FHandle;
   DN:=Daemon.Definition.Name;
-  SV:=OpenService(SM,PAnsiChar(DN),SERVICE_ALL_ACCESS);
+  SV:=OpenServiceA(SM,PAnsiChar(DN),SERVICE_ALL_ACCESS);
   if (SV=0) then
     RaiseLastOSError;
   try
@@ -384,6 +386,7 @@ Var
   P : PServiceTableEntry;
   I,C : Integer;
   RV : Integer;
+  SN : AnsiString;
   
 begin
   GetMem(P,SizeOf(TServiceTableEntry)*(FMapper.DaemonDefs.Count+1));
@@ -392,7 +395,7 @@ begin
     For I:=0 to C-1 do
       If Assigned(FMapper.DaemonDefs[i].Instance) then
         begin
-        P[i].lpServiceName:=PAnsiChar(FMapper.DaemonDefs[i].Name);
+        P[i].lpServiceName:=PChar(FMapper.DaemonDefs[i].Name);
         P[i].lpServiceProc:=@ServiceMainEntry;
         end;
     // Set last entry to Nil.
@@ -506,7 +509,7 @@ begin
 end;
 
 
-procedure TDaemonController.Main(Argc: DWord; Args: PPAnsiChar);
+procedure TDaemonController.Main(Argc: DWord; Args: PPChar);
 
 Var
   T : TThread;

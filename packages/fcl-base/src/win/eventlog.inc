@@ -21,7 +21,7 @@ const
 Function TEventLog.DefaultFileName : String;
 
 begin
-  Result:=ChangeFileExt(Paramstr(0),'.log');
+  Result:=ChangeFileExt(Paramstr(0),RTLString('.log'));
 end;
 
 Resourcestring
@@ -57,12 +57,16 @@ Var
   FCategory : Word;
   FEventID : DWord;
   FEventType : Word;
-
+  aMsg : AnsiString {$IF SIZEOF(CHAR)=1} absolute Msg{$ENDIF};
+  
 begin
   FCategory:=MapTypeToCategory(EventType);
   FEventID:=MapTypeToEventID(EventType);
   FEventType:=MapTypeToEvent(EventType);
-  P:=PAnsiChar(Msg);
+  {$IF SIZEOF(CHAR)=2}
+  aMsg:=Msg;
+  {$ENDIF}
+  P:=PAnsiChar(aMsg);
   If Not ReportEvent(Cardinal(FLogHandle),FEventType,FCategory,FEventID,Nil,1,0,@P,Nil) and FRaiseExceptionOnError then
     begin
     I:=GetLastError;

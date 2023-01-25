@@ -227,14 +227,14 @@ end;
 procedure TServiceManager.Connect;
 
 Var
-   P : PAnsiChar;
+   P : PChar;
 
 begin
   If (FHandle=0) then
     begin
     P:=Nil;
     If (MachineName<>'') then
-      P:=PAnsiChar(MachineName);
+      P:=PChar(MachineName);
     FHandle:=OpenSCManager(P,Nil,FAccess);
     If (FHandle=0) then
       RaiseLastOSError;
@@ -308,7 +308,7 @@ begin
         FDisplayName:=StrPas(lpDisplayName);
         SetStatusFields(ServiceStatus);
         end;
-      PAnsiChar(P):=PAnsiChar(P)+SizeOf(TEnumServiceStatus);
+      PByte(P):=PByte(P)+SizeOf(TEnumServiceStatus);
       end;
     Finally
     FreeMem(Info);
@@ -424,7 +424,7 @@ begin
     FBeforeDisconnect(Self);
 end;
 
-Function AllocDependencyList (Const S : String) : PAnsiChar;
+Function AllocDependencyList (Const S : String) : PChar;
 
 Var
   I,L : Integer;
@@ -436,7 +436,7 @@ begin
     // Double Null terminated list of null-terminated strings.
     L:=Length(S);
     GetMem(Result,L+3);
-    Move(S[1],Result^,L+1); // Move terminating null as well.
+    Move(S[1],Result^,(L+1)*SizeOf(Char)); // Move terminating null as well.
     Result[L+1]:=#0;
     Result[L+2]:=#0;
     For I:=0 to L-1 do
@@ -448,7 +448,7 @@ end;
 Function TServiceManager.RegisterService(var Desc: TServiceDescriptor) : Thandle;
 
 Var
-  PDep,PLO,PUser,PPWd : PAnsiChar; // We need Nil for some things.
+  PDep,PLO,PUser,PPWd : PChar; // We need Nil for some things.
   N,D : String;
   ReturnTag : DWord;
 
@@ -460,19 +460,19 @@ begin
     If (LoadOrderGroup='') then
       PLO:=Nil
     else
-      PLO:=PAnsiChar(LoadOrderGroup);
+      PLO:=PChar(LoadOrderGroup);
     PPwd:=Nil;
     PUser:=Nil;
     If (UserName<>'') then
       begin
-      PUser:=PAnsiChar(UserName);
+      PUser:=PChar(UserName);
       If (Password<>'') then
-        PPWd:=PAnsiChar(Password);
+        PPWd:=PChar(Password);
       end;
     PDep:=AllocDependencyList(Dependencies);
     Try
-      Result:=CreateService(Self.Handle,PAnsiChar(N),PAnsiChar(D),DesiredAccess,ServiceType,
-                            StartType,ErrorControl,PAnsiChar(CommandLine),PLO,Nil,
+      Result:=CreateService(Self.Handle,PChar(N),PChar(D),DesiredAccess,ServiceType,
+                            StartType,ErrorControl,PChar(CommandLine),PLO,Nil,
                             PDep,PUser,PPwd);
       If (Result=0) then
         RaiseLastOSError;
@@ -489,7 +489,7 @@ Var
   H : THandle;
 
 begin
-  H:=OpenService(Handle,PAnsiChar(ServiceName),SERVICE_ENUMERATE_DEPENDENTS);
+  H:=OpenService(Handle,PChar(ServiceName),SERVICE_ENUMERATE_DEPENDENTS);
   try
     ListDependentServices(H,ServiceState,List);
   Finally
@@ -520,7 +520,7 @@ begin
       For I:=0 to Count-1 do
         begin
         List.Add(StrPas(E^.lpServiceName));
-        PAnsiChar(E):=PAnsiChar(E)+SizeOf(TEnumServiceStatus);
+        PByte(E):=PByte(E)+SizeOf(TEnumServiceStatus);
         end;
     Finally
       FreeMem(P);
@@ -567,7 +567,7 @@ begin
   A:=SERVICE_STOP or SERVICE_QUERY_STATUS;
   If StopDependent then
     A:=A or SERVICE_ENUMERATE_DEPENDENTS;
-  H:=OpenService(Handle,PAnsiChar(ServiceName),A);
+  H:=OpenService(Handle,PChar(ServiceName),A);
   Try
     StopService(H,StopDependent);
   Finally
@@ -579,7 +579,7 @@ end;
 Function TServiceManager.GetServiceHandle(const ServiceName : String; SAccess : DWord) : THandle;
 
 begin
-  Result:=OpenService(Handle,PAnsiChar(ServiceName),SAccess);
+  Result:=OpenService(Handle,PChar(ServiceName),SAccess);
   If (Result=0) then
     RaiseLastOSError;
 end;
@@ -699,7 +699,7 @@ begin
     Pargs:=StringsToPcharList(Args);
     end;
   Try
-    If not jwawinsvc.StartService(SHandle,Argc,PAnsiChar(PArgs)) then
+    If not jwawinsvc.StartService(SHandle,Argc,PChar(PArgs)) then
       RaiseLastOSError;
   Finally
     If (PArgs<>Nil) then
@@ -817,17 +817,17 @@ end;
 
 procedure TServiceManager.ConfigService(SHandle : THandle ; Config : TServiceDescriptor);
 
-  Function SToPchar(Var S : String) : PAnsiChar;
+  Function SToPchar(Var S : String) : PChar;
 
   begin
     If (S='') then
       Result:=Nil
     else
-      Result:=PAnsiChar(S);
+      Result:=PChar(S);
   end;
 
 Var
-  PDep,PLO,PUser,PPWd,PCmd,PDisp : PAnsiChar; // We need Nil for some things.
+  PDep,PLO,PUser,PPWd,PCmd,PDisp : PChar; // We need Nil for some things.
   D : String;
   ReturnTag : DWord;
 
