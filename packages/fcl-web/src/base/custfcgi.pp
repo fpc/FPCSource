@@ -345,29 +345,32 @@ var
     inc(i);
   end;
 
-  function GetString(ALength : integer) : string;
-
-  Var
-    S : AnsiString;
-
+  function GetBytes(ALength : integer) : TBytes;
   begin
     if (ALength<0) then
       ALength:=0;
-    SetLength(S,ALength);
+    SetLength(Result,ALength);
     if (ALength>0) then
-      move(ARecord^.ContentData[i],S[1],ALength);
+      move(ARecord^.ContentData[i],Result[0],ALength);
     inc(i,ALength);
+  end;
+
+  function MakeString(B : TBytes) : string;
+
+
+  begin
     {$IF SIZEOF(CHAR)=2}
-      Result:=UTF8Decode(S)
+      Result:=TEncoding.UTF8.GetString(B);
     {$else}
-      Result:=S;
+      Result:=TEncoding.UTF8.GetAnsiString(B);
     {$ENDIF}
   end;
 
 var
   NameLength, ValueLength : Integer;
   RecordLength : Integer;
-  Name,Value : String;
+  Name,Tmp : String;
+  Value : TBytes;
   h : THeader;
   v : THTTPVariableType;
 
@@ -378,39 +381,42 @@ begin
     begin
     NameLength:=GetVarLength;
     ValueLength:=GetVarLength;
-    Name:=GetString(NameLength);
-    Value:=GetString(ValueLength);
+    Name:=MakeString(GetBytes(NameLength));
+    Value:=GetBytes(ValueLength);
     if Not DoMapCgiToHTTP(Name,H,V) then
-      NameValueList.Add(Name+'='+Value)
+      NameValueList.Add(Name+'='+MakeString(Value))
     else if (H<>hhUnknown) then
-      SetHeader(H,Value)
+      SetHeader(H,MakeString(Value))
+    else if (v=hvContent) then
+      ContentBytes:=Value
     else if (v<>hvUnknown) then
       begin
-      if (V=hvPathInfo) and (Copy(Value,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
-          Delete(Value,1,3);
+      Tmp:=MakeString(Value);
+      if (V=hvPathInfo) and (Copy(Tmp,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Tmp,1,3);
       if (V<>hvQuery) then
-        Value:=HTTPDecode(Value);
-      SetHTTPVariable(v,Value);
+        Tmp:=HTTPDecode(Tmp);
+      SetHTTPVariable(v,Tmp);
       end
     else
-      NameValueList.Add(Name+'='+Value)
+      NameValueList.Add(Name+'='+MakeString(Value));
     end;
   if (PathInfo='') then
     // Apache does not send PathInfo if configured via proxy
     begin
-    Value:=ScriptName;
-    ValueLength:=Length(Value);
+    Tmp:=ScriptName;
+    ValueLength:=Length(Tmp);
     Case PathInfoHandling of
       pihNone : ;
-      pohAll : PathInfo:=Value;
+      pohAll : PathInfo:=Tmp;
       pihLastScriptComponent :
-         PathInfo:=Copy(Value,RPos('/',Value)+1,ValueLength);
+         PathInfo:=Copy(Tmp,RPos('/',Tmp)+1,ValueLength);
       pihFirstScriptComponent :
-         PathInfo:=Copy(Value,RPos('/',Value)-1,ValueLength);
+         PathInfo:=Copy(Tmp,RPos('/',Tmp)-1,ValueLength);
       pihSkipFirstScriptComponent:
         begin
         Delete(Value,1,RPos('/',ScriptName));
-        PathInfo:=Value;
+        PathInfo:=Tmp;
         end;
     end;
     end;
