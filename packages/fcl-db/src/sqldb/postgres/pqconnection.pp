@@ -85,6 +85,11 @@ type
       MESSAGE_DETAIL:string;
       MESSAGE_HINT:string;
       STATEMENT_POSITION:string;
+      SCHEMA_NAME: string;
+      TABLE_NAME: string;
+      COLUMN_NAME: string;
+      DATATYPE_NAME: string;
+      CONSTRAINT_NAME: string;
   end;
 
   { TPQTranConnection }
@@ -691,6 +696,11 @@ var
   MESSAGE_DETAIL: string;
   MESSAGE_HINT: string;
   STATEMENT_POSITION: string;
+  SCHEMA_NAME: string;
+  TABLE_NAME: string;
+  COLUMN_NAME: string;
+  DATATYPE_NAME: string;
+  CONSTRAINT_NAME: string;
   P : Pchar;
   haveError : Boolean;
 
@@ -706,12 +716,18 @@ begin
   else if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     HaveError:=True;
-    SEVERITY:=PQresultErrorField(res,ord('S'));
-    SQLSTATE:=PQresultErrorField(res,ord('C'));
-    MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
-    MESSAGE_DETAIL:=PQresultErrorField(res,ord('D'));
-    MESSAGE_HINT:=PQresultErrorField(res,ord('H'));
-    STATEMENT_POSITION:=PQresultErrorField(res,ord('P'));
+    SEVERITY:=PQresultErrorField(res,PG_DIAG_SEVERITY);
+    SQLSTATE:=PQresultErrorField(res,PG_DIAG_SQLSTATE);
+    MESSAGE_PRIMARY:=PQresultErrorField(res,PG_DIAG_MESSAGE_PRIMARY);
+    MESSAGE_DETAIL:=PQresultErrorField(res,PG_DIAG_MESSAGE_DETAIL);
+    MESSAGE_HINT:=PQresultErrorField(res,PG_DIAG_MESSAGE_HINT);
+    STATEMENT_POSITION:=PQresultErrorField(res,PG_DIAG_STATEMENT_POSITION);
+    SCHEMA_NAME:=PQresultErrorField(res,PG_DIAG_SCHEMA_NAME);
+    TABLE_NAME:=PQresultErrorField(res,PG_DIAG_TABLE_NAME);
+    COLUMN_NAME:=PQresultErrorField(res,PG_DIAG_COLUMN_NAME);
+    DATATYPE_NAME:=PQresultErrorField(res,PG_DIAG_DATATYPE_NAME);
+    CONSTRAINT_NAME:=PQresultErrorField(res,PG_DIAG_CONSTRAINT_NAME);
+
     sErr:=PQresultErrorMessage(res);
     if VerboseErrors then
       begin
@@ -721,6 +737,11 @@ begin
       MaybeAdd(sErr,'Error Detail',MESSAGE_DETAIL);
       MaybeAdd(sErr,'Hint',MESSAGE_HINT);
       MaybeAdd(sErr,'Character',STATEMENT_POSITION);
+      MaybeAdd(sErr,'Schema',SCHEMA_NAME);
+      MaybeAdd(sErr,'Table',TABLE_NAME);
+      MaybeAdd(sErr,'Column',COLUMN_NAME);
+      MaybeAdd(sErr,'Data Type',DATATYPE_NAME);
+      MaybeAdd(sErr,'Constraint',CONSTRAINT_NAME);
       end;
     end;
   if HaveError then
@@ -733,6 +754,12 @@ begin
     E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
     E.MESSAGE_HINT:=MESSAGE_HINT;
     E.STATEMENT_POSITION:=STATEMENT_POSITION;
+    E.SCHEMA_NAME:=SCHEMA_NAME;
+    E.TABLE_NAME:=TABLE_NAME;
+    E.COLUMN_NAME:=COLUMN_NAME;
+    E.DATATYPE_NAME:=DATATYPE_NAME;
+    E.CONSTRAINT_NAME:=CONSTRAINT_NAME;
+
     PQclear(res);
     res:=nil;
     if assigned(conn) then

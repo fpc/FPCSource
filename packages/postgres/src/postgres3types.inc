@@ -14,6 +14,25 @@ const
    ERROR_MSG_LENGTH = 4096;
    CMDSTATUS_LEN = 40;
 
+   PG_DIAG_SEVERITY = Ord('S');
+   PG_DIAG_SEVERITY_NONLOCALIZED = Ord('V');
+   PG_DIAG_SQLSTATE = Ord('C');
+   PG_DIAG_MESSAGE_PRIMARY = Ord('M');
+   PG_DIAG_MESSAGE_DETAIL = Ord('D');
+   PG_DIAG_MESSAGE_HINT = Ord('H');
+   PG_DIAG_STATEMENT_POSITION = Ord('P');
+   PG_DIAG_INTERNAL_POSITION = Ord('p');
+   PG_DIAG_INTERNAL_QUERY = Ord('q');
+   PG_DIAG_CONTEXT = Ord('W');
+   PG_DIAG_SCHEMA_NAME = Ord('s');
+   PG_DIAG_TABLE_NAME = Ord('t');
+   PG_DIAG_COLUMN_NAME = Ord('c');
+   PG_DIAG_DATATYPE_NAME = Ord('d');
+   PG_DIAG_CONSTRAINT_NAME = Ord('n');
+   PG_DIAG_SOURCE_FILE = Ord('F');
+   PG_DIAG_SOURCE_LINE = Ord('L');
+   PG_DIAG_SOURCE_FUNCTION = Ord('R');
+
 Type
   TSockAddr = Array [1..112] of byte;
   TPGresAttDesc = record
