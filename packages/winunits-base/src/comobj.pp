@@ -1228,8 +1228,8 @@ HKCR
                         if printcom then 
                         writeln('Translating var ansistring argument ',PString(Params^)^);
 {$endif DEBUG_COMDISPATCH}
-                        StringMap[NextString].ComStr:=StringToOleStr(PString(Params^)^);
-                        StringMap[NextString].PasStr:=PString(Params^);
+                        StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(Params^)^);
+                        StringMap[NextString].PasStr:=PAnsiString(Params^);
                         StringMap[NextString].PasWStr:=Nil;
                         Arguments[i].VType:=varOleStr or varByRef;
                         Arguments[i].VPointer:=@StringMap[NextString].ComStr;
