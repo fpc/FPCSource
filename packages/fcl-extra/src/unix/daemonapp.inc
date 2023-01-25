@@ -157,7 +157,7 @@ begin
   Main(0,Nil);
 end;
 
-procedure TDaemonController.Main(Argc: DWord; Args: PPAnsiChar);
+procedure TDaemonController.Main(Argc: DWord; Args: PPChar);
 
 Var
   T : TThread;
