@@ -1679,23 +1679,16 @@ begin
   inherited Create(BytesOf(AString));
 end;
 
-<<<<<<< HEAD
-constructor TStringStream.Create(const AString: string; AEncoding: TEncoding; AOwnsEncoding: Boolean);
-=======
-constructor TStringStream.Create(const AString: Ansistring;
-  AEncoding: TEncoding; AOwnsEncoding: Boolean);
->>>>>>> be8e86f382 (* Better Ansi/WideString support for TStream. Fix StringStream with unicode to be delphi compatible)
+constructor TStringStream.Create(const AString: Ansistring; AEncoding: TEncoding; AOwnsEncoding: Boolean);
+
 begin
   FOwnsEncoding:=AOwnsEncoding and not TEncoding.IsStandardEncoding(AEncoding);
   FEncoding:=AEncoding;
   Inherited Create(AEncoding.GetAnsiBytes(AString));
 end;
 
-<<<<<<< HEAD
-constructor TStringStream.Create(const AString: string; ACodePage: Integer);
-=======
 constructor TStringStream.Create(const AString: Ansistring; ACodePage: Integer);
->>>>>>> be8e86f382 (* Better Ansi/WideString support for TStream. Fix StringStream with unicode to be delphi compatible)
+
 begin
   Create(AString,TEncoding.GetEncoding(ACodePage),true);
 end;
