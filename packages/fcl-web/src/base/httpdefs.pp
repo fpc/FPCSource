@@ -250,9 +250,11 @@ type
 
   TMimeItem = Class(TCollectionItem)
   private
+    function GetData: String;
+    procedure SetData(AValue: String);
   protected
     FLocalFilename: string;
-
+    FRawData : TBytes;
     Function CreateUploadedFileStreaming(Files : TUploadedFiles) : TUploadedFile; virtual;
     Function CreateUploadedFile(Files : TUploadedFiles) : TUploadedFile; virtual;
     function CreateFile(Files: TUploadedFiles): TUploadedFile; virtual;
@@ -266,7 +268,8 @@ type
   Public
     Procedure ProcessStreaming(const State: TContentStreamingState; const Buf; const Size: Integer); virtual; abstract;
     Procedure Process(Stream : TStream); virtual; abstract;
-    Property Data : String index 0 Read GetHeader Write SetHeader;
+    Property RawData : TBytes Read FRawData Write FRawData;
+    Property Data : String Read GetData Write SetData;
     Property Name : String index 1 Read GetHeader Write SetHeader;
     Property Disposition : String index 2 Read GetHeader Write SetHeader;
     Property FileName : String index 3 Read GetHeader Write SetHeader;
@@ -286,7 +289,7 @@ type
     function GetP(AIndex : Integer): TMimeItem;
   Protected
     Procedure CreateUploadFiles(Files : TUploadedFiles; Vars : TStrings); virtual;
-    procedure FormSplit(var Cnt: String; const boundary: String); virtual;
+    procedure FormSplit(var Cnt: RawByteString; const boundary: RawByteString); virtual;
     procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     // With streaming is meant that the incoming data is processed in smaller
     // chunks. To support streaming descendents have to implement
@@ -322,6 +325,7 @@ type
 
   THTTPHeader = class(TObject)
   private
+    FContentBytes: TBytes;
     FContentFields: TStrings;
     FCookieFields: TStrings;
     FHTTPVersion: String;
@@ -329,9 +333,11 @@ type
     FVariables : THTTPVariables;
     FQueryFields: TStrings;
     FCustomHeaders : TStringList;
+    FContentDirty : Boolean;
     function GetCustomHeaders: TStringList;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
+    procedure SetContentBytes(AValue: TBytes);
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
     Function GetContentLength : Integer;
@@ -354,6 +360,8 @@ type
     Procedure SetFieldValue(Index : Integer; const Value : String); virtual; deprecated;
     procedure ParseFirstHeaderLine(const line: String);virtual;
     Procedure ParseCookies; virtual;
+    Procedure SetContentFromString(aValue : AnsiString);
+    Procedure SetContentFromString(aValue : UnicodeString);
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -431,7 +439,8 @@ type
     Property Method : String Index Ord(hvMethod) read GetHTTPVariable Write SetHTTPVariable;
     Property URL : String Index Ord(hvURL) read GetHTTPVariable Write SetHTTPVariable;
     Property Query : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
-    Property Content : String Index Ord(hvContent) Read GetHTTPVariable Write SetHTTPVariable;
+    Property Content : String Index Ord(hvContent) Read GetHTTPVariable  Write SetHTTPVariable;
+    Property ContentBytes : TBytes Read FContentBytes Write SetContentBytes;
     // Lists
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
@@ -461,13 +470,14 @@ type
     FStreamingContentType: TStreamingContentType;
     FMimeItems: TMimeItems;
     FKeepFullContents: Boolean;
-    FStreamingContent: string;
+    FStreamingContent: TBytes;
     FStreamingContentRead: Integer;
     FOnStreamEncodingEvent: TOnStreamEncodingEvent;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
     function GetRP(const AParam : String): String;
     procedure SetRP(const AParam : String; const AValue: String);
+
   Protected
     procedure AllocateRequestID; virtual;
     Function AllowReadContent : Boolean; virtual;
@@ -491,7 +501,7 @@ type
 
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
-    Procedure InitContent(const AContent : String);
+    Procedure InitContent(const AContent : String); deprecated 'use contentbytes';
 
     procedure ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     function DerriveStreamingContentType(): TStreamingContentType;
@@ -1073,13 +1083,16 @@ end;
 
 procedure THTTPMimeItem.Process(Stream: TStream);
 
-  Function GetLine(Var S : String) : String;
+const
+  CRLF : RawByteString = #13#10;
+
+  Function GetLine(Var S : RawByteString) : RawByteString;
 
   Var
     P : Integer;
 
   begin
-    P:=Pos(#13#10,S);
+    P:=Pos(CRLF,S);
     If (P<>0) then
       begin
       Result:=Copy(S,1,P-1);
@@ -1087,7 +1100,7 @@ procedure THTTPMimeItem.Process(Stream: TStream);
       end;
   end;
 
-  Function GetWord(Var S : String) : String;
+  Function GetWord(Var S : RawByteString) : RawByteString;
 
   Var
     I,len : Integer;
@@ -1118,20 +1131,15 @@ procedure THTTPMimeItem.Process(Stream: TStream);
   end;
 
 Var
-  Line : String;
+  Line : RawByteString;
   len : integer;
-  S : string;
-  D : String;
+  D,S : RawBytestring;
+  B : TBytes;
 
 begin
   {$ifdef CGIDEBUG}SendMethodEnter('THTTPMimeItem.Process');{$ENDIF}
-  If Stream is TStringStream then
-    D:=TStringStream(Stream).Datastring
-  else
-    begin
-    SetLength(D,Stream.Size);
-    Stream.ReadBuffer(D[1],Stream.Size);
-    end;
+  SetLength(D,Stream.Size);
+  Stream.ReadBuffer(D[1],Stream.Size);
   Line:=GetLine(D);
   While (Line<>'') do
     begin
@@ -1149,7 +1157,9 @@ begin
   If (len>2) then
     begin
     FDataSize := Len-2;
-    Data:=Copy(D,1,FDataSize)
+    SetLength(B,FDataSize);
+    Move(D[1],B[0],FDataSize);
+    RawData:=B;
     end
   else
     Data:='';
@@ -1321,8 +1331,8 @@ begin
 end;
 
 
-function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader;
-  Out V: THTTPVAriableType): Boolean;
+function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader; out
+  V: THTTPVAriableType): Boolean;
 
 
 begin
@@ -1380,7 +1390,10 @@ begin
 //  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
   if FVariables[AVariable]=AValue then
     exit;
-  FVariables[AVariable]:=AValue;
+  if aVariable=hvContent then
+    SetContentFromString(aValue)
+  else
+    FVariables[AVariable]:=AValue;
   if (AVariable=hvCookie) and (AValue<>'') then
     ParseCookies;
 end;
@@ -1424,6 +1437,17 @@ end;
 function THTTPHeader.GetHTTPVariable(AVariable: THTTPVariableType): String;
 
 begin
+  if aVariable=hvContent then
+    begin
+    if FContentDirty then
+      begin
+      {$IF SIZEOF(CHAR)=1}
+      FVariables[AVariable]:=TEncoding.Default.GetAnsiString(FContentBytes)
+      {$ELSE}
+      FVariables[AVariable]:=TEncoding.Default.GetString(FContentBytes);
+      {$ENDIF}
+      end;
+    end;
   Result:=FVariables[AVariable];
 end;
 
@@ -1431,7 +1455,8 @@ type
   TParseState =
     (psStart, psContentType, psSearchParam, psParam, psSearchParamEqual, psSearchParamValue, psParamValueQuoted, psParamValue);
 
-Class Function THTTPHeader.ParseContentType(const AContentType: String; Parameters: TStrings): String;
+class function THTTPHeader.ParseContentType(const AContentType: String;
+  Parameters: TStrings): String;
 var
   len: Integer;
   ind: Integer;
@@ -1628,6 +1653,13 @@ begin
       Result:=GetVariableHeaderName(V);
 end;
 
+procedure THTTPHeader.SetContentBytes(AValue: TBytes);
+begin
+  if FContentBytes=AValue then Exit;
+  FContentBytes:=AValue;
+  FContentDirty:=True;
+end;
+
 
 function THTTPHeader.GetFieldValue(Index: Integer): String;
 
@@ -1719,6 +1751,16 @@ begin
 {$ifdef cgidebug}  SendMethodExit('Parsecookies done');{$endif}
 end;
 
+procedure THTTPHeader.SetContentFromString(aValue: AnsiString);
+begin
+  ContentBytes:=TEncoding.Default.GetAnsiBytes(aValue);
+end;
+
+procedure THTTPHeader.SetContentFromString(aValue: UnicodeString);
+begin
+  ContentBytes:=TEncoding.Default.GetBytes(aValue);
+end;
+
 constructor THTTPHeader.Create;
 begin
   FCookieFields:=TStringList.Create;
@@ -1778,7 +1820,8 @@ begin
   end;
 end;
 
-class function THTTPHeader.GetVariableHeaderType(Const aName: string): THTTPVariableType;
+class function THTTPHeader.GetVariableHeaderType(const aName: string
+  ): THTTPVariableType;
 
 begin
   Case IndexText(aName,[FieldCookie,FieldSetCookie,FieldXRequestedWith]) of
@@ -1947,17 +1990,15 @@ begin
   end;
 end;
 
-Procedure TMimeItem.SaveToFile(Const AFileName: String);
+procedure TMimeItem.SaveToFile(const AFileName: String);
 
 Var
-  D : String;
   F : TFileStream;
 
 begin
   F:=TFileStream.Create(AFileName,fmCreate);
   Try
-    D:=Data;
-    F.Write(D[1],DataSize);
+    F.WriteBuffer(FRawData,0,DataSize);
   finally
     F.Free;
   end;
@@ -1967,13 +2008,12 @@ function TMimeItem.CreateUploadedFile(Files: TUploadedFiles): TUploadedFile;
 
 Var
   J : Int64;
-  D,LFN : String;
+  LFN : String;
 
 begin
-  D:=Data;
   J:=DataSize;
   if (J=0){zero lenght file} or
-     ((J=2)and (D=#13#10)){empty files come as a simple empty line} then
+     ((J=2)and ((FRawData[0]=13) and (FRawData[1]=10))){empty files come as a simple empty line} then
     LFN:='' //No tmp file will be created for empty files
   else
     begin
@@ -2003,8 +2043,6 @@ begin
    end;
 end;
 
-<<<<<<< HEAD
-=======
 function TMimeItem.GetData: String;
 begin
 {$IF SIZEOF(CHAR)=2}
@@ -2023,7 +2061,6 @@ begin
 {$ENDIF}
 end;
 
->>>>>>> 9930f5ba04 (* Fix compilation after rebase)
 function TMimeItem.CreateUploadedFileStreaming(Files: TUploadedFiles): TUploadedFile;
 begin
   if FLocalFilename='' then
@@ -2044,22 +2081,27 @@ end;
   certain size is reached.)
 }
 
-procedure TMimeItems.FormSplit(var Cnt : String; const boundary: String);
+procedure TMimeItems.FormSplit(var Cnt : RawByteString; const boundary: RawByteString);
+
+Const
+  DashDash : RawByteString = '--';
+  CRLF : RawByteString = #13#10;
 
 // Splits the form into items
 var
-  Sep : string;
+  Sep : rawbytestring;
   Clen,slen, p:longint;
   FI : TMimeItem;
-  S : TStringStream;
+  S : TBytesStream;
+  B : TBytes;
+
 
 begin
   {$ifdef CGIDEBUG}SendMethodEnter('TMimeItems.FormSplit');{$ENDIF}
   FBoundary := boundary;
-
-  Sep:='--'+boundary+#13+#10;
+  Sep:=DashDash+boundary+CRLF;
   Slen:=length(Sep);
-  CLen:=Pos('--'+Boundary+'--',Cnt);
+  CLen:=Pos(DashDash+Boundary+DashDash,Cnt);
   // Cut last marker
   Cnt:=Copy(Cnt,1,Clen-1);
   // Cut first marker
@@ -2067,17 +2109,19 @@ begin
   Clen:=Length(Cnt);
   While Clen>0 do
     begin
-    P:=pos(Sep,Cnt);
-    If (P=0) then
-      P:=CLen+1;
-    S:=TStringStream.Create(Copy(Cnt,1,P-1));
+    P:=pos(Sep,Cnt)-1;
+    If (P=-1) then
+      P:=CLen;
+    SetLength(B,P);
+    System.Move(Cnt[1],B[0],P);
+    S:=TBytesStream.Create(B);
     try
       FI:=Add as TMimeItem;
       FI.Process(S)
     finally
       S.Free;
     end;
-    system.delete(Cnt,1,P+SLen-1);
+    system.delete(Cnt,1,P+SLen);
     CLen:=Length(Cnt);
     end;
   {$ifdef CGIDEBUG}SendMethodExit('TMimeItems.FormSplit');{$ENDIF}
@@ -2470,7 +2514,7 @@ Type
 procedure TRequest.InitPostVars;
 
 Var
-  M  : TCapacityStream;
+  M  : TBytesStream;
   Cl : Integer;
   CT : String;
 
@@ -2479,13 +2523,10 @@ begin
   SendMethodEnter('InitPostVars');
 {$endif}
   CL:=ContentLength;
-  if (CL<>0) and (Length(Content)>0) then
+  if (CL<>0) and (Length(ContentBytes)>0) then
     begin
-    M:=TCapacityStream.Create;
+    M:=TBytesStream.Create(ContentBytes);
     Try
-      M.Capacity:=Cl;
-      M.WriteBuffer(Content[1], Cl);
-      M.Position:=0;
       CT:=ContentType;
       FStreamingContentType := DerriveStreamingContentType;
       case FStreamingContentType of
@@ -2521,8 +2562,7 @@ end;
 
 procedure TRequest.InitContent(const AContent: String);
 begin
-  FVariables[hvContent]:=AContent;
-  FContentRead:=True;
+  SetContentFromString(aContent);
 end;
 
 
@@ -2532,7 +2572,7 @@ procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
 Var
   L : TMimeItems;
   B : String;
-  S : String;
+  S : RawByteString;
   ST: TStringList;
 
 begin
@@ -2544,23 +2584,13 @@ begin
   finally
     ST.Free;
   end;
-
   L:=CreateMimeItems;
   Try
-    if Stream is TStringStream then
-      S:=TStringStream(Stream).DataString
-    else
+    SetLength(S,Stream.Size);
+    If Length(S)>0 then
       begin
-      SetLength(S,Stream.Size);
-      If Length(S)>0 then
-        if Stream is TCustomMemoryStream then
-          // Faster.
-          Move(TCustomMemoryStream(Stream).Memory^,S[1],Length(S))
-        else
-          begin
-          Stream.Read(S[1],Length(S));
-          Stream.Position:=0;
-          end;
+      Stream.Read(S[1],Length(S));
+      Stream.Position:=0;
       end;
     L.FormSplit(S,B);
     L.CreateUploadFiles(Files,SL);
@@ -2578,7 +2608,7 @@ var
 begin
   S:='';
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
-  SetLength(S,Stream.Size); // Skip added Null.
+  SetLength(S,Stream.Size div SizeOf(Char)); // Skip added Null.
   Stream.ReadBuffer(S[1],Stream.Size);
 {$ifdef CGIDEBUG}SendDebugFmt('Query string : %s',[s]);{$endif CGIDEBUG}
   ProcessQueryString(S,SL);
@@ -2614,7 +2644,7 @@ end;
 procedure TRequest.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
 Var
   ST: TStrings;
-  S: String;
+  S: RawByteString;
 begin
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessStreamingMultiPart');{$endif CGIDEBUG}
   if State=cssStart then
@@ -2640,12 +2670,14 @@ begin
     FMimeItems.CreateUploadFiles(Files, ContentFields);
     if not FMimeItems.SupportsStreamingProcessing then
       begin
-      S := Content;
+      S := TEncoding.Default.GetAnsiString(ContentBytes);
       FMimeItems.FormSplit(S, FMimeItems.Boundary);
       FMimeItems.CreateUploadFiles(Files, ContentFields);
       end
     else if not FKeepFullContents then
-      Content := FMimeItems.Preamble;
+      begin
+      SetContentFromString(FMimeItems.Preamble);
+      end;
     FreeAndNil(FMimeItems);
     FContentRead := True;
     end;
@@ -2662,7 +2694,7 @@ begin
     begin
     ProcessQueryString(Content, ContentFields);
     if not KeepFullContents then
-      Content := '';
+      ContentBytes:=[];
     end;
 end;
 
@@ -2704,12 +2736,11 @@ begin
     SetLength(FStreamingContent, FStreamingContentRead);
   if Size > 0 then
     Move(Buf, FStreamingContent[CL+1], Size);
-
   if State=cssEnd then
     begin
     SetLength(FStreamingContent, FStreamingContentRead);
-    Content := FStreamingContent;
-    FStreamingContent := '';
+    ContentBytes := FStreamingContent;
+    FStreamingContent := [];
     end;
 end;
 
@@ -2953,7 +2984,11 @@ end;
 
 procedure TResponse.SetContents(AValue: TStrings);
 begin
-  FContentStream:=Nil;
+  if Assigned(FContentStream) then
+    if FreeContentStream then
+      FreeAndNil(FContentStream)
+    else
+      FContentStream:=Nil;
   FContents.Assign(AValue);
 end;
 

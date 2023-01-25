@@ -1,4 +1,4 @@
-unit PQConnection;
+ unit PQConnection;
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -518,8 +518,6 @@ begin
     exit;
   S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
   Res:=Cursor.Handle.Exec(S,False,'Error getting typeinfo');
-  if (PQresultStatus(res)<>PGRES_TUPLES_OK) then
-    CheckResultError(Res,Cursor.tr.PGConn,'Error getting type info');
   try
     For I:=0 to PQntuples(Res)-1 do
       begin
