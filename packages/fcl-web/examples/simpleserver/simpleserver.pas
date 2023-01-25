@@ -16,7 +16,7 @@
 {$h+}
 
 { $DEFINE USEGNUTLS}
-{$DEFINE USEMICROHTTP}
+{ $DEFINE USEMICROHTTP}
 
 program simpleserver;
 
@@ -138,6 +138,7 @@ begin
     DumpRequest(aRequest,L);
     L.AddStrings(['</body>','</html>']);
     AResponse.Content:=L.Text;
+    AResponse.ContentLength:=Length(AResponse.Content);
     AResponse.SendResponse;
   finally
     L.Free;
