@@ -234,95 +234,123 @@ end;
 
 { THTTPSysResponse }
 
+Type
+  TAnsiHeader = record
+    name : ansistring;
+    value : ansistring;
+  end;
+
+
 procedure THTTPSysResponse.DoSendHeaders(aHeaders: TStrings);
+
+  function UnknownHeader(aheader : String; out hh : THeader; out aHeaderID : HTTP_HEADER_ID) : Boolean;
+
+  begin
+    Result:=True;
+    hh:=HeaderType(aHeader);
+    if hh = hhUnknown then
+      Exit;
+    if not (hdResponse in HTTPHeaderDirections[hh]) then
+      Exit;
+    if not HeaderToHttpHeaderId(hh, aHeaderID) then
+      Exit;
+    if (aHeaderID>=HttpHeaderResponseMaximum) then
+      Exit;
+    Result:=False;
+  end;
+
+
 var
   resp: HTTP_RESPONSE;
   flags, bytessend: LongWord;
-  i, colonidx: LongInt;
-  headerstr, headerval: String;
+  i, idx, colonidx: LongInt;
+  headerline,headerstr, headerval: String;
   res: ULONG;
   hh: THeader;
   headerid: HTTP_HEADER_ID;
+  hID : Integer;
   headerstrs, unknownheaders: TStrings;
   unknownheadersarr: array of HTTP_UNKNOWN_HEADER;
+  knownheaderstrarr : array[0..Ord(HttpHeaderResponseMaximum)] of TAnsiHeader;
+  unknownheaderstrarr : array of TAnsiHeader;
+  CT : AnsiString;
+
 begin
+  {$IF SIZEOF(CHAR)=1}
+  CT:=CodeText;
+  {$ELSE}
+  CT:=UTF8Encode(CodeText);
+  {$ENDIF}
   resp := Default(HTTP_RESPONSE);
   resp.Version := fRequestVersion;
   resp.StatusCode := Code;
   if CodeText <> '' then begin
-    resp.pReason := PChar(CodeText);
-    resp.ReasonLength := Length(CodeText);
+    resp.pReason := PAnsiChar(CT);
+    resp.ReasonLength := Length(CT);
   end;
 
   flags := 0;
   if (Assigned(ContentStream) and (ContentStream.Size > 0)) or (Contents.Count > 0) then
     flags := flags or HTTP_SEND_RESPONSE_FLAG_MORE_DATA;
-
-  unknownheaders := Nil;
-  headerstrs := TStringList.Create;
-  try
-    unknownheaders := TStringList.Create;
-
-    for i := 0 to aHeaders.Count - 1 do begin
-      colonidx := Pos(':', aHeaders[i]);
-      if colonidx = 0 then
-        Continue;
-      headerstr := Copy(aHeaders[i], 1, colonidx - 1);
-      headerval := Trim(Copy(aHeaders[i], colonidx + 1, Length(aHeaders[i]) - colonidx));
-
-      hh := HeaderType(headerstr);
-      if hh = hhUnknown then begin
-        unknownheaders.Values[headerstr] := headerval;
-        Continue;
-      end;
-
-      if not (hdResponse in HTTPHeaderDirections[hh]) then begin
-        unknownheaders.Values[headerstr] := headerval;
-        Continue;
-      end;
-
-      if not HeaderToHttpHeaderId(hh, headerid) then begin
-        unknownheaders.Values[headerstr] := headerval;
-        Continue;
-      end;
-
-      if headerid >= HttpHeaderResponseMaximum then begin
-        unknownheaders.Values[headerstr] := headerval;
-        Continue;
-      end;
-
-      headerstrs.Add(headerval);
-
-      resp.Headers.KnownHeaders[Ord(headerid)].RawValueLength := Length(headerval);
-      resp.Headers.KnownHeaders[Ord(headerid)].pRawValue := PAnsiChar(headerstrs[headerstrs.Count - 1]);
-    end;
-
-    SetLength(unknownheadersarr, unknownheaders.Count);
-    for i := 0 to unknownheaders.Count - 1 do begin
-      headerstr := unknownheaders.Names[i];
-      headerval := unknownheaders.ValueFromIndex[i];
-
-      headerstrs.Add(headerstr);
-      unknownheadersarr[i].NameLength := Length(headerstr);
-      unknownheadersarr[i].pName := PAnsiChar(headerstrs[headerstrs.Count - 1]);
-
-      headerstrs.Add(headerval);
-      unknownheadersarr[i].RawValueLength := Length(headerval);
-      unknownheadersarr[i].pRawValue := PAnsiChar(headerstrs[headerstrs.Count - 1]);
-    end;
-
-    if unknownheaders.Count > 0 then begin
-      resp.Headers.UnknownHeaderCount := unknownheaders.Count;
-      resp.Headers.pUnknownHeaders := @unknownheadersarr[0];
-    end;
-
-    res := HttpSendHttpResponse(fHandle, fRequestId, flags, @resp, Nil, @bytessend, Nil, 0, Nil, Nil);
-    if res <> NO_ERROR then
-      raise EHTTPSys.CreateFmtHelp(SErrSendResponse, [res], 500);
-  finally
-    unknownheaders.Free;
-    headerstrs.Free;
+  // Process known headers
+  for i := 0 to aHeaders.Count - 1 do begin
+    headerline:=aHeaders[i];
+    colonidx := Pos(':', headerline);
+    if colonidx = 0 then
+      Continue;
+    headerstr := Copy(headerline, 1, colonidx - 1);
+    headerval := Trim(Copy(headerline, colonidx + 1, Length(headerline) - colonidx));
+    if not UnknownHeader(HeaderStr,hh,headerID) then
+       begin
+       HID:=Ord(headerid);
+       {$if SIZEOF(CHAR)=1}
+       knownheaderstrarr[HID].value:=HeaderVal;
+       {$ELSE}
+       knownheaderstrarr[HID].value:=UTF8Encode(HeaderVal);
+       {$ENDIF}
+       resp.Headers.KnownHeaders[HID].RawValueLength := Length(knownheaderstrarr[HID].value);
+       resp.Headers.KnownHeaders[HID].pRawValue := PAnsiChar(knownheaderstrarr[HID].value);
+       end;
   end;
+
+  // Process unknown headers. Start by allocating enough room.
+  SetLength(unknownheaderstrarr, aheaders.Count);
+  Idx:=0;
+  for i := 0 to aheaders.Count - 1 do begin
+    headerline:=aHeaders[i];
+    colonidx := Pos(':', headerline);
+    if colonidx = 0 then
+      Continue;
+    headerstr := Copy(headerline, 1, colonidx - 1);
+    headerval := Trim(Copy(headerline, colonidx + 1, Length(headerline) - colonidx));
+    if UnknownHeader(HeaderStr,hh,headerID) then begin
+      {$if SIZEOF(CHAR)=1}
+      unknownheaderstrarr[Idx].name:=headerstr;
+      unknownheaderstrarr[Idx].value:=headerval;
+      {$ELSE}
+      unknownheaderstrarr[Idx].name:=UTF8Encode(headerstr);
+      unknownheaderstrarr[Idx].value:=UTF8Encode(headerval);
+      {$ENDIF}
+      Inc(Idx);
+    end;
+  end;
+
+  if Idx > 0 then begin
+    SetLength(unknownheadersarr,Idx);
+    For I:=0 to Idx-1 do
+      begin
+      unknownheadersarr[I].NameLength := Length(unknownheaderstrarr[i].name);
+      unknownheadersarr[I].pName := PAnsiChar(unknownheaderstrarr[i].name);
+      unknownheadersarr[I].RawValueLength :=Length(unknownheaderstrarr[i].value);
+      unknownheadersarr[I].pRawValue := PAnsiChar(unknownheaderstrarr[i].value);
+      end;
+    resp.Headers.UnknownHeaderCount := Idx;
+    resp.Headers.pUnknownHeaders := @unknownheadersarr[0];
+  end;
+
+  res := HttpSendHttpResponse(fHandle, fRequestId, flags, @resp, Nil, @bytessend, Nil, 0, Nil, Nil);
+  if res <> NO_ERROR then
+    raise EHTTPSys.CreateFmtHelp(SErrSendResponse, [res], 500);
 end;
 
 procedure THTTPSysResponse.DoSendContent;
@@ -340,8 +368,7 @@ begin
     if Assigned(ContentStream) then
       memstrm.CopyFrom(ContentStream, ContentStream.Size)
     else
-      Contents.SaveToStream(memstrm);
-
+      MemStrm.Write(Content[1],Length(Content));
     chunk := Default(HTTP_DATA_CHUNK);
     chunk.DataChunkType := HttpDataChunkFromMemory;
     chunk.FromMemory.pBuffer := memstrm.Memory;
@@ -493,7 +520,7 @@ procedure THTTPSysRequest.FillHTTPVariables(aRequest: PHTTP_REQUEST);
     len := 32;
     SetLength(Result, len - 1);
 
-    if WSAAddressToString(aRequest^.Address.pRemoteAddress^, size, Nil, PChar(Result), len) <> 0 then begin
+    if WSAAddressToString(aRequest^.Address.pRemoteAddress^, size, Nil, PAnsiChar(Result), len) <> 0 then begin
       //Writeln('Failed to retrieve address string; error: ', WSAGetLastError);
       Exit('');
     end;
