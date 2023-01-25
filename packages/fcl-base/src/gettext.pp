@@ -289,7 +289,7 @@ end;
 procedure GetLanguageIDs(var Lang, FallbackLang:AnsiString );
 var
   Buffer: array[1..4] of {$ifdef Wince}WideChar{$else}AnsiChar{$endif};
-  Country: ;
+  Country: AnsiString;
   UserLCID: LCID;
 begin
   //defaults

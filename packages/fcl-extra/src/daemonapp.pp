@@ -133,7 +133,7 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Procedure StartService; virtual;
-    Procedure Main(Argc : DWord; Args : PPAnsiChar); Virtual;
+    Procedure Main(Argc : DWord; Args : PPChar); Virtual;
     Procedure Controller(ControlCode,EventType : DWord; EventData : Pointer); Virtual;
     Function ReportStatus : Boolean; virtual;
     Property Daemon : TCustomDaemon Read FDaemon;
@@ -367,7 +367,7 @@ Type
     procedure SysUnInstallDaemon(Daemon: TCustomDaemon);
     function  UnInstallRun: Boolean;
     function  RunDaemonsRun: Boolean;
-    Procedure Main(Argc : DWord; Args : PPAnsiChar);
+    Procedure Main(Argc : DWord; Args : PPChar);
     Function  RunGUIloop(P : Pointer) : integer;
   Protected
     // OS (System) dependent calls
@@ -772,7 +772,7 @@ begin
   // No Borland compatibility needed, as the install will take care of the -r
 end;
 
-procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPAnsiChar);
+procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPChar);
 
 Var
   SN : String;
