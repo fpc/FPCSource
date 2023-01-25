@@ -1004,7 +1004,7 @@ implementation
                       list.concat(taicpu.op_reg_reg_const_const(A_BFI,tmpreg,tmpreg2,i*8,8));
                     end;
                   if (tosize in [OS_S8,OS_S16]) then
-                    list.concat(taicpu.op_reg_reg(A_SXTH,tmpreg,tmpreg);
+                    list.concat(taicpu.op_reg_reg(A_SXTH,tmpreg,tmpreg));
                   a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
                 end;
             end;
