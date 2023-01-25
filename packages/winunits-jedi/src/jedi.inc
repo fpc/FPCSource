@@ -405,7 +405,11 @@
   {$ASMMODE Intel}
   {$ENDIF CPUI386 OR CPUX86_64}
   {$UNDEF BORLAND}
-   // FPC defines CPU* and Unix automatically
+  // FPC defines CPU* and Unix automatically
+  // CHAR is not known yet at this point, so SIZEOF(CHAR)) does not work. Not ideal...
+  {$IFDEF UNICODERTL}
+  {$DEFINE UNICODE}
+  {$ENDIF}
 {$ENDIF}
 
 {$IFDEF BORLAND}
