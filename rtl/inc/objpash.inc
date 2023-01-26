@@ -206,7 +206,7 @@
        {$IFNDEF UNICODERTL}
        RTLString = ansistring;
        {$ELSE UNICODERTL}
-       RTLString = widestring;
+       RTLString = unicodestring;
        {$ENDIF UNICODERTL}
 
        {$else FPC_HAS_FEATURE_ANSISTRINGS}
