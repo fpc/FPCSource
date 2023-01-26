@@ -2763,7 +2763,9 @@ begin
                  if (self.parasubtarget<>'') and (More<>upper(self.parasubtarget)) then
                     Message1(option_subtarget_is_already_set,self.parasubtarget)
                  else
+                    begin
                     self.parasubtarget:=more;
+                    end;
                  end;
 
              end;
@@ -4564,6 +4566,8 @@ begin
       set_system_macro('FPC_SUBTARGET',Option.parasubtarget)
     else
       set_system_compvar('FPC_SUBTARGET',Option.parasubtarget);
+    // So it can be used in macro substitution.
+    globals.subtarget:=Option.parasubtarget;
     end;
 
   { make cpu makros available when reading the config files the second time }
