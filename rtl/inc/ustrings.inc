@@ -2304,6 +2304,7 @@ function StubCompareWideString(const s1, s2 : WideString; Options : TCompareOpti
 procedure initunicodestringmanager;
   begin
 {$ifndef HAS_WIDESTRINGMANAGER}
+    widestringmanager:=Default(TUnicodeStringManager);
 {$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2UnicodeMove;
 {$else FPC_WIDESTRING_EQUAL_UNICODESTRING}
