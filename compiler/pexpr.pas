@@ -5000,6 +5000,11 @@ implementation
      constant. Then the constant is returned.}
     var
       p:tnode;
+      snode : tstringconstnode absolute p;
+      s : string;
+      pw : pcompilerwidestring;
+      pc : pansichar;
+
     begin
       get_stringconst:='';
       p:=comp_expr([ef_accept_equal]);
@@ -5010,8 +5015,16 @@ implementation
           else
             Message(parser_e_illegal_expression);
         end
+      else if (tstringconstnode(p).cst_type in [cst_unicodestring,cst_widestring]) then
+         begin
+         pw:=pcompilerwideString(tstringconstnode(p).value_str);
+         pc:=getmem(getlengthwidestring(pw));
+         unicode2ascii(pw,pc,current_settings.sourcecodepage);
+         get_stringconst:=strpas(pc);
+         freemem(pc);
+         end
       else
-        get_stringconst:=strpas(tstringconstnode(p).value_str);
+        get_stringconst:=strpas(snode.value_str);
       p.free;
     end;
 
