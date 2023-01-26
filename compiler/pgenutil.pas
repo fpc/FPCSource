@@ -1158,7 +1158,7 @@ uses
                 begin
                   target_def:=tarraydef(target_def).elementdef;
                   target_key:=generic_param_hash(target_def);
-                  caller_def:=tstringdef(caller_def).get_default_char_type;
+                  caller_def:=chartype_for_stringlike(caller_def);
                 end
               { non-uniform array constructors (i.e. array of const) are not compatible 
                 with normal arrays like "array of T" so we reject them }
