@@ -836,10 +836,19 @@ var
   p: SizeInt;
   BufEnd: SizeInt;
   LeadingLineEndMissing: Boolean;
+  Bound,EndBound : RawByteString;
+  
 begin
   // The length of the boundary, including the leading CR/LF, '--' and trailing '--' or
   // CR/LF.
-  bl := Length(FBoundary)+6;
+  {$IF SIZEOF(CHAR)=2}
+    Bound:=UTF8Encode(Boundary);
+    EndBound:=UTF8Encode('--'+Boundary);
+  {$ELSE}
+    Bound:=Boundary;
+    EndBound:='--'+Boundary;
+  {$ENDIF}
+  bl := Length(Bound)+6;
   LeadingLineEndMissing:=False;
   if State=cssStart then
     begin
@@ -1994,6 +2003,27 @@ begin
    end;
 end;
 
+<<<<<<< HEAD
+=======
+function TMimeItem.GetData: String;
+begin
+{$IF SIZEOF(CHAR)=2}
+  Result:=TEncoding.Default.GetString(FRawData);
+{$ELSE}
+  Result:=TEncoding.Default.GetAnsiString(FRawData);
+{$ENDIF}
+end;
+
+procedure TMimeItem.SetData(AValue: String);
+begin
+{$IF SIZEOF(CHAR)=2}
+  FRawData:=TEncoding.Default.GetBytes(AValue);
+{$ELSE}
+  FRawData:=TEncoding.Default.GetAnsiBytes(AValue);
+{$ENDIF}
+end;
+
+>>>>>>> 9930f5ba04 (* Fix compilation after rebase)
 function TMimeItem.CreateUploadedFileStreaming(Files: TUploadedFiles): TUploadedFile;
 begin
   if FLocalFilename='' then

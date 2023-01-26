@@ -100,7 +100,7 @@ type
     procedure ClearExpressions; virtual;
 //    procedure GetGeneratedVars(AList: TList);
     procedure GetFunctionNames(AList: TStrings);
-    function GetFunctionDescription(AFunction: AnsiString): AnsiString;
+    function GetFunctionDescription(const AFunction: AnsiString): AnsiString;
     property HexChar: AnsiChar read FHexChar write FHexChar;
     property ArgSeparator: AnsiChar read FArgSeparator write FArgSeparator;
     property Optimize: Boolean read FOptimize write FOptimize;

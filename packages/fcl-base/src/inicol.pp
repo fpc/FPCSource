@@ -48,7 +48,7 @@ Type
     Procedure SaveToIni(Ini: TCustomInifile; Section : String); virtual;
     Procedure SaveToFile(const AFileName : String; const Section : String);
     Procedure LoadFromIni(Ini: TCustomInifile; Section : String); virtual;
-    Procedure LoadFromFile(AFileName :String ; const Section : String);
+    Procedure LoadFromFile(const AFileName,  Section : String);
     Property Prefix : String  Read FPrefix;
     Property SectionPrefix : String  Read FSectionPrefix;
     Property FileName : String Read FFileName Write FFileName;
