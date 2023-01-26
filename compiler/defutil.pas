@@ -49,6 +49,9 @@ interface
        namely that can be joined and compared with another string-like type }
     function is_stringlike(def : tdef) : boolean;
 
+    {# Returns the typedef for the char type that matches the stringlike }
+    function chartype_for_stringlike(def : tdef) : tdef;
+
     {# Returns True, if definition defines an enumeration type }
     function is_enum(def : tdef) : boolean;
 
@@ -573,6 +576,22 @@ implementation
                   is_open_chararray(def) or
                   is_open_widechararray(def) or
                   (def=java_jlstring);
+      end;
+
+    function chartype_for_stringlike(def : tdef) : tdef;
+      begin
+        if is_string(def) then
+          result:=tstringdef(def).get_default_char_type
+        else if is_anychar(def) then
+          result:=def
+        else if is_pchar(def) or is_chararray(def) or is_open_chararray(def) then
+          result:=cansichartype
+        else if is_pwidechar(def) or is_pwidechar(def) or is_open_widechararray(def) then
+          result:=cwidechartype
+        else if def=java_jlstring then
+          result:=cwidechartype
+        else
+          internalerror(2023012501);
       end;
 
     function is_enum(def : tdef) : boolean;
