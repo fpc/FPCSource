@@ -26,7 +26,7 @@ type
 {$IF SIZEOF(CHAR)=2}
   TIDLString = String;
 {$ELSE}
-  TIDLString = UT8String;
+  TIDLString = UTF8String;
 {$ENDIF}
 
   EWebIDLError = class(Exception);
@@ -219,7 +219,7 @@ Type
     function IsFloat(const Value: TIDLString; out e: TMaxFloat): boolean;
     procedure NextToken;
     procedure Log(aMsgType: TMessageType; aMsgNumber: integer;
-      const aMsgFmt: String; const Args: array of const; MsgPos: PChar = nil);
+      const aMsgFmt: TIDLString; const Args: array of const; MsgPos: PChar = nil);
     procedure LogXExpectedButTokenFound(const X: TIDLString; ErrorPos: PChar = nil);
     procedure ReadOperand(Skip: boolean = false); // unary operators plus one operand
     procedure ReadExpression; // binary operators

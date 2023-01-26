@@ -862,7 +862,7 @@ begin
     EndBound:=UTF8Encode('--'+Boundary);
   {$ELSE}
     Bound:=Boundary;
-    EndBound:='--'+Boundary
+    EndBound:='--'+Boundary;
   {$ENDIF}
   bl := Length(Bound)+6;
   LeadingLineEndMissing:=False;
@@ -2070,7 +2070,7 @@ begin
 {$IF SIZEOF(CHAR)=2}
   FRawData:=TEncoding.Default.GetBytes(AValue);
 {$ELSE}
-  Result:=TEncoding.Default.GetAnsiBytes(FRawData);
+  FRawData:=TEncoding.Default.GetAnsiBytes(AValue);
 {$ENDIF}
 end;
 

@@ -27,7 +27,7 @@
     class procedure CheckEquals(expected, actual: boolean; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: TClass; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: int64; const msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: QWord; cons msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: QWord; const msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: Ansistring; const msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: unicodestring; const msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: integer; const msg: string = ''); overload; virtual;

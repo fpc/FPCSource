@@ -413,6 +413,7 @@ Type
 
 Function EncodeURLElement(const S : UnicodeString) : UnicodeString;
 Function DecodeURLElement(const S : AnsiString) : AnsiString;
+function DecodeURLElement(const S: UnicodeString): UnicodeString;
 
 implementation
 

@@ -68,22 +68,25 @@ type
     FPasInterfaceSuffix: TIDLString;
   Protected
     FWritingPasInterface: boolean;
-    function BaseUnits: TIDLString; override;
+    function BaseUnits: String; override;
     // Auxiliary routines
-    function GetPasClassName(const aName: TIDLString): TIDLString; overload; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
+    function GetPasClassName(const aName: String): String; overload; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
       override;
     function IntfToPasClassName(const aName: TIDLString): TIDLString; virtual;
     function ComputeGUID(const Prefix: TIDLString; aList: TIDLDefinitionList): TIDLString; virtual;
     procedure GetOptions(L: TStrings; Full: boolean); override;
-    function GetTypeName(const aTypeName: TIDLString; ForTypeDef: Boolean=False
-      ): TIDLString; override;
+    function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False): String; override;
     function GetPasIntfName(Intf: TIDLDefinition): TIDLString;
     function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
-      aResolvedTypename: TIDLString): TIDLDefinition; overload; override;
-    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): TIDLString;
+      aResolvedTypename: String): TIDLDefinition; overload; override;
+{$IF SIZEOF(CHAR)=1}      
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
+      aResolvedTypename: TIDLString): TIDLDefinition; overload; 
+{$ENDIF}      
+    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
-    function GetDictionaryDefHead(const CurClassName: TIDLString;
-      Dict: TIDLDictionaryDefinition): TIDLString; override;
+    function GetDictionaryDefHead(const CurClassName: String;
+      Dict: TIDLDictionaryDefinition): String; override;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
       override;
     // Code generation routines. Return the number of actually written defs.
@@ -136,12 +139,12 @@ implementation
 
 { TWebIDLToPasWasmJob }
 
-function TWebIDLToPasWasmJob.BaseUnits: TIDLString;
+function TWebIDLToPasWasmJob.BaseUnits: String;
 begin
   Result:='SysUtils, JOB_JS';
 end;
 
-function TWebIDLToPasWasmJob.GetPasClassName(const aName: TIDLString): TIDLString;
+function TWebIDLToPasWasmJob.GetPasClassName(const aName: String): String;
 begin
   Result:=aName;
   if (LeftStr(Result,length(ClassPrefix))=ClassPrefix)
@@ -239,8 +242,8 @@ begin
   inherited GetOptions(L, Full);
 end;
 
-function TWebIDLToPasWasmJob.GetTypeName(const aTypeName: TIDLString;
-  ForTypeDef: Boolean): TIDLString;
+function TWebIDLToPasWasmJob.GetTypeName(const aTypeName: String;
+  ForTypeDef: Boolean): String;
 begin
   Case aTypeName of
     'union',
@@ -269,8 +272,22 @@ begin
   Result:=GetPasClassName(Result);
 end;
 
+{$IF SIZEOF(CHAR)=1}
 function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
   aTypeName, aResolvedTypename: TIDLString): TIDLDefinition;
+
+Var
+  TN,RTN : String;
+  
+begin
+  Result:=GetResolvedType(aDef,TN,RTN);
+  aTypeName:=TN;
+  aResolvedTypeName:=RTN;
+end;
+{$ENDIF}
+
+function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
+  aTypeName, aResolvedTypename: String): TIDLDefinition;
 begin
   Result:=inherited GetResolvedType(aDef, aTypeName, aResolvedTypename);
   if Result is TIDLInterfaceDefinition then
@@ -280,7 +297,7 @@ begin
 end;
 
 function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
-  ): TIDLString;
+  ): String;
 var
   aParentName, aPasIntfName: TIDLString;
 begin
@@ -297,8 +314,8 @@ begin
   Result:=Result+','+aPasIntfName+')';
 end;
 
-function TWebIDLToPasWasmJob.GetDictionaryDefHead(const CurClassName: TIDLString;
-  Dict: TIDLDictionaryDefinition): TIDLString;
+function TWebIDLToPasWasmJob.GetDictionaryDefHead(const CurClassName: String;
+  Dict: TIDLDictionaryDefinition): String;
 begin
   Result:=CurClassName+'Rec = record';
   if Dict=nil then ;
