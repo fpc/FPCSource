@@ -182,7 +182,7 @@ type
     FValue: Double;
   public
     // not overloaded to support older Delphi versions
-    constructor Create(const AName: AnsiString; AValue: AnsiString);
+    constructor Create(const AName: AnsiString; const AValue: AnsiString);
     constructor CreateAsDouble(const AName: AnsiString; AValue: Double);
 
     function AsPointer: PAnsiChar; override;
@@ -605,7 +605,7 @@ end;
 
 { TFloatConstant }
 
-constructor TFloatConstant.Create(const AName, AValue: AnsiString);
+constructor TFloatConstant.Create(const AName: AnsiString; const aValue : AnsiString);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
 

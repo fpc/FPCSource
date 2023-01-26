@@ -411,8 +411,9 @@ Type
   // writing to socket
   EHTTPClientSocketWrite = Class(EHTTPClientSocket);
 
-Function EncodeURLElement(const S : String) : String;
-Function DecodeURLElement(Const S : String) : String;
+Function EncodeURLElement(const S : UnicodeString) : UnicodeString;
+Function DecodeURLElement(const S : AnsiString) : AnsiString;
+function DecodeURLElement(const S: UnicodeString): UnicodeString;
 
 implementation
 

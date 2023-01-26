@@ -32,7 +32,7 @@ Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
 Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
 Procedure BytesToVar(const aBytes : TBytes; Out aLocation : Pointer);
 
-Procedure HexStrToBytes(Const aHexStr : String; out aBytes : TBytes); overload;
+Procedure HexStrToBytes(Const aHexStr : UnicodeString; out aBytes : TBytes); overload;
 Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
 Function HexStrToBytes(Const aHexStr : String) : TBytes; overload;
 Function HexStrToString(Const aHexStr :  String) : AnsiString; overload;
@@ -144,7 +144,7 @@ begin
 end;
 
 
-procedure HexStrToBytes(const aHexStr: String; out aBytes: TBytes);
+procedure HexStrToBytes(const aHexStr: UnicodeString; out aBytes: TBytes);
 
 const
   Convert: array['0'..'f'] of SmallInt =

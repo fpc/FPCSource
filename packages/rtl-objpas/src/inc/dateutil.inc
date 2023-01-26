@@ -2717,12 +2717,6 @@ begin
      result:=result+encodedate(yy,mm,dd);
 end;
 
-function ScanDateTime(const Pattern: Ansistring; const s: string;
-  startpos: integer): tdatetime;
-begin
-
-end;
-
 
 function scandatetime(const pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 

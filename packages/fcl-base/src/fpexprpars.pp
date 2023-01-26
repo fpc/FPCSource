@@ -60,7 +60,7 @@ Type
     FTokenType : TTokenType;
   private
     function GetCurrentChar: AnsiChar;
-    procedure ScanError(Msg: AnsiString);
+    procedure ScanError(const Msg: AnsiString);
   protected
     procedure SetSource(const AValue: AnsiString ); virtual;
     function DoIdentifier: TTokenType;

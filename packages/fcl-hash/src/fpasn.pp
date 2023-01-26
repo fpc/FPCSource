@@ -82,7 +82,7 @@ procedure ASNParse(const Buffer: TBytes; List: TStrings);
 procedure ASNParse_GetItem(List: TStrings; Index: integer; out ASNType, ASNSize: integer);
 function ASNParse_GetIntBytes(List: TStrings; ListIndex: integer; ID: int64): TBytes;
 function ASNFetch(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Int32): Boolean; overload;
-function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: String): Boolean; overload;
+function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: UnicodeString): Boolean; overload;
 function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: AnsiString): Boolean; overload;
 
 implementation
@@ -814,7 +814,7 @@ begin
   OID:=OIDS;
 end;
 
-function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: String): Boolean;
+function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: UnicodeString): Boolean;
 var
   ASNType, ASNSize: Int32;
   OIDEnd: PByte;
