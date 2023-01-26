@@ -727,14 +727,14 @@ function CompareStrAnsiString(const S1, S2: ansistring): PtrInt;
 var
   l1, l2 : PtrInt;
 begin
-  if (current_Collation.DataPtr=nil) then
-    exit(OldManager.CompareStrAnsiStringProc(s1,s2));
+  if (current_Collation.DataPtr=nil) and Assigned(OldManager.CompareStrAnsiStringProc) then
+    Exit(OldManager.CompareStrAnsiStringProc(s1,s2));
   if (Pointer(S1)=Pointer(S2)) then
-    exit(0);
+    Exit(0);
   l1:=Length(S1);
   l2:=Length(S2);
   if (l1=0) or (l2=0) then
-    exit(l1-l2);
+    Exit(l1-l2);
   Result := InternalCompareStrAnsiString(@S1[1],@S2[1],l1,l2);
 end;
 
