@@ -2964,7 +2964,7 @@ end;
   If ReadStdErr is True, return stderr output if stdout is empty
   If EmptyIfStdErr, return empty string if stderr output is not empty }
 
-function GetCompilerInfo(const ACompiler:string; Args : TStrings; ReadStdErr: boolean;EmptyIfStdErr : boolean):string;
+function GetCompilerInfo(const ACompiler:string; Args : TStrings; ReadStdErr: boolean;EmptyIfStdErr : boolean):ansistring;
 
 const
   BufSize = 1024;
@@ -3008,7 +3008,7 @@ end;
 
 // Convenience function
 
-function GetCompilerInfo(const ACompiler:string; aOptions : Array of String; ReadStdErr: boolean;EmptyIfStdErr : boolean):string;
+function GetCompilerInfo(const ACompiler:string; aOptions : Array of String; ReadStdErr: boolean;EmptyIfStdErr : boolean):ansistring;
 
 Var
   Args : TStrings;
