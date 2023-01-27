@@ -3113,7 +3113,10 @@ implementation
                 begin
                   result:=cloadnode.create(srsym,srsymtable);
                   do_typecheckpass(result);
-                  result.resultdef:=getansistringdef;
+                  if is_systemunit_unicode then
+                    result.resultdef:=cstringdef.createunicode(true)
+                  else
+                    result.resultdef:=getansistringdef;
                 end
               else
                 result:=genconstsymtree(tconstsym(srsym));
