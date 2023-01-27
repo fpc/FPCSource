@@ -999,7 +999,7 @@ begin
   {$IFDEF SEARCHREC_USEFINDDATA}
     Result:=FindFirst(FileName,0,Info)=0;
     if Result then
-      DateTime.data:=Info.Data;
+      DateTime.data:=Info.FindData;
   {$ELSE}
     Result:=False;
   {$ENDIF}
