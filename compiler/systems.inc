@@ -209,7 +209,8 @@
              system_aarch64_freebsd,    { 115 }
              system_aarch64_embedded,   { 116 }
              system_mips64_linux,       { 117 }
-             system_mips64el_linux      { 118 }
+             system_mips64el_linux,     { 118 }
+             system_riscv32_freertos    { 119 }
        );
 
      type

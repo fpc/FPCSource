@@ -157,7 +157,7 @@ interface
         { aros }    ( true,  false, false, false, true,  true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false),
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false,  false, false, false,  false,  false, false),
-        { freertos }( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,   true, false),
+        { freertos }( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, false,  false, false, true,   false,  true,  false),
         {zxspectrum}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true),
         { msxdos}   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true),
         { ios }     ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true ,  false, false, false,  false,  false, false),
