@@ -195,7 +195,7 @@ end;
       end;
 
 
-    constructor Exception.CreateRes(ResString: PAnsiString);
+    constructor Exception.CreateRes(ResString: PResStringRec);
 
       begin
          inherited create;
@@ -203,7 +203,7 @@ end;
       end;
 
 
-    constructor Exception.CreateResFmt(ResString: PAnsiString; const Args: array of const);
+    constructor Exception.CreateResFmt(ResString: PResStringRec; const Args: array of const);
 
       begin
          inherited create;
@@ -230,7 +230,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResHelp(ResString: PAnsiString; AHelpContext: Longint);
+    constructor Exception.CreateResHelp(ResString: PResStringRec; AHelpContext: Longint);
 
     begin
        inherited create;
@@ -239,7 +239,7 @@ end;
     end;
 
 
-    constructor Exception.CreateResFmtHelp(ResString: PAnsiString; const Args: array of const;
+    constructor Exception.CreateResFmtHelp(ResString: PResStringRec; const Args: array of const;
       AHelpContext: Longint);
 
     begin
@@ -414,7 +414,7 @@ Var OutOfMemory : EOutOfMemory;
 Procedure RunErrorToExcept (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
 var
   E: Exception;
-  HS: PAnsiString;
+  HS: PResStringRec;
   Entry: PExceptMapEntry;
 begin
   Case Errno of

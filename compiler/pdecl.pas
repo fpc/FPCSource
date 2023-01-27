@@ -1306,6 +1306,8 @@ implementation
          sym : tsym;
          first,
          isgeneric : boolean;
+         pw : pcompilerwidestring;
+
       begin
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
@@ -1345,12 +1347,23 @@ implementation
                       stringconstn:
                         with Tstringconstnode(p) do
                           begin
-                             { resourcestrings are currently always single byte }
-                             if cst_type in [cst_widestring,cst_unicodestring] then
-                               changestringtype(getansistringdef);
-                             getmem(sp,len+1);
-                             move(value_str^,sp^,len+1);
-                             sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                             if not is_systemunit_unicode  then
+                               begin
+                               if cst_type in [cst_widestring,cst_unicodestring] then
+                                 changestringtype(getansistringdef);
+                               getmem(sp,len+1);
+                               move(value_str^,sp^,len+1);
+                               sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                               end
+                             else
+                               begin
+                               // For unicode rtl, resourcestrings are unicodestrings
+                               if cst_type in [cst_conststring,cst_longstring, cst_shortstring,cst_ansistring] then
+                                 changestringtype(cunicodestringtype);
+                               initwidestring(pw);
+                               copywidestring(pcompilerwidestring(value_str),pw);
+                               sym:=cconstsym.create_wstring(orgname,constresourcestring,pw);
+                               end;
                           end;
                       else
                         Message(parser_e_illegal_expression);

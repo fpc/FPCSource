@@ -165,7 +165,7 @@ Var
 
 {$ifdef FPC_HAS_FEATURE_RESOURCES}
    type
-     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
+     TResourceIterator = Function (Name : AnsiString; Value : RTLString; Hash : Longint; arg:pointer) : RTLString;
 
    Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
@@ -175,9 +175,9 @@ Var
 
    { Delphi compatibility }
    type
-     PResStringRec=^AnsiString;
-     TResStringRec=AnsiString;
-   Function LoadResString(p:PResStringRec):AnsiString;
+     PResStringRec=^RTLString;
+     TResStringRec=RTLString;
+   Function LoadResString(p:PResStringRec):RTLString;
 {$endif FPC_HAS_FEATURE_RESOURCES}
 
   implementation
@@ -411,7 +411,7 @@ Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
   i      : integer;
-  s      : AnsiString;
+  s      : RTLString;
 begin
   With ResourceStringTable^ do
     begin
@@ -513,7 +513,7 @@ begin
 end;
 
 
-Function LoadResString(p:PResStringRec):AnsiString;
+Function LoadResString(p:PResStringRec):RTLString;
 begin
   Result:=p^;
 end;

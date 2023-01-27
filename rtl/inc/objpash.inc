@@ -612,9 +612,9 @@
   type
     PResourceStringRecord = ^TResourceStringRecord;
     TResourceStringRecord = Record
-       Name,
+       Name : AnsiString;
        CurrentValue,
-       DefaultValue : AnsiString;
+       DefaultValue : RTLString;
        HashValue    : LongWord;
      end;
 {$endif FPC_HAS_FEATURE_RESOURCES}

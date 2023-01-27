@@ -112,13 +112,13 @@ type
     public
       constructor Create(const msg : string);
       constructor CreateFmt(const msg : string; const args : array of const);
-      constructor CreateRes(ResString: PAnsiString);
-      constructor CreateResFmt(ResString: PAnsiString; const Args: array of const);
+      constructor CreateRes(ResString: PResStringRec);
+      constructor CreateResFmt(ResString: PResStringRec; const Args: array of const);
       constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
         AHelpContext: Longint);
-      constructor CreateResHelp(ResString: PAnsiString; AHelpContext: Longint);
-      constructor CreateResFmtHelp(ResString: PAnsiString; const Args: array of const;
+      constructor CreateResHelp(ResString: PResStringRec; AHelpContext: Longint);
+      constructor CreateResFmtHelp(ResString: PResStringRec; const Args: array of const;
         AHelpContext: Longint);
       Function ToString : RTLString; override;
 
