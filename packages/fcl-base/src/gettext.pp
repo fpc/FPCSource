@@ -61,9 +61,9 @@ type
     constructor Create(const AFilename: String);
     constructor Create(AStream: TStream);
     destructor Destroy; override;
-    function Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord): AnsiString;
-    function Translate(const AOrig: AnsiString; AHash: LongWord): AnsiString;
-    function Translate(const AOrig: AnsiString): AnsiString;
+    function Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord): RTLString;
+    function Translate(const AOrig: RTLString; AHash: LongWord): RTLString;
+    function Translate(const AOrig: RTLString): RTLString;
   end;
 
   EMOFileError = class(Exception);
@@ -212,44 +212,46 @@ begin
   inherited Destroy;
 end;
 
-function TMOFile.Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord):AnsiString ;
+function TMOFile.Translate(AOrig: PAnsiChar; ALen: Integer; AHash: LongWord):RTLString;
 var
   idx, incr, nstr: LongWord;
 begin
+  Result := '';
   if AHash = $FFFFFFFF then
-  begin
-    Result := '';
     exit;
-  end;
   idx := AHash mod HashTableSize;
   incr := 1 + (AHash mod (HashTableSize - 2));
   while True do
   begin
     nstr := HashTable^[idx];
     if (nstr = 0) or (nstr > StringCount) then
-    begin
-      Result := '';
-      exit;
-    end;
+      Break;
     if (OrigTable^[nstr - 1].length = LongWord(ALen)) and
        (StrComp(OrigStrings^[nstr - 1], AOrig) = 0) then
     begin
       Result := TranslStrings^[nstr - 1];
-      exit;
+      Break;
     end;
     if idx >= HashTableSize - incr then
       Dec(idx, HashTableSize - incr)
     else
       Inc(idx, incr);
   end;
+  if Result<>'' then
+    exit;
 end;
 
-function TMOFile.Translate(const AOrig:AnsiString ; AHash: LongWord): AnsiString;
+function TMOFile.Translate(const AOrig:RTLString ; AHash: LongWord): RTLString;
+
+Var
+  SOrig : UTF8String;
+
 begin
-  Result := Translate(PAnsiChar(AOrig), Length(AOrig), AHash);
+  SOrig:=UTF8Encode(aOrig);
+  Result := Translate(PAnsiChar(SOrig), Length(AOrig), AHash);
 end;
 
-function TMOFile.Translate(const AOrig:AnsiString ):AnsiString ;
+function TMOFile.Translate(const AOrig:RTLString ):RTLString;
 
 begin
   Result := Translate(AOrig, Hash(AOrig));
@@ -261,7 +263,7 @@ end;
 // -------------------------------------------------------
 
 
-function Translate (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
+function Translate (Name : AnsiString; Value : RTLString; Hash : Longint; arg:pointer) : RTLString;
 var contextempty : boolean;
 begin
   contextempty:=name='';
