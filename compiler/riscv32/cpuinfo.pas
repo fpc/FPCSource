@@ -39,7 +39,8 @@ Type
        cpu_rv32ima,
        cpu_rv32im,
        cpu_rv32i,
-       cpu_rv32e
+       cpu_rv32e,
+       cpu_rv32imc
       );
 
    tfputype =
@@ -79,7 +80,8 @@ Type
       ct_ch32v305rb,
       ct_ch32v307rc,
       ct_ch32v307wc,
-      ct_ch32V307vc      
+      ct_ch32V307vc,
+      ct_esp32c3
      );
 
    tcontrollerdatatype = record
@@ -130,7 +132,8 @@ Const
       (controllertypestr:'CH32V305RB'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00020000; srambase:$20000000; sramsize:$00008000),
       (controllertypestr:'CH32V307RC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'CH32V307WC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
-      (controllertypestr:'CH32V307VC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000)
+      (controllertypestr:'CH32V307VC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
+      (controllertypestr:'ESP32C3'; controllerunitstr:'ESP32C3';    cputype:cpu_rv32imc; fputype:fpu_none; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000)
    );
    {$POP}
 
@@ -152,7 +155,8 @@ Const
      'RV32IMA',
      'RV32IM',
      'RV32I',
-     'RV32E'
+     'RV32E',
+     'RV32IMC'
    );
 
    fputypestr : array[tfputype] of string[8] = (         
@@ -192,7 +196,8 @@ Const
        { cpu_rv32ima   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
        { cpu_rv32im    } [CPURV_HAS_MUL],
        { cpu_rv32i     } [],
-       { cpu_rv32e     } [CPURV_HAS_16REGISTERS]
+       { cpu_rv32e     } [CPURV_HAS_16REGISTERS],
+       { cpu_rv32imc   } [CPURV_HAS_MUL,CPURV_HAS_COMPACT]
      );
 
 Implementation
