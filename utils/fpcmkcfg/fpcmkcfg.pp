@@ -90,6 +90,7 @@ Resourcestring
   Susage120 = '  -2            use built in fp.ini template';
   Susage130 = '  -3            use built in fppkg.cfg template';
   Susage140 = '  -4            use built in fppkg default compiler template';
+  Susage150 = '  -g            add help section to fp.ini';
 
   SVersion  = 'Version: %s';
 
@@ -348,6 +349,7 @@ begin
   Writeln(SUsage120);
   Writeln(SUsage130);
   Writeln(SUsage140);
+  Writeln(SUsage150);
   Halt(1);
 end;
 
@@ -405,7 +407,7 @@ Var
   I : Integer;
   S : String;
   ShowBuiltinCommand : boolean;
-
+  AppendHelp : boolean;
   Function GetOptArg : String;
 
   begin
@@ -439,6 +441,7 @@ begin
   ShowBuiltinCommand := False;
   SkipBackup := False;
   CreateDir := False;
+  AppendHelp:=False;
   While( I<=ParamCount) do
     begin
     S:=Paramstr(i);
@@ -454,6 +457,7 @@ begin
               ShowBuiltinMacros;
               halt(0);
               end;
+        'g' : AppendHelp:=True;
         't' : TemplateFileName:=GetOptArg;
         'd' : AddPair(GetOptArg);
         'u' : TemplateParser.Values[GetOptArg]:='';
@@ -495,6 +499,8 @@ begin
 
     TemplateParser.Values['TEMPLATEFILE'] := 'builtin';
     end;
+  If AppendHelp Then
+     Cfg.Text:=Cfg.Text+'[Help]'+LineEnding+'Files="%basepath%/help/toc.chm;%basepath%/help/fcl.chm;%basepath%/help/ref.chm;%basepath%/help/rtl.chm;%basepath%/help/prog.chm;%basepath%/help/user.chm;%basepath%/help/fclres.chm"'+LineEnding;
   if ShowBuiltinCommand then
     begin
     ShowBuiltIn;
