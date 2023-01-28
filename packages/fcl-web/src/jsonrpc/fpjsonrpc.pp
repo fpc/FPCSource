@@ -356,6 +356,7 @@ Type
   TCustomJSONRPCHandlerManager = Class(TComponent)
   Private
     FRegistering: Boolean;
+    FHandlerCount : Int64;
   Protected
     procedure Initialize; virtual;
     procedure DoClear; virtual;
@@ -1542,7 +1543,7 @@ begin
   If Assigned(FDataModuleClass) then
     begin
     {$ifdef wmdebug}SendDebug(Format('Creating datamodule from class %d ',[Ord(Assigned(FDataModuleClass))]));{$endif}
-    DM:=FDataModuleClass.Create(AOwner);
+    DM:=FDataModuleClass.Create(Nil);
     {$ifdef wmdebug}SendDebug(Format('Created datamodule from class %s ',[DM.ClassName]));{$endif}
     I:=0;
     While (Result=Nil) and (I<DM.ComponentCount) do
@@ -1559,7 +1560,7 @@ begin
       end;
     end
   else
-    DM:=TDataModule.CreateNew(AOwner,0);
+    DM:=TDataModule.CreateNew(Nil,0);
   AContainer:=DM;
   If (Result=Nil) then
     begin
@@ -1796,6 +1797,7 @@ Function TCustomJSONRPCHandlerManager.GetHandler(
   ): TCustomJSONRPCHandler;
 
 Var
+  N : String;
   O : TComponent;
 
 begin
@@ -1803,7 +1805,13 @@ begin
     O:=Self
   else
     O:=AOwner;
-  Result:=ADef.CreateInstance(O,AContainer);
+  Result:=ADef.CreateInstance(Nil,AContainer);
+  N:=aContainer.Name;
+  if N='' then
+    N:=aContainer.ClassName;
+  N:=N+IntToStr(InterlockedIncrement64(FHandlerCount));
+  aContainer.Name:=N;
+  O.InsertComponent(aContainer);
 end;
 
 Function TCustomJSONRPCHandlerManager.GetHandler(Const AClassName,
