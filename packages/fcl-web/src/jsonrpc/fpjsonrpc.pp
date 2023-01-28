@@ -356,7 +356,7 @@ Type
   TCustomJSONRPCHandlerManager = Class(TComponent)
   Private
     FRegistering: Boolean;
-    FHandlerCount : Int64;
+    FHandlerCount : Integer;
   Protected
     procedure Initialize; virtual;
     procedure DoClear; virtual;
@@ -1809,7 +1809,7 @@ begin
   N:=aContainer.Name;
   if N='' then
     N:=aContainer.ClassName;
-  N:=N+IntToStr(InterlockedIncrement64(FHandlerCount));
+  N:=N+IntToStr(InterlockedIncrement(FHandlerCount));
   aContainer.Name:=N;
   O.InsertComponent(aContainer);
 end;
