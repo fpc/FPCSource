@@ -400,7 +400,8 @@ begin
     AResponse.ContentLength:=AResponse.ContentStream.Size;
     R:=''; // Free up mem
     end;
-  AResponse.SendResponse;
+  if not (AResponse.HeadersSent and AResponse.ContentSent) then
+    AResponse.SendResponse;
 end;
 
 { TJSONRPCSessionContext }
