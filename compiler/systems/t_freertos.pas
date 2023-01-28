@@ -1623,17 +1623,17 @@ initialization
 {$endif arm}
 
 {$ifdef avr}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_avr_embedded_info);
 {$endif avr}
 
 {$ifdef i386}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
 
 {$ifdef x86_64}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_x86_64_embedded_info);
 {$endif x86_64}
 
@@ -1646,22 +1646,22 @@ initialization
 {$endif i8086}
 
 {$ifdef mipsel}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_mipsel_embedded_info);
 {$endif mipsel}
 
 {$ifdef m68k}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_m68k_embedded_info);
 {$endif m68k}
 
 {$ifdef riscv32}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
-  RegisterTarget(system_riscv32_embedded_info);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
+  RegisterTarget(system_riscv32_freertos_info);
 {$endif riscv32}
 
 {$ifdef riscv64}
-  RegisterLinker(ld_freertos,TLinkerEmbedded);
+  RegisterLinker(ld_freertos,TlinkerFreeRTOS);
   RegisterTarget(system_riscv64_embedded_info);
 {$endif riscv64}
 
