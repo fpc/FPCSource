@@ -636,39 +636,80 @@ function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackfra
   linux: rdi buf, rsi buf, rdx len }
 asm
 {$ifndef win64}
-    mov    %rdx, %r8
-    mov    %rsi, %rdx
-    mov    %rdi, %rcx
+    mov      %rdx, %r8
+    mov      %rsi, %rdx
+    mov      %rdi, %rcx
 {$endif win64}
-    negq    %r8
-    jz      .LCmpbyteZero
+    sub      %rcx, %rdx
+    lea      (%rcx,%r8), %r9
+    cmp      $15, %r8
+    jle      .LLessThanXMM
+    and      $-16, %r8
+    lea      (%rcx,%r8), %rax
+    jmp      .L16x_Body
 
-    subq    %r8, %rcx
-    subq    %r8, %rdx
+.balign 16
+.L16x_Next:
+    add      $16, %rcx
+    cmp      %rcx, %rax
+    je       .L4x_PrepareAfter16x
+.L16x_Body:
+    movdqu   (%rcx,%rdx), %xmm0
+    movdqu   (%rcx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %r8d
+    xor      $65535, %r8d
+    je       .L16x_Next
+    bsf      %r8d, %r8d
+    add      %rcx, %rdx
+    movzbl   (%rcx,%r8), %eax
+    movzbl   (%rdx,%r8), %edx
+    sub      %rdx, %rax
+    ret
 
-    .balign 16
-.LCmpbyteLoop:
-{$ifdef oldbinutils}
-// for the reason why this alternate coding of movzbl is given here
-// see the comments in FillChar above
-    .byte 0x42,0x0F,0xB6,0x04,0x01
-{$else}
-    movzbl  (%rcx,%r8), %eax
-{$endif}    cmpb    (%rdx,%r8), %al
-    jne     .LCmpbyteExitFast
-    incq     %r8
-    jne     .LCmpbyteLoop
-.LCmpbyteZero:
-     xorl    %eax, %eax
-     retq
+.L4x_PrepareAfter16x:
+    mov      %r9, %r8
+    sub      %rcx, %r8
+.LLessThanXMM:
+    cmp      $3, %r8
+    jle      .LBytewiseTail_Prepare
+.L4x_Prepare:
+    and      $-4, %r8
+    add      %rcx, %r8
+    cmp      %r8, %rcx
+    jne      .L4x_Body
+    jmp      .LBytewiseTail_Prepare
 
-.LCmpbyteExitFast:
-{$ifdef oldbinutils}
-    .byte 0x42,0x0F,0xB6,0x0C,0x02
-{$else}
-     movzbl  (%rdx,%r8), %ecx    { Compare last position }
-{$endif}
-     subq    %rcx, %rax
+.L4x_Next:
+    add      $4, %rcx
+    cmp      %rcx, %r8
+    je       .LBytewiseTail_Prepare
+.L4x_Body:
+    mov      (%rcx,%rdx), %r10d
+    mov      (%rcx), %eax
+    cmp      %r10d, %eax
+    je       .L4x_Next
+    bswap    %eax
+    bswap    %r10d
+    sub      %r10, %rax
+    ret
+
+.LBytewiseTail_Prepare:
+    cmp      %rcx, %r9
+    jne      .LBytewiseTail_Body
+    xor      %eax, %eax
+    ret
+
+.LBytewiseTail_Next:
+    add      $1, %rcx
+    cmp      %rcx, %r9
+    je       .LReturnRAX
+.LBytewiseTail_Body:
+    movzbl   (%rcx,%rdx), %r8d
+    movzbl   (%rcx), %eax
+    sub      %r8, %rax
+    je       .LBytewiseTail_Next
+.LReturnRAX:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 

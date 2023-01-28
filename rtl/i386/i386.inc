@@ -466,71 +466,86 @@ end;
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        cmpl    $57,%ecx          { empirically determined value on a Core 2 Duo Conroe }
-        jg      .LCmpbyteFull
-        testl   %ecx,%ecx
-        je      .LCmpbyteZero
+        sub     %eax, %edx
+        cmp     $6, %ecx
+        push    %esi
+        lea     (%eax,%ecx), %esi
+        jle     .LBytewiseTail_Prepare
+        push    %ebx
+        lea     3(%eax), %ebx
+        and     $-4, %ebx
+        cmp     %ebx, %eax
+        jne     .LBytewiseHead_Body
+.L4x_Prepare:
+        mov     %esi, %eax
+        and     $-4, %eax
+        jmp     .L4x_Body
 
-        pushl   %ebx
-.LCmpbyteLoop:
-        movb    (%eax),%bl
-        cmpb    (%edx),%bl
-        leal    1(%eax),%eax
-        leal    1(%edx),%edx
-        jne     .LCmpbyteExitFast
-        decl    %ecx
-        jne     .LCmpbyteLoop
-.LCmpbyteExitFast:
-        movzbl  -1(%edx),%ecx     { Compare last position }
-        movzbl  %bl,%eax
-        subl    %ecx,%eax
-        popl    %ebx
+.balign 16
+.L4x_Next:
+        add     $4, %ebx
+        cmp     %ebx, %eax
+        je      .LBytewiseTail_PrepareFromHeadAnd4x
+.L4x_Body:
+        mov     (%ebx,%edx), %ecx
+        cmp     %ecx, (%ebx)
+        je      .L4x_Next
+        mov     (%ebx), %eax
+{$ifdef CPUX86_HAS_BSWAP}
+        bswap   %ecx
+{$else}
+        rol     $8, %cx
+        rol     $16, %ecx
+        rol     $8, %cx
+{$endif}
+        pop     %ebx
+        pop     %esi
+{$ifdef CPUX86_HAS_BSWAP}
+        bswap   %eax
+{$else}
+        rol     $8, %ax
+        rol     $16, %eax
+        rol     $8, %ax
+{$endif}
+        cmp     %eax, %ecx
+        sbb     %eax, %eax
+        and     $2, %eax
+        sub     $1, %eax
         ret
 
-.LCmpbyteZero:
-        movl    $0,%eax
+.LBytewiseHead_Next:
+        add     $1, %eax
+        cmp     %eax, %ebx
+        je      .L4x_Prepare
+.LBytewiseHead_Body:
+        movzbl  (%eax,%edx), %ecx
+        cmp     (%eax), %cl
+        je      .LBytewiseHead_Next
+        pop     %ebx
+        jmp     .LBytesDiffer
+
+.LBytewiseTail_PrepareFromHeadAnd4x:
+        pop     %ebx
+.LBytewiseTail_Prepare:
+        cmp     %esi, %eax
+        jne     .LBytewiseTail_Body
+.LNothingFound:
+        xor     %eax, %eax
+        pop     %esi
         ret
 
-.LCmpbyteFull:
-        pushl   %esi
-        pushl   %edi
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%eax
-
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3 }
-        andl    $3,%ecx
-        subl    %ecx,%eax       { Subtract from number of bytes to go }
-        orl     %ecx,%ecx
-        repe
-        cmpsb                   { The actual 32-bit Aligning }
-        jne     .LCmpbyte3
-        movl    %eax,%ecx       { bytes to do, divide by 4 }
-        andl    $3,%eax         { remainder }
-        shrl    $2,%ecx         {  The actual division }
-        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp }
-        repe
-        cmpsl
-        je      .LCmpbyte2      { All equal? then to the left over bytes }
-        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise }
-        subl    %eax,%esi
-        subl    %eax,%edi
-.LCmpbyte2:
-        movl    %eax,%ecx       { bytes still to (re)scan }
-        orl     %eax,%eax       { prevent disaster in case %eax=0 }
-        repe
-        cmpsb
-.LCmpbyte3:
-        movzbl  -1(%esi),%ecx
-        movzbl  -1(%edi),%eax   { Compare failing (or equal) position }
-        subl    %ecx,%eax
-.LCmpbyteExit:
-        popl    %edi
-        popl    %esi
+.LBytewiseTail_Next:
+        add     $1, %eax
+        cmp     %eax, %esi
+        je      .LNothingFound
+.LBytewiseTail_Body:
+        movzbl  (%eax,%edx), %ecx
+        cmp     (%eax), %cl
+        je      .LBytewiseTail_Next
+.LBytesDiffer:
+        movzbl  (%eax), %eax
+        pop     %esi
+        sub     %ecx, %eax
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
