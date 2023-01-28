@@ -40,6 +40,9 @@ implementation
     {$endif}
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
+    {$ifndef NOTARGETFREERTOS}
+      ,t_freertos
+    {$endif}
     {$endif}
 
 {**************************************
