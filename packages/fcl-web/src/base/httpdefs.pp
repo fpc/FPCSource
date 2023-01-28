@@ -1018,7 +1018,10 @@ begin
       if MaxAge>0 then
         SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
       if (hcSend in aOptions) then
+        begin
         SetStatus(200,True);
+        Result:=True;
+        end;
       end;
     end;
 end;
