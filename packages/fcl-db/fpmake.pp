@@ -799,6 +799,11 @@ begin
           AddUnit('sqlscript');
           AddUnit('sqltypes');
         end;
+    T:=P.Targets.AddUnit('sqldbpool.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+        end;
     T:=P.Targets.AddUnit('sqldblib.pp');
       T.ResourceStrings:=true;
       with T.Dependencies do
