@@ -204,9 +204,9 @@ endif
 
 ifeq ($(ARCH),riscv32)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
-ifeq ($(SUBARCH),rv32imac)
-override FPCOPT+=-Cprv32imac
-CPU_UNITS=fe310g000 fe310g002 gd32vf103xx
+ifeq ($(SUBARCH),rv32imc)
+override FPCOPT+=-Cprv32imc
+CPU_UNITS=esp32c3 esp32c3idf_50000
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -222,7 +222,6 @@ ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
-
 
 ifeq ($(ARCH),xtensa)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo

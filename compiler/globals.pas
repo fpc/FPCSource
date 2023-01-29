@@ -262,12 +262,12 @@ interface
        { specified with -FW and -Fw }
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
        { specified with -Ff }
        idfpath           : TPathStr;
        { specified with }
        idf_version       : longint;
-{$endif XTENSA}
+{$endif defined(XTENSA) or defined(RISCV32)}
        { external assembler extra option }
        asmextraopt       : string;
 
@@ -1668,9 +1668,9 @@ implementation
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
         idfpath:='';
-{$endif XTENSA}
+{$endif defined(XTENSA) or defined(RISCV32)}
 
         { Search Paths }
         unicodepath:='';
