@@ -1296,14 +1296,14 @@ var
 {$ifdef XTENSA}
   memory_script,
   sections_script: AnsiString;
-  {$endif XTENSA}
+ {$endif XTENSA}
 begin
-{$ifdef XTENSA}
+{$if defined(XTENSA) or defined(RISCV32)}
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
   if idfpath='' then
     idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
   idfpath:=ExcludeTrailingBackslash(idfpath);
-{$endif XTENSA}
+{$endif defined(XTENSA) or defined(RISCV32)}
 
   { for future use }
   StaticStr:='';
@@ -1413,7 +1413,7 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
-{$ifdef XTENSA}
+{$if defined(XTENSA)}
   if success then
    begin
 {$ifdef UNIX}
@@ -1445,7 +1445,30 @@ begin
         end
    end
   else
-{$endif XTENSA}
+{$elseif defined(RISCV32)}
+  if success then
+   begin
+{$ifdef UNIX}
+      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+      cmdstr:='';
+{$else}
+      binstr:='python';
+      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+{$endif UNIX}
+      if source_info.exeext<>'' then
+        binstr:=binstr+source_info.exeext;
+      if (current_settings.controllertype = ct_esp32c3) then
+        begin
+          success:=DoExec(binstr,cmdstr+'--chip esp32c3 elf2image --flash_mode dio --flash_freq 80m '+
+            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--elf-sha256-offset 0xb0 --min-rev 3 '+
+            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+            FixedExeFileName,
+            true,false);
+        end;
+   end
+  else
+{$endif defined(RISCV32)}
     if success then
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
         FixedExeFileName+' '+
