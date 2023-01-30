@@ -275,27 +275,31 @@ interface
       begin
         op:=taicpu(hp).opcode;
         case op of
+          { FIX ME: in the opcode tables, we have information about which opcode
+            has a single possible size. Figure out if/how we can include checking
+            against that info instead of this mess. }
+          A_DBRA,
           A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
           A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
           A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
           A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF:
-            { old versions of GAS don't like PEA.L and LEA.L }
             result:=gas_op2str[op];
-          A_SXX, A_FSXX, A_DBXX, A_DBRA:
-            begin
-              { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
-              result:=gas_op2str[op];
-              replace(result,'xx',cond2str[taicpu(hp).condition]);
-            end;
-          { fix me: a fugly hack to utilize GNU AS pseudo instructions for more optimal branching }
+          A_SXX:
+            result:=gas_op2str[cond2sxx[taicpu(hp).condition]];
+          A_FSXX:
+            result:=gas_op2str[cond2fsxx[taicpu(hp).condition]];
+          A_DBXX:
+            result:=gas_op2str[cond2dbxx[taicpu(hp).condition]];
+
+          { a bit of a hackery to utilize GNU AS pseudo instructions for more optimal branching }
           A_JSR:
-            result:='jbsr';
+            result:=gas_op2str[A_JBSR];
           A_JMP:
-            result:='jra';
+            result:=gas_op2str[A_JRA];
           A_BXX:
-            result:='j'+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize];
+            result:=gas_op2str[cond2jxx[taicpu(hp).condition]]+gas_opsize2str[taicpu(hp).opsize];
           A_FBXX:
-            result:='fj'+{gas_op2str[op]+}cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize];
+            result:=gas_op2str[cond2fjxx[taicpu(hp).condition]]+gas_opsize2str[taicpu(hp).opsize];
           else
             result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
         end;
