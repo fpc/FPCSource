@@ -799,7 +799,7 @@ begin
           AddUnit('sqlscript');
           AddUnit('sqltypes');
         end;
-    T:=P.Targets.AddUnit('sqldbpool.pp');
+    T:=P.Targets.AddUnit('sqldbpool.pp', AllOSes - [atari]);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
