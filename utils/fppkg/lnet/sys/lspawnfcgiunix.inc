@@ -7,8 +7,17 @@ var
   i: Integer;
   SL: TStringList;
   aNil: Pointer = nil;
-  ppEnv, ppArgs: ppChar;
+  Apps : AnsiString {$IF SIZEOF(CHAR)=1} absolute App{$endif};
+  EnviroS : AnsiString {$IF SIZEOF(CHAR)=1} absolute Enviro{$endif};
+  ppEnv, ppArgs: ppAnsiChar;
+  Env : Array of AnsiString;
+  Len : Integer;
+  
 begin
+  {$IF SIZEOF(CHAR)=2}   
+  Apps:=UTF8Encode(App);
+  Enviros:=UTF8Encode(EnviroS);
+  {$ENDIF}
   Result:=FpFork;
 
   if Result = 0 then begin
@@ -38,13 +47,24 @@ begin
         end else
           SL.Add(Enviro);
       until i = 0;
-      GetMem(ppEnv, SizeOf(pChar) * (SL.Count + 1));
-      for i:=0 to SL.Count-1 do
-        ppEnv[i]:=pChar(SL[i]);
-      ppEnv[SL.Count]:=nil;
+      Len:=SL.Count;
+      SetLength(Env,Len);
+      For I:=0 to Len-1 do
+        begin
+         {$IF SIZEOF(CHAR)=2}
+        Env[i]:=UTF8Encode(SL[I]);
+        {$ELSE}
+        Env[i]:=SL[i];
+        {$ENDIF}
+        end;
+        
+      GetMem(ppEnv, SizeOf(pChar) * (Len+1));
+      for i:=0 to Len-1 do
+        ppEnv[i]:=pAnsiChar(Env[i]);
+      ppEnv[Len]:=nil;
     end;
     
-    FpExecve(pChar(App), ppArgs, ppEnv);
+    FpExecve(pAnsiChar(App), ppArgs, ppEnv);
   end else if Result > 0 then
     Result:=0; // it went ok
 end;
