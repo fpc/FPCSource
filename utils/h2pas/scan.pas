@@ -35,7 +35,7 @@ unit scan;
        version = '1.0.0';
 
     type
-       Char=system.char;
+       Char=system.ansichar;
        ttyp = (
           t_id,
           { p contains the string }
@@ -126,7 +126,7 @@ unit scan;
           );
 
 const
-   ttypstr: array[ttyp] of string =
+   ttypstr: array[ttyp] of ansistring =
    (
           't_id',
           't_arraydef',
@@ -170,7 +170,7 @@ type
        presobject = ^tresobject;
        tresobject = object
           typ : ttyp;
-          p : pchar;
+          p : pansichar;
           next : presobject;
           p1,p2,p3 : presobject;
           { name of int/real, then no T prefix is required }
@@ -179,12 +179,12 @@ type
           constructor init_one(t : ttyp;_p1 : presobject);
           constructor init_two(t : ttyp;_p1,_p2 : presobject);
           constructor init_three(t : ttyp;_p1,_p2,_p3 : presobject);
-          constructor init_id(const s : string);
-          constructor init_intid(const s : string);
-          constructor init_bop(const s : string;_p1,_p2 : presobject);
-          constructor init_preop(const s : string;_p1 : presobject);
-          procedure setstr(const s:string);
-          function str : string;
+          constructor init_id(const s : ansistring);
+          constructor init_intid(const s : ansistring);
+          constructor init_bop(const s : ansistring;_p1,_p2 : presobject);
+          constructor init_preop(const s : ansistring;_p1 : presobject);
+          procedure setstr(const s:ansistring);
+          function str : ansistring;
           function strlength : byte;
           function get_copy : presobject;
           { can this ve considered as a constant ? }
@@ -196,12 +196,12 @@ type
 
 
     var
-       infile : string;
+       infile : AnsiString;
        outfile : text;
-       c : char;
-       aktspace : string;
+       c : ansichar;
+       aktspace : ansistring;
        block_type : tblocktype;
-       commentstr: string;
+       commentstr: ansistring;
 
     const
        in_define : boolean = false;
@@ -222,10 +222,10 @@ type
 
 
     function yylex : integer;
-    function act_token : string;
+    function act_token : AnsiString;
     procedure internalerror(i : integer);
 
-    function strpnew(const s : string) : pchar;
+    function strpnew(const s : AnsiString) : PAnsiChar;
 
     procedure writetree(p: presobject);
 
@@ -317,9 +317,9 @@ type
       end;
 
 
-    function strpnew(const s : string) : pchar;
+    function strpnew(const s : AnsiString) : PAnsiChar;
       var
-        p : pchar;
+        p : PAnsiChar;
       begin
          getmem(p,length(s)+1);
          strpcopy(p,s);
@@ -331,7 +331,7 @@ type
       NotInCPlusBlock := cplusblocklevel < 1;
     end;
 
-    constructor tresobject.init_preop(const s : string;_p1 : presobject);
+    constructor tresobject.init_preop(const s : AnsiString;_p1 : presobject);
       begin
          typ:=t_preop;
          p:=strpnew(s);
@@ -342,7 +342,7 @@ type
          intname:=false;
       end;
 
-    constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
+    constructor tresobject.init_bop(const s : AnsiString;_p1,_p2 : presobject);
       begin
          typ:=t_bop;
          p:=strpnew(s);
@@ -353,7 +353,7 @@ type
          intname:=false;
       end;
 
-    constructor tresobject.init_id(const s : string);
+    constructor tresobject.init_id(const s : AnsiString);
       begin
          typ:=t_id;
          p:=strpnew(s);
@@ -364,7 +364,7 @@ type
          intname:=false;
       end;
 
-    constructor tresobject.init_intid(const s : string);
+    constructor tresobject.init_intid(const s : AnsiString);
       begin
          typ:=t_id;
          p:=strpnew(s);
@@ -419,14 +419,14 @@ type
          intname:=false;
       end;
 
-    procedure tresobject.setstr(const s : string);
+    procedure tresobject.setstr(const s : AnsiString);
       begin
          if assigned(p) then
           strdispose(p);
          p:=strpnew(s);
       end;
 
-    function tresobject.str : string;
+    function tresobject.str : AnsiString;
       begin
          str:=strpas(p);
       end;
@@ -1188,7 +1188,7 @@ end(*yyaction*);
 (* DFA table: *)
 
 type YYTRec = record
-                cc : set of Char;
+                cc : set of AnsiChar;
                 s  : Integer;
               end;
 
@@ -5966,7 +5966,7 @@ end(*yylex*);
 
 
 
-function act_token : string;
+function act_token : AnsiString;
 begin
   act_token:=yytext;
 end;

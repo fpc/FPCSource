@@ -309,7 +309,7 @@ program h2pas;
          is_sized : boolean;
          line : string;
          flag_index : longint;
-         name : pchar;
+         name : pansichar;
          ps : byte;
 
       begin
