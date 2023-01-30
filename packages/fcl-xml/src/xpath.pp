@@ -2429,7 +2429,7 @@ var
       Tail := Head;
       while (Tail <= L) and not IsXmlWhiteSpace(s[Tail]) do
         Inc(Tail);
-      SetString(Token, @s[Head], Tail - Head);
+      SetString(Token, PUnicodeChar(@s[Head]), Tail - Head);
       Element := doc.GetElementById(Token);
       if Assigned(Element) then
         ns.Add(Element);

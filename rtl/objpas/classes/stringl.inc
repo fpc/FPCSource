@@ -892,14 +892,14 @@ begin
     if Pointer(S) = Pointer(Value) then
       // Nothing to do
     else
-      SetString(S, @Value[StartPos], FuturePos - StartPos)
+      SetString(S, PChar(@Value[StartPos]), FuturePos - StartPos)
     end
   else
     if Pointer(S) = Pointer(Value) then
       System.Delete(S, FuturePos, High(FuturePos))
     else
       begin
-      SetString(S, @Value[StartPos], FuturePos - StartPos);
+      SetString(S, PChar(@Value[StartPos]), FuturePos - StartPos);
       Inc(FuturePos, Length(FLineBreak));
       end;
   P := FuturePos;

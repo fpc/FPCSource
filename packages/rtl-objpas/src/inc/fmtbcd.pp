@@ -2895,7 +2895,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
     if j > high(Buf) then
       Result := ''
     else
-      SetString(Result, @Buf[j], je-j);
+      SetString(Result, PAnsiChar(@Buf[j]), je-j);
   end;
 
 {$ifdef additional_routines}

@@ -575,7 +575,7 @@ end;
 
 function TMBCSEncoding.GetAnsiString(Bytes: PByte; ByteCount: Integer): ansistring;
 begin
-  SetString(Result, Pointer(Bytes), ByteCount);
+  SetString(Result, PAnsiChar(Bytes), ByteCount);
   SetCodePage(RawByteString(Result), GetCodePage, False);
   SetCodePage(RawByteString(Result), DefaultSystemCodePage, True);
 end;

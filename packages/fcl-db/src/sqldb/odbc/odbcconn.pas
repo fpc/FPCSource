@@ -1637,7 +1637,7 @@ begin
   end;
 
   if Connected and (SQLGetInfo(FDBCHandle, i, @b, sizeof(b), @l) = SQL_SUCCESS) then
-    SetString(Result, @b, l)
+    SetString(Result, PAnsiChar(@b), l)
   else
     Result:='';
 end;

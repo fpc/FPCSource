@@ -567,14 +567,30 @@ implementation
                   end;
                 procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
                 { decide which version to call based on the second parameter }
-                if not is_shortstring(strpara.resultdef) then
-                  if is_pwidechar(pcharpara.resultdef) or
-                     is_widechar(pcharpara.resultdef) or
-                     ((pcharpara.resultdef.typ=arraydef) and
-                      is_widechar(tarraydef(pcharpara.resultdef).elementdef)) then
-                    procname:=procname+'_pwidechar'
-                  else
-                    procname:=procname+'_pansichar';
+                  // widestring ?
+                if is_pwidechar(pcharpara.resultdef) or
+                   is_widechar(pcharpara.resultdef) or
+                   ((pcharpara.resultdef.typ=arraydef) and
+                    is_widechar(tarraydef(pcharpara.resultdef).elementdef)) then
+                      begin
+                      if is_shortstring(strpara.resultdef) then
+                        // do not allow widestring->shortstring
+                        message(type_e_mismatch)
+                      else
+                        procname:=procname+'_pwidechar'
+                      end
+                // ansistring ?
+                else if is_pchar(pcharpara.resultdef) or
+                        is_char(pcharpara.resultdef) or
+                        ((pcharpara.resultdef.typ=arraydef) and
+                         is_char(tarraydef(pcharpara.resultdef).elementdef)) then
+                  begin
+                  if not is_shortstring(strpara.resultdef) then
+                    procname:=procname+'_pansichar'
+                  end
+                else
+                  // Anything else is error
+                  message(type_e_mismatch)
               end;
           end;
         { default version (for error message) in case of missing or wrong

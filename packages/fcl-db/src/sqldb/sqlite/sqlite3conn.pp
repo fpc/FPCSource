@@ -1166,8 +1166,8 @@ end;
 function UTF8CompareCallback(user: pointer; len1: longint; data1: pointer; len2: longint; data2: pointer): longint; cdecl;
 var S1, S2: AnsiString;
 begin
-  SetString(S1, data1, len1);
-  SetString(S2, data2, len2);
+  SetString(S1, PAnsiChar(data1), len1);
+  SetString(S2, PAnsiChar(data2), len2);
   Result := UnicodeCompareStr(UTF8Decode(S1), UTF8Decode(S2));
 end;
 

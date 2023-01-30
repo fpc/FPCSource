@@ -3048,7 +3048,7 @@ begin
   if not GetValue(B) then
     Result := ''
   else
-    SetString(Result, @B[0], length(B) div SizeOf(AnsiChar));
+    SetString(Result, PAnsiChar(@B[0]), length(B) div SizeOf(AnsiChar));
 end;
 
 
