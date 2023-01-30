@@ -47,8 +47,8 @@ Type
     // Procedures which MAY be overridden in descendents
     procedure WriteBeginDocument; virtual;
     procedure WriteEndDocument; virtual;
-    Function  EscapeText(S : UnicodeString) : String; overload;
-    Function  EscapeText(S : String) : String; virtual; overload;
+    Function  EscapeText(S : UnicodeString) : AnsiString; overload;
+    Function  EscapeText(S : AnsiString) : AnsiString; virtual; overload;
     Function  StripText(S : String) : String; virtual;
     Procedure StartProcedure; Virtual;
     Procedure EndProcedure; Virtual;
@@ -280,7 +280,7 @@ end;
   Default implementations, may be overridden in descendents
   ---------------------------------------------------------------------}
 
-function TLinearWriter.EscapeText(S: String): String;
+function TLinearWriter.EscapeText(S: AnsiString): AnsiString;
 
 begin
   Result:=S;
@@ -1486,7 +1486,7 @@ begin
   // do nothing
 end;
 
-function TLinearWriter.EscapeText(S: UnicodeString): String;
+function TLinearWriter.EscapeText(S: UnicodeString): AnsiString;
 begin
   Result:=EscapeText(UTF8Encode(S));
 end;

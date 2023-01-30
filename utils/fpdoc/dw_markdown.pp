@@ -70,7 +70,7 @@ type
     procedure AppendShortDescr(Element: TPasElement); virtual;
     procedure AppendShortDescrCell(Element: TPasElement);  virtual;
     procedure AppendDescr(AContext: TPasElement; DescrNode: TDOMElement; AutoInsertBlock: Boolean); virtual;
-    procedure AppendDescrSection(AContext: TPasElement; DescrNode: TDOMElement; const ATitle: String); virtual;
+    procedure AppendDescrSection(AContext: TPasElement; DescrNode: TDOMElement; const ATitle: AnsiString); virtual;
     procedure AppendDescrSection(AContext: TPasElement; DescrNode: TDOMElement; const ATitle: DOMString); virtual;
     Procedure AppendHyperlink(Element: TPasElement);
     Function CreateHyperlink(Element: TPasElement) : string;
@@ -365,7 +365,7 @@ begin
   ConvertDescr(AContext, DescrNode, AutoInsertBlock);
 end;
 
-procedure TMarkdownWriter.AppendDescrSection(AContext: TPasElement;  DescrNode: TDOMElement; const ATitle: String);
+procedure TMarkdownWriter.AppendDescrSection(AContext: TPasElement;  DescrNode: TDOMElement; const ATitle: AnsiString);
 begin
   if IsDescrNodeEmpty(DescrNode) then
     exit;
