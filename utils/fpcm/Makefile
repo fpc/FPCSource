@@ -195,7 +195,6 @@ ifeq ($(FULL_TARGET),aarch64-embedded)
 endif
 ifdef SUB_TARGET 
 override FPCOPT+=-t$(SUB_TARGET)
-override FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
@@ -2049,7 +2048,7 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_LIBTAR=1
 REQUIRE_PACKAGES_FPMKUNIT=1
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL-PROCESS=1
