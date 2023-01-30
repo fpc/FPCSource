@@ -408,7 +408,7 @@ unit aoptcpu;
         (taicpu(p).oper[0]^.ref^.symbol=nil) and
         (taicpu(p).oper[0]^.ref^.direction=dir_none) and
         GetNextInstruction(p,next) and
-        MatchInstruction(next,A_LEA,[S_L]) and
+        MatchInstruction(next,A_LEA,[S_NO]) and
         (taicpu(next).oper[1]^.reg=NR_A7) and
         (taicpu(next).oper[0]^.ref^.base=NR_A7) and
         (taicpu(next).oper[0]^.ref^.index=NR_NO) and
@@ -469,6 +469,7 @@ unit aoptcpu;
                           else
                             reference_reset_base(tmpref,taicpu(p).oper[1]^.reg,taicpu(p).oper[0]^.val,ctempposinvalid,0,[]);
                           taicpu(p).opcode:=A_LEA;
+                          taicpu(p).opsize:=S_NO;
                           taicpu(p).loadref(0,tmpref);
                           result:=true;
                         end;
