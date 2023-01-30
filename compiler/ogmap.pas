@@ -81,7 +81,7 @@ implementation
               end;
             tmp[i]:='x';
             tmp[i-1]:='0';
-            setstring(result,@tmp[i-1],high(tmp)+2-i);
+            setstring(result,PChar(@tmp[i-1]),high(tmp)+2-i);
           end;
       end;
 
