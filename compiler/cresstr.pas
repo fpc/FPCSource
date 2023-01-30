@@ -203,10 +203,7 @@ uses
               begin
               if R.isUnicode and assigned(R.WValue) then
                 begin
-                if target_info.endian=endian_little then
-                  enc:=CP_UTF16
-                else
-                  enc:=CP_UTF16BE;
+                enc:=tstringdef(cunicodestringtype).encoding;
                 valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
                 end
               else
