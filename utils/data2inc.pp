@@ -48,14 +48,14 @@ type
             Simple service routines. These are copied from EPasStr.
 *****************************************************************************}
 
-TYPE CHARSET=SET OF CHAR;
+TYPE CHARSET=SET OF ANSICHAR;
 
-FUNCTION NextCharPos(CONST S : String;C:CHAR;Count:LONGINT):LONGINT;
+FUNCTION NextCharPos(CONST S : AnsiString;C:AnsiCHAR;Count:LONGINT):LONGINT;
 
 VAR I,J:LONGINT;
 
 BEGIN
- I:=ORD(S[0]);
+ I:=Length(S);
  IF I=0 THEN
   J:=0
  ELSE
@@ -73,7 +73,7 @@ BEGIN
  NextCharPos:=J;
 END;
 
-FUNCTION NextCharPosSet(CONST S : String;CONST C:CHARSET;Count:LONGINT):LONGINT;
+FUNCTION NextCharPosSet(CONST S : AnsiString;CONST C:CHARSET;Count:LONGINT):LONGINT;
 
 VAR I,J:LONGINT;
 
@@ -97,12 +97,12 @@ BEGIN
 END;
 
 
-PROCEDURE RTrim(VAR P : String;Ch:Char);
+PROCEDURE RTrim(VAR P : AnsiString;Ch:AnsiChar);
 
 VAR I,J : LONGINT;
 
 BEGIN
- I:=ORD(P[0]);      { Keeping length in local data eases optimalisations}
+ I:=Length(P);      { Keeping length in local data eases optimalisations}
  IF (I>0) THEN
   BEGIN
    J:=I;
@@ -112,7 +112,7 @@ BEGIN
    END;
 END;
 
-PROCEDURE UpperCase(VAR S : String);
+PROCEDURE UpperCase(VAR S : AnsiString);
 
 VAR L,I : LONGINT;
 
@@ -124,12 +124,12 @@ BEGIN
     S[I]:=CHR(ORD(S[I])-32);
 END;
 
-PROCEDURE LTrim(VAR P : String;Ch:Char);
+PROCEDURE LTrim(VAR P : AnsiString;Ch:ansiChar);
 
 VAR I,J : LONGINT;
 
 BEGIN
- I:=ORD(P[0]);      { Keeping length in local data eases optimalisations}
+ I:=Length(P);      { Keeping length in local data eases optimalisations}
  IF (I>0) THEN
   BEGIN
    J:=1;
@@ -144,7 +144,7 @@ END;
                               Parsing helpers
 *****************************************************************************}
 
-FUNCTION XlatString(Var S : String):BOOLEAN;
+FUNCTION XlatString(Var S : AnsiString):BOOLEAN;
 {replaces \xxx in string S with #x, and \\ with \ (escaped)
  which can reduce size of string.
 
@@ -179,7 +179,7 @@ BEGIN
  GetNumber:=Value;
 END;
 
-VAR S2:String;
+VAR S2:AnsiString;
     A,B : LONGINT;
     Value : LONGINT;
 
@@ -211,7 +211,7 @@ BEGIN
      INC (B);
     END;
   END;
- S2[0]:=CHR(B-1);
+ SetLength(S2,B-1);
  S:=S2;
  XlatString:=TRUE;
 END;
@@ -221,12 +221,12 @@ END;
 VAR
   Inname,                     { Name of input file }
   OutName,                    { Name of output (.inc) file }
-  BinConstName : string;      { (-b only) commandline name of constant }
+  BinConstName : Ansistring;  { (-b only) commandline name of constant }
   OutputMode   : TOutputMode; { Output mode (char,byte,string) }
   I_Binary     : BOOLEAN;     { TRUE is binary input, FALSE textual }
-  MsgTxt       : pchar;       { Temporary storage of data }
+  MsgTxt       : pAnsichar;   { Temporary storage of data }
   msgsize      : longint;     { Bytes used in MsgTxt }
-  C            : CHAR;
+  C            : AnsiCHAR;
 
 
 {*****************************************************************************
@@ -235,7 +235,7 @@ VAR
 
 {Dump the contents of MsgTxt (msgsize bytes) to file T (which has been opened),
 using CONSTNAME as the name of the ARRAY OF CHAR constant}
-procedure WriteCharFile(var t:text;constname:string);
+procedure WriteCharFile(var t:text;constname:ansistring);
 
   function createconst(b:byte):string;
   {decides whether to use the #xxx code or 'c' style for each char}
@@ -248,7 +248,7 @@ procedure WriteCharFile(var t:text;constname:string);
 
 var
   cidx,i  : longint;
-  p       : PCHAR;
+  p       : PAnsiCHAR;
 begin
   Writeln('Writing constant: ',constname,' to file '#39,outname,#39);
 {Open textfile}
@@ -286,13 +286,13 @@ end;
 
 {Dump the contents of MsgTxt (msgsize bytes) to file T (which has been opened),
 using CONSTNAME as the name of the ARRAY OF BYTE constant}
-procedure WriteByteFile(var t:text;constname:string);
+procedure WriteByteFile(var t:text;constname:ansistring);
 
-  function createconst(b:byte):string;
+  function createconst(b:byte):ansistring;
   {Translates byte B to a $xx hex constant}
   VAR l : Byte;
   begin
-   createconst[1]:='$'; createconst[0]:=#3;
+   createconst[1]:='$'; SetLength(createconst,3);
    l:=ORD(B SHR 4) +48;
    IF l>57 THEN
     l:=L+7;
@@ -305,7 +305,7 @@ procedure WriteByteFile(var t:text;constname:string);
 
 var
   cidx,i  : longint;
-  p       : pchar;
+  p       : pansichar;
 begin
   Writeln('Writing constant: ',constname,' to file '#39,outname,#39);
 {Open textfile}
@@ -341,11 +341,11 @@ end;
                                WriteStringFile
 *****************************************************************************}
 
-procedure WriteStringFile(var t:text;constname:string);
+procedure WriteStringFile(var t:text;constname:ansistring);
 const
   maxslen=240; { to overcome aligning problems }
 
-  function l0(l:longint):string;
+  function l0(l:longint):ansistring;
   var
     s : string[16];
   begin
@@ -358,7 +358,7 @@ const
 var
   slen,
   len,i  : longint;
-  p      : pchar;
+  p      : pansichar;
   start,
   quote  : boolean;
 begin
@@ -443,7 +443,7 @@ end;
                                    Parser
 *****************************************************************************}
 
-FUNCTION SpecialItem(S : String):LONGINT;
+FUNCTION SpecialItem(S : AnsiString):LONGINT;
 { This procedure finds the next comma, (or the end of the string)
     but comma's within single or double quotes should be ignored.
     Single quotes within double quotes and vice versa are also ignored.}
@@ -474,9 +474,9 @@ var
   line, DataItem,       {line number, position in DATA line}
   I1,I2,                {4 temporary counters}
   I3,I4  : longint;
-  s,S1    : string;     {S is string after reading, S1 is temporary string or
+  s,S1    : Ansistring;     {S is string after reading, S1 is temporary string or
                           current DATA-item being processed }
-  VarName : String;     { Variable name of constant to be written}
+  VarName : AnsiString;     { Variable name of constant to be written}
 
   PROCEDURE ParseError;
   {Extremely simple errorhandler}
@@ -536,7 +536,7 @@ var
     quotechars.
       Deletes quoted textstring incl quotes from S1}
   VAR
-    C : Char;
+    C : AnsiChar;
   BEGIN
     C:=S1[1];
     Delete(S1,1,1);
@@ -701,8 +701,7 @@ begin
                     'H','h' : FixHex(4);      {Hex}
                     'o','O' : FixHex(3);      {octal}
                         'B','b' : BEGIN       {Binary}
-                                   DEC(S1[0]); {avoid 'b' char being treated as
-                                                 hex B }
+                                   SetLength(S1,Length(S1)-1); {avoid 'b' char being treated as hex B }
                                    FixHex(1);
                                   END;
                '0'..'9','d','D' : BEGIN      {decimal versions}
