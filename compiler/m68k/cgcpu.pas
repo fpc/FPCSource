@@ -459,7 +459,7 @@ unit cgcpu;
                    href.base:=NR_PC;
                end;
 
-             list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+             list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
              ref.offset:=0;
              ref.symbol:=nil;
 
@@ -496,7 +496,7 @@ unit cgcpu;
                      href.offset:=ref.offset;
                      ref.offset:=0;
                    end;
-                 list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                 list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
                  ref.base:=hreg;
                  ref.index:=NR_NO;
                  result:=true;
@@ -527,7 +527,7 @@ unit cgcpu;
                  if isvalue16bit(ref.offset) then
                    begin
                      reference_reset_base(href,ref.base,ref.offset,ref.temppos,ref.alignment,ref.volatility);
-                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                     list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
                    end
                  else
                    begin
@@ -557,7 +557,7 @@ unit cgcpu;
                  else
                    ref.base:=NR_PC;
                end;
-             list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+             list.concat(taicpu.op_ref_reg(A_LEA,S_NO,ref,hreg));
              ref.base:=hreg;
              ref.index:=NR_NO;
              ref.scalefactor:=1;
@@ -1041,11 +1041,11 @@ unit cgcpu;
         if not isaddressregister(r) then
           begin
             hreg:=getaddressregister(list);
-            list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+            list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
             a_load_reg_reg(list, OS_ADDR, OS_ADDR, hreg, r);
           end
         else
-          list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
+          list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,r));
       end;
 
 
