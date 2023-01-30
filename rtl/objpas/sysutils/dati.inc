@@ -119,7 +119,9 @@ end;
 function TryEncodeTime(Hour, Min, Sec, MSec:word; Out Time : TDateTime) : boolean;
 
 begin
-  Result:=(Hour<24) and (Min<60) and (Sec<60) and (MSec<1000);
+  Result:=((Hour<24) and (Min<60) and (Sec<60) and (MSec<1000)) or
+    { allow leap second }
+    ((Hour=23) and (Min=59) and (Sec=60) and (MSec<1000));
   If Result then
     Time:=TDateTime(cardinal(Hour)*3600000+cardinal(Min)*60000+cardinal(Sec)*1000+MSec)/MSecsPerDay;
 end;
