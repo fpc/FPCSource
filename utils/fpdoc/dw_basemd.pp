@@ -119,8 +119,8 @@ Type
   Protected
     // Emit current line, if any
     Function OutputCurrentLine : Boolean;
-    function EscapeMarkDown(aText: Domstring): string;
-    function EscapeMarkDown(aText: String): string;
+    function EscapeMarkDown(aText: Domstring): Ansistring;
+    function EscapeMarkDown(aText: AnsiString): Ansistring;
     function CreateLink(Const aText,aLink : String) : String;
     function GetListPrefix: String;virtual;
 
@@ -227,13 +227,13 @@ begin
   EnsureEmptyLine;
 end;
 
-function TBaseMarkdownWriter.EscapeMarkDown(aText: Domstring): string;
+function TBaseMarkdownWriter.EscapeMarkDown(aText: Domstring): Ansistring;
 
 begin
   Result:=EscapeMarkDown(UTF8Encode(aText))
 end;
 
-function TBaseMarkdownWriter.EscapeMarkDown(aText: String): string;
+function TBaseMarkdownWriter.EscapeMarkDown(aText: AnsiString): Ansistring;
 begin
   Result:=StringReplace(aText,'*','\*',[rfReplaceAll]);
   Result:=StringReplace(Result,'_','\_',[rfReplaceAll]);

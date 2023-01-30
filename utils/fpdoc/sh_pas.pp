@@ -68,7 +68,7 @@ const
   MaxKeywordLength = 15;
   MaxKeyword = 60;
 
-  KeywordTable: array[0..MaxKeyword] of PChar =
+  KeywordTable: array[0..MaxKeyword] of String =
     ('AND', 'ARRAY', 'ASM', 'ASSEMBLER',
      'BEGIN', 'BREAK',
      'CASE', 'CONST', 'CONSTRUCTOR', 'CLASS',
@@ -109,6 +109,19 @@ var
   procedure PutChar;
   begin
     dest[dp] := source[0]; Inc(dp); Inc(source);
+  end;
+  procedure PutChars(S : String);
+  
+  Var
+    C : char;
+  
+  begin
+    for C in S do
+      begin
+      dest[dp] := c; 
+      Inc(dp); 
+      Inc(source);
+      end;
   end;
 
   procedure ProcessComment1;
@@ -199,28 +212,30 @@ var
 
   function CheckForKeyword: Boolean;
   var
-    keyword, ukeyword: array[0..MaxKeywordLength] of Char;
+    keyword, ukeyword: string;
     i, j: Integer;
   begin
-    i := 0;
-    while (source[i] <> #0) and (i < MaxKeywordLength) and
+    i := 1;
+    SetLength(KeyWord,MaxKeywordLength);
+    SetLength(UKeyWord,MaxKeywordLength);
+    while (source[i] <> #0) and (i <= MaxKeywordLength) and
       (source[i] in ['0'..'9', 'A'..'Z', 'a'..'z']) do begin
       keyword[i] := source[i];
       ukeyword[i] := UpCase(source[i]);
       Inc(i);
     end;
-    keyword[i] := #0; ukeyword[i] := #0;
+    SetLength(keyword,I-1);
+    SetLength(ukeyword,I-1);
     Result := False;
     if i < MaxKeywordLength then
       for j := 0 to MaxKeyword do
-        if StrIComp(KeywordTable[j], ukeyword) = 0 then begin
+        if KeywordTable[j]=ukeyword  then begin
           Result := True; break;
         end;
     if not Result then exit;
     Inc(source, i);
     AddSH(shKeyword);
-    StrCopy(dest + dp, keyword);
-    Inc(dp, i);
+    PutChars(keyword);
     if j <> KeywordAsmIndex then
       AddSH(shDefault)
     else begin

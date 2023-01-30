@@ -68,7 +68,7 @@ Type
     function  GetLabel(AElement: TPasElement): String; override;
     procedure StartListing(Frames: Boolean; const name: String); override;
     procedure EndListing; override;
-    Function  EscapeText(S : String) : String; override;
+    Function  EscapeText(S : AnsiString) : AnsiString; override;
     Function  StripText(S : String) : String; override;overload;
     procedure WriteCommentLine; override;
     procedure WriteComment(Comment : String);override;
@@ -213,7 +213,7 @@ begin
     end;
 end;
 
-function TLaTeXWriter.EscapeText(S: String): String;
+function TLaTeXWriter.EscapeText(S: AnsiString): AnsiString;
 
 
 var
