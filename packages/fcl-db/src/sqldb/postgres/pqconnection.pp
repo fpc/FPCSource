@@ -39,9 +39,9 @@ type
 
   TPGHandle = Class(TSQLHandle)
   strict private
-    class var _HID : Int64;
+    class var _HID : Integer;
   private
-    FHandleID : Int64;
+    FHandleID : Integer;
     FConnected: Boolean;
     FCOnnection: TPQConnection;
     FDBName : String;
@@ -267,7 +267,7 @@ begin
   FConnection:=aConnection;
   FCursorList:=TThreadList.Create;
   FCursorList.Duplicates:=dupIgnore;
-  FHandleID:=InterlockedIncrement64(_HID);
+  FHandleID:=InterlockedIncrement(_HID);
   {$IFDEF PQDEBUG}
   Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  allocating handle ');
   {$ENDIF}
