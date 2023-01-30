@@ -400,24 +400,28 @@ Const
   Events = IN_MODIFY or IN_ATTRIB or IN_CREATE or IN_DELETE;
 
 Var
+  ds : ansistring {$IF SIZEOF(CHAR)=1} absolute d {$Endif};
   fd, wd,fnl,len : cint;
   fds : tfdset;
   e : ^inotify_event;
   buf : Array[0..1023*4] of Byte; // 4K Buffer
-  fn : string;
-  p : pchar;
+  fn : ansistring;
+  p : pansichar;
 
 begin
+  {$IF SIZEOF(CHAR)=2} 
+  ds:=UTF8Encode(d);
+  {$Endif};
   fd:=inotify_init;
   try
-    wd:=inotify_add_watch(fd,pchar(d),Events);
+    wd:=inotify_add_watch(fd,pansichar(ds),Events);
     fpFD_Zero(fds);
     fpFD_SET(fd,fds);
     While (fpSelect(fd+1,@fds,nil,nil,nil)>=0) do
       begin
       len:=fpRead(fd,buf,sizeof(buf));
       e:=@buf;
-      While ((pchar(e)-@buf)<len) do
+      While ((pansichar(e)-@buf)<len) do
         begin
         fnl:=e^.len;
         if (fnl>0) then
@@ -459,7 +463,7 @@ Const
 Var
   WD,I,NEvents : Integer;
   E : TFileEvent;
-  BD,FN : String;
+  BD,FN : AnsiString;
 
 begin
   BD:=BaseDir;
@@ -472,7 +476,7 @@ begin
     for E in FWatches[i].Events do
       NEvents:=NEvents OR NativeEvents[E];
     FN:=BD+FWatches[i].Name;
-    wd:=inotify_add_watch(FINotifyFD,PChar(FN),NEvents);
+    wd:=inotify_add_watch(FINotifyFD,PAnsiChar(FN),NEvents);
     end;
 end;
 
@@ -511,8 +515,8 @@ Var
   fnl,len : cint;
   e : ^inotify_event;
   buf : Array[0..1023*4] of Byte; // 4K Buffer
-  fn : string;
-  p : pchar;
+  fn : ansistring;
+  p : pansichar;
   fds : tfdset;
   Timeout : ttimeval;
 
@@ -525,7 +529,7 @@ begin
     exit;
   len:=fpRead(FINotifyFD,buf,sizeof(buf));
   e:=@buf;
-  While ((pchar(e)-@buf)<len) do
+  While ((pansichar(e)-@buf)<len) do
     begin
     fnl:=e^.len;
     if (fnl>0) then
