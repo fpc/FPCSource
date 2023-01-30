@@ -67,7 +67,7 @@ var
 begin
   for i:=1to Length(Hstr) do
    UCase[i]:=Upcase(Hstr[i]);
-  UCase[0]:=chr(Length(Hstr));
+  SetLength(UCase,Length(Hstr));
 end;
 
 
@@ -97,7 +97,7 @@ begin
       FixFn[i]:=s[i];
      end;
    end;
-  FixFn[0]:=Chr(Length(s));
+  SetLength(FixFn,Length(s));
 end;
 
 
@@ -209,7 +209,7 @@ procedure ListDepend(const fn:string);
      end;
     if (i>0) and (s[i]=#13) then
      dec(i);
-    s[0]:=chr(i);
+    SetLength(s,i);
   end;
 {$endif}
 

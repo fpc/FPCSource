@@ -264,11 +264,11 @@ end;
 
 var
   fn,s:string;
-function GetSwitchValue(const key,shortkey,default:string;const PossibleValues:array of pchar):string;
+function GetSwitchValue(const key,shortkey,default:string;const PossibleValues:array of pansichar):ansistring;
 var
   i,j,k:longint;
   x:double;
-  s1,s2:string;
+  s1,s2:ansistring;
   code:integer;
 
   procedure Error;
