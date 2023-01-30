@@ -278,9 +278,9 @@ procedure TScriptLexer.nextToken;
       tkLSHIFT..tkEQ: inc(p,2);
       #32..#255: inc(p);
       tkIDENT,tkNUMBER:
-        setstring(curtokenstr,@data[start],p-start);
+        setstring(curtokenstr,PChar(@data[start]),p-start);
       tkLITERAL:
-        setstring(curtokenstr,@data[start+1],p-start-2);
+        setstring(curtokenstr,PChar(@data[start+1]),p-start-2);
     end;
     curpos:=p;
   end;
