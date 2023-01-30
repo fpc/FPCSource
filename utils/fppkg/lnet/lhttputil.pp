@@ -42,12 +42,12 @@ type
 
   function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
   function LocalTimeToGMT(ADateTime: TDateTime): TDateTime;
-  function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
+  function TryHTTPDateStrToDateTime(ADateStr: pansichar; var ADest: TDateTime): boolean;
 
   function SeparatePath(var InPath: string; out ExtraPath: string; const Mode:Longint;
     ASearchRec: PSearchRec = nil): boolean;
-  function CheckPermission(const ADocument: pchar): boolean;
-  function HTTPDecode(AStr: pchar): pchar;
+  function CheckPermission(const ADocument: pansichar): boolean;
+  function HTTPDecode(AStr: pansichar): pansichar;
   function HTTPEncode(const AStr: string): string;
   function HexToNum(AChar: char): byte;
   
@@ -69,7 +69,7 @@ begin
   Result := ADateTime - (TZSeconds*1000/MSecsPerDay);
 end;
 
-function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
+function TryHTTPDateStrToDateTime(ADateStr: pansichar; var ADest: TDateTime): boolean;
 var
   lYear, lMonth, lDay: word;
   lTime: array[0..2] of word;
@@ -156,9 +156,9 @@ begin
     Result := 0;
 end;
 
-function HTTPDecode(AStr: pchar): pchar;
+function HTTPDecode(AStr: pansichar): pansichar;
 var
-  lPos, lNext, lDest: pchar;
+  lPos, lNext, lDest: pansichar;
 begin
   lDest := AStr;
   repeat
@@ -167,7 +167,7 @@ begin
       Inc(lPos);
     if (lPos[0]='%') and (lPos[1] <> #0) and (lPos[2] <> #0) then
     begin
-      lPos^ := char((HexToNum(lPos[1]) shl 4) + HexToNum(lPos[2]));
+      lPos^ := ansichar((HexToNum(lPos[1]) shl 4) + HexToNum(lPos[2]));
       lNext := lPos+2;
     end else if lPos[0] = '+' then
     begin
@@ -218,9 +218,9 @@ begin
   SetLength(Result, dest - pchar(Result));
 end;
 
-function CheckPermission(const ADocument: pchar): boolean;
+function CheckPermission(const ADocument: pansichar): boolean;
 var
-  lPos: pchar;
+  lPos: pansichar;
 begin
   lPos := ADocument;
   repeat

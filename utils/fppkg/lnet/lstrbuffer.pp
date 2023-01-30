@@ -30,16 +30,18 @@ interface
 type
   PStringBuffer = ^TStringBuffer;
   TStringBuffer = record
-    Memory: pchar;
-    Pos: pchar;
+    Memory: pansichar;
+    Pos: pansichar;
   end;
 
 function  InitStringBuffer(InitialSize: integer): TStringBuffer;
-procedure AppendString(var ABuffer: TStringBuffer; const ASource: string); overload;
+// Assumes UTF8
+procedure AppendString(var ABuffer: TStringBuffer; const ASource: unicodestring); overload;
+procedure AppendString(var ABuffer: TStringBuffer; const ASource: ansistring); overload;
 procedure AppendString(var ABuffer: TStringBuffer; const ASource: shortstring); overload;
 procedure AppendString(var ABuffer: TStringBuffer; ASource: pointer; ALength: PtrUInt); overload;
-procedure AppendString(var ABuffer: TStringBuffer; ASource: pchar); overload;
-procedure AppendChar(var ABuffer: TStringBuffer; AChar: char);
+procedure AppendString(var ABuffer: TStringBuffer; ASource: pansichar); overload;
+procedure AppendChar(var ABuffer: TStringBuffer; AChar: Ansichar);
 
 implementation
 
@@ -66,7 +68,7 @@ begin
   Inc(ABuffer.Pos, ALength);
 end;
 
-procedure AppendString(var ABuffer: TStringBuffer; ASource: pchar);
+procedure AppendString(var ABuffer: TStringBuffer; ASource: pansichar);
 begin
   if ASource = nil then exit;
   AppendString(ABuffer, ASource, StrLen(ASource)); 
@@ -77,15 +79,25 @@ begin
   AppendString(ABuffer, @ASource[1], Length(ASource));
 end;
 
-procedure AppendString(var ABuffer: TStringBuffer; const ASource: string);
+procedure AppendString(var ABuffer: TStringBuffer; const ASource: ansistring);
 begin
-  AppendString(ABuffer, PChar(ASource), Length(ASource));
+  AppendString(ABuffer, PAnsiChar(ASource), Length(ASource));
 end;
 
-procedure AppendChar(var ABuffer: TStringBuffer; AChar: char);
+procedure AppendChar(var ABuffer: TStringBuffer; AChar: ansichar);
 begin
   ABuffer.Pos^ := AChar;
   Inc(ABuffer.Pos);
+end;
+
+procedure AppendString(var ABuffer: TStringBuffer; const ASource: unicodestring);
+
+Var
+  S : UTF8String;
+
+begin
+  S:=UTF8Encode(aSource);
+  AppendString(aBuffer,S);
 end;
 
 end.
