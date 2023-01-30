@@ -125,10 +125,10 @@ type
   TRequestInfo = record
     RequestType: TLHTTPMethod;
     DateTime: TDateTime;
-    Method: pchar;
-    Argument: pchar;
-    QueryParams: pchar;
-    VersionStr: pchar;
+    Method: pansichar;
+    Argument: pansichar;
+    QueryParams: pansichar;
+    VersionStr: pansichar;
     Version: dword;
   end;
 
@@ -159,8 +159,8 @@ type
   PResponseInfo = ^TResponseInfo;
   TResponseInfo = record
     Status: TLHTTPStatus;
-    ContentType: string;
-    ContentCharset: string;
+    ContentType: Ansistring;
+    ContentCharset: Ansistring;
     LastModified: TDateTime;
   end;
 
@@ -169,7 +169,7 @@ type
 
   TOutputItem = class(TObject)
   protected
-    FBuffer: pchar;
+    FBuffer: PAnsiChar;
     FBufferPos: integer;
     FBufferSize: integer;
     FBufferOffset: integer;
@@ -183,7 +183,7 @@ type
     FWriteBlock: TWriteBlockMethod;
 
     procedure DoneInput; virtual;
-    function  HandleInput(ABuffer: pchar; ASize: integer): integer; virtual;
+    function  HandleInput(ABuffer: PAnsiChar; ASize: integer): integer; virtual;
     function  WriteBlock: TWriteBlockStatus; virtual;
   public
     constructor Create(ASocket: TLHTTPSocket);
@@ -258,10 +258,10 @@ type
   end;
 
   TChunkState = (csInitial, csData, csDataEnd, csTrailer, csFinished);
-  TLHTTPParameterArray = array[TLHTTPParameter] of pchar;
+  TLHTTPParameterArray = array[TLHTTPParameter] of PAnsiChar;
   
   TParseBufferMethod = function: boolean of object;
-  TLInputEvent = function(ASocket: TLHTTPClientSocket; ABuffer: pchar; ASize: integer): integer of object;
+  TLInputEvent = function(ASocket: TLHTTPClientSocket; ABuffer: PAnsiChar; ASize: integer): integer of object;
   TLCanWriteEvent = procedure(ASocket: TLHTTPClientSocket; var OutputEof: TWriteBlockStatus) of object;
   TLHTTPClientEvent = procedure(ASocket: TLHTTPClientSocket) of object;
 
@@ -276,12 +276,12 @@ type
 
   TLHTTPSocket = class(TLSocket)
   protected
-    FBuffer: pchar;
-    FBufferPos: pchar;
-    FBufferEnd: pchar;
+    FBuffer: PAnsiChar;
+    FBufferPos: PAnsiChar;
+    FBufferEnd: PAnsiChar;
     FBufferSize: integer;
-    FRequestBuffer: pchar;
-    FRequestPos: pchar;
+    FRequestBuffer: PAnsiChar;
+    FRequestPos: PAnsiChar;
     FRequestInputDone: boolean;
     FRequestHeaderDone: boolean;
     FOutputDone: boolean;
@@ -308,11 +308,11 @@ type
     function  ParseRequest: boolean;
     function  ParseEntityPlain: boolean;
     function  ParseEntityChunked: boolean;
-    procedure ParseLine(pLineEnd: pchar); virtual;
-    procedure ParseParameterLine(pLineEnd: pchar);
+    procedure ParseLine(pLineEnd: PAnsiChar); virtual;
+    procedure ParseParameterLine(pLineEnd: PAnsiChar);
     function  ProcessEncoding: boolean;
     procedure ProcessHeaders; virtual; abstract;
-    procedure RelocateVariable(var AVar: pchar);
+    procedure RelocateVariable(var AVar: PAnsiChar);
     procedure RelocateVariables; virtual;
     procedure ResetDefaults; virtual;
     function  SetupEncoding(AOutputItem: TBufferOutput; AHeaderOut: PHeaderOutInfo): boolean;
@@ -349,8 +349,8 @@ type
     procedure LogMessage; override;
     procedure RelocateVariables; override;
     procedure ResetDefaults; override;
-    procedure ParseLine(pLineEnd: pchar); override;
-    procedure ParseRequestLine(pLineEnd: pchar);
+    procedure ParseLine(pLineEnd: PAnsiChar); override;
+    procedure ParseRequestLine(pLineEnd: PAnsiChar);
     function  PrepareResponse(AOutputItem: TOutputItem; ACustomErrorMessage: boolean): boolean;
     procedure ProcessHeaders; override;
     procedure WriteError(AStatus: TLHTTPStatus); override;
@@ -416,8 +416,8 @@ type
     function  GetResponseReason: string;
     function  GetResponseStatus: TLHTTPStatus;
     procedure Cancel(AError: TLHTTPClientError);
-    procedure ParseLine(pLineEnd: pchar); override;
-    procedure ParseStatusLine(pLineEnd: pchar);
+    procedure ParseLine(pLineEnd: PAnsiChar); override;
+    procedure ParseStatusLine(pLineEnd: PAnsiChar);
     procedure ProcessHeaders; override;
     procedure ResetDefaults; override;
   public
@@ -449,7 +449,7 @@ type
     
     procedure ConnectEvent(aSocket: TLHandle); override;
     procedure DoDoneInput(ASocket: TLHTTPClientSocket);
-    function  DoHandleInput(ASocket: TLHTTPClientSocket; ABuffer: pchar; ASize: integer): integer;
+    function  DoHandleInput(ASocket: TLHTTPClientSocket; ABuffer: PAnsiChar; ASize: integer): integer;
     procedure DoProcessHeaders(ASocket: TLHTTPClientSocket);
     function  DoWriteBlock(ASocket: TLHTTPClientSocket): TWriteBlockStatus;
     function  InitSocket(aSocket: TLSocket): TLSocket; override;
@@ -502,12 +502,12 @@ begin
   OutDigit := ord(ADigit) - ord('0');
 end;
 
-function HTTPVersionCheck(AStr, AStrEnd: pchar; out AVersion: dword): boolean;
+function HTTPVersionCheck(AStr, AStrEnd: PAnsiChar; out AVersion: dword): boolean;
 var
   lMajorVersion, lMinorVersion: byte;
 begin
   Result := ((AStrEnd-AStr) = 8) 
-    and CompareMem(AStr, pchar('HTTP/'), 5)
+    and CompareMem(AStr, PAnsiChar('HTTP/'), 5)
     and TrySingleDigit(AStr[5], lMajorVersion) 
     and (AStr[6] = '.')
     and TrySingleDigit(AStr[7], lMinorVersion);
@@ -524,7 +524,7 @@ end;
 const
    HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
-function HexReverse(AValue: dword; ABuffer: pchar): integer;
+function HexReverse(AValue: dword; ABuffer: PAnsiChar): integer;
 begin
   Result := 0;
   repeat
@@ -535,10 +535,10 @@ begin
   until AValue = 0;
 end;
 
-procedure HexToInt(ABuffer: pchar; out AValue: dword; out ACode: integer);
+procedure HexToInt(ABuffer: PAnsiChar; out AValue: dword; out ACode: integer);
 var
   Val, Incr: dword;
-  Start: pchar;
+  Start: PAnsiChar;
 begin
   Val := 0;
   ACode := 0;
@@ -604,7 +604,7 @@ procedure TOutputItem.DoneInput;
 begin
 end;
 
-function TOutputItem.HandleInput(ABuffer: pchar; ASize: integer): integer;
+function TOutputItem.HandleInput(ABuffer: PAnsiChar; ASize: integer): integer;
 begin
   { discard input }
   Result := ASize;
@@ -670,7 +670,7 @@ end;
 
 procedure TBufferOutput.Add(const AStr: string);
 begin
-  Add(PChar(AStr), Length(AStr));
+  Add(PAnsiChar(AStr), Length(AStr));
 end;
 
 procedure TBufferOutput.PrependStreamOutput(AStream: TStream; AFree: boolean);
@@ -1109,7 +1109,7 @@ begin
     WriteBlock;
 end;
 
-procedure TLHTTPSocket.RelocateVariable(var AVar: pchar);
+procedure TLHTTPSocket.RelocateVariable(var AVar: PAnsiChar);
 begin
   if AVar = nil then exit;
   AVar := FBuffer + (AVar - FRequestPos);
@@ -1126,7 +1126,7 @@ end;
 procedure TLHTTPSocket.PackRequestBuffer;
 var
   lBytesLeft: integer;
-  lFreeBuffer: pchar;
+  lFreeBuffer: PAnsiChar;
 begin
   if (FRequestBuffer <> nil) and (FBufferEnd-FBufferPos <= RequestBufferSize) then
   begin
@@ -1189,7 +1189,7 @@ end;
 
 function TLHTTPSocket.ParseEntityChunked: boolean;
 var
-  lLineEnd, lNextLine: pchar;
+  lLineEnd, lNextLine: PAnsiChar;
   lCode: integer;
 begin
   repeat
@@ -1244,7 +1244,7 @@ end;
 
 function TLHTTPSocket.ParseRequest: boolean;
 var
-  pNextLine, pLineEnd: pchar;
+  pNextLine, pLineEnd: PAnsiChar;
 begin
   if FRequestHeaderDone then exit(not FRequestInputDone);
   repeat
@@ -1269,9 +1269,9 @@ begin
   until false;
 end;
 
-procedure TLHTTPSocket.ParseParameterLine(pLineEnd: pchar);
+procedure TLHTTPSocket.ParseParameterLine(pLineEnd: PAnsiChar);
 var
-  lPos: pchar;
+  lPos: PAnsiChar;
   I: TLHTTPParameter;
   lLen: integer;
 begin
@@ -1288,7 +1288,7 @@ begin
   lLen := lPos-FBufferPos-1;
   for I := Low(TLHTTPParameter) to High(TLHTTPParameter) do
     if (Length(HTTPParameterStrings[I]) = lLen)
-    and CompareMem(FBufferPos, PChar(HTTPParameterStrings[I]), lLen) then
+    and CompareMem(FBufferPos, PAnsiChar(HTTPParameterStrings[I]), lLen) then
     begin
       repeat
         inc(lPos);
@@ -1298,7 +1298,7 @@ begin
     end;
 end;
 
-procedure TLHTTPSocket.ParseLine(pLineEnd: pchar);
+procedure TLHTTPSocket.ParseLine(pLineEnd: PAnsiChar);
 begin
   if FBufferPos[0] = #0 then
   begin
@@ -1329,7 +1329,7 @@ end;
 function TLHTTPSocket.ProcessEncoding: boolean;
 var
   lCode: integer;
-  lParam: pchar;
+  lParam: PAnsiChar;
 begin
   Result := true;
   lParam := FParameters[hpContentLength];
@@ -1492,6 +1492,8 @@ begin
 end;
 
 procedure TLHTTPServerSocket.LogMessage;
+
+
 begin
   { log a message about this request, 
     '<StatusCode> <Length> "<Referer>" "<User-Agent>"' }
@@ -1500,7 +1502,7 @@ begin
   AppendString(FLogMessage, IntToStr(FHeaderOut.ContentLength));
   AppendString(FLogMessage, ' "');
   AppendString(FLogMessage, FParameters[hpReferer]);
-  AppendString(FLogMessage, '" "');
+  AppendString(FLogMessage, AnsiString('" "'));
   AppendString(FLogMessage, FParameters[hpUserAgent]);
   AppendChar(FLogMessage, '"');
   AppendChar(FLogMessage, #0);
@@ -1550,7 +1552,7 @@ begin
   inherited;
 end;
 
-procedure TLHTTPServerSocket.ParseLine(pLineEnd: pchar);
+procedure TLHTTPServerSocket.ParseLine(pLineEnd: PAnsiChar);
 begin
   if FRequestInfo.RequestType = hmUnknown then
   begin
@@ -1561,9 +1563,9 @@ begin
   inherited;
 end;
 
-procedure TLHTTPServerSocket.ParseRequestLine(pLineEnd: pchar);
+procedure TLHTTPServerSocket.ParseRequestLine(pLineEnd: PAnsiChar);
 var
-  lPos: pchar;
+  lPos: PAnsiChar;
   I: TLHTTPMethod;
   NowLocal: TDateTime;
 begin
@@ -1624,7 +1626,7 @@ begin
   for I := Low(TLHTTPMethod) to High(TLHTTPMethod) do
   begin
     if (I = hmUnknown) or (((lPos-FBufferPos) = Length(HTTPMethodStrings[I]))
-      and CompareMem(FBufferPos, PChar(HTTPMethodStrings[I]), lPos-FBufferPos)) then
+      and CompareMem(FBufferPos, PAnsiChar(HTTPMethodStrings[I]), lPos-FBufferPos)) then
     begin
       repeat
         inc(lPos);
@@ -1659,7 +1661,7 @@ end;
 procedure TLHTTPServerSocket.ProcessHeaders;
   { process request }
 var
-  lPos, lConnParam: pchar;
+  lPos, lConnParam: PAnsiChar;
 begin
   { do HTTP/1.1 Host-field present check }
   if (FRequestInfo.Version > 10) and (FParameters[hpHost] = nil) then
@@ -1805,7 +1807,7 @@ begin
   if Length(lMessage) > 0 then
   begin
     FResponseInfo.ContentType := 'text/html';
-    lMsgOutput := TMemoryOutput.Create(Self, PChar(lMessage), 0, Length(lMessage), false)
+    lMsgOutput := TMemoryOutput.Create(Self, PAnsiChar(lMessage), 0, Length(lMessage), false)
   end else begin
     FResponseInfo.ContentType := '';
     lMsgOutput := nil;
@@ -1988,7 +1990,7 @@ type
     destructor Destroy; override;
     procedure FreeInstance; override;
 
-    function  HandleInput(ABuffer: pchar; ASize: integer): integer; override;
+    function  HandleInput(ABuffer: PAnsiChar; ASize: integer): integer; override;
     function  WriteBlock: TWriteBlockStatus; override;
   end;
 
@@ -2016,7 +2018,7 @@ begin
     DoDoneInput(TLHTTPClientSocket(FSocket));
 end;
 
-function  TClientOutput.HandleInput(ABuffer: pchar; ASize: integer): integer;
+function  TClientOutput.HandleInput(ABuffer: PAnsiChar; ASize: integer): integer;
 begin
   Result := TLHTTPClient(TLHTTPClientSocket(FSocket).FCreator).
     DoHandleInput(TLHTTPClientSocket(FSocket), ABuffer, ASize);
@@ -2123,7 +2125,7 @@ begin
   WriteBlock;
 end;
 
-procedure TLHTTPClientSocket.ParseLine(pLineEnd: pchar);
+procedure TLHTTPClientSocket.ParseLine(pLineEnd: PAnsiChar);
 begin
   if FError <> ceNone then
     exit;
@@ -2137,9 +2139,9 @@ begin
   inherited;
 end;
 
-procedure TLHTTPClientSocket.ParseStatusLine(pLineEnd: pchar);
+procedure TLHTTPClientSocket.ParseStatusLine(pLineEnd: PAnsiChar);
 var
-  lPos: pchar;
+  lPos: PAnsiChar;
 begin
   lPos := FBufferPos;
   repeat
@@ -2254,7 +2256,7 @@ begin
     FOnDoneInput(ASocket);
 end;
 
-function  TLHTTPClient.DoHandleInput(ASocket: TLHTTPClientSocket; ABuffer: pchar; ASize: integer): integer;
+function  TLHTTPClient.DoHandleInput(ASocket: TLHTTPClientSocket; ABuffer: PAnsiChar; ASize: integer): integer;
 begin
   FState := hcsReceiving;
   if Assigned(FOnInput) then
