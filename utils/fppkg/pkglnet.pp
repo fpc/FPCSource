@@ -22,7 +22,7 @@ Type
     URI: TURI;
    protected
     // callbacks
-    function OnHttpClientInput(ASocket: TLHTTPClientSocket; ABuffer: pchar;
+    function OnHttpClientInput(ASocket: TLHTTPClientSocket; ABuffer: pansichar;
       ASize: Integer): Integer;
     procedure OnLNetDisconnect(aSocket: TLSocket);
     procedure OnHttpDoneInput(aSocket: TLHTTPClientSocket);
@@ -47,7 +47,7 @@ uses
 { TLNetDownloader }
 
 function TLNetDownloader.OnHttpClientInput(ASocket: TLHTTPClientSocket;
-  ABuffer: pchar; ASize: Integer): Integer;
+  ABuffer: pansichar; ASize: Integer): Integer;
 begin
   Result:=FOutStream.Write(aBuffer[0], aSize);
 end;

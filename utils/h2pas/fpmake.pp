@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cwstring,cthreads,{$endif}fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_h2pas(const ADirectory: string);
@@ -53,8 +53,10 @@ begin
     T.Dependencies.AddUnit('scan');
     T.Dependencies.AddUnit('h2pyacclib');
     T.Dependencies.AddUnit('converu');
+    T:=P.Targets.AddUnit('scanbase.pp');
 
     T:=P.Targets.AddUnit('scan.pas');
+    T.Dependencies.AddUnit('scanbase');
     T.Install:=false;
     T.Dependencies.AddUnit('converu');
     T.Dependencies.AddUnit('h2poptions');
