@@ -50,7 +50,7 @@ type
 
     procedure CreateCSSFile; virtual;
 
-    procedure AppendTitle(const AText: String; Hints : TPasMemberHints = []); virtual;
+    procedure AppendTitle(const AText: AnsiString; Hints : TPasMemberHints = []); virtual;
     procedure AppendTitle(const AText: DOMString; Hints : TPasMemberHints = []); virtual;
     function AppendType(CodeEl, TableEl: TDOMElement;
       Element: TPasType; Expanded: Boolean;
@@ -1697,7 +1697,7 @@ begin
      end;
 end;
 
-procedure THTMLWriter.AppendTitle(const AText: String; Hints: TPasMemberHints);
+procedure THTMLWriter.AppendTitle(const AText: AnsiString; Hints: TPasMemberHints);
 begin
   AppendTitle(UTF8Decode(aText),Hints);
 end;
