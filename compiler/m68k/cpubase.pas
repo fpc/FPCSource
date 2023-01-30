@@ -119,6 +119,33 @@ unit cpubase;
         'ge','pl','gt','t','hi','vc','le','vs'
       );
 
+    const
+      cond2bxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_BCC, A_BLS, A_BCS, A_BLT, A_BEQ, A_BMI, A_NONE, A_BNE,
+        A_BGE, A_BPL, A_BGT, A_NONE, A_BHI, A_BVC, A_BLE, A_BVS
+      );
+      cond2sxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_SCC, A_SLS, A_SCS, A_SLT, A_SEQ, A_SMI, A_SF, A_SNE,
+        A_SGE, A_SPL, A_SGT, A_ST, A_SHI, A_SVC, A_SLE, A_SVS
+      );
+      cond2fsxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_NONE, A_NONE, A_NONE, A_FSLT, A_FSEQ, A_NONE, A_FSF, A_FSNE,
+        A_FSGE, A_NONE, A_FSGT, A_FST, A_NONE, A_NONE, A_FSLE, A_NONE
+      );
+      cond2dbxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_DBCC, A_DBLS, A_DBCS, A_DBLT, A_DBEQ, A_DBMI, A_DBF, A_DBNE,
+        A_DBGE, A_DBPL, A_DBGT, A_DBT, A_DBHI, A_DBVC, A_DBLE, A_DBVS
+      );
+      cond2jxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_JCC, A_JLS, A_JCS, A_JLT, A_JEQ, A_JMI, A_NONE, A_JNE,
+        A_JGE, A_JPL, A_JGT, A_NONE, A_JHI, A_JVC, A_JLE, A_JVS
+      );
+      cond2fjxx: array[TAsmCond] of tasmop = (A_NONE,
+        A_NONE, A_NONE, A_NONE, A_FJLT, A_FJEQ, A_NONE, A_FJF, A_FJNE,
+        A_FJGE, A_NONE, A_FJGT, A_FJT, A_NONE, A_NONE, A_FJLE, A_NONE
+      );
+
+
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
