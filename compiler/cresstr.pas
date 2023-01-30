@@ -171,6 +171,8 @@ uses
         R : TResourceStringItem;
         resstrdef: tdef;
         tcb : ttai_typedconstbuilder;
+        enc : tstringencoding;
+
       begin
         resstrdef:=search_system_type('TRESOURCESTRINGRECORD').typedef;
 
@@ -200,7 +202,13 @@ uses
             if (R.len<>0) then
               begin
               if R.isUnicode and assigned(R.WValue) then
-                valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,CP_UTF16,False)
+                begin
+                if target_info.endian=endian_little then
+                  enc:=CP_UTF16
+                else
+                  enc:=CP_UTF16BE;
+                valuelab:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_const],R.WValue,enc,False);
+                end
               else
                 begin
                 if assigned(R.AValue) then
