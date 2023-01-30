@@ -399,12 +399,16 @@ end;
 
 procedure Run(const Filename: string);
 var
-  p : PPChar;
+  FN : AnsiString {$IF SIZEOF(CHAR)=1} absolute FileName{$endif};
+  p : PPAnsiChar;
   {$IFNDEF UseFpExecV}
   i : integer;
-  args : array of string;
+  args : array of ansistring;
   {$ENDIF}
 begin
+  {$if SIZEOF(CHAR)=2}
+  FN:=UTF8Encode(FileName);
+  {$ENDIF}
   p:=argv;
   inc(p);
   while (p<>nil) do begin
@@ -414,7 +418,7 @@ begin
     inc(p);
   end;
   {$IFDEF UseFpExecV}
-    Halt(FpExecV(Filename,p));
+    Halt(FpExecV(FN,p));
   {$ELSE}
     if paramcount>1 then
       begin
@@ -422,7 +426,7 @@ begin
         for i:=2 to paramcount do 
           args[i-2]:=paramstr(i);
       end;
-    Halt(ExecuteProcess(Filename,args));
+    Halt(ExecuteProcess(FN,args));
   {$ENDIF}
 end;
 
