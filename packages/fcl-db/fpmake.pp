@@ -790,7 +790,7 @@ begin
         begin
           AddUnit('db');
         end;
-    T:=P.Targets.AddUnit('sqldb.pp');
+    T:=P.Targets.AddUnit('sqldb.pp',SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('db');
@@ -799,12 +799,12 @@ begin
           AddUnit('sqlscript');
           AddUnit('sqltypes');
         end;
-    T:=P.Targets.AddUnit('sqldbpool.pp', AllOSes - [atari]);
+    T:=P.Targets.AddUnit('sqldbpool.pp', SqldbConnectionOSes);
       with T.Dependencies do
         begin
           AddUnit('sqldb');
         end;
-    T:=P.Targets.AddUnit('sqldblib.pp');
+    T:=P.Targets.AddUnit('sqldblib.pp',SqldbConnectionOSes);
       T.ResourceStrings:=true;
       with T.Dependencies do
         begin
@@ -855,7 +855,7 @@ begin
     with T.Dependencies do
       AddUnit('fpjsondataset');
 
-    T:=P.Targets.AddUnit('sqldbini.pp');
+    T:=P.Targets.AddUnit('sqldbini.pp',SqldbConnectionOSes);
     with T.Dependencies do
       AddUnit('sqldb');
 
