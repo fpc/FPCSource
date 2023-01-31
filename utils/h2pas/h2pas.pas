@@ -38,7 +38,6 @@ begin
   EnableDebug;
   aktspace:='';
   block_type:=bt_no;
-  IsExtern:=false;
 { Read commandline options }
   ProcessOptions;
   if not CompactMode then
