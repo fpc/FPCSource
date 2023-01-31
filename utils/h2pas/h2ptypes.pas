@@ -148,7 +148,7 @@ type
      next : presobject;
      p1,p2,p3 : presobject;
      { name of int/real, then no T prefix is required }
-     intname : boolean;
+     skiptprefix : boolean;
      constructor init_no(t : ttyp);
      constructor init_one(t : ttyp;_p1 : presobject);
      constructor init_two(t : ttyp;_p1,_p2 : presobject);
@@ -168,19 +168,19 @@ type
 
   tblocktype = (bt_type,bt_const,bt_var,bt_func,bt_no);
 
-Function NewUnaryOp(aop : string; aright : presobject) : presobject; inline;
-Function NewBinaryOp(aop : string; aleft,aright : presobject) : presobject; inline;
+Function NewUnaryOp(const aop : ansistring; aright : presobject) : presobject; inline;
+Function NewBinaryOp(const aop : ansistring; aleft,aright : presobject) : presobject; inline;
 Function NewVoid : presobject; inline;
-Function NewID(aID : string) : presobject; inline;
+Function NewID(const aID : ansistring) : presobject; inline;
 Function NewType1(aType : ttyp; aID : presobject) : presobject; inline;
 Function NewType2(aType : ttyp; aID,aID2 : presobject) : presobject; inline;
 Function NewType3(aType : ttyp; aID,aID2,aID3 : presobject) : presobject; inline;
-Function NewIntID(aIntID : string) : presobject; inline;
+Function NewIntID(const aPascalType : ansistring) : presobject; inline;
 function strpnew(const s : ansistring) : pansichar; inline;
 
 implementation
 
-uses strings;
+uses h2poptions, strings;
 
 
 Function NewVoid : presobject;
@@ -189,29 +189,32 @@ begin
   Result:=new(presobject,init_no(t_void));
 end;
 
-Function NewBinaryOp(aop : string; aleft,aright : presobject) : presobject;
+Function NewBinaryOp(const aop : ansistring; aleft,aright : presobject) : presobject;
 
 begin
   Result:=new(presobject,init_bop(aop,aleft,aright));
 end;
 
-Function NewUnaryOp(aop : string; aright : presobject) : presobject; inline;
+Function NewUnaryOp(const aop : ansistring; aright : presobject) : presobject; inline;
 
 begin
   Result:=new(presobject,init_preop(aop,aright));
 end;
 
 
-Function NewID(aID : string) : presobject;
+Function NewID(const aID : ansistring) : presobject;
 
 begin
-  Result:=new(presobject,init_id(aID));
+  if useansichar and (aId='char') then
+    Result:=new(presobject,init_id('AnsiChar'))
+  else
+    Result:=new(presobject,init_id(aID));
 end;
 
-Function NewIntID(aIntID : string) : presobject;
+Function NewIntID(const aPascalType : ansistring) : presobject;
 
 begin
-  Result:=new(presobject,init_intid(aIntID));
+  Result:=new(presobject,init_intid(aPascalType));
 end;
 
 Function NewType1(aType : ttyp; aID : presobject) : presobject; inline;
@@ -250,7 +253,7 @@ constructor tresobject.init_preop(const s : string;_p1 : presobject);
      p2:=nil;
      p3:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
@@ -261,7 +264,7 @@ constructor tresobject.init_bop(const s : string;_p1,_p2 : presobject);
      p2:=_p2;
      p3:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_id(const s : string);
@@ -272,18 +275,21 @@ constructor tresobject.init_id(const s : string);
      p2:=nil;
      p3:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_intid(const s : string);
   begin
      typ:=t_id;
-     p:=strpnew(s);
+     if useansichar and (s='char') then
+       p:=strpnew('ansichar')
+     else
+       p:=strpnew(s);
      p1:=nil;
      p2:=nil;
      p3:=nil;
      next:=nil;
-     intname:=true;
+     skiptprefix:=true;
   end;
 
 constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
@@ -294,7 +300,7 @@ constructor tresobject.init_two(t : ttyp;_p1,_p2 : presobject);
      p3:=nil;
      p:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
@@ -305,7 +311,7 @@ constructor tresobject.init_three(t : ttyp;_p1,_p2,_p3 : presobject);
      p3:=_p3;
      p:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_one(t : ttyp;_p1 : presobject);
@@ -316,7 +322,7 @@ constructor tresobject.init_one(t : ttyp;_p1 : presobject);
      p3:=nil;
      next:=nil;
      p:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 constructor tresobject.init_no(t : ttyp);
@@ -327,7 +333,7 @@ constructor tresobject.init_no(t : ttyp);
      p2:=nil;
      p3:=nil;
      next:=nil;
-     intname:=false;
+     skiptprefix:=false;
   end;
 
 procedure tresobject.setstr(const s : string);
@@ -370,7 +376,7 @@ function tresobject.get_copy : presobject;
      newres : presobject;
   begin
      newres:=new(presobject,init_no(typ));
-     newres^.intname:=intname;
+     newres^.skiptprefix:=skiptprefix;
      if assigned(p) then
        newres^.p:=strnew(p);
      if assigned(p1) then
