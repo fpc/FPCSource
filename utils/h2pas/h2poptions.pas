@@ -34,13 +34,14 @@ var
    stripinfo,                 { Don't write info comments to output }
    UseLib,                    { Append external to implementation ?  }
    UseName,                   { Append 'libname name 'funcname ' }
-   UsePPOinters,              { Use P instead of ^ for pointers    }
+   UsePPointers,              { Use P instead of ^ for pointers }
    EnumToConst,               { Write enumeration types as constants }
    Win32headers,              { allows dec_specifier }
    stripcomment,              { strip comments from inputfile }
    PrependTypes,              { Print T in front of type names ?   }
    UseCTypesUnit,             { Use types defined in the ctypes unit}
    createdynlib,              { creates a unit which loads dynamically the imports to proc vars }
+   useansichar,               { use ansichar instead of char }
    RemoveUnderscore : Boolean;
    usevarparas : boolean;     { generate var parameters, when a pointer }
                               { is passed                               }
@@ -48,7 +49,7 @@ var
    palmpilot : boolean;       { handling of PalmOS SYS_CALLs }
    packrecords: boolean;      { All records should be packed in the file }
    pointerprefix: boolean;    { put P in front of pointers }
-   PTypeList : TStringList;   { list of all types }
+   PTypeList : TStringList;   { list of all pointer types }
    freedynlibproc,
    loaddynlibproc : tstringlist;
 
@@ -121,6 +122,7 @@ Procedure Usage;
 begin
   writeln ('Usage : ',paramstr(0),' [options]  filename');
   writeln ('        Where [options] is one or more of:');
+  writeln ('        -a                 Do not use ansichar, use char instead;');
   writeln ('        -d                 Use external;');
   writeln ('        -D                 use external libname name ''func_name'';');
   writeln ('        -e                 change enum type to list of constants');
@@ -192,6 +194,7 @@ begin
   includefile:=false;
   packrecords:=false;
   createdynlib:=false;
+  useansichar:=True;
   i:=1;
   while i<=paramcount do
    begin
@@ -199,6 +202,7 @@ begin
      if cp[1]='-' then
       begin
         case cp[2] of
+         'a' : useansichar:=false;
          'c' : CompactMode:=true;
          'C' : UseCTypesUnit := true;
          'e' : EnumToConst :=true;
