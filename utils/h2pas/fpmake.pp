@@ -44,7 +44,7 @@ begin
 
     P.Options.Add('-Sg');
 
-    p.Commands.AddCommand(caBeforeCompile, AddProgramExtension('pyacc', Defaults.BuildOS), '$(SOURCE) $(DEST)','h2pas.pas','h2pas.y');
+    p.Commands.AddCommand(caBeforeCompile, AddProgramExtension('pyacc', Defaults.BuildOS), '$(SOURCE) $(DEST)','h2pparse.pp','h2pas.y');
     p.Commands.AddCommand(caBeforeCompile, AddProgramExtension('plex', Defaults.BuildOS), '$(SOURCE) $(DEST)','scan.pas','scan.l');
 
     T:=P.Targets.AddProgram('h2pas.pas');
@@ -52,12 +52,41 @@ begin
     T.Dependencies.AddUnit('h2plexlib');
     T.Dependencies.AddUnit('scan');
     T.Dependencies.AddUnit('h2pyacclib');
-    T.Dependencies.AddUnit('converu');
-
+    
     T:=P.Targets.AddUnit('scan.pas');
     T.Install:=false;
-    T.Dependencies.AddUnit('converu');
+    T.Dependencies.AddUnit('h2pbase');
+    T.Dependencies.AddUnit('scanbase');
+    T.Dependencies.AddUnit('h2pconst');
+
+    T:=P.Targets.AddUnit('h2ptypes.pas');
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('h2pout.pp');
+    T.install:=false;
+    T.Dependencies.AddUnit('h2pconst');
     T.Dependencies.AddUnit('h2poptions');
+    T.Dependencies.AddUnit('h2ptypes');
+    T.Dependencies.AddUnit('h2plexlib');
+    T.Dependencies.AddUnit('h2pyacclib');
+    
+    
+    T:=P.Targets.AddUnit('scanbase.pp');
+    T.install:=false;
+    T.Dependencies.AddUnit('h2pconst');
+    T.Dependencies.AddUnit('h2poptions');
+    T.Dependencies.AddUnit('h2ptypes');
+    T.Dependencies.AddUnit('h2plexlib');
+
+    T:=P.Targets.AddUnit('h2pbase.pp');
+    T.install:=false;
+    T.Dependencies.AddUnit('h2pconst');
+    T.Dependencies.AddUnit('h2poptions');
+    T.Dependencies.AddUnit('h2ptypes');
+    T.Dependencies.AddUnit('h2plexlib');
+    T.Dependencies.AddUnit('h2pyacclib');
+    T.Dependencies.AddUnit('scanbase');
+    T.Dependencies.AddUnit('h2pout');
 
     T:=P.Targets.AddProgram('h2paspp.pas');
 
@@ -66,7 +95,7 @@ begin
     P.Targets.AddUnit('h2poptions.pas').install:=false;
     P.Targets.AddUnit('h2plexlib.pas').install:=false;
     P.Targets.AddUnit('h2pyacclib.pas').install:=false;
-    P.Targets.AddUnit('converu.pas').install:=false;
+    P.Targets.AddUnit('h2pconst.pas').install:=false;
     end;
 end;
 

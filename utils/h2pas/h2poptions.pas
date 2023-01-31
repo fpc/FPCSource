@@ -19,7 +19,10 @@
 
 unit h2poptions;
 {$H+}
+
 interface
+
+uses classes;
 
 const
    version = '0.99.16';
@@ -44,14 +47,18 @@ var
    includefile : boolean;     { creates an include file instead of a unit }
    palmpilot : boolean;       { handling of PalmOS SYS_CALLs }
    packrecords: boolean;      { All records should be packed in the file }
+   pointerprefix: boolean;    { put P in front of pointers }
+   PTypeList : TStringList;   { list of all types }
+   freedynlibproc,
+   loaddynlibproc : tstringlist;
 
 { Helpers }
 Function ForceExtension(Const HStr,ext:String):String;
 Function MaybeExtension(Const HStr,ext:String):String;
 
 { Options }
+Procedure InitGlobals;
 Procedure ProcessOptions;
-
 
 Implementation
 
@@ -137,6 +144,14 @@ begin
   halt (0);
 end;
 
+procedure InitGlobals;
+begin
+  PTypeList:=TStringList.Create;
+  PTypeList.Sorted := true;
+  PTypeList.Duplicates := dupIgnore;
+  freedynlibproc:=TStringList.Create;
+  loaddynlibproc:=TStringList.Create;
+end;
 
 Procedure ProcessOptions;
 Var
