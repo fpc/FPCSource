@@ -1,5 +1,7 @@
 unit h2pout;
 
+{$modeswitch result}
+
 interface
 
 uses
@@ -11,6 +13,9 @@ procedure CloseTempFiles;
 
 procedure WriteFileHeader(var headerfile: Text);
 procedure WriteLibraryInitialization;
+
+// This will write each pointer type only once.
+function WritePointerTypeDef(var aFile : text; const PN,TN : AnsiString) : Boolean;
 
 procedure write_statement_block(var outfile:text; p : presobject);
 procedure write_type_specifier(var outfile:text; p : presobject);
@@ -55,7 +60,8 @@ Var
 implementation
 
 var
-  tempfile : text;
+  WrittenPointers : TStringList;
+ tempfile : text;
   space_array : array [0..255] of integer;
   space_index : integer;
   _NeedEllipsisOverload : boolean;
@@ -209,7 +215,7 @@ the correct syntax.
 function FixId(const s:string):string;
 
 const
-  maxtokens = 16;
+  maxtokens = 17;
   reservedid: array[1..maxtokens] of string[14] = (
     'CLASS',
     'DISPOSE',
@@ -226,7 +232,8 @@ const
     'TYPE',
     'TRUE',
     'UNTIL',
-    'VAR'
+    'VAR',
+    'OBJECT'
     );
 
 var
@@ -310,7 +317,7 @@ begin
   else
     PointerName:=Copy(s,i,255);
   if PointerPrefix then
-      PTypeList.Add('P'+s);
+    PTypeList.Add('P'+s);
 end;
 
 
@@ -715,11 +722,6 @@ begin
     else
       begin
       (* generate a call by reference parameter ?       *)
-//     varpara:=usevarparas and
-//              assigned(p^.p1^.p2^.p1) and
-//              (p^.p1^.p2^.p1^.typ in [t_addrdef,t_pointerdef]) and
-//               assigned(p^.p1^.p2^.p1^.p1) and
-//               (p^.p1^.p2^.p1^.p1^.typ<>t_procdef);
       varpara:=IsVarPara(p);
       if varpara then
         begin
@@ -774,6 +776,7 @@ begin
   in_args:=old_in_args;
   popshift;
 end;
+
 
 
 Procedure write_pointerdef(var outfile:text; p,simple_type : presobject);
@@ -928,7 +931,7 @@ begin
       begin
       PTypeList.Add('P'+p^.str);
       end;
-  if p^.intname then
+  if p^.skiptprefix then
     write(outfile,p^.p)
   else
     write(outfile,TypeName(p^.p));
@@ -1332,6 +1335,22 @@ begin
   end;
 end;
 
+function MayWritePointerTypeDef(const PN: AnsiString): Boolean;
+
+begin
+  Result:=WrittenPointers.IndexOf(PN)=-1;
+end;
+
+function WritePointerTypeDef(var aFile : text; const PN, TN: AnsiString): Boolean;
+
+begin
+  Result:=MayWritePointerTypeDef(PN);;
+  if Result then
+    begin
+    WrittenPointers.Add(PN);
+    Writeln(aFile,aktspace,PN,' = ^',TN,';');
+   end;
+end;
 
 procedure write_statement_block(var outfile:text; p : presobject);
 
@@ -1362,7 +1381,32 @@ begin
   writeln(outfile,aktspace,'end;');
 end;
 
+procedure WritePointerList(var headerfile: Text);
 
+var
+  I : Integer;
+  MustWritePointers : Boolean;
+  originalstr : String;
+
+begin
+  I:=PTypeList.count-1;
+  MustWritePointers:=False;
+  While (Not MustWritePointers) and (I>=0) do
+    begin
+    MustWritePointers:=MayWritePointerTypeDef(PTypelist[i]);
+    Dec(I);
+    end;
+  if not MustWritePointers then
+    exit;
+  Writeln(headerfile,'Type');
+  for i:=0 to (PTypeList.Count-1) do
+     begin
+       originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
+       if PrependTypes then
+         originalstr:='T'+originalstr;
+       WritePointerTypeDef(HeaderFile,PTypeList[i],OriginalStr);
+     end;
+end;
 
 procedure WriteFileHeader(var headerfile: Text);
 var
@@ -1393,31 +1437,13 @@ begin
    end;
   if UseName then
    begin
-     writeln(headerfile,aktspace,'const');
-     writeln(headerfile,aktspace,'  External_library=''',libfilename,'''; {Setup as you need}');
+     writeln(headerfile,'const');
+     writeln(headerfile,'  External_library=''',libfilename,'''; {Setup as you need}');
      writeln(headerfile);
    end;
-  if UsePPointers then
-   begin
-     Writeln(headerfile,aktspace,'{ Pointers to basic pascal types, inserted by h2pas conversion program.}');
-     Writeln(headerfile,aktspace,'Type');
-     Writeln(headerfile,aktspace,'  PLongint  = ^Longint;');
-     Writeln(headerfile,aktspace,'  PSmallInt = ^SmallInt;');
-     Writeln(headerfile,aktspace,'  PByte     = ^Byte;');
-     Writeln(headerfile,aktspace,'  PWord     = ^Word;');
-     Writeln(headerfile,aktspace,'  PDWord    = ^DWord;');
-     Writeln(headerfile,aktspace,'  PDouble   = ^Double;');
-     Writeln(headerfile);
-   end;
   if PTypeList.count <> 0 then
-   Writeln(headerfile,aktspace,'Type');
-  for i:=0 to (PTypeList.Count-1) do
-   begin
-     originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
-     if PrependTypes then
-       originalstr:='T'+originalstr;
-     Writeln(headerfile,aktspace,'  '+PTypeList[i],'  = ^',originalstr,';');
-   end;
+    WritePointerList(headerfile);
+  writeln(headerfile);
   if not packrecords then
    begin
       writeln(headerfile,'{$IFDEF FPC}');
@@ -1501,5 +1527,21 @@ begin
   writeln(outfile,'  Free',unitname,';');
 end;
 
+initialization
+  WrittenPointers:=TStringList.Create;
+  WrittenPointers.Sorted:=true;
+  // We must never write these, they are defined in the system unit
+  WrittenPointers.Add('pansichar');
+  WrittenPointers.Add('pchar');
+  WrittenPointers.Add('pdouble');
+  WrittenPointers.Add('plongint');
+  WrittenPointers.Add('psmallint');
+  WrittenPointers.Add('pshortint');
+  WrittenPointers.Add('pbyte');
+  WrittenPointers.Add('pint64');
+  WrittenPointers.Add('pword');
+  WrittenPointers.Add('pqword');
 
+finalization
+  WrittenPointers.Free;
 end.
