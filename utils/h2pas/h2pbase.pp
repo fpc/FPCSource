@@ -33,7 +33,6 @@ type
 
 
 var
-  IsExtern : boolean;
   s,TN,PN  : String;
 
 
@@ -84,7 +83,7 @@ function HandleDefine(dname : presobject) : presobject;
 Function CheckWideString(S : String) : presobject;
 function CheckUnderScore(pdecl : presobject) : presobject;
 
-Function NewCType(aID,aIntID : String) : PresObject;
+Function NewCType(aCType,aPascalType : String) : PresObject;
 
 Implementation
 
@@ -98,13 +97,13 @@ begin
 end;
 
 
-Function NewCType(aID,aIntID : String) : PresObject;
+Function NewCType(aCType,aPascalType : String) : PresObject;
 
 begin
   if UseCTypesUnit then
-    Result:=NewID(aID)
+    Result:=NewID(aCType)
   else
-    result:=NewIntID(aIntID);
+    result:=NewIntID(aPascalType);
 end;
 
 function HandleUnaryDefExpr(aExpr : presobject) : presobject;
@@ -164,53 +163,41 @@ function handleSpecialUnSignedType(aType : presobject) : presobject;
 
 var
   hp : presobject;
+  tc,tp : string;
 
 begin
   hp:=aType;
   Result:=hp;
   if Not assigned(hp) then
     exit;
-  s:=strpas(hp^.p);
+  tp:='';
+  tc:=strpas(hp^.p);
   if UseCTypesUnit then
-    begin
-    if s=cint_STR then
-      s:=cuint_STR
-    else if s=cshort_STR then
-      s:=cushort_STR
-    else if s=cchar_STR then
-      s:=cuchar_STR
-    else if s=clong_STR then
-      s:=culong_STR
-    else if s=clonglong_STR then
-      s:=culonglong_STR
-    else if s=cint8_STR then
-      s:=cuint8_STR
-    else if s=cint16_STR then
-      s:=cuint16_STR
-    else if s=cint32_STR then
-      s:=cuint32_STR
-    else if s=cint64_STR then
-      s:=cuint64_STR
+    case tc of
+      cint_STR: tp:=cuint_STR;
+      cshort_STR: tp:=cushort_STR;
+      cchar_STR : tp:=cuchar_STR;
+      clong_STR : tp:=culong_STR;
+      clonglong_STR : tp:=culonglong_STR;
+      cint8_STR : tp:=cuint8_STR;
+      cint16_STR : tp:=cuint16_STR;
+      cint32_STR : tp:=cuint32_STR;
+      cint64_STR : tp:=cuint64_STR;
     else
-      s:='';
+      tp:='';
     end
   else
-    begin
-    if s=INT_STR then
-      s:=UINT_STR
-    else if s=SHORT_STR then
-      s:=USHORT_STR
-    else if s=SMALL_STR then
-      s:=USMALL_STR
-    else if s=CHAR_STR then
-      s:=UCHAR_STR
-    else if s=INT64_STR then
-      s:=QWORD_STR
+    case tc of
+      INT_STR : tp:=UINT_STR;
+      SHORT_STR : tp:=USHORT_STR;
+      SMALL_STR : tp:=USMALL_STR;
+      CHAR_STR :  tp:=UCHAR_STR;
+      INT64_STR : tp:=QWORD_STR;
     else
-      s:='';
+      tp:='';
   end;
-  if s<>'' then
-    hp^.setstr(s);
+  if tp<>'' then
+    hp^.setstr(tp);
 end;
 
 function handleSizedArrayDecl(aType,aSizeExpr: presobject): presobject;
@@ -452,6 +439,7 @@ function HandleDeclarationStatement(decl, type_spec, modifier_spec,
   decllist_spec, block_spec: presobject): presobject;
 var
   hp : presobject;
+  IsExtern : boolean;
 
 begin
   HandleDeclarationStatement:=Nil;
@@ -650,6 +638,7 @@ function HandleDeclarationSysTrap(decl, type_spec, modifier_spec,
 
 var
   hp : presobject;
+  IsExtern : boolean;
 
 begin
   HandleDeclarationSysTrap:=Nil;
@@ -942,6 +931,8 @@ end;
 
 function HandleTypedefList(type_spec,dec_modifier,declarator_list: presobject) : presobject;
 
+(* TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON *)
+
 var
   hp,ph : presobject;
 
@@ -949,7 +940,6 @@ var
 begin
   HandleTypedefList:=Nil;
   ph:=nil;
-  (* TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON *)
   if block_type<>bt_type then
     begin
       if not(compactmode) then
@@ -983,7 +973,7 @@ begin
   PN:=PointerName(ph^.p);
   if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
     assigned(type_spec) and (type_spec^.typ<>t_procdef) then
-    writeln(outfile,aktspace,PN,' = ^',TN,';');
+    WritePointerTypeDef(outfile,PN,TN);
   (* write new type name *)
   write(outfile,aktspace,TN,' = ');
   shift(2);
