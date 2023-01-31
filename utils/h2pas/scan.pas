@@ -24,6 +24,7 @@
 
 unit scan;
 {$H+}
+{$GOTO ON}
 
   interface
 
@@ -233,7 +234,7 @@ type
   implementation
 
     uses
-       h2poptions,converu;
+       h2poptions, h2pconst;
 
     const
        newline = #10;
