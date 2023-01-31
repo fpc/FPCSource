@@ -148,22 +148,19 @@ Type
 
   TDateTimeInfoRec = record
   private
-{$IFDEF SEARCHREC_USEFINDDATA}
+{$IF DEFINED(WINDOWS) AND NOT DEFINED(WIN16)}
     Data: TFindData platform;
-
 {$ELSE}
   {$IFDEF UNIX}
-
     {$IFDEF USE_STATX}
     data : tstatx platform;
     {$ELSE}
     data : baseunix.stat platform;
     {$ENDIF USE_STATX}
   {$ELSE}
-  
     data : TSearchRec;
   {$ENDIF}
-{$ENDIF SEARCHREC_USEFINDDATA}
+{$ENDIF}
 
     function GetCreationTime: TDateTime;
     function GetLastAccessTime: TDateTime;
@@ -239,6 +236,7 @@ Function ExeSearch  (Const Name : UnicodeString; Const DirList : UnicodeString =
 Function FileIsReadOnly(const FileName : UnicodeString): Boolean;
 function FileAge(const FileName: UnicodeString; out FileDateTime: TDateTime; FollowLink: Boolean = True): Boolean;
 function FileAgeUTC(const FileName: UnicodeString; out FileDateTimeUTC: TDateTime; FollowLink: Boolean = True): Boolean;
+function FileGetDateTimeInfo(const FileName: string; out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 function FileGetSymLinkTarget(const FileName: UnicodeString; out TargetName: UnicodeString): Boolean; inline;
 
