@@ -1398,8 +1398,8 @@ begin
      if isUTC then
        begin
        aCreate:=LocalTimeToUniversal(aCreate);
-       aWrite:=LocalTimeToUniversal(aCreate);
-       aAccess:=LocalTimeToUniversal(aCreate);
+       aWrite:=LocalTimeToUniversal(aWrite);
+       aAccess:=LocalTimeToUniversal(aAccess);
        end;
      end
    else
