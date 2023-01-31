@@ -28,14 +28,14 @@ unit scan;
 
 interface
 
-uses strings,scanbase, h2plexlib,h2pyacclib;
+uses scanbase, h2plexlib;
 
 function yylex : integer;
 function act_token : string;
 
 implementation
 
-uses h2poptions, converu;
+uses h2poptions, h2pconst;
 
 Procedure HandleCPlusPlus (aValue : integer); inline;
 
