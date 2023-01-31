@@ -988,7 +988,7 @@ begin
   if Result then
      begin
      DateTime.data:=Info;
-     FindClose(FileName,0,Info)
+     FindClose(Info);
      end;
 end;
 {$ENDIF}
