@@ -1591,12 +1591,16 @@ end;
 
 function TCurrencyHelper.Ceil: Int64;
 begin
-  {$warning TCurrencyHelper.Ceil unimplemented!}
+  Result:=System.Trunc(Self);
+  if Currency(Result)<Self then
+    Result:=Result+1;
 end;
 
 function TCurrencyHelper.Floor: Int64;
 begin
-  {$warning TCurrencyHelper.Floor unimplemented!}
+  Result:=System.Trunc(Self);
+  if Currency(Result)>Self then
+    Result:=Result-1;
 end;
 
 function TCurrencyHelper.Frac: Currency;
