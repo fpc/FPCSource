@@ -883,7 +883,7 @@ begin
    end
   else if Copy(More,1,1) = 'x' then
     begin
-      Assign(xmloutput,Copy(More,2,length(More)-1));
+      Assign(xmloutput,Copy(More,2));
       Rewrite(xmloutput);
       WriteLn(xmloutput,'<?xml version="1.0" encoding="utf-8"?>');
       WriteLn(xmloutput,'<fpcoutput>');
@@ -1104,7 +1104,7 @@ begin
            Comment(V_Normal,'');
            inc(Lines);
          end;
-        HelpLine := PadEnd('',ident)+opt+Copy(s,j+1,255);
+        HelpLine := PadEnd('',ident)+opt+Copy(s,j+1);
         if HelpLine = '' then
          HelpLineHeight := 1
         else
@@ -1569,7 +1569,7 @@ begin
          external assembler, it is ignored if internal assembler is used. }
        'o' :
          begin
-           asmextraopt:=copy(more,j+1,length(more)-j);
+           asmextraopt:=copy(more,j+1);
            break;
          end;
        'p' :
@@ -1657,7 +1657,7 @@ begin
            include(init_settings.localswitches,cs_ieee_errors);
        'a' :
          begin
-           s:=upper(copy(more,j+1,length(more)-j));
+           s:=upper(copy(more,j+1));
            if not(SetAbiType(s,target_info.abi)) then
              IllegalPara(opt);
            ABISetExplicitly:=true;
@@ -1674,7 +1674,7 @@ begin
 
        'c' :
           begin
-            if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),init_settings.defproccall) then
+            if not SetAktProcCall(upper(copy(more,j+1)),init_settings.defproccall) then
              IllegalPara(opt);
             break;
           end;
@@ -1694,7 +1694,7 @@ begin
            include(init_settings.localswitches,cs_check_fpu_exceptions);
        'f' :
          begin
-           s:=upper(copy(more,j+1,length(more)-j));
+           s:=upper(copy(more,j+1));
            if not(SetFpuType(s,init_settings.fputype)) then
              IllegalPara(opt);
            FPUSetExplicitly:=True;
@@ -1702,7 +1702,7 @@ begin
          end;
        'F' :
           begin
-            if not SetMinFPConstPrec(copy(more,j+1,length(more)-j),init_settings.minfpconstprec) then
+            if not SetMinFPConstPrec(copy(more,j+1),init_settings.minfpconstprec) then
               IllegalPara(opt);
             break;
           end;
@@ -1721,7 +1721,7 @@ begin
          end;
        'h' :
          begin
-            l:=pos(',',copy(more,j+1,length(more)-j));
+            l:=pos(',',copy(more,j+1));
             if l=0 then
               l:=length(more)-j+1;
             val(copy(more,j+1,l-1),heapsize,code);
@@ -1735,7 +1735,7 @@ begin
               IllegalPara(opt)
             else if l<=length(more)-j then
               begin
-                val(copy(more,j+l+1,length(more)),maxheapsize,code);
+                val(copy(more,j+l+1),maxheapsize,code);
                 if code<>0 then
                   IllegalPara(opt)
                 else if (maxheapsize<heapsize) then
@@ -1754,11 +1754,11 @@ begin
 {$ifdef arm}
        'I' :
          begin
-           if (upper(copy(more,j+1,length(more)-j))='THUMB') and
+           if (upper(copy(more,j+1)='THUMB') and
              { does selected CPU really understand thumb? }
              (init_settings.cputype in cpu_has_thumb) then
              init_settings.instructionset:=is_thumb
-           else if upper(copy(more,j+1,length(more)-j))='ARM' then
+           else if upper(copy(more,j+1)='ARM' then
              init_settings.instructionset:=is_arm
            else
              IllegalPara(opt);
@@ -1810,7 +1810,7 @@ begin
                    end;
                  'v':
                    begin
-                     init_settings.llvmversion:=llvmversion2enum(copy(More,l+1,length(More)));
+                     init_settings.llvmversion:=llvmversion2enum(copy(More,l+1));
                      if init_settings.llvmversion=llvmver_invalid then
                        begin
                          IllegalPara(opt);
@@ -1848,13 +1848,13 @@ begin
            include(init_settings.localswitches,cs_check_ordinal_size);
        'p' :
          begin
-           s:=upper(copy(more,j+1,length(more)-j));
+           s:=upper(copy(more,j+1));
 {$ifdef cpucapabilities}
            { find first occurrence of + or - }
            deletepos:=PosCharset(['+','-'],s);
            if deletepos<>0 then
              begin
-               extrasettings:=Copy(s,deletepos,Length(s));
+               extrasettings:=Copy(s,deletepos);
                Delete(s,deletepos,Length(s));
               end
            else
@@ -1967,7 +1967,7 @@ begin
            end;
        's' :
          begin
-            val(copy(more,j+1,length(more)-j),stacksize,code);
+            val(copy(more,j+1),stacksize,code);
             if (code<>0)
 {$ifdef cpu16bitaddr}
                or (stacksize>=65521)
@@ -1995,7 +1995,7 @@ begin
             include(init_settings.moduleswitches,cs_create_smart);
        'T' :
          begin
-           if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
+           if not UpdateTargetSwitchStr(copy(more,j+1),init_settings.targetswitches,true) then
              IllegalPara(opt);
            break;
          end;
@@ -2009,7 +2009,7 @@ begin
             IllegalPara(opt);
        'V':
          begin
-           s:=upper(copy(more,j+1,length(more)-j));
+           s:=upper(copy(more,j+1));
            if s='GLOBAL-DYNAMIC' then
              init_settings.tlsmodel:=tlsm_global_dynamic
            else if s='LOCAL-EXEC' then
@@ -2049,9 +2049,9 @@ begin
   if l>0 then
     begin
       if cs_support_macro in init_settings.moduleswitches then
-        set_system_macro(hs,Copy(more,l+2,255))
+        set_system_macro(hs,Copy(more,l+2))
       else
-        set_system_compvar(hs,Copy(more,l+2,255));
+        set_system_compvar(hs,Copy(more,l+2));
     end
   else
     def_system_macro(hs);
@@ -2073,29 +2073,29 @@ begin
        'd' :
          begin
            include(init_settings.globalswitches,cs_link_deffile);
-           description:=Copy(more,j+1,255);
+           description:=Copy(more,j+1);
            break;
          end;
        'D' :
          begin
-           datestr:=Copy(more,j+1,255);
+           datestr:=Copy(more,j+1);
            break;
          end;
        'T' :
          begin
-           timestr:=Copy(more,j+1,255);
+           timestr:=Copy(more,j+1);
            break;
          end;
        'v' :
          begin
            include(init_settings.globalswitches,cs_link_deffile);
-           dllversion:=Copy(more,j+1,255);
+           dllversion:=Copy(more,j+1);
            l:=pos('.',dllversion);
            dllminor:=0;
            error:=0;
            if l>0 then
             begin
-              val(copy(dllversion,l+1,255),minor,error);
+              val(copy(dllversion,l+1),minor,error);
               if (error=0) and
                  (minor>=0) and (minor<=$ffff) then
                 dllminor:=minor
@@ -2390,7 +2390,7 @@ begin
             end;
           'o' :
             begin
-              if not UpdateDebugStr(copy(more,j+1,length(more)),init_settings.debugswitches) then
+              if not UpdateDebugStr(copy(more,j+1),init_settings.debugswitches) then
                 IllegalPara(opt);
               break;
             end;
@@ -2558,7 +2558,7 @@ begin
          init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
        'a' :
          begin
-           if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
+           if not(UpdateAlignmentStr(Copy(Opt,j+3),ParaAlignment)) then
              IllegalPara(opt);
            break;
          end;
@@ -2566,7 +2566,7 @@ begin
          include(init_settings.optimizerswitches,cs_opt_size);
        'p' :
          begin
-           if not Setoptimizecputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
+           if not Setoptimizecputype(copy(more,j+1),init_settings.optimizecputype) then
              begin
                OptCPUSetExplicitly:=true;
                { Give warning for old i386 switches }
@@ -2580,7 +2580,7 @@ begin
          end;
        'o' :
          begin
-           if not UpdateOptimizerStr(copy(more,j+1,length(more)),init_settings.optimizerswitches) then
+           if not UpdateOptimizerStr(copy(more,j+1),init_settings.optimizerswitches) then
             IllegalPara(opt);
            break;
          end;
@@ -2600,13 +2600,13 @@ begin
          Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
        'w' :
          begin
-           if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.dowpoptimizerswitches) then
+           if not UpdateWpoStr(copy(more,j+1),init_settings.dowpoptimizerswitches) then
              IllegalPara(opt);
            break;
          end;
        'W' :
          begin
-           if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.genwpoptimizerswitches) then
+           if not UpdateWpoStr(copy(more,j+1),init_settings.genwpoptimizerswitches) then
              IllegalPara(opt);
            break;
          end;
@@ -2736,7 +2736,7 @@ begin
             SetCompileMode('DELPHI',true);
           'e' :
             begin
-              SetErrorFlags(copy(more,j+1,length(more)));
+              SetErrorFlags(copy(more,j+1));
               break;
             end;
           'f' :
@@ -2753,7 +2753,7 @@ begin
                 end
               else
                 begin
-                  if (HandleFeature(upper(copy(more,j,length(more)-j+1)))) then
+                  if (HandleFeature(upper(copy(more,j)))) then
                     j:=length(more)
                   else
                     IllegalPara(opt);
@@ -2907,7 +2907,7 @@ begin
 {$ifdef UNITALIASES}
        'a' :
           begin
-            AddUnitAlias(Copy(More,j+1,255));
+            AddUnitAlias(Copy(More,j+1));
             break;
           end;
 {$endif UNITALIASES}
@@ -2999,7 +2999,7 @@ begin
                  non relocatable DLL at a specific base address PM }
                if (length(More)>j) then
                  begin
-                   val('$'+Copy(More,j+1,255),imagebase,code);
+                   val('$'+Copy(More,j+1),imagebase,code);
                    if code<>0 then
                      IllegalPara(opt);
                    ImageBaseSetExplicity:=true;
@@ -3053,7 +3053,7 @@ begin
              begin
                if (length(More)>j) then
                  begin
-                   val(Copy(More,j+1,255),ataritos_exe_flags,code);
+                   val(Copy(More,j+1),ataritos_exe_flags,code);
                    if code<>0 then
                      IllegalPara(opt);
                  end
@@ -3119,7 +3119,7 @@ begin
 {$if defined(i8086)}
            if (target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) then
              begin
-               case Upper(Copy(More,j+1,255)) of
+               case Upper(Copy(More,j+1)) of
                  'TINY':    init_settings.x86memorymodel:=mm_tiny;
                  'SMALL':   init_settings.x86memorymodel:=mm_small;
                  'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
@@ -3138,7 +3138,7 @@ begin
        'M':
          begin
            if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim])) and
-              ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
+              ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2),false) then
              begin
                break;
              end
@@ -3162,7 +3162,7 @@ begin
            if ((target_info.system in systems_embedded) or (target_info.system in systems_freertos)) and
              ControllerSupport then
              begin
-               s:=upper(copy(more,j+1,length(more)-j));
+               s:=upper(copy(more,j+1));
                if not(SetControllerType(s,init_settings.controllertype)) then
                  IllegalPara(opt)
                else
@@ -3182,13 +3182,13 @@ begin
        'P':
          begin
            if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim]) and
-              ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
+              ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2),true) then
              begin
                break;
              end
 {$ifdef XTENSA}
            else if (target_info.system in [system_xtensa_freertos]) and
-              ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2,255)) then
+              ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2)) then
              begin
                break;
              end
@@ -3208,7 +3208,7 @@ begin
          begin
            if (target_info.system in [system_m68k_sinclairql]) then
              begin
-               sinclairql_metadata_format:=Upper(Copy(More,j+1,255));
+               sinclairql_metadata_format:=Upper(Copy(More,j+1));
                case sinclairql_metadata_format of
                  'QHDR', 'XTCC': ; { allowed formats }
                  else
@@ -3236,7 +3236,7 @@ begin
 {$if defined(i8086)}
            if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
              begin
-               case Upper(Copy(More,j+1,255)) of
+               case Upper(Copy(More,j+1)) of
                  'EXE': SetAppType(app_cui);
                  'COM': SetAppType(app_com);
                  else
@@ -3249,7 +3249,7 @@ begin
 {$if defined(m68k)}
            if (target_info.system in [system_m68k_atari]) then
              begin
-               case Upper(Copy(More,j+1,255)) of
+               case Upper(Copy(More,j+1)) of
                  'TOS': ataritos_exe_format := 'ataritos';
                  'MINT': ataritos_exe_format := 'aoutmint';
                  else
@@ -3364,7 +3364,7 @@ begin
                 case more[j+1] of
                   'S':
                     begin
-                      llvmutilssuffix:=copy(more,j+2,length(more));
+                      llvmutilssuffix:=copy(more,j+2);
                       j:=length(more);
                     end
                   else
@@ -3385,7 +3385,7 @@ begin
          begin
            if (target_info.system in suppported_targets_x_smallr) then
              begin
-               rlinkpath:=Copy(more,2,length(More)-1);
+               rlinkpath:=Copy(more,2);
                DefaultReplacements(rlinkpath);
              end
            else
@@ -3394,7 +3394,7 @@ begin
          end;
        'R' :
          begin
-           sysrootpath:=copy(more,2,length(more)-1);
+           sysrootpath:=copy(more,2);
            defaultreplacements(sysrootpath);
            more:='';
          end;
@@ -3438,12 +3438,12 @@ begin
          end;
        'M' :
          begin
-           mainaliasname:=Copy(more,2,length(More)-1);
+           mainaliasname:=Copy(more,2);
            More:='';
          end;
        'P' :
          begin
-           utilsprefix:=Copy(more,2,length(More)-1);
+           utilsprefix:=Copy(more,2);
            DefaultReplacements(utilsprefix);
            More:='';
          end;
@@ -3455,12 +3455,12 @@ begin
                  begin
                    case more[j+1] of
                     'A' : begin
-                           s:=Copy(more,3,length(More)-2);
+                           s:=Copy(more,3);
                            if not LinkLibraryAliases.AddDep(s) Then
                               IllegalPara(opt);
                           end;
                     'O' : begin
-                           s:=Copy(more,3,length(More)-2);
+                           s:=Copy(more,3);
                            if not LinkLibraryOrder.AddWeight(s) Then
                               IllegalPara(opt);
                           end;
@@ -3538,7 +3538,7 @@ begin
   case opt[1] of
     '-' :
       begin
-         more:=Copy(opt,3,2147483647);
+         more:=Copy(opt,3);
          if firstpass then
            Message1(option_interpreting_firstpass_option,opt)
          else
