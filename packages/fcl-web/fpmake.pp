@@ -10,6 +10,8 @@ procedure add_fcl_web(const ADirectory: string);
 
 Const
   LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
+  SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+  SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
 
 Var
   T : TTarget;
@@ -273,6 +275,7 @@ begin
       end;
     T:=P.Targets.AddUnit('sqldbwebdata.pp');
     T.ResourceStrings:=true;
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
@@ -364,19 +367,23 @@ begin
     
     T:=P.Targets.AddUnit('sqldbrestconst.pp');
     T.ResourceStrings:=true;
+    T.OSes:=SqldbConnectionOSes;
     
     T:=P.Targets.AddUnit('sqldbrestschema.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestio.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestconst');
       AddUnit('sqldbrestschema');
       end;
     T:=P.Targets.AddUnit('sqldbrestdata.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestconst');
@@ -384,6 +391,7 @@ begin
       AddUnit('sqldbrestio');
       end;
     T:=P.Targets.AddUnit('sqldbrestauth.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestconst');
@@ -391,6 +399,7 @@ begin
       AddUnit('sqldbrestschema');
       end;
     T:=P.Targets.AddUnit('sqldbrestjson.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -398,6 +407,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestbridge.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -406,6 +416,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestcds.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -413,6 +424,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestcsv.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -420,6 +432,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestxml.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -427,6 +440,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestado.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestio');
@@ -434,6 +448,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestini.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestbridge');
@@ -441,6 +456,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestauthini.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestauth');
@@ -448,6 +464,7 @@ begin
       AddUnit('sqldbrestconst');
       end;
     T:=P.Targets.AddUnit('sqldbrestmodule.pp');
+    T.OSes:=SqldbConnectionOSes;
     With T.Dependencies do  
       begin
       AddUnit('sqldbrestbridge');
