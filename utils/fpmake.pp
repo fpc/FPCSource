@@ -22,6 +22,9 @@ program fpmake;
 {$endif NO_UNIT_PROCESS}
 
 uses
+{$IFNDEF NO_THREADING}
+{$IFDEF UNIX} cthreads, cwstring, {$ENDIF}
+{$ENDIF}
   fpmkunit,
 {$IFDEF HAS_UNIT_PROCESS}
   process,

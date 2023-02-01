@@ -519,7 +519,7 @@ begin
   S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
   Res:=Cursor.Handle.Exec(S,False,'Error getting typeinfo');
   if (PQresultStatus(res)<>PGRES_TUPLES_OK) then
-    CheckResultError(Res,Cursor.tr.PGConn,'Error getting type info');
+    Cursor.Handle.CheckResultError(Res,[craClear],'Error getting type info');
   try
     For I:=0 to PQntuples(Res)-1 do
       begin

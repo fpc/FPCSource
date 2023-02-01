@@ -6363,7 +6363,7 @@ begin
   HandleMode(S);
 end;
 
-procedure TPascalScanner.SetModeSwitch(S: String);
+procedure TPascalScanner.SetModeSwitch(S: TPasScannerString);
 begin
   HandleModeSwitch(S);
 end;

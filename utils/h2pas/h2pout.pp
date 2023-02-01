@@ -1,5 +1,7 @@
 unit h2pout;
 
+{$modeswitch result}
+
 interface
 
 uses
