@@ -14641,7 +14641,7 @@ unit aoptx86;
 
             if (PopCnt(QWord(Value)) = 1) then
               begin
-                DebugMsg(SPeepholeOptimization + 'Changed AND (not $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ') to BTR ' + debug_tostr(BsrQWord(Value)) + ' to shrink instruction size (And2Btr)', p);
+                DebugMsg(SPeepholeOptimization + 'Changed AND (not $' + debug_hexstr(taicpu(p).oper[0]^.val) + ') to BTR $' + debug_tostr(BsrQWord(Value)) + ' to shrink instruction size (And2Btr)', p);
                 taicpu(p).opcode := A_BTR;
                 taicpu(p).oper[0]^.val := BsrQWord(Value); { Essentially the base 2 logarithm }
                 Result := True;
@@ -15132,7 +15132,7 @@ unit aoptx86;
             not MatchInstruction(hp1, A_TEST, [taicpu(p).opsize])
           ) then
           begin
-            DebugMsg(SPeepholeOptimization + 'Changed OR $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BTS ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Or2Bts)', p);
+            DebugMsg(SPeepholeOptimization + 'Changed OR $' + debug_hexstr(taicpu(p).oper[0]^.val) + ' to BTS $' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Or2Bts)', p);
             taicpu(p).opcode := A_BTS;
             taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
             Result := True;
@@ -15227,7 +15227,7 @@ unit aoptx86;
                     GetNextInstruction(hp2, hp2);
                   end;
 
-                DebugMsg(SPeepholeOptimization + 'Changed TEST $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BT ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Test2Bt)', p);
+                DebugMsg(SPeepholeOptimization + 'Changed TEST $' + debug_hexstr(taicpu(p).oper[0]^.val) + ' to BT $' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Test2Bt)', p);
                 taicpu(p).opcode := A_BT;
                 taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
                 Result := True;
@@ -15601,7 +15601,7 @@ unit aoptx86;
             not MatchInstruction(hp1, A_TEST, [taicpu(p).opsize])
           ) then
           begin
-            DebugMsg(SPeepholeOptimization + 'Changed XOR $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BTC ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Xor2Btc)', p);
+            DebugMsg(SPeepholeOptimization + 'Changed XOR $' + debug_hexstr(taicpu(p).oper[0]^.val) + ' to BTC $' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Xor2Btc)', p);
             taicpu(p).opcode := A_BTC;
             taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
             Result := True;
