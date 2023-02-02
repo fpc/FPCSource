@@ -9041,6 +9041,7 @@ unit aoptx86;
         NewInstr : Taicpu;
         NewAligh : Tai_align;
         DestLabel: TAsmLabel;
+        TempTracking: TAllUsedRegs;
 
         function TryMovArith2Lea(InputInstr: tai): Boolean;
           var
@@ -9250,9 +9251,12 @@ unit aoptx86;
               further, but we can't just put this jump optimisation in pass 1
               because it tends to perform worse when conditional jumps are
               nearby (e.g. when converting CMOV instructions). [Kit] }
+            CopyUsedRegs(TempTracking);
+            UpdateUsedRegs(tai(p.Next));
+
             if OptPass2JMP(hp1) then
               { call OptPass1MOV once to potentially merge any MOVs that were created }
-              Result := OptPass1MOV(p)
+              Result := OptPass1MOV(p);
               { OptPass2MOV will now exit but will be called again if OptPass1MOV
                 returned True and the instruction is still a MOV, thus checking
                 the optimisations below }
@@ -9260,6 +9264,10 @@ unit aoptx86;
             { If OptPass2JMP returned False, no optimisations were done to
               the jump and there are no further optimisations that can be done
               to the MOV instruction on this pass }
+
+            { Restore register state }
+            RestoreUsedRegs(TempTracking);
+            ReleaseUsedRegs(TempTracking);
           end
         else if MatchOpType(taicpu(p),top_reg,top_reg) and
           (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
