@@ -9200,6 +9200,8 @@ unit aoptx86;
               Exit;
             end;
 
+          TransferUsedRegs(TmpUsedRegs);
+
           hp3 := p;
           DebugMsg(SPeepholeOptimization + 'Duplicated ' + debug_tostr(Count) + ' assignment(s) and redirected jump', p);
           while True do
@@ -9243,8 +9245,6 @@ unit aoptx86;
                   begin
                     { Duplicate the MOV instruction }
                     hp3:=tai(hp1.getcopy);
-                    if first_assignment = nil then
-                      first_assignment := hp3;
 
                     asml.InsertBefore(hp3, p);
 
@@ -9256,24 +9256,53 @@ unit aoptx86;
                             top_ref:
                               begin
                                 if (ref^.base <> NR_NO) and
-                                  (getsupreg(ref^.base) <> RS_ESP) and
-                                  (getsupreg(ref^.base) <> RS_EBP)
+                                  (getsupreg(ref^.base) <> RS_STACK_POINTER_REG) and
+                                  (
+                                    (getsupreg(ref^.base) <> RS_FRAME_POINTER_REG) or
+                                    (
+                                      { Allow the frame pointer if it's not being used by the procedure as such }
+                                      Assigned(current_procinfo) and
+                                      (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                    )
+                                  )
                                   {$ifdef x86_64} and (ref^.base <> NR_RIP) {$endif x86_64}
                                   then
-                                  AllocRegBetween(ref^.base, hp3, tai(p.Next), UsedRegs);
+                                  begin
+                                    AllocRegBetween(ref^.base, hp3, p, TmpUsedRegs);
+                                    if not Assigned(first_assignment) then
+                                      IncludeRegInUsedRegs(ref^.base, UsedRegs);
+                                  end;
                                 if (ref^.index <> NR_NO) and
-                                  (getsupreg(ref^.index) <> RS_ESP) and
-                                  (getsupreg(ref^.index) <> RS_EBP)
+                                  (getsupreg(ref^.index) <> RS_STACK_POINTER_REG) and
+                                  (
+                                    (getsupreg(ref^.index) <> RS_FRAME_POINTER_REG) or
+                                    (
+                                      { Allow the frame pointer if it's not being used by the procedure as such }
+                                      Assigned(current_procinfo) and
+                                      (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                    )
+                                  )
                                   {$ifdef x86_64} and (ref^.index <> NR_RIP) {$endif x86_64} and
                                   (ref^.index <> ref^.base) then
-                                  AllocRegBetween(ref^.index, hp3, tai(p.Next), UsedRegs);
+                                  begin
+                                    AllocRegBetween(ref^.index, hp3, p, TmpUsedRegs);
+                                    if not Assigned(first_assignment) then
+                                      IncludeRegInUsedRegs(ref^.index, UsedRegs);
+                                  end;
                               end;
                             top_reg:
-                              AllocRegBetween(reg, hp3, tai(p.Next), UsedRegs);
+                              begin
+                                AllocRegBetween(reg, hp3, p, TmpUsedRegs);
+                                if not Assigned(first_assignment) then
+                                  IncludeRegInUsedRegs(reg, UsedRegs);
+                              end;
                             else
                               ;
                           end;
                         end;
+
+                    if first_assignment = nil then
+                      first_assignment := hp3;
                   end;
               end;
 
