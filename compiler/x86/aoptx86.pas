@@ -1224,6 +1224,23 @@ unit aoptx86;
         Result := tostr(i);
       end;
 
+    function debug_hexstr(i: tcgint): string;
+      begin
+        Result := '0x';
+        case i of
+          0..$FF:
+            Result := Result + hexstr(i, 2);
+          $100..$FFFF:
+            Result := Result + hexstr(i, 4);
+          $10000..$FFFFFF:
+            Result := Result + hexstr(i, 6);
+          $1000000..$FFFFFFFF:
+            Result := Result + hexstr(i, 8);
+          else
+            Result := Result + hexstr(i, 16);
+        end;
+      end;
+
     function debug_regname(r: TRegister): string; inline;
       begin
         Result := '%' + std_regname(r);
@@ -1280,6 +1297,11 @@ unit aoptx86;
       end;
 
     function debug_tostr(i: tcgint): string; inline;
+      begin
+        Result := '';
+      end;
+
+    function debug_hexstr(i: tcgint): string; inline;
       begin
         Result := '';
       end;
