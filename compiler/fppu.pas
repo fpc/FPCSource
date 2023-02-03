@@ -562,10 +562,35 @@ var
              result:=SearchPathList(UnitSearchPath,prefix);
          end;
 
+         function SearchNamespaceList(const prefixes:TCmdStrList):boolean;
+         var
+           nsitem : TCmdStrListItem;
+           res : Boolean;
+         begin
+           res:=false;
+           nsitem:=TCmdStrListItem(prefixes.first);
+           while assigned(nsitem) do
+             begin
+               if not onlysource then
+                 begin
+                   res:=SearchPPUPaths(nsitem.str);
+                   if res then
+                     break;
+                 end;
+               res:=SearchSourcePaths(nsitem.str);
+               if res then
+                 break;
+               nsitem:=TCmdStrListItem(nsitem.next);
+             end;
+           if assigned(nsitem) then
+             nsprefix:=nsitem.str;
+           result:=res;
+         end;
+
+
        var
          fnd : boolean;
          hs : TPathStr;
-         nsitem : TCmdStrListItem;
        begin
          if shortname then
           filename:=FixFileName(Copy(realmodulename^,1,8))
@@ -618,26 +643,11 @@ var
          if not fnd then
            begin
              fnd:=SearchSourcePaths('');
+             // current_namespacelist is set to the current module's namespacelist.
+             if not fnd and assigned(current_namespacelist) and (current_namespacelist.count>0) then
+               fnd:=SearchNameSpaceList(current_namespacelist);
              if not fnd and (namespacelist.count>0) then
-               begin
-                 nsitem:=TCmdStrListItem(namespacelist.first);
-                 while assigned(nsitem) do
-                   begin
-                     if not onlysource then
-                       begin
-                         fnd:=SearchPPUPaths(nsitem.str);
-                         if fnd then
-                           break;
-                       end;
-                     fnd:=SearchSourcePaths(nsitem.str);
-                     if fnd then
-                       break;
-
-                     nsitem:=TCmdStrListItem(nsitem.next);
-                   end;
-                 if assigned(nsitem) then
-                   nsprefix:=nsitem.str;
-               end;
+               fnd:=SearchNameSpaceList(namespacelist);
            end;
          search_unit:=fnd;
       end;
