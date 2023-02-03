@@ -6416,6 +6416,9 @@ const
     GR_GDIOBJECTS_PEAK  = 2;       { Peak count of GDI objects }
     GR_USEROBJECTS_PEAK = 4;       { Peak count of USER objects }
 
+    ES_CONTINUOUS         = dword($80000000);
+    ES_DISPLAY_REQUIRED   = dword($00000002);
+    ES_SYSTEM_REQUIRED    = dword($00000001);
 {$endif read_interface}
 
 {$ifdef read_implementation}
