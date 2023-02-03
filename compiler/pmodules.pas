@@ -1018,6 +1018,11 @@ type
          if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
            begin
+             // We do this as late as possible.
+             if Assigned(current_module) then
+               current_module.Loadlocalnamespacelist
+             else
+               current_namespacelist:=Nil;
              loadunits(nil);
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
@@ -1640,6 +1645,12 @@ type
          { ensure that no packages are picked up from the options }
          packagelist.clear;
 
+         // There should always be a requires, except for the system package. So we load here
+         if Assigned(current_module) then
+           current_module.Loadlocalnamespacelist
+         else
+           current_namespacelist:=Nil;
+
          {Read the packages used by the package we compile.}
          if (token=_ID) and (idtoken=_REQUIRES) then
            begin
@@ -2188,6 +2199,11 @@ type
          { Load the units used by the program we compile. }
          if token=_USES then
            begin
+             // We can do this here: if there is no uses then the namespace directive makes no sense.
+             if Assigned(current_module) then
+               current_module.Loadlocalnamespacelist
+             else
+               current_namespacelist:=Nil;
              loadunits(nil);
              consume_semicolon_after_uses:=true;
            end
