@@ -316,8 +316,13 @@ interface
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
+
        { list of default namespaces }
        namespacelist : TCmdStrList;
+       // During scanning/parsing, a module may not yet be available.
+       // Scanner checks first current_namespacelist, then local_namespacelist
+       premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
+       current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
        { contains tpackageentry entries }
        packagelist : TFPHashList;
        autoloadunits      : string;
@@ -377,6 +382,7 @@ interface
        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
+
 
        init_settings,
        current_settings   : tsettings;
@@ -1653,6 +1659,8 @@ implementation
        LinkLibraryOrder.Free;
        packagesearchpath.Free;
        namespacelist.Free;
+       premodule_namespacelist.Free;
+       current_namespacelist:=Nil;
      end;
 
    procedure InitGlobals;
@@ -1694,7 +1702,8 @@ implementation
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;
-
+        premodule_namespacelist:=TCmdStrList.Create;
+        current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
