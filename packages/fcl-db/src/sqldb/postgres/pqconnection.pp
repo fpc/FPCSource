@@ -18,6 +18,7 @@ unit PQConnection;
 {$mode objfpc}{$H+}
 
 {$Define LinkDynamically}
+{$define PQDEBUG}
 
 interface
 
@@ -39,9 +40,10 @@ type
 
   TPGHandle = Class(TSQLHandle)
   strict private
-    class var _HID : Integer;
+
+    class var _HID : {$IFDEF CPU64} Int64 {$ELSE} Integer {$ENDIF};
   private
-    FHandleID : Integer;
+    FHandleID : {$IFDEF CPU64} Int64 {$ELSE} Integer {$ENDIF};
     FConnected: Boolean;
     FCOnnection: TPQConnection;
     FDBName : String;
@@ -63,7 +65,7 @@ type
     Function CheckConnectionStatus(doRaise : Boolean = True) : Boolean;
     Function DescribePrepared(StmtName : String): PPGresult;
     Function Exec(aSQL : String; aClearResult : Boolean; aError : String = '') : PPGresult;
-  Public
+    function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPchar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
     Constructor Create(aConnection : TPQConnection;aDBName :string);
     Destructor Destroy; override;
     procedure CheckResultError(var res: PPGresult; Actions : TCheckResultActions; const ErrMsg: string);
@@ -267,7 +269,11 @@ begin
   FConnection:=aConnection;
   FCursorList:=TThreadList.Create;
   FCursorList.Duplicates:=dupIgnore;
+  {$IFDEF CPU64}
+  FHandleID:=InterlockedIncrement64(_HID);
+  {$ElSE}
   FHandleID:=InterlockedIncrement(_HID);
+  {$ENDIF}
   {$IFDEF PQDEBUG}
   Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  allocating handle ');
   {$ENDIF}
@@ -833,6 +839,25 @@ begin
   CheckResultError(Result,acts,aError);
 end;
 
+function TPGHandle.ExecPrepared(stmtName: AnsiString; nParams: longint;
+  paramValues: PPchar; paramLengths: Plongint; paramFormats: Plongint;
+  aClearResult: Boolean): PPGresult;
+
+var
+  s : string;
+  acts : TCheckResultActions;
+
+begin
+  {$IFDEF PQDEBUG}
+  Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  executr prepared ',StmtName);
+  {$ENDIF}
+  Result:=PQexecPrepared(NativeConn,pansichar(StmtName),nParams,ParamValues,paramlengths,paramformats,1);
+  acts:=[];
+  if aClearResult then
+    include(acts,craClear);
+  CheckResultError(Result,acts,'Error executing prepared statement '+stmtName);
+end;
+
 procedure TPGHandle.CheckResultError(var res: PPGresult; Actions: TCheckResultActions; const ErrMsg: string);
 
   Procedure MaybeAdd(Var S : String; Prefix,Msg : String);
@@ -935,7 +960,13 @@ begin
     Writeln('>>> ',IntToStr(FHandleID)+' [',TThread.CurrentThread.ThreadID, ']  Error: ',lMessage,' - ',Serr);
     {$ENDIF}
     raise E;
-    end;
+    end
+  else
+    if craClear in Actions then
+      begin
+      PQClear(res);
+      res:=nil;
+      end;
 end;
 
 function TPQConnection.TranslateFldType(res: PPGresult; Tuple: integer; out
@@ -1155,6 +1186,7 @@ begin
     s := s + ' as ' + buf;
     if LogEvent(detActualSQL) then
       Log(detActualSQL,S);
+    PQCurs.Res:=Nil;
     PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrPrepareFailed);
     // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
     // override the statement type derived by parsing the query.
@@ -1218,6 +1250,7 @@ begin
   PQCurs:=cursor as TPQCursor;
   PQCurs.CurTuple:=-1;
   PQclear(PQCurs.res);
+  PQCurs.Res:=Nil;
   if PQCurs.FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
     begin
     if LogEvent(detParamValue) then
@@ -1266,6 +1299,9 @@ begin
           else
             s := GetAsString(AParams[i]);
         end; {case}
+        {$IFDEF PQDEBUG}
+        WriteLn('Setting param ',aParams[i].Name,'(',aParams[i].DataType,') to ',S);
+        {$ENDIF}
         if not handled then
           begin
           l:=length(s);
@@ -1280,12 +1316,13 @@ begin
         end
       else
         FreeAndNil(ar[i]);
-      PQCurs.res := PQexecPrepared(PQCurs.Handle.NativeConn,pchar(PQCurs.StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
+      PQCurs.res := PQCurs.Handle.ExecPrepared(PQCurs.StmtName,AParams.Count,@Ar[0],@Lengths[0],@Formats[0],False);
+//      PQCurs.res := PQexecPrepared(PQCurs.Handle.NativeConn,pchar(PQCurs.StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
       for i := 0 to AParams.Count -1 do
         FreeMem(ar[i]);
       end
     else
-      PQCurs.res := PQexecPrepared(PQCurs.Handle.NativeConn,pchar(PQCurs.StmtName),0,nil,nil,nil,1);
+      PQCurs.res := PQCurs.Handle.ExecPrepared(PQCurs.StmtName,0,nil,nil,nil,False);
     end
   else
     begin
@@ -1304,7 +1341,6 @@ begin
       end
     else
       s := PQCurs.Statement;
-    PQCurs.Res:=Nil;
     PQCurs.Res:=PQCurs.Handle.Exec(S,False,SErrExecuteFailed);
     end;
   PQCurs.FSelectable := assigned(PQCurs.res) and (PQresultStatus(PQCurs.res)=PGRES_TUPLES_OK);
