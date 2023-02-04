@@ -59,7 +59,7 @@ implementation
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,compinnr,
        { symtable }
-       symconst,symbase,symcpu,symcreat,defutil,defcmp,symtable,
+       symconst,symbase,symcpu,symcreat,defutil,defcmp,symtable,symutil,
        { pass 1 }
        ninl,ncon,nobj,ngenutil,nld,nmem,ncal,pass_1,
        { parser }
@@ -352,6 +352,7 @@ implementation
                    if not skip_initialiser then
                     begin
                       consume(_EQ);
+                      maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner);
                       read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;

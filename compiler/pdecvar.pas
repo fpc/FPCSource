@@ -1155,6 +1155,7 @@ implementation
               end;
             staticvarsym :
               begin
+                maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner);
                 read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
