@@ -660,7 +660,6 @@ function TSQLDBConnectionmanager.CreateConnection(const aDef: TSQLDBConnectionDe
 
 var
   C : TSQLConnectionClass;
-  S : String;
 
 begin
   C:=aDef.ConnectionClass;
@@ -671,7 +670,6 @@ begin
   Result:=C.Create(Self.ConnectionOwner);
   try
     aDef.AssignTo(Result);
-    S:=SetToString(PTypeInfo(TypeInfo(TDBEventTypes)),Integer(Self.LogEvents),True);
     Result.LogEvents:=Self.LogEvents;
     Result.Transaction:=TSQLTransaction.Create(Result);
   except
