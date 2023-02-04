@@ -33,6 +33,7 @@ uses
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_TEMPDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+{$DEFINE HAS_FILEGETDATETIMEINFO}
 
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
@@ -269,6 +270,33 @@ begin
     end;
   Result := -1;
 end;
+
+function FileGetDateTimeInfo(const FileName: string;
+  out DateTime: TDateTimeInfoRec; FollowLink: Boolean = True): Boolean;
+var
+  Data: TWin32FindDataW;
+  FN: unicodestring;
+begin
+  Result := False;
+  SetLastError(ERROR_SUCCESS);
+  FN:=FileName;
+  if Not GetFileAttributesExW(PWideChar(FileName), GetFileExInfoStandard, @Data) then
+    exit;
+  if ((Data.dwFileAttributes and faSymlink)=faSymlink) then
+    begin
+    if FollowLink then
+      begin
+      FN:=FollowSymlink(FileName);
+      if FN='' then 
+        exit; 
+      if not GetFileAttributesExW(PWideChar(FN), GetFileExInfoStandard, @Data) then
+        exit;
+      end;
+    end;
+  DateTime.Data:=Data;
+  Result:=True;
+end;
+
 
 
 function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
