@@ -33,6 +33,8 @@ Type
   TRestFilterPairArray = Array of TRestFilterPair;
 
   { TSQLDBRestDBHandler }
+  TSQLDBRestDBHandlerOption = (rhoLegacyPut,rhoCheckupdateCount,rhoAllowMultiUpdate);
+  TSQLDBRestDBHandlerOptions = set of TSQLDBRestDBHandlerOption;
 
   TSQLDBRestDBHandler = Class(TComponent)
   private
@@ -40,23 +42,29 @@ Type
     FEmulateOffsetLimit: Boolean;
     FEnforceLimit: Int64;
     FExternalDataset: TDataset;
+    FOptions: TSQLDBRestDBHandlerOptions;
     FPostParams: TParams;
     FQueryClass: TSQLQueryClass;
     FRestIO: TRestIO;
     FStrings : TRestStringsConfig;
     FResource : TSQLDBRestResource;
     FOwnsResource : Boolean;
+    procedure CheckAllRequiredFieldsPresent;
+    function GetAllowMultiUpdate: Boolean;
+    function GetCheckUpdateCount: Boolean;
+    function GetUseLegacyPUT: Boolean;
     procedure SetExternalDataset(AValue: TDataset);
   Protected
     function StreamRecord(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray): Boolean; virtual;
     function FindExistingRecord(D: TDataset): Boolean;
+    function GetRequestFields: TSQLDBRestFieldArray;
     procedure CreateResourceFromDataset(D: TDataset); virtual;
     procedure DoNotFound; virtual;
     procedure SetPostParams(aParams: TParams; Old : TFields = Nil);virtual;
     procedure SetPostFields(aFields: TFields);virtual;
     procedure SetFieldFromData(DataField: TField; ResField: TSQLDBRestField; D: TJSONData); virtual;
     procedure InsertNewRecord; virtual;
-    procedure UpdateExistingRecord(OldData: TDataset); virtual;
+    procedure UpdateExistingRecord(OldData: TDataset; IsPatch : Boolean); virtual;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function SpecialResource: Boolean; virtual;
     function GetGeneratorValue(const aGeneratorName: String): Int64; virtual;
@@ -76,9 +84,14 @@ Type
     procedure DoHandleGet;virtual;
     procedure DoHandleDelete;virtual;
     procedure DoHandlePost;virtual;
+    procedure DoHandlePutPatch(IsPatch : Boolean); virtual;
     procedure DoHandlePut; virtual;
+    procedure DoHandlePatch; virtual;
     // Parameters used when executing update SQLs. Used to get values for return dataset params.
     Property PostParams : TParams Read FPostParams;
+    Property UseLegacyPUT : Boolean Read GetUseLegacyPUT;
+    Property CheckUpdateCount : Boolean Read GetCheckUpdateCount;
+    Property AllowMultiUpdate : Boolean Read GetAllowMultiUpdate;
   Public
     Destructor Destroy; override;
     // Get limi
@@ -96,6 +109,8 @@ Type
     Property ExternalDataset : TDataset Read FExternalDataset Write SetExternalDataset;
     Property EmulateOffsetLimit : Boolean Read FEmulateOffsetLimit Write FEmulateOffsetLimit;
     Property DeriveResourceFromDataset : Boolean Read FDeriveResourceFromDataset Write FDeriveResourceFromDataset;
+    Property Options : TSQLDBRestDBHandlerOptions Read FOptions Write FOptions;
+
   end;
   TSQLDBRestDBHandlerClass = class of TSQLDBRestDBHandler;
 
@@ -665,6 +680,8 @@ begin
   Try
     Q.UsePrimaryKeyAsKey:=False;
     FillParams(roGet,Q.Params,WhereFilterList);
+    if Not SpecialResource then
+      IO.Resource.CheckParams(IO.RestContext,roPost,Q.Params);
     Result:=Q;
   except
     Q.Free;
@@ -837,7 +854,15 @@ begin
       else if IO.GetVariable(P.Name,V,[vsContent,vsQuery])<>vsNone then
         D:=TJSONString.Create(V);
       if (D=Nil) and Assigned(Fold) then
-        P.AssignFromField(Fold) // use old value
+        begin
+{$IFDEF VER3_2_2}
+        // ftLargeInt is missing
+        if Fold.DataType=ftLargeInt then
+          P.AsLargeInt:=FOld.AsLargeInt
+        else
+{$ENDIF}
+          P.AssignFromField(Fold) // use old value
+        end
       else
         SetParamFromData(P,F,D); // Use new value, if any
     finally
@@ -909,12 +934,107 @@ begin
   end;
 end;
 
-procedure TSQLDBRestDBHandler.UpdateExistingRecord(OldData : TDataset);
+procedure TSQLDBRestDBHandler.DoHandlePutPatch(IsPatch: Boolean);
 
 Var
-  S : TSQLStatement;
+  D : TDataset;
+  FieldList : TRestFieldPairArray;
+
+begin
+  // We do this first, so we don't run any unnecessary queries
+  if not IO.RESTInput.SelectObject(0) then
+    Raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrNoResourceDataFound);
+  // Get the original record.
+  FieldList:=BuildFieldList(True);
+  D:=GetDatasetForResource(FieldList,True);
+  try
+    if not FindExistingRecord(D) then
+      begin
+      DoNotFound;
+      exit;
+      end;
+    UpdateExistingRecord(D,IsPatch);
+    // Now build response
+    if D<>ExternalDataset then
+      begin;
+      // Now build response. We can imagine not doing a select again, and simply supply back the fields as sent...
+      FreeAndNil(D);
+      D:=GetDatasetForResource(FieldList,True);
+      FieldList:=BuildFieldList(False);
+      D.Open;
+      end;
+    IO.RESTOutput.OutputOptions:=IO.RESTOutput.OutputOptions-[ooMetadata];
+    StreamDataset(IO.RESTOutput,D,FieldList);
+  finally
+    D.Free;
+  end;
+end;
+
+
+function TSQLDBRestDBHandler.GetRequestFields : TSQLDBRestFieldArray;
+
+Var
+  F : TSQLDBRestField;
+  aSize : Integer;
+
+begin
+  Result:=[];
+  SetLength(Result,FResource.Fields.Count);
+  aSize:=0;
+  For F in FResource.Fields do
+    if FRestIO.RESTInput.HaveInputData(F.PublicName) then
+      begin
+      Result[aSize]:=F;
+      Inc(aSize);
+      end;
+  SetLength(Result,aSize);
+end;
+
+
+procedure TSQLDBRestDBHandler.CheckAllRequiredFieldsPresent;
+
+Var
+  F : TSQLDBRestField;
+  Missing : UTF8String;
+
+begin
+  Missing:='';
+  For F in FResource.Fields do
+    if (foRequired in F.Options) and (F.GeneratorName='') then
+      if not IO.RESTInput.HaveInputData(F.PublicName) then
+        begin
+        if Missing<>'' then
+          Missing:=Missing+', ';
+        Missing:=Missing+F.PublicName;
+        end;
+  if Missing<>'' then
+    Raise ESQLDBRest.CreateFmt(500,SErrMissingInputFields,[Missing]);
+end;
+
+function TSQLDBRestDBHandler.GetAllowMultiUpdate: Boolean;
+begin
+  Result:=rhoAllowMultiUpdate in Options;
+end;
+
+function TSQLDBRestDBHandler.GetCheckUpdateCount: Boolean;
+begin
+  Result:=rhoCheckupdateCount in Options;
+end;
+
+function TSQLDBRestDBHandler.GetUseLegacyPUT: Boolean;
+begin
+  Result:=rhoLegacyPut in Options;
+end;
+
+procedure TSQLDBRestDBHandler.UpdateExistingRecord(OldData: TDataset;
+  IsPatch: Boolean);
+
+Var
+  S : TSQLQuery;
+  aRowsAffected: Integer;
   SQl : String;
   WhereFilterList : TRestFilterPairArray;
+  RequestFields : TSQLDBRestFieldArray;
 
 begin
   if (OldData=ExternalDataset) then
@@ -930,25 +1050,41 @@ begin
     end
   else
     begin
-    SQL:=FResource.GetResolvedSQl(skUpdate,GetIDWhere(WhereFilterList) ,'','');
-    S:=TSQLStatement.Create(Self);
+    if isPatch then
+      RequestFields:=GetRequestFields
+    else if not (isPatch or UseLegacyPUT) then
+      begin
+      CheckAllRequiredFieldsPresent;
+      RequestFields:=[];
+      end;
+    S:=TSQLQuery.Create(Self);
     try
+      SQL:=FResource.GetResolvedSQl(skUpdate,GetIDWhere(WhereFilterList) ,'','',RequestFields);
       S.Database:=IO.Connection;
       S.Transaction:=IO.Transaction;
       S.SQL.Text:=SQL;
-      SetPostParams(S.Params,OldData.Fields);
+      if (not isPatch) and UseLegacyPUT then
+        SetPostParams(S.Params,OldData.Fields);
       FillParams(roGet,S.Params,WhereFilterList);
       // Give user a chance to look at it.
       FResource.CheckParams(io.RestContext,roPut,S.Params);
-      S.Execute;
-      S.Transaction.Commit;
+      S.ExecSQL;
+      if CheckUpdateCount then
+        begin
+        aRowsAffected:=S.RowsAffected;
+        if (aRowsAffected<1) then
+          Raise ESQLDBRest.Create(500,SErrNoRecordsUpdated);
+        if (aRowsAffected>1) and not AllowMultiUpdate then
+          Raise ESQLDBRest.CreateFmt(500,SErrTooManyRecordsUpdated,[aRowsAffected]);
+        end;
+      S.SQLTransaction.Commit;
     finally
       S.Free;
     end;
     end;
 end;
 
-Function TSQLDBRestDBHandler.FindExistingRecord(D : TDataset) : Boolean;
+function TSQLDBRestDBHandler.FindExistingRecord(D: TDataset): Boolean;
 
 Var
   KeyFields : String;
@@ -984,38 +1120,15 @@ end;
 
 procedure TSQLDBRestDBHandler.DoHandlePut;
 
-Var
-  D : TDataset;
-  FieldList : TRestFieldPairArray;
-
 begin
-  // We do this first, so we don't run any unnecessary queries
-  if not IO.RESTInput.SelectObject(0) then
-    Raise ESQLDBRest.Create(IO.RestStatuses.GetStatusCode(rsInvalidParam),SErrNoResourceDataFound);
-  // Get the original record.
-  FieldList:=BuildFieldList(True);
-  D:=GetDatasetForResource(FieldList,True);
-  try
-    if not FindExistingRecord(D) then
-      begin
-      DoNotFound;
-      exit;
-      end;
-    UpdateExistingRecord(D);
-    // Now build response
-    if D<>ExternalDataset then
-      begin;
-      // Now build response. We can imagine not doing a select again, and simply supply back the fields as sent...
-      FreeAndNil(D);
-      D:=GetDatasetForResource(FieldList,True);
-      FieldList:=BuildFieldList(False);
-      D.Open;
-      end;
-    IO.RESTOutput.OutputOptions:=IO.RESTOutput.OutputOptions-[ooMetadata];
-    StreamDataset(IO.RESTOutput,D,FieldList);
-  finally
-    D.Free;
-  end;
+  DoHandlePutPatch(False);
+end;
+
+
+
+procedure TSQLDBRestDBHandler.DoHandlePatch;
+begin
+  DoHandlePutPatch(True);
 end;
 
 destructor TSQLDBRestDBHandler.Destroy;

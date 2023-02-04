@@ -49,6 +49,9 @@ Resourcestring
   SErrNoSQLStatement = 'Could not find SQL statement for custom view';
   SErrOnlySELECTSQLAllowedInCustomView = 'Only SELECT SQL is allowed for '
     +'custom view';
+  SErrMissingInputFields = 'Missing required fields in input data: %s.';
+  SErrNoRecordsUpdated = 'No records were updated.';
+  SErrTooManyRecordsUpdated = 'Too many records (%d) were updated.';
 
 Const
   DefaultAuthenticationRealm = 'REST API Server';
