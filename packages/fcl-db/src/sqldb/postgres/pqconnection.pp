@@ -56,6 +56,9 @@ type
     Procedure RegisterCursor(Cursor : TPQCursor);
     Procedure UnRegisterCursor(Cursor : TPQCursor);
     procedure UnprepareStatement(Cursor: TPQCursor; Force: Boolean);
+  Public
+    Constructor Create(aConnection : TPQConnection;aDBName :string);
+    Destructor Destroy; override;
     Procedure Connect;
     Procedure Disconnect;
     Procedure StartTransaction;
@@ -66,8 +69,6 @@ type
     Function DescribePrepared(StmtName : String): PPGresult;
     Function Exec(aSQL : String; aClearResult : Boolean; aError : String = '') : PPGresult;
     function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPchar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
-    Constructor Create(aConnection : TPQConnection;aDBName :string);
-    Destructor Destroy; override;
     procedure CheckResultError(var res: PPGresult; Actions : TCheckResultActions; const ErrMsg: string);
     Property Connection : TPQConnection Read FCOnnection;
     Property NativeConn : PPGConn Read FNativeConn;
@@ -844,7 +845,6 @@ function TPGHandle.ExecPrepared(stmtName: AnsiString; nParams: longint;
   aClearResult: Boolean): PPGresult;
 
 var
-  s : string;
   acts : TCheckResultActions;
 
 begin
