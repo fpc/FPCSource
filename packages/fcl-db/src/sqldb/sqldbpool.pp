@@ -1,16 +1,3 @@
-{
-    Copyright (c) 2022 by Michael Van Canneyt
-
-    SQLDB database pooling (thread-safe)
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
 unit sqldbpool;
 
 {$mode objfpc}
@@ -19,7 +6,7 @@ unit sqldbpool;
 interface
 
 uses
-  Classes, SysUtils, db, sqldb, syncobjs, contnrs;
+  Classes, SysUtils, db, sqldb, pqconnection, syncobjs, contnrs, baseunix;
 
 const
   DefaultDisconnectTimeOut = 10*60; // Number of seconds before connection is considered old and is discarded.
@@ -211,6 +198,7 @@ type
     FOnLog: TPoolLogEvent;
     FPool : TSQLDBConnectionPool;
     FMyPool : TSQLDBConnectionPool;
+    FLogEvents : TDBEventTypes;
     procedure SetConnectionOwner(AValue: TComponent);
     procedure SetDefinitions(AValue: TSQLDBConnectionDefList);
     procedure SetOnLog(AValue: TPoolLogEvent);
@@ -238,6 +226,7 @@ type
     Property MaxTotalConnections : Cardinal Read FMaxTotalConnections Write FMaxTotalConnections;
     Property ConnectionOwner : TComponent Read FConnectionOwner Write SetConnectionOwner;
     Property OnLog : TPoolLogEvent Read FOnLog Write SetOnLog;
+    Property LogEvents : TDBEventTypes Read FLogEvents Write FLogEvents;
   end;
 
 
@@ -657,6 +646,7 @@ begin
   FMyPool.SetSubComponent(True);
   FDefinitions:=CreateDefinitionList;
   FPool:=FMyPool;
+  FLogEvents:=LogAllEvents;
 end;
 
 destructor TSQLDBConnectionmanager.Destroy;
@@ -670,6 +660,7 @@ function TSQLDBConnectionmanager.CreateConnection(const aDef: TSQLDBConnectionDe
 
 var
   C : TSQLConnectionClass;
+  S : String;
 
 begin
   C:=aDef.ConnectionClass;
@@ -680,6 +671,8 @@ begin
   Result:=C.Create(Self.ConnectionOwner);
   try
     aDef.AssignTo(Result);
+    S:=SetToString(PTypeInfo(TypeInfo(TDBEventTypes)),Integer(Self.LogEvents),True);
+    Result.LogEvents:=Self.LogEvents;
     Result.Transaction:=TSQLTransaction.Create(Result);
   except
     Result.Free;
@@ -811,6 +804,16 @@ function TTypedConnectionPool.FindConnection(const aDatabaseName: string;
 begin
   Result:=T(Inherited FindConnection(T,aDatabaseName,aHostName,aUserName,aPassword,aParams));
 end;
+
+{ TPQConnPool }
+
+(*
+generic function TTypedConnectionPool<T : TSQLConnection>.FindConnection(const aDatabaseName: string; const aHostName: string;
+  const aUserName: string; const aPassword: string; aParams: TStrings = Nil): T;
+begin
+  result:=T(FindConnection(T,aDatabaseName,aHostName,aPassword,aUserName,aParams));
+end;
+*)
 
 { TConnectionList }
 
