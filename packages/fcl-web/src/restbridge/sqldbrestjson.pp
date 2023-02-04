@@ -33,6 +33,7 @@ Type
     Destructor Destroy; override;
     Function SelectObject(aIndex : Integer) : Boolean; override;
     function GetContentField(aName: UTF8string): TJSONData; override;
+    Function HaveInputData(aName: UTF8string): Boolean; override;
     procedure InitStreaming; override;
   end;
 
@@ -113,6 +114,11 @@ begin
     Result:=D.Clone
   else
     Result:=nil;
+end;
+
+function TJSONInputStreamer.HaveInputData(aName: UTF8string): Boolean;
+begin
+  Result:=(FJSON as TJSONObject).Find(aName)<>Nil;
 end;
 
 { TJSONOutputStreamer }

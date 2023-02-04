@@ -19,17 +19,20 @@ unit sqldbrestbridge;
 interface
 
 uses
-  Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth;
+  Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth, sqldbpool;
 
 Type
-  TRestDispatcherOption = (rdoConnectionInURL,     // Route includes connection :Connection/:Resource[/:ID]
-                           rdoExposeMetadata,      // expose metadata resource /metadata[/:Resource]
-                           rdoCustomView,          // Expose custom view /customview
-                           rdoHandleCORS,          // Handle CORS requests
-                           rdoAccessCheckNeedsDB,  // Authenticate after connection to database was made.
-                           rdoConnectionResource,   // Enable connection managament through /_connection[/:Conn] resource
-                           rdoEmptyCORSDomainToOrigin // if CORSAllowedOrigins is empty CORS requests will mirror Origin instead of *
-                           // rdoServerInfo        // Enable querying server info through /_serverinfo  resource
+  TRestDispatcherOption = (rdoConnectionInURL,        // Route includes connection :Connection/:Resource[/:ID]
+                           rdoExposeMetadata,          // expose metadata resource /metadata[/:Resource]
+                           rdoCustomView,              // Expose custom view /customview
+                           rdoHandleCORS,              // Handle CORS requests
+                           rdoAccessCheckNeedsDB,      // Authenticate after connection to database was made.
+                           rdoConnectionResource,      // Enable connection managament through /_connection[/:Conn] resource
+                           rdoEmptyCORSDomainToOrigin, // if CORSAllowedOrigins is empty CORS requests will mirror Origin instead of *
+                           // rdoServerInfo            // Enable querying server info through /_serverinfo  resource
+                           rdoLegacyPut,               // Makes PUT simulate PATCH : Not all values are required, missing values will be gotten from previous record.
+                           rdoAllowNoRecordUpdates,    // Check rows affected, rowsaffected = 0 is OK.
+                           rdoAllowMultiRecordUpdates  // Check rows affected, rowsaffected > 1 is OK.
                            );
 
   TRestDispatcherOptions = set of TRestDispatcherOption;
@@ -53,27 +56,15 @@ Type
 
   { TSQLDBRestConnection }
 
-  TSQLDBRestConnection = Class(TCollectionItem)
+  TSQLDBRestConnection = Class(TSQLDBConnectionDef)
   private
-    FCharSet: UTF8String;
     FConnection: TSQLConnection;
-    FConnectionType: String;
-    FDatabaseName: UTF8String;
     FEnabled: Boolean;
-    FHostName: UTF8String;
-    FName: UTF8String;
-    FParams: TStrings;
-    FPassword: UTF8String;
-    FPort: Word;
-    FRole: UTF8String;
     FSchemaName: UTF8String;
-    FUserName: UTF8String;
     FNotifier : TComponent;
-    function GetName: UTF8String;
     procedure SetConnection(AValue: TSQLConnection);
-    procedure SetParams(AValue: TStrings);
   Protected
-    Function GetDisplayName: string; override;
+    function GetName: UTF8String; override;
     // For use in the REST Connection resource
     Property SchemaName : UTF8String Read FSchemaName Write FSchemaName;
   Public
@@ -84,33 +75,11 @@ Type
   Published
     // Always use this connection instance
     Property SingleConnection : TSQLConnection Read FConnection Write SetConnection;
-    // Allow this connection to be used.
-    Property Enabled : Boolean Read FEnabled Write FEnabled default true;
-    // TSQLConnector type
-    property ConnectionType : String Read FConnectionType Write FConnectionType;
-    // Name for this connection
-    Property Name : UTF8String Read GetName Write FName;
-    // Database user password
-    property Password : UTF8String read FPassword write FPassword;
-    // Database username
-    property UserName : UTF8String read FUserName write FUserName;
-    // Database character set
-    property CharSet : UTF8String read FCharSet write FCharSet;
-    // Database hostname
-    property HostName : UTF8String Read FHostName Write FHostName;
-    // Database role
-    Property Role :  UTF8String read FRole write FRole;
-    // Database database name
-    property DatabaseName : UTF8String Read FDatabaseName Write FDatabaseName;
-    // Other parameters
-    Property Params : TStrings Read FParams Write SetParams;
-    // Port DB is listening on
-    Property Port : Word Read FPort Write FPort;
-  end;
+   end;
 
   { TSQLDBRestConnectionList }
 
-  TSQLDBRestConnectionList = Class(TCollection)
+  TSQLDBRestConnectionList = Class(TSQLDBConnectionDefList)
   private
     function GetConn(aIndex : integer): TSQLDBRestConnection;
     procedure SetConn(aIndex : integer; AValue: TSQLDBRestConnection);
@@ -178,7 +147,7 @@ Type
 
   TResourceAuthorizedEvent = Procedure (Sender : TObject; aRequest : TRequest; Const aResource : UTF8String; var AllowResource : Boolean) of object;
   TGetConnectionNameEvent = Procedure(Sender : TObject; aRequest : TRequest; Const AResource : String; var AConnectionName : UTF8String) of object;
-  TGetConnectionEvent = Procedure(Sender : TObject; aDef : TSQLDBRestConnection; var aConnection : TSQLConnection) of object;
+  TGetConnectionEvent = Procedure(Sender : TObject; aDef : TSQLDBConnectionDef; var aConnection : TSQLConnection) of object;
   TRestExceptionEvent = Procedure(Sender : TObject; aRequest : TRequest; Const AResource : string; E : Exception) of object;
   TRestOperationEvent = Procedure(Sender : TObject; aConn: TSQLConnection; aResource : TSQLDBRestResource) of object;
   TRestGetFormatEvent = Procedure(Sender : TObject; aRest : TRequest; var aFormat : String) of object;
@@ -190,6 +159,7 @@ Type
     Class Var FDBHandlerClass : TSQLDBRestDBHandlerClass;
   private
     FAdminUserIDs: TStrings;
+    FConnectionManager: TSQLDBConnectionManager;
     FCORSAllowCredentials: Boolean;
     FCORSAllowedOrigins: String;
     FCORSMaxAge: Integer;
@@ -234,10 +204,15 @@ Type
     FMetadataItemRoute: THTTPRoute;
     FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
+    FAfterDatabaseRead: TRestDatabaseEvent;
+    FAfterDatabaseUpdate: TRestDatabaseEvent;
+    FBeforeDatabaseRead: TRestDatabaseEvent;
+    FBeforeDatabaseUpdate: TRestDatabaseEvent;
     function GetRoutesRegistered: Boolean;
     procedure SetActive(AValue: Boolean);
     procedure SetAdminUserIDS(AValue: TStrings);
     procedure SetAuthenticator(AValue: TRestAuthenticator);
+    procedure SetConnectionManager(AValue: TSQLDBConnectionManager);
     procedure SetConnections(AValue: TSQLDBRestConnectionList);
     procedure SetDispatchOptions(AValue: TRestDispatcherOptions);
     procedure SetSchemas(AValue: TSQLDBRestSchemaList);
@@ -245,6 +220,7 @@ Type
     procedure SetStrings(AValue: TRestStringsConfig);
   Protected
     // Logging
+    procedure DoConnectionManagerLog(Sender: TObject; const Msg: string); virtual;
     Function MustLog(aLog : TRestDispatcherLogOption) : Boolean; inline;
     procedure DoSQLLog(Sender: TObject; EventType: TDBEventType;  const Msg: String); virtual;
     procedure DoLog(aLog: TRestDispatcherLogOption; IO : TRestIO; const aMessage: UTF8String);  virtual;
@@ -253,8 +229,10 @@ Type
     // Auxiliary methods.
     Procedure Loaded; override;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function FindConnection(IO: TRestIO): TSQLDBRestConnection;
+    function FindConnection(IO: TRestIO): TSQLDBConnectionDef;
+    function GetConnectionManager : TSQLDBConnectionmanager;
     // Factory methods. Override these to customize various helper classes.
+    Function CreateConnectionManager : TSQLDBConnectionmanager;
     function CreateConnection: TSQLConnection; virtual;
     Function CreateConnectionList : TSQLDBRestConnectionList; virtual;
     Function CreateSchemaList : TSQLDBRestSchemaList; virtual;
@@ -267,14 +245,14 @@ Type
     function GetInputFormat(IO: TRestIO): String; virtual;
     function GetOutputFormat(IO: TRestIO): String; virtual;
     function GetConnectionName(IO: TRestIO): UTF8String;
-    function GetSQLConnection(aConnection: TSQLDBRestConnection; Out aTransaction : TSQLTransaction): TSQLConnection; virtual;
-    procedure DoneSQLConnection(aConnection: TSQLDBRestConnection; AConn: TSQLConnection; aTransaction : TSQLTransaction); virtual;
+    function GetSQLConnection(aConnection: TSQLDBConnectionDef; Out aTransaction : TSQLTransaction): TSQLConnection; virtual;
+    procedure DoneSQLConnection(aConnection: TSQLDBConnectionDef; AConn: TSQLConnection; aTransaction : TSQLTransaction); virtual;
     // Connections dataset API
     procedure ConnectionsToDataset(D: TDataset); virtual;
     procedure DoConnectionDelete(DataSet: TDataSet); virtual;
     procedure DoConnectionPost(DataSet: TDataSet);virtual;
     procedure DatasetToConnection(D: TDataset; C: TSQLDBRestConnection); virtual;
-    procedure ConnectionToDataset(C: TSQLDBRestConnection; D: TDataset); virtual;
+    procedure ConnectionToDataset(C: TSQLDBConnectionDef; D: TDataset); virtual;
     procedure DoConnectionResourceAllowed(aSender: TObject; aContext: TBaseRestContext; var allowResource: Boolean);
     // Error handling
     procedure CreateErrorContent(IO: TRestIO; aCode: Integer; AExtraMessage: UTF8String); virtual;
@@ -312,8 +290,8 @@ Type
     procedure DoRegisterRoutes; virtual;
     procedure DoHandleEvent(IsBefore : Boolean;IO: TRestIO); virtual;
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
-    procedure HandleCORSRequest(aConnection: TSQLDBRestConnection; IO: TRestIO); virtual;
-    procedure HandleResourceRequest(aConnection : TSQLDBRestConnection; IO: TRestIO); virtual;
+    procedure HandleCORSRequest(aConnection: TSQLDBConnectionDef; IO: TRestIO); virtual;
+    procedure HandleResourceRequest(aConnection : TSQLDBConnectionDef; IO: TRestIO); virtual;
     procedure DoHandleRequest(IO: TRestIO); virtual;
   Public
     Class Procedure SetIOClass (aClass: TRestIOClass);
@@ -340,6 +318,8 @@ Type
     Property Schemas : TSQLDBRestSchemaList Read FSchemas Write SetSchemas;
     // Base URL
     property BasePath : UTF8String Read FBaseURL Write FBaseURL;
+    // Connection manager to use
+    property ConnectionManager : TSQLDBConnectionManager Read GetConnectionManager Write SetConnectionManager;
     // Default connection to use if none is detected from request/schema
     // This connection will also be used to authenticate the user for connection API,
     // so it must be set if you use SQL to authenticate the user.
@@ -402,6 +382,12 @@ Type
     Property BeforeDelete : TRestOperationEvent Read FBeforeDelete Write FBeforeDelete;
     // Called After a DELETE request.
     Property AfterDelete : TRestOperationEvent Read FAfterDelete Write FAfterDelete;
+    // Events called when accessing the database during read operations
+    Property BeforeDatabaseRead: TRestDatabaseEvent Read FBeforeDatabaseRead Write FBeforeDatabaseRead;
+    Property AfterDatabaseRead : TRestDatabaseEvent Read FAfterDatabaseRead Write FAfterDatabaseRead;
+    // Events called when accessing the database during update operations
+    Property BeforeDatabaseUpdate : TRestDatabaseEvent Read FBeforeDatabaseUpdate Write FBeforeDatabaseUpdate;
+    Property AfterDatabaseUpdate : TRestDatabaseEvent Read FAfterDatabaseUpdate Write FAfterDatabaseUpdate;
     // Called when logging
     Property OnLog : TRestLogEvent Read FOnLog Write FOnLog;
   end;
@@ -557,6 +543,12 @@ begin
   FActive:=AValue;
 end;
 
+procedure TSQLDBRestDispatcher.DoConnectionManagerLog(Sender: TObject;
+  const Msg: string);
+begin
+  DoLog(rloConnection,Nil,Msg);
+end;
+
 function TSQLDBRestDispatcher.GetRoutesRegistered: Boolean;
 begin
   Result:=FItemRoute<>Nil;
@@ -576,6 +568,25 @@ begin
   FAuthenticator:=AValue;
   if Assigned(FAuthenticator) then
     FAuthenticator.FreeNotification(Self);
+end;
+
+
+procedure TSQLDBRestDispatcher.SetConnectionManager(AValue: TSQLDBConnectionManager);
+begin
+  if FConnectionManager=AValue then Exit;
+  if Assigned(FCOnnectionManager) then
+    begin
+    if (csSubComponent in FConnectionManager.ComponentStyle)
+       and (FConnectionManager.Owner=Self) then
+      FreeAndNil(FConnectionManager)
+    else
+      FConnectionManager.RemoveFreeNotification(Self) ;
+    end;
+  FConnectionManager:=AValue;
+  if Assigned(FConnectionManager) then
+     FConnectionManager.FreeNotification(Self)
+  else
+     GetConnectionManager;
 end;
 
 procedure TSQLDBRestDispatcher.SetSchemas(AValue: TSQLDBRestSchemaList);
@@ -1122,11 +1133,16 @@ begin
     M:=aRequest.CustomHeaders.Values['Access-Control-Request-Method'];
   Case lowercase(M) of
     'get' : Result:=roGet;
-    'put' : Result:=roPut;
+    'put' :
+      begin
+      Result:=roPut;
+
+      end;
     'post' : Result:=roPost;
     'delete' : Result:=roDelete;
     'options' : Result:=roOptions;
     'head' : Result:=roHead;
+    'patch' : Result:=roPatch;
   end;
 end;
 
@@ -1183,7 +1199,7 @@ begin
 end;
 
 function TSQLDBRestDispatcher.GetSQLConnection(
-  aConnection: TSQLDBRestConnection; out aTransaction: TSQLTransaction
+  aConnection: TSQLDBConnectionDef; out aTransaction: TSQLTransaction
   ): TSQLConnection;
 
 begin
@@ -1191,49 +1207,120 @@ begin
   aTransaction:=Nil;
   if aConnection=Nil then
     exit;
-  Result:=aConnection.SingleConnection;
+  if aConnection is TSQLDBRestConnection then
+  Result:=TSQLDBRestConnection(aConnection).SingleConnection;
   if (Result=Nil) then
     begin
     if Assigned(OnGetConnection) then
       OnGetConnection(Self,aConnection,Result);
     if (Result=Nil) then
-      begin
-      Result:=CreateConnection;
-      aConnection.ConfigConnection(Result);
-      aConnection.SingleConnection:=Result;
-      end;
+      Result:=GetConnectionManager.GetConnection(aConnection);
     end;
   If (Result is TRestSQLConnector) then
     TRestSQLConnector(Result).StartUsing;
-  aTransaction:=TSQLTransaction.Create(Self);
-  aTransaction.Database:=Result;
+  if Result.Transaction=Nil then
+    begin
+    aTransaction:=TSQLTransaction.Create(Result);
+    aTransaction.Database:=Result;
+    end
+  else
+    aTransaction:=Result.Transaction;
 end;
 
 procedure TSQLDBRestDispatcher.DoHandleEvent(IsBefore: Boolean; IO: TRestIO);
 
 Var
   R : TRestOperationEvent;
+  Evt,ResEvt : TRestDatabaseEvent;
+  BP :TSQLDBRestBusinessProcessor;
 
 begin
+  Evt:=Nil;
+  ResEvt:=Nil;
   R:=Nil;
+  BP:=TSQLDBRestBusinessProcessor(IO.Resource.BusinessProcessor);
   if isBefore then
     Case IO.Operation of
-      roGet : R:=FBeforeGet;
-      roPut : R:=FBeforePut;
-      roPost : R:=FBeforePost;
-      roDelete : R:=FBeforeDelete;
+      roGet :
+        begin
+        R:=FBeforeGet;
+        Evt:=BeforeDatabaseRead;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseRead;
+        end;
+      roHead :
+        begin
+        Evt:=BeforeDatabaseRead;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseRead;
+        end;
+      roPut :
+        begin
+        R:=FBeforePut;
+        Evt:=BeforeDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseUpdate;
+        end;
+      roPost :
+        begin
+        R:=FBeforePost;
+        Evt:=BeforeDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseUpdate;
+        end;
+      roDelete :
+        begin
+        R:=FBeforeDelete;
+        Evt:=BeforeDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseUpdate;
+        end;
     else
       R:=Nil;
     end
   else
     Case IO.Operation of
-      roGet : R:=FAfterGet;
-      roPut : R:=FAfterPut;
-      roPost : R:=FAfterPost;
-      roDelete : R:=FAfterDelete;
+      roGet :
+        begin
+        R:=FAfterGet;
+        Evt:=AfterDatabaseRead;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseRead;
+        end;
+      roHead :
+        begin
+        Evt:=AfterDatabaseRead;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseRead;
+        end;
+      roPut :
+        begin
+        R:=FAfterPut;
+        Evt:=AfterDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseUpdate;
+        end;
+      roPost :
+        begin
+        R:=FAfterPost;
+        Evt:=AfterDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseUpdate;
+        end;
+      roDelete :
+        begin
+        R:=FAfterDelete;
+        Evt:=AfterDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseUpdate;
+        end;
     else
       R:=Nil;
     end;
+  If Assigned(Evt) then
+    Evt(Self,IO.OPeration,IO.RestContext,IO.Resource);
+  If Assigned(ResEvt) then
+    ResEvt(Self,IO.Operation,IO.RestContext,IO.Resource);
   If Assigned(R) then
     R(Self,IO.Connection,IO.Resource)
 end;
@@ -1241,39 +1328,48 @@ end;
 
 
 procedure TSQLDBRestDispatcher.DoneSQLConnection(
-  aConnection: TSQLDBRestConnection; AConn: TSQLConnection;
+  aConnection: TSQLDBConnectionDef; AConn: TSQLConnection;
   aTransaction: TSQLTransaction);
 
 Var
-  NeedNil : Boolean;
+  RConn : TSQLDBRestConnection absolute aConnection;
 
 begin
-  FreeAndNil(aTransaction);
-  if (aConn is TRestSQLConnector) then
-    begin
-    NeedNil:= (aConnection.SingleConnection=aConn) ;
-    if TRestSQLConnector(aConn).DoneUsing then
-      FreeAndNil(aConn);
-    If NeedNil then
-      aConnection.SingleConnection:=Nil;
-    end;
+  if aTransaction<>aConn.Transaction then
+    FreeAndNil(aTransaction);
+  if Not ((aConnection is TSQLDBRestConnection) and (RConn.SingleConnection=aConn)) then
+    if not GetConnectionManager.ReleaseConnection(aConn) then
+      aConn.Free;
 end;
 
 
 function TSQLDBRestDispatcher.CreateDBHandler(IO: TRestIO): TSQLDBRestDBHandler;
 
+Var
+  Opts : TSQLDBRestDBHandlerOptions;
+
+
 begin
   Result:=FDBHandlerClass.Create(Self) ;
   Result.Init(IO,FStrings,TSQLQuery);
   Result.EnforceLimit:=Self.EnforceLimit;
+  opts:=[];
+  if rdoLegacyPut in DispatchOptions then
+    Include(opts,rhoLegacyPUT);
+  if ([rdoAllowNoRecordUpdates,rdoAllowMultiRecordUpdates] * DispatchOptions)<>[] then
+    Include(opts,rhoCheckupdateCount);
+  if (rdoAllowMultiRecordUpdates in DispatchOptions) then
+    Include(opts,rhoAllowMultiUpdate);
+  // Options may have been set in handler class, make sure we don't unset any.
+  Result.Options:=Result.Options+Opts;
 end;
 
 
 procedure TSQLDBRestDispatcher.SetDefaultResponsecode(IO : TRestIO);
 
 Const
-  DefaultCodes : Array[TRestOperation] of TRestStatus = (rsError,rsGetOK,rsPOSTOK,rsPUTOK,rsDeleteOK,rsCORSOK,rsGetOK);
-  DefaultTexts : Array[TRestOperation] of string = ('Internal Error','OK','Created','OK','No content','OK','OK');
+  DefaultCodes : Array[TRestOperation] of TRestStatus = (rsError,rsGetOK,rsPOSTOK,rsPUTOK,rsDeleteOK,rsCORSOK,rsGetOK,rsPatchOK);
+  DefaultTexts : Array[TRestOperation] of string = ('Internal Error','OK','Created','OK','No content','OK','OK','OK');
 
 Var
   aCode : TRestStatus;
@@ -1467,7 +1563,10 @@ begin
     C.SchemaName:=D.FieldByName('exposeSchemaName').AsString;
 end;
 
-procedure TSQLDBRestDispatcher.ConnectionToDataset(C : TSQLDBRestConnection;D: TDataset);
+procedure TSQLDBRestDispatcher.ConnectionToDataset(C : TSQLDBConnectionDef;D: TDataset);
+
+Var
+  RestDef : TSQLDBRestConnection absolute C;
 
 begin
   D.FieldByName('key').AsWideString:=UTF8Decode(C.Name);
@@ -1481,8 +1580,17 @@ begin
   D.FieldByName('dbRole').AsString:=C.Role;
   D.FieldByName('dbPort').AsInteger:=C.Port;
   D.FieldByName('enabled').AsBoolean:=C.Enabled;
-  D.FieldByName('expose').AsBoolean:=(C.SchemaName<>'');
-  D.FieldByName('exposeSchemaName').AsString:=C.SchemaName;
+  if C is TSQLDBRestConnection then
+    begin
+    D.FieldByName('expose').AsBoolean:=(RestDef.SchemaName<>'');
+    D.FieldByName('exposeSchemaName').AsString:=RestDef.SchemaName;
+    end
+  else
+    begin
+    D.FieldByName('expose').AsBoolean:=False;
+    D.FieldByName('exposeSchemaName').AsString:='';
+    end;
+
 end;
 
 procedure TSQLDBRestDispatcher.ConnectionsToDataset(D: TDataset);
@@ -1689,7 +1797,7 @@ begin
     Result:='*';
 end;
 
-procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBRestConnection; IO : TRestIO);
+procedure TSQLDBRestDispatcher.HandleCORSRequest(aConnection : TSQLDBConnectionDef; IO : TRestIO);
 
 Var
   S : String;
@@ -1720,7 +1828,7 @@ begin
     end;
 end;
 
-procedure TSQLDBRestDispatcher.HandleResourceRequest(aConnection : TSQLDBRestConnection; IO : TRestIO);
+procedure TSQLDBRestDispatcher.HandleResourceRequest(aConnection : TSQLDBConnectionDef; IO : TRestIO);
 
 Var
   Conn : TSQLConnection;
@@ -1804,12 +1912,20 @@ begin
   Result:=N;
 end;
 
-function TSQLDBRestDispatcher.FindConnection(IO: TRestIO): TSQLDBRestConnection;
+function TSQLDBRestDispatcher.FindConnection(IO: TRestIO): TSQLDBConnectionDef;
+
+{
+  - Is a name given ? there a definition with the correct name in our connections:
+    Yes - Use that.
+    No - Check if connectionmanager has a connection with the name
+  - If the previous step didn't result in a connection
+}
 
 Var
   N : UTF8String;
 
 begin
+  Result:=Nil;
   N:=GetConnectionName(IO);
   // If we have a name, look for it
   if (N<>'') then
@@ -1817,16 +1933,40 @@ begin
     Result:=Connections.FindConnection(N);
     if Assigned(Result) and not (Result.Enabled) then
       Result:=Nil;
+    If (Result=Nil) and (GetConnectionManager<>Nil) then
+      Result:=GetConnectionManager.Definitions.Find(N);
     end
-  else if Connections.Count=1 then
-    Result:=Connections[0]
   else
-    Result:=Nil;
+    begin
+    if Connections.Count=1 then
+      begin
+      Result:=Connections[0];
+      If (Result=Nil) and (GetConnectionManager<>Nil) and (GetConnectionManager.Definitions.Count=1) then
+        Result:=GetConnectionManager.Definitions[0];
+      end;
+    end;
+end;
+
+function TSQLDBRestDispatcher.GetConnectionManager: TSQLDBConnectionmanager;
+begin
+  if FConnectionManager=Nil then
+    begin
+    FConnectionManager:=CreateConnectionManager;
+    FConnectionManager.SetSubComponent(True);
+    FConnectionManager.OnLog:=@DoConnectionManagerLog;
+    end;
+  Result:=FConnectionManager;
+end;
+
+function TSQLDBRestDispatcher.CreateConnectionManager: TSQLDBConnectionmanager;
+begin
+  Result:=TSQLDBConnectionmanager.Create(Self);
+  Result.SetSubComponent(True);
 end;
 
 function TSQLDBRestDispatcher.CreateConnectionList: TSQLDBRestConnectionList;
 begin
-  Result:=TSQLDBRestConnectionList.Create(TSQLDBRestConnection);
+  Result:=TSQLDBRestConnectionList.Create(Self,TSQLDBRestConnection);
 
 end;
 
@@ -1868,7 +2008,7 @@ var
   ResourceName : UTF8String;
   Operation : TRestOperation;
   Resource : TSQLDBRestResource;
-  Connection : TSQLDBRestConnection;
+  Connection : TSQLDBConnectionDef;
 
 begin
   Operation:=ExtractRestOperation(IO.Request);
@@ -2028,7 +2168,9 @@ begin
   if Operation=opRemove then
     begin
     if AComponent=FAuthenticator then
-      FAuthenticator:=Nil
+      FAuthenticator:=Nil;
+    if FConnectionManager=aComponent then
+      FConnectionManager:=Nil;
     end;
 end;
 
@@ -2248,9 +2390,7 @@ end;
 function TSQLDBRestConnectionList.IndexOfConnection(const aName: UTF8string
   ): Integer;
 begin
-  Result:=Count-1;
-  While (Result>=0) and not SameText(GetConn(Result).Name,aName) do
-    Dec(Result);
+  Result:=IndexOf(aName);
 end;
 
 function TSQLDBRestConnectionList.FindConnection(const aName: UTF8string): TSQLDBRestConnection;
@@ -2380,16 +2520,6 @@ end;
 
 { TSQLDBRestConnection }
 
-procedure TSQLDBRestConnection.SetParams(AValue: TStrings);
-begin
-  if FParams=AValue then Exit;
-  FParams.Assign(AValue);
-end;
-
-function TSQLDBRestConnection.GetDisplayName: string;
-begin
-  Result:=Name;
-end;
 
 procedure TSQLDBRestConnection.SetConnection(AValue: TSQLConnection);
 begin
@@ -2403,7 +2533,7 @@ end;
 
 function TSQLDBRestConnection.GetName: UTF8String;
 begin
-  Result:=FName;
+  Result:=Inherited GetName;
   if (Result='') and Assigned(SingleConnection) then
     Result:=SingleConnection.Name;
   if (Result='') then
@@ -2413,7 +2543,6 @@ end;
 constructor TSQLDBRestConnection.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FParams:=TStringList.Create;
   FNotifier:=TConnectionFreeNotifier.Create(Nil);
   TConnectionFreeNotifier(FNotifier).FRef:=Self;
   FEnabled:=True;
@@ -2423,45 +2552,23 @@ destructor TSQLDBRestConnection.Destroy;
 begin
   TConnectionFreeNotifier(FNotifier).FRef:=Nil;
   FreeAndNil(FNotifier);
-  FreeAndNil(FParams);
   inherited Destroy;
 end;
 
 procedure TSQLDBRestConnection.Assign(Source: TPersistent);
 
 Var
-  C : TSQLDBRestConnection;
+  C : TSQLDBRestConnection absolute source;
 
 begin
   if (Source is TSQLDBRestConnection) then
-    begin
-    C:=Source as TSQLDBRestConnection;
-    Password:=C.Password;
-    UserName:=C.UserName;
-    CharSet :=C.CharSet;
-    HostName:=C.HostName;
-    Role:=C.Role;
-    DatabaseName:=C.DatabaseName;
-    ConnectionType:=C.ConnectionType;
-    Port:=C.Port;
-    Name:=C.Name;
     SchemaName:=C.SchemaName;
-    Params.Assign(C.Params);
-    end
-  else
-    inherited Assign(Source);
+  inherited Assign(Source);
 end;
 
 procedure TSQLDBRestConnection.ConfigConnection(aConn: TSQLConnection);
 begin
-  aConn.CharSet:=Self.CharSet;
-  aConn.HostName:=Self.HostName;
-  aConn.DatabaseName:=Self.DatabaseName;
-  aConn.UserName:=Self.UserName;
-  aConn.Password:=Self.Password;
-  aConn.Params:=Self.Params;
-  if aConn is TSQLConnector then
-    TSQLConnector(aConn).ConnectorType:=Self.ConnectionType;
+  Inherited AssignTo(aConn);
 end;
 
 
