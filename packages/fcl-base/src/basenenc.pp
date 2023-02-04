@@ -108,6 +108,7 @@ Var
   L : Integer;
 
 begin
+  Result:='';
   L:=Length(B);
   SetLength(Result,L);
   If L>0 then
@@ -120,6 +121,7 @@ Var
   L : Integer;
 
 begin
+  Result:=[];
   L:=Length(S);
   SetLength(Result,L);
   If L>0 then
