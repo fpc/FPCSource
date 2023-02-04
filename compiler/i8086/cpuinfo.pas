@@ -160,7 +160,8 @@ type
       (CPUX86_HAS_BTX,          { Bit-test instructions (BT, BTC, BTR and BTS) are available }
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
-       CPUX86_HAS_SSE2          { SSE2 instructions are available }
+       CPUX86_HAS_SSE2,         { SSE2 instructions are available }
+       CPUX86_HAS_BSWAP         { BSWAP is available }
       );
 
    { Instruction optimisation hints }
@@ -183,12 +184,12 @@ type
      { cpu_186       } [],
      { cpu_286       } [],
      { cpu_386       } [CPUX86_HAS_BTX],
-     { cpu_486       } [CPUX86_HAS_BTX],
-     { cpu_Pentium   } [CPUX86_HAS_BTX],
-     { cpu_Pentium2  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV],
-     { cpu_Pentium3  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
-     { cpu_Pentium4  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
-     { cpu_PentiumM  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2]
+     { cpu_486       } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX],
+     { cpu_Pentium   } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX],
+     { cpu_Pentium2  } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV],
+     { cpu_Pentium3  } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_Pentium4  } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
+     { cpu_PentiumM  } [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2]
    );
 
    cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
