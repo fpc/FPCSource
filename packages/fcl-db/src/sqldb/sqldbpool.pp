@@ -6,7 +6,7 @@ unit sqldbpool;
 interface
 
 uses
-  Classes, SysUtils, db, sqldb, pqconnection, syncobjs, contnrs, baseunix;
+  Classes, SysUtils, db, sqldb, pqconnection, syncobjs, contnrs;
 
 const
   DefaultDisconnectTimeOut = 10*60; // Number of seconds before connection is considered old and is discarded.
