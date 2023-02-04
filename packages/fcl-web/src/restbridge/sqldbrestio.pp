@@ -151,7 +151,8 @@ Type
                  rsNoResourceSpecified,     // Unable to determine resource (404)
                  rsNoConnectionSpecified,   // Unable to determine connection for (400)
                  rsRecordNotFound,          // Query did not return record for single resource (404)
-                 rsInvalidContent           // Invalid content for POST/PUT operation (400)
+                 rsInvalidContent,          // Invalid content for POST/PUT operation (400)
+                 rsPatchOK                  // PATCH command completed OK (200)
 
                  );
   TRestStatuses = set of TRestStatus;
@@ -225,6 +226,8 @@ Type
   end;
   TRestStreamerClass = Class of TRestStreamer;
 
+  { TRestInputStreamer }
+
   TRestInputStreamer = Class(TRestStreamer)
   Public
     // Select input object aIndex. Must return False if no such object in input
@@ -232,6 +235,8 @@ Type
     Function SelectObject(aIndex : Integer) : Boolean; virtual; abstract;
     // Return Nil if none found. If result is non-nil, caller will free.
     Function GetContentField(aName : UTF8string) : TJSONData; virtual; abstract;
+    Function HaveInputData(aName : UTF8string) : Boolean; virtual;
+
     Class Procedure RegisterStreamer(Const aName : String);
     Class Procedure UnRegisterStreamer(Const aName : String);
   end;
@@ -271,6 +276,9 @@ Type
   Private
     FIO : TRestIO;
   Protected
+    function GetConnection: TSQLConnection; override;
+    function GetTransaction: TSQLTransaction; override;
+    Function DoGetInputData(aName : UTF8string) : TJSONData; override;
     property IO : TRestIO Read FIO;
   Public
     Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; override;
@@ -458,7 +466,8 @@ Const
     404, { rsNoResourceSpecified }
     400, { rsNoConnectionSpecified }
     404, { rsRecordNotFound }
-    400  { rsInvalidContent }
+    400, { rsInvalidContent }
+    200  { rsPatchOK }
   );
 
 { TRestStatusConfig }
@@ -512,9 +521,40 @@ end;
 { TRestContext }
 
 function TRestContext.GetVariable(const aName: UTF8String; aSources : TVariableSources; out aValue: UTF8String): Boolean;
+
+Var
+  D : TJSONData;
+
 begin
   Result:=FIO.GetVariable(aName,aValue,aSources)<>vsNone;
+  if Not Result and (vsData in aSources) then
+    begin
+    // Will be freed.
+    D:=GetInputData(aName);
+    Result:=Assigned(D);
+    if Result then
+      if D.JSONType in StructuredJSONTypes then
+        aValue:=D.AsJSON
+      else
+        aValue:=D.AsString;
+    end;
 end;
+
+function TRestContext.GetConnection: TSQLConnection;
+begin
+  Result:=IO.Connection;
+end;
+
+function TRestContext.GetTransaction: TSQLTransaction;
+begin
+  Result:=IO.Transaction;
+end;
+
+function TRestContext.DoGetInputData(aName: UTF8string): TJSONData;
+begin
+  Result:=IO.RESTInput.GetContentField(aName);
+end;
+
 
 { TStreamerDefList }
 
@@ -809,6 +849,17 @@ end;
 Class function TRestStreamer.GetContentType: String;
 begin
   Result:='text/html';
+end;
+
+function TRestInputStreamer.HaveInputData(aName: UTF8string): Boolean;
+
+Var
+  D : TJSONData;
+
+begin
+  D:=GetContentField(aName);
+  Result:=D<>Nil;
+  D.Free;
 end;
 
 class procedure TRestInputStreamer.RegisterStreamer(const aName: String);

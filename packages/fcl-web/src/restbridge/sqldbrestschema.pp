@@ -14,12 +14,15 @@
  **********************************************************************}
 unit sqldbrestschema;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 interface
 
 uses
-  Classes, SysUtils, db, sqldb, fpjson;
+  Classes, SysUtils, contnrs, db, sqldb, fpjson;
 
 Type
   TRestFieldType = (rftUnknown,rftInteger,rftLargeInt,rftFloat,rftDate,rftTime,rftDateTime,rftString,rftBoolean,rftBlob);
@@ -34,13 +37,13 @@ Type
   TSQLKind = (skSelect,skInsert,skUpdate,skDelete); // Must follow Index used below.
   TSQLKinds = set of TSQLKind;
 
-  TRestOperation = (roUnknown,roGet,roPost,roPut,roDelete,roOptions,roHead); // add roPatch, roMerge ?
+  TRestOperation = (roUnknown,roGet,roPost,roPut,roDelete,roOptions,roHead,roPatch);
   TRestOperations = Set of TRestOperation;
 
   TFieldListKind = (flSelect,flInsert,flInsertParams,flUpdate,flWhereKey,flFilter,flOrderby);
   TFieldListKinds = set of TFieldListKind;
 
-  TVariableSource = (vsNone,vsQuery,vsContent,vsRoute,vsHeader);
+  TVariableSource = (vsNone,vsQuery,vsContent,vsRoute,vsHeader,vsData);
   TVariableSources = Set of TVariableSource;
 
 Const
@@ -59,14 +62,28 @@ Type
   private
     FData: TObject;
     FUserID: UTF8String;
+    FFreeList : TFPObjectList;
+  Protected
+    Procedure AddToFreeList(aData : TJSONData);
+    // The result of this function will be freed.
+    function DoGetInputData(aName: UTF8string): TJSONData; virtual; abstract;
+    Function GetConnection : TSQLConnection; virtual; abstract;
+    Function GetTransaction : TSQLTransaction; virtual; abstract;
   Public
+    Destructor Destroy; override;
     // Call this to get a HTTP Query variable, header,...
     Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; virtual; abstract;
+    // Get data from input data. Do not free the result !
+    Function GetInputData(aName : UTF8string) : TJSONData;
     // This will be set when calling.
     Property UserID : UTF8String Read FUserID Write FUserID;
     // You can attach data to this if you want to. It will be kept for the duration of the request.
     // You are responsible for freeing this data, though.
     Property Data : TObject Read FData Write FData;
+    // Get connection in use
+    Property Connection : TSQLConnection Read GetConnection;
+    // Get transaction in use
+    Property Transaction : TSQLTransaction Read GetTransaction;
   end;
 
   { ESQLDBRest }
@@ -121,6 +138,13 @@ Type
   TSQLDBRestFieldClass = Class of TSQLDBRestField;
   TSQLDBRestFieldArray = Array of TSQLDBRestField;
 
+  { TSQLDBRestFieldArrayHelper }
+
+  TSQLDBRestFieldArrayHelper = type helper for TSQLDBRestFieldArray
+    Function IndexOf(aField : TSQLDBRestField) : Integer;
+    Function Has(aField : TSQLDBRestField) : Boolean;
+  end;
+
   TRestFieldPair = Record
     DBField : TField;
     RestField :TSQLDBRestField;
@@ -135,11 +159,20 @@ Type
 
   { TSQLDBRestFieldList }
 
+  { TSQLDBRestFieldListEnumerator }
+
+  TSQLDBRestFieldListEnumerator = Class(TCollectionEnumerator)
+  Public
+    function GetCurrent: TSQLDBRestField; reintroduce;
+    property Current: TSQLDBRestField read GetCurrent;
+  end;
+
   TSQLDBRestFieldList = class(TCollection)
   private
     function GetFields(aIndex : Integer): TSQLDBRestField;
     procedure SetFields(aIndex : Integer; AValue: TSQLDBRestField);
   Public
+    Function GetEnumerator: TSQLDBRestFieldListEnumerator;
     Function AddField(Const aFieldName : UTF8String; aFieldType : TRestFieldType; aOptions : TRestFieldOptions) : TSQLDBRestField;
     function indexOfFieldName(const aFieldName: UTF8String): Integer;
     Function FindByFieldName(const aFieldName: UTF8String):TSQLDBRestField;
@@ -193,15 +226,15 @@ Type
     Procedure CheckParams(aContext : TBaseRestContext; aOperation : TRestoperation; P : TParams);
     Function GetDataset(aContext : TBaseRestContext; aFieldList : TRestFieldPairArray; aOrderBy : TRestFieldOrderPairArray; aLimit, aOffset : Int64) : TDataset;
     Function GetSchema : TSQLDBRestSchema;
-    function GenerateDefaultSQL(aKind: TSQLKind): UTF8String; virtual;
+    function GenerateDefaultSQL(aKind: TSQLKind; OnlyFields: TSQLDBRestFieldArray = nil): UTF8String; virtual;
     Procedure Assign(Source: TPersistent); override;
     Function AllowRecord(aContext : TBaseRestContext; aDataset : TDataset) : Boolean;
     Function AllowResource(aContext : TBaseRestContext) : Boolean;
     Function GetAllowedOperations(aContext : TBaseRestContext) : TRestOperations;
     Function GetHTTPAllow : String; virtual;
-    function GetFieldList(aListKind: TFieldListKind; ASep : String = ''): UTF8String;
+    function GetFieldList(aListKind: TFieldListKind; ASep : String = ''; OnlyFields : TSQLDBRestFieldArray = Nil): UTF8String;
     function GetFieldArray(aListKind: TFieldListKind): TSQLDBRestFieldArray;
-    Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
+    Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = ''; OnlyFields : TSQLDBRestFieldArray = nil) : UTF8String;
     Function ProcessSQl(aSQL : String; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
     Procedure PopulateFieldsFromFieldDefs(Defs : TFieldDefs; aIndexFields : TStringArray; aProcessIdentifier : TProcessIdentifier; aMinFieldOpts : TRestFieldOptions);
     Property SQL [aKind : TSQLKind] : TStrings Read GetSQLTyped;
@@ -306,6 +339,7 @@ Type
 
   { TSQLDBRestBusinessProcessor }
   TOnGetHTTPAllow = Procedure(Sender : TObject; Var aHTTPAllow) of object;
+  TRestDatabaseEvent = Procedure(Sender : TObject; aOperation : TRestOperation; aContext: TBaseRestContext; aResource : TSQLDBRestResource) of object;
 
   TSQLDBRestBusinessProcessor = class(TSQLDBRestCustomBusinessProcessor)
   private
@@ -315,6 +349,10 @@ Type
     FOnGetDataset: TSQLDBRestGetDatasetEvent;
     FOnResourceAllowed: TSQLDBRestAllowResourceEvent;
     FSchema: TSQLDBRestSchema;
+    FAfterDatabaseRead: TRestDatabaseEvent;
+    FAfterDatabaseUpdate: TRestDatabaseEvent;
+    FBeforeDatabaseRead: TRestDatabaseEvent;
+    FBeforeDatabaseUpdate: TRestDatabaseEvent;
     procedure SetSchema(AValue: TSQLDBRestSchema);
   Protected
     Function GetSchema : TSQLDBRestSchema; override;
@@ -331,15 +369,65 @@ Type
     Property OnAllowResource : TSQLDBRestAllowResourceEvent Read FOnResourceAllowed Write FOnResourceAllowed;
     Property OnAllowedOperations : TSQLDBRestAllowedOperationsEvent Read FOnAllowedOperations Write FOnAllowedOperations;
     Property OnAllowRecord : TSQLDBRestAllowRecordEvent Read FOnAllowRecord Write FOnAllowRecord;
+  Published
+    Property BeforeDatabaseUpdate : TRestDatabaseEvent Read FBeforeDatabaseUpdate Write FBeforeDatabaseUpdate;
+    Property AfterDatabaseUpdate : TRestDatabaseEvent Read FAfterDatabaseUpdate Write FAfterDatabaseUpdate;
+    Property BeforeDatabaseRead: TRestDatabaseEvent Read FBeforeDatabaseRead Write FBeforeDatabaseRead;
+    Property AfterDatabaseRead : TRestDatabaseEvent Read FAfterDatabaseRead Write FAfterDatabaseRead;
   end;
 
 Const
   TypeNames : Array[TRestFieldType] of string = ('?','int','bigint','float','date','time','datetime','string','bool','blob');
-  RestMethods : Array[TRestOperation] of string = ('','GET','POST','PUT','DELETE','OPTIONS','HEAD');
+  RestMethods : Array[TRestOperation] of string = ('','GET','POST','PUT','DELETE','OPTIONS','HEAD','PATCH');
 
 implementation
 
 uses strutils, fpjsonrtti,dbconst, sqldbrestconst;
+
+{ TSQLDBRestFieldListEnumerator }
+
+function TSQLDBRestFieldListEnumerator.GetCurrent: TSQLDBRestField;
+begin
+  Result:=TSQLDBRestField(Inherited GetCurrent);
+end;
+
+{ TSQLDBRestFieldArrayHelper }
+
+function TSQLDBRestFieldArrayHelper.IndexOf(aField: TSQLDBRestField): Integer;
+begin
+  Result:=Length(Self)-1;
+  While (Result>=0) and (Self[Result]<>aField) do
+    Dec(Result);
+end;
+
+function TSQLDBRestFieldArrayHelper.Has(aField: TSQLDBRestField): Boolean;
+begin
+  Result:=IndexOf(aField)<>-1;
+end;
+
+{ TBaseRestContext }
+
+destructor TBaseRestContext.Destroy;
+begin
+  FreeAndNil(FFreeList);
+  inherited Destroy;
+end;
+
+procedure TBaseRestContext.AddToFreeList(aData: TJSONData);
+begin
+  If Not Assigned(FFreeList) then
+    FFreeList:=TFPObjectList.Create(True);
+  FFreeList.Add(aData)
+end;
+
+function TBaseRestContext.GetInputData(aName: UTF8string): TJSONData;
+
+begin
+  Result:=DoGetInputData(aName);
+  // Don't burden the user with freeing this.
+  if Assigned(Result) then
+    AddToFreeList(Result);
+end;
 
 { TSQLDBRestCustomBusinessProcessor }
 
@@ -1080,7 +1168,8 @@ begin
       AddR(RestMethods[O]);
 end;
 
-function TSQLDBRestResource.GetFieldList(aListKind : TFieldListKind; ASep : String = '') : UTF8String;
+function TSQLDBRestResource.GetFieldList(aListKind: TFieldListKind;
+  ASep: String; OnlyFields: TSQLDBRestFieldArray): UTF8String;
 
 Const
   SepComma = ', ';
@@ -1095,10 +1184,19 @@ Const
   Colons = Wheres + [flInsertParams,flUpdate];
   UseEqual = Wheres+[flUpdate];
 
+  Function AllowField (F :TSQLDBRestField) : Boolean; inline;
+
+  begin
+    Result:=F.UseInFieldList(aListKind) and ((Length(OnlyFields)=0) or (OnlyFields.Has(F)));
+  end;
+
+
+
 Var
   Sep,Term,Res,Prefix : UTF8String;
   I : Integer;
   F : TSQLDBRestField;
+
 
 begin
   Prefix:='';
@@ -1114,7 +1212,7 @@ begin
     begin
     Term:='';
     F:=Fields[i];
-    if F.UseInFieldList(aListKind) then
+    if allowfield(F) then
       begin
       Term:=Prefix+F.FieldName;
       if (aSep='') and (aListKind in UseEqual) then
@@ -1155,16 +1253,16 @@ begin
   SetLength(Result,aCount);
 end;
 
-function TSQLDBRestResource.GenerateDefaultSQL(aKind: TSQLKind) : UTF8String;
+function TSQLDBRestResource.GenerateDefaultSQL(aKind: TSQLKind; OnlyFields : TSQLDBRestFieldArray = nil) : UTF8String;
 
 begin
   Case aKind of
     skSelect :
-      Result:='SELECT '+GetFieldList(flSelect)+' FROM '+TableName+' %FULLWHERE% %FULLORDERBY% %LIMIT%';
+      Result:='SELECT '+GetFieldList(flSelect,'',OnlyFields)+' FROM '+TableName+' %FULLWHERE% %FULLORDERBY% %LIMIT%';
     skInsert :
-      Result:='INSERT INTO '+TableName+' ('+GetFieldList(flInsert)+') VALUES ('+GetFieldList(flInsertParams)+')';
+      Result:='INSERT INTO '+TableName+' ('+GetFieldList(flInsert,'',OnlyFields)+') VALUES ('+GetFieldList(flInsertParams)+')';
     skUpdate :
-      Result:='UPDATE '+TableName+' SET '+GetFieldList(flUpdate)+' %FULLWHERE%';
+      Result:='UPDATE '+TableName+' SET '+GetFieldList(flUpdate,'',OnlyFields)+' %FULLWHERE%';
     skDelete :
       Result:='DELETE FROM '+TableName+' %FULLWHERE%';
   else
@@ -1173,13 +1271,13 @@ begin
 end;
 
 function TSQLDBRestResource.GetResolvedSQl(aKind: TSQLKind;
-  const AWhere: UTF8String; const aOrderBy: UTF8String; aLimit: UTF8String
-  ): UTF8String;
+  const AWhere: UTF8String; const aOrderBy: UTF8String; aLimit: UTF8String;
+  OnlyFields: TSQLDBRestFieldArray): UTF8String;
 
 begin
   Result:=SQL[aKind].Text;
   if (Result='') then
-    Result:=GenerateDefaultSQL(aKind);
+    Result:=GenerateDefaultSQL(aKind,OnlyFields);
   Result:=ProcessSQL(Result,aWhere,aOrderBy,aLimit);
 end;
 
@@ -1239,9 +1337,11 @@ Const
      rftUnknown, rftUnknown, rftUnknown, rftUnknown, rftString,               // ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
      rftString, rftLargeInt, rftUnknown, rftUnknown, rftUnknown,              // ftWideString, ftLargeint, ftADT, ftArray, ftReference,
      rftUnknown, rftBlob, rftBlob, rftUnknown, rftUnknown,                    // ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-     rftUnknown, rftString, rftDateTime, rftFloat, rftString, rftString,      // ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
-     rftDateTime, rftDateTime, rftInteger, rftInteger, rftInteger, rftFloat,  // ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended
-     rftFloat                                                                 // Single
+     rftUnknown, rftString, rftDateTime, rftFloat, rftString, rftString       // ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
+{$IFNDEF VER3_2_2}
+     ,rftDateTime, rftDateTime, rftInteger, rftInteger, rftInteger, rftFloat,  // ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended
+     rftFloat // Single
+{$ENDIF}
      );
 
 begin
@@ -1303,6 +1403,11 @@ end;
 procedure TSQLDBRestFieldList.SetFields(aIndex : Integer; AValue: TSQLDBRestField);
 begin
   Items[aIndex]:=aValue;
+end;
+
+function TSQLDBRestFieldList.GetEnumerator: TSQLDBRestFieldListEnumerator;
+begin
+  Result:=TSQLDBRestFieldListEnumerator.Create(Self);
 end;
 
 function TSQLDBRestFieldList.AddField(const aFieldName: UTF8String; aFieldType: TRestFieldType; aOptions: TRestFieldOptions
