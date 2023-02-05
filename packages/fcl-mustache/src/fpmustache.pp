@@ -273,7 +273,6 @@ Type
         Value : TJSONData;
       end;
   Private
-    FCurrentData: TJSONData;
     FStack : Array of TPair;
     FCount : Integer;
     Function FindValue(Const aName : TMustacheString) : TJSONData;
