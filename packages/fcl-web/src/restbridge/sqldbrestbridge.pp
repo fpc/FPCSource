@@ -159,6 +159,7 @@ Type
     Class Var FDBHandlerClass : TSQLDBRestDBHandlerClass;
   private
     FAdminUserIDs: TStrings;
+    FAfterPatch: TRestOperationEvent;
     FConnectionManager: TSQLDBConnectionManager;
     FCORSAllowCredentials: Boolean;
     FCORSAllowedOrigins: String;
@@ -182,6 +183,7 @@ Type
     FBeforeGet: TRestOperationEvent;
     FBeforePost: TRestOperationEvent;
     FBeforePut: TRestOperationEvent;
+    FBeforePatch: TRestOperationEvent;
     FConnections: TSQLDBRestConnectionList;
     FDefaultConnection: UTF8String;
     FEnforceLimit: Integer;
@@ -370,6 +372,10 @@ Type
     Property BeforeGet : TRestOperationEvent Read FBeforeGet Write FBeforeGet;
     // Called After a GET request.
     Property AfterGet : TRestOperationEvent Read FAfterGet Write FAfterGet;
+    // Called before a PATCH request.
+    Property BeforePatch : TRestOperationEvent Read FBeforePatch Write FBeforePatch;
+    // Called after a PATCH request.
+    Property AfterPatch : TRestOperationEvent Read FAfterPatch Write FAfterPatch;
     // Called before a PUT request.
     Property BeforePut : TRestOperationEvent Read FBeforePut Write FBeforePut;
     // Called After a PUT request.
@@ -1003,7 +1009,7 @@ begin
   Def:=[foInInsert,foInUpdate,foFilter];
   Result:=TSQLDBRestResource.Create(Nil);
   Result.ResourceName:=Strings.GetRestString(rpConnectionResourceName);
-  Result.AllowedOperations:=[roGet,roPut,roPost,roDelete];
+  Result.AllowedOperations:=[roGet,roPut,roPatch,roPost,roDelete];
   if rdoHandleCORS in DispatchOptions then
     Result.AllowedOperations:=Result.AllowedOperations+[roOptions,roHead];
   Result.Fields.AddField('name',rftString,Def+[foInKey,foRequired]);
@@ -1133,11 +1139,7 @@ begin
     M:=aRequest.CustomHeaders.Values['Access-Control-Request-Method'];
   Case lowercase(M) of
     'get' : Result:=roGet;
-    'put' :
-      begin
-      Result:=roPut;
-
-      end;
+    'put' :  Result:=roPut;
     'post' : Result:=roPost;
     'delete' : Result:=roDelete;
     'options' : Result:=roOptions;
@@ -1254,6 +1256,13 @@ begin
         if assigned(BP) then
           ResEvt:=BP.BeforeDatabaseRead;
         end;
+      roPatch:
+        begin
+        R:=FBeforePatch;
+        Evt:=BeforeDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.BeforeDatabaseUpdate;
+        end;
       roPut :
         begin
         R:=FBeforePut;
@@ -1296,6 +1305,13 @@ begin
       roPut :
         begin
         R:=FAfterPut;
+        Evt:=AfterDatabaseUpdate;
+        if assigned(BP) then
+          ResEvt:=BP.AfterDatabaseUpdate;
+        end;
+      roPatch :
+        begin
+        R:=FAfterPatch;
         Evt:=AfterDatabaseUpdate;
         if assigned(BP) then
           ResEvt:=BP.AfterDatabaseUpdate;
