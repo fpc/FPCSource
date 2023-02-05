@@ -74,8 +74,14 @@ Type
   private
     FClassName: String;
     FMethod: String;
+    FParamDefinitions: TJSONParamDefs;
+    FParams: TJSONData;
     FTID: String;
+    procedure SetParams(AValue: TJSONData);
+  protected
+    Property ParamDefinitions : TJSONParamDefs Read FParamDefinitions Write FParamDefinitions;
   Public
+    Property Params : TJSONData Read FParams Write SetParams;
     // Action used to call handler.
     Property ClassName : String Read FClassName Write FClassName;
     // Method used to call handler.
@@ -356,7 +362,7 @@ Type
   TCustomJSONRPCHandlerManager = Class(TComponent)
   Private
     FRegistering: Boolean;
-    FHandlerCount : Integer;
+    FHandlerCount : Int64;
   Protected
     procedure Initialize; virtual;
     procedure DoClear; virtual;
@@ -530,6 +536,14 @@ end;
 procedure JSONRPCParamError(const Fmt: String; const Args: array of const);
 begin
   raise EJSONRPC.CreateFmt(SErrParams, [Format(Fmt, Args)]);
+end;
+
+{ TJSONRPCCallContext }
+
+procedure TJSONRPCCallContext.SetParams(AValue: TJSONData);
+begin
+  if FParams=AValue then Exit;
+  FParams:=AValue;
 end;
 
 { TAPIDescriptionCreator }
@@ -798,20 +812,24 @@ begin
 end;
 
 procedure TCustomJSONRPCHandler.DoCheckParamArray(const ParamArray: TJSONArray);
+
 var
-  element: TJSONEnum;
+  I : Integer;
+  Param: TJSONData;
+  Def : TJSONParamDef;
+
 begin
-  for element in ParamArray do
-  begin
-    // check object parameters if objects given
-    if (element.Value.JSONType=jtObject) then
+  for I:=0 to ParamDefs.Count-1 do
     begin
-      DoCheckParamDefsOnObject(element.Value as TJSONObject);
-    end else
-    // not an object
-    if (jroObjectParams in Options) then
-      JSONRPCParamError(SErrParamsOnlyObjectsInArray,[JSONTypeName(element.Value.JSONType),element.KeyNum]);
-  end;
+    Def:=ParamDefs[i];
+    if I>=ParamArray.Count then
+      if ParamDefs[i].Required then
+        JSONRPCParamError(SErrParamsRequiredParamNotFound,[def.Name]);
+    Param:=ParamArray[i];
+    // jtUnkown accepts all data types
+    if (def.DataType<>jtUnknown) and not (Param.JSONType=def.DataType) then
+      JSONRPCParamError(SErrParamsDataTypeMismatch,[def.Name,JSONTypeName(def.DataType),JSONTypeName(Param.JSONType)]);
+    end;
 end;
 
 function TCustomJSONRPCHandler.DoExecute(Const Params: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
@@ -1809,7 +1827,7 @@ begin
   N:=aContainer.Name;
   if N='' then
     N:=aContainer.ClassName;
-  N:=N+IntToStr(InterlockedIncrement(FHandlerCount));
+  N:=N+IntToStr(InterlockedIncrement64(FHandlerCount));
   aContainer.Name:=N;
   O.InsertComponent(aContainer);
 end;
