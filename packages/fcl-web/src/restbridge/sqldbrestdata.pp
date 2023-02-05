@@ -142,6 +142,7 @@ begin
   Case IO.Operation of
     roGet : DoHandleGet;
     roPut : DoHandlePut;
+    roPatch : DoHandlePatch;
     roPost : DoHandlePost;
     roDelete : DoHandleDelete;
   else
@@ -497,6 +498,7 @@ begin
   case aOperation of
     roGet : Sources:=[vsQuery,vsRoute];
     roPost,
+    roPatch,
     roPut : Sources:=[vsQuery,vsContent,vsRoute];
     roDelete : Sources:=[vsQuery,vsRoute];
   else
@@ -1029,12 +1031,16 @@ end;
 procedure TSQLDBRestDBHandler.UpdateExistingRecord(OldData: TDataset;
   IsPatch: Boolean);
 
+const
+  putpatch : Array [Boolean] of TRestOperation = (roPut,roPatch);
+
 Var
   S : TSQLQuery;
   aRowsAffected: Integer;
   SQl : String;
   WhereFilterList : TRestFilterPairArray;
   RequestFields : TSQLDBRestFieldArray;
+
 
 begin
   if (OldData=ExternalDataset) then
@@ -1065,9 +1071,9 @@ begin
       S.SQL.Text:=SQL;
       if (not isPatch) and UseLegacyPUT then
         SetPostParams(S.Params,OldData.Fields);
-      FillParams(roGet,S.Params,WhereFilterList);
+      FillParams(PutPatch[isPatch],S.Params,WhereFilterList);
       // Give user a chance to look at it.
-      FResource.CheckParams(io.RestContext,roPut,S.Params);
+      FResource.CheckParams(io.RestContext,PutPatch[IsPatch],S.Params);
       S.ExecSQL;
       if CheckUpdateCount then
         begin
