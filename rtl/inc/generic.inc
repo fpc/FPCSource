@@ -1164,7 +1164,7 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
       if MaxLookAhead<1 then
         exit;
 
-      case ord(P[0]) of
+      case ord(P[result]) of
         { One-byte codepoints have the form
           %(0)xxxxxxx. }
 
@@ -1175,7 +1175,6 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
           else if result=0 then
             begin
               result:=1;
-              Inc(P);
               Dec(MaxLookAhead);
             end
           else
@@ -1188,19 +1187,19 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
           %(110)00010 (10)000000. }
 
         $C2 {%11000010}..$DF {%11011111}:
-          if (MaxLookAhead>=2) and (ord(P[1]) and $C0=$80) then
+          if (MaxLookAhead>=2) and
+             (ord(P[result+1]) and $C0=$80) then
             begin
               if not IncludeCombiningDiacriticalMarks then
                 exit(2);
               if result>0 then
                 begin
-                  cp:=ord(P[0]) and $1F {%11111} shl 6 or ord(P[1]) and $3F {%111111};
+                  cp:=ord(P[result]) and $1F {%11111} shl 6 or ord(P[result+1]) and $3F {%111111};
                   { Max possible cp value, $7FF, won't overflow L2. }
                   if IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[cp shr (5+4)]][cp shr 5 and (1 shl 4-1)]] shr (cp and (1 shl 5-1)) and 1=0 then
                     exit;
                 end;
               Inc(result,2);
-              Inc(P,2);
               Dec(MaxLookAhead,2);
             end
           else
@@ -1216,19 +1215,22 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
           %(1110)0000 (10)100000 (10)000000. }
 
         $E0 {%11100000}..$EF {%11101111}:
-          if (MaxLookAhead>=3) and (ord(P[1]) and $C0=$80) and (ord(P[2]) and $C0=$80) and ((ord(P[0])>$E0 {%11100000}) or (ord(P[1])>=$A0 {%10100000})) then
+          if (MaxLookAhead>=3) and
+             (ord(P[result+1]) and $C0=$80) and
+             (ord(P[result+2]) and $C0=$80) and
+             ((ord(P[result])>$E0 {%11100000}) or
+              (ord(P[result+1])>=$A0 {%10100000})) then
             begin
               if not IncludeCombiningDiacriticalMarks then
                 exit(3);
               if result>0 then
                 begin
-                  cp:=ord(P[0]) and $F {%1111} shl 12 or ord(P[1]) and $3F {%111111} shl 6 or ord(P[2]) and $3F {%111111};
+                  cp:=ord(P[result]) and $F {%1111} shl 12 or ord(P[result+1]) and $3F {%111111} shl 6 or ord(P[result+2]) and $3F {%111111};
                   { Max possible cp value, $FFFF, won't overflow L2. }
                   if IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[cp shr (5+4)]][cp shr 5 and (1 shl 4-1)]] shr (cp and (1 shl 5-1)) and 1=0 then
                     exit;
                 end;
               Inc(result,3);
-              Inc(P,3);
               Dec(MaxLookAhead,3);
             end
           else
@@ -1247,15 +1249,18 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
           %(11110)100 (10)001111 (10)111111 (10)111111. }
 
         $F0 {%11110000}..$F4 {%11110100}:
-          if (MaxLookAhead>=4) and (ord(P[1]) and $C0=$80) and (ord(P[2]) and $C0=$80) and (ord(P[3]) and $C0=$80) and
-             (uint16(P[0]) shl 8 or ord(P[1])>=$F090 {%11110000 10010000}) and
-             (uint16(P[0]) shl 8 or ord(P[1])<=$F48F {%11110100 10001111}) then
+          if (MaxLookAhead>=4) and
+             (ord(P[result+1]) and $C0=$80) and
+             (ord(P[result+2]) and $C0=$80) and
+             (ord(P[result+3]) and $C0=$80) and
+             (uint16(P[result]) shl 8 or ord(P[result+1])>=$F090 {%11110000 10010000}) and
+             (uint16(P[result]) shl 8 or ord(P[result+1])<=$F48F {%11110100 10001111}) then
             begin
               if not IncludeCombiningDiacriticalMarks then
                 exit(4);
               if result>0 then
                 begin
-                  cp:=ord(P[0]) and $7 {%111} shl 18 or ord(P[1]) and $3F {%111111} shl 12 or ord(P[2]) and $3F {%111111} shl 6 or ord(P[3]) and $3F {%111111};
+                  cp:=ord(P[result]) and $7 {%111} shl 18 or ord(P[result+1]) and $3F {%111111} shl 12 or ord(P[result+2]) and $3F {%111111} shl 6 or ord(P[result+3]) and $3F {%111111};
                   { This time, cp can overflow L2, and can have special-cased values U+E0100..U+E01EF. }
                   if cp<length(IsCombinings.L2) shl (5+4) then
                     begin
@@ -1266,7 +1271,6 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
                     exit;
                 end;
               Inc(result,4);
-              Inc(P,4);
               Dec(MaxLookAhead,4);
             end
           else
@@ -1284,7 +1288,8 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
 
     { Handle invalid or incomplete cases, when expected codepoint length is cpLen. }
     for iByte:=1 to cpLen-1 do
-      if (iByte<MaxLookAhead) and (ord(P[iByte]) and $C0 {%11000000}<>$80 {%10000000}) then
+      if (iByte<MaxLookAhead) and
+         (ord(P[result+iByte]) and $C0 {%11000000}<>$80 {%10000000}) then
         begin
           if result=0 then result:=-1-iByte;
           exit;
