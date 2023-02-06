@@ -479,86 +479,60 @@ end;
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt;
 var
-  aligncount : sizeint;
-  psrc,pdest,pend : pword;
-  b : ptrint;
+  psrc,pdest,pend,pendpart : pword;
 begin
-  b:=0;
   psrc:=@buf1;
   pdest:=@buf2;
-  if (len>4*sizeof(ptruint)-1)
+  pend:=psrc+len;
+  if (pend<psrc) or not ((len>=0) and (len<=High(PtrInt) div 2)) then
+    pend:=pword(high(ptruint)-2);
+  if (len>=2*sizeof(ptruint)) { len in words, so at least four pointers }
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-    and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
-    and (((PtrUInt(pdest) and 1) or (PtrUInt(psrc) and 1))=0)
+    and ((PtrUInt(pdest) xor PtrUInt(psrc)) and (sizeof(PtrUInt)-1)=0)
+    and (PtrUInt(psrc) and 1=0)
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     then
      begin
-      { Align on native pointer size }
-      aligncount:=((sizeof(PtrUInt)-(PtrUInt(pdest) and (sizeof(PtrUInt)-1))) and (sizeof(PtrUInt)-1)) shr 1;
-      dec(len,aligncount);
-      pend:=psrc+aligncount;
-      while psrc<pend do
+      { Align on native pointer size. Careful, these 'pendpart's are aligned even if 'psrc' is misaligned, so "psrc<>pendpart" must not be used. }
+      PtrUint(pendpart):=(PtrUint(psrc)+(sizeof(PtrUint)-1)) and PtrUint(not PtrUint(sizeof(PtrUint)-1));
+      while (psrc<pendpart) and (psrc^=pdest^) do
         begin
-          b:=(ptrint(psrc^)-ptrint(pdest^));
-          if b<>0 then
-            begin
-              if b<0 then
-                exit(-1)
-              else
-                exit(1);
-            end;
           inc(pdest);
           inc(psrc);
         end;
-      { use sizeuint typecast to force shr optimization }
-      pptruint(pend):=pptruint(psrc)+(sizeuint(len)*2 div sizeof(ptruint));
-      len:=((len*2) and (sizeof(PtrUInt)-1)) shr 1;
-      while psrc<pend do
+      if psrc<pendpart then
+        exit(2*ord(psrc^>pdest^)-1);
+      PtrUint(pendpart):=PtrUint(pend) and PtrUint(not PtrUint(sizeof(PtrUint)-1));
+      while (psrc<pendpart) and (pptrint(psrc)^=pptrint(pdest)^) do
         begin
-          b:=(pptrint(psrc)^-pptrint(pdest)^);
-          if b<>0 then
-            begin
-              len:=sizeof(ptruint) shr 1;
-              break;
-            end;
           inc(pptruint(pdest));
           inc(pptruint(psrc));
         end;
+      if psrc<pendpart then
+        pointer(pend):=pointer(psrc)+sizeof(ptruint);
     end;
-  if (psrc+len >= psrc) then
-    pend:=psrc+len
-  else
-    pend:=pword(high(ptruint)-2);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-  if ((PtrUInt(pdest) and 1) or (PtrUInt(psrc) and 1))<>0 then
-    while psrc<pend do
-      begin
-        b:=(ptrint(unaligned(psrc^))-ptrint(unaligned(pdest^)));
-        if b<>0 then
-          begin
-            if b<0 then
-              exit(-1)
-            else
-              exit(1);
-          end;
-        inc(pdest);
-        inc(psrc);
-      end
+  if (PtrUInt(pdest) or PtrUInt(psrc)) and 1<>0 then
+    begin
+      while (psrc<pend) and (unaligned(psrc^)=unaligned(pdest^)) do
+        begin
+          inc(pdest);
+          inc(psrc);
+        end;
+      if psrc<pend then
+        exit(2*ord(unaligned(psrc^)>unaligned(pdest^))-1);
+    end
   else
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-    while psrc<pend do
-      begin
-        b:=(ptrint(psrc^)-ptrint(pdest^));
-        if b<>0 then
-          begin
-            if b<0 then
-              exit(-1)
-            else
-              exit(1);
-          end;
-        inc(pdest);
-        inc(psrc);
-      end;
+    begin
+      while (psrc<pend) and (psrc^=pdest^) do
+        begin
+          inc(pdest);
+          inc(psrc);
+        end;
+      if psrc<pend then
+        exit(2*ord(psrc^>pdest^)-1);
+    end;
   result:=0;
 end;
 {$endif not FPC_SYSTEM_HAS_COMPAREWORD}
