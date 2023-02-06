@@ -18,7 +18,7 @@ unit PQConnection;
 {$mode objfpc}{$H+}
 
 {$Define LinkDynamically}
-{$define PQDEBUG}
+{ $define PQDEBUG}
 
 interface
 
