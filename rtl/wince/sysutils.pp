@@ -282,17 +282,6 @@ begin
   FN:=FileName;
   if Not GetFileAttributesExW(PWideChar(FileName), GetFileExInfoStandard, @Data) then
     exit;
-  if ((Data.dwFileAttributes and faSymlink)=faSymlink) then
-    begin
-    if FollowLink then
-      begin
-      FN:=FollowSymlink(FileName);
-      if FN='' then 
-        exit; 
-      if not GetFileAttributesExW(PWideChar(FN), GetFileExInfoStandard, @Data) then
-        exit;
-      end;
-    end;
   DateTime.Data:=Data;
   Result:=True;
 end;
