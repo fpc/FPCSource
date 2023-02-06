@@ -554,83 +554,64 @@ end;
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
-                                    break even is at 14, on a Core 2 Duo > 100 }
-        jg      .LCmpWordFull
-        testl   %ecx,%ecx
-        je      .LCmpWordZero
-
-        pushl   %ebx
-.LCmpWordLoop:
-        movw    (%eax),%bx
-        cmpw    (%edx),%bx
-        leal    2(%eax),%eax
-        leal    2(%edx),%edx
-        jne     .LCmpWordExitFast
-        decl    %ecx
-        jne     .LCmpWordLoop
-.LCmpWordExitFast:
-        movzwl  -2(%edx),%ecx     { Compare last position }
-        movzwl  %bx,%eax
-        subl    %ecx,%eax
-        popl    %ebx
+        sub     %eax, %edx
+        push    %esi
+        push    %ebx
+        cmp     $1073741823, %ecx
+        ja      .LUnbounded
+        cmp     $3, %ecx
+        lea     (%eax,%ecx,2), %esi
+        jle     .LWordwise_Test
+        test    $3, %al
+        je      .LPtrUintWise_Prepare
+        movzwl  (%edx,%eax), %ebx
+        cmp     (%eax), %bx
+        jne     .LDoSbb
+        add     $2, %eax
+        sub     $1, %ecx
+.LPtrUintWise_Prepare:
+        and     $-2, %ecx
+        lea     (%eax,%ecx,2), %ecx
+.balign 16
+.LPtrUintWise_Next:
+        mov     (%edx,%eax), %ebx
+        cmp     (%eax), %ebx
+        jne     .LPtrUintsDiffer
+        add     $4, %eax
+        cmp     %eax, %ecx
+        jne     .LPtrUintWise_Next
+.LWordwise_Test:
+        cmp     %esi, %eax
+        je      .LNothingFound
+.LWordwise_Body:
+        movzwl  (%edx,%eax), %ecx
+        cmp     (%eax), %cx
+        jne     .LDoSbb
+        add     $2, %eax
+        cmp     %esi, %eax
+        jne     .LWordwise_Body
+.LNothingFound:
+        pop     %ebx
+        xor     %eax, %eax
+        pop     %esi
         ret
 
-.LCmpWordZero:
-        movl    $0,%eax
+.LPtrUintsDiffer:
+        cmp     (%eax), %bx
+        jne     .LDoSbb
+        shr     $16, %ebx
+        cmp     2(%eax), %bx
+.LDoSbb:
+        sbb     %eax, %eax
+        and     $2, %eax
+        sub     $1, %eax
+        pop     %ebx
+        pop     %esi
         ret
 
-.LCmpWordFull:
-        pushl   %esi
-        pushl   %edi
-        pushl   %ebx
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%eax
-        movl    (%edi),%ebx     // Compare alignment bytes.
-        cmpl    (%esi),%ebx
-        jne     .LCmpword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
-        shll    $1,%eax         {Convert word count to bytes}
-        movl    %edi,%edx       { Align comparing is already done, so simply add}
-        negl    %edx            { calc bytes to align  -%edi and 3}
-        andl    $3,%edx
-        addl    %edx,%esi       { Skip max 3 bytes alignment}
-        addl    %edx,%edi
-        subl    %edx,%eax       { Subtract from number of bytes to go}
-        movl    %eax,%ecx       { Make copy of bytes to go}
-        andl    $3,%eax         { Calc remainder (mod 4) }
-        andl    $1,%edx         { %edx is 1 if array not 2-aligned, 0 otherwise}
-        shrl    $2,%ecx         { divide bytes to go by 4, DWords to go}
-        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp}
-        repe                    { Compare entire DWords}
-        cmpsl
-        je      .LCmpword2a     { All equal? then to the left over bytes}
-        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
-        subl    %eax,%esi       { Go back one DWord}
-        subl    %eax,%edi
-        incl    %eax            {if not odd then this does nothing, else it makes
-                                  sure that adding %edx increases from 2 to 3 words}
-.LCmpword2a:
-        subl    %edx,%esi       { Subtract alignment}
-        subl    %edx,%edi
-        addl    %edx,%eax
-        shrl    $1,%eax
-.LCmpword2:
-        movl    %eax,%ecx       {words still to (re)scan}
-        orl     %eax,%eax       {prevent disaster in case %eax=0}
-        repe
-        cmpsw
-.LCmpword3:
-        movzwl  -2(%esi),%ecx
-        movzwl  -2(%edi),%eax    // Compare failing (or equal) position
-        subl    %ecx,%eax        // calculate end result.
-.LCmpwordExit:
-        popl    %ebx
-        popl    %edi
-        popl    %esi
+.LUnbounded:
+        mov     %eax, %esi
+        jmp     .LWordwise_Body
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
