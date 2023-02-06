@@ -574,23 +574,21 @@ implementation
             { or (TOpCG2AsmConstOp[op]<>A_NONE)} then
           begin
             usetmp:=false;
+            tmpreg:=getintregister(list,OS_INT);
             { Size = 16bits or 8bits do special if rotate. }
             if (size in [OS_16,OS_S16]) and (op=OP_ROR) then
               begin
-                tmpreg:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg_const_const(A_BSTRINS_W,tmpreg,src,31,16));
                 usetmp:=true;
               end
             else if (size in [OS_8,OS_S8]) and (op=OP_ROR) then
               begin
-                tmpreg:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg_const_const(A_BSTRINS_W,tmpreg,src,15,8));
                 usetmp:=true;
               end
             { Signext to 32bits if sra 16bits or 8bits}
             else if (size in [OS_S16,OS_S8]) and (op=OP_SAR) then
               begin
-                tmpreg:=getintregister(list,OS_INT);
                 a_load_reg_reg(list,size,OS_S32,tmpreg,src);
                 usetmp:=true;
               end;
@@ -626,6 +624,9 @@ implementation
       begin
         usetmp1:=false;
         usetmp2:=false;
+        tmpreg1:=getintregister(list,OS_INT);
+        tmpreg2:=getintregister(list,OS_INT);
+
         if op=OP_NOT then
           begin
             list.concat(taicpu.op_reg_reg_reg(A_NOR,dst,NR_R0,src1));
@@ -645,7 +646,6 @@ implementation
           end
         else if op=OP_ROL then
           begin
-            tmpreg1:=getintregister(list,OS_INT);
             list.concat(taicpu.op_reg_reg_reg(A_SUB_D,tmpreg1,NR_R0,src1));
             usetmp1:=true;
             op:=OP_ROR;
@@ -656,13 +656,11 @@ implementation
             { Size = 16bits or 8bits do special if rotate. }
             if (size in [OS_16,OS_S16]) and (op=OP_ROR) then
               begin
-                tmpreg2:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg_const_const(A_BSTRINS_W,tmpreg2,src2,31,16));
                 usetmp2:=true;
               end
             else if (size in [OS_8,OS_S8]) and (op=OP_ROR) then
               begin
-                tmpreg2:=getintregister(list,OS_INT);
                 list.concat(taicpu.op_reg_reg_const_const(A_BSTRINS_W,tmpreg2,src2,15,8));
                 list.concat(taicpu.op_reg_reg_const_const(A_BSTRINS_W,tmpreg2,tmpreg2,31,16));
                 usetmp2:=true;
@@ -670,7 +668,6 @@ implementation
             { Signext to 32bits if sra 16bits or 8bits}
             else if (size in [OS_S16,OS_S8]) and (op=OP_SAR) then
               begin
-                tmpreg2:=getintregister(list,OS_INT);
                 a_load_reg_reg(list,size,OS_S32,src2,tmpreg2);
                 usetmp2:=true;
               end;
@@ -877,11 +874,11 @@ implementation
         { TODO Some optimization. }
         if len_8>0 then
           begin
+            current_asmdata.getjumplabel(lab);
+            countreg := GetIntRegister(list,OS_INT);
             if len_8>1 then
               begin
-                countreg := GetIntRegister(list,OS_INT);
                 a_load_const_reg(list,OS_INT,len_8,countreg);
-                current_asmdata.getjumplabel(lab);
                 a_label(list, lab);
               end;
             list.concat(taicpu.op_reg_ref(A_LD_D,tmpreg,src));
@@ -1124,10 +1121,10 @@ implementation
               current_asmdata.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
+              tmpreg1:=getintregister(list,OS_INT);
               if size in [OS_64,OS_S64,OS_32,OS_S32] then
                 begin
                   { Backup src so we can compare with it. }
-                  tmpreg1:=getintregister(list,OS_INT);
                   a_load_reg_reg(list,OS_INT,OS_INT,src,tmpreg1);
                 end;
               if size in [OS_64,OS_S64] then
@@ -1204,11 +1201,11 @@ implementation
               current_asmdata.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
+              tmpreg2:=getintregister(list,OS_INT);
+              tmpreg3:=getintregister(list,OS_INT);
               if size in [OS_64,OS_S64,OS_32,OS_S32] then
                 begin
                   { Backup src so we can compare with it. }
-                  tmpreg2:=getintregister(list,OS_INT);
-                  tmpreg3:=getintregister(list,OS_INT);
                   a_load_reg_reg(list,OS_INT,OS_INT,src1,tmpreg2);
                   a_load_reg_reg(list,OS_INT,OS_INT,src2,tmpreg3);
                 end;
@@ -1262,11 +1259,11 @@ implementation
               current_asmdata.getjumplabel(l);
               reference_reset_symbol(href,l,0,0,[]);
               href.refaddr:=addr_pcrel;
+              tmpreg2:=getintregister(list,OS_INT);
+              tmpreg3:=getintregister(list,OS_INT);
               if size in [OS_64,OS_S64,OS_32,OS_S32] then
                 begin
                   { Backup src so we can compare with it. }
-                  tmpreg2:=getintregister(list,OS_INT);
-                  tmpreg3:=getintregister(list,OS_INT);
                   a_load_reg_reg(list,OS_INT,OS_INT,src1,tmpreg2);
                   a_load_reg_reg(list,OS_INT,OS_INT,src2,tmpreg3);
                 end;
