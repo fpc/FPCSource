@@ -550,6 +550,7 @@ unit racpugas;
 
       function get_a_op: TArithOpers;
         begin
+          result:=LADD; { As initialized }
           case actasmtoken of
             AS_SHL:
               begin

@@ -309,8 +309,11 @@ implementation
       begin
         alllocdef:=nil;
         locdef:=nil;
+        tmpdef1:=nil;
+        tmpdef2:=nil;
         para.reset;
         para_same_num := 0;
+        record_offset := 0;
         { have we ensured that the next parameter location will be aligned to the
           next 8 byte boundary? }
         paraaligned:=false;
