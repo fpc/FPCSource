@@ -793,7 +793,7 @@ unit i_freertos;
             shortname    : 'freertos';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
-            cpu          : cpu_xtensa;
+            cpu          : cpu_riscv32;
             unit_env     : '';
             extradefines : '';
             exeext       : '';
