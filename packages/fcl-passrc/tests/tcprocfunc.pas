@@ -187,6 +187,10 @@ type
     procedure TestOperatorNames;
     Procedure TestAssignOperatorAfterObject;
     Procedure TestFunctionNoResult;
+    Procedure TestExternalFunctionFinal;
+    Procedure TestFunctionSyscallSingleNumber;
+    Procedure TestFunctionSyscallDoubleNumber;
+    Procedure TestFunctionSysCallSysTrapIdentifier;
   end;
 
 implementation
@@ -1485,6 +1489,41 @@ procedure TTestProcedureFunction.AssertComment;
 begin
   AssertEquals('Correct comment',' A comment'+sLineBreak,FProc.DocComment);
 end;
+
+
+Procedure TTestProcedureFunction.TestExternalFunctionFinal;
+
+begin
+  // class external 'XYZ' name 'ABC'
+  //  function Something : Someresult; final;
+  // end; 
+  Fail('To be implemented');
+end;
+
+
+Procedure TTestProcedureFunction.TestFunctionSyscallSingleNumber;
+begin
+  // function Something : Someresult; syscall 12
+  Fail('To be implemented');
+end;
+
+
+Procedure TTestProcedureFunction.TestFunctionSyscallDoubleNumber;
+
+begin
+  // function Something : Someresult; syscall 12 13
+  Fail('To be implemented');
+end;
+
+
+Procedure TTestProcedureFunction.TestFunctionSysCallSysTrapIdentifier;
+
+begin
+  // function Something : Someresult; syscall systrapNNN
+  Fail('To be implemented');
+end;
+
+
 
 initialization
 
