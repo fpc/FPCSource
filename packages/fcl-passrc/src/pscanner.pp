@@ -5141,7 +5141,7 @@ function TPascalScanner.HandleMultilineCommentOldStyle: TToken;
 
 var
   {$ifdef UsePChar}
-  TokenStart: PChar;
+  TokenStart: PAnsiChar;
   OldLength: integer;
   Ch: AnsiChar;
   LE: String[2];
@@ -5238,7 +5238,7 @@ function TPascalScanner.HandleMultilineComment: TToken;
 
 var
   {$ifdef UsePChar}
-  TokenStart: PChar;
+  TokenStart: PAnsiChar;
   OldLength: integer;
   Ch: AnsiChar;
   LE: String[2];

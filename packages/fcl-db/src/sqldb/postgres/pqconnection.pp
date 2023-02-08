@@ -68,7 +68,7 @@ type
     Function CheckConnectionStatus(doRaise : Boolean = True) : Boolean;
     Function DescribePrepared(StmtName : String): PPGresult;
     Function Exec(aSQL : String; aClearResult : Boolean; aError : String = '') : PPGresult;
-    function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPchar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
+    function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPAnsiChar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
     procedure CheckResultError(var res: PPGresult; Actions : TCheckResultActions; const ErrMsg: string);
     Property Connection : TPQConnection Read FCOnnection;
     Property NativeConn : PPGConn Read FNativeConn;
@@ -518,8 +518,6 @@ begin
     exit;
   S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
   Res:=Cursor.Handle.Exec(S,False,'Error getting typeinfo');
-  if (PQresultStatus(res)<>PGRES_TUPLES_OK) then
-    Cursor.Handle.CheckResultError(Res,[craClear],'Error getting type info');
   try
     For I:=0 to PQntuples(Res)-1 do
       begin
@@ -829,11 +827,13 @@ end;
 function TPGHandle.DescribePrepared(StmtName: String): PPGresult;
 
 Var
-  S : AnsiString;
+  S : AnsiString {$if sizeof(CHar)=1} absolute StmtName {$endif};
 
 begin
-  S:=StmtName;
-  Result:=PQdescribePrepared(FNativeConn,pchar(S));
+  {$if sizeof(CHar)=2}
+  S:=UTF8Encode(StmtName);
+  {$ENDIF}
+  Result:=PQdescribePrepared(FNativeConn,PAnsiChar(S));
 end;
 
 function TPGHandle.Exec(aSQL: String; aClearResult: Boolean; aError: String): PPGresult;
@@ -858,7 +858,7 @@ begin
 end;
 
 function TPGHandle.ExecPrepared(stmtName: AnsiString; nParams: longint;
-  paramValues: PPchar; paramLengths: Plongint; paramFormats: Plongint;
+  paramValues: PPAnsichar; paramLengths: Plongint; paramFormats: Plongint;
   aClearResult: Boolean): PPGresult;
 
 var
