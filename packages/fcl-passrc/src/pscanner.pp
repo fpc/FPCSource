@@ -686,7 +686,9 @@ type
     po_StopOnUnitInterface,  // parse only a unit name and stop at interface keyword
     po_IgnoreUnknownResource,// Ignore resources for which no handler is registered.
     po_AsyncProcs,            // allow async procedure modifier
-    po_DisableResources      // Disable resources altogether
+    po_DisableResources,      // Disable resources altogether
+    po_AsmPascalComments,    // Allow pascal comments/directives in asm blocks
+    po_AllowMem              // Allow use of meml, mem, memw arrays
     );
   TPOptions = set of TPOption;
 
@@ -737,6 +739,7 @@ type
     FCurrentBoolSwitches: TBoolSwitches;
     FCurrentModeSwitches: TModeSwitches;
     FCurrentValueSwitches: TValueSwitchArray;
+    FCurtokenEscaped: Boolean;
     FCurTokenPos: TPasSourcePos;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
@@ -833,6 +836,8 @@ type
       var Handled: boolean); virtual;
     procedure HandleMultilineStringTrimLeft(const AParam : String);
     procedure HandleMultilineStringLineEnding(const AParam : string);
+    Function HandleMultilineComment: TToken;
+    function HandleMultilineCommentOldStyle: TToken;
     procedure HandleIFDEF(const AParam: String);
     procedure HandleIFNDEF(const AParam: String);
     procedure HandleIFOPT(const AParam: String);
@@ -900,6 +905,7 @@ type
     function AddMacro(const aName, aValue: String; Quiet: boolean = false): boolean;
     function RemoveMacro(const aName: String; Quiet: boolean = false): boolean;
     procedure SetCompilerMode(S : String);
+    procedure SetModeSwitch(S : String);
     function CurSourcePos: TPasSourcePos;
     function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
     function IgnoreMsgType(MsgType: TMessageType): boolean; virtual;
@@ -913,6 +919,7 @@ type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    property CurTokenEscaped : Boolean Read FCurTokenEscaped;
     property CurTokenPos: TPasSourcePos read FCurTokenPos;
     property PreviousToken : TToken Read FPreviousToken;
     property ModuleRow: Integer read FModuleRow;
@@ -2129,6 +2136,7 @@ end;
 
 procedure TCondDirectiveEvaluator.LogXExpectedButTokenFound(const X: String;
   ErrorPos: integer);
+
 begin
   Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
       [X,TokenInfos[FToken]],ErrorPos);
@@ -3488,6 +3496,7 @@ end;
 
 function TPascalScanner.ReadNonPascalTillEndToken(StopAtLineEnd: boolean
   ): TToken;
+
 var
   StartPos: {$ifdef UsePChar}PChar{$else}integer{$endif};
   {$ifndef UsePChar}
@@ -3561,6 +3570,16 @@ begin
       #0: // end of line
         if DoEndOfLine then exit;
       {$endif}
+      '{': // Pascal comments are supported.
+        begin
+        If po_AsmPascalComments in Options then
+          begin
+          Result:=HandleMultilineComment;
+          Break;
+          end
+        else
+          Inc(FTokenPos);
+        end;
       '''':
         begin
         // Notes:
@@ -3592,6 +3611,33 @@ begin
           end;
         until false;
         end;
+      '"': // string literals: labels, section names etc.
+        begin
+        inc(FTokenPos);
+        repeat
+          {$ifndef UsePChar}
+          if FTokenPos>l then
+            Error(nErrOpenString,SErrOpenString);
+          {$endif}
+          case {$ifdef UsePChar}FTokenPos^{$else}s[FTokenPos]{$endif} of
+          {$ifdef UsePChar}
+          #0: Error(nErrOpenString,SErrOpenString);
+          {$endif}
+          '"':
+            begin
+            inc(FTokenPos);
+            break;
+            end;
+          #10,#13:
+            begin
+            // String literal missing closing quote
+            break;
+            end
+          else
+            inc(FTokenPos);
+          end;
+        until false;
+        end;
       '/':
         begin
         inc(FTokenPos);
@@ -3603,7 +3649,7 @@ begin
           until {$ifdef UsePChar}FTokenPos^ in [#0,#10,#13]{$else}(FTokenPos>l) or (s[FTokenPos] in [#10,#13]){$endif};
           end;
         end;
-      '0'..'9', 'A'..'Z', 'a'..'z','_':
+      '@','0'..'9', 'A'..'Z', 'a'..'z','_':
         begin
         // number or identifier
         if {$ifdef UsePChar}
@@ -3627,7 +3673,10 @@ begin
             exit;
             end;
           // return 'end'
-          Result := tkend;
+          if PPIsSkipping then
+            Result := tkWhitespace
+          else
+            Result := tkend;
           {$ifdef UsePChar}
           SetLength(FCurTokenString, 3);
           Move(FTokenPos^, FCurTokenString[1], 3);
@@ -3641,11 +3690,14 @@ begin
         else
           begin
           // skip identifier
+          if FTokenPos[0]='@' then
+            inc(FTokenPos);
           while {$ifdef UsePChar}FTokenPos[0] in IdentChars{$else}(FTokenPos<=l) and (s[FTokenPos] in IdentChars){$endif} do
             inc(FTokenPos);
           end;
         end;
       else
+        // Else case FTokenPos
         inc(FTokenPos);
     end;
   until false;
@@ -4137,7 +4189,7 @@ begin
   end;
 end;
 
-Function TPascalScanner.MakeLibAlias(Const LibFileName : String): string;
+Function TPascalScanner.MakeLibAlias(const LibFileName : String): string;
 
 Var
   p,l,d : integer;
@@ -5063,16 +5115,204 @@ begin
   MultilineStringsEOLStyle:=S;
 end;
 
+function TPascalScanner.HandleMultilineCommentOldStyle: TToken;
+
+var
+  {$ifdef UsePChar}
+  TokenStart: PChar;
+  OldLength: integer;
+  Ch: AnsiChar;
+  LE: String[2];
+  {$else}
+  TokenStart: Integer;
+  s: String;
+  l: integer;
+  {$endif}
+  SectionLength, NestingLevel: Integer;
+
+  function FetchLocalLine: boolean; inline;
+  begin
+    Result:=FetchLine;
+    {$ifndef UsePChar}
+    if not Result then exit;
+    s:=FCurLine;
+    l:=length(s);
+    {$endif}
+  end;
+
+begin
+  {$ifdef UsePChar}
+  LE:=LineEnding;
+  {$endif}
+  // Old-style multi-line comment
+  Inc(FTokenPos);
+  TokenStart := FTokenPos;
+  FCurTokenString := '';
+  {$ifdef UsePChar}
+  OldLength := 0;
+  {$endif}
+  NestingLevel:=0;
+  repeat
+    if {$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif} then
+      begin
+      SectionLength:=FTokenPos - TokenStart;
+      {$ifdef UsePChar}
+      SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
+      if SectionLength > 0 then
+        Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
+      Inc(OldLength, SectionLength);
+      for Ch in LE do
+        begin
+        Inc(OldLength);
+        FCurTokenString[OldLength] := Ch;
+        end;
+      {$else}
+      FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
+      {$endif}
+      if not FetchLocalLine then
+        begin
+        Result := tkEOF;
+        FCurToken := Result;
+        exit;
+        end;
+      TokenStart:=FTokenPos;
+      end
+    else if {$ifdef UsePChar}(FTokenPos[0] = '*') and (FTokenPos[1] = ')')
+        {$else}(FTokenPos<l) and (s[FTokenPos]='*') and (s[FTokenPos+1]=')'){$endif}
+      then begin
+      dec(NestingLevel);
+      if NestingLevel<0 then
+        break;
+      inc(FTokenPos,2);
+      end
+    else if (msNestedComment in CurrentModeSwitches)
+        and {$ifdef UsePChar}(FTokenPos[0] = '(') and (FTokenPos[1] = '*')
+        {$else}(FTokenPos<l) and (s[FTokenPos]='(') and (s[FTokenPos+1]='*'){$endif}
+      then begin
+      inc(FTokenPos,2);
+      Inc(NestingLevel);
+      end
+    else
+      Inc(FTokenPos);
+  until false;
+  SectionLength := FTokenPos - TokenStart;
+  {$ifdef UsePChar}
+  SetLength(FCurTokenString, OldLength + SectionLength);
+  if SectionLength > 0 then
+    Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+  {$else}
+  FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength);
+  {$endif}
+  Inc(FTokenPos, 2);
+  Result := tkComment;
+  if Copy(CurTokenString,1,1)='$' then
+    Result := HandleDirective(CurTokenString)
+  else
+    DoHandleComment(Self,CurTokenString);
+end;
+
+
+function TPascalScanner.HandleMultilineComment: TToken;
+
+var
+  {$ifdef UsePChar}
+  TokenStart: PChar;
+  OldLength: integer;
+  Ch: AnsiChar;
+  LE: String[2];
+  {$else}
+  TokenStart: Integer;
+  s: String;
+  l: integer;
+  {$endif}
+  SectionLength, NestingLevel: Integer;
+
+  function FetchLocalLine: boolean; inline;
+  begin
+    Result:=FetchLine;
+    {$ifndef UsePChar}
+    if not Result then exit;
+    s:=FCurLine;
+    l:=length(s);
+    {$endif}
+  end;
+
+begin
+  Inc(FTokenPos);
+  TokenStart := FTokenPos;
+  FCurTokenString := '';
+  {$ifdef UsePChar}
+  LE:=LineEnding;
+  OldLength := 0;
+  {$endif}
+  NestingLevel := 0;
+  repeat
+    if {$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif} then
+      begin
+      SectionLength := FTokenPos - TokenStart;
+      {$ifdef UsePChar}
+      SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
+      if SectionLength > 0 then
+        Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
+
+      // Corrected JC: Append the correct lineending
+      Inc(OldLength, SectionLength);
+      for Ch in LE do
+        begin
+          Inc(OldLength);
+          FCurTokenString[OldLength] := Ch;
+        end;
+      {$else}
+      FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
+      {$endif}
+      if not FetchLocalLine then
+      begin
+        Result := tkEOF;
+        FCurToken := Result;
+        exit;
+      end;
+      TokenStart := FTokenPos;
+      end
+    else if {$ifdef UsePChar}(FTokenPos[0] = '}'){$else}(s[FTokenPos]='}'){$endif} then
+      begin
+      Dec(NestingLevel);
+      if NestingLevel<0 then
+        break;
+      Inc(FTokenPos);
+      end
+    else if {$ifdef UsePChar}(FTokenPos[0] = '{'){$else}(s[FTokenPos]='{'){$endif}
+        and (msNestedComment in CurrentModeSwitches) then
+      begin
+      inc(FTokenPos);
+      Inc(NestingLevel);
+      end
+    else
+      Inc(FTokenPos);
+  until false;
+  SectionLength := FTokenPos - TokenStart;
+  {$ifdef UsePChar}
+  SetLength(FCurTokenString, OldLength + SectionLength);
+  if SectionLength > 0 then
+    Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+  {$else}
+  FCurTokenString:=FCurTokenString+copy(s,TokenStart,SectionLength);
+  {$endif}
+  Inc(FTokenPos);
+  Result := tkComment;
+  if (Copy(CurTokenString,1,1)='$') then
+    Result:=HandleDirective(CurTokenString)
+  else
+    DoHandleComment(Self, CurTokenString)
+end;
+
 function TPascalScanner.DoFetchToken: TToken;
 
 var
   TokenStart: {$ifdef UsePChar}PChar{$else}integer{$endif};
   i: TToken;
-  SectionLength, NestingLevel, Index: Integer;
+  SectionLength,  Index: Integer;
   {$ifdef UsePChar}
-  OldLength: integer;
-  Ch: Char;
-  LE: string[2];
+  //
   {$else}
   s: string;
   l: integer;
@@ -5100,6 +5340,7 @@ var
   end;
 
 begin
+  FCurtokenEscaped:=False;
   TokenStart:={$ifdef UsePChar}nil{$else}0{$endif};
   Result:=tkLineEnding;
   if FTokenPos {$ifdef UsePChar}= nil{$else}<1{$endif} then
@@ -5180,6 +5421,7 @@ begin
         // &Keyword
         DoFetchToken();
         Result:=tkIdentifier;
+        FCurtokenEscaped:=True;
         end
       else
         begin
@@ -5218,76 +5460,7 @@ begin
       else if {$ifdef UsePChar}FTokenPos[0] <> '*'{$else}(FTokenPos>l) or (s[FTokenPos]<>'*'){$endif} then
         Result := tkBraceOpen
       else
-        begin
-        {$ifdef UsePChar}
-        LE:=LineEnding;
-        {$endif}
-        // Old-style multi-line comment
-        Inc(FTokenPos);
-        TokenStart := FTokenPos;
-        FCurTokenString := '';
-        {$ifdef UsePChar}
-        OldLength := 0;
-        {$endif}
-        NestingLevel:=0;
-        repeat
-          if {$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif} then
-            begin
-            SectionLength:=FTokenPos - TokenStart;
-            {$ifdef UsePChar}
-            SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
-            if SectionLength > 0 then
-              Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
-            Inc(OldLength, SectionLength);
-            for Ch in LE do
-              begin
-              Inc(OldLength);
-              FCurTokenString[OldLength] := Ch;
-              end;
-            {$else}
-            FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
-            {$endif}
-            if not FetchLocalLine then
-              begin
-              Result := tkEOF;
-              FCurToken := Result;
-              exit;
-              end;
-            TokenStart:=FTokenPos;
-            end
-          else if {$ifdef UsePChar}(FTokenPos[0] = '*') and (FTokenPos[1] = ')')
-              {$else}(FTokenPos<l) and (s[FTokenPos]='*') and (s[FTokenPos+1]=')'){$endif}
-            then begin
-            dec(NestingLevel);
-            if NestingLevel<0 then
-              break;
-            inc(FTokenPos,2);
-            end
-          else if (msNestedComment in CurrentModeSwitches)
-              and {$ifdef UsePChar}(FTokenPos[0] = '(') and (FTokenPos[1] = '*')
-              {$else}(FTokenPos<l) and (s[FTokenPos]='(') and (s[FTokenPos+1]='*'){$endif}
-            then begin
-            inc(FTokenPos,2);
-            Inc(NestingLevel);
-            end
-          else
-            Inc(FTokenPos);
-        until false;
-        SectionLength := FTokenPos - TokenStart;
-        {$ifdef UsePChar}
-        SetLength(FCurTokenString, OldLength + SectionLength);
-        if SectionLength > 0 then
-          Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-        {$else}
-        FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength);
-        {$endif}
-        Inc(FTokenPos, 2);
-        Result := tkComment;
-        if Copy(CurTokenString,1,1)='$' then
-          Result := HandleDirective(CurTokenString)
-        else
-          DoHandleComment(Self,CurTokenString);
-        end;
+        Result:=HandleMultilineCommentOldStyle;
       end;
     ')':
       begin
@@ -5542,71 +5715,8 @@ begin
       end;
     '{':        // Multi-line comment
       begin
-      Inc(FTokenPos);
-      TokenStart := FTokenPos;
-      FCurTokenString := '';
-      {$ifdef UsePChar}
-      LE:=LineEnding;
-      OldLength := 0;
-      {$endif}
-      NestingLevel := 0;
-      repeat
-        if {$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif} then
-          begin
-          SectionLength := FTokenPos - TokenStart;
-          {$ifdef UsePChar}
-          SetLength(FCurTokenString, OldLength + SectionLength + length(LineEnding)); // Corrected JC
-          if SectionLength > 0 then
-            Move(TokenStart^, FCurTokenString[OldLength + 1],SectionLength);
-
-          // Corrected JC: Append the correct lineending
-          Inc(OldLength, SectionLength);
-          for Ch in LE do
-            begin
-              Inc(OldLength);
-              FCurTokenString[OldLength] := Ch;
-            end;
-          {$else}
-          FCurTokenString:=FCurTokenString+copy(FCurLine,TokenStart,SectionLength)+LineEnding; // Corrected JC
-          {$endif}
-          if not FetchLocalLine then
-          begin
-            Result := tkEOF;
-            FCurToken := Result;
-            exit;
-          end;
-          TokenStart := FTokenPos;
-          end
-        else if {$ifdef UsePChar}(FTokenPos[0] = '}'){$else}(s[FTokenPos]='}'){$endif} then
-          begin
-          Dec(NestingLevel);
-          if NestingLevel<0 then
-            break;
-          Inc(FTokenPos);
-          end
-        else if {$ifdef UsePChar}(FTokenPos[0] = '{'){$else}(s[FTokenPos]='{'){$endif}
-            and (msNestedComment in CurrentModeSwitches) then
-          begin
-          inc(FTokenPos);
-          Inc(NestingLevel);
-          end
-        else
-          Inc(FTokenPos);
-      until false;
-      SectionLength := FTokenPos - TokenStart;
-      {$ifdef UsePChar}
-      SetLength(FCurTokenString, OldLength + SectionLength);
-      if SectionLength > 0 then
-        Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-      {$else}
-      FCurTokenString:=FCurTokenString+copy(s,TokenStart,SectionLength);
-      {$endif}
-      Inc(FTokenPos);
-      Result := tkComment;
-      if (Copy(CurTokenString,1,1)='$') then
-        Result:=HandleDirective(CurTokenString)
-      else
-        DoHandleComment(Self, CurTokenString)
+      // HandleMultilineComment calls Directive handling
+      Result:=HandleMultilineComment;
       end;
     'A'..'Z', 'a'..'z', '_':
       begin
@@ -6220,6 +6330,11 @@ end;
 procedure TPascalScanner.SetCompilerMode(S: String);
 begin
   HandleMode(S);
+end;
+
+procedure TPascalScanner.SetModeSwitch(S: String);
+begin
+  HandleModeSwitch(S);
 end;
 
 function TPascalScanner.CurSourcePos: TPasSourcePos;

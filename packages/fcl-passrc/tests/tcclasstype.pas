@@ -197,6 +197,9 @@ type
     procedure TestRecordHelperEmpty;
     procedure TestRecordHelperParentedEmpty;
     procedure TestRecordHelperOneMethod;
+    procedure TestExternalClassFinalVar;
+    procedure TestEscapedVisibilityVar;
+    procedure TestEscapedAbsoluteVar;
   end;
 
 implementation
@@ -2294,6 +2297,31 @@ begin
   AssertEquals('Default visibility',visDefault,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
+end;
+
+
+procedure TestExternalClassFinalVar;
+
+begin
+  // final var Xyz : Integer;
+  Fail('To be implemented');
+end;
+
+
+procedure TestEscapedVisibilityVar;
+
+begin
+  //  &Public : Integer;
+  Fail('To be implemented');
+end;
+
+
+procedure TestEscapedAbsoluteVar;
+
+begin
+ 
+  // var absolute  : integer;
+  Fail('To be implemented.');
 end;
 
 initialization

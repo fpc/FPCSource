@@ -163,6 +163,8 @@ type
     procedure TestArray;
     procedure TestAs;
     procedure TestAsm;
+    Procedure TestAsmComments;
+    Procedure TestAsmConditionals;
     procedure TestBegin;
     procedure TestBitpacked;
     procedure TestCase;
@@ -1134,6 +1136,19 @@ procedure TTestScanner.TestAsm;
 begin
   TestToken(tkasm,'asm');
 end;
+
+procedure TTestScanner.TestAsmComments;
+
+begin
+  Fail('To be implemented');
+end;
+
+procedure TTestScanner.TestAsmConditionals;
+
+begin
+  Fail('To be implemented');
+end;
+
 
 
 procedure TTestScanner.TestBegin;
