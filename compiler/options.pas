@@ -5087,7 +5087,12 @@ begin
 
 {$if defined(riscv32) or defined(riscv64)}
   { RISC-V defaults }
-  if (target_info.abi = abi_riscv_hf) then
+  if target_info.system = system_riscv32_freertos then
+    begin
+      if not(option.FPUSetExplicitly) then
+        init_settings.fputype:=fpu_soft;
+    end
+  else if (target_info.abi = abi_riscv_hf) then
     begin
       {$ifdef riscv32}
       if not option.CPUSetExplicitly then
