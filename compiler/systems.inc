@@ -371,6 +371,12 @@
             ,abi_old_win32_gnu
             ,abi_aarch64_darwin
             ,abi_riscv_hf
+            ,abi_riscv_ilp32
+            ,abi_riscv_ilp32f
+            ,abi_riscv_ilp32d
+            ,abi_riscv_lp64
+            ,abi_riscv_lp64f
+            ,abi_riscv_lp64d
             { stack is aligned and all room for parameters is reserved on
               entry, but depending on the calling convention, the parameters
               may still be removed by the callee (and then the stack needs to
