@@ -639,59 +639,37 @@ end;
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
-                                    break even is at 12, on a Core 2 Duo > 100 }
-        jg      .LCmpDWordFull
-        testl   %ecx,%ecx
-        je      .LCmpDWordZero
+        cmp     $536870912, %ecx
+        push    %ebx
+        jnb     .LUnbounded
+        lea     (%eax,%ecx,4), %ebx
+        cmp     %ebx, %eax
+        je      .LNothing
 
-        pushl   %ebx
-.LCmpDWordLoop:
-        movl    (%eax),%ebx
-        cmpl    (%edx),%ebx
-        leal    4(%eax),%eax
-        leal    4(%edx),%edx
-        jne     .LCmpDWordExitFast
-        decl    %ecx
-        jne     .LCmpDWordLoop
-.LCmpDWordExitFast:
-        xorl    %eax,%eax
-        movl    -4(%edx),%edx       // Compare failing (or equal) position
-        subl    %edx,%ebx           // calculate end result.
-        setb    %dl
-        seta    %cl
-        addb    %cl,%al
-        subb    %dl,%al
-        movsbl  %al,%eax
-
-        popl    %ebx
+.balign 16
+.LDwordwise_Body:
+        mov     (%edx), %ecx
+        cmp     (%eax), %ecx
+        jne     .LDoSbb
+        add     $4, %eax
+        add     $4, %edx
+        cmp     %eax, %ebx
+        jne     .LDwordwise_Body
+.LNothing:
+        xor     %eax, %eax
+        pop     %ebx
         ret
 
-.LCmpDWordZero:
-        movl    $0,%eax
+.LDoSbb:
+        pop     %ebx
+        sbb     %eax, %eax
+        and     $2, %eax
+        sub     $1, %eax
         ret
 
-.LCmpDWordFull:
-        pushl   %esi
-        pushl   %edi
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        xorl    %eax,%eax
-        repe                     { Compare entire DWords}
-        cmpsl
-        movl    -4(%edi),%edi        // Compare failing (or equal) position
-        subl    -4(%esi),%edi        // calculate end result.
-        setb    %dl
-        seta    %cl
-        addb    %cl,%al
-        subb    %dl,%al
-        movsbl  %al,%eax
-.LCmpDwordExit:
-        popl    %edi
-        popl    %esi
+.LUnbounded:
+        mov     %eax, %ebx
+        jmp     .LDwordwise_Body
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
