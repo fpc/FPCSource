@@ -3483,7 +3483,11 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or not defined_macro(upper(GetName(opts))));
+               { environment variable? }
+               if (opts[1]='$') and (opts[length(opts)]='$') then
+                 skip[level]:=skip[level-1] or (GetEnvironmentVariable(copy(opts,2,length(opts)-2))='')
+               else
+                 skip[level]:=(skip[level-1] or not defined_macro(upper(GetName(opts))));
              end
            else
             if (s='IFNDEF') then
@@ -3495,7 +3499,11 @@ begin
                   stopOptions(1);
                 end;
                inc(Level);
-               skip[level]:=(skip[level-1] or defined_macro(upper(GetName(opts))));
+               { environment variable? }
+               if (opts[1]='$') and (opts[length(opts)]='$') then
+                 skip[level]:=skip[level-1] or (GetEnvironmentVariable(copy(opts,2,length(opts)-2))<>'')
+               else
+                 skip[level]:=skip[level-1] or defined_macro(upper(GetName(opts)));
              end
            else
             if (s='ELSE') then
