@@ -943,7 +943,7 @@ type
   end;
 
   { TPasVariable }
-  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic);
+  TVariableModifier = (vmCVar, vmExternal, vmPublic, vmExport, vmClass, vmStatic, vmfar);
   TVariableModifiers = set of TVariableModifier;
 
   TPasVariable = class(TPasElement)
@@ -1072,7 +1072,8 @@ type
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmInline, pmAssembler, pmPublic,
                         pmCompilerProc, pmExternal, pmForward, pmDispId,
-                        pmNoReturn, pmFar, pmFinal, pmDiscardResult);
+                        pmNoReturn, pmFar, pmFinal, pmDiscardResult,
+                        pmNoStackFrame, pmsection, pmRtlProc, pmInternProc);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
 
@@ -1106,15 +1107,19 @@ type
       const Arg: Pointer); override;
   public
     PublicName, // e.g. public PublicName;
+    LibrarySymbolIndex : TPasExpr;
     LibrarySymbolName,
     LibraryExpr : TPasExpr; // e.g. external LibraryExpr name LibrarySymbolName;
     DispIDExpr :  TPasExpr;
     MessageExpr: TPasExpr;
+    CompProcID : String;
     AliasName : String;
     ProcType : TPasProcedureType;
     Body : TProcedureBody;
     NameParts: TProcedureNameParts; // only used for generic aka parametrized functions
     Procedure AddModifier(AModifier : TProcedureModifier);
+    Function CanParseImplementation : Boolean;
+    Function HasNoImplementation : Boolean;
     Function IsVirtual : Boolean; inline;
     Function IsDynamic : Boolean; inline;
     Function IsAbstract : Boolean; inline;
@@ -1126,6 +1131,8 @@ type
     Function IsReintroduced : Boolean; inline;
     Function IsStatic : Boolean; inline;
     Function IsForward: Boolean; inline;
+    Function IsCompilerProc: Boolean; inline;
+    Function IsInternProc: Boolean; inline;
     Function IsAssembler: Boolean; inline;
     Function IsAsync: Boolean; inline;
     Function GetProcTypeEnum: TProcType; virtual;
@@ -1472,11 +1479,14 @@ type
 
   TPasImplAsmStatement = class (TPasImplStatement)
   private
+    FModifierTokens: TStrings;
     FTokens: TStrings;
   Public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
     Property Tokens : TStrings Read FTokens;
+    // ['register']
+    Property ModifierTokens : TStrings Read FModifierTokens;
   end;
 
   { TPasImplRepeatUntil }
@@ -1709,9 +1719,10 @@ type
     procedure Visit(obj: TPasElement); virtual;
   end;
 
+
 const
-  AccessNames: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('', 'const ', 'var ', 'out ','constref ');
-  AccessDescriptions: array[TArgumentAccess] of string{$ifdef fpc}[9]{$endif} = ('default', 'const', 'var', 'out','constref');
+  AccessNames: array[TArgumentAccess] of String = ('', 'const ', 'var ', 'out ','constref ');
+  AccessDescriptions: array[TArgumentAccess] of String = ('default', 'const', 'var', 'out','constref');
   AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
@@ -1792,10 +1803,11 @@ const
                    'export', 'overload', 'message', 'reintroduce',
                    'inline','assembler','public',
                    'compilerproc','external','forward','dispid',
-                   'noreturn','far','final','discardresult');
+                   'noreturn','far','final','discardresult','nostackframe',
+                   'section','rtlproc','internproc');
 
   VariableModifierNames : Array[TVariableModifier] of string
-     = ('cvar', 'external', 'public', 'export', 'class', 'static');
+     = ('cvar', 'external', 'public', 'export', 'class', 'static','far');
 
 procedure FreeProcNameParts(var NameParts: TProcedureNameParts);
 procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray; Prepare: boolean);
@@ -2384,11 +2396,13 @@ constructor TPasImplAsmStatement.Create(const AName: string;
 begin
   inherited Create(AName, AParent);
   FTokens:=TStringList.Create;
+  FModifierTokens:=TStringList.Create;
 end;
 
 destructor TPasImplAsmStatement.Destroy;
 begin
   FreeAndNil(FTokens);
+  FreeAndNil(FModifierTokens);
   inherited Destroy;
 end;
 
@@ -3811,6 +3825,7 @@ end;
 procedure TPasProcedure.FreeChildren(Prepare: boolean);
 begin
   PublicName:=TPasExpr(FreeChild(PublicName,Prepare));
+  LibrarySymbolIndex:=TPasExpr(FreeChild(LibrarySymbolIndex,Prepare));
   LibrarySymbolName:=TPasExpr(FreeChild(LibrarySymbolName,Prepare));
   LibraryExpr:=TPasExpr(FreeChild(LibraryExpr,Prepare));
   DispIDExpr:=TPasExpr(FreeChild(DispIDExpr,Prepare));
@@ -4884,6 +4899,17 @@ begin
   Include(FModifiers,AModifier);
 end;
 
+function TPasProcedure.CanParseImplementation: Boolean;
+begin
+  Result:=not HasNoImplementation
+          and ((Parent is TImplementationSection) or (Parent is TProcedureBody));
+end;
+
+function TPasProcedure.HasNoImplementation: Boolean;
+begin
+  Result:=IsExternal or IsForward or IsInternProc;
+end;
+
 function TPasProcedure.IsVirtual: Boolean;
 begin
   Result:=pmVirtual in FModifiers;
@@ -4938,6 +4964,16 @@ end;
 function TPasProcedure.IsForward: Boolean;
 begin
   Result:=pmForward in FModifiers;
+end;
+
+function TPasProcedure.IsCompilerProc: Boolean;
+begin
+  Result:=pmCompilerProc in FModifiers;
+end;
+
+function TPasProcedure.IsInternProc: Boolean;
+begin
+  Result:=pmInternProc in FModifiers;
 end;
 
 function TPasProcedure.IsAssembler: Boolean;
