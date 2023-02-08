@@ -772,6 +772,67 @@ end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
+{$define FPC_SYSTEM_HAS_COMPAREDWORD}
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+{$ifndef win64}
+    mov      %rdx, %r8
+    mov      %rsi, %rdx
+    mov      %rdi, %rcx
+{$endif win64}
+    mov      %r8, %rax
+    shr      $61, %rax
+    jnz      .LUnbounded
+    cmp      $3, %r8
+    lea      (%rcx,%r8,4), %r9
+    jle      .LDwordwise_Test
+    and      $-4, %r8
+    lea      (%rcx,%r8,4), %r8
+.balign 16
+.L4x_Body:
+    movdqu   (%rcx), %xmm1
+    movdqu   (%rdx), %xmm0
+    pcmpeqd  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jne      .L4x_Found
+    add      $16, %rcx
+    add      $16, %rdx
+    cmp      %rcx, %r8
+    jne      .L4x_Body
+.LDwordwise_Test:
+    cmp      %rcx, %r9
+    je       .LNothing
+.LDwordwise_Body:
+    mov      (%rcx), %eax
+    cmp      %eax, (%rdx)
+    jne      .LDoSbb
+    add      $4, %rcx
+    add      $4, %rdx
+    cmp      %rcx, %r9
+    jne      .LDwordwise_Body
+.LNothing:
+    xor      %eax, %eax
+    ret
+
+.L4x_Found:
+    bsf      %eax, %eax
+    mov      (%rcx,%rax), %ecx
+    cmp      %ecx, (%rdx,%rax)
+.LDoSbb:
+    sbb      %rax, %rax
+    and      $2, %eax
+    sub      $1, %rax
+    ret
+
+.LUnbounded:
+    mov      %rcx, %r9
+    jmp      .LDwordwise_Body
+end;
+{$endif FPC_SYSTEM_HAS_COMPAREDWORD}
+
+
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 { does a thread save inc/dec }
 function declocked(var l : longint) : boolean;assembler; nostackframe;
