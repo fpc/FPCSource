@@ -125,19 +125,20 @@ TYPE
 {$endif}
         st_qspare     : array[0..1] Of cint64;
    end;*)
+   { https://www.haiku-os.org/legacy-docs/bebook/TheStorageKit_DefinedTypes.html#stat }
    stat = packed record
-      dev:longint;     {"device" that this file resides on}
-      ino:int64;       {this file's inode #, unique per device}
+      st_dev:longint;     {"device" that this file resides on}
+      st_ino:int64;       {this file's inode #, unique per device}
       st_mode:dword;      {mode bits (rwx for user, group, etc)}      
-      nlink:longint;   {number of hard links to this file}
-      uid:dword;       {user id of the owner of this file}
-      gid:dword;       {group id of the owner of this file}
+      st_nlink:longint;   {number of hard links to this file}
+      st_uid:dword;       {user id of the owner of this file}
+      st_gid:dword;       {group id of the owner of this file}
       st_size:int64;      {size of this file (in bytes)}
-      rdev:longint;    {device type (not used)}
-      blksize:longint; {preferref block size for i/o}
-      atime:longint;   {last access time}
+      st_rdev:longint;    {device type (not used)}
+      st_blksize:longint; {preferref block size for i/o}
+      st_atime:longint;   {last access time}
       st_mtime:longint;   {last modification time}
-      ctime:longint;   {last change time, not creation time}
+      st_ctime:longint;   {last change time, not creation time}
       crtime:longint;  {creation time}
    end;
    
@@ -255,6 +256,9 @@ CONST
     S_IROTH =  %0000000100;     { Read permission for world   }
     S_IWOTH =  %0000000010;     { Write permission for world  }
     S_IXOTH =  %0000000001;     { Exec permission for world   }
+    { The two following modes are not supported on BeOS }
+    S_ISUID =  0;               { set user id on execution    }
+    S_ISGID =  0;               { set group id on execution   }
 
     { Used for waitpid }
     WNOHANG   =          1;     { don't block waiting               }
