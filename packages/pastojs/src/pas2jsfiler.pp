@@ -138,7 +138,9 @@ const
     'StopOnUnitInterface',
     'IgnoreUnknownResource',
     'AsyncProcs',
-    'DisableResources');
+    'DisableResources',
+    'po_AsmPascalComments',
+    'AllowMem' );
 
   PCUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
@@ -327,7 +329,8 @@ const
     'Public',
     'Export',
     'Class',
-    'Static'
+    'Static',
+    'Far'
     );
 
   PCUDefaultExprKind = pekIdent;
@@ -523,7 +526,11 @@ const
     'NoReturn',
     'Far',
     'Final',
-    'DiscardResult'
+    'DiscardResult',
+    'NoStackFrame', 
+    'section', 
+    'RtlProc', 
+    'InternProc'
     );
   PCUProcedureModifiersImplProc = [pmInline,pmAssembler,pmCompilerProc,pmNoReturn];
 
