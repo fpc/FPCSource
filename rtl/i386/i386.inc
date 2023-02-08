@@ -459,35 +459,34 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function IndexWord_Plain(Const buf;len:SizeInt;b:word):SizeInt; assembler;
-var
-  saveedi,saveebx : longint;
+function IndexWord_Plain(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %ebx,saveebx
-        movl    Buf,%edi       // Load String
-        movw    b,%bx
-        movl    Len,%ecx       // Load len
-        xorl    %eax,%eax
-        testl   %ecx,%ecx
-        jz      .Lcharposnotfound
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    %ecx,%edx      // Copy for easy manipulation
-        movw    %bx,%ax
-        repne
-        scasw
-        jne     .Lcharposnotfound
-        incl    %ecx
-        subl    %ecx,%edx
-        movl    %edx,%eax
-        jmp     .Lready
-.Lcharposnotfound:
-        movl    $-1,%eax
-.Lready:
-        movl    saveedi,%edi
-        movl    saveebx,%ebx
+        push    %eax
+        cmp     $1073741823, %edx
+        ja      .LUnbounded
+        lea     (%eax,%edx,2), %edx
+        cmp     %edx, %eax
+        je      .LNotFound
+.LWordwise_Body:
+        cmp     %cx, (%eax)
+        je      .LFound
+        add     $2, %eax
+        cmp     %edx, %eax
+        jne     .LWordwise_Body
+.LNotFound:
+        pop     %eax
+        mov     $-1, %eax
+        ret
+
+.LFound:
+        pop     %edx
+        sub     %edx, %eax
+        shr     $1, %eax
+        ret
+
+.LUnbounded:
+        mov     %eax, %edx
+        jmp     .LWordwise_Body
 end;
 
 function IndexWord_SSE2(const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
@@ -626,35 +625,34 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord_Plain(Const buf;len:SizeInt;b:DWord):SizeInt; assembler;
-var
-  saveedi,saveebx : longint;
+function IndexDWord_Plain(Const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %ebx,saveebx
-        movl    %eax,%edi
-        movl    %ecx,%ebx
-        movl    %edx,%ecx
-        xorl    %eax,%eax
-        testl   %ecx,%ecx
-        jz      .Lcharposnotfound
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    %ecx,%edx      // Copy for easy manipulation
-        movl    %ebx,%eax
-        repne
-        scasl
-        jne     .Lcharposnotfound
-        incl    %ecx
-        subl    %ecx,%edx
-        movl    %edx,%eax
-        jmp     .Lready
-.Lcharposnotfound:
-        movl    $-1,%eax
-.Lready:
-        movl    saveedi,%edi
-        movl    saveebx,%ebx
+        push    %eax
+        cmp     $536870911, %edx
+        ja      .LUnbounded
+        lea     (%eax,%edx,4), %edx
+        cmp     %edx, %eax
+        je      .LNotFound
+.LDWordwise_Body:
+        cmp     %ecx, (%eax)
+        je      .LFound
+        add     $4, %eax
+        cmp     %edx, %eax
+        jne     .LDWordwise_Body
+.LNotFound:
+        pop     %eax
+        mov     $-1, %eax
+        ret
+
+.LFound:
+        pop     %edx
+        sub     %edx, %eax
+        shr     $2, %eax
+        ret
+
+.LUnbounded:
+        mov     %eax, %edx
+        jmp     .LDWordwise_Body
 end;
 
 function IndexDWord_SSE2(const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
