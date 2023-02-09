@@ -265,7 +265,7 @@ unit agrvgas;
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT -march=$ARCH -mabi=$ABI $ASM';
          supported_targets : [system_riscv32_linux,system_riscv64_linux];
-         flags : [af_needar,af_smartlink_sections];
+         flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
          labelmaxlen : -1;
          comment : '# ';

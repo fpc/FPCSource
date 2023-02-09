@@ -2,7 +2,7 @@
 Startup code for riscv32-esp32c3 using idf
 
 ******************************************************************************}
-unit esp32;
+unit esp32c3;
 
 {$goto on}
 {$macro on}
