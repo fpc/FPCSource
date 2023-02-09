@@ -627,6 +627,64 @@ asm
 end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
+{$define FPC_SYSTEM_HAS_INDEXDWORD}
+function IndexDWord(Const buf;len:SizeInt;b:dword):SizeInt; assembler; nostackframe;
+asm
+{$ifndef win64}
+    mov      %rdx, %r8
+    mov      %rsi, %rdx
+    mov      %rdi, %rcx
+{$endif}
+    mov      %rcx, %rax
+    mov      %rdx, %r9
+    shr      $61, %r9
+    jnz      .LUnbounded
+    lea      (%rcx,%rdx,4), %r10
+    cmp      $3, %rdx
+    jle      .LDWorwise_Test
+    movd     %r8d, %xmm1
+    pshufd   $0, %xmm1, %xmm1
+    and      $-4, %rdx
+    lea      (%rcx,%rdx,4), %r9
+
+.balign 16
+.L4x_Body:
+    movdqu   (%rax), %xmm0
+    pcmpeqd  %xmm1, %xmm0
+    pmovmskb %xmm0, %edx
+    test     %edx, %edx
+    jne      .L4x_Found
+    add      $16, %rax
+    cmp      %r9, %rax
+    jne      .L4x_Body
+.LDWorwise_Test:
+    cmp      %r10, %rax
+    je       .LNothing
+.LDWorwise_Body:
+    cmp      %r8d, (%rax)
+    je       .LFound
+    add      $4, %rax
+    cmp      %r10, %rax
+    jne      .LDWorwise_Body
+.LNothing:
+    mov      $-1, %rax
+    ret
+
+.L4x_Found:
+    bsf      %edx, %edx
+    add      %rdx, %rax
+.LFound:
+    sub      %rcx, %rax
+    shr      $2, %rax
+    ret
+
+.LUnbounded:
+    mov      %rcx, %r10
+    jmp      .LDWorwise_Body
+end;
+{$endif FPC_SYSTEM_HAS_INDEXDWORD}
+
 {$endif freebsd}
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
