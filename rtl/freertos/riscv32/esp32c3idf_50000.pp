@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit espidf_40400;
+unit esp32c3idf_50000;
 
 interface
 
