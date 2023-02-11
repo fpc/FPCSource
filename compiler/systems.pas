@@ -315,7 +315,7 @@ interface
                            system_aarch64_embedded];
 
        { all FreeRTOS systems }
-       systems_freertos = [system_xtensa_freertos,system_arm_freertos];
+       systems_freertos = [system_xtensa_freertos,system_arm_freertos,system_riscv32_freertos];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded+systems_freertos+systems_wasm+[system_powerpc_morphos];
