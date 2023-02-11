@@ -1326,6 +1326,7 @@ begin
 
   if success then
    begin
+{$ifndef ARM}
 {$if defined(DARWIN)}
      success:=FindFileInExeLocations('python',true,binstr);
      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
@@ -1336,6 +1337,7 @@ begin
      binstr:='python';
      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$endif UNIX}
+{$endif ARM}
 
 {$if defined(XTENSA)}
      if source_info.exeext<>'' then
