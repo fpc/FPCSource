@@ -4903,14 +4903,14 @@ begin
 {$endif XTENSA}
 
 {$ifdef cpufpemu}
-  { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
+  { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds etc.
     if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,
          system_arm_nds,system_arm_embedded,system_arm_freertos,
          system_riscv32_embedded,system_riscv64_embedded,system_xtensa_linux,
-         system_z80_embedded,system_z80_zxspectrum])
+         system_z80_embedded,system_z80_zxspectrum,system_riscv32_freertos])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
@@ -5087,12 +5087,7 @@ begin
 
 {$if defined(riscv32) or defined(riscv64)}
   { RISC-V defaults }
-  if target_info.system = system_riscv32_freertos then
-    begin
-      if not(option.FPUSetExplicitly) then
-        init_settings.fputype:=fpu_soft;
-    end
-  else if (target_info.abi = abi_riscv_hf) then
+  if (target_info.abi = abi_riscv_hf) then
     begin
       {$ifdef riscv32}
       if not option.CPUSetExplicitly then
