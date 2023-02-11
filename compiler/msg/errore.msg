@@ -3065,7 +3065,7 @@ exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
 % Check your paths.
 exec_e_error_while_linking=09013_E_Error while linking
 % Generic error while linking.
-exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking
+exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking (error was "$1")
 % An error occurred when calling an external linker. The compiler will produce a script that
 % can be used to assemble and link the program.
 exec_i_linking=09015_I_Linking $1
