@@ -1324,62 +1324,55 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
+  if success then
+   begin
+{$if defined(DARWIN)}
+     success:=FindFileInExeLocations('python',true,binstr);
+     cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+{$elseif defined(UNIX)}
+     binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+     cmdstr:='';
+{$else}
+     binstr:='python';
+     cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+{$endif UNIX}
+
 {$if defined(XTENSA)}
-  if success then
-   begin
-{$ifdef UNIX}
-      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
-      cmdstr:='';
-{$else}
-      binstr:='python';
-      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
-{$endif UNIX}
-      if source_info.exeext<>'' then
-        binstr:=binstr+source_info.exeext;
-      if (current_settings.controllertype = ct_esp32) then
-        begin
-          success:=DoExec(binstr,cmdstr+'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
-            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-            '--elf-sha256-offset 0xb0 '+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-            FixedExeFileName,
-            true,false);
-        end
-      else if (current_settings.controllertype = ct_esp8266) then
-        begin
-          success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
-            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-            '--version=3 '+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-            FixedExeFileName,
-            true,false);
-        end
-   end
-  else
+     if source_info.exeext<>'' then
+       binstr:=binstr+source_info.exeext;
+     if (current_settings.controllertype = ct_esp32) then
+       begin
+         success:=DoExec(binstr,cmdstr+'--chip esp32 elf2image --flash_mode dio --flash_freq 40m '+
+           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+           '--elf-sha256-offset 0xb0 '+
+           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+           FixedExeFileName,
+           true,false);
+       end
+     else if (current_settings.controllertype = ct_esp8266) then
+       begin
+         success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
+           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+           '--version=3 '+
+           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+           FixedExeFileName,
+           true,false);
+       end
 {$elseif defined(RISCV32)}
-  if success then
-   begin
-{$ifdef UNIX}
-      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
-      cmdstr:='';
-{$else}
-      binstr:='python';
-      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
-{$endif UNIX}
-      if source_info.exeext<>'' then
-        binstr:=binstr+source_info.exeext;
-      if (current_settings.controllertype = ct_esp32c3) then
-        begin
-          success:=DoExec(binstr,cmdstr+'--chip esp32c3 elf2image --flash_mode dio --flash_freq 80m '+
-            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
-            '--elf-sha256-offset 0xb0 --min-rev 3 '+
-            '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
-            FixedExeFileName,
-            true,false);
-        end;
+     if source_info.exeext<>'' then
+       binstr:=binstr+source_info.exeext;
+     if (current_settings.controllertype = ct_esp32c3) then
+       begin
+         success:=DoExec(binstr,cmdstr+'--chip esp32c3 elf2image --flash_mode dio --flash_freq 80m '+
+           '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+           '--elf-sha256-offset 0xb0 --min-rev 3 '+
+           '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
+           FixedExeFileName,
+           true,false);
+       end;
+{$endif defined(RISCV32)}
    end
   else
-{$endif defined(RISCV32)}
     if success then
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
         FixedExeFileName+' '+
