@@ -901,7 +901,7 @@ Implementation
                exitcode:=RequotedExecuteProcess(command,para);
              except on E:EOSError do
                begin
-                 Message(exec_e_cant_call_linker);
+                 Message1(exec_e_cant_call_linker,e.Message);
                  current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                  DoExec:=false;
                end;
