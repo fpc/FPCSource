@@ -133,7 +133,7 @@ Const
       (controllertypestr:'CH32V307RC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'CH32V307WC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'CH32V307VC'; controllerunitstr:'CH32V307';    cputype:cpu_rv32imac; fputype:fpu_fd; flashbase:$00000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
-      (controllertypestr:'ESP32C3'; controllerunitstr:'ESP32C3';    cputype:cpu_rv32imc; fputype:fpu_none; flashbase:$00000000; flashsize:2*1024*1024; srambase:$20000000; sramsize:$00010000)
+      (controllertypestr:'ESP32C3'; controllerunitstr:'ESP32C3';    cputype:cpu_rv32imc; fputype:fpu_none; flashbase:$00000000; flashsize:4*1024*1024; srambase:$20000000; sramsize:400*1024)
    );
    {$POP}
 
