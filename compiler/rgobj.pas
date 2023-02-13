@@ -1943,7 +1943,7 @@ unit rgobj;
                   palloc:=tai_regalloc.alloc(r,live_start)
                 else
                   palloc:=tai_regalloc.alloc(r,nil);
-                if live_end.typ=ait_instruction then
+                if assigned(live_end) and (live_end.typ=ait_instruction) then
                   pdealloc:=tai_regalloc.dealloc(r,live_end)
                 else
                   pdealloc:=tai_regalloc.dealloc(r,nil);
