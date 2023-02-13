@@ -440,6 +440,7 @@ procedure WriteBarrier; assembler; nostackframe;
     dbar 0
   end;
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; assembler; nostackframe;
   asm
@@ -504,6 +505,7 @@ procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
   .Lret:
     jr $ra
   end;
+{$endif ndef FPC_SYSTEM_HAS_MOVE}
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
