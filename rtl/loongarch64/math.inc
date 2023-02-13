@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+    {$ifndef FPC_SYSTEM_HAS_INT}
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
       asm
@@ -23,7 +24,9 @@
         frint.d $fa0, $fa0
         movgr2fcsr $r3, $t0
       end;
+    {$endif ndef FPC_SYSTEM_HAS_INT}
 
+    {$ifndef FPC_SYSTEM_HAS_FRAC}
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d : ValReal) : ValReal;assembler;nostackframe;compilerproc;
       asm
@@ -44,3 +47,5 @@
         fdiv.d $fa0, $fa0, $fa1
         // jr $ra
       end;
+    {$endif ndef FPC_SYSTEM_HAS_FRAC}
+
