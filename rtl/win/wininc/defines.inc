@@ -6053,7 +6053,23 @@ const
     IMAGE_FILE_MACHINE_AMD64              = $8664;  // AMD64 (K8)
     IMAGE_FILE_MACHINE_M32R               = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE                = $C0EE;
-    IMAGE_FILE_LARGE_ADDRESS_AWARE        = $20;    // for peflags.
+
+    // for peflags
+    IMAGE_FILE_RELOCS_STRIPPED            = $0001;
+    IMAGE_FILE_EXECUTABLE_IMAGE           = $0002;
+    IMAGE_FILE_LINE_NUMS_STRIPPED         = $0004;
+    IMAGE_FILE_LOCAL_SYMS_STRIPPED        = $0008;
+    IMAGE_FILE_AGGRESIVE_WS_TRIM          = $0010;
+    IMAGE_FILE_LARGE_ADDRESS_AWARE        = $0020;
+    IMAGE_FILE_BYTES_REVERSED_LO          = $0080;
+    IMAGE_FILE_32BIT_MACHINE              = $0100;
+    IMAGE_FILE_DEBUG_STRIPPED             = $0200;
+    IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP    = $0400;
+    IMAGE_FILE_NET_RUN_FROM_SWAP          = $0800;
+    IMAGE_FILE_SYSTEM                     = $1000;
+    IMAGE_FILE_DLL                        = $2000;
+    IMAGE_FILE_UP_SYSTEM_ONLY             = $4000;
+    IMAGE_FILE_BYTES_REVERSED_HI          = $8000;
 
   //
   // Section characteristics.
