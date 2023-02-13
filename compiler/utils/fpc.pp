@@ -255,6 +255,8 @@ program fpc;
                              cpusuffix:='8086'
                            else if processorstr='jvm' then
                              cpusuffix:='jvm'
+                           else if processorstr='loongarch64' then
+                             cpusuffix:='loongarch64'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
                            else if processorstr='mips' then
