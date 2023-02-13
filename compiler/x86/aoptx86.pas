@@ -14612,9 +14612,10 @@ unit aoptx86;
                 taicpu(hp1).clearop(1);
                 taicpu(hp1).ops := 0;
 
-                { A change was made, but not with p, so move forward 1 }
-                p := tai(p.Next);
-                Result := True;
+                { A change was made, but not with p, so don't set Result, but
+                  notify the compiler that a change was made }
+                Include(OptsToCheck, aoc_ForceNewIteration);
+
                 Exit; { and -> btr won't happen because an opsize of S_W won't be optimised anyway }
               end;
           end;
