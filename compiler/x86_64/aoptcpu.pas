@@ -63,6 +63,22 @@ uses
           else
             ;
         end;
+
+        { If this flag is set, something was optimised ahead of p, so move
+          ahead by 1 instruction but treat as if Result was set to True }
+        if aoc_ForceNewIteration in OptsToCheck then
+          begin
+            Exclude(OptsToCheck, aoc_ForceNewIteration);
+
+            if not Result then
+              begin
+                if (p.typ in SkipInstr) then
+                  UpdateUsedRegs(p);
+
+                p := tai(p.Next);
+                Result := True;
+              end;
+          end;
       end;
 
 
@@ -218,6 +234,21 @@ uses
           else
             ;
         end;
+        { If this flag is set, something was optimised ahead of p, so move
+          ahead by 1 instruction but treat as if Result was set to True }
+        if aoc_ForceNewIteration in OptsToCheck then
+          begin
+            Exclude(OptsToCheck, aoc_ForceNewIteration);
+
+            if not Result then
+              begin
+                if (p.typ in SkipInstr) then
+                  UpdateUsedRegs(p);
+
+                p := tai(p.Next);
+                Result := True;
+              end;
+          end;
       end;
 
 
@@ -270,6 +301,21 @@ uses
           else
             ;
         end;
+        { If this flag is set, something was optimised ahead of p, so move
+          ahead by 1 instruction but treat as if Result was set to True }
+        if aoc_ForceNewIteration in OptsToCheck then
+          begin
+            Exclude(OptsToCheck, aoc_ForceNewIteration);
+
+            if not Result then
+              begin
+                if (p.typ in SkipInstr) then
+                  UpdateUsedRegs(p);
+
+                p := tai(p.Next);
+                Result := True;
+              end;
+          end;
       end;
 
 
