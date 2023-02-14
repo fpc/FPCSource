@@ -5223,7 +5223,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1Test(var p: tai) : boolean;
       var
-        hp1, p_label, p_dist, hp1_dist: tai;
+        hp1, p_label, p_dist, hp1_dist, hp1_last: tai;
         JumpLabel, JumpLabel_dist: TAsmLabel;
         FirstValue, SecondValue: TCGInt;
         TempBool: Boolean;
@@ -5313,6 +5313,7 @@ unit aoptx86;
         { Search for:
             test  $x,(reg/ref)
             jne   @lbl1
+            ...
             test  $y,(reg/ref) (same register or reference)
             jne   @lbl1
 
@@ -5327,6 +5328,7 @@ unit aoptx86;
           Also search for:
             test  $x,(reg/ref)
             je    @lbl1
+            ...
             test  $y,(reg/ref)
             je/jne @lbl2
 
@@ -5355,106 +5357,167 @@ unit aoptx86;
               after it might (e.g. test; jne @lbl1; test; jne @lbl2; test @lbl1),
               so accommodate for this with a while loop.
             }
-            hp1_dist := hp1;
+            hp1_last := hp1;
 
-            if GetNextInstruction(hp1, p_dist) and
-              (p_dist.typ = ait_instruction) and
-              (
+            while (
                 (
-                  (taicpu(p_dist).opcode = A_TEST) and
-                  (
-                    (taicpu(p_dist).oper[0]^.typ = top_const) or
-                    { test %reg,%reg can be considered equivalent to test, -1,%reg }
-                    MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^)
-                  )
-                ) or
-                (
-                  { cmp 0,%reg = test %reg,%reg }
-                  (taicpu(p_dist).opcode = A_CMP) and
-                  MatchOperand(taicpu(p_dist).oper[0]^, 0)
-                )
-              ) and
-              { Make sure the destination operands are actually the same }
-              MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
-              GetNextInstruction(p_dist, hp1_dist) and
-              MatchInstruction(hp1_dist, A_JCC, []) then
+                  (taicpu(p).oper[1]^.typ = top_reg) and
+                  GetNextInstructionUsingReg(hp1_last, p_dist, taicpu(p).oper[1]^.reg)
+                ) or GetNextInstruction(hp1_last, p_dist)
+
+              ) and (p_dist.typ = ait_instruction) do
               begin
-                if
-                  (taicpu(p_dist).opcode = A_CMP) { constant will be zero } or
-                  (
-                    (taicpu(p_dist).oper[0]^.typ = top_reg) and
-                    MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^.reg)
-                  ) then
-                  SecondValue := -1
-                else
-                  SecondValue := taicpu(p_dist).oper[0]^.val;
 
-                { If both of the TEST constants are identical, delete the second
-                  TEST that is unnecessary.  }
-                if (FirstValue = SecondValue) then
+                if (
+                    (
+                      (taicpu(p_dist).opcode = A_TEST) and
+                      (
+                        (taicpu(p_dist).oper[0]^.typ = top_const) or
+                        { test %reg,%reg can be considered equivalent to test, -1,%reg }
+                        MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^)
+                      )
+                    ) or
+                    (
+                      { cmp 0,%reg = test %reg,%reg }
+                      (taicpu(p_dist).opcode = A_CMP) and
+                      MatchOperand(taicpu(p_dist).oper[0]^, 0)
+                    )
+                  ) and
+                  { Make sure the destination operands are actually the same }
+                  MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p).oper[1]^) and
+                  GetNextInstruction(p_dist, hp1_dist) and
+                  MatchInstruction(hp1_dist, A_JCC, []) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'TEST/Jcc/TEST; removed superfluous TEST', p_dist);
-                    RemoveInstruction(p_dist);
-                    { Don't let the flags register become deallocated and reallocated between the jumps }
-                    AllocRegBetween(NR_DEFAULTFLAGS, hp1, hp1_dist, UsedRegs);
-                    Result := True;
-                    if condition_in(taicpu(hp1_dist).condition, taicpu(hp1).condition) then
+                    if
+                      (taicpu(p_dist).opcode = A_CMP) { constant will be zero } or
+                      (
+                        (taicpu(p_dist).oper[0]^.typ = top_reg) and
+                        MatchOperand(taicpu(p_dist).oper[1]^, taicpu(p_dist).oper[0]^.reg)
+                      ) then
+                      SecondValue := -1
+                    else
+                      SecondValue := taicpu(p_dist).oper[0]^.val;
+
+                    { If both of the TEST constants are identical, delete the
+                      second TEST that is unnecessary (be careful though, just
+                      in case the flags are modified in between) }
+                    if (FirstValue = SecondValue) then
                       begin
-                        { Since the second jump's condition is a subset of the first, we
-                          know it will never branch because the first jump dominates it.
-                          Get it out of the way now rather than wait for the jump
-                          optimisations for a speed boost. }
+                        { We have to check the entire range }
+                        TempBool := not RegModifiedBetween(NR_DEFAULTFLAGS, hp1, p_dist);
+
+                        if condition_in(taicpu(hp1_dist).condition, taicpu(hp1).condition) then
+                          begin
+                            { Since the second jump's condition is a subset of the first, we
+                              know it will never branch because the first jump dominates it.
+                              Get it out of the way now rather than wait for the jump
+                              optimisations for a speed boost. }
+                            if IsJumpToLabel(taicpu(hp1_dist)) then
+                              TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
+
+                            DebugMsg(SPeepholeOptimization + 'Removed dominated jump (via TEST/Jcc/TEST)', hp1_dist);
+                            RemoveInstruction(hp1_dist);
+                            Result := True;
+                          end
+                        else if condition_in(inverse_cond(taicpu(hp1).condition), taicpu(hp1_dist).condition) then
+                          begin
+                            { If the inverse of the first condition is a subset of the second,
+                              the second one will definitely branch if the first one doesn't }
+                            DebugMsg(SPeepholeOptimization + 'Conditional jump will always branch (via TEST/Jcc/TEST)', hp1_dist);
+
+                            { We can remove the TEST instruction too }
+                            DebugMsg(SPeepholeOptimization + 'TEST/Jcc/TEST; removed superfluous TEST', p_dist);
+                            RemoveInstruction(p_dist);
+
+                            MakeUnconditional(taicpu(hp1_dist));
+                            RemoveDeadCodeAfterJump(hp1_dist);
+
+                            { Since the jump is now unconditional, we can't
+                              continue any further with this particular
+                              optimisation.  The original TEST is still intact
+                              though, so there might be something else we can
+                              do }
+                            Include(OptsToCheck, aoc_ForceNewIteration);
+                            Break;
+                          end;
+
+                        if Result or
+                          { If a jump wasn't removed or made unconditional, only
+                            remove the identical TEST instruction if the flags
+                            weren't modified }
+                          TempBool then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'TEST/Jcc/TEST; removed superfluous TEST', p_dist);
+                            RemoveInstruction(p_dist);
+
+                            { If the jump was removed or made unconditional, we
+                              don't need to allocate NR_DEFAULTFLAGS over the
+                              entire range }
+                            if not Result then
+                              begin
+                                { Mark the flags as 'in use' over the entire range }
+                                AllocRegBetween(NR_DEFAULTFLAGS, hp1, hp1_dist, UsedRegs);
+
+                                { Speed gain - continue search from the Jcc instruction }
+                                hp1_last := hp1_dist;
+
+                                { Only the TEST instruction was removed, and the
+                                  original was unchanged, so we can safely do
+                                  another iteration of the while loop }
+                                Include(OptsToCheck, aoc_ForceNewIteration);
+                                Continue;
+                              end;
+
+                            Exit;
+                          end;
+                      end;
+
+                    if (taicpu(hp1).condition in [C_NE, C_NZ]) and
+                      (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
+                      { If the first instruction is test %reg,%reg or test $-1,%reg,
+                        then the second jump will never branch, so it can also be
+                        removed regardless of where it goes }
+                      (
+                        (FirstValue = -1) or
+                        (SecondValue = -1) or
+                        MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
+                      ) then
+                      begin
+                        { Same jump location... can be a register since nothing's changed }
+
+                        { If any of the entries are equivalent to test %reg,%reg, then the
+                          merged $(x or y) is also test %reg,%reg / test $-1,%reg }
+                        taicpu(p).loadconst(0, FirstValue or SecondValue);
+
                         if IsJumpToLabel(taicpu(hp1_dist)) then
                           TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
 
-                        DebugMsg(SPeepholeOptimization + 'Removed dominated jump (via TEST/Jcc/TEST)', hp1_dist);
+                        DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
                         RemoveInstruction(hp1_dist);
-                      end
-                    else if condition_in(inverse_cond(taicpu(hp1).condition), taicpu(hp1_dist).condition) then
-                      begin
-                        { If the inverse of the first condition is a subset of the second,
-                          the second one will definitely branch if the first one doesn't }
-                        DebugMsg(SPeepholeOptimization + 'Conditional jump will always branch (via TEST/Jcc/TEST)', hp1_dist);
-                        MakeUnconditional(taicpu(hp1_dist));
-                        RemoveDeadCodeAfterJump(hp1_dist);
+
+                        { Only remove the second test if no jumps or other conditional instructions follow }
+                        TransferUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                        UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                        if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
+                          RemoveInstruction(p_dist);
+
+                        Result := True;
+                        Exit;
                       end;
-
-                    Exit;
                   end;
 
-                if (taicpu(hp1).condition in [C_NE, C_NZ]) and
-                  (taicpu(hp1_dist).condition in [C_NE, C_NZ]) and
-                  { If the first instruction is test %reg,%reg or test $-1,%reg,
-                    then the second jump will never branch, so it can also be
-                    removed regardless of where it goes }
-                  (
-                    (FirstValue = -1) or
-                    (SecondValue = -1) or
-                    MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
-                  ) then
+                if { If -O2 and under, it may stop on any old instruction }
+                  (cs_opt_level3 in current_settings.optimizerswitches) and
+                  (taicpu(p).oper[1]^.typ = top_reg) and
+                  not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, p_dist) then
                   begin
-                    { Same jump location... can be a register since nothing's changed }
-
-                    { If any of the entries are equivalent to test %reg,%reg, then the
-                      merged $(x or y) is also test %reg,%reg / test $-1,%reg }
-                    taicpu(p).loadconst(0, FirstValue or SecondValue);
-
-                    if IsJumpToLabel(taicpu(hp1_dist)) then
-                      TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
-
-                    DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
-                    RemoveInstruction(hp1_dist);
-
-                    { Only remove the second test if no jumps or other conditional instructions follow }
-                    TransferUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                    if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
-                      RemoveInstruction(p_dist);
-
-                    Result := True;
-                    Exit;
+                    hp1_last := p_dist;
+                    Continue;
                   end;
+
+                Break;
+
               end;
           end;
 
@@ -6285,8 +6348,6 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
-      var
-        hp2: tai;
       begin
         Result := False;
         if MatchOpType(taicpu(p),top_ref,top_reg) and
@@ -6334,13 +6395,8 @@ unit aoptx86;
                 RemoveCurrentP(p);
 
                 if (p <> hp1) then
-                  begin
-                    { Correctly update TmpUsedRegs if p and hp1 aren't adjacent }
-                    hp2 := p;
-                    repeat
-                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
-                    until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
-                  end;
+                  { Correctly update TmpUsedRegs if p and hp1 aren't adjacent }
+                  UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
 
                 { Make sure the flags are allocated across the CMP instruction }
                 if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
