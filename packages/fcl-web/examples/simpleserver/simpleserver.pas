@@ -394,7 +394,7 @@ begin
       FPassword:=ReadString(SConfig,KeyQuit,FPassword);
       FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
       FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
-      FAPISecret:=ReadString(SConfig,keyAPI,'');
+      FAPISecret:=ReadString(SConfig,KeyAPI,'');
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
       if ValueExists(SConfig,KeyCapture) then
         begin
@@ -426,17 +426,26 @@ end;
 
 procedure THTTPApplication.ProcessOptions;
 
+  procedure HasGetOptionValue(var aValue: string; Const C: Char; Const S : String);
+  begin
+    if HasOption(C,S) then
+      aValue:=GetOptionValue(C,S);
+  end;
+
 Var
   S : String;
 
 begin
   for S in GetOptionValues('x','proxy') do
     AddProxy(S);
-  FAPISecret:=GetOptionValue('A','api');
-  FEcho:=HasOption('e','echo');
-  Quiet:=HasOption('q','quiet');
-  FPassword:=GetOptionValue('Q','quit');
-  Port:=StrToIntDef(GetOptionValue('p','port'),Port);
+  HasGetOptionValue(FAPISecret,'A','api');
+  if HasOption('e','echo') then
+    FEcho:=true;
+  if HasOption('q','quiet') then
+    Quiet:=true;
+  HasGetOptionValue(FPassword,'Q','quit');
+  if HasOption('p','port') then
+    Port:=StrToIntDef(GetOptionValue('p','port'),Port);
   LoadMimeTypes;
   if HasOption('d','directory') then
     BaseDir:=GetOptionValue('d','directory');
@@ -449,9 +458,12 @@ begin
     IndexPageName:=GetOptionValue('i','indexpage');
   if HasOption('I','interface') then
     InterfaceAddress:=GetOptionValue('I','interface');
-  FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
-  FBackground:=HasOption('b','background');
-  FCrossOriginIsolation:=hasOption('o','coi');
+  if HasOption('a','max-age') then
+    FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
+  if HasOption('b','background') then
+    FBackground:=true;
+  if hasOption('o','coi') then
+    FCrossOriginIsolation:=true;
   if HasOption('u','capture') then
     begin
     FCaptureFileName:=GetOptionValue('u','capture');
