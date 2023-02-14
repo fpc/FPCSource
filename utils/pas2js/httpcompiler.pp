@@ -7,6 +7,9 @@ interface
 
 uses
   {$ifdef unix}baseunix,{$endif}
+  {$IF FPC_FULLVERSION > 30300}
+  strutils,
+  {$ENDIF}
   sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
   fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
   Pas2JSCompilerCfg, ssockets;
@@ -155,8 +158,6 @@ Type
 
 
 Implementation
-
-uses strutils;
 
 { TMySimpleFileModule }
 
@@ -869,10 +870,14 @@ begin
     {$IF FPC_FULLVERSION > 30300}
     TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPI,[',']),ExtractWord(2,FAPI,[',']));
     {$ELSE}
-    Log(etError,'API support missing, Compile with fpc 3.3.1+');
+    Log(etError,'API support missing, compile with fpc 3.3.1+');
     {$ENDIF}
   if FCrossOriginIsolation then
+    {$IF FPC_FULLVERSION > 30300}
     TSimpleFileModule.DefaultSimpleFileModuleClass:=TMySimpleFileModule;
+    {$ELSE}
+    Log(etError,'CrossOriginIsolation support missing, compile with fpc 3.3.1+');
+    {$ENDIF}
   TSimpleFileModule.RegisterDefaultRoute;
   if InterfaceAddress<>'' then
     HTTPHandler.Address:=InterfaceAddress;
