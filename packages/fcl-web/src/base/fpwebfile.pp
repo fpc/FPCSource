@@ -25,6 +25,8 @@ uses SysUtils, Classes, httpdefs, fphttp, httproute;
 Type
   EFileLocation = class(EHTTP);
 
+  TSimpleFileLog = Procedure (EventType : TEventType; Const Msg : String) of object;
+
   { TFPCustomFileModule }
 
   TFPCustomFileModule = Class(TCustomHTTPModule)
@@ -45,6 +47,9 @@ Type
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property CacheControlMaxAge : Integer Read FCacheControlMaxAge Write FCacheControlMaxAge;
+  Public Class Var
+    // If you want some logging, set this.
+    OnLog : TSimpleFileLog;
   Published
     Property CORS;
     property Kind;
@@ -86,7 +91,6 @@ Type
 
   { TSimpleFileModule }
 
-  TSimpleFileLog = Procedure (EventType : TEventType; Const Msg : String) of object;
   TSimpleFileModule = class(TFPCustomFileModule,IRouteInterface)
   Private
     class var
@@ -100,15 +104,11 @@ Type
     Function MapFileName(Const AFileName : String) : String; override;
     Function GetRequestFileName(Const ARequest : TRequest) : String; override;
   Public
-    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
-  Public
   Class var
     // Where to serve files from
     BaseDir : String;
     // For directories, convert to index.html if this is set.
     IndexPageName : String;
-    // If you want some logging, set this.
-    OnLog : TSimpleFileLog;
     DefaultSimpleFileModuleClass: TSimpleFileModuleClass;
     Class Procedure RegisterDefaultRoute(OverAllDefault : Boolean = True);
     Class function DefaultRouteActive : Boolean;
@@ -263,13 +263,6 @@ begin
     Result:=Result+IndexPageName;
 end;
 
-procedure TSimpleFileModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
-begin
-  Inherited;
-  if Assigned (OnLog) then
-    OnLog(etInfo,Format('%d serving "%s" -> "%s"',[AResponse.Code,FRequestedFileName,FMappedFileName]));
-end;
-
 class procedure TSimpleFileModule.RegisterDefaultRoute(OverAllDefault : Boolean = True);
 begin
   if BaseDir='' then
@@ -411,6 +404,8 @@ begin
     exit;
     end;
   SendFile(FN,AResponse);
+  if Assigned (OnLog) then
+    OnLog(etInfo,Format('%d serving "%s" -> "%s"',[AResponse.Code,RFN,FN]));
 end;
 
 procedure TFPWebFileLocationAPIModule.SetCors(AValue: TCORSSupport);
