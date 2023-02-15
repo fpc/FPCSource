@@ -12407,24 +12407,12 @@ unit aoptx86;
                                       if there are any opposing CMOV pairs that
                                       write to the same register }
                                     for x := 0 to w - 1 do
-                                      if RegWrites[x] = taicpu(hp1).oper[1]^.reg then
+                                      if (RegWrites[x] = taicpu(hp1).oper[1]^.reg) then
                                         begin
-                                          { We have a match.  Move this instruction
-                                            right to the top }
+                                          { We have a match.  Keep this as a MOV }
 
-                                          hp2 := hp1;
                                           { Move ahead in preparation }
                                           GetNextInstruction(hp1, hp1);
-
-                                          asml.Remove(hp2);
-                                          asml.InsertAfter(hp2, hp_prev);
-
-                                          { Note we can't use the trick of inserting before hp_prev
-                                            and then calling TrySwapMovOp with hp_prev2, like with
-                                            the MOV imm,reg optimisations, because hp2 may share a
-                                            register with the comparison }
-                                          if (hp_prev <> p) then
-                                            TrySwapMovCmp(hp_prev, hp2);
 
                                           RegMatch := True;
                                           Break;
