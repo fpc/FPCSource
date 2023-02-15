@@ -1544,7 +1544,7 @@ implementation
                   Message(parser_e_packed_dynamic_open_array);
                 arrdef.lowrange:=0;
                 arrdef.highrange:=-1;
-                arrdef.rangedef:=s32inttype;
+                arrdef.rangedef:=sizesinttype;
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
              end;
