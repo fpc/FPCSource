@@ -698,76 +698,94 @@ asm
     mov      %rsi, %rdx
     mov      %rdi, %rcx
 {$endif win64}
-    sub      %rcx, %rdx
-    lea      (%rcx,%r8), %r9
-    cmp      $15, %r8
-    jle      .LLessThanXMM
-    and      $-16, %r8
-    lea      (%rcx,%r8), %rax
-    jmp      .L16x_Body
-
+    lea      (%rcx,%r8), %r10 { r10 = buf1 end }
+    cmp      $3, %r8
+    jle      .LBytewise_Test
+    mov      %r8, %r9
+    and      $-16, %r9
+    add      %rcx, %r9 { r9 = end of full XMMs in buf1 }
+    cmp      %r9, %rcx
+    je       .L16x_Tail
 .balign 16
-.L16x_Next:
-    add      $16, %rcx
-    cmp      %rcx, %rax
-    je       .L4x_PrepareAfter16x
 .L16x_Body:
-    movdqu   (%rcx,%rdx), %xmm0
+    movdqu   (%rdx), %xmm0
     movdqu   (%rcx), %xmm1
     pcmpeqb  %xmm1, %xmm0
-    pmovmskb %xmm0, %r8d
-    xor      $65535, %r8d
-    je       .L16x_Next
-    bsf      %r8d, %r8d
-    add      %rcx, %rdx
-    movzbl   (%rcx,%r8), %eax
-    movzbl   (%rdx,%r8), %edx
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jne      .L16x_Found
+    add      $16, %rcx
+    add      $16, %rdx
+    cmp      %rcx, %r9
+    jne      .L16x_Body
+.L16x_Tail:
+    cmp      %r9, %r10
+    je       .LNothing
+    lea      15(%r9), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
+    lea      15(%rdx), %ecx
+    xor      %r9d, %eax
+    xor      %edx, %ecx
+    or       %ecx, %eax
+    cmp      $4095, %eax
+    ja       .L4x_Prepare
+    movdqu   (%r9), %xmm0
+    movdqu   (%rdx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    je       .LNothing
+    bsf      %eax, %ecx
+    add      %rcx, %r9
+    cmp      %r10, %r9 { ignore over-read garbage bytes }
+    jnb      .LNothing
+    movzbl   (%r9), %eax
+    movzbl   (%rdx,%rcx), %edx
     sub      %rdx, %rax
     ret
 
-.L4x_PrepareAfter16x:
-    mov      %r9, %r8
-    sub      %rcx, %r8
-.LLessThanXMM:
-    cmp      $3, %r8
-    jle      .LBytewiseTail_Prepare
+.L16x_Found:
+    bsf      %eax, %eax
+    movzbl   (%rcx,%rax), %ecx
+    movzbl   (%rdx,%rax), %edx
+    mov      %rcx, %rax
+    sub      %rdx, %rax
+    ret
+
 .L4x_Prepare:
-    and      $-4, %r8
-    add      %rcx, %r8
-    cmp      %r8, %rcx
-    jne      .L4x_Body
-    jmp      .LBytewiseTail_Prepare
-
-.L4x_Next:
-    add      $4, %rcx
-    cmp      %rcx, %r8
-    je       .LBytewiseTail_Prepare
+    and      $12, %r8d { count to be handled with uint32s after XMMs: len mod 16 div 4 * 4 = len and %1100 = len and 12 }
+    lea      (%r9,%r8), %rcx
+    cmp      %rcx, %r9
+    je       .LBytewise_Body
 .L4x_Body:
-    mov      (%rcx,%rdx), %r10d
-    mov      (%rcx), %eax
-    cmp      %r10d, %eax
-    je       .L4x_Next
-    bswap    %eax
-    bswap    %r10d
-    sub      %r10, %rax
-    ret
-
-.LBytewiseTail_Prepare:
-    cmp      %rcx, %r9
-    jne      .LBytewiseTail_Body
-    xor      %eax, %eax
-    ret
-
-.LBytewiseTail_Next:
-    add      $1, %rcx
-    cmp      %rcx, %r9
-    je       .LReturnRAX
-.LBytewiseTail_Body:
-    movzbl   (%rcx,%rdx), %r8d
+    mov      (%r9), %eax
+    mov      (%rdx), %r8d
+    cmp      %r8d, %eax
+    jne      .L4x_Found
+    add      $4, %r9
+    add      $4, %rdx
+    cmp      %r9, %rcx
+    jne      .L4x_Body
+.LBytewise_Test:
+    cmp      %r10, %rcx
+    je       .LNothing
+.LBytewise_Body:
     movzbl   (%rcx), %eax
+    movzbl   (%rdx), %r8d
     sub      %r8, %rax
-    je       .LBytewiseTail_Next
+    jne      .LReturnRAX
+    add      $1, %rcx
+    add      $1, %rdx
+    cmp      %r10, %rcx
+    jne      .LBytewise_Body
+.LNothing:
+    xor      %eax, %eax
 .LReturnRAX:
+    ret
+
+.L4x_Found:
+    bswap    %r8d
+    bswap    %eax
+    sub      %r8, %rax
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
