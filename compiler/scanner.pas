@@ -2140,7 +2140,7 @@ type
                                   begin
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
-//                                    tconstsym(srsym).IncRefCount;
+                                    tenumsym(srsym).IncRefCount;
                                   end;
                                 else
                                   ;
