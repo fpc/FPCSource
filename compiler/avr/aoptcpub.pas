@@ -140,6 +140,20 @@ Implementation
           exit;
         end;
 
+      If (taicpu(p1).opcode=A_LD) and
+        (taicpu(p1).oper[1]^.ref^.addressmode in [AM_POSTINCREMENT,AM_PREDECREMENT]) and (taicpu(p1).oper[1]^.ref^.base=reg) then
+        begin
+          Result:=true;
+          exit;
+        end;
+
+      If (taicpu(p1).opcode=A_ST) and
+        (taicpu(p1).oper[0]^.ref^.addressmode in [AM_POSTINCREMENT,AM_PREDECREMENT]) and (taicpu(p1).oper[0]^.ref^.base=reg) then
+        begin
+          Result:=true;
+          exit;
+        end;
+
       for i:=0 to taicpu(p1).ops-1 do
         if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
           begin
