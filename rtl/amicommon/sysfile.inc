@@ -57,7 +57,7 @@ begin
   while l<>nil do begin
     tmpNext:=l;
     l:=l^.next;
-    dispose(tmpNext);
+    FreePooled(ASYS_heapPool, tmpNext, SizeOf(TFileList));
   end;
   ReleaseSemaphore(ASYS_fileSemaphore);
 end;
@@ -80,13 +80,15 @@ begin
                            else p:=p^.next;
     p:=nil;
   end else begin
-    { if the list is not yet allocated, allocate it. }
-    New(l);
+    { if the list is not yet allocated, allocate it.
+      the FileList is only freed after the memory manager has shut
+      down, therefore native OS allocation }
+    l := AllocPooled(ASYS_heapPool,sizeof(TFileList));
     l^.next:=nil;
   end;
 
   if not inList then begin
-    New(p);
+    P := AllocPooled(ASYS_heapPool,sizeof(TFileList));
     p^.handle:=h;
     p^.buffered:=False;
     p^.next:=l^.next;
@@ -121,7 +123,7 @@ begin
 
   if inList then begin
     tmpList:=p^.next^.next;
-    dispose(p^.next);
+    FreePooled(ASYS_heapPool, p^.next, SizeOf(TFileList));
     p^.next:=tmpList;
   end
 {$IFDEF ASYS_FPC_FILEDEBUG}
