@@ -140,14 +140,14 @@ Implementation
           exit;
         end;
 
-      If (taicpu(p1).opcode=A_LD) and
+      If (taicpu(p1).opcode in [A_LD,A_LPM,A_ELPM]) and
         (taicpu(p1).oper[1]^.ref^.addressmode in [AM_POSTINCREMENT,AM_PREDECREMENT]) and (taicpu(p1).oper[1]^.ref^.base=reg) then
         begin
           Result:=true;
           exit;
         end;
 
-      If (taicpu(p1).opcode=A_ST) and
+      If (taicpu(p1).opcode in [A_ST,A_SPM]) and
         (taicpu(p1).oper[0]^.ref^.addressmode in [AM_POSTINCREMENT,AM_PREDECREMENT]) and (taicpu(p1).oper[0]^.ref^.base=reg) then
         begin
           Result:=true;
