@@ -211,7 +211,9 @@ Procedure AddThreadProc(var procList: PThreadProcInfo; Proc: TProcedure);
 var
   P : PThreadProcInfo;
 Begin
-  New(P);
+  // the ThreadProc chain is only freed after the memory manager has
+  // shut down, therefore native OS allocation
+  P := AllocPooled(ASYS_heapPool,sizeof(TThreadProcInfo));
   P^.Next:=procList;
   P^.Proc:=Proc;
   procList:=P;
@@ -225,7 +227,7 @@ Begin
     begin
       p:=procList;
       procList:=procList^.next;
-      dispose(p);
+      FreePooled(ASYS_heapPool,P,sizeof(TThreadProcInfo));
     end;
 End;
 
