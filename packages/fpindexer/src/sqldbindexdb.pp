@@ -70,6 +70,8 @@ type
     procedure BeginTrans; override;
     procedure CommitTrans; override;
     procedure CompactDB; override;
+    procedure RollbackTrans; override;
+    Procedure ClearTables;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
     function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;override;
@@ -119,7 +121,7 @@ begin
 end;
 
 
-function TSQLDBIndexDB.GetLanguageID(const ALanguage: UTF8String): int64;
+function TSQLDBIndexDB.GetLanguageID(const ALanguage: UTF8string): int64;
 var
   Q: TSQLQuery;
 begin
@@ -277,7 +279,8 @@ begin
   end;
 end;
 
-Function TSQLDBIndexDB.GetAvailableWords(out aList : TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch) : Integer;
+function TSQLDBIndexDB.GetAvailableWords(out aList: TUTF8StringArray;
+  aContaining: UTF8String; Partial: TAvailableMatch): integer;
 
 Var
   Q : TSQLQuery;
@@ -317,18 +320,19 @@ begin
   FLastURL := '';
 end;
 
-procedure TSQLDBIndexDB.Execute(const sql: UTF8String; ignoreErrors: boolean = True);
+procedure TSQLDBIndexDB.Execute(const sql: UTF8string; ignoreErrors: boolean);
 begin
   if SQL = '' then
     exit;
   try
     FDB.ExecuteDirect(sql);
+    FDB.Transaction.Commit;
   except
     on E : exception do
-      if not IgnoreErrors then
-        raise
+      if IgnoreErrors then
+        DoLog(iltError,'Exception %s while executing query "%s" : %s',[E.ClassName,Sql,E.Message]);
       else
-        // Writeln(E.ClassName,' : ',E.Message);
+        raise
   end;
 end;
 
@@ -364,7 +368,8 @@ end;
 
 procedure TSQLDBIndexDB.BeginTrans;
 begin
-  FDB.Transaction.StartTransaction;
+  if not FDB.Transaction.Active then
+    FDB.Transaction.StartTransaction;
 end;
 
 procedure TSQLDBIndexDB.CommitTrans;
@@ -379,6 +384,28 @@ end;
 procedure TSQLDBIndexDB.CompactDB;
 begin
   //not yet implemented
+end;
+
+procedure TSQLDBIndexDB.RollbackTrans;
+
+Var
+  T : TCachedQueryType;
+begin
+  For T:=Low(TCachedQueryType) to High(TCachedQueryType) do
+    FreeAndNil(FQueries[T]);
+  FDB.Transaction.RollBack;
+end;
+
+procedure TSQLDBIndexDB.ClearTables;
+begin
+  BeginTrans;
+  try
+    ClearIndexerTables;
+    CommitTrans;
+  except
+    RollBackTrans;
+    Raise;
+  end;
 end;
 
 end.

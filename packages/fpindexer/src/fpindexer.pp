@@ -67,13 +67,23 @@ type
     SearchWord: UTF8String;
     URL: UTF8String;
   end;
+  PTSearchWordData = ^TSearchWordData;
 
   TFPSearch = class;
 
   { TCustomIndexDB }
 
+  TIndexLogType = (iltError, iltInfo, iltSQL);
+  TIndexLogTypes = Set of TIndexLogType;
+  TIndexLogEvent = procedure(Sender : TObject; aType: TIndexLogType; Const aMessage : string) of object;
+
   TAvailableMatch = (amAll,amExact,amContains,amStartsWith);
   TCustomIndexDB = class(TComponent)
+  private
+    FOnLog: TIndexLogEvent;
+  Protected
+    Procedure DoLog(aType : TIndexLogType; aMessage : String); overload;
+    Procedure DoLog(aType : TIndexLogType; const aFmt : String; args : Array of const); overload;
   public
     procedure CreateDB; virtual; abstract;
     procedure Connect; virtual; abstract;
@@ -81,11 +91,14 @@ type
     procedure CompactDB; virtual; abstract;
     procedure BeginTrans; virtual; abstract;
     procedure CommitTrans; virtual; abstract;
+    procedure RollbackTrans; virtual; abstract;
     procedure DeleteWordsFromFile(URL: UTF8String); virtual; abstract;
     procedure AddSearchData(ASearchData: TSearchWordData); virtual; abstract;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); virtual; abstract;
     Function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;virtual; abstract;
     procedure CreateIndexerTables; virtual; abstract;
+    procedure ClearIndexerTables; virtual; abstract;
+    Property OnLog : TIndexLogEvent Read FOnLog Write FOnLog;
   end;
 
   TDatabaseID = record
@@ -166,6 +179,7 @@ type
     function GetUrlSQL(UseParams: boolean = True): UTF8String; virtual;
     function GetWordSQL(UseParams: boolean = True): UTF8String; virtual;
     function InsertSQL(const TableType: TIndexTable; UseParams: boolean = True): UTF8String; virtual;
+    function ClearTableSQl(const TableType: TIndexTable) : UTF8String; virtual;
     Function AvailableWordsSQL(aContaining : UTF8String; Partial : TAvailableMatch) : UTF8String; virtual;
     procedure FinishCreateTable(const TableType: TIndexTable); virtual;
     procedure FinishDropTable(const TableType: TIndexTable); virtual;
@@ -176,6 +190,7 @@ type
   public
     procedure CreateIndexerTables; override;
     procedure DeleteWordsFromFile(URL: UTF8String); override;
+    procedure ClearIndexerTables; override;
   end;
 
   TCustomFileReader = class;
@@ -363,10 +378,12 @@ type
     FOptions: TSearchOptions;
     FRankedCount: integer;
     FSearchWord: TWordParser;
+    FUsePositionInRank: Boolean;
     ResultList: array of TSearchWordData;
     RankedList: array of TSearchWordData;
     function GetRankedResults(index: integer): TSearchWordData;
     function GetResults(index: integer): TSearchWordData;
+    function SameRank(aIdx1, aIdx2: Integer): Boolean;
     procedure SetDatabase(AValue: TCustomIndexDB);
     procedure RankResults;
     procedure SetRankedCount(AValue: integer);
@@ -386,6 +403,7 @@ type
     property Database: TCustomIndexDB read FDatabase write SetDatabase;
     property Options: TSearchOptions read FOptions write FOptions;
     property SearchWord: TWordParser read FSearchWord;
+    Property UsePositionInRank : Boolean Read FUsePositionInRank Write FUsePositionInRank;
   end;
 
   { TIgnoreListDef }
@@ -618,6 +636,18 @@ end;
 
 { TCustomIndexDB }
 
+procedure TCustomIndexDB.DoLog(aType: TIndexLogType; aMessage: String);
+begin
+  if Assigned(FOnLog) then
+    FonLog(Self,aType,aMessage);
+end;
+
+procedure TCustomIndexDB.DoLog(aType: TIndexLogType; const aFmt: String;
+  args: array of const);
+begin
+  DoLog(aType,Format(aFmt,args));
+end;
+
 procedure TCustomIndexDB.Disconnect;
 begin
   // Do nothing
@@ -755,6 +785,15 @@ begin
   FDatabase := AValue;
 end;
 
+function TFPSearch.SameRank(aIdx1, aIdx2: Integer): Boolean;
+
+begin
+  Result:=True;
+  if UsePositionInRank then
+    Result:=RankedList[aIdx1].Position <> ResultList[aIdx2].Position;
+  Result:=Result and  (RankedList[aIdx1].URL <> ResultList[aIdx2].URL)
+end;
+
 procedure TFPSearch.RankResults;
 var
   i: integer;
@@ -771,17 +810,16 @@ var
   end;
 
 begin
-  for i := 0 to FCount - 1 do
+
+  if FCount=0 then
+    exit;
+  AddNewRankedItem(ResultList[i]);
+  for i := 1 to FCount - 1 do
   begin
-    if FRankedCount > 0 then
-    begin
-      if RankedList[FRankedCount - 1].URL <> ResultList[i].URL then
-        AddNewRankedItem(ResultList[i])
-      else
-        RankedList[FRankedCount - 1].Rank := RankedList[FRankedCount - 1].Rank+ 1;
-    end
+    if SameRank(I,FRankedCount-1)  then
+      Inc(RankedList[FRankedCount-1].Rank)
     else
-      AddNewRankedItem(ResultList[i]);
+      AddNewRankedItem(ResultList[i])
   end;
 
   //sort ranked list
@@ -808,7 +846,8 @@ begin
   if FRankedCount = AValue then
     Exit;
   FRankedCount := AValue;
-  SetLength(RankedList, AValue);
+  If FRankedCount>Length(RankedList) then
+    SetLength(RankedList, AValue);
 end;
 
 procedure TFPSearch.AddResult(index: integer; AValue: TSearchWordData);
@@ -830,7 +869,8 @@ begin
   FSearchWord.WildCardChar := '%';   //should come from DataBase
 end;
 
-Function TFPSearch.GetAvailableWords(out aList : TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch) : Integer;
+function TFPSearch.GetAvailableWords(out aList: TUTF8StringArray;
+  aContaining: UTF8String; Partial: TAvailableMatch): Integer;
 begin
   Database.Connect;
   Result:=Database.GetAvailableWords(aList, aContaining, Partial);
@@ -843,7 +883,10 @@ end;
 
 function TFPSearch.GetRankedResults(index: integer): TSearchWordData;
 begin
-  Result := RankedList[index];
+  if Index<FRankedCount then
+    Result := RankedList[index]
+  else
+    Result:=Default(TSearchWordData);
 end;
 
 constructor TFPSearch.Create(AOwner: TComponent);
@@ -864,6 +907,7 @@ begin
   //reset previous searches
   FCount := 0;
   SetLength(ResultList, FCount);
+  RankedCount:=0;
   Database.Connect;
   Database.FindSearchData(SearchWord, Self, Options);
   Result := Count;
@@ -1644,6 +1688,11 @@ begin
   Result := Format('INSERT INTO %s (%s) VALUES (%s)', [GetTableName(TableType), FL, VL]);
 end;
 
+function TSQLIndexDB.ClearTableSQl(const TableType: TIndexTable): UTF8String;
+begin
+  Result:='delete from '+GetTablename(TableType);
+end;
+
 function TSQLIndexDB.AvailableWordsSQL(aContaining: UTF8String; Partial: TAvailableMatch): UTF8String;
 
 begin
@@ -1778,6 +1827,22 @@ begin
 
   if (FID <> -1) then
     Execute(Format(DeleteWordsSQL(False), [FID]), False);
+end;
+
+procedure TSQLIndexDB.ClearIndexerTables;
+begin
+  BeginTrans;
+  Execute(ClearTableSQl(itMatches),True);
+  CommitTrans;
+  BeginTrans;
+  Execute(ClearTableSQl(itWords),True);
+  CommitTrans;
+  BeginTrans;
+  Execute(ClearTableSQl(itFiles),True);
+  CommitTrans;
+  BeginTrans;
+  Execute(ClearTableSQl(itLanguages),True);
+  CommitTrans;
 end;
 
 initialization
