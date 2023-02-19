@@ -93,6 +93,7 @@ type
 
 var
   AThreadManager: TThreadManager;
+  AThreadMainThreadInfo: TThreadInfo;
   AThreadList: PThreadInfo;
   AThreadListLen: LongInt;
   AThreadNum: LongInt;
@@ -404,7 +405,10 @@ begin
       SysDebugLn('FPC AThreads: Entering multithreaded mode...');
 {$endif}
       p:=PProcess(FindTask(nil));
-      new(threadInfo);
+      { the main thread info is allocated as a global var, it is the cleanest solution,
+        as it can never really be freed after threading was initialized, due to clashes
+        with threadvar handling in heap managers, etc. }
+      threadInfo:=@AThreadMainThreadInfo;
       FillChar(threadInfo^,sizeof(TThreadInfo),0);
       p^.pr_Task.tc_UserData:=threadInfo;
       threadInfo^.mainThread:=true;
