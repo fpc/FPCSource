@@ -1120,7 +1120,6 @@ begin
       Add('    *(.rodata)  /* We need to include .rodata here if gcc is used */');
       Add('    *(.rodata*) /* with -fdata-sections.  */');
       Add('    *(.gnu.linkonce.d*)');
-      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    . = ALIGN(2);');
       Add('     _edata = . ;');
       Add('     PROVIDE (__data_end = .) ;');
@@ -1198,6 +1197,7 @@ begin
       Add('  /* DWARF Extension.  */');
       Add('  .debug_macro    0 : { *(.debug_macro) }');
       Add('  .debug_addr     0 : { *(.debug_addr) }');
+      Add('  .fpc (NOLOAD)     : { KEEP (*(.fpc .fpc.n_version .fpc.n_links)) }');
       Add('}');
     end;
 {$endif AVR}
