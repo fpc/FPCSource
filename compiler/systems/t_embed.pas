@@ -974,6 +974,7 @@ begin
           Add('  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K');
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
+          Add('  fpcinfo          : ORIGIN = 0xFF0000, LENGTH = 1K');
           Add('}');
           Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
         end;
@@ -1197,7 +1198,7 @@ begin
       Add('  /* DWARF Extension.  */');
       Add('  .debug_macro    0 : { *(.debug_macro) }');
       Add('  .debug_addr     0 : { *(.debug_addr) }');
-      Add('  .fpc (NOLOAD)     : { KEEP (*(.fpc .fpc.n_version .fpc.n_links)) }');
+      Add('  .fpc (NOLOAD)     : { KEEP (*(.fpc .fpc.n_version .fpc.n_links)) } > fpcinfo');
       Add('}');
     end;
 {$endif AVR}
