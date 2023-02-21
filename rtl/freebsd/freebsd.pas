@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit FreeBSD;
+{$ENDIF FPC_DOTTEDUNITS}
 {
    This file is part of the Free Pascal run time library.
    (c) 2005 by Marco van de Voort
@@ -29,8 +31,13 @@ Unit FreeBSD;
               
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SF_NODISKIO = $00000001;  // don't wait for disk IO, similar to non-blocking socket setting
@@ -236,8 +243,13 @@ function clock_settime(clk_id: clockid_t; tp: ptimespec): cint; {$ifdef FPC_USE_
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses BsdApi.SysCtl,
+{$ifndef FPC_USE_LIBC}  UnixApi.SysCall; {$else} System.InitC; {$endif}
+{$ELSE FPC_DOTTEDUNITS}
 Uses Sysctl,
 {$ifndef FPC_USE_LIBC}  SysCall; {$else} InitC; {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF FPC_USE_LIBC}
 

@@ -18,12 +18,19 @@
 {Warning: This code is alfa. Future versions of this unit will propably
  not be compatible.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PMStdDlg;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       OS2Api.os2def,OS2Api.doscalls,OS2Api.pmwin,OS2Api.pmgpi;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        os2def,doscalls,pmwin,pmgpi;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
        FDS_CENTER = $00000001;

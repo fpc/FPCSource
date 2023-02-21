@@ -22,9 +22,15 @@ interface
 implementation
 
 {$ifdef UNIX}
+{$IFNDEF FPC_DOTTEDUNITS}
 uses
   baseunix;
-{$endif}
+{$ELSE FPC_DOTTEDUNITS}
+uses 
+  UnixApi.Base;
+{$ENDIF FPC_DOTTEDUNITS}  
+{$endif UNIX}
+
 
 {$ifdef DARWIN}
   {$include extres_multiarch.inc}

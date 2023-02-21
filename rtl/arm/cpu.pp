@@ -14,7 +14,9 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cpu;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef symbian}
   {$define NO_ELF_SUPPORT}

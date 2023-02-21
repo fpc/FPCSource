@@ -15,7 +15,9 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit athreads;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

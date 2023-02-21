@@ -33,7 +33,9 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit VioCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interface library to VIOCALLS.DLL (through EMXWRAP.DLL)
 

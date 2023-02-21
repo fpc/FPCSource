@@ -16,13 +16,19 @@
 
  ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PMSpl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE OBJFPC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     SPL_INI_SPOOLER       = 'PM_SPOOLER';

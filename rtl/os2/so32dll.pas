@@ -32,7 +32,9 @@
 This is functions from SO32DLL.DLL. These functions allows to use
 protocol-independed sockets. Equal to SYS\SOCKET.H, NERRNO.H, SYS\SYSCTL.H.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SO32Dll;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

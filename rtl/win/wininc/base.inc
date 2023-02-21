@@ -552,9 +552,9 @@
   { argument types are unknown }
   function MAKEWPARAM(l,h : longint) : WPARAM; inline;
 
-  function GET_X_LPARAM(lp : Windows.LParam) : longint; inline;
+  function GET_X_LPARAM(lp : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LParam) : longint; inline;
 
-  function GET_Y_LPARAM(lp : Windows.LParam) : longint; inline;
+  function GET_Y_LPARAM(lp : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LParam) : longint; inline;
 
   {$ifndef max}
   { was #define dname(params) def_expr }
@@ -1047,12 +1047,12 @@ type
        MAKEWPARAM:=WPARAM(MAKELONG(l,h));
     end;
 
-  function GET_X_LPARAM(lp : Windows.LParam) : longint;
+  function GET_X_LPARAM(lp : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LParam) : longint;
     begin
       result:=smallint(LOWORD(lp));
     end;
 
-  function GET_Y_LPARAM(lp : Windows.LParam) : longint;
+  function GET_Y_LPARAM(lp : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LParam) : longint;
     begin
       result:=smallint(HIWORD(lp));
     end;

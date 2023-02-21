@@ -19,7 +19,9 @@
 {$inline on}
 {$implicitexceptions off}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cwstring;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -70,6 +72,16 @@ implementation
 
 {$i rtldefs.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Base,
+  System.CTypes,
+  UnixApi.Unix,
+  UnixApi.Types,
+  System.InitC,
+  System.DynLibs,
+  UnixApi.CP;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   BaseUnix,
   ctypes,
@@ -78,6 +90,7 @@ Uses
   initc,
   dynlibs,
   unixcp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$ifndef useiconv}
@@ -1103,7 +1116,7 @@ begin
       Result:=GetCodepageByName(ansistring(langinfo));
     end
   else
-    Result:=unixcp.GetSystemCodepage;
+    Result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.CP{$ELSE}unixcp{$ENDIF}.GetSystemCodepage;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}

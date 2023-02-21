@@ -23,14 +23,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DosCall2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 interface
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.doscalls, System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DosCalls, Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 (* Status in DosGet/SetProcessorStatus *)
@@ -1211,8 +1218,13 @@ function DosQueryABIOSSupport (Reserved: cardinal): cardinal; cdecl;
 implementation
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function DummyDosCancelLockRequestL (Handle: THandle; var Lock: TFileLockL): cardinal; cdecl;

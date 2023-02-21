@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 {$inline ON}

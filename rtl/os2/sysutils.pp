@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
@@ -43,8 +45,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst, OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst, DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type

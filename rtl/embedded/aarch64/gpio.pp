@@ -19,7 +19,9 @@
 
  ****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gpio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

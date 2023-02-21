@@ -21,7 +21,9 @@
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit DpmiExcp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { If linking to C code we must avoid loading of the dpmiexcp.o
   in libc.a from the equivalent C code

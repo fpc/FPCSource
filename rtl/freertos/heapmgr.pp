@@ -13,7 +13,9 @@
 
  **********************************************************************}
 {$modeswitch result}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit heapmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

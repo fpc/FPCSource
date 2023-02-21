@@ -12,7 +12,9 @@
 
  **********************************************************************}
 { This unit contains some helpful stuff to deal with the mmx extensions }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mmx;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -54,8 +56,13 @@ unit mmx;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       System.CPU;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        cpu;
+{$ENDIF FPC_DOTTEDUNITS}
 
   {$ASMMODE ATT}
 

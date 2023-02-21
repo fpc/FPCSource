@@ -15,7 +15,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef FPC}
   {$inline on}
@@ -28,7 +30,11 @@ unit ctypes;
 interface
 
 {$ifdef unix}
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 {$i aliasctp.inc}
 {$else}
 

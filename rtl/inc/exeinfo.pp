@@ -23,7 +23,9 @@
 
 {$checkpointer off}
 {$modeswitch out}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit exeinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$S-}
@@ -71,11 +73,22 @@ procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: an
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef darwin}
+  System.CTypes, UnixApi.Base, UnixApi.Dl,
+{$endif}
+{$ifdef Windows}
+  WinApi.Windows,
+{$endif Windows}
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef darwin}
   ctypes, baseunix, dl,
 {$endif}
   strings{$ifdef windows},windows{$endif windows};
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; 
 

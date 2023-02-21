@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit multiboot;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

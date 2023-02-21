@@ -109,8 +109,13 @@ function BNot(i: qword): qword; {$ifdef systeminline}inline;{$endif}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE}  
 uses
   math;
+{$ENDIF}  
 
 {$r-}
 {$q-}

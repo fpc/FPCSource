@@ -15,7 +15,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Linux;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i osdefs.inc}
 
@@ -26,8 +28,13 @@ unit Linux;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   O_CLOEXEC = $80000;
@@ -565,7 +572,11 @@ implementation
 
 {$if not defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64)}
 { needed for modify_ldt on x86 }
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif not defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64)}
 
 {$ifndef FPC_USE_LIBC}

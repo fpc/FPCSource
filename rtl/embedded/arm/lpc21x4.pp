@@ -17,7 +17,9 @@ Created by Sten Larsson (sten_larsson at yahoo com)
 
 Free Pascal conversion by the Free Pascal development team
 ******************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lpc21x4;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 

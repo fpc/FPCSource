@@ -6,7 +6,9 @@
 
 //  not yet finished
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit watcom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 

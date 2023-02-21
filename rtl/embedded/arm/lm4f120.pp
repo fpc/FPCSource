@@ -1,5 +1,7 @@
 {$goto on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lm4f120;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

@@ -1,5 +1,7 @@
 { Imports for Java packages/classes: java., javax., org. }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jdk15;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode delphi}
 
 interface

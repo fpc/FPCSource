@@ -13,8 +13,11 @@
 
  **********************************************************************}
 
-
+{$IFNDEF FPC_DOTTEDUNITS}
 Uses nwserv;
+{$ELSE}
+Uses NetwareApi.nwserv;
+{$ENDIF}
 
 Function SysLoadLibraryA(const Name : RawByteString) : TlibHandle;
 var args : array[0..1] of PAnsiChar;

@@ -23,7 +23,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

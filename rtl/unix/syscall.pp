@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$define FPC_USE_SYSCALL}

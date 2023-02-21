@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wasiapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

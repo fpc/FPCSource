@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NDKUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  NTApi.NDK;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   NDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Helpers for converting Pascal string types to NT's UNICODE_STRING
 procedure ShortStrToNTStr(aStr: ShortString; var aNTStr: UNICODE_STRING);
@@ -35,8 +42,13 @@ procedure AssignDisplayString(var aFile: Text; aUtf8: Boolean);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure ShortStrToNTStr(aStr: ShortString; var aNTStr: UNICODE_STRING);
 var

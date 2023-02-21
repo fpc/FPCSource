@@ -25,7 +25,9 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwserv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

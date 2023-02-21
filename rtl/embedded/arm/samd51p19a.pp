@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit samd51p19a;
+{$ENDIF FPC_DOTTEDUNITS}
 (*
   Copyright (c) 2020 Microchip Technology Inc.
                    

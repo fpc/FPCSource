@@ -16,7 +16,9 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lnfogdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -27,8 +29,13 @@ function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boo
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,UnixApi.Base,UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,baseunix,unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
   var

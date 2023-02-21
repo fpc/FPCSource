@@ -18,7 +18,9 @@
 
  ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmwin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
@@ -26,8 +28,13 @@ unit pmwin;
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        os2def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MaxMB2DText = 70;

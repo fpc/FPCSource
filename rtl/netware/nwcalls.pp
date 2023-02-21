@@ -23,7 +23,9 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwcalls;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE objfpc}
 {$MACRO on}
 
