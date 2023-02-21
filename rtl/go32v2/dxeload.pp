@@ -16,15 +16,22 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit dxeload;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 function dxe_load(filename : string) : pointer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ DOSApi.dxetype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  dxetype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function dxe_load(filename : string) : pointer;
 {

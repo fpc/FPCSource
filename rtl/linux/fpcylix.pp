@@ -20,8 +20,13 @@ unit fpcylix;
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      UnixApi.CThreads,UnixApi.CWString,System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       cthreads,cwstring,dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
       
     const
       MAX_PATH = 4095;

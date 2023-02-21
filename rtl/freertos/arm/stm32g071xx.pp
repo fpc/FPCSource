@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stm32g071xx;
+{$ENDIF FPC_DOTTEDUNITS}
 (**
   ******************************************************************************
   * @file    stm32g071xx.h

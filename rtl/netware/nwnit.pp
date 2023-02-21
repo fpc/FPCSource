@@ -20,7 +20,9 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwnit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

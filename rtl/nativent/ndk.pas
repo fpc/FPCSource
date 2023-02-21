@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

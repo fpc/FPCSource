@@ -20,7 +20,9 @@ Modifying this unit is allowed, under the following conditions:
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit emx;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

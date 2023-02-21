@@ -11,11 +11,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit errors;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i errnostr.inc} // BSD or Linux ones
 

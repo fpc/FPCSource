@@ -36,8 +36,13 @@ unit extpas;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      TP.DOS;
+{$ELSE}      
     uses
       dos;
+{$ENDIF}
 
     procedure GetTimeStamp(var ts : TimeStamp);
       var

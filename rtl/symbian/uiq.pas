@@ -13,13 +13,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uiq;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$include e32def.inc}
 {$include e32err.inc}

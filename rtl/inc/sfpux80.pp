@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sfpux80;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 
 { Overflow checking must be disabled,

@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit emu387;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 procedure npxsetup(prog_name : string);
@@ -22,8 +24,13 @@ implementation
 
 {$asmmode ATT}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.dxeload,DOSApi.dpmiexcp,System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dxeload,dpmiexcp,strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   emu_entry_type = function(exc : pexception_state) : longint;

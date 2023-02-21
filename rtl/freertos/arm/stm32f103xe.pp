@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stm32f103xe;
+{$ENDIF FPC_DOTTEDUNITS}
 (**
   ******************************************************************************
   * @file    stm32f103xe.h

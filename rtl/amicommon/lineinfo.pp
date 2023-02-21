@@ -17,7 +17,9 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lineinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -43,8 +45,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ExeInfo,System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exeinfo,strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   N_Function    = $24;

@@ -1,7 +1,9 @@
 {******************************************************************************
 Startup code for xtensa-esp8266 using ESP8266_RTOS_SDK V3.3
 ******************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit esp8266;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 {$macro on}
@@ -10,8 +12,13 @@ unit esp8266;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      EmbeddedApi.ConsoleIO,EmbeddedApi.HeapMGR;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       consoleio,heapmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
     var
       _stack_top: record end; public name '_stack_top';

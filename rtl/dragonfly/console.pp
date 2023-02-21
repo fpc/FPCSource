@@ -22,7 +22,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Console;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$packrecords C}
 
@@ -1822,7 +1824,11 @@ function physicalconsole(fd:longint) : boolean;
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Base,UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 Uses BaseUnix,termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function physicalconsole(fd:longint) : boolean;
 

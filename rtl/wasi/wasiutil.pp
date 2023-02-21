@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wasiutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WASIApi.WASIApi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   wasiapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PWasiSearchRec = ^TWasiSearchRec;

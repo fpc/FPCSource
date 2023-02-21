@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinDirs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*******************************************************************************
 
@@ -233,8 +235,13 @@ function ConvertFOLDERIDtoCSIDL(const FOLDERID: TGUID; out CSIDL: Integer): Bool
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TCSIDLtoFOLDERID = record

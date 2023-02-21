@@ -16,14 +16,20 @@
 
  ****************************************************************************}
 {$ifndef winsock}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmwsock;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$PACKRECORDS 1}
 {$MACRO ON}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 Uses OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The new type to be used in all instances which refer to sockets.
 type

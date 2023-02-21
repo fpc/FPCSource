@@ -22,11 +22,24 @@
 { determine the type of the resource/form file }
 {$define Win16Res}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$INLINE ON}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Types,
+  System.TypInfo,
+{$ifdef FPC_TESTGENERICS}
+  System.FGL,
+{$endif}
+  System.RtlConsts,
+  System.SortBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils,
   types,
@@ -36,14 +49,21 @@ uses
 {$endif}
   rtlconsts,
   sortbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i classesh.inc}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,UnixApi.Unix
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix,unix
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}

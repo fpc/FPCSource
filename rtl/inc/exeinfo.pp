@@ -23,7 +23,9 @@
 
 {$checkpointer off}
 {$modeswitch out}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit exeinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$S-}
@@ -70,11 +72,19 @@ procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: an
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef darwin}
+  ctypes, baseunix, dl,
+{$endif}
+  System.Strings{$ifdef WinApi.Windows},WinApi.Windows{$endif WinApi.Windows};
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef darwin}
   ctypes, baseunix, dl,
 {$endif}
   strings{$ifdef windows},windows{$endif windows};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$if defined(unix) and not defined(beos) and not defined(haiku)}
 

@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$inline on}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Base;          // load base UnixApi.Unix typing
+{$ELSE FPC_DOTTEDUNITS}
 Uses BaseUnix;          // load base unix typing
+{$ENDIF FPC_DOTTEDUNITS}
 
 // load types + consts
 

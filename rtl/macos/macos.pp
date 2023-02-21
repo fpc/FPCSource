@@ -1,5 +1,7 @@
 {$MODE MACPAS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacOS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {API to Mac OS}
 {This unit include (almost) all units available for classic Mac OS (non-Caron).

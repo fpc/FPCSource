@@ -3,7 +3,9 @@ Register definitions and utility code for XMC450x series
 
 Created by Jeppe Johansen 2012 - jeppe@j-software.dk
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmc4500;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 

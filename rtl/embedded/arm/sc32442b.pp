@@ -1,7 +1,9 @@
 {
  Initialization stub copied from at91sam7x256.pp
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sc32442b;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 

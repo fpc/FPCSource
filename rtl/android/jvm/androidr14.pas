@@ -1,5 +1,7 @@
 { Imports for Java packages/classes: android., java., javax., junit., org. }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit androidr14;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode delphi}
 
 interface

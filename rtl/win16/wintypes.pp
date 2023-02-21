@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

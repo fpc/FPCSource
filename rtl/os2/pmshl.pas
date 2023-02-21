@@ -16,12 +16,19 @@
 
 {Warning: This code is alfa. Future versions
  of this unit might not be compatible.}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmshl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.os2def, OS2Api.pmwin;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Os2Def, PmWin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

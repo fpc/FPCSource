@@ -23,10 +23,24 @@
 { determine the type of the resource/form file }
 { $define Win16Res}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.RtlConsts,
+  System.SysUtils,
+  System.Types,
+  System.SortBase,
+{$ifdef FPC_TESTGENERICS}
+  System.FGL,
+{$endif}
+  System.TypInfo,
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   rtlconsts,
   sysutils,
@@ -37,6 +51,7 @@ uses
 {$endif}
   typinfo,
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TWndMethod = procedure(var msg : TMessage) of object;
@@ -51,8 +66,13 @@ procedure DeallocateHWnd(Wnd: HWND);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}

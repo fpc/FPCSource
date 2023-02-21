@@ -21,7 +21,9 @@
 {$message you can not compile profile unit with profiling}
 {$endif FPC_PROFILE}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit profile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -62,8 +64,13 @@ implementation
 
 {$asmmode ATT}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32,DOSApi.dpmiexcp;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32,dpmiexcp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   plongint = ^longint;

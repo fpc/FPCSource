@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKSET 1}
 

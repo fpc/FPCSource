@@ -11,10 +11,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE SUT:=sysutils}
+{$DEFINE BU:=baseunix}
+{$DEFINE UA:=unix}
+{$ELSE}
+{$DEFINE SUT:=System.SysUtils}
+{$DEFINE BU:=UnixApi.Base}
+{$DEFINE UA:=UnixApi.Unix}
+{$ENDIF}
+
 
 Const
   FileNameLen = 255;
@@ -56,11 +74,19 @@ Function AddDisk(const path:string) : byte; platform;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Utils,
+  System.Strings,
+  UnixApi.Unix,
+  {$ifdef FPC_USE_LIBC}System.InitC{$ELSE}UnixApi.SysCall{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   UnixUtil,
   Strings,
   Unix,
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 
@@ -486,7 +512,7 @@ Function FindGetFileInfo(const s:string;var f:SearchRec):boolean;
 var
   DT   : DateTime;
   Info : RtlInfoType;
-  st   : baseunix.stat;
+  st   : BU.stat;
 begin
   FindGetFileInfo:=false;
   if not fpstat(s,st)>=0 then
@@ -687,17 +713,17 @@ End;
 
 Function FSearch(path : pathstr;dirlist : shortstring) : pathstr;
 Var
-  info : BaseUnix.stat;
+  info : BU.stat;
 Begin
   if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
     FSearch:=path
   else
-    FSearch:=Unix.FSearch(path,dirlist);
+    FSearch:=UA.FSearch(path,dirlist);
 End;
 
 Procedure GetFAttr(var f; var attr : word);
 Var
-  info    : baseunix.stat;
+  info    : BU.stat;
   LinAttr : longint;
   p       : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
@@ -736,7 +762,7 @@ end;
 
 Procedure getftime (var f; var time : longint);
 Var
-  Info: baseunix.stat;
+  Info: BU.stat;
   DT: DateTime;
 Begin
   doserror:=0;
@@ -834,7 +860,7 @@ Function GetEnv(EnvVar: ShortString): ShortString;
 var
   p     : PAnsiChar;
 Begin
-  p:=BaseUnix.fpGetEnv(EnvVar);
+  p:=BU.fpGetEnv(EnvVar);
   if p=nil then
    GetEnv:=''
   else

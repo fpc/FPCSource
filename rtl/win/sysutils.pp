@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
@@ -27,8 +29,13 @@ interface
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -93,9 +100,15 @@ procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSett
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst,
+    WinApi.WinDirs;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst,
     windirs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var 
   FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;

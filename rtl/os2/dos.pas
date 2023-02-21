@@ -15,7 +15,9 @@
 
  ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ASMMODE ATT}
 
@@ -27,7 +29,11 @@ interface
 
 {$PACKRECORDS 1}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    System.Strings, OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 uses    Strings, DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
    {Search record which is used by findfirst and findnext:}

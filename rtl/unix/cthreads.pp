@@ -47,7 +47,9 @@
 {$define has_sem_timedwait}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cthreads;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$S-}
 
@@ -70,6 +72,20 @@ Procedure SetCThreadManager;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+{$if defined(Linux) and not defined(Android)}
+  LinuxApi,
+{$endif}
+  UnixApi.Base,
+  UnixApi.Unix,
+  UnixApi.Types,
+  System.InitC
+{$ifdef dynpthreads}
+  ,UnixApi.Dl
+{$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
 {$if defined(Linux) and not defined(Android)}
   Linux,
@@ -82,6 +98,7 @@ Uses
   ,dl
 {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************
                              System unit import

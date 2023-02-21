@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sortbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 

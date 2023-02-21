@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit blockrtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { for tmethod }
 {$mode objfpc}
@@ -21,9 +23,15 @@ unit blockrtl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.InitC,
+    System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     initc,
     ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
   { blocks helpers }
   function _Block_copy(const aBlock: pointer): pointer; cdecl; external;

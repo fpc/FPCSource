@@ -15,7 +15,9 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKSET 1}
 

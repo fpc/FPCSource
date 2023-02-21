@@ -17,7 +17,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit macostp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

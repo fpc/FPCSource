@@ -14,11 +14,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pilot;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+   uses
+      PalmApi.systraps;
+{$ELSE FPC_DOTTEDUNITS}
    uses
       SysTraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
    const
 

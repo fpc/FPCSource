@@ -19,7 +19,9 @@
 
  ****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mmio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

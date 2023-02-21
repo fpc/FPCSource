@@ -33,7 +33,9 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit KbdCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interface library to KBDCALLS.DLL (through EMXWRAP.DLL)
 

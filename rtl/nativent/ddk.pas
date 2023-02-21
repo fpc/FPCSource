@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  NTApi.NDK;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   NDK;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // we distinguish the user- AND kernel-mode imports (NDK.ntdll) from the pure

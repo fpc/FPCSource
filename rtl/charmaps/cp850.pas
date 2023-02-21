@@ -1,12 +1,19 @@
 { This is an automatically created file, so don't edit it }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cp850;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+     System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
   uses
      charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
      map : array[0..255] of tunicodecharmapping = (

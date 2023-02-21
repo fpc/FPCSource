@@ -15,7 +15,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit InitC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -24,8 +26,13 @@ implementation
   { we need to include dpmiexcp unit
     to avoid getting troubles with _exit found both
     in libc and in v2prt0.as PM }
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    DOSApi.dpmiexcp;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     dpmiexcp;
+{$ENDIF FPC_DOTTEDUNITS}
 
   type
      simple_proc = procedure;

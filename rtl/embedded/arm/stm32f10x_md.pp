@@ -3,7 +3,9 @@ Register definitions and utility code for STM32F10x - Medium density
 
 Created by Jeppe Johansen 2012 - jeppe@j-software.dk
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stm32f10x_md;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 {$define stm32f10x_md}

@@ -812,7 +812,7 @@ end;
 
 class procedure TThread.Sleep(aMilliseconds: Cardinal);
 begin
-  SysUtils.Sleep(aMilliseconds);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Sleep(aMilliseconds);
 end;
 
 
@@ -848,13 +848,13 @@ end;
 
 class function TThread.GetTickCount: LongWord;
 begin
-  Result := SysUtils.GetTickCount;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount;
 end;
 
 
 class function TThread.GetTickCount64: QWord;
 begin
-  Result := SysUtils.GetTickCount64;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetTickCount64;
 end;
 
 { TSimpleThread allows objects to create a threading method without defining

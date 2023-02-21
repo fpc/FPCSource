@@ -12,7 +12,9 @@
 
 **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwsnut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -20,7 +22,11 @@ interface
 {$if defined (netware_clib)}
 uses nwserv;
 {$else}
+{$IFDEF FPC_DOTTEDUNITS}
+uses NetwareLibCApi.libc;
+{$ELSE FPC_DOTTEDUNITS}
 uses libc;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$PACKRECORDS C}

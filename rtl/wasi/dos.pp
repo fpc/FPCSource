@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 Const
@@ -54,8 +56,13 @@ Function DTToWasiDate(DT: DateTime): UInt64; platform;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WASIApi.WASIApi, WASIApi.WASIUtil;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   WasiAPI, WasiUtil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 

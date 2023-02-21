@@ -19,7 +19,9 @@
 
  ****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mailbox;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -66,8 +68,13 @@ function MailboxCall(BaseAddr: DWord; Channel: DWord): DWord;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    EmbeddedApi.mmio;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     mmio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function MailboxCall(BaseAddr: DWord; Channel: DWord): DWord;
 var

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit linuxvcs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************}
                                    interface
@@ -12,7 +14,11 @@ function try_grab_vcsa:boolean;
                                  implementation
 {*****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base,System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix,strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function try_grab_vcsa_in_path(path:PAnsiChar;len:cardinal):boolean;
 

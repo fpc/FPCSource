@@ -14,7 +14,9 @@
     to test it.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aio;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 const

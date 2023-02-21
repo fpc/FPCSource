@@ -13,7 +13,9 @@
 
  **********************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit MSMouse;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 {

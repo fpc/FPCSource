@@ -20,7 +20,9 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lnfodwrf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -45,8 +47,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ExeInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exeinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Current issues:
 

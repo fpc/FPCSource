@@ -14,7 +14,9 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cpu;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

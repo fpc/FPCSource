@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit getopts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$modeswitch advancedrecords}
 {$modeswitch defaultparameters}

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit BSD;
+{$ENDIF FPC_DOTTEDUNITS}
 {
    This file is part of the Free Pascal run time library.
    (c) 2005 by Marco van de Voort member of the 
@@ -29,9 +31,15 @@ Unit BSD;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF FPC_USE_LIBC} System.InitC, {$endif}
+  UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF FPC_USE_LIBC} initc, {$endif}
   Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   EVFILT_READ     = -1;
@@ -113,8 +121,13 @@ procedure EV_SET(kevp: PKEvent; const aIdent: PtrUInt; const aFilter: cshort;
 implementation
 
 {$IFNDEF FPC_USE_LIBC}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysCall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 procedure EV_SET(kevp: PKEvent; const aIdent: PtrUInt; const aFilter: cshort; const aFlags: cushort;

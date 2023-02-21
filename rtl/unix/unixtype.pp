@@ -14,7 +14,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

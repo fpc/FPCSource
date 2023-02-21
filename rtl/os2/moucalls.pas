@@ -33,7 +33,9 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MouCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interface library to MOUCALLS.DLL (through EMXWRAP.DLL; C calling convention
   - cdecl - must be used for EMXWRAP, whereas direct MOUCALLS calls would need

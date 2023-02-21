@@ -32,10 +32,24 @@
   {$fatal Unknown i8086 memory model.}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  System.RtlConsts,
+  System.Types,
+  System.SortBase,
+{$if defined(FPC_TESTGENERICS) or defined(FPC_CODEPOINTER_DIFFERENT_THAN_POINTER)}
+  System.FGL,
+{$endif}
+  System.SysUtils,
+  WinApi.WinProcs,WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
   rtlconsts,
@@ -46,6 +60,7 @@ uses
 {$endif}
   sysutils,
   winprocs,wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i classesh.inc}
 

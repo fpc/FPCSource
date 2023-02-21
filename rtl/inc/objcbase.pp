@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

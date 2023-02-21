@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit win31;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
@@ -8,8 +10,13 @@ unit win31;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   GFSR_SYSTEMRESOURCES = $0000;

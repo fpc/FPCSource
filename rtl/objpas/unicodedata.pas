@@ -82,7 +82,9 @@
         each [Child k] is a TUCA_PropItemRec.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unicodedata;
+{$ENDIF FPC_DOTTEDUNITS}
 {$IFDEF FPC}
   {$mode delphi}
   {$H+}

@@ -30,7 +30,9 @@
 
 {$ifdef lstrings_unit}
 { Compile as a separate unit - development only}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lstrings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

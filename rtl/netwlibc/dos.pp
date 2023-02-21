@@ -13,10 +13,16 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NetwareLibCApi.libc;
+{$ELSE FPC_DOTTEDUNITS}
 uses libc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   searchrec = packed record
@@ -41,8 +47,13 @@ function weekday(y,m,d : longint) : longint;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_KEEP}

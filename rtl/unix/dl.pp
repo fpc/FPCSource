@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -118,8 +120,13 @@ function dlinfo(Lib:pointer;request:longint;info:pointer):longint;cdecl;external
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
   function PosLastSlash(const s : string) : longint;
     var

@@ -15,7 +15,9 @@
 
 {$ifndef INCLUDED_FROM_SYSTEM}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libc;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 

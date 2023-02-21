@@ -3,6 +3,7 @@
   TStringHelper
   ---------------------------------------------------------------------}
 
+
 {$IFNDEF IS_SHORTSTRINGHELPER}
 {$IFNDEF IS_UNICODESTRINGHELPER}
 // Doubles with (wide/ansi)string...
@@ -124,7 +125,7 @@ end;
 class function TStringHelper.CompareText(const A: TStringType; const B: TStringType
   ): Integer;
 begin
-  Result:=Sysutils.CompareText(A,B);
+  Result:=SUT.CompareText(A,B);
 end;
 
 
@@ -161,7 +162,7 @@ end;
 
 class function TStringHelper.EndsText(const ASubText, AText: TStringType): Boolean;
 begin
-  Result:=(ASubText<>'') and (sysutils.CompareText(System.Copy(AText,System.Length(AText)-System.Length(ASubText)+1,System.Length(ASubText)),ASubText)=0);
+  Result:=(ASubText<>'') and (SUT.CompareText(System.Copy(AText,System.Length(AText)-System.Length(ASubText)+1,System.Length(ASubText)),ASubText)=0);
 end;
 
 
@@ -174,7 +175,7 @@ end;
 class function TStringHelper.Format(const AFormat: TStringType;
   const args: array of const): TStringType;
 begin
-  Result:=Sysutils.Format(AFormat,Args);
+  Result:=SUT.Format(AFormat,Args);
 end;
 
 
@@ -286,7 +287,7 @@ end;
 
 class function TStringHelper.LowerCase(const S: TStringType): TStringType;
 begin
-  Result:=sysutils.Lowercase(S);
+  Result:=SUT.Lowercase(S);
 end;
 
 
@@ -352,7 +353,7 @@ end;
 
 class function TStringHelper.UpperCase(const S: TStringType): TStringType;
 begin
-  Result:=sysutils.Uppercase(S);
+  Result:=SUT.Uppercase(S);
 end;
 
 
@@ -360,9 +361,9 @@ function TStringHelper.CompareTo(const B: TStringType): Integer;
 begin
   // Order is important
 {$IFDEF IS_SHORTSTRINGHELPER}
-  Result:=sysUtils.StrComp(PTStringChar(@Self[1]),PTStringChar(@B[1]));
+  Result:=SUT.StrComp(PTStringChar(@Self[1]),PTStringChar(@B[1]));
 {$ELSE}
-  Result:=sysUtils.StrComp(PTStringChar(Self),PTStringChar(B));
+  Result:=SUT.StrComp(PTStringChar(Self),PTStringChar(B));
 {$ENDIF}
 end;
 
@@ -827,7 +828,7 @@ end;
 function TStringHelper.IsDelimiter(const Delimiters: TStringType; Index: SizeInt
   ): Boolean;
 begin
-  Result:=sysutils.IsDelimiter(Delimiters,Self,Index+1);
+  Result:=SUT.IsDelimiter(Delimiters,Self,Index+1);
 end;
 
 
@@ -839,7 +840,7 @@ end;
 
 function TStringHelper.LastDelimiter(const Delims: TStringType): SizeInt;
 begin
-  Result:=sysutils.LastDelimiter(Delims,Self)-1;
+  Result:=SUT.LastDelimiter(Delims,Self)-1;
 end;
 
 
@@ -1424,19 +1425,19 @@ end;
 
 function TStringHelper.Trim: TStringType;
 begin
-  Result:=SysUtils.Trim(Self);
+  Result:=SUT.Trim(Self);
 end;
 
 
 function TStringHelper.TrimLeft: TStringType;
 begin
-  Result:=SysUtils.TrimLeft(Self);
+  Result:=SUT.TrimLeft(Self);
 end;
 
 
 function TStringHelper.TrimRight: TStringType;
 begin
-  Result:=SysUtils.TrimRight(Self);
+  Result:=SUT.TrimRight(Self);
 end;
 
 

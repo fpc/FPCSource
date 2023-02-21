@@ -12,7 +12,9 @@
 
  **********************************************************************}
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 {$modeswitch advancedrecords}
@@ -472,7 +474,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$if (not defined(win32)) and (not defined(win64)) and (not defined(wince))}
   {$i typshrd.inc}
@@ -737,8 +743,8 @@ end;
 
 function TPointF.Floor: TPoint;
 begin
-  result.x:=Math.floor(x);
-  result.y:=Math.floor(y);
+  result.x:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(x);
+  result.y:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(y);
 end;
 
 function TPointF.Round: TPoint;
@@ -941,8 +947,8 @@ end;
 
 function TSizeF.Floor: TSize;
 begin
-  result.cx:=Math.floor(cx);
-  result.cy:=Math.floor(cy);
+  result.cx:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(cx);
+  result.cy:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.floor(cy);
 end;
 
 function TSizeF.Round: TSize;

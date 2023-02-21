@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinSysUt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Win32Platform     : Integer = 0;

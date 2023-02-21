@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit sysctl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    This file is part of the Free Pascal run time library.
@@ -18,8 +20,13 @@ Unit sysctl;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef FPC_USE_LIBC}
 {$define FPC_USE_SYSCALL}
@@ -101,7 +108,11 @@ function FPsysctlnametomib (Name: PAnsiChar; mibp:pcint;sizep:psize_t):cint;
 Implementation
 
 {$ifndef FPC_USE_LIBC}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 {$ifndef FPC_USE_LIBC}

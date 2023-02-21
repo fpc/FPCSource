@@ -15,12 +15,19 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   searchrec = packed record
@@ -71,8 +78,13 @@ procedure exec_ansistring(path : string;comline : ansistring);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}

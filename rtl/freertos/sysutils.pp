@@ -20,7 +20,9 @@
 {$ELSE}
 {$H+}
 {$ENDIF}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -42,8 +44,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysConst,EmbeddedApi.HeapMGR;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysconst,heapmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
   { Include platform independent implementation part }
   {$i sysutils.inc}

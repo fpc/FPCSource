@@ -13,11 +13,17 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unixcp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { source: http://win-iconv.googlecode.com/svn-history/r6/trunk/win_iconv.c
   public domain

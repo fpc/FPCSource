@@ -156,7 +156,7 @@ Type
     {$IFDEF USE_STATX}
     data : tstatx platform;
     {$ELSE}
-    data : baseunix.stat platform;
+    data : BU.stat platform;
     {$ENDIF USE_STATX}
   {$ELSE}
     data : TSearchRec;

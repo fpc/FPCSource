@@ -19,7 +19,9 @@
 
  ****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit raspiuart;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {-
     The Raspberry Pi 3 and 4 use an ARM PL011 UART, but requires
@@ -37,8 +39,13 @@ procedure UARTFlush(BaseAddr: DWord);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    EmbeddedApi.mailbox, EmbeddedApi.mmio, EmbeddedApi.gpio;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     mailbox, mmio, gpio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     { UART offsets from PeripheralBase }

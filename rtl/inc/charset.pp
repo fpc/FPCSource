@@ -16,7 +16,9 @@
 {$mode objfpc}
 {$pointermath on}
 {$PACKENUM 1}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

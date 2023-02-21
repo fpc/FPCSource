@@ -17,14 +17,21 @@
 {Warning: This code is alfa. Future versions
  of this unit might not be compatible.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmhelp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE OBJFPC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   os2def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   msg_failedtodisplay='Failed to display help panel.';

@@ -17,7 +17,9 @@
 {$inline on}
 {$implicitexceptions off}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cwstring;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -25,7 +27,11 @@ procedure SetCWidestringManager;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   UErrorCode = SizeInt;

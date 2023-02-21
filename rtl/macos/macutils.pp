@@ -14,12 +14,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit macutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOSApi.MacOSTP;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   macostp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function FourCharCodeToLongword(fourcharcode: Shortstring): Longword;
 

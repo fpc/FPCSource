@@ -15,7 +15,9 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -71,8 +73,13 @@ procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings, WinApi.WinProcs, WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings, winprocs, wintypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PFarByte = ^Byte;far;

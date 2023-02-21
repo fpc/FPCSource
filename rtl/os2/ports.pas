@@ -24,7 +24,9 @@
      all applications using this library finish).
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Ports;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This unit uses classes so ObjFpc mode is required. }
 {$Mode ObjFpc}
