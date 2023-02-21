@@ -17,7 +17,9 @@
   This module is untested, for the socket functions please use winsock
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwprot;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

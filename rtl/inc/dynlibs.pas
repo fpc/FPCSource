@@ -16,7 +16,9 @@
 {$MODE OBJFPC}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dynlibs;
+{$ENDIF}
 
 interface
 

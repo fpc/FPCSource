@@ -9214,7 +9214,7 @@ type
 type
      tagMENUBARINFO = record
        cbSize:DWORD;
-       rcBar:Windows.RECT; // rect of bar, popup, item
+       rcBar: {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RECT; // rect of bar, popup, item
        _hmenu:HMENU;       // real menu handle of bar, popup
        hwndMenu:HWND;      // hwnd of item submenu if one
 //    fBarFocused:1:BOOL;  // bar, popup has the focus

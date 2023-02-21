@@ -6,17 +6,17 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings \
-      $(CPU_UNITS) lineinfo heaptrc \
-      windows messages dynlibs \
-      dos \
-      rtlconsts sysconst sysutils \
-      typinfo types sortbase fgl classes \
-      math fpwidestring \
-      charset cpall getopts \
-      unicodedata character \
-      cmem sharemem \
-      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+      $(CPU_UNITS)  heaptrc $(LINEINFOUNIT) \
+      $(WINDOWSUNIT) $(MESSAGESUNIT) $(DYNLIBSUNIT) \
+      $(DOSUNIT) \
+      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
+      $(TYPINFOUNIT) $(TYPESUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) \
+      $(MATHUNIT)   $(FPWIDESTRINGUNIT)  \
+      $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \
+      $(CMEMUNIT)  $(SHARMEMUNIT) \
+      $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
@@ -24,12 +24,13 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings 
 #    winsysut
 
 # rsts=math varutils typinfo variants classes dateutils sysconst
-implicitunits=exeinfo \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+implicitunits=$(EXEINFOUNIT) \
+      $(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
+      $(CP437UNIT) $(CP646UNIT) $(CP737UNIT) $(CP775UNIT) $(CP850UNIT) $(CP852UNIT) $(CP855UNIT) $(CP856UNIT) $(CP857UNIT) $(CP860UNIT) $(CP861UNIT) $(CP862UNIT) \
+      $(CP863UNIT) $(CP864UNIT) $(CP865UNIT) $(CP866UNIT) $(CP869UNIT) $(CP874UNIT) $(CP3021UNIT) $(CP8859_1UNIT) $(CP8859_2UNIT) $(CP8859_3UNIT) $(CP8859_4UNIT) \
+      $(CP8859_5UNIT) $(CP8859_6UNIT) $(CP8859_7UNIT) $(CP8859_8UNIT) $(CP8859_9UNIT) $(CP8859_10UNIT) $(CP8859_11UNIT) \
+      $(CP8859_13UNIT) $(CP8859_14UNIT) $(CP8859_15UNIT) $(CP8859_16UNIT) $(CPKOI8_RUNIT) $(CPKOI8_UUNIT) \
+      $(UNICODEDATAUNIT)
 
 # fake dll
 # programs=fpcmemdll
@@ -81,7 +82,11 @@ GRAPHDIR=$(INC)/graph
 include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
-
+WINDOWS_OPT=-Fi$(WININC)
+DOS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
+SYSUTILSDIR=.
+SYSUTILS_OPT=-Fi../win
+SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) 
 
 [rules]
 .NOTPARALLEL:
@@ -102,169 +107,16 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 
-
 #
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-        $(COMPILER) $(INC)/uuchar.pp
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(PROCINC) $(INC)/strings.pp
-
-#
-# System Dependent Units
-#
-
-windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(WININC) windows.pp
-
-messages$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+$(MESSAGESUNIT)$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) messages.pp
 
-#opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-#winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-#                   $(INC)/sockets.inc $(INC)/socketsh.inc
-#	$(COMPILER) $(WINDIR)/sockets.pp
-
-#initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
-
-#wincrt$(PPUEXT) : wincrt.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
-
-#winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
-
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/dynlibs.pas
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT)
-
-#
-# Graph
-#
-
-#include $(GRAPHDIR)/makefile.inc
-#GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-#graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-#                 $(GRAPHINCDEPS)
-#        $(COMPILER) -I$(GRAPHDIR) graph.pp
-
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-		   sysconst$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-
-#winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
-#        $(COMPILER) winsysut.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-#
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
-#
-# Other system-independent RTL Units
-#
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/getopts.pp
-
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/lineinfo.pp
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/lnfodwrf.pp
-
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/matrix.pp
-
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/cmem.pp
-
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ucomplex.pp
-
-fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/fpintres.pp
-
-fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
-
-unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas
-        $(COMPILER) $(OBJPASDIR)/unicodedata.pas
-
-character$(PPUEXT): $(OBJPASDIR)/character.pas
-        $(COMPILER) $(OBJPASDIR)/character.pas
-
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-#
-# Other system-dependent RTL Units
-#
-
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/ctypes.pp
 
 sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
         $(COMPILER) $(WINDIR)/sharemem.pp
@@ -272,17 +124,3 @@ sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
 fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
         $(COMPILER) $(WINDIR)/fpcmemdll.pp
 
-softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) $<
-
-ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<

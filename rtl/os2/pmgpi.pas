@@ -34,13 +34,19 @@
 {Warning: This code is alfa. Future versions of this unit will propably
  not be compatible.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmgpi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MACRO ON}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    OS2Api.os2def,OS2Api.pmbitmap;
+{$ELSE FPC_DOTTEDUNITS}
 uses    os2def,pmbitmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const   GPI_ERROR                           =       0;
         GPI_OK                              =       1;

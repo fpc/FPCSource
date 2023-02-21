@@ -19,7 +19,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -60,8 +62,13 @@ function DiskFree(Drive: AnsiString): Int64;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS, System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dos, sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}

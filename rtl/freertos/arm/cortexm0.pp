@@ -3,7 +3,9 @@
  Created by Jeppe Johansen 2012 - jeppe@j-software.dk
  Modified for M0 by Michael Ring 2013 - mail@michael-ring.org
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cortexm0;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

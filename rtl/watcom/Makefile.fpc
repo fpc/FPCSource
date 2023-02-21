@@ -8,17 +8,22 @@ main=rtl
 [target]
 loaders=prt0
 #exceptn fpu
-units=system uuchar objpas macpas iso7185 extpas strings watcom dos \
-      cpu charset cpall types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
-      character fpwidestring unicodedata \
-      math typinfo mmx sortbase \
-      classes sysutils
-implicitunits=exeinfo \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
-      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
-      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
-      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+
+units=$(SYSTEMUNIT) uuchar $(CTYPESUNIT) objpas macpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+      watcom $(DOSUNIT) \
+      $(SYSUTILSUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(MATHUNIT) $(TYPINFOUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) $(CPUUNIT) $(MMXUNIT) $(GETOPTSUNIT) \
+      $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)  \
+      $(TYPESUNIT) $(RTLCONSTUNIT) $(SYSCONSTUNIT) \
+      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
+      $(SOFTFPUUNIT) $(SFPUX8080UNIT) $(UFLOATX80UNIT) $(SPFU128UNIT)       $(UFLOAT128UNIT)
+rsts=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
+implicitunits=$(EXEINFOUNIT) \
+      $(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
+      $(CP437UNIT) $(CP646UNIT) $(CP737UNIT) $(CP775UNIT) $(CP850UNIT) $(CP852UNIT) $(CP855UNIT) $(CP856UNIT) $(CP857UNIT) $(CP860UNIT) $(CP861UNIT) $(CP862UNIT) \
+      $(CP863UNIT) $(CP864UNIT) $(CP865UNIT) $(CP866UNIT) $(CP869UNIT) $(CP874UNIT) $(CP3021UNIT) $(CP8859_1UNIT) $(CP8859_2UNIT) $(CP8859_3UNIT) $(CP8859_4UNIT) \
+      $(CP8859_5UNIT) $(CP8859_6UNIT) $(CP8859_7UNIT) $(CP8859_8UNIT) $(CP8859_9UNIT) $(CP8859_10UNIT) $(CP8859_11UNIT) \
+      $(CP8859_13UNIT) $(CP8859_14UNIT) $(CP8859_15UNIT) $(CP8859_16UNIT) $(CPKOI8_RUNIT) $(CPKOI8_UUNIT) $(UNICODEDATAUNIT)\
 
 # dpmiexcp initc ports profile dxeload emu387 \
 # printer graph classes \
@@ -49,6 +54,8 @@ PROCINC=../$(CPU_TARGET)
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+DOS_DEPS_OS=$(STRINGSUNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -99,22 +106,6 @@ prt0$(OEXT) : prt0.as
         $(COPY) prt0$(OEXT) $(UNITTARGETDIRPREFIX)prt0$(OEXT)
 
 #
-# System Units (System, Objpas, Strings)
-#
-
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   system$(PPUEXT)
-
-#
 # System Dependent Units
 #
 
@@ -132,104 +123,9 @@ dxeload$(PPUEXT) : dxeload.pp system$(PPUEXT)
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
                   dpmiexcp$(PPUEXT)
 
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
-
-#
-# TP7 Compatible RTL Units
-#
-
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-               watcom$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-
-printer$(PPUEXT) : printer.pp system$(PPUEXT)
-
-#
-# Graph
-#
-
-#include $(GRAPHDIR)/makefile.inc
-#GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-#graph$(PPUEXT) : graph.pp watcom$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
-#                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
-#        $(COMPILER) -I$(GRAPHDIR) graph.pp
-
-#
-# Delphi Compatible Units
-#
-
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) dos$(PPUEXT) watcom$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
-
-#
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
-#
-# Other system-independent RTL Units
-#
-
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
-
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
-
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
-
-charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
-
-fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
-
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/character.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
-
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # Other system-dependent RTL Units
 #
 
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)

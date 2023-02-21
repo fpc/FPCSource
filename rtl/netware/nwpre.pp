@@ -24,7 +24,9 @@
 #**********************************************************************
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nwpre;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

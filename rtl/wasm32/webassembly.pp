@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WebAssembly;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 

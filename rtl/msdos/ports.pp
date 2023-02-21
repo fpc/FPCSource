@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ports;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

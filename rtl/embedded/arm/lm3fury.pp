@@ -5,7 +5,9 @@ Geoffrey Barton 2010 08 01  gjb@periphon.net
 based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
 {$goto on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lm3fury;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

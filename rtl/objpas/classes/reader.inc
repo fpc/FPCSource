@@ -638,7 +638,7 @@ begin
     // Try again with the parent class type
     ClassType := ClassType.ClassParent;
   end;
-  Result := Classes.GetClass(ClassName);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.GetClass(ClassName);
 end;
 
 

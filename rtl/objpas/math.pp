@@ -47,13 +47,20 @@
 {$MODE objfpc}
 {$inline on }
 {$GOTO on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Math;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPDOC_MATH}
 Type

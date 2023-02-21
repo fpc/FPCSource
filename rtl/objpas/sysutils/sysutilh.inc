@@ -12,6 +12,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE SUT:=sysutils}
+{$DEFINE BU:=baseunix}
+{$ELSE}
+{$DEFINE SUT:=System.SysUtils}
+{$DEFINE BU:=UnixApi.Base}
+{$ENDIF}
+
 { Using inlining for small system functions/wrappers }
 {$inline on}
 {$define SYSUTILSINLINE}

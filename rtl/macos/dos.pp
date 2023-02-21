@@ -11,11 +11,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  MacOSApi.MacOSTP;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   macostp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const
@@ -60,9 +67,15 @@ Implementation
 {TODO Perhaps use LongDateTime for time functions. But the function
  calls must then be weak linked.}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  MacOSApi.MacUtils,
+  UnixApi.Utils {for FNMatch};
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   macutils,
   unixutil {for FNMatch};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$UNDEF USE_FEXPAND_INC}
 //{$DEFINE USE_FEXPAND_INC}

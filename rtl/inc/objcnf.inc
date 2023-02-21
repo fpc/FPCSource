@@ -16,12 +16,22 @@
 
 interface
 
+{$IFNDEF FPC_DOTTEDUNITS}
 uses
   ctypes
 {$ifdef unix}
   ,unixtype
 {$endif}
   ;
+{$ELSE}  
+uses
+  System.CTypes
+{$ifdef unix}
+  ,UnixApi.Types
+{$endif}
+  ;
+
+{$ENDIF}  
 
 {$packrecords c}
 

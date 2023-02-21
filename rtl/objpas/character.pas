@@ -17,7 +17,9 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Character;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -25,8 +27,13 @@ interface
 {$H+}
 {$PACKENUM 1}
 {$SCOPEDENUMS ON}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CodePages.unicodedata;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unicodedata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Unicode General Category
@@ -191,9 +198,15 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   RtlConsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LETTER_CATEGORIES = [

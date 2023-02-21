@@ -16,7 +16,9 @@
 { This unit provides the same Functionality as the TypInfo Unit }
 { of Delphi                                                     }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TypInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -26,7 +28,11 @@ unit TypInfo;
 {$macro on}
 {$h+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
   uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 // temporary types:
@@ -1060,7 +1066,11 @@ function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PMethod = ^TMethod;

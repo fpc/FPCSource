@@ -12,8 +12,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Dl;
+{$ELSE}
 uses dl;
+{$ENDIF}
+
 
 Function SysLoadLibraryA(const Name : RawByteString) : TLibHandle;
 {$ifdef aix}
@@ -58,7 +62,11 @@ end;
 Function SysGetLoadErrorStr: ansistring;
 
 begin
+{$IFDEF FPC_DOTTEDUNITS}
+  Result:=UnixApi.Dl.dlerror;
+{$ELSE}  
   Result:=dl.dlerror;
+{$ENDIF}
 end;
 
 const

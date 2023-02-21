@@ -14,15 +14,22 @@
 
  **********************************************************************}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ufloatx80;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      System.SoftFpuX80;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       sfpux80;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type
-      floatx80 = sfpux80.floatx80;
+      floatx80 = {$IFDEF FPC_DOTTEDUNITS}System.SoftFpuX80{$ELSE}sfpux80{$ENDIF}.floatx80;
 
     operator+ (const f1,f2 : floatx80) result : floatx80;inline;
     operator* (const f1,f2 : floatx80) result : floatx80;inline;

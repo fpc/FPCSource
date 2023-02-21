@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sam3x8e;
+{$ENDIF FPC_DOTTEDUNITS}
 // ---------------------------------------------------------------------------- //
 //                  Atmel Microcontroller Software Support                      //
 //                       SAM Software Package License                           //

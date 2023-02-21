@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinDirs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*******************************************************************************
 
@@ -233,8 +235,13 @@ function ConvertFOLDERIDtoCSIDL(const FOLDERID: TGUID; out CSIDL: Integer): Bool
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Windows, SysUtils;
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TCSIDLtoFOLDERID = record
@@ -329,6 +336,40 @@ var
   _SHGetKnownFolderPathW: TSHGetKnownFolderPathW = nil;
   DLLHandle: THandle = 0;
 
+{
+  Taken from sysutils
+}
+function StrPas(Str: PWideChar): UnicodeString;overload;
+begin
+  Result:=Str;
+end;
+
+
+function IncludeTrailingPathDelimiter(Const S : String) : String;
+
+begin
+  Result:=S;
+  if (Result='') or (Result[Length(Result)]<>DirectorySeparator) then
+    Result:=Result+DirectorySeparator;
+end;
+
+
+function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
+var
+  a1,a2: PIntegerArray;
+begin
+  a1:=PIntegerArray(@guid1);
+  a2:=PIntegerArray(@guid2);
+  Result:=(a1^[0]=a2^[0]) and
+          (a1^[1]=a2^[1]) and
+          (a1^[2]=a2^[2]) and
+          (a1^[3]=a2^[3]);
+end;
+
+{
+  End of taken from Sysutils
+}
+
 procedure InitDLL;
 var
   DLLPath: UnicodeString;
@@ -350,7 +391,7 @@ begin
   end;
   // At least one of SHGetFolderPath or SHGetKnownFolderPath functions is required
   if (@_SHGetFolderPathW = nil) and (@_SHGetKnownFolderPathW = nil) then
-    raise Exception.Create('Could not locate '+SSHGetFolderPathW+' / '+SSHGetKnownFolderPathW+' functions');
+    runError(6); // raise Exception.Create('Could not locate '+SSHGetFolderPathW+' / '+SSHGetKnownFolderPathW+' functions');
 end;
 
 procedure FinitDLL;

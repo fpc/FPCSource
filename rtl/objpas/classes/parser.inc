@@ -314,7 +314,7 @@ begin
     end;
   end;
   if ascii then
-    fToken:=Classes.toString
+    fToken:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.toString
   else
     fToken:=toWString;
 end;

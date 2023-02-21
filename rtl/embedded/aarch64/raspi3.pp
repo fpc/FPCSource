@@ -19,7 +19,9 @@
 
  ****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit raspi3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 {$INLINE ON}
@@ -28,8 +30,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    EmbeddedApi.ConsoleIO, EmbeddedApi.mmio, EmbeddedApi.mailbox, EmbeddedApi.raspiuart, EmbeddedApi.gpio;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     consoleio, mmio, mailbox, raspiuart, gpio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
 asm

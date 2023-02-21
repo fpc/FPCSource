@@ -24,16 +24,27 @@
 { determine the type of the resource/form file }
 {$define Win16Res}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.RtlConsts,
+  System.Types,  
+  System.TypInfo,
+  System.SortBase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils,
   rtlconsts,
   types,  
   typinfo,
   sortbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i classesh.inc}
 

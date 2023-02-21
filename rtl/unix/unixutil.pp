@@ -23,7 +23,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unixutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

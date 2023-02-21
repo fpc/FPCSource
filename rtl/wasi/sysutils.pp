@@ -15,7 +15,9 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
@@ -28,8 +30,13 @@ interface
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WASIApi.WASIApi, WASIApi.WASIUtil;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   wasiapi, wasiutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
@@ -49,8 +56,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -60,22 +72,22 @@ implementation
 
 Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
 begin
-  Result:=WasiUtil.UniversalToEpoch(year,month,day,hour,minute,second);
+  Result:={$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.UniversalToEpoch(year,month,day,hour,minute,second);
 end;
 
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64;
 begin
-  Result:=WasiUtil.LocalToEpoch(year,month,day,hour,minute,second);
+  Result:={$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.LocalToEpoch(year,month,day,hour,minute,second);
 end;
 
 Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word);
 begin
-  WasiUtil.EpochToUniversal(epoch,year,month,day,hour,minute,second);
+  {$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.EpochToUniversal(epoch,year,month,day,hour,minute,second);
 end;
 
 Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word);
 begin
-  WasiUtil.EpochToLocal(epoch,year,month,day,hour,minute,second);
+  {$IFDEF FPC_DOTTEDUNITS}WASIApi.{$ENDIF}WasiUtil.EpochToLocal(epoch,year,month,day,hour,minute,second);
 end;
 
 { Include platform independent implementation part }
@@ -664,7 +676,7 @@ end;
                               Os utils
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 var
   hp : PPAnsiChar;
   hs : string;
@@ -700,7 +712,7 @@ begin
       end;
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 Var
   i : longint;
   p : PPAnsiChar;

@@ -1,10 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwidestring;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CodePages.unicodedata;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unicodedata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i rtldefs.inc}
 
@@ -16,6 +23,16 @@ var
   DefaultCollationName : UnicodeString = '';
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef MSWINDOWS}
+  WinApi.Windows,
+{$endif MSWINDOWS}
+{$ifdef Unix}
+  UnixApi.CP,
+{$endif}
+  System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef MSWINDOWS}
   Windows,
@@ -24,6 +41,7 @@ uses
   unixcp,
 {$endif}
   charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 {$ifdef MSWINDOWS}

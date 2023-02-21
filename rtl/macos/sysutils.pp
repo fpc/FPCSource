@@ -17,7 +17,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$MODE objfpc}
@@ -33,8 +35,13 @@ interface
 {OS has only 1 byte version for ExecuteProcess}
 {$define executeprocuni}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOSApi.MacOSTP;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   MacOSTP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_SLEEP}   {Dummy implementation:  TODO }
 //{$DEFINE HAS_OSERROR}   TODO
@@ -62,8 +69,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS, System.SysConst, MacOSApi.MacUtils; // For some included files.
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Dos, Sysconst, macutils; // For some included files.
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_VOLUMES}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}

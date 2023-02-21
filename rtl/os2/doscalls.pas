@@ -19,13 +19,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 interface
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses    Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type    PString = PShortString;
 

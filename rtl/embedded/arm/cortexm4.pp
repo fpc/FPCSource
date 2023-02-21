@@ -3,7 +3,9 @@
 
  Created by Jeppe Johansen 2012 - jeppe@j-software.dk
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cortexm4;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

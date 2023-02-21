@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit raspi2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 {$INLINE ON}
@@ -32,8 +34,13 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    EmbeddedApi.ConsoleIO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     consoleio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
 asm

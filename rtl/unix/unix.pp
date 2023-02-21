@@ -12,11 +12,19 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Base,UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   BaseUnix,UnixType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // If you deprecated new symbols, please annotate the version.
 // this makes it easier to decide if they can already be removed.
@@ -27,6 +35,13 @@ Uses
 
 {$i aliasptp.inc}
 {$i unxconst.inc} { Get Types and Constants only exported in this unit }
+
+{$IFNDEF FPC_DOTTEDUNITS}
+{$DEFINE BU:=baseunix}
+{$ELSE}
+{$DEFINE BU:=UnixApi.Base}
+{$ENDIF}
+
 
 {**  File handling **}
 
@@ -40,16 +55,16 @@ Const
   LOCK_NB = 4;
 
 // The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
-  PROT_READ  = baseunix.PROT_READ;             { page can be read }
-  PROT_WRITE = baseunix.PROT_WRITE;             { page can be written }
-  PROT_EXEC  = baseunix.PROT_EXEC;             { page can be executed }
-  PROT_NONE  = baseunix.PROT_NONE;             { page can not be accessed }
+  PROT_READ  = BU.PROT_READ;             { page can be read }
+  PROT_WRITE = BU.PROT_WRITE;             { page can be written }
+  PROT_EXEC  = BU.PROT_EXEC;             { page can be executed }
+  PROT_NONE  = BU.PROT_NONE;             { page can not be accessed }
 
-  MAP_FAILED    = baseunix.MAP_FAILED;	      { mmap() failed }
-  MAP_SHARED    = baseunix.MAP_SHARED;        { Share changes }
-  MAP_PRIVATE   = baseunix.MAP_PRIVATE;       { Changes are private }
-  MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
-  MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
+  MAP_FAILED    = BU.MAP_FAILED;	      { mmap() failed }
+  MAP_SHARED    = BU.MAP_SHARED;        { Share changes }
+  MAP_PRIVATE   = BU.MAP_PRIVATE;       { Changes are private }
+  MAP_TYPE      = BU.MAP_TYPE;          { Mask for type of mapping }
+  MAP_FIXED     = BU.MAP_FIXED;         { Interpret addr exactly }
 
 {** Time/Date Handling **}
 
@@ -172,8 +187,13 @@ Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString):UnicodeStrin
 Implementation
 
 {$ifndef FPC_USE_LIBC}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.SysCall;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Syscall;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$i unxovl.inc}
@@ -1339,11 +1359,15 @@ Function GetDomainName:String;  { linux only!}
   Get machines domain name. Returns empty string if not set.
 }
 
+var
+  s : ShortString;
+
 begin
-  if intGetDomainName(@getdomainname[1],255)=-1 then
-   getdomainname:=''
+  if intGetDomainName(@s[1],255)=-1 then
+   s:=''
   else
-   getdomainname[0]:=chr(strlen(@getdomainname[1]));
+   SetLength(s,strlen(@s[1]));
+  getdomainname:=s;  
 end;
 {$endif}
 

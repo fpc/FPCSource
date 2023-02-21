@@ -3,7 +3,9 @@ Register definitions and utility code for STM32F429
 
 Created by Jeppe Johansen 2015 - jeppe@j-software.dk
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stm32f429;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 

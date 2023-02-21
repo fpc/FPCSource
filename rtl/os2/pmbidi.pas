@@ -17,11 +17,17 @@
 {Warning: This code is alfa. Future versions
  of this unit might not be compatible.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pmbidi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses OS2Api.os2def, OS2Api.pmwin;
+{$ELSE FPC_DOTTEDUNITS}
 uses os2def, pmwin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$PACKRECORDS C}

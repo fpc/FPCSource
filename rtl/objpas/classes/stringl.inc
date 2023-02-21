@@ -2083,7 +2083,7 @@ end;
 procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
-  CustomSort(CompareFn, SortBase.DefaultSortingAlgorithm);
+  CustomSort(CompareFn, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 type

@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit signals;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

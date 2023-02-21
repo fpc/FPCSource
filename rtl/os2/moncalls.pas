@@ -33,7 +33,9 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MonCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interface library to MONCALLS.DLL (through EMXWRAP.DLL)
 

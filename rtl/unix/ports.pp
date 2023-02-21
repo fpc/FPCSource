@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit ports;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$inline on}
 

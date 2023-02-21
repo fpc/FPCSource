@@ -14,6 +14,12 @@
  **********************************************************************}
 
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
+{$MACRO ON}
+{$IFDEF FPC_DOTTEDUNITS}
+{$DEFINE TYU:=System.Types}
+{$ELSE}
+{$DEFINE TYU:=Types}
+{$ENDIF}
 
 
 type
@@ -22,9 +28,9 @@ type
    TComponentName = type string;
    THandle = System.THandle;
 
-   TPoint=Types.TPoint;
-   TRect=Types.TRect;
-   TSmallPoint=Types.TSmallPoint;
+   TPoint=TYU.TPoint;
+   TRect=TYU.TRect;
+   TSmallPoint=TYU.TSmallPoint;
 
 {$ifndef FPC_HAS_FEATURE_DYNLIBS}
    HMODULE = ptrint; 
@@ -57,13 +63,13 @@ const
 
 type
   TSeekOrigin = (soBeginning, soCurrent, soEnd);
-  TDuplicates = Types.TDuplicates;
+  TDuplicates = TYU.TDuplicates;
 
 // For Delphi and backwards compatibility.
 const
-  dupIgnore = Types.dupIgnore;
-  dupAccept = Types.dupAccept;
-  dupError  = Types.dupError;
+  dupIgnore = TYU.dupIgnore;
+  dupAccept = TYU.dupAccept;
+  dupError  = TYU.dupError;
 
 { TFileStream create mode }
 const
@@ -197,8 +203,8 @@ Type
   PPointerList = ^TPointerList;
   TPointerList = array[0..MaxListSize - 1] of Pointer;
   TListSortCompare = function (Item1, Item2: Pointer): Integer;
-  TListCallback = Types.TListCallback;
-  TListStaticCallback = Types.TListStaticCallback;
+  TListCallback = TYU.TListCallback;
+  TListStaticCallback = TYU.TListStaticCallback;
 
 
 {$IFNDEF FPC_TESTGENERICS}

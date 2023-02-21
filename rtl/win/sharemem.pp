@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sharemem;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

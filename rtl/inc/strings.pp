@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 {$S-}
 {$inline on}
 interface

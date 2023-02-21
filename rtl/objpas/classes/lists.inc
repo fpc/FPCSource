@@ -307,7 +307,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortCompare);
 begin
-  Sort(Compare, SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 
@@ -319,7 +319,7 @@ end;
 
 procedure TFPList.Sort(Compare: TListSortComparer_Context; Context: Pointer);
 begin
-  Sort(Compare, Context, SortBase.DefaultSortingAlgorithm);
+  Sort(Compare, Context, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SortBase.DefaultSortingAlgorithm);
 end;
 
 

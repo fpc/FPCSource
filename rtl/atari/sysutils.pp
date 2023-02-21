@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -47,8 +49,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{  TP.DOS,} System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {  dos,} sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NEWEXE;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

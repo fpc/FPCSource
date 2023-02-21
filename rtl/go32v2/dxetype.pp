@@ -15,7 +15,9 @@
  **********************************************************************
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dxetype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

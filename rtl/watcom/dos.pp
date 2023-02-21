@@ -15,11 +15,18 @@
 
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dos;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WatcomApi.WatCom;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Watcom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -39,8 +46,13 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_INTR}
