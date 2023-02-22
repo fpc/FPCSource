@@ -1087,20 +1087,23 @@ unit aoptx86;
                 R_SUBW,R_SUBD,R_SUBQ:
                   Result :=
                     [Ch_WCarryFlag,Ch_WParityFlag,Ch_WAuxiliaryFlag,Ch_WZeroFlag,Ch_WSignFlag,Ch_WOverflowFlag,
+                     Ch_W0CarryFlag,Ch_W0ParityFlag,Ch_W0AuxiliaryFlag,Ch_W0ZeroFlag,Ch_W0SignFlag,Ch_W0OverflowFlag,
+                     Ch_W1CarryFlag,Ch_W1ParityFlag,Ch_W1AuxiliaryFlag,Ch_W1ZeroFlag,Ch_W1SignFlag,Ch_W1OverflowFlag,
+                     Ch_WUCarryFlag,Ch_WUParityFlag,Ch_WUAuxiliaryFlag,Ch_WUZeroFlag,Ch_WUSignFlag,Ch_WUOverflowFlag,
                      Ch_RWCarryFlag,Ch_RWParityFlag,Ch_RWAuxiliaryFlag,Ch_RWZeroFlag,Ch_RWSignFlag,Ch_RWOverflowFlag,
                      Ch_W0DirFlag,Ch_W1DirFlag,Ch_W0IntFlag,Ch_W1IntFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGCARRY:
-                  Result:=[Ch_WCarryFlag,Ch_RWCarryFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WCarryFlag,Ch_W0CarryFlag,Ch_W1CarryFlag,Ch_WUCarryFlag,Ch_RWCarryFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGPARITY:
-                  Result:=[Ch_WParityFlag,Ch_RWParityFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WParityFlag,Ch_W0ParityFlag,Ch_W1ParityFlag,Ch_WUParityFlag,Ch_RWParityFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGAUXILIARY:
-                  Result:=[Ch_WAuxiliaryFlag,Ch_RWAuxiliaryFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WAuxiliaryFlag,Ch_W0AuxiliaryFlag,Ch_W1AuxiliaryFlag,Ch_WUAuxiliaryFlag,Ch_RWAuxiliaryFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGZERO:
-                  Result:=[Ch_WZeroFlag,Ch_RWZeroFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WZeroFlag,Ch_W0ZeroFlag,Ch_W1ZeroFlag,Ch_WUZeroFlag,Ch_RWZeroFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGSIGN:
-                  Result:=[Ch_WSignFlag,Ch_RWSignFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WSignFlag,Ch_W0SignFlag,Ch_W1SignFlag,Ch_WUSignFlag,Ch_RWSignFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGOVERFLOW:
-                  Result:=[Ch_WOverflowFlag,Ch_RWOverflowFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
+                  Result:=[Ch_WOverflowFlag,Ch_W0OverflowFlag,Ch_W1OverflowFlag,Ch_WUOverflowFlag,Ch_RWOverflowFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGINTERRUPT:
                   Result:=[Ch_W0IntFlag,Ch_W1IntFlag,Ch_WFlags,Ch_RWFlags]*Ch<>[];
                 R_SUBFLAGDIRECTION:
