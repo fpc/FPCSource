@@ -37,6 +37,7 @@ program fpcmake;
     var
       ParaMode : TMode;
       ParaVerboseLevel : TVerboseLevel;
+      paraExtra : string;
       ParaTargets : string;
       ParaRecursive : boolean;
 
@@ -81,7 +82,7 @@ program fpcmake;
                              Makefile output
 *****************************************************************************}
 
-    procedure ProcessFile_Makefile(const fn:string);
+    procedure ProcessFile_Makefile(const fn, aextra:string);
       var
         CurrFPCMake : TFPCMakeConsole;
         CurrMakefile : TMakefileWriter;
@@ -96,6 +97,7 @@ program fpcmake;
 {$endif NOEXCEPT}
           { Load Makefile.fpc }
           CurrFPCMake:=TFPCMakeConsole.Create(fn);
+          CurrFPCMake.ExtraTargetsFile:=aExtra;
           if ParaTargets<>'' then
            CurrFPCMake.SetTargets(ParaTargets);
           CurrFPCMake.LoadMakefileFPC;
@@ -153,7 +155,7 @@ program fpcmake;
              s:=GetToken(subdirs,' ');
              if s='' then
               break;
-             ProcessFile_Makefile(ExtractFilePath(fn)+s+'/Makefile.fpc');
+             ProcessFile_Makefile(ExtractFilePath(fn)+s+'/Makefile.fpc',paraExtra);
            until false;
          end;
 
@@ -163,7 +165,7 @@ program fpcmake;
                              Package.fpc output
 *****************************************************************************}
 
-    procedure ProcessFile_PackageFpc(const fn:string);
+    procedure ProcessFile_PackageFpc(const fn,aExtra :string);
       var
         CurrFPCMake : TFPCMakeConsole;
         CurrPackageFpc : TPackageFpcWriter;
@@ -177,6 +179,7 @@ program fpcmake;
           CurrFPCMake:=TFPCMakeConsole.Create(fn);
           if ParaTargets<>'' then
            CurrFPCMake.SetTargets(ParaTargets);
+          CurrFPCMake.ExtraTargetsFile:=aExtra;
           CurrFPCMake.LoadMakefileFPC;
 //          CurrFPCMake.Print;
 
@@ -197,16 +200,16 @@ program fpcmake;
       end;
 
 
-    procedure ProcessFile(const fn:string);
+    procedure ProcessFile(const fn,aExtra:string);
       begin
         Show(V_Verbose,TitleDate);
         case ParaMode of
           m_None :
             Error('No operation specified, see -h for help');
           m_Makefile :
-            ProcessFile_Makefile(fn);
+            ProcessFile_Makefile(fn,aExtra);
           m_PackageFpc :
-            ProcessFile_PackageFpc(fn);
+            ProcessFile_PackageFpc(fn,aExtra);
         end;
       end;
 
@@ -219,7 +222,7 @@ begin
    fn:='Makefile.fpc'
   else
    fn:='makefile.fpc';
-  ProcessFile(fn);
+  ProcessFile(fn,paraExtra);
 end;
 
 
@@ -228,7 +231,7 @@ var
   i : integer;
 begin
   for i:=OptInd to ParamCount do
-   ProcessFile(ParamStr(i));
+   ProcessFile(ParamStr(i),ParaExtra);
 end;
 
 
@@ -250,6 +253,7 @@ begin
   writeln(' -v                  Be more verbose');
   writeln(' -q                  Be quiet');
   writeln(' -h                  This help screen');
+  writeln(' -x file             Read extra target definitions from file.');
   Halt(0);
 end;
 
@@ -266,7 +270,7 @@ Procedure ProcessOpts;
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqrvh?VT:';
+  ShortOpts = 'pwqrvh?VT:x:';
 var
   C : char;
 begin
@@ -285,6 +289,7 @@ begin
       'r' : ParaRecursive:=true;
       'v' : ParaVerboseLevel:=v_verbose;
       'T' : ParaTargets:=OptArg;
+      'x' : ParaExtra:=OptArg;
       '?' : Usage;
       'h' : Usage;
       'V' : printVersion;
