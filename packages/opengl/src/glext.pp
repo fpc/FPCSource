@@ -5149,8 +5149,8 @@ type
   GLDEBUGPROC = procedure (source:GLenum; _type:GLenum; id:GLuint; severity:GLenum; length:GLsizei; message:PGLchar; userParam:PGLvoid );extdecl;
 
 var
-  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid);
-  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean);
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid); extdecl;
+  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean); extdecl;
 
 function Load_GL_Debug_output(): Boolean;
 function Load_GL_VERSION_4_3(): Boolean;
