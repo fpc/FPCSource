@@ -6,9 +6,9 @@ nortl=y
 # All units
 #
 #
-# Macros for all unit names. Depends on FPC_DOTTEDRTL
+# Macros for all unit names. Depends on FPC_DOTTEDUNITS
 #
-ifdef FPC_DOTTEDRTL
+ifdef FPC_DOTTEDUNITS
 #
 # Here all dotted units
 #
@@ -511,7 +511,7 @@ endif
 #
 # Set up namespaced names
 #
-ifdef FPC_DOTTEDRTL 
+ifdef FPC_DOTTEDUNITS 
 
 NS_SYSTEM=System.
 NS_CPUNITS=System.CodePages.
@@ -575,6 +575,10 @@ endif
 
 ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
+endif
+
+ifdef FPC_DOTTEDUNITS
+MACPAS_OPT:=$(MACPAS_OPT) -dFPC_DOTTEDUNITS
 endif
 
 #
@@ -874,7 +878,7 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
         $(COMPILER) -Fi$(OBJPASDIR)/$(SYSUTILSUNIT) $<
 
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
+        $(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils $<
 
 #
 # Classes
@@ -1355,3 +1359,27 @@ blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
 
 System.BlockRtl$(PPUEXT) : $(NSINC)/System.BlockRtl.pp  $(BLOCKRTL_DEPS)
 	$(COMPILER) $(BLOCKRTL_OPT) $<
+#
+# Windows
+#
+WINDOWS_DEPS=windows.pp $(SYSTEMUNIT)$(PPUEXT) \
+             $(WINDOWS_DEPS_OS) $(WINDOWS_DEPS_CPU)
+
+windows$(PPUEXT): $(WINDOWS_DEPS)
+	$(COMPILER) $(WINDOWS_OPT) $<
+
+WinApi.Windows$(PPUEXT): $(NSOSDIR)/WinApi.Windows.pp $(WINDOWS_DEPS)
+        $(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDOWS_OPT) $<
+
+#
+# Windirs
+#
+WINDIRS_DEPS=windirs.pp $(WINDOWSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+             $(WINDIRS_DEPS_OS) $(WINDIRS_DEPS_CPU)
+
+windirs$(PPUEXT): $(WINDIRS_DEPS)
+	$(COMPILER) $(WINDIRS_OPT) $<
+
+WinApi.WinDirs$(PPUEXT): $(NSOSDIR)/WinApi.WinDirs.pp $(WINDIRS_DEPS)
+        $(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDIRS_OPT) $<
+

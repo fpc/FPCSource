@@ -21,18 +21,18 @@ unit Types;
 {$modeswitch class}
 {$if defined(win32) or defined(win64) or defined(wince)}
     uses
-       Windows;
+       {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows;
 {$elseif defined(win16)}
     uses
-       WinTypes;
+        {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes;
 {$endif}
 
 {$if defined(win32) or defined(win64)}
 const
-  RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
+  RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
 {$elseif defined(win16)}
 const
-  RT_RCDATA = WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
+  RT_RCDATA =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
 {$endif}
 
 type
@@ -87,21 +87,21 @@ type
 {$endif}
 
 {$if defined(win32) or defined(win64) or defined(wince)}
-  TArray4IntegerType = Windows.TArray4IntegerType;
-  TSmallPoint = Windows.TSmallPoint;
-  PSmallPoint = Windows.PSmallPoint;
+  TArray4IntegerType = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TArray4IntegerType;
+  TSmallPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSmallPoint;
+  PSmallPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PSmallPoint;
 
-  TSize  = Windows.TSize;
-  TagSize  = Windows.tagSize deprecated;
-  PSize  = Windows.PSize;
+  TSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSize;
+  TagSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.tagSize deprecated;
+  PSize  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PSize;
 
-  TPoint = Windows.TPoint;
-  TagPoint = Windows.TagPoint deprecated;
-  PPoint = Windows.PPoint;
+  TPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TPoint;
+  TagPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TagPoint deprecated;
+  PPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PPoint;
 
-  TRect  = Windows.TRect;
-  PRect  = Windows.PRect;
-  TSplitRectType = Windows.TSplitRectType;
+  TRect  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TRect;
+  PRect  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PRect;
+  TSplitRectType = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSplitRectType;
 const
   srLeft = TSplitRectType.srLeft;
   srRight = TSplitRectType.srRight;
@@ -397,11 +397,11 @@ type
   PFileTime = ^TFileTime;
 {$else}
 type
-  PCLSID    = Windows.PCLSID;
-  TCLSID    = Windows.CLSID;
-  TFiletime = Windows.TFileTime;
-  Filetime  = Windows.FileTime;
-  PFiletime = Windows.PFileTime;
+  PCLSID    = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PCLSID;
+  TCLSID    = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.CLSID;
+  TFiletime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TFileTime;
+  Filetime  = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FileTime;
+  PFiletime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PFileTime;
 {$endif Windows}
 
 type

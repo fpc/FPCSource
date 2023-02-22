@@ -75,9 +75,12 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
 {$ifdef darwin}
-  ctypes, baseunix, dl,
+  System.CTypes, UnixApi.Base, UnixApi.Dl,
 {$endif}
-  System.Strings{$ifdef WinApi.Windows},WinApi.Windows{$endif WinApi.Windows};
+{$ifdef Windows}
+  WinApi.Windows,
+{$endif Windows}
+  System.Strings;
 {$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef darwin}

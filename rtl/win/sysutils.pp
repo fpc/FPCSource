@@ -63,7 +63,7 @@ uses
 {$i sysutilh.inc}
 
 type
-  TSystemTime = Windows.TSystemTime;
+  TSystemTime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSystemTime;
 
   EWin32Error = class(Exception)
   public
@@ -109,6 +109,7 @@ implementation
     sysconst,
     windirs;
 {$ENDIF FPC_DOTTEDUNITS}
+
 
 var 
   FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
@@ -231,7 +232,7 @@ function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 function GetTempFileName(Dir,Prefix: PAnsiChar; uUnique: DWORD; TempFileName: PAnsiChar):DWORD;
 
 begin
-  Result:= Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
+  Result:= {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
 end;
 
 
@@ -421,7 +422,7 @@ begin
   Handle := FindFirstFileW(Pwidechar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
-      Windows.FindClose(Handle);
+      {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
       if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
         If WinToDosTime(FindData.ftLastWriteTime,tmpdtime) then
           begin
@@ -557,7 +558,7 @@ const
                 FindExSearchNameMatch, Nil, 0);
     Result := Handle <> INVALID_HANDLE_VALUE;
     if Result then begin
-      Windows.FindClose(Handle);
+      {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
       Result := (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
     end;
   end;
@@ -636,7 +637,7 @@ Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
    if Handle <> INVALID_HANDLE_VALUE then
     begin
-    Windows.FindClose(Handle);
+    {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FindClose(Handle);
     Handle:=INVALID_HANDLE_VALUE;
     end;
 end;
@@ -877,7 +878,7 @@ end;
 
 Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  Result:=Windows.DeleteFileW(PWidechar(FileName));
+  Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.DeleteFileW(PWidechar(FileName));
 end;
 
 
@@ -976,12 +977,12 @@ end;
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 begin
-  windows.Getlocaltime(SystemTime);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}windows.Getlocaltime(SystemTime);
 end;
 
 function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 begin
-  windows.GetSystemTime(SystemTime);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}windows.GetSystemTime(SystemTime);
   Result:=True;
 end;
 
@@ -1083,7 +1084,7 @@ end;
 
 function GetTickCount: LongWord;
 begin
-  Result := Windows.GetTickCount;
+  Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTickCount;
 end;
 
 
@@ -1106,7 +1107,7 @@ begin
     Result := WinGetTickCount64();
   end else
 {$ENDIF}
-    Result := Windows.GetTickCount;
+    Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetTickCount;
 end;
 
 
@@ -1296,7 +1297,7 @@ procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSett
   end;
 var
   HF  : Shortstring;
-  LID : Windows.LCID;
+  LID : {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.LCID;
   I,Day : longint;
 begin
   LID := LCID;
@@ -1673,7 +1674,7 @@ end;
 Procedure Sleep(Milliseconds : Cardinal);
 
 begin
-  Windows.Sleep(MilliSeconds)
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Sleep(MilliSeconds)
 end;
 
 Function GetLastOSError : Integer;

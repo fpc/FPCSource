@@ -26,7 +26,7 @@ implementation
 {$IFDEF FPC_DOTTEDUNITS}
 uses
 {$ifdef MSWINDOWS}
-  Windows,
+  WinApi.Windows,
 {$endif MSWINDOWS}
 {$ifdef Unix}
   UnixApi.CP,
