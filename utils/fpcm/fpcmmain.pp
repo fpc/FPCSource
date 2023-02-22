@@ -227,6 +227,7 @@ interface
         FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
         FIncludeTargets : TTargetSet;
+        FExtraTargetsFile : String;
         procedure Init;
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
@@ -244,6 +245,7 @@ interface
         destructor  Destroy;override;
         procedure Verbose(lvl:TFPCMakeVerbose;const s:string);virtual;
         procedure SetTargets(const s:string);
+        procedure AddExtraTargets(const aFileName : String; aList : TStrings);
         procedure LoadSections;
         procedure LoadMakefileFPC;
         procedure LoadPackageSection;
@@ -272,6 +274,7 @@ interface
         property CommentChars:TSysCharSet read FCommentChars write FCommentChars;
         property EmptyLines:Boolean read FEmptyLines write FEmptyLines;
         property IncludeTargets:TTargetSet read FIncludeTargets write FIncludeTargets;
+        Property ExtraTargetsFile : String Read FExtraTargetsFile Write FExtraTargetsFile;
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
@@ -678,21 +681,50 @@ implementation
       end;
 
 
+    procedure TFPCMake.AddExtraTargets(const aFileName : string; aList : TStrings);
+
+    var
+      Xtra : TStringList;
+
+    begin
+      Xtra:=TstringList.Create;
+      try
+        Xtra.LoadFromFile(aFileName);
+        aList.AddStrings(Xtra);
+      finally
+        Xtra.Free;
+      end;
+    end;
+
     procedure TFPCMake.LoadSections;
       var
-        SLInput : TStringList;
+        SLInput, slExtra : TStringList;
         i,j,n : integer;
         s,
         SecName : string;
         CurrSec : TFPCMakeSection;
       begin
+        CurrSec:=nil;
+        slExtra:=Nil;
+        SLInput:=TStringList.Create;
         try
-          CurrSec:=nil;
-          SLInput:=TStringList.Create;
+          // We do this first
+          if ExtraTargetsFile<>'' then
+            begin
+            slExtra:=TStringList.Create;
+            AddExtraTargets(ExtraTargetsFile,slExtra);
+            end;
           if assigned(FStream) then
            SLInput.LoadFromStream(FStream)
           else
            SLInput.LoadFromFile(FFileName);
+          if Assigned(SLExtra) then
+            begin
+            slExtra.AddStrings(slInput);
+            slInput.Free;
+            slInput:=slExtra;
+            slExtra:=nil;
+            end;
           { Load Input into sections list }
           n:=SLInput.Count;
           i:=0;
@@ -711,13 +743,14 @@ implementation
                    SecName:=Copy(s,2,j-2);
                    CurrSec:=TFPCMakeSection(FSections[SecName]);
                    if CurrSec=nil then
-                    CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
+                    CurrSec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)))
                  end
                 else
                  begin
                    if CurrSec=nil then
                     raise Exception.Create(Format(s_err_no_section,[FFileName,i+1]));
                    { Insert string without spaces stripped }
+                   // Writeln('Appending: ',SLInput[i]);
                    CurrSec.AddLine(SLInput[i]);
                  end;
               end;
@@ -725,6 +758,7 @@ implementation
            end;
         finally
           SLInput.Free;
+          slExtra.Free;
         end;
       end;
 
@@ -1550,6 +1584,7 @@ implementation
 
     function TFPCMake.GetTargetVariable(c:TCPU;t:TOS;const inivar:string;dosubst:boolean):string;
       begin
+
         result:=Trim(GetVariable(inivar,dosubst)+' '+
                      GetVariable(inivar+cpusuffix[c],dosubst)+' '+
                      GetVariable(inivar+OSSuffix[t],dosubst)+' '+
