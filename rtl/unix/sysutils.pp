@@ -55,7 +55,7 @@ interface
 {$IFDEF FPC_DOTTEDUNITS}
 uses
 {$IFDEF LINUX}LinuxApi,{$ENDIF}
-{$IFDEF FreeBSDApi.FreeBSD}freebsd,{$ENDIF}
+{$IFDEF FreeBSD}freebsd,{$ENDIF}
   UnixApi.Base, UnixApi.Unix,UnixApi.Errors,System.SysConst,UnixApi.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses

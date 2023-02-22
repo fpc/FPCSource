@@ -13,9 +13,7 @@
 
  **********************************************************************}
 
-{$IFNDEF FPC_DOTTEDUNITS}
 unit objcbase;
-{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -24,8 +22,13 @@ interface
 {$modeswitch objectivec1}
 {$packrecords c}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ELSE}
+uses
+  System.CTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   NSString = objcclass external;

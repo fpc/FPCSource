@@ -244,7 +244,7 @@ function clock_settime(clk_id: clockid_t; tp: ptimespec): cint; {$ifdef FPC_USE_
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-Uses BSDApi.sysctl,
+Uses BsdApi.SysCtl,
 {$ifndef FPC_USE_LIBC}  UnixApi.SysCall; {$else} System.InitC; {$endif}
 {$ELSE FPC_DOTTEDUNITS}
 Uses Sysctl,

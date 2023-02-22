@@ -19,7 +19,7 @@ ATHREADSUNIT=AmigaApi.AThreads
 BASEUNIXUNIT=UnixApi.Base
 BETHREADSUNIT=BeosApi.Bethreads
 BLOCKRTLUNIT=CApi.BlockRtl
-BSDUNIT=BSDApi.BSD
+BSDUNIT=BsdApi
 CHARACTERUNIT=System.Character
 CHARSETUNIT=System.CharSet
 CLASSESUNIT=System.Classes
@@ -164,8 +164,8 @@ NWPREUNIT=NetWareApi.Nwpre
 NWPROTUNIT=NetWareApi.Nwprot
 NWSERVUNIT=NetWareApi.Nwserv
 NWSNUTUNIT=NetWareApi.Nwsnut
-OBJCUNIT=System.ObjC
-OBJCBASEUNIT=System.ObjCBase
+OBJCUNIT=objc
+OBJCBASEUNIT=objcbase
 OS2DEFUNIT=OS2Api.Os2def
 PAGEMEMUNIT=System.PageMem
 PILOTUNIT=PalmApi.Pilot
@@ -221,7 +221,7 @@ SYMBIANUNIT=SymbianApi.Symbian
 SYSALLUNIT=PalmApi.Sysall
 SYSCALLUNIT=UnixApi.SysCall
 SYSCONSTUNIT=System.SysConst
-SYSCTLUNIT=BSDApi.Sysctl
+SYSCTLUNIT=BsdApi.SysCtl
 SYSEMXUNIT=DOSApi.Sysemx
 SYSOS2UNIT=OS2Api.Sysos2
 SYSTRAPSUNIT=PalmApi.Systraps
@@ -577,9 +577,16 @@ ifndef NSCLASSESDIR
 NSCLASSESDIR=$(NSDIR)/$(CLASSESDIR)
 endif
 
+ifndef NSBSDDIR
+NSBSDDIR=$(NSDIR)/bsd
+endif
+
 ifdef FPC_DOTTEDUNITS
 MACPAS_OPT:=$(MACPAS_OPT) -dFPC_DOTTEDUNITS
+EXTPAS_OPT:=$(EXTPAS_OPT) -dFPC_DOTTEDUNITS
 endif
+
+
 
 #
 # Make rules
@@ -986,7 +993,7 @@ rtlconsts$(PPUEXT) : $(RTLCONSTS_DEPS)
         $(COMPILER) $(RTLCONSTS_OPT) $<
 
 System.RtlConsts$(PPUEXT) : $(NSINC)/System.RtlConsts.pp $(RTLCONSTS_DEPS)
-        $(COMPILER) $(RTLCONSTS_OPT) $<
+        $(COMPILER) -Fi$(OBJPASDIR) $(RTLCONSTS_OPT) $<
 
 #######################################
 # Other System-independent RTL Units
@@ -1092,6 +1099,20 @@ System.LineInfo.Dwarf$(PPUEXT) : $(NSINC)/System.LineInfo.Dwarf.pp $(LNFODWRF_DE
 	$(COMPILER) $(LNFODWRF_OPT) $<
 
 #
+# lnfodgdb
+#
+LNFOGDB_DEPS=$(UNIXINC)/lnfogdb.pp \
+              $(SYSTEMUNIT)$(PPUEXT) $(STRINGSUNIT)$(PPUEXT) $(LINEINFOUNIT)$(PPUEXT) \
+              $(SYSUTILSUNIT)$(PPUEXT) $(EXEINFOUNIT)$(PPUEXT) \
+              $(LNFOGDB_DEPS_OS) $(LNFOGDB_DEPS_CPU)
+              
+lnfogdb$(PPUEXT) : $(LNFOGDB_DEPS)
+	$(COMPILER) $(LNFOGDB_OPT) $<
+
+System.LineInfo.Gdb$(PPUEXT) : $(NSINC)/System.LineInfo.Gdb.pp $(LNFOGDB_DEPS)
+	$(COMPILER) $(LNFOGDB_OPT) $<
+
+#
 # Charset
 #
 
@@ -1192,10 +1213,11 @@ UnixApi.Base$(PPUEXT): $(NSINC)/UnixApi.Base.pp $(BASEUNIX_DEPS)
 
 #
 # Unix
-#
+# 
+
 UNIX_DEPS=$(UNIXINC)/unix.pp \
          $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
-         $(SYSCALLUNIT)$(PPUEXT) $(UNIXUTILUNIT)$(PPUEXT) \
+         $(UNIXUTILUNIT)$(PPUEXT) \
          $(INC)/textrec.inc $(INC)/filerec.inc  $(UNIXINC)/timezone.inc \
          $(OSDIR)/unxconst.inc $(OSDIR)/unxfunc.inc \
          $(UNIX_DEPS_OS) $(UNIX_DEPS_CPU)
@@ -1323,14 +1345,11 @@ System.CTypes$(PPUEXT) : $(NSINC)/System.CTypes.pp $(CTYPES_DEPS)
 # ObjC
 #
 OBJC_DEPS=$(INC)/objc.pp $(INC)/objc.pp $(INC)/objc1.inc $(INC)/objcnf.inc \
-          $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) unixtype$(PPUEXT) \
+          $(SYSTEMUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
           $(OBJC_DEPS_OS) $(OBJC_DEPS_CPU)
 
 objc$(PPUEXT) : $(OBJC_DEPS)
 	$(COMPILER) $(OBJC_OPT) $<
-
-System.ObjC$(PPUEXT) : $(NSINC)/System.ObjC.pp $(OBJC_DEPS)
-        $(COMPILER) $(OBJC_OPT) $<
 
 #
 # ObjCBase
@@ -1343,22 +1362,25 @@ OBJCBASE_DEPS=$(INC)/objcbase.pp \
 objcbase$(PPUEXT) : $(OBJCBASE_DEPS)
 	$(COMPILER) $(OBJCBASE_OPT) $<
 
-System.ObjCBase$(PPUEXT) : $(NSINC)/System.ObjCBase.pp $(OBJCBASE_DEPS)
-	$(COMPILER)  $(OBJCBASE_OPT) $<
-
 #
 # BlockRTL
 #
 
 BLOCKRTL_DEPS=$(INC)/blockrtl.pp \
-              $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) initc$(PPUEXT) ctypes$(PPUEXT) \
+              $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(INITCUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
               $(BLOCKRTL_DEPS_OS) $(BLOCKRTL_DEPS_CPU)
 
 blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
 	$(COMPILER) $(BLOCKRTL_OPT) $<
 
-System.BlockRtl$(PPUEXT) : $(NSINC)/System.BlockRtl.pp  $(BLOCKRTL_DEPS)
+CApi.BlockRtl$(PPUEXT) : $(NSINC)/CApi.BlockRtl.pp  $(BLOCKRTL_DEPS)
 	$(COMPILER) $(BLOCKRTL_OPT) $<
+
+####################
+# Windows Units
+####################
+
+
 #
 # Windows
 #
@@ -1383,3 +1405,32 @@ windirs$(PPUEXT): $(WINDIRS_DEPS)
 WinApi.WinDirs$(PPUEXT): $(NSOSDIR)/WinApi.WinDirs.pp $(WINDIRS_DEPS)
         $(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDIRS_OPT) $<
 
+###################
+# BSD units
+###################
+
+#
+# sysctl
+#
+
+SYSCTL_DEPS=$(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
+            $(SYSCTL_DEPS_OS) $(SYSCTL_DEPS_CPU)
+
+
+sysctl$(PPUEXT) : $(SYSCTL_DEPS)
+	$(COMPILER) $(SYSCTL_OPT) $<
+
+BsdApi.SysCtl$(PPUEXT) : $(NSBSDDIR)/BsdApi.SysCtl.pp $(SYSCTL_DEPS)
+	$(COMPILER) $(BSD_OPT) $<
+#
+# bsd unit
+#
+
+BSD_DEPS=$(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
+         $(BSD_DEPS_OS) $(BSD_DEPS_CPU)
+
+bsd$(PPUEXT): $(BSD_DEPS)
+	$(COMPILER) $(BSD_OPT) $<
+
+BsdApi$(PPUEXT): $(NSBSDDIR)/BsdApi.pp $(BSD_DEPS)
+        $(COMPILER) $(BSD_OPT) $<

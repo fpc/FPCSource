@@ -77,7 +77,7 @@ Const
 implementation
 
 {$ifdef hassysctl}
-Uses Sysctl;
+Uses {$IFDEF FPC_DOTTEDUNITS}BsdApi.{$ENDIF}SysCtl;
 {$endif}
 
 {$i genfuncs.inc}       // generic calls. (like getenv)
