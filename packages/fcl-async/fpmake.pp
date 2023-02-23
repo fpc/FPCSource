@@ -46,6 +46,9 @@ begin
           AddInclude('libasync.inc');
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

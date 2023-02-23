@@ -120,6 +120,9 @@ begin
     // confdemo.lpi
     // parsedemo.lpi
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

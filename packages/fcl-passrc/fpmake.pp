@@ -85,6 +85,9 @@ begin
           AddUnit('pasresolver');
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

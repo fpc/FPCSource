@@ -37,6 +37,9 @@ begin
     P.Targets.AddExampleProgram('examples/example.pas');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -50,6 +50,9 @@ begin
     T:=P.Targets.AddExampleunit('examples/md5performancetest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1performancetest.pas');
     // md5.ref
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

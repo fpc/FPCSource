@@ -24,6 +24,9 @@ begin
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('unixutils.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

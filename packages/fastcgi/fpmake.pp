@@ -30,6 +30,9 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('fastcgi.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

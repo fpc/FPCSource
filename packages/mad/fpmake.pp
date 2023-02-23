@@ -23,6 +23,9 @@ begin
     T:=P.Targets.AddUnit('mad.pas');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

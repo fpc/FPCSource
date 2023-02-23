@@ -1290,6 +1290,9 @@ begin
     P.Sources.AddExampleFiles('examples/scribble_simple/*',P.Directory,false,'scribble_simple');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

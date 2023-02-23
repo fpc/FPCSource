@@ -294,6 +294,9 @@ begin
           AddUnit('resource');
           AddUnit('coffreader');
         end;
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

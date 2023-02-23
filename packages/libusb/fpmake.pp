@@ -30,6 +30,9 @@ begin
     T:=P.Targets.AddUnit('libusb.pp');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

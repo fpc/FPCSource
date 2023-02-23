@@ -37,6 +37,9 @@ begin
         P.OSes := P.OSes - [android];
 
       T:=P.Targets.AddUnit('dblib.pp',DBLibOSes);
+
+    P.NamespaceMap:='namespaces.lst';
+    
     end;
 end;
 

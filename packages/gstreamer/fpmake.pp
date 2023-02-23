@@ -115,6 +115,9 @@ begin
        AddInclude('gstbin_impl.inc');
       end;
     P.Sources.AddExampleFiles('examples/camrecord.lpr',P.Directory,false,'.');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -46,6 +46,9 @@ begin
     P.Targets.AddExampleProgram('glxtest.pp');
     P.Sources.AddSrc('readme');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

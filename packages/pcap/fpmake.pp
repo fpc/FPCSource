@@ -26,6 +26,9 @@ begin
 
     T:=P.Targets.AddUnit('pcap.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

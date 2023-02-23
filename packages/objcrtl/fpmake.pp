@@ -36,6 +36,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/objcrtltest.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

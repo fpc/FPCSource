@@ -37,6 +37,9 @@ begin
     P.Targets.AddExampleProgram('testwrite.pp');
     P.Targets.AddExampleProgram('teststream.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

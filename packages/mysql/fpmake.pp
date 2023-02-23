@@ -164,6 +164,9 @@ begin
     P.Targets.AddExampleProgram('mysqls.pp');
     // 'mysqls.c
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -74,6 +74,9 @@ begin
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('mod_hello.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

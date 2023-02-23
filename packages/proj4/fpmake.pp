@@ -32,6 +32,9 @@ begin
     // 'test1.xml
     // 'test2.xml
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -227,6 +227,9 @@ begin
           AddUnit('xmd');
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -328,6 +328,9 @@ begin
     // 'examples/tutorial/Makefile.fpc
     // 'examples/tutorial/info.xpm
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -71,6 +71,9 @@ begin
       T:=P.Targets.AddExampleProgram('ipcserver.pp');
       T:=P.Targets.AddExampleProgram('dbugsrv.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

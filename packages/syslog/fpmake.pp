@@ -27,6 +27,9 @@ begin
     P.Targets.AddExampleProgram('testlog.pp');
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

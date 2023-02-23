@@ -47,6 +47,9 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('tstopas.pp');
       T.ResourceStrings:=true;
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

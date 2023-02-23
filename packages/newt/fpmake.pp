@@ -27,6 +27,9 @@ begin
     P.Targets.AddExampleProgram('newt2.pas');
     P.Targets.AddExampleProgram('newt1.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

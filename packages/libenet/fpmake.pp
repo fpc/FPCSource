@@ -37,6 +37,9 @@ begin
       P.Targets.AddExampleProgram('serverapp.pp');
       P.Targets.AddExampleProgram('clientapp.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

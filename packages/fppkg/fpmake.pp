@@ -92,6 +92,7 @@ begin
       if Data2Inc <> '' then
         P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) {$ifdef unix}cthreads,{$endif} fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');
       end;
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

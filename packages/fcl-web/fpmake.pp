@@ -507,6 +507,8 @@ begin
       AddUnit('fphttpclient');
       AddUnit('fphttpclientpool');
       end;
+    P.NamespaceMap:='namespaces.lst';
+      
 end;
     
 {$ifndef ALLPACKAGES}

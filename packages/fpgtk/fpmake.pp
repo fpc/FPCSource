@@ -53,6 +53,9 @@ begin
     // 'examples/Makefile.fpc
     // 'examples/testgtk.ppr
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

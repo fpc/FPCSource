@@ -68,6 +68,8 @@ begin
       T:=P.Targets.AddUnit('dbindexer.pp',SqldbConnectionOSes);
       T.Dependencies.AddUnit('fpindexer');
       T.Dependencies.AddUnit('ireadertxt');
+      
+      P.NamespaceMap:='namespaces.lst';
   end;
 end;
     

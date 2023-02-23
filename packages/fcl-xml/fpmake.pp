@@ -182,6 +182,9 @@ begin
     // 'tests/template.xml
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

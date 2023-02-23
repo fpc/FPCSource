@@ -280,6 +280,9 @@ begin
     // 'speashte.dat
     // 'spepowte.dat
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

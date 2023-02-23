@@ -239,6 +239,9 @@ begin
     P.Targets.AddExampleProgram('examples/gnometest.pp');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

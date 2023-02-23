@@ -84,6 +84,9 @@ T:=P.Targets.AddUnit('hermes.pp');
    end;
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

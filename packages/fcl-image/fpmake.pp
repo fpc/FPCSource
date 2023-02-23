@@ -337,6 +337,9 @@ begin
     T:=P.Targets.AddExampleProgram('createbarcode.lpr');
     T:=P.Targets.AddExampleProgram('wrpngf.pas');
     T:=P.Targets.AddExampleProgram('wrqoif.pas');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
