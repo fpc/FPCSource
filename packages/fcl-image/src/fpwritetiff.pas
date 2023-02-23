@@ -598,8 +598,7 @@ begin
         TilesDown:=(OrientedHeight+IFD.TileLength{%H-}-1) div IFD.TileLength;
         ChunkCount:=TilesAcross*TilesDown;
         {$IFDEF FPC_Debug_Image}
-        writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCoun
-t=',ChunkCount);
+        writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCount=',ChunkCount);
         {$ENDIF}
       end else begin
         ChunkCount:=(OrientedHeight+IFD.RowsPerStrip{%H-}-1) div IFD.RowsPerStrip;
