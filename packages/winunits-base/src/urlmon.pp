@@ -1073,7 +1073,7 @@ Function URLOpenStream(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStat
 Function URLOpenStreamA(p1 : IUnknown; p2 : PAnsiChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function URLOpenStreamW(p1 : IUnknown; p2 : PWideChar; p3 : DWORD; p4 : IBindStatusCallback) : HResult; stdcall; external liburlmon;
 Function WriteHitLogging(const Logginginfo : THIT_LOGGING_INFO) : BOOL; stdcall; external liburlmon;
-Procedure ReleaseBindInfo(const bindinfo : TBindInfo); stdcall; external liburlmon; external liburlmon;
+Procedure ReleaseBindInfo(const bindinfo : TBindInfo); stdcall; external liburlmon; 
 
 implementation
 
