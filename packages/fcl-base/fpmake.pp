@@ -214,6 +214,9 @@ begin
       // parser.dat
       // testcgi.html
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

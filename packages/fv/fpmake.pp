@@ -427,6 +427,9 @@ begin
     // 'examples/Makefile.fpc
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -55,6 +55,9 @@ begin
     
     T:=P.Targets.AddExampleunit('examples/demosha256.pp');
     // md5.ref
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -45,6 +45,9 @@ begin
     with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

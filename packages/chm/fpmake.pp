@@ -121,6 +121,9 @@ begin
     T:=P.Targets.AddProgram('chmcmd.lpr');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

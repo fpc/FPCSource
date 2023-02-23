@@ -56,6 +56,9 @@ begin
     T:=P.Targets.AddUnit('console.pas');
     T:=P.Targets.AddUnit('conunit.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

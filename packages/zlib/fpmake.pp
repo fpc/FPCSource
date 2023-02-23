@@ -27,6 +27,9 @@ begin
     T:=P.Targets.AddUnit('zlib.pp');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

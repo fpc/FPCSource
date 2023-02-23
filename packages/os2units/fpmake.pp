@@ -48,6 +48,9 @@ begin
     P.Targets.AddExampleProgram('lvmtest.pas');
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

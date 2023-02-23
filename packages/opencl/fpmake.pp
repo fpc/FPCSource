@@ -35,6 +35,9 @@ begin
     T:=P.Targets.AddUnit('cl.pp');
     T:=P.Targets.AddUnit('cl_gl.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

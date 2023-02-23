@@ -92,6 +92,9 @@ begin
     P.Sources.AddSrc('MPL-1.1');
     P.Sources.AddSrc('README.txt');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

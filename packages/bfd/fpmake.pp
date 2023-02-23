@@ -29,6 +29,9 @@ begin
 
     T:=P.Targets.AddUnit('bfd.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -147,6 +147,9 @@ begin
       begin
         AddInclude('eastasianwidth_code.inc');
       end;
+
+    P.NamespaceMap:='namespaces.lst';
+    
   end
 end;
 

@@ -42,6 +42,9 @@ begin
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('muihelloworld.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

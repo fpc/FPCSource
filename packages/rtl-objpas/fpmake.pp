@@ -135,6 +135,9 @@ begin
          AddInclude('invoke.inc',[x86_64],RttiOSes);
        end;
     T.ResourceStrings:=true;
+
+    P.NamespaceMap:='namespaces.lst';
+    
   end
 end;
  

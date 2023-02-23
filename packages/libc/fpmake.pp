@@ -267,6 +267,9 @@ begin
         end;
      p.Sources.Adddoc('README.txt');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

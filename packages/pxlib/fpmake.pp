@@ -20,6 +20,9 @@ begin
     P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/pxlib.pp');
     T:=P.Targets.AddExampleunit('examples/ppxview.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

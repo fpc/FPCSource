@@ -25,6 +25,9 @@ begin
     T:=P.Targets.AddUnit('iosxlocale.pp');
     T:=P.Targets.AddUnit('iosxwstr.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

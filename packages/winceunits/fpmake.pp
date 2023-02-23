@@ -101,6 +101,9 @@ begin
     T:=P.Targets.AddUnit('cesync.pp', [wince,win32]);
     T:=P.Targets.AddUnit('rapitypes.pp',[wince,win32]);
     T:=P.Targets.AddUnit('rapi.pp',[win32]);
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

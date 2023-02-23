@@ -59,6 +59,9 @@ begin
     P.Targets.AddExampleProgram('examples/cssmin.lpr');
     P.Targets.AddExampleProgram('examples/extractcssclasses.lpr');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

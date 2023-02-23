@@ -50,6 +50,9 @@ begin
     // 'tests/Makefile
     // 'tests/Makefile.fpc
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

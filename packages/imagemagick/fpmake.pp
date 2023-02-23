@@ -72,6 +72,9 @@ begin
     P.Targets.AddExampleProgram('wanddemo.dpr');
     // 'image.png
 
+
+    P.NamespaceMap:='namespaces.lst';
+
     {$ifndef ALLPACKAGES}
         Run;
         end;

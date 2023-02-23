@@ -55,6 +55,9 @@ begin
           AddInclude('http_vhost.inc');
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

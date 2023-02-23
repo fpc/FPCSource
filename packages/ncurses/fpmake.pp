@@ -79,6 +79,9 @@ begin
     // 'tnlshello_ru_UTF8.pot
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -29,6 +29,9 @@ begin
       begin
       AddUnit('libvlc');
       end;
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

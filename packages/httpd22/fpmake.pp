@@ -116,6 +116,9 @@ begin
     T:=P.Targets.AddExampleProgram('testmodule.pp');
     T.Dependencies.AddInclude('define.inc');	
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

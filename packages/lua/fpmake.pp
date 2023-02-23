@@ -34,6 +34,9 @@ begin
     T:=P.Targets.AddUnit('lua.pas');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

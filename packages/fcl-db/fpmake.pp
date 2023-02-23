@@ -874,6 +874,7 @@ begin
     T:=P.Targets.AddExampleProgram('toolsunit.pas');
     // database.ini.txt
     // README.txt
+    P.NamespaceMap:='namespaces.lst';
 
     end;
 end;

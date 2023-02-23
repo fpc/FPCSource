@@ -176,6 +176,9 @@ begin
     P.Sources.AddDoc('README.txt');
     P.Sources.AddDoc('units.txt');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

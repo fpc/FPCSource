@@ -131,6 +131,9 @@ begin
           AddUnit('plaintestreport');
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

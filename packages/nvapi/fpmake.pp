@@ -31,6 +31,9 @@ begin
 
     T:=P.Targets.AddUnit('nvapi.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

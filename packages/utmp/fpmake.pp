@@ -25,6 +25,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testutmp.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -26,6 +26,9 @@ begin
       P.OSes := P.OSes - [java,android];
 
     T:=P.Targets.AddUnit('png.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

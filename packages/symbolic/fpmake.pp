@@ -48,6 +48,9 @@ begin
     P.Sources.AddDoc('doc/optimization.txt');
     P.Sources.AddDoc('doc/symbolic.txt');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

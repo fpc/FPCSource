@@ -43,6 +43,9 @@ begin
     T:=P.Targets.AddExampleProgram('tsysvars.pas');
     T:=P.Targets.AddExampleProgram('trecsize.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

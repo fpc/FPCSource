@@ -1,4 +1,5 @@
 {$ifndef ALLPACKAGES}
+
 {$mode objfpc}{$H+}
 program fpmake;
 
@@ -169,6 +170,9 @@ Var
 begin
   if SameText(Defaults.SubTarget,'unicodertl') then
     exit;
+  if Defaults.Namespaces then 
+    exit;
+     
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoIDE');
@@ -369,13 +373,15 @@ begin
         P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
 
         P.BeforeCompileProc:=@ide_check_gdb_availability;
+
+        P.NamespaceMap:='namespaces.lst';
       end;
   end;
 end;
 
 {$ifndef ALLPACKAGES}
 begin
-  If Assigned(Installer) then
+  If Assigned(Installer) and not Defaults.Namespaces then
     begin
     add_ide_comandlineoptions();
     add_ide('');

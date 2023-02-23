@@ -63,6 +63,9 @@ begin
     // showver.rc
     // showver.res
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
