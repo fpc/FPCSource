@@ -74,6 +74,7 @@ type
     Procedure TestForward;
     Procedure TestForwardAndDeclaration;
     Procedure TestForwardAndDeclarationKeepForward;
+    Procedure TestForwardExternalObjCClass;
     Procedure TestOneInterface;
     Procedure TestTwoInterfaces;
     procedure TestOneSpecializedClass;
@@ -587,6 +588,14 @@ begin
   FStarted:=True;
   FEnded:=True;
   FDecl.Add('TMyClass = Class');
+  ParseClass;
+end;
+
+Procedure TTestClassType.TestForwardExternalObjCClass;
+begin
+  FStarted:=True;
+  FEnded:=True;
+  FDecl.Add('TMyClass = ObjcClass external');
   ParseClass;
 end;
 
