@@ -36,6 +36,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('madopenal.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -70,6 +70,9 @@ begin
     T:=P.Targets.AddExampleProgram('tqueueproject.lpr');
     P.ExamplePath.Add('examples/tstack');
     T:=P.Targets.AddExampleProgram('tstackproject.lpr');
+
+    P.NamespaceMap:='namespaces.lst';
+    
     end;
 end;
 

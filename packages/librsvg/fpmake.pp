@@ -27,6 +27,9 @@ begin
 
   T:=P.Targets.AddUnit('rsvg.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

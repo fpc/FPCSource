@@ -30,6 +30,9 @@ begin
 
     T:=P.Targets.AddUnit('a52.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -46,6 +46,9 @@ begin
     P.Targets.AddUnit('lexlib.pas');
     P.Targets.AddUnit('yacclib.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

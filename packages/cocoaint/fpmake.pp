@@ -154,6 +154,9 @@ begin
     T:=P.Targets.AddImplicitUnit('DefinedClassesiTunesLibrary.pas');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

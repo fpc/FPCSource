@@ -128,6 +128,9 @@ begin
     P.Targets.AddExampleProgram('hello.pas');
     P.Targets.AddExampleProgram('palmcube.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -242,6 +242,9 @@ begin
     P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

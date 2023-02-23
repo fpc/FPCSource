@@ -46,6 +46,9 @@ begin
     P.Targets.AddExampleProgram('testpass2.pp');
     P.Targets.AddExampleProgram('testuser.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

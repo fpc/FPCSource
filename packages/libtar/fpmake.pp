@@ -31,6 +31,9 @@ begin
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('libtar.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -75,6 +75,9 @@ begin
       T.Dependencies.AddUnit('pas2jspcucompiler');
       T.Dependencies.AddUnit('pas2jscompilercfg');
       T.Dependencies.AddUnit('pas2jscompilerpp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

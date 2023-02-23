@@ -61,6 +61,9 @@ begin
     P.Targets.AddExampleProgram('test01.pp');
     P.Targets.AddExampleProgram('oraclew.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

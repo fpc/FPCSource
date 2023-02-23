@@ -95,6 +95,9 @@ begin
     // 'bm1.xbm
     // 'porsche.xpm
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -78,6 +78,9 @@ begin
     T.Dependencies.AddUnit('fppdfpredict');
      
     // md5.ref
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

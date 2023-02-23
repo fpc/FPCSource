@@ -32,6 +32,9 @@ begin
     P.Targets.AddExampleProgram('privkey.pp');
     P.Targets.AddExampleProgram('srvcacert.pp');
     
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

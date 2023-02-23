@@ -29,6 +29,9 @@ begin
     P.Targets.AddExampleProgram('memory.pp');
     P.Targets.AddExampleProgram('wasi.pp');
     
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

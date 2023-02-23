@@ -156,6 +156,8 @@ begin
     T:=StdDep(P.Targets.AddUnit('googletoolresults.pp'));
     T:=StdDep(P.Targets.AddUnit('googlevision.pp'));
     T:=StdDep(P.Targets.AddUnit('googleyoutubereporting.pp'));
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

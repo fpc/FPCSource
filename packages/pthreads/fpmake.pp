@@ -36,6 +36,9 @@ begin
         AddInclude('pthraix.inc',[AIX]);
       end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

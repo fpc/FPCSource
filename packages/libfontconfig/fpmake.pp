@@ -24,6 +24,9 @@ begin
     T:=P.Targets.AddUnit('libfontconfig.pp');
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testfc.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

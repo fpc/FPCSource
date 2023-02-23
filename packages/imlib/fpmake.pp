@@ -39,6 +39,9 @@ begin
     T:=P.Targets.AddUnit('gdk_imlib.pp');
     T:=P.Targets.AddUnit('imlib.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -46,6 +46,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('ggi1.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

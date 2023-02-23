@@ -45,6 +45,9 @@ begin
     T:=P.Targets.AddExampleProgram('gemcube.pas');
     T:=P.Targets.AddExampleProgram('showpic.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

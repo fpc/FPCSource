@@ -209,6 +209,8 @@ begin
     P.Targets.AddExampleUnit('mingw.pas');
 
     P.Sources.AddSrc('src/gdbver_nogdb.inc');
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

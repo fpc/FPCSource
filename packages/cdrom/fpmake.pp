@@ -71,6 +71,9 @@ begin
     T:=P.Targets.AddExampleProgram('getdiscid.pp');
     T:=P.Targets.AddExampleProgram('showcds.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

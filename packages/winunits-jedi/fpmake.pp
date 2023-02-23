@@ -268,6 +268,9 @@ begin
             TBuild.Dependencies.AddUnit(T.Name);
         end;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

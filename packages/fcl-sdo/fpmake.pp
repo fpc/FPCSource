@@ -280,6 +280,9 @@ begin
       AddUnit('sdo_das');
       AddUnit('sdo_das_utils');
       end;
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

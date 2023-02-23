@@ -24,6 +24,9 @@ begin
     T:=P.Targets.AddUnit('modplug.pas');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -45,6 +45,8 @@ begin
     T:=StdDep(P.Targets.AddUnit('msgraph.pp'));
     T:=StdDep(P.Targets.AddUnit('sharepoint.pp'));
     T:=P.Targets.AddUnit('office365client.pp');
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
 

@@ -968,6 +968,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('controldemo.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

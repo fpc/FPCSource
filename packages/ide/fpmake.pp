@@ -371,6 +371,8 @@ begin
         P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
 
         P.BeforeCompileProc:=@ide_check_gdb_availability;
+
+        P.NamespaceMap:='namespaces.lst';
       end;
   end;
 end;

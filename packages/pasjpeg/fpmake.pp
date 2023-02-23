@@ -187,6 +187,9 @@ begin
     // 'jpegtran.drc
     // 'script2.ijg
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

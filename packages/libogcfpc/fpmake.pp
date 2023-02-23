@@ -152,6 +152,9 @@ begin
 
      P.Sources.AddExampleFiles('examples/*',P.Directory,true,'.');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -41,6 +41,9 @@ begin
     T:=P.Targets.AddUnit('system.ioutils.pp');
     T.ResourceStrings := True;
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -38,6 +38,8 @@ begin
 
     P.SourcePath.Add('src');
     T:=P.Targets.addUnit('gitlabclient.pas');
+
+    P.NamespaceMap:='namespaces.lst';
     end;
 end;
     

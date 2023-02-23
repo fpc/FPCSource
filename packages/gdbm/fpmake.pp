@@ -36,6 +36,9 @@ begin
     P.Targets.AddExampleProgram('testgdbm2.pp');
 
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

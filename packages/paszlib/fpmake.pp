@@ -75,6 +75,9 @@ begin
     T:=P.Targets.AddExampleProgram('examples/miniunz.pas');
     T:=P.Targets.AddExampleProgram('examples/minizip.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

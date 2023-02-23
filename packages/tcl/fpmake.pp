@@ -29,6 +29,9 @@ begin
     P.Targets.AddExampleProgram('tcl_demo.pp');
     // 'test.tcl
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -50,6 +50,9 @@ begin
       end;
     T:=P.Targets.AddUnit('webidltopas2js.pp');
     T:=P.Targets.AddUnit('webidltowasmjob.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

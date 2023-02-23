@@ -27,6 +27,9 @@ begin
     P.Targets.AddExampleProgram('callrexx.pas');
     // 'backward.fnc
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

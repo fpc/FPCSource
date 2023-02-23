@@ -25,6 +25,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testcmem.pp');
     P.Targets.AddExampleProgram('create_leak.pp');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

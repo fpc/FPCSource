@@ -37,6 +37,9 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('iconvtest.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

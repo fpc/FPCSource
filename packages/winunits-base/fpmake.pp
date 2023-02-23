@@ -119,6 +119,9 @@ begin
     P.Targets.AddExampleProgram('testver.pp');
     P.Targets.AddExampleProgram('testcom2.pp');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

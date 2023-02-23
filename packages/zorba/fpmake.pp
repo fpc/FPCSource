@@ -48,6 +48,9 @@ begin
 //    P.Targets.AddExampleProgram('testapiv3x.pp');
 //    P.Targets.AddExampleProgram('test.pas');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

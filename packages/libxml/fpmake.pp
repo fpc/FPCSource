@@ -91,6 +91,9 @@ begin
     P.Targets.AddExampleProgram('reader2.pas');
     P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

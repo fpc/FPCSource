@@ -31,6 +31,9 @@ begin
     P.Options.Add('-Ur');
 
     T:=P.Targets.AddUnit('jni.pas');
+
+    P.NamespaceMap:='namespaces.lst';
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
