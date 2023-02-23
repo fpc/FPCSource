@@ -705,22 +705,8 @@ asm
     and      $-16, %r9
     add      %rcx, %r9 { r9 = end of full XMMs in buf1 }
     cmp      %r9, %rcx
-    je       .L16x_Tail
-.balign 16
-.L16x_Body:
-    movdqu   (%rdx), %xmm0
-    movdqu   (%rcx), %xmm1
-    pcmpeqb  %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-    xor      $65535, %eax
-    jne      .L16x_Found
-    add      $16, %rcx
-    add      $16, %rdx
-    cmp      %rcx, %r9
     jne      .L16x_Body
 .L16x_Tail:
-    cmp      %r9, %r10
-    je       .LNothing
     lea      15(%r9), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
     lea      15(%rdx), %ecx
     xor      %r9d, %eax
@@ -733,21 +719,38 @@ asm
     pcmpeqb  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    je       .LNothing
+    je       .L16x_Nothing
     bsf      %eax, %ecx
     add      %rcx, %r9
     cmp      %r10, %r9 { ignore over-read garbage bytes }
-    jnb      .LNothing
+    jnb      .L16x_Nothing
     movzbl   (%r9), %eax
     movzbl   (%rdx,%rcx), %edx
     sub      %rdx, %rax
     ret
 
+.balign 16
+.L16x_Body:
+    movdqu   (%rdx), %xmm0
+    movdqu   (%rcx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jne      .L16x_Found
+    add      $16, %rcx
+    add      $16, %rdx
+    cmp      %rcx, %r9
+    jne      .L16x_Body
+    cmp      %r9, %r10
+    jne      .L16x_Tail
+.L16x_Nothing:
+    xor      %eax, %eax
+    ret
+
 .L16x_Found:
     bsf      %eax, %eax
-    movzbl   (%rcx,%rax), %ecx
     movzbl   (%rdx,%rax), %edx
-    mov      %rcx, %rax
+    movzbl   (%rcx,%rax), %eax
     sub      %rdx, %rax
     ret
 
