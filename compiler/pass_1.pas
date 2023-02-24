@@ -48,7 +48,7 @@ implementation
       verbose,
       symdef
 {$ifdef extdebug}
-      ,verbose,htypechk
+      ,htypechk
       ,cgbase
 {$endif extdebug}
 {$ifdef state_tracking}
