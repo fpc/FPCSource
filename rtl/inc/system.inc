@@ -744,7 +744,7 @@ begin
       { random(longint(l)), inlined. This makes random(NativeType) on 64-bit platforms match 32-bit when possible. }
       if (l < 0) then
         inc(l);
-      exit(longint(int64(system.random(high(int32)))*l shr 32));
+      exit(longint(int64(xsr128_32_u32rand)*l shr 32));
     end;
 
   if (l < 0) then
