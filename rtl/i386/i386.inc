@@ -556,17 +556,17 @@ function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackfra
 asm
         sub     %eax, %edx
         push    %esi
-        push    %ebx
         cmp     $1073741823, %ecx
         ja      .LUnbounded
         cmp     $3, %ecx
         lea     (%eax,%ecx,2), %esi
         jle     .LWordwise_Test
+        push    %ebx
         test    $3, %al
         je      .LPtrUintWise_Prepare
         movzwl  (%edx,%eax), %ebx
         cmp     (%eax), %bx
-        jne     .LDoSbb
+        jne     .LPopEbxAndDoSbb
         add     $2, %eax
         sub     $1, %ecx
 .LPtrUintWise_Prepare:
@@ -580,6 +580,7 @@ asm
         add     $4, %eax
         cmp     %eax, %ecx
         jne     .LPtrUintWise_Next
+        pop     %ebx
 .LWordwise_Test:
         cmp     %esi, %eax
         je      .LNothingFound
@@ -591,21 +592,21 @@ asm
         cmp     %esi, %eax
         jne     .LWordwise_Body
 .LNothingFound:
-        pop     %ebx
         xor     %eax, %eax
         pop     %esi
         ret
 
 .LPtrUintsDiffer:
         cmp     (%eax), %bx
-        jne     .LDoSbb
+        jne     .LPopEbxAndDoSbb
         shr     $16, %ebx
         cmp     2(%eax), %bx
+.LPopEbxAndDoSbb:
+        pop     %ebx
 .LDoSbb:
         sbb     %eax, %eax
         and     $2, %eax
         sub     $1, %eax
-        pop     %ebx
         pop     %esi
         ret
 
