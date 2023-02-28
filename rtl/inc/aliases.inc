@@ -29,6 +29,7 @@ Procedure int_Addref (Data,TypeInfo : Pointer); [external name 'FPC_ADDREF'];
 Procedure int_Initialize (Data,TypeInfo: Pointer); [external name 'FPC_INITIALIZE'];
 procedure int_InitializeArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_INITIALIZE_ARRAY'];
 procedure int_FinalizeArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_FINALIZE_ARRAY'];
+procedure int_AddRefArray(data,typeinfo : pointer;count : SizeInt); [external name 'FPC_ADDREF_ARRAY'];
 
 {$if defined(FPC_HAS_FEATURE_RTTI) and not defined(cpujvm)}
 type
