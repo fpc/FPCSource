@@ -245,8 +245,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
 
                { increment ref. count of managed members }
                if assigned(eletypemngd) then
-                 for i:= 0 to movelen-1 do
-                   int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
+                 int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,movelen);
 
                { a declock(ref. count) isn't enough here }
                { it could be that the in MT environments  }
@@ -364,7 +363,7 @@ function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
     eletype : pointer
     ) : fpc_stub_dynarray;[Public,Alias:'FPC_ARR_TO_DYNARR_COPY'];compilerproc;
   var
-    i,size : sizeint;
+    size : sizeint;
   begin
      fpc_dynarray_clear(pointer(result),ti);
      if psrc=nil then
@@ -402,16 +401,14 @@ function fpc_array_to_dynarray_copy(psrc : pointer;ti : pointer;
 
      { increment ref. count of members? }
      if assigned(eletype) then
-       for i:=0 to count-1 do
-         int_addref(pointer(pointer(result)+elesize*i),eletype);
+       int_AddRefArray(pointer(result),eletype,count);
   end;
 
 
 {$ifndef VER3_0}
 procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : pointer);
    var
-      newhigh,
-      i : tdynarrayindex;
+      newhigh : tdynarrayindex;
       size : sizeint;
       { contains the "fixed" pointers where the refcount }
       { and high are at positive offsets                 }
@@ -473,8 +470,7 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
 
           { increment ref. count of managed members }
           if assigned(eletypemngd) then
-            for i:=0 to newhigh do
-              int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
+            int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,newhigh+1);
 
           { a declock(ref. count) isn't enough here }
           { it could be that the in MT environments  }
@@ -489,10 +485,7 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
         begin
           { finalize the elements that will be removed }
           if assigned(eletypemngd) then
-            begin
-              for i:=source to source+count-1 do
-                int_finalize(p+i*elesize,eletype);
-            end;
+            int_FinalizeArray(p+source*elesize,eletype,count);
 
           { close the gap by moving the trailing elements to the front }
           move((p+(source+count)*elesize)^,(p+source*elesize)^,(realp^.high-(source+count)+1)*elesize);
@@ -509,8 +502,7 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
 
 procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;count : SizeInt;pti : pointer);compilerproc;
   var
-    newhigh,
-    i : tdynarrayindex;
+    newhigh : tdynarrayindex;
     size : sizeint;
     realp,
     newp : pdynarray;
@@ -580,8 +572,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
 
             { increment ref. count of managed members }
             if assigned(eletypemngd) then
-              for i:=0 to newhigh do
-                int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
+              int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,newhigh+1);
 
             { a declock(ref. count) isn't enough here }
             { it could be that the in MT environments  }
@@ -609,10 +600,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
 
             { increase reference counts of inserted elements }
             if assigned(eletypemngd) then
-              begin
-                for i:=source to source+count-1 do
-                  int_addref(p+i*elesize,eletypemngd);
-              end;
+              int_AddRefArray(p+source*elesize,eletypemngd,count);
 
             newp:=realp;
           end;
@@ -628,10 +616,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
 
         { increase reference counts of inserted elements }
         if assigned(eletypemngd) then
-          begin
-            for i:=0 to count-1 do
-              int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
-          end;
+          int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,count);
       end;
 
     p:=pointer(newp)+sizeof(tdynarray);
@@ -702,10 +687,7 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
         end;
     { increase reference counts of all the elements }
     if assigned(eletypemngd) then
-      begin
-        for i:=0 to totallen-1 do
-          int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
-      end;
+      int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,totallen);
 
     { clear at the end, dest could be a reference to an array being used also as source }
     fpc_dynarray_clear(dest,pti);
@@ -717,7 +699,6 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
 
 procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 : pointer); compilerproc;
   var
-    i,
     offset,
     totallen : sizeint;
     newp,
@@ -780,10 +761,7 @@ procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 
 
     { increase reference counts of all the elements }
     if assigned(eletypemngd) then
-      begin
-        for i:=0 to totallen-1 do
-          int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
-      end;
+      int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,totallen);
 
     { clear at the end, dest could be a reference to an array being also source }
     fpc_dynarray_clear(dest,pti);
