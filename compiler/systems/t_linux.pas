@@ -753,7 +753,7 @@ var
   mapstr,
   ltostr,
   rpathstr,
-  sanitizerLibraryDir: TCmdStr;
+  sanitizerLibraryDir, s: TCmdStr;
   success : boolean;
   DynLinkStr : ansistring;
   GCSectionsStr,
@@ -832,7 +832,14 @@ begin
   if cs_large in current_settings.globalswitches then
     cmdstr:=cmdstr+' --no-relax';
 
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  s:=FindUtil(utilsprefix+BinStr+'.bfd');
+  if FileExists(s, True) then
+    binstr:=s
+  else
+    { fallback to ld for very old or custom binutils }
+    binstr:=FindUtil(utilsprefix+BinStr);
+
+  success:=DoExec(binstr,CmdStr,true,false);
 
   { Create external .dbg file with debuginfo }
   if success and (cs_link_separate_dbg_file in current_settings.globalswitches) then

@@ -441,7 +441,7 @@ begin
   if (source_info.exeext<>'') then
     s:=s+source_info.exeext;
   s:=FindUtil(s);
-    if FileExists(s, True) then
+  if FileExists(s, True) then
     binstr:=s
   else
     // fallback to ld for very old or custom binutils
