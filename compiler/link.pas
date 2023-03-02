@@ -88,7 +88,7 @@ interface
          Info : TLinkerInfo;
          Constructor Create;override;
          Destructor Destroy;override;
-         Function  FindUtil(const s:TCmdStr):TCmdStr;
+         Function  FindUtil(const s:TCmdStr;throwerror: boolean=true):TCmdStr;
          Function  CatFileContent(para:TCmdStr):TCmdStr;
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
@@ -812,7 +812,7 @@ Implementation
       end;
 
 
-    Function TExternalLinker.FindUtil(const s:TCmdStr):TCmdStr;
+    Function TExternalLinker.FindUtil(const s:TCmdStr;throwerror: boolean=true):TCmdStr;
       var
         Found    : boolean;
         FoundBin : TCmdStr;
@@ -841,7 +841,7 @@ Implementation
          Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
         if (not Found) then
          Found:=FindExe(utilexe,false,Foundbin);
-        if (not Found) and not(cs_link_nolink in current_settings.globalswitches) then
+        if throwerror and (not Found) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            Message1(exec_e_util_not_found,utilexe);
            current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];

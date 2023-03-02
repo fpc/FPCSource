@@ -440,7 +440,7 @@ begin
   s:=utilsprefix+binstr+'.bfd';
   if (source_info.exeext<>'') then
     s:=s+source_info.exeext;
-  s:=FindUtil(s);
+  s:=FindUtil(s,false);
   if FileExists(s, True) then
     binstr:=s
   else

@@ -832,7 +832,7 @@ begin
   if cs_large in current_settings.globalswitches then
     cmdstr:=cmdstr+' --no-relax';
 
-  s:=FindUtil(utilsprefix+BinStr+'.bfd');
+  s:=FindUtil(utilsprefix+BinStr+'.bfd',false);
   if FileExists(s, True) then
     binstr:=s
   else
