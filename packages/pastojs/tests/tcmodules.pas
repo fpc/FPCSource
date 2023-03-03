@@ -304,6 +304,7 @@ type
 
     // numbers
     Procedure TestDouble;
+    Procedure TestDoubleSmall;
     Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestIntegerTypecasts;
@@ -7944,7 +7945,7 @@ begin
     '$mod.d = 0.3;',
     '$mod.d = -0.1;',
     '$mod.d = -0.3;',
-    '$mod.d = -0.003;',
+    '$mod.d = -3E-3;',
     '$mod.d = -0.123456789;',
     '$mod.d = -300;',
     '$mod.d = -123456;',
@@ -7962,6 +7963,62 @@ begin
     '$mod.d = 0.0;',
     'Run(1 / 0);',
     'Run(-1 / 0);',
+    '']));
+end;
+
+procedure TTestModule.TestDoubleSmall;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a = 1e-1;',
+  '  b = 1e-2;',
+  '  c = 1e-3;',
+  '  d = 1e-4;',
+  '  e = 1e-5;',
+  '  f = 1e-6;',
+  '  g = 1e-7;',
+  '  h = -1e-1;',
+  '  i = -1e-2;',
+  'procedure Fly(d: double);',
+  'begin',
+  'end;',
+  'begin',
+  '  Fly(a);',
+  '  Fly(b);',
+  '  Fly(c);',
+  '  Fly(d);',
+  '  Fly(e);',
+  '  Fly(f);',
+  '  Fly(g);',
+  '  Fly(h);',
+  '  Fly(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestDoubleSmall',
+    LinesToStr([
+    'this.a = 1e-1;',
+    'this.b = 1e-2;',
+    'this.c = 1e-3;',
+    'this.d = 1e-4;',
+    'this.e = 1e-5;',
+    'this.f = 1e-6;',
+    'this.g = 1e-7;',
+    'this.h = -1e-1;',
+    'this.i = -1e-2;',
+    'this.Fly = function (d) {',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Fly(0.1);',
+    '$mod.Fly(0.01);',
+    '$mod.Fly(1E-3);',
+    '$mod.Fly(1E-4);',
+    '$mod.Fly(1E-5);',
+    '$mod.Fly(1E-6);',
+    '$mod.Fly(1E-7);',
+    '$mod.Fly(-0.1);',
+    '$mod.Fly(-0.01);',
     '']));
 end;
 
