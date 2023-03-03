@@ -837,19 +837,25 @@ begin
               Delete(S,i,length(S))
             else if (Exp>=-6) and (Exp<=6) then
               begin
-              // small exponent -> use notation without E
+              // small exponent -> try using notation without E
               Delete(S,i,length(S));
+              if S[length(S)]='0' then
+                Delete(S,length(S),1);
+              if S[length(S)]='.' then
+                Delete(S,length(S),1);
+              S2:=S+'E'+IntToStr(Exp);
               j:=Pos('.',S);
               if j>0 then
+                begin
                 Delete(S,j,1)
+                end
               else
                 begin
-                j:=1;
-                while not (S[j] in ['0'..'9']) do inc(j);
+                j:=length(S)+1;
                 end;
               if Exp<0 then
                 begin
-                // e.g. -1.2  E-1
+                // e.g. -1.2E-3  S='-123' j=3  Exp=-3
                 while Exp<0 do
                   begin
                   if (j>1) and (S[j-1] in ['0'..'9']) then
@@ -866,7 +872,7 @@ begin
                 end
               else
                 begin
-                // e.g. -1.2  E1
+                // e.g. -1.2E3  S='-123' j=3  Exp=3
                 while Exp>0 do
                   begin
                   if (j<=length(S)) and (S[j] in ['0'..'9']) then
@@ -878,6 +884,8 @@ begin
                 if j<=length(S) then
                   Insert('.',S,j);
                 end;
+              if length(S)>length(S2) then
+                S:=S2;
               end
             else
               begin
