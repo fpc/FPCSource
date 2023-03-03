@@ -786,7 +786,7 @@ begin
   if xm >= width then
     xm := width - 1;
   ym := y + image.height-1;
-  if (ym<0) or (y>width) then exit;
+  if (ym<0) or (y>height) then exit;
   if ym >= height then
     ym := height - 1;
   xi := x;
