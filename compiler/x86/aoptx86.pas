@@ -4278,6 +4278,8 @@ unit aoptx86;
                                       hp3 := tai(hp2.Previous);
                                       RemoveInstruction(hp2);
 
+                                      Include(OptsToCheck, aoc_ForceNewIteration);
+
                                       { See if there's more we can optimise }
                                       Continue;
                                     end
@@ -4381,7 +4383,8 @@ unit aoptx86;
                                 { Same value - register hasn't changed }
                                 DebugMsg(SPeepholeOptimization + 'Mov2Nop 2 done', hp2);
                                 RemoveInstruction(hp2);
-                                Result := True;
+
+                                Include(OptsToCheck, aoc_ForceNewIteration);
 
                                 { See if there's more we can optimise }
                                 Continue;
