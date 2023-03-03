@@ -1310,7 +1310,9 @@ const
     msProperty,
     msExcept,
     msDefaultUnicodestring,
-    msCBlocks
+    msCBlocks,
+    msFunctionReferences,
+    msAnonymousFunctions
     ];
   msAllPas2jsModeSwitches = msAllPas2jsModeSwitchesReadOnly+[
     msDelphi,msObjfpc,
