@@ -13539,6 +13539,47 @@ unit aoptx86;
                         taicpu(hp2).condition := inverse_cond(taicpu(hp2).condition);
                         Result := True;
                         Exit;
+                      end
+                    else if ((taicpu(p).oper[0]^.val=$ff) or (taicpu(p).oper[0]^.val=$ffff) or (taicpu(p).oper[0]^.val=$ffffffff)) and
+                      MatchOpType(taicpu(hp1),top_const,top_reg) and
+                      (taicpu(p).oper[0]^.val>=taicpu(hp1).oper[0]^.val) and
+                      SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.reg) then
+                        { change
+                            and  $ff/$ff/$ffff, reg
+                            cmp  val<=$ff/val<=$ff/val<=$ffff, reg
+                            dealloc reg
+                          to
+                            cmp  val<=$ff/val<=$ff/val<=$ffff, resized reg
+                        }
+                      begin
+                        TransferUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                        if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'AND/CMP -> CMP', p);
+                            case taicpu(p).oper[0]^.val of
+                              $ff:
+                                begin
+                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBL);
+                                  taicpu(hp1).opsize:=S_B;
+                                end;
+                              $ffff:
+                                begin
+                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBW);
+                                  taicpu(hp1).opsize:=S_W;
+                                end;
+                              $ffffffff:
+                                begin
+                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBD);
+                                  taicpu(hp1).opsize:=S_L;
+                                end;
+                              else
+                                Internalerror(2023030401);
+                            end;
+                            RemoveCurrentP(p);
+                            Result := True;
+                            Exit;
+                          end;
                       end;
 
                   A_MOVZX:
