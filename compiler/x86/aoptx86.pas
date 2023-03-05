@@ -13546,10 +13546,10 @@ unit aoptx86;
                       SuperRegistersEqual(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.reg) then
                         { change
                             and  $ff/$ff/$ffff, reg
-                            cmp  val<=$ff/val<=$ff/val<=$ffff, reg
+                            cmp  val<=$ff/val<=$ffff/val<=$ffffffff, reg
                             dealloc reg
                           to
-                            cmp  val<=$ff/val<=$ff/val<=$ffff, resized reg
+                            cmp  val<=$ff/val<=$ffff/val<=$ffffffff, resized reg
                         }
                       begin
                         TransferUsedRegs(TmpUsedRegs);
@@ -13560,17 +13560,17 @@ unit aoptx86;
                             case taicpu(p).oper[0]^.val of
                               $ff:
                                 begin
-                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBL);
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBL);
                                   taicpu(hp1).opsize:=S_B;
                                 end;
                               $ffff:
                                 begin
-                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBW);
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBW);
                                   taicpu(hp1).opsize:=S_W;
                                 end;
                               $ffffffff:
                                 begin
-                                  taicpu(hp1).oper[1]^.reg := newreg(R_INTREGISTER, getsupreg(taicpu(hp1).oper[1]^.reg), R_SUBD);
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
                                   taicpu(hp1).opsize:=S_L;
                                 end;
                               else
