@@ -42,7 +42,9 @@
  * @defgroup APACHE_CORE_DAEMON HTTP Daemon Routine
  * @
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit httpd24;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
   {$mode delphi}
@@ -80,6 +82,15 @@ unit httpd24;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows,
+{$ELSE}
+  UnixApi.Types,
+{$ENDIF}
+  System.CTypes, Api.HttpD24.Apr;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows,
@@ -87,6 +98,7 @@ uses
   UnixType,
 {$ENDIF}
   ctypes, apr24;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifndef fpc}
