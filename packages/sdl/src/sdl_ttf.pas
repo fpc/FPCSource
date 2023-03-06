@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_ttf;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdl_ttf.pas,v 1.18 2007/06/01 11:16:33 savage Exp $
 
@@ -162,6 +164,22 @@ unit sdl_ttf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+
+{$IFDEF Windows}
+  {$IFNDEF __GPC__}
+  WinApi.Windows,
+  {$ENDIF}
+{$ENDIF}
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -176,6 +194,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}

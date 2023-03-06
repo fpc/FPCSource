@@ -190,18 +190,29 @@ Date        Author Version Changes
                            those that don't.
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT libxmlparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jedi-sdl.inc}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+  System.SysUtils, System.Classes,
+  (*$IFDEF HAS_CONTNRS_UNIT *)  // The System.Contnrs Unit was introduced in Delphi 5
+  System.Contnrs,
+  (*$ENDIF*)
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 USES
   SysUtils, Classes,
   (*$IFDEF HAS_CONTNRS_UNIT *)  // The Contnrs Unit was introduced in Delphi 5
   Contnrs,
   (*$ENDIF*)
   Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 CONST
   CVersion = '1.0.17';  // This variable will be updated for every release

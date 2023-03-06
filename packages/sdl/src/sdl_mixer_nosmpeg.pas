@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_mixer_nosmpeg;
+{$ENDIF FPC_DOTTEDUNITS}
 {******************************************************************************}
 { Copy of SDL_Mixer without smpeg dependency and mp3 support                    }
 {******************************************************************************}
@@ -7,6 +9,16 @@ unit sdl_mixer_nosmpeg;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -15,6 +27,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
