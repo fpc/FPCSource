@@ -16,12 +16,19 @@
 
  **********************************************************************}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   UtilityBase: Pointer;

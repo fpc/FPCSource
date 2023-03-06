@@ -13,7 +13,9 @@
 
 **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit akeyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    Contents of this file is based on keyboard.h from the MorphOS SDK:
@@ -26,8 +28,13 @@ unit akeyboard;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   KBD_READEVENT               = (CMD_NONSTD + 0);

@@ -21,7 +21,9 @@
 {$mode objfpc}
 {$packrecords 2}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mui;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -129,7 +131,11 @@ interface
      Items marked with "Custom Class" are for use in custom classes only!
   }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition,Amiga.Core.Utility,Amiga.Core.Agraphics{,Amiga.Core.Iffparse};
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition,utility,agraphics{,iffparse};
+{$ENDIF FPC_DOTTEDUNITS}
 {$WARNING IffParse required, look for FIX ME!!!}
 
 var

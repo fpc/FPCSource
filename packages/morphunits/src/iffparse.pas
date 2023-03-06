@@ -20,11 +20,17 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iffparse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Clipboard, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, clipboard, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 const

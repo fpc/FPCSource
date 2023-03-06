@@ -51,12 +51,18 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit icon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Workbench,Amiga.Core.Utility,Amiga.Core.Amigados,Amiga.Core.Agraphics,Amiga.Core.Intuition,Amiga.Core.Datatypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, workbench,utility,amigados,agraphics,intuition,datatypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
     ICONA_Dummy = TAG_USER + $9000;
