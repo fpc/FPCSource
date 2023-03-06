@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_das_imp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs, Data.Db,
+  Sdo.Base, Sdo.Das, Sdo.Consts, Sdo.Types, Sdo.Das.DataAcces.intf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs, DB,
   sdo, sdo_das, sdo_consts, sdo_types, data_acces_intf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -120,8 +128,14 @@ resourcestring
   SDODAS_MSG_INALID_PARAMS = 'Invalid parameter(s) : "%s".';
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Das.Utils, Sdo.Impl.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_das_utils, sdo_imp_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function Creator(AFactory : ISDODataFactory) : ISDODAS;
 begin

@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_das_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db,
+  Sdo.Base, Sdo.Das, Sdo.Das.DataAcces.Intf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DB,
   sdo, sdo_das, data_acces_intf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   BOOLEAN_TRUE_CHARS : set of AnsiChar = ['T','t', 'Y', 'y', 'O', 'o', '1'];
@@ -106,8 +114,13 @@ type
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.DateUtils, Sdo.Impl.Utils, Sdo.LinkedList;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_date_utils, sdo_imp_utils, sdo_linked_list;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure AssignValue(AObject : ISDODataObject; AProp : ISDOProperty; AField : TField);
 

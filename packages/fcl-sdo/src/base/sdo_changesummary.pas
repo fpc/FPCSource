@@ -26,12 +26,20 @@
         it will be accepted later _only_ as a new DataObject regardless of the fact that
         it was an ancient member.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_changesummary;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs,
+  Sdo.Base, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs,
   sdo, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -384,8 +392,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {function DataObjectExtractor(const AList : TObjectList; const AIndex : PtrInt) : PtrInt;
 begin

@@ -15,12 +15,19 @@
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
 {$RANGECHECKS OFF}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_binary_streamer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Types, Sdo.BaseTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Types, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   MAX_ARRAY_LENGTH = 1024*1024;
@@ -45,7 +52,7 @@ Type
 {$ENDIF USE_UNICODE}
   TAnsiCharacter = AnsiChar;
   TWideCharacter = WideChar;
-  TByteDynArray = sdo_types.TByteDynArray;
+  TByteDynArray = {$IFDEF FPC_DOTTEDUNITS}Sdo.BaseTypes.{$ELSE}sdo_types.{$ENDIF}TByteDynArray;
   
   TFloat_Single_4    = Single;
   TFloat_Double_8    = Double;
@@ -622,6 +629,7 @@ function TDataStoreReader.ReadAnsiStr(): TAnsiStringData;
 Var
   i : TInt32S;
 begin
+  Result:=Default(TAnsiStringData);
   i := ReadInt32S();
   SetLength(Result,i);
   If ( i > 0 ) Then
@@ -632,6 +640,7 @@ function TDataStoreReader.ReadWideStr(): TWideStringData;
 var
   i : TInt32S;
 begin
+  Result:=Default(TWideStringData);
   i := ReadInt32S();
   SetLength(Result,i);
   if ( i > 0 ) then begin
@@ -644,6 +653,7 @@ function TDataStoreReader.ReadBinary() : TByteDynArray;
 var
   i : TInt32S;
 begin
+  Result:=Default(TByteDynArray);
   i := ReadInt32S();
   SetLength(Result,i);
   if ( i > 0 ) then
@@ -655,6 +665,7 @@ function TDataStoreReader.ReadUnicodeStr(): TUnicodeStringData;
 var
   i : TInt32S;
 begin
+  Result:=Default(TUnicodeStringData);
   i := ReadInt32S();
   SetLength(Result,i);
   if ( i > 0 ) then begin

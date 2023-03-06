@@ -14,13 +14,21 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_rtti_filters;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, System.TypInfo,
+  Sdo.Cursor.Intf, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs, TypInfo,
   sdo_cursor_intf, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
