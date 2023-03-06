@@ -8,7 +8,9 @@
 // converted by Alex Konshin, mailto:alexk@msmt.spb.su
 // added FreePascal stuff: AlexS@freepage.de
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
@@ -20,7 +22,11 @@ unit WinSock2;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {       Define the current Winsock version. To build an earlier Winsock version
         application redefine this value prior to including Winsock2.h. }

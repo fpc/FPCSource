@@ -10,7 +10,9 @@
 // updated for wince : orinaudo@gmail.com
 // based on svn3257 rtl/win/winsock2.pas
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
@@ -24,7 +26,11 @@ unit WinSock2;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {       Define the current Winsock version. To build an earlier Winsock version
         application redefine this value prior to including Winsock2.h. }

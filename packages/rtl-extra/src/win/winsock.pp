@@ -19,12 +19,19 @@
 {$endif}
 {$mode fpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinSock;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
        WINSOCK_VERSION = $0101;

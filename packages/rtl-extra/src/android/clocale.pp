@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit clocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.CWString, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   cwstring, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure GetAndroidFormatSettings(var ASettings: TFormatSettings; ALocale: utf8string = '');
 

@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gpm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Note: Libgpm is *the* interface for Linux text-mode programs.
        Unfortunately it isn't suitable for anything else besides a blocky
@@ -26,8 +28,13 @@ unit gpm;
                                     interface
 {*****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef use_external}
 {$linklib gpm}
@@ -207,7 +214,11 @@ function gpm_getsnapshot(var eptr:Tgpmevent):longint;inline;
 {*****************************************************************************}
 
 {$ifndef use_external}
+{$IFDEF FPC_DOTTEDUNITS}
+uses  UnixApi.TermIO,System.Net.Sockets,System.Strings,UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses  termio,sockets,strings,unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type  Pgpm_stst=^Tgpm_stst;
       Tgpm_stst=record

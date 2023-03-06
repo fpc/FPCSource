@@ -14,11 +14,18 @@
 {.$DEFINE SOCKETS_DEBUG}
 {$ModeSwitch out}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
     size_t   = cuint32;         { as definied in the C standard}
