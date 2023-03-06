@@ -37,11 +37,17 @@
     nils.sjoholm@mailbox.xwipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tritonmacros;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Other.Triton, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses triton, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
    tritontags : array[0..400] of tTagItem;
@@ -326,7 +332,11 @@ PROCEDURE SetTRTag( thetag : longint; thedata : pointer);
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
 uses pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 PROCEDURE ProjectStart;
 BEGIN

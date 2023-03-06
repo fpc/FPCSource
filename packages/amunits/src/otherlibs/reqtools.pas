@@ -38,12 +38,18 @@
 
 {$packrecords 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT REQTOOLS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Amigados, Amiga.Core.Diskfont, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec, intuition, amigados, diskfont, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

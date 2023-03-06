@@ -26,11 +26,17 @@
         nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hisoft;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Gadtools,Amiga.Utils.Pastoc,Amiga.Core.Amigados,Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, gadtools,pastoc,amigados,intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
     ppbyte = pointer;

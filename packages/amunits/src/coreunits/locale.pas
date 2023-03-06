@@ -36,10 +36,16 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT locale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, amigados, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 { constants for GetLocaleStr() }

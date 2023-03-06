@@ -29,11 +29,17 @@
      nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WBArgs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Workbench,Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses workbench,amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function GetStartupMsg: pWBStartup;
 function ProgramName: ShortString;

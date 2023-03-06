@@ -36,10 +36,16 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT IDENTIFY;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 ** $VER: identify.h 13.0 (11.09.2001)
@@ -440,8 +446,13 @@ FUNCTION IdEstimateFormatSizeTags(String_ : ShortString; const Tags : array of P
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
  Functions and procedures with array of PtrUInt go here

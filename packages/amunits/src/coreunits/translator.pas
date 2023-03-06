@@ -25,10 +25,16 @@
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT translator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 

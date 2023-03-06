@@ -34,11 +34,17 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT TRITON;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {* ------------------------------------------------------------------------------ *}
@@ -761,8 +767,13 @@ procedure TR_UpdateListView(p : pTR_Project; gadid : Longint; thelist: pList);
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure TR_Disable(p : pTR_Project; id : Longint);
 begin

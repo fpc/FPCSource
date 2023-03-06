@@ -18,11 +18,17 @@
         external declarations for Parallel Port Driver
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit parallel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type

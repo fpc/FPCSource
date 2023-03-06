@@ -39,12 +39,18 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT GTLAYOUT;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Intuition,Amiga.Core.Utility, Amiga.Core.Gadtools,Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,intuition,utility, gadtools,agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

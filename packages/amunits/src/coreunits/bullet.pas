@@ -33,11 +33,17 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bullet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

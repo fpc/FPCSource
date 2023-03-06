@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hardblocks;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     History:
@@ -28,7 +30,11 @@ unit hardblocks;
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {       Changes
 **        Expanded envec

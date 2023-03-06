@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit consoleio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     History:
@@ -36,7 +38,11 @@ unit consoleio;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Console, Amiga.Core.Amigalib, Amiga.Core.Conunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition, console, amigalib, conunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 TYPE
     tConsoleSet = record

@@ -29,10 +29,16 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT GUIGFX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Utility,Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,utility,agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR GuiGFXBase : pLibrary;
 

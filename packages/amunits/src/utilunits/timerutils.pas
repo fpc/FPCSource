@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit timerutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    History:
@@ -31,7 +33,11 @@ unit timerutils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Timer, Amiga.Core.Amigalib;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, timer, amigalib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function CreateTimer(theUnit : longint) : pTimeRequest;
 Function SetTimer(WhichTimer : pTimeRequest;

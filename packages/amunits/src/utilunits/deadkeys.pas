@@ -42,11 +42,17 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit deadkeys;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,Amiga.Core.Intuition,Amiga.Core.Console,Amiga.Core.Inputevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,intuition,console,inputevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function DeadKeyConvert(msg : pIntuiMessage; buffer : PAnsiChar;
                         bufsize : longint; keymap : pointer): longint;
