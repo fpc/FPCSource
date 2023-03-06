@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libgnomeui;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {off $DEFINE GNOME_EXCLUDE_EXPERIMENTAL}
 
@@ -7,7 +9,11 @@ unit libgnomeui;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.Gtk1.Glib, Api.Gtk1.Gdk, Api.Gdk_imlib, Api.Gtk1.Gtk, Api.Gnome1.Gnome, Api.Gnome1.Art;
+{$ELSE FPC_DOTTEDUNITS}
 Uses glib, gdk, gdk_imlib, gtk, libgnome, libart;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
  libgnomeuidll='gnomeui';

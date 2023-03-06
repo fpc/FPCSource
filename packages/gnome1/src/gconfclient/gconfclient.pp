@@ -18,14 +18,20 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gconfclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.Gtk1.Glib, Api.Gtk1.Gtk, Api.Gnome1.Conf;
+{$ELSE FPC_DOTTEDUNITS}
 Uses glib, gtk, gconf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
  gconfclientdll ='gconf-gtk-1';
