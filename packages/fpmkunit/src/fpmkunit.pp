@@ -87,6 +87,32 @@ Interface
   {$endif HAS_TAR_SUPPORT}
 {$endif unix}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types,
+{$ifdef Unix}
+  UnixApi.Base,
+{$endif Unix}
+{$ifdef Windows}
+  WinApi.Windows,
+{$endif Windows}
+{$ifndef NO_THREADING}
+{$ifdef Unix}
+  UnixApi.CThreads,
+{$endif Unix}
+{$endif NO_THREADING}
+  System.SysUtils, System.Classes
+{$ifdef HAS_UNIT_PROCESS}
+  ,System.Process
+{$endif HAS_UNIT_PROCESS}
+{$ifdef HAS_TAR_SUPPORT}
+  ,Libx.Libtar
+{$endif HAS_TAR_SUPPORT}
+{$ifdef HAS_UNIT_ZIPPER}
+  ,System.ZLib.Zipper, System.ZLib.Zstream
+{$endif HAS_UNIT_ZIPPER}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Types,
 {$ifdef UNIX}
@@ -106,12 +132,17 @@ uses
   ,zipper, zstream
 {$endif HAS_UNIT_ZIPPER}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IF DECLARED(VOLATILE)}
 {$DEFINE HAVE_VOLATILE}
 {$ENDIF}
 
 Type
+{$IFNDEF DECLARED(RTLString)}
+  RTLString = AnsiString;
+{$ENDIF}
+
 {$IF SIZEOF(CHAR)=1}
   TRTLStringDynArray = TStringDynArray;
 {$ENDIF}
@@ -300,6 +331,8 @@ Const
 
 Type
   TTargets = Class;
+  TBuildEngine = Class;
+
   { TNamedItem }
 
   TNamedItem = Class(TCollectionItem)
@@ -420,13 +453,15 @@ Type
   end;
 
   { TConditionalString }
-  TConditionalString = Class
+  TConditionalString = Class(TCollectionItem)
   private
     FOSes   : TOSes;
     FCPUs   : TCPUs;
     FValue  : String;
   Public
-    Constructor Create;virtual;
+    Procedure Assign(aSource : TPersistent); override;
+    Function Match (aCPU : TCPU; aOS : TOS) : Boolean;
+    Function Match (const aValue : String; aCPU : TCPU; aOS : TOS) : Boolean;
     Property Value : String Read FValue Write FValue;
     Property OSes  : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUS Write FCPUs;
@@ -436,19 +471,20 @@ Type
 
   { TConditionalStrings }
 
-  TConditionalStrings = Class(TFPList)
+  TConditionalStrings = Class(TCollection)
   private
-    FCSClass : TConditionalStringClass;
     function GetConditionalString(Index : Integer): TConditionalString;
     procedure SetConditionalString(Index : Integer; const AValue: TConditionalString);
   Public
-    Constructor Create(AClass:TConditionalStringClass);
-    Function Add(Const Value : String) : TConditionalString;inline;
-    Function Add(Const Value : String;const OSes:TOSes) : TConditionalString;inline;
+    Procedure AddList(aList : TConditionalStrings);
+    Function IndexOf(Value : String; aCPU : TCPU; aOS : TOS) : Integer;
+    Function Find(Value : String; aCPU : TCPU; aOS : TOS) : TConditionalString;
+    Function Add(Const Value : String) : TConditionalString;inline; overload;
+    Function Add(Const Value : String;const OSes:TOSes) : TConditionalString;inline; overload;
 {$ifdef cpu_only_overloads}
-    Function Add(Const Value : String;const CPUs:TCPUs) : TConditionalString;inline;
+    Function Add(Const Value : String;const CPUs:TCPUs) : TConditionalString;inline; overload;
 {$endif cpu_only_overloads}
-    Function Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TConditionalString;
+    Function Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TConditionalString; overload;
     Property ConditionalStrings[Index : Integer] : TConditionalString Read GetConditionalString Write SetConditionalString; default;
   end;
 
@@ -458,6 +494,7 @@ Type
   private
     FDestPath: string;
   public
+    Procedure Assign(aSource : TPersistent); override;
     property DestPath: string read FDestPath write FDestPath;
   end;
 
@@ -530,6 +567,7 @@ Type
   TDictionary = Class(TComponent)
   private
     FList : TStringList;
+    Procedure ClearItem(Idx : Integer);
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy;override;
@@ -566,7 +604,8 @@ Type
     Function GetVersion : string;
     Procedure SetVersion(const V : string);
   Public
-    Constructor Create;override;
+    Constructor Create(aCollection : TCollection);override;
+    Procedure Assign(aSource : TPersistent);  override;
     Destructor Destroy;override;
     Property Target : TObject Read FTarget Write FTarget;
     Property DependencyType : TDependencyType Read FDependencyType;
@@ -632,6 +671,15 @@ Type
     property AutoAddToPackage: boolean read FAutoAddToPackage;
   end;
 
+  { TDependencyEnumerator }
+
+  TDependencyEnumerator = Class(TCollectionEnumerator)
+  public
+    function GetCurrent: TDependency;
+    property Current: TDependency read GetCurrent;
+  end;
+
+  { TDependencies }
 
   TDependencies = Class(TConditionalStrings)
     function GetDependency(Index : Integer): TDependency;
@@ -655,6 +703,7 @@ Type
     Function AddInclude(Const Value : String;const CPUs:TCPUs) : TDependency;inline;
 {$endif cpu_only_overloads}
     Function AddInclude(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TDependency;
+    Function GetEnumerator :  TDependencyEnumerator;
     Property Dependencies[Index : Integer] : TDependency Read GetDependency Write SetDependency; default;
   end;
 
@@ -899,6 +948,7 @@ Type
     FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
+    FNamespaceMap: String;
     FSubTargets: TRTLStringDynArray;
     FSupportBuildModes: TBuildModes;
     FUnitPath,
@@ -949,6 +999,7 @@ Type
 {$ifndef NO_THREADING}
     FResolveDirsCS: TRTLCriticalSection;
 {$endif}
+    procedure ChangePaths(Aliases: TStrings; aTarget: TCompileTarget);
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
@@ -959,6 +1010,7 @@ Type
     procedure SetOptions(const AValue: TStrings);
     procedure SetTransmitOptions(AValue: TStrings);
     Procedure SetVersion(const V : string);
+    procedure TransformAliases(Aliases: TStrings);
   Protected
     procedure SetName(const AValue: String);override;
     procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
@@ -997,6 +1049,9 @@ Type
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     procedure EnterResolveDirsCS;
     procedure LeaveResolveDirsCS;
+    procedure ApplyNameSpaces(aEngine : TBuildEngine; aFileName : string; aTarget : TCompileTarget);
+    // applies namespaces if map is set
+    procedure ApplyNameSpaces(aEngine : TBuildEngine; aTarget : TCompileTarget);
     Function SubTargetAllowed(Const aSubTarget : String) : Boolean;
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
@@ -1041,6 +1096,7 @@ Type
     Property Sources : TSources Read FSources;
     Property UnitDir : String Read FUnitDir Write FUnitDir;
     Property UnitConfigFileName: String read FUnitConfigFileName write FUnitConfigFileName;
+    Property NamespaceMap : String Read FNamespaceMap Write FNameSpaceMap;
     // events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property BeforeCompileProc : TNotifyProcEvent Read FBeforeCompileProc write FBeforeCompileProc;
@@ -1106,6 +1162,7 @@ Type
     FInstallExamples: Boolean;
     FMkDir: String;
     FMove: String;
+    FNamespaces: Boolean;
     FOptions: TStrings;
     FCompileTarget : TCompileTarget;
     FSourceTarget : TCompileTarget;
@@ -1252,6 +1309,7 @@ Type
     Property IgnoreInvalidOptions: Boolean read FIgnoreInvalidOptions write FIgnoreInvalidOptions;
     Property BuildMode: TBuildMode read FBuildMode write FBuildMode;
     Property SingleFPDocFile : Boolean Read FSingleFPDocFile Write FSingleFPDocFile;
+    Property Namespaces : Boolean Read FNamespaces Write FNameSpaces;
     // Installation optioms
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
     Property SkipCrossPrograms: boolean read FSkipCrossPrograms write FSkipCrossPrograms;
@@ -1446,6 +1504,8 @@ Type
     Procedure FreePackages; virtual;
     function GetPackages: TPackages; virtual;
     Procedure CheckPackages; virtual;
+    // needs build engine !
+    procedure CheckNameSpaces; virtual;
     Procedure CreateBuildEngine; virtual;
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; const Args : Array of const);
@@ -1631,7 +1691,11 @@ function GetPluginManager: TfpmPluginManager;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef CREATE_TAR_FILE}
@@ -2216,7 +2280,7 @@ begin
         SearchResult := FindNext(searchRec);
       end;
   finally
-    sysutils.FindClose(searchRec);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(searchRec);
   end;
 end;
 
@@ -2812,7 +2876,7 @@ procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; 
             List.Add(SearchDir + Info.Name);
       until FindNext(Info)<>0;
     end;
-    sysutils.FindClose(Info);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(Info);
   end;
 
 var
@@ -3075,12 +3139,11 @@ var
     result := '';
     Parms:=TStringList.Create;
     try
-    GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
+    GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gcc', OS),{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('PATH'));
     if not(FileExists(GccExecutable)) then
-      GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gnu-gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
-    { ugly hack to find gcc on newer linuxes }
+      GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gnu-gcc', OS),{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('PATH'));
     if not(FileExists(GccExecutable)) and (CrossPrefix='i386-linux-') then
-      GccExecutable := ExeSearch(AddProgramExtension('i686-linux-gnu-gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
+      GccExecutable := ExeSearch(AddProgramExtension('i686-linux-gnu-gcc', OS),{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Sysutils.GetEnvironmentVariable('PATH'));
     if FileExists(GccExecutable) then
       begin
 {$ifdef HAS_UNIT_PROCESS}
@@ -3163,8 +3226,8 @@ begin
          ) or (SourceOS=openbsd) then
         UseBinutilsPrefix:=true;
     end;
-  if Sysutils.GetEnvironmentVariable('BINUTILSPREFIX')<>'' then
-    CrossPrefix:=Sysutils.GetEnvironmentVariable('BINUTILSPREFIX')
+  if {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('BINUTILSPREFIX')<>'' then
+    CrossPrefix:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('BINUTILSPREFIX')
   else if not UseBinutilsPrefix then
     CrossPrefix:=''
   else
@@ -3219,6 +3282,28 @@ begin
   if not assigned(GPluginManager) then
     GPluginManager := TfpmPluginManager.Create;
   Result := GPluginManager;
+end;
+
+{ TConditionalDestString }
+
+procedure TConditionalDestString.Assign(aSource: TPersistent);
+
+Var
+  CDS : TConditionalDestString absolute aSource;
+
+begin
+  if aSource is TConditionalDestString then
+    begin
+    FDestPath:=CDS.DestPath;
+    end;
+  inherited Assign(aSource);
+end;
+
+{ TDependencyEnumerator }
+
+function TDependencyEnumerator.GetCurrent: TDependency;
+begin
+  Result:=TDependency(inherited GetCurrent);
 end;
 
 { TCompileTarget }
@@ -4215,6 +4300,7 @@ begin
   FreeAndNil(FTransmitOptions);
   FreeAndNil(FFlags);
   FreeAndNil(FPackageVariants);
+  FreeAndNil(FBUTargets);
   inherited destroy;
 end;
 
@@ -5021,6 +5107,144 @@ begin
 {$endif}
 end;
 
+procedure TPackage.ChangePaths(Aliases : TStrings; aTarget : TCompileTarget);
+
+var
+  aDir,aDest, S, aLine : string;
+  aPath,aOp : Char;
+  P : integer;
+  CS : TConditionalString;
+  CSL : TConditionalStrings;
+
+begin
+  for S in Aliases do
+    begin
+    aLine:=Trim(S);
+    P:=Pos('}',aLine);
+    if Not (Copy(aLine,1,1)='{') and (Copy(aLine,4,1)=':') and (P<>0) then
+      Continue;
+    aPath:=aLine[2];
+    aOp:=aLine[3];
+    aDir:=Copy(aLine,5,P-5);
+    P:=Pos('=',aLine);
+    if (P>0) then
+      aDest:=Copy(aLine,P+1);
+    CSL:=Nil;
+    Case aPath of
+      's' : CSL:=SourcePath;
+      'i' : CSL:=IncludePath;
+      'u' : CSL:=UnitPath;
+    end;
+    if Assigned(CSL) then
+      Case aOp of
+        '*' :
+          if aDest<>'' then
+              begin
+              CS:=CSL.Find(aDir,aTarget.Cpu,aTarget.OS);
+              if Assigned(CS) then
+                CS.Value:=aDest;
+              end;
+        '-':
+            begin
+            CS:=CSL.Find(aDir,aTarget.Cpu,aTarget.OS);
+            if Assigned(CS) then
+              CS.Free;
+            end;
+        '+':
+            begin
+            CS:=CSL.Find(aDir,aTarget.Cpu,aTarget.OS);
+            if not Assigned(CS) then
+              CSL.Add(aDir,[aTarget.Cpu],[aTarget.OS]);
+            end;
+      end;
+    end;
+end;
+
+procedure TPackage.TransformAliases(Aliases : TStrings);
+
+Var
+  I : integer;
+  N,V : String;
+
+begin
+  For I:=Aliases.Count-1 downto 0 do
+    if pos('=',Aliases[i])>0 then
+      begin
+      Aliases.GetNameValue(I,N,V);
+      N:=ExtractFileName(N);
+      V:=ExtractFileName(V);
+      Aliases.Add(N+'='+V);
+      N:=ChangeFileExt(N,'');
+      V:=ChangeFileExt(V,'');
+      Aliases.Add(N+'='+V);
+      end;
+end;
+
+procedure TPackage.ApplyNameSpaces(aEngine: TBuildEngine; aFileName: string; aTarget : TCompileTarget);
+
+Var
+  Aliases : TStrings;
+  T : TTarget;
+  D : TDependency;
+  CS : TConditionalString;
+  aDir, aUnitFileName, aNameSpaced, aNamespacedFile, aUnitName : string;
+
+begin
+  if not FileExists(aFileName) then
+    Raise EInstallerError.CreateFmt('No namespace definition file: %s',[aFilename]);
+  Aliases:=TStringList.Create;
+  try
+    Aliases.LoadFromFile(aFileName);
+    TransFormAliases(Aliases);
+    // Modify Targets
+    For T in Targets do
+      begin
+      if (T.TargetType in [ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit]) then
+        begin
+        aUnitFileName:=T.TargetSourceFileName;
+        aNamespacedFile:=Aliases.Values[aUnitFileName];
+        if aNamespacedFile<>'' then
+          begin
+          aUnitName:=ExtractFileName(aNameSpacedFile);
+          T.Name:=aUnitName;
+          T.FTargetSourceFileName:=aNameSpacedFile;
+          end;
+        aDir:=ExtractFilePath(aUnitFileName);
+        CS:=IncludePath.Find(aDir,aTarget.CPU,aTarget.OS);
+        if Not Assigned(CS) then
+          IncludePath.Add(aDir,[aTarget.CPU],[aTarget.OS]);
+        end;
+      // Dependencies of target, regardless of type
+      For D in T.Dependencies do
+        if (D.DependencyType=depUnit) then
+          begin
+          aUnitName:=ExtractFileName(D.Value);
+          aNamespaced:=Aliases.Values[aUnitName];
+          if aNameSpaced<>'' then
+            D.Value:=aNameSpaced;
+          end;
+      end;
+    ChangePaths(Aliases,aTarget);
+    // manipulate Paths
+  finally
+    Aliases.Free;
+  end;
+end;
+
+procedure TPackage.ApplyNameSpaces(aEngine: TBuildEngine; aTarget : TCompileTarget);
+
+Var
+  aFileName : string;
+
+begin
+  if NamespaceMap='' then
+    exit;
+  aFileName:=NameSpaceMap;
+  if Directory<>'' then
+    aFileName:=IncludeTrailingPathDelimiter(Directory)+aFileName;
+  ApplyNameSpaces(aEngine,aFileName,aTarget);
+end;
+
 
 function TPackage.SubTargetAllowed(const aSubTarget: String): Boolean;
 begin
@@ -5409,7 +5633,8 @@ end;
 
 destructor TCustomDefaults.Destroy;
 begin
-  FSearchPath.Free;
+  FreeAndNil(FOptions);
+  FreeAndNil(FSearchPath);
   inherited;
 end;
 
@@ -5457,7 +5682,7 @@ begin
   If (FN='') then
     begin
     // Environment variable.
-    FN:=SysUtils.GetEnvironmentVariable('FPMAKECFG');
+    FN:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('FPMAKECFG');
     If (FN<>'') then
       If not FileExists(FN) then
         FN:='';
@@ -5701,7 +5926,7 @@ begin
         BD:='/usr/lib/fpc/'+FCompilerVersion;
     end;
 {$else unix}
-  BD:=FixPath(SysUtils.GetEnvironmentVariable('FPCDIR'), False);
+  BD:=FixPath({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('FPCDIR'), False);
   if BD='' then
     begin
       BD:=ExtractFilePath(FCompiler)+'..';
@@ -5744,7 +5969,7 @@ begin
 end;
 
 
-destructor TCustomInstaller.Destroy;
+destructor TCustomInstaller.destroy;
 var
   i: integer;
 begin
@@ -5767,7 +5992,7 @@ begin
   result := FPackages;
 end;
 
-procedure TCustomInstaller.Log(Level: TVerboseLevel; Const Msg: String);
+procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If (Level in FLogLevels) or (ListMode and (level=vlCommand)) then
     begin
@@ -5813,13 +6038,14 @@ begin
 end;
 
 
-Function TCustomInstaller.AddPackage(const AName: String) : TPackage;
+function TCustomInstaller.AddPackage(const AName: String): TPackage;
 begin
   result:=Packages.AddPackage(AName);
   AddAutoPackageVariantsToPackage(result);
 end;
 
-Function TCustomInstaller.AddPackageVariant(AName: string; AIsInheritable: boolean; AutoAddToPackage: Boolean): TPackageVariants;
+function TCustomInstaller.AddPackageVariant(AName: string;
+  AIsInheritable: boolean; AutoAddToPackage: Boolean): TPackageVariants;
 begin
   result := TPackageVariants.Create(TPackageVariant);
   result.Name:=AName;
@@ -6132,6 +6358,8 @@ begin
       Defaults.FPDocOptions:=OptionArg(I)
     else if CheckCommand(I,'sd','single-docfile') then
       Defaults.SingleFPDocFile:=True
+    else if CheckCommand(I,'ns','namespaces') then
+      Defaults.Namespaces:=True
     else if CheckOption(I,'fsp','fpunitsrcpath') then
       Defaults.FPUnitSourcePath:=OptionArg(I)
     else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
@@ -6360,13 +6588,30 @@ begin
   // Check for other obvious errors ?
 end;
 
+Procedure TCustomInstaller.CheckNameSpaces;
 
-Function TCustomInstaller.Run : Boolean;
+Var
+  P : TPackage;
+
+begin
+  for P in Packages do
+    if P.NamespaceMap<>'' then
+      begin
+      BuildEngine.ResolveFileNames(P,Defaults.CPU,Defaults.OS,True,True);
+      P.ApplyNameSpaces(BuildEngine,Defaults.CompileTarget);
+      end;
+end;
+
+function TCustomInstaller.Run: Boolean;
+
+
 begin
   Result:=True;
   try
     CheckPackages;
     CreateBuildEngine;
+    if Defaults.Namespaces then
+      CheckNameSpaces;
     Case RunMode of
       rmCompile : Compile(False);
       rmBuild   : Compile(True);
@@ -6395,6 +6640,7 @@ begin
   if not Result then
     ExitCode:=1;
 end;
+
 
 
 {****************************************************************************
@@ -6604,7 +6850,7 @@ end;
 
 function TBuildEngine.SysDirectoryExists(const ADir: string): Boolean;
 begin
-  result:=SysUtils.DirectoryExists(ADir);
+  result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DirectoryExists(ADir);
   if result then
     Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
@@ -6615,7 +6861,7 @@ end;
 function TBuildEngine.SysFileExists(const AFileName: string): Boolean;
 begin
   // Writeln('Testing : ',aFileName);
-  result:=SysUtils.FileExists(AFileName);
+  result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FileExists(AFileName);
   if result then
     Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
@@ -6713,13 +6959,13 @@ begin
   else
     begin
       retries := 2;
-      res := SysUtils.DeleteFile(AFileName);
+      res := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(AFileName);
       while not res and (retries>0) do
         begin
            log(vlWarning, SWarnRetryDeleteFile, [AFileName]);
            sleep(5000);
            dec(retries);
-           res := SysUtils.DeleteFile(AFileName);
+           res := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(AFileName);
         end;
      if not res then
        Error(SErrDeletingFile,[AFileName])
@@ -7209,7 +7455,7 @@ begin
 
           Cmd:=C.Command;
           If (ExtractFilePath(Cmd)='') then
-            Cmd:=ExeSearch(Cmd,SysUtils.GetEnvironmentvariable('PATH'));
+            Cmd:=ExeSearch(Cmd,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentvariable('PATH'));
 
           If (SourceFile<>'') and (DestFile<>'')  then
             begin
@@ -7863,7 +8109,7 @@ begin
     FCompiler:=Defaults.Compiler;
     If (ExtractFilePath(FCompiler)='') then
       begin
-      S:=ExeSearch(FCompiler,SysUtils.GetEnvironmentVariable('PATH'));
+      S:=ExeSearch(FCompiler,{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('PATH'));
       If (S<>'') then
          FCompiler:=S;
       end;
@@ -8080,6 +8326,7 @@ procedure TBuildEngine.Compile(APackage: TPackage; ATarget: TTarget);
 Var
   Env : TStrings;
   Args : TStrings;
+  FN : String;
 
 begin
   Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
@@ -8092,7 +8339,12 @@ begin
       ATarget.BeforeCompile(ATarget);
     if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) then
       begin
-        APackage.FBUTarget.Dependencies.AddUnit(ATarget.Name).FTargetFileName:=ATarget.TargetSourceFileName;
+        begin
+        FN:=ExtractFileName(ATarget.TargetSourceFileName);
+        if IndexText(ExtractFileExt(FN),['.pp','.pas','lpr'])<>-1 then
+          FN:=ChangeFileExt(FN,'');
+        APackage.FBUTarget.Dependencies.AddUnit(FN).FTargetFileName:=ATarget.TargetSourceFileName;
+        end;
       end
     else
       begin
@@ -8395,6 +8647,8 @@ Var
     T: TTarget;
     L: TStrings;
     F: Text;
+    Dep : TDependency;
+    aUnitName : string;
     CompilationFailed: Boolean;
 
   begin
@@ -8410,7 +8664,11 @@ Var
           begin
             if i<>0 then
               write(F,',');
-            writeln(F,APackage.FBUTarget.Dependencies.Dependencies[i].Value);
+            Dep:=APackage.FBUTarget.Dependencies.Dependencies[i];
+            aUnitName:=Dep.Value;
+            if aUnitName='' then
+              Writeln('Aloha2');
+            writeln(F,aUnitName);
           end;
         writeln(F,';');
         writeln(F,'implementation');
@@ -8609,7 +8867,7 @@ begin
           end;
 
           //execute fpdoc
-          Cmd:=ExeSearch('fpdoc',SysUtils.GetEnvironmentvariable('PATH'));
+          Cmd:=ExeSearch('fpdoc',{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentvariable('PATH'));
           if Cmd = '' then Cmd := 'fpdoc';
           ExecuteProcess(Cmd, sFPDocFormat + cmdOpts);
         end;
@@ -8655,6 +8913,7 @@ begin
   // When multiple threads are used, delay the compilation of the package when
   // there are unsolved dependencies. When no threads are used, compile all
   // dependencies.
+
   if Defaults.ThreadsAmount=-1 then
     CompileDependencies(APackage)
   else if CheckDependencies(APackage, true)=cdNotYetAvailable then
@@ -10303,9 +10562,33 @@ end;
                            TConditionalString
 ****************************************************************************}
 
-Constructor TConditionalString.Create;
+
+procedure TConditionalString.Assign(aSource: TPersistent);
+
+Var
+  CS : TConditionalString absolute aSource;
+
 begin
-  inherited Create;
+  if (aSource is TConditionalString) then
+    begin
+    FValue:=CS.Value;
+    FOSes:=CS.OSes;
+    FCPUs:=CS.CPUs;
+    end
+  else
+    inherited Assign(aSource);
+end;
+
+function TConditionalString.Match(aCPU: TCPU; aOS: TOS): Boolean;
+begin
+  Result:=(aCPU in CPUs) or (CPUs=[]);
+  Result:=Result and ((aOS in OSes) or (OSes=[]));
+end;
+
+function TConditionalString.Match(const aValue: String; aCPU: TCPU; aOS: TOS
+  ): Boolean;
+begin
+  Result:=Match(aCPU,aOS) and (aValue=Value)
 end;
 
 
@@ -10313,10 +10596,37 @@ end;
                            TConditionalStrings
 ****************************************************************************}
 
-Constructor TConditionalStrings.Create(AClass:TConditionalStringClass);
+
+procedure TConditionalStrings.AddList(aList: TConditionalStrings);
+
+Var
+  I : Integer;
+
 begin
-  inherited Create;
-  FCSClass:=AClass;
+  For I:=0 to aList.Count-1 do
+    With Self.Add() do
+      Assign(aList[i]);
+end;
+
+function TConditionalStrings.IndexOf(Value: String; aCPU: TCPU; aOS: TOS
+  ): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and Not GetConditionalString(Result).Match(Value,aCPU,aOS) do
+    Dec(Result);
+end;
+
+function TConditionalStrings.Find(Value: String; aCPU: TCPU; aOS: TOS
+  ): TConditionalString;
+
+var
+  Idx : Integer;
+
+begin
+  Result:=Nil;
+  Idx:=IndexOf(Value,aCPU,aOS);
+  if Idx<>-1 then
+    Result:=GetConditionalString(Idx);
 end;
 
 
@@ -10332,7 +10642,7 @@ begin
 end;
 
 
-Function TConditionalStrings.Add(Const Value : String) : TConditionalString;
+function TConditionalStrings.Add(const Value: String): TConditionalString;
 begin
   result:=Add(Value,AllCPUs,AllOSes);
 end;
@@ -10346,19 +10656,20 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TConditionalStrings.Add(Const Value : String;const OSes:TOSes) : TConditionalString;
+function TConditionalStrings.Add(const Value: String; const OSes: TOSes
+  ): TConditionalString;
 begin
   result:=Add(Value,AllCPUs,OSes);
 end;
 
 
-Function TConditionalStrings.Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TConditionalString;
+function TConditionalStrings.Add(const Value: String; const CPUs: TCPUs;
+  const OSes: TOSes): TConditionalString;
 begin
-  Result:=FCSClass.Create;
+  Result:=(Inherited Add) as TConditionalString;
   Result.Value:=Value;
   Result.OSes:=OSes;
   Result.CPUs:=CPUs;
-  inherited Add(Result);
 end;
 
 
@@ -10366,26 +10677,44 @@ end;
                                 TDependency
 ****************************************************************************}
 
-Constructor TDependency.Create;
+constructor TDependency.Create(aCollection: TCollection);
 begin
-  inherited Create;
+  inherited;
   FVersion:=TFPVersion.Create;
 end;
 
+procedure TDependency.Assign(aSource: TPersistent);
 
-Destructor TDependency.Destroy;
+Var
+  D : TDependency absolute asource;
+
 begin
-  FreeAndNil(FVersion);
+  if (aSource is TDependency) then
+    begin
+    FDependencyType:=D.DependencyType;
+    FTarget:=D.Target;
+    Version:=D.Version;
+    FRequireChecksum:=D.RequireChecksum;
+    FTargetFileName:=D.TargetFileName;
+    end;
+  Inherited;
 end;
 
 
-Function TDependency.GetVersion : string;
+destructor TDependency.Destroy;
+begin
+  FreeAndNil(FVersion);
+  Inherited;
+end;
+
+
+function TDependency.GetVersion: string;
 begin
   result:=FVersion.AsString;
 end;
 
 
-Procedure TDependency.SetVersion(const V : string);
+procedure TDependency.SetVersion(const V: string);
 begin
   FVersion.AsString:=V;
 end;
@@ -10407,7 +10736,7 @@ begin
 end;
 
 
-Function TDependencies.Add(Const Value : String) : TDependency;
+function TDependencies.Add(const Value: String): TDependency;
 begin
   result:=Add(Value,AllCPUs,AllOSes);
 end;
@@ -10421,13 +10750,14 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TDependencies.Add(Const Value : String;const OSes:TOSes) : TDependency;
+function TDependencies.Add(const Value: String; const OSes: TOSes): TDependency;
 begin
   result:=Add(Value,AllCPUs,OSes);
 end;
 
 
-Function TDependencies.Add(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TDependency;
+function TDependencies.Add(const Value: String; const CPUs: TCPUs;
+  const OSes: TOSes): TDependency;
 begin
   Result:=inherited Add(Value,CPUs,OSes) as TDependency;
   Result.Target:=nil;
@@ -10435,7 +10765,7 @@ begin
 end;
 
 
-Function TDependencies.AddUnit(Const Value : String) : TDependency;
+function TDependencies.AddUnit(const Value: String): TDependency;
 begin
   result:=AddUnit(Value,AllCPUs,AllOSes);
 end;
@@ -10449,13 +10779,15 @@ end;
 {$endif cpu_only_overloads}
 
 
-Function TDependencies.AddUnit(Const Value : String;const OSes:TOSes) : TDependency;
+function TDependencies.AddUnit(const Value: String; const OSes: TOSes
+  ): TDependency;
 begin
   result:=AddUnit(Value,AllCPUs,OSes);
 end;
 
 
-Function TDependencies.AddUnit(Const Value : String;const CPUs:TCPUs;const OSes:TOSes) : TDependency;
+function TDependencies.AddUnit(const Value: String; const CPUs: TCPUs;
+  const OSes: TOSes): TDependency;
 begin
   Result:=inherited Add(Value,CPUs,OSes) as TDependency;
   Result.Target:=nil;
@@ -10463,7 +10795,7 @@ begin
 end;
 
 
-Function TDependencies.AddInclude(Const Value : String) : TDependency;
+function TDependencies.AddInclude(const Value: String): TDependency;
 begin
   result:=AddInclude(Value,AllCPUs,AllOSes);
 end;
@@ -10492,6 +10824,11 @@ begin
     N:=ChangeFileExt(N,IncExt);
   Result:=inherited Add(N,CPUs,OSes) as TDependency;
   Result.FDependencyType:=depInclude;
+end;
+
+function TDependencies.GetEnumerator: TDependencyEnumerator;
+begin
+  Result:=TDependencyEnumerator.Create(Self);
 end;
 
 
@@ -10581,21 +10918,30 @@ end;
                                  TDictionary
 ****************************************************************************}
 
+procedure TDictionary.ClearItem(Idx: Integer);
+
+Var
+  O : TObject;
+
+begin
+  O:=FList.Objects[Idx];
+  O.Free;
+  FList.Objects[Idx]:=nil;
+end;
+
 constructor TDictionary.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FList:=TStringList.Create;
   FList.Sorted:=True;
   FList.Duplicates:=dupError;
+  FList.OwnsObjects:=True;
 end;
 
 
 destructor TDictionary.Destroy;
-Var
-  I : Integer;
+
 begin
-  For I:=0 to Flist.Count-1 do
-    FList.Objects[i].Free;
   FreeAndNil(FList);
   inherited Destroy;
 end;
@@ -10609,7 +10955,7 @@ begin
   If I=-1 then
     I:=FList.Add(Aname)
   else
-    Flist.Objects[i].Free;
+    ClearItem(I);
   Flist.Objects[i]:=TValueItem.Create(Value);
 end;
 
@@ -10617,12 +10963,13 @@ end;
 procedure TDictionary.AddFunction(const AName: String; FReplacement: TReplaceFunction);
 Var
   I : Integer;
+
 begin
   I:=Flist.IndexOf(AName);
   If I=-1 then
     I:=Flist.Add(AName)
   else
-    Flist.Objects[i].Free;
+    ClearItem(I);
   Flist.Objects[i]:=TFunctionItem.Create(FReplacement);
 end;
 
@@ -10630,11 +10977,12 @@ end;
 procedure TDictionary.RemoveItem(const AName: String);
 Var
   I : Integer;
+
 begin
   I:=Flist.IndexOf(AName);
   If (I<>-1) then
     begin
-    FList.Objects[i].Free;
+    ClearItem(I);
     FList.Delete(I);
     end;
 end;
