@@ -1,0 +1,3 @@
+src/rsvg.pas=namespaced/Api.Rsvg.pas
+{s*:src/}=namespaced/
+{i+:src/}
