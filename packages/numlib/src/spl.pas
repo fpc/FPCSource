@@ -18,12 +18,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit spl;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I direct.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ, System.Math, NumLib.Sle;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ, math, sle;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function  spl1bspv(q: ArbInt; var kmin1, c1: ArbFloat; x: ArbFloat; var term: ArbInt): ArbFloat;
 function  spl2bspv(qx, qy: ArbInt; var kxmin1, kymin1, c11: ArbFloat; x, y: ArbFloat; var term: ArbInt): ArbFloat;

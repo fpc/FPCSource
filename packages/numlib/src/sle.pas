@@ -40,11 +40,17 @@ All procedures have similar procedure with a "L" appended to the name. We
 didn't receive docs for those procedures. If you know what the difference is,
 please mail us }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit sle;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$I DIRECT.INC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ, NumLib.Omv;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ, omv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {solve for special tridiagonal matrices}
 Procedure sledtr(n: ArbInt; Var l, d, u, b, x: ArbFloat; Var term: ArbInt);
@@ -100,7 +106,11 @@ Procedure slegtr(n:ArbInt; Var l, d, u, b, x, ca: ArbFloat;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses NumLib.Dsl,NumLib.Mdt;
+{$ELSE FPC_DOTTEDUNITS}
 Uses DSL,MDT;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Here originally stood an exact copy of mdtgtr from unit mdt}
 {Here originally stood an exact copy of dslgtr from unit DSL}

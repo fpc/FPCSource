@@ -23,12 +23,18 @@
 {$mode objfpc}{$H+}
 {$modeswitch nestedprocvars}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit spe;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {  Calculate modified Besselfunction "of the first kind" I0(x) }
 function spebi0(x: ArbFloat): ArbFloat;
@@ -174,8 +180,13 @@ function speath(x: ArbFloat): ArbFloat; deprecated 'Use arctanh(x) in unit math'
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, NumLib.Roo;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math, roo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SQRT2 = 1.4142135623730950488016887242097;   // sqrt(2)
