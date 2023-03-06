@@ -48,7 +48,9 @@ in this Software without prior written authorization from The Open Group.
  * Modifier:    William F. Wyatt, SAO
  *              18-Nov-86  - version 6 for saving/restoring color maps
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xwdfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

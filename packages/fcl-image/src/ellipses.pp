@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Ellipses;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses classes, FPImage, FPCanvas;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, FpImage, FpImage.Canvas;
+{$ELSE FPC_DOTTEDUNITS}
+uses classes, FpImage, FPCanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; const c:TFPColor);
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; const c:TFPColor);

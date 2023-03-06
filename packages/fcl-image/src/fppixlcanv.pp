@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPPixlCanv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses Sysutils, classes, FPImage, FPCanvas, PixTools, ellipses;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpImage, FpImage.Canvas, FpImage.PixelTools, FpImage.Ellipses;
+{$ELSE FPC_DOTTEDUNITS}
+uses Sysutils, classes, FpImage, FPCanvas, PixTools, ellipses;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -67,7 +73,11 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Clipping;
+{$ELSE FPC_DOTTEDUNITS}
 uses Clipping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultHashWidth = 15;

@@ -19,11 +19,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadTGA;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, targacmn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.Targa;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, targacmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   TARGA_EMPTY_IMAGE = 0;

@@ -14,7 +14,9 @@
 }
 {*****************************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit BMPcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -91,7 +93,11 @@ procedure SwapBMPInfoHeader(var BFI : TBitMapInfoHeader);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses FPImgCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure SwapBMPFileHeader(var BFH : TBitMapFileHeader);
 begin

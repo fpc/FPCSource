@@ -22,11 +22,17 @@ The PNM (Portable aNyMaps) is a generic name for :
 There is normally no file format associated  with PNM itself.}
 
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPNM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   BufSize = 1024;

@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPCanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses Math, sysutils, classes, FPImage, Types;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math, System.SysUtils, System.Classes, FpImage, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
+uses Math, sysutils, classes, FpImage, Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   PatternBitCount = sizeof(longword) * 8;
@@ -458,7 +464,11 @@ procedure IncRect (var rect : TRect);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Clipping;
+{$ELSE FPC_DOTTEDUNITS}
 uses clipping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   EFont = 'Font';

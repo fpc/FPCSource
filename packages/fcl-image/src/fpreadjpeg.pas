@@ -17,19 +17,26 @@
   ToDo:
     - palette
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadJPEG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 {$openstrings on}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FPImage, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, Types, FpImage, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TFPReaderJPEG }
-  { This is a FPImage reader for jpeg images. }
+  { This is a FpImage reader for jpeg images. }
 
   TFPReaderJPEG = class;
 

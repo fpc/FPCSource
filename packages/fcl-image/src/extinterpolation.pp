@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit extinterpolation;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 Some more interpolation filters for TFPCanvas.StretchDraw:
@@ -25,8 +27,13 @@ of Bessel and Sinc are windowed with Blackman filter.
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Math, Classes, SysUtils, FPImage, FPCanvas;
+  System.Math, System.Classes, System.SysUtils, FpImage, FpImage.Canvas;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Math, Classes, SysUtils, FpImage, FPCanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

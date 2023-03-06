@@ -14,7 +14,9 @@
   along with this library; if not, write to the Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA 02111-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWriteJPEG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -22,9 +24,15 @@ unit FPWriteJPEG;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, FPImage, JPEGLib, FPReadJPEG, JcAPIstd, JcAPImin, JDataDst,
+  System.Classes, System.SysUtils, FpImage, System.Jpeg.Jpeglib, FpImage.Reader.JPEG, System.Jpeg.Jcapistd, System.Jpeg.Jcapimin, System.Jpeg.Jdatadst,
+  System.Jpeg.Jcparam, System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, FpImage, JPEGLib, FPReadJPEG, JcAPIstd, JcAPImin, JDataDst,
   JcParam, JError;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TFPWriterJPEG }
@@ -106,7 +114,7 @@ var
   begin
     FillChar(FInfo, sizeof(FInfo), 0);
     FError := jpeg_std_error;
-    FInfo.err := jerror.jpeg_std_error(FError);
+    FInfo.err := {$IFDEF FPC_DOTTEDUNITS}System.Jpeg.{$ENDIF}jerror.jpeg_std_error(FError);
 
     jpeg_create_compress(@FInfo);
     FProgressMgr.pub.progress_monitor := @ProgressCallback;

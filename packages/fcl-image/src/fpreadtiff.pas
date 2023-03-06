@@ -38,7 +38,9 @@
    Separate mask (deprecated)
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadTiff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -46,8 +48,13 @@ unit FPReadTiff;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, System.Classes, System.SysUtils, System.CTypes, System.ZLib.Zinflate, System.ZLib.Zbase, FpImage, FpImage.Common.TIFF;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math, Classes, SysUtils, ctypes, zinflate, zbase, FPimage, FPTiffCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderTiff = class;

@@ -17,13 +17,19 @@
   Load all format compressed or not
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPCX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
-uses FPImage, Classes, SysUtils, pcxcomn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.PCX;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, Classes, SysUtils, pcxcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

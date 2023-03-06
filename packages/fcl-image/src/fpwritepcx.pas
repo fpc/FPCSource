@@ -17,13 +17,19 @@
   Save in format 24 bits compressed or not
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWritePCX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
-uses FPImage, Classes, SysUtils;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -40,7 +46,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Common.PCX;
+{$ELSE FPC_DOTTEDUNITS}
 uses pcxcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function TFPWriterPCX.SaveHeader(Stream: TStream; Img: TFPCustomImage): boolean;
 var
