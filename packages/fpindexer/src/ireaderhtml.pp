@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2012 by the Free Pascal development team
 
     HTML text reader
@@ -12,15 +12,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit IReaderHTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.FastHtmlParser, //, Fcl.Htmlutil,          // Fast Parser Functions
+  System.Classes, FpIndexer.Indexer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FastHTMLParser, //, HTMLUtil,          // Fast Parser Functions
   Classes, fpIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

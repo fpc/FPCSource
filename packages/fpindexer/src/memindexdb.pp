@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2012 by the Free Pascal development team
 
     Memory database
@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit memindexdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpIndexer.Indexer, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpindexer, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TMatch = Class;
@@ -197,7 +204,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.Streams.Buffer;
+{$ELSE FPC_DOTTEDUNITS}
 uses bufstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TMemIndexDB }
 
