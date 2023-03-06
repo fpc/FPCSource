@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ffi.manager;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -20,8 +22,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Rtti, Api.Ffi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Rtti, ffi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   Tpffi_typeArray = array of pffi_type;
