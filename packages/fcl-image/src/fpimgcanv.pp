@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPImgCanv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPPixlCanv, FPImage, classes;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.PixelCanvas, FpImage, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
+uses FPPixlCanv, FpImage, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPImageCanvas = class (TFPPixelCanvas)
@@ -37,7 +43,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage.Clipping;
+{$ELSE FPC_DOTTEDUNITS}
 uses clipping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 constructor TFPImageCanvas.create (AnImage : TFPCustomImage);
 begin

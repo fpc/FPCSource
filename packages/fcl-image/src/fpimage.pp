@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
-    FPImage base definitions.
+    FpImage base definitions.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,11 +13,15 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
-unit FPImage;
+unit FpImage;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -594,7 +598,7 @@ begin
   raise FPImageException.Create (ErrorText[Fmt]);
 end;
 
-{$i FPImage.inc}
+{$i FpImage.inc}
 {$i FPHandler.inc}
 {$i FPPalette.inc}
 {$i FPColCnv.inc}

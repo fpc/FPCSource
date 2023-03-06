@@ -13,12 +13,19 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPNG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  SysUtils,Classes, FPImage, FPImgCmn, PNGComn, ZStream;
+  System.SysUtils,System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  SysUtils,Classes, FpImage, FPImgCmn, PNGComn, ZStream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TFPReaderPNG }

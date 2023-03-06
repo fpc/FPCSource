@@ -13,7 +13,9 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit freetypeh;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

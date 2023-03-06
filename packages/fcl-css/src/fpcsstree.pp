@@ -431,15 +431,6 @@ Const
 
 implementation
 
-<<<<<<< HEAD
-=======
-{$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.RtlConsts;
-{$ELSE FPC_DOTTEDUNITS}
-uses SysUtils, rtlConsts;
-{$ENDIF FPC_DOTTEDUNITS}
-
->>>>>>> c4d306351d (* Dotted filenames for package fcl-css)
 Const
   sIndent = '  ';
 

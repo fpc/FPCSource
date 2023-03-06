@@ -16,15 +16,22 @@
  2023 Massimo Magnano
      Code ported from bgrabitmap with some modifications and additions.
 }
+
+{$IFNDEF FPC_DOTTEDUNITS}
+unit FPColorSpace;
+{$ENDIF}
+
 {$mode objfpc}{$h+}
 {$modeswitch ADVANCEDRECORDS}
 {$modeswitch TYPEHELPERS}
 
-unit FPColorSpace;
-
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage;
+{$ELSE}
 uses FPImage;
+{$ENDIF}
 
 type
   TIlluminant = string[10];
@@ -425,8 +432,11 @@ procedure FPChromaticAdaptWordXYZ(var X,Y,Z: word; const AFrom, ATo: TXYZReferen
 
 implementation
 
-
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math;
+{$ELSE}
 uses math;
+{$ENDIF}
 
 type
   Int32or64 = {$IFDEF CPU64}Int64{$ELSE}LongInt{$ENDIF};

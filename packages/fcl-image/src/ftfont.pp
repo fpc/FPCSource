@@ -13,16 +13,25 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ftfont;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$DEFINE DYNAMIC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, FpImage.Canvas, FpImage.Common, System.Math,
+  {$IFDEF DYNAMIC}Api.Freetypehdyn{$ELSE} Api.Freetypeh{$ENDIF},
+  Api.Freetype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, FPCanvas, fpimgcmn, math,
   {$IFDEF DYNAMIC}freetypehdyn{$ELSE} freetypeh{$ENDIF},
   freetype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -82,7 +91,11 @@ procedure DoneEngine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses fpimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure InitEngine;
 
@@ -377,11 +390,11 @@ procedure TFreeTypeFont.DrawChar (x,y:integer; data:PByteArray; pitch, width, he
     case canv.DrawingMode of
       dmOpaque:
       begin
-        pixelcolor := FPImage.FPColor(c.red, c.green,c.blue, (t+1) shl 8 - 1); // opaque: ignore c.Alpha
+        pixelcolor := FpImage.FPColor(c.red, c.green,c.blue, (t+1) shl 8 - 1); // opaque: ignore c.Alpha
         canv.colors[x,y] := AlphaBlend(canv.colors[x,y], pixelcolor);
       end;
     else
-      pixelcolor := FPImage.FPColor(c.red, c.green,c.blue, ((t+1) shl 8 - 1) * c.Alpha div $ffff); // apply c.Alpha
+      pixelcolor := FpImage.FPColor(c.red, c.green,c.blue, ((t+1) shl 8 - 1) * c.Alpha div $ffff); // apply c.Alpha
       canv.DrawPixel(x,y,pixelcolor);
     end;
   end;

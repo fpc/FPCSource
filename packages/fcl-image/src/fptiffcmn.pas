@@ -13,14 +13,21 @@
 
  **********************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPTiffCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, sysutils, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TTiffRational = packed record
@@ -229,7 +236,7 @@ var
   i: Integer;
 begin
   for i:=Img.ExtraCount-1 downto 0 do
-    if SysUtils.CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
+    if CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
       Img.RemoveExtra(Img.ExtraKey[i]);
 end;
 
@@ -239,7 +246,7 @@ var
 begin
   ClearTiffExtras(DestImg);
   for i:=SrcImg.ExtraCount-1 downto 0 do
-    if SysUtils.CompareText(copy(SrcImg.ExtraKey[i],1,4),'Tiff')=0 then
+    if CompareText(copy(SrcImg.ExtraKey[i],1,4),'Tiff')=0 then
       DestImg.Extra[SrcImg.ExtraKey[i]]:=SrcImg.ExtraValue[i];
 end;
 

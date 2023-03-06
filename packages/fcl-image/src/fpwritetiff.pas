@@ -34,14 +34,21 @@
    2023-07  - Massimo Magnano
             - added Resolution support
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWriteTiff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, System.Classes, System.SysUtils, System.ZLib.Zbase, System.ZLib.Zdeflate, FpImage, FpImage.Common.TIFF;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math, Classes, SysUtils, zbase, zdeflate, FPimage, FPTiffCmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TTiffWriterEntry }

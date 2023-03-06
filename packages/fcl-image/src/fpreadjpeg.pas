@@ -21,19 +21,30 @@
              - procedure inside InternalRead moved to protected methods (virtual)
              - added Resolution support
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadJPEG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 {$openstrings on}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, Types, FPImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  System.Classes, System.SysUtils, System.Types, FpImage, System.Jpeg.Jpeglib, System.Jpeg.Jdapimin, System.Jpeg.Jdatasrc, System.Jpeg.Jdapistd, System.Jpeg.Jmorecfg, FpImage.Common.Jpeg;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, Types, FpImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   //MaxM: these common types should stay only in JPEGcomn units, but we should change LCL uses
   TFPJPEGCompressionQuality = 1..100;   // 100 = best quality, 25 = pretty awful
+  { TFPReaderJPEG }
+  { This is a FpImage reader for jpeg images. }
+
+  TFPReaderJPEG = class;
 
   PFPJPEGProgressManager = ^TFPJPEGProgressManager;
   TFPJPEGProgressManager = record

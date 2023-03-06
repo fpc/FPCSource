@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWritePNG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses sysutils, classes, FPImage, FPImgCmn, PNGComn, ZStream;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpImage, FpImage.Common, FpImage.Common.PNG, System.ZLib.Zstream;
+{$ELSE FPC_DOTTEDUNITS}
+uses sysutils, classes, FpImage, FPImgCmn, PNGComn, ZStream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

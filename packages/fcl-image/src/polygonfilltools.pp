@@ -13,12 +13,18 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PolygonFillTools;
+{$ENDIF}
 
 interface
 
 uses
+{$IFNDEF FPC_DOTTEDUNITS}
   Math, Classes, FPImage, FPCanvas, PixTools;
+{$ELSE}  
+  System.Math, System.Classes, FpImage, FpImage.Canvas, FpImage.PixelTools;
+{$ENDIF}
 
 procedure FillPolygonSolid(Canv: TFPCustomCanvas; const Points: array of TPoint;
   Winding: Boolean; Color: TFPColor);

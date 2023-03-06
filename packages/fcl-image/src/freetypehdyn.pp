@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit freetypehdyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE DYNAMIC}
 

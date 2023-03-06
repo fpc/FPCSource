@@ -1,5 +1,5 @@
 { **********************************************************************
-    This file is part of the Free Pascal class library FCL.
+    This file is part of the Free Pascal class library Fcl.
     Pascal translation and additions (c) 2017 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
@@ -17,11 +17,17 @@
     https://www.nayuki.io/page/qr-code-generator-library
   **********************************************************************}
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPQRCodeGen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {---- Enum and struct types----}
 

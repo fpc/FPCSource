@@ -21,14 +21,21 @@
            - added Resolution support
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadPSD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage, FpImage.Common.PSD;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, PSDcomn, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderPSD = class;

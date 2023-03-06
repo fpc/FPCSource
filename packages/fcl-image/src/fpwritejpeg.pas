@@ -19,7 +19,9 @@
            - added Resolution support
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWriteJPEG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -27,9 +29,14 @@ unit FPWriteJPEG;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, FPImage, JPEGLib, JPEGcomn, JcAPIstd, JcAPImin, JDataDst,
-  JcParam, JError;
+  System.Classes, System.SysUtils, FpImage, System.Jpeg.Jpeglib, FpImage.Common.Jpeg, System.Jpeg.Jcapistd, System.Jpeg.Jcapimin, System.Jpeg.Jdatadst,
+  System.Jpeg.Jcparam, System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, FpImage, JPEGLib, JPEGComn, JcAPIstd, JcAPImin, JDataDst, JcParam, JError;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TFPWriterJPEG }
@@ -110,7 +117,7 @@ begin
   FError := jpeg_std_error;
   FInfo := Default(jpeg_compress_struct);
   jpeg_create_compress(@FInfo);
-  FInfo.err := jerror.jpeg_std_error(FError);
+  FInfo.err := {$IFDEF FPC_DOTTEDUNITS}System.Jpeg.{$ENDIF}jerror.jpeg_std_error(FError);
   FInfo.progress := @FProgressMgr.pub;
   FProgressMgr.pub.progress_monitor := @ProgressCallback;
   FProgressMgr.instance := Self;
