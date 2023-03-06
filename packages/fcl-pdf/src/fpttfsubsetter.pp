@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpTTFSubsetter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -25,12 +27,21 @@ unit fpTTFSubsetter;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.Contnrs,
+  FpPdf.Ttf.Parser,
+  FpPdf.FontTextMapping;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   contnrs,
   fpparsettf,
   FPFontTextMapping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ETTFSubsetter = class(Exception);
@@ -155,8 +166,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   rsErrFontInfoNotAssigned = 'FontInfo was not assigned';

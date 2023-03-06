@@ -17,7 +17,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpTTF;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -25,11 +27,19 @@ unit fpTTF;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.Contnrs,
+  FpPdf.Ttf.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   contnrs,
   fpparsettf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -136,6 +146,17 @@ function gTTFontCache: TFPFontCacheList;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Dom
+  ,Xml.Read
+  {$ifdef mswindows}
+  ,WinApi.Windows  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
+  ,WinApi.Shlobj
+  ,WinApi.Activex
+  {$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DOM
   ,XMLRead
@@ -144,6 +165,7 @@ uses
   Shlobj,activex
   {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
@@ -380,7 +402,7 @@ var
   lFont: TFPFontCacheItem;
   s: String;
 begin
-  if SysUtils.FindFirst(AFontPath + AllFilesMask, faAnyFile, sr) = 0 then
+  if {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindFirst(AFontPath + AllFilesMask, faAnyFile, sr) = 0 then
   begin
     repeat
       // check if special files to skip
@@ -404,9 +426,9 @@ begin
           end;
         end;
       end;
-    until SysUtils.FindNext(sr) <> 0;
+    until {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(sr) <> 0;
   end;
-  SysUtils.FindClose(sr);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(sr);
 end;
 
 procedure TFPFontCacheList.SetDPI(AValue: integer);

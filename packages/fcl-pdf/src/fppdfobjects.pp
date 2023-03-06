@@ -14,7 +14,9 @@
 
   **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfobjects;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
@@ -24,8 +26,13 @@ unit fppdfobjects;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Types, System.RtlConsts, System.SysUtils, System.Classes, System.Contnrs, FpPdf.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Types, rtlConsts, SysUtils, Classes, Contnrs, fppdfconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   PDFTextArraySpaceTreshold = 200;

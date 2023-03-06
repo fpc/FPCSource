@@ -13,14 +13,21 @@
 
   **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfpredict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage.Reader.PNG  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpreadpng  ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EPDFPredict = Class(Exception);

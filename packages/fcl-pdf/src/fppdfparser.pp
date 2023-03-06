@@ -13,7 +13,9 @@
 
   **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$J-}
@@ -24,8 +26,13 @@ unit fppdfparser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types, System.TypInfo, System.Classes, System.SysUtils, FpPdf.Objects, FpPdf.Scanner, FpPdf.Source, Fcl.Streams.Extra, FpPdf.Predict;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Types, Typinfo, Classes, SysUtils, fppdfobjects, fppdfscanner, fppdfsource, streamex, fppdfpredict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   PDFMaxTrailerDistance = 6;  // Maximum number of bytes to scan backwards for trailer dictionary end: >>
@@ -244,7 +251,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.ZLib.Zstream, System.Hash.Ascii85, Fcl.Streams.Chained, Fcl.Streams.LZW, FpPdf.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils, zstream, ascii85, chainstream, lzwstream, fppdfconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoStartXRef = 'No startxref found, starting at position %d';
