@@ -16,12 +16,21 @@
  **********************************************************************}
 program frameworktest;
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF Unix}
+  UnixApi.CWString,
+{$endif}
+  FpcUnit.Runners.Console, System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Report, asserttest,
+  suitetest;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF UNIX}
   cwstring,
 {$endif}
   consoletestrunner, classes, SysUtils, fpcunit, testreport, asserttest,
   suitetest;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type

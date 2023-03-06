@@ -19,15 +19,23 @@
   along with this library; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit simpletestrunner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp, System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry,
+  FpcUnit.Reports, FpcUnit.Reports.Plain;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   custapp, Classes, SysUtils, fpcunit, testregistry,
   fpcunitreport, plaintestreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Version = '0.1';

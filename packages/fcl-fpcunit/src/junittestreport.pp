@@ -2,7 +2,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2021 by Joost van der Sluis (CNOC)
 
-    An example of an XML report writer for FPCUnit tests.
+    An example of an XML report writer for FpcUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -30,16 +30,25 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit junittestreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,FpcUnit.Test, FpcUnit.Reports, Xml.Dom, Xml.Writer,
+  {$ifdef Unix}UnixApi.Unix,{$endif}
+  System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,fpcunit, fpcunitreport, dom, XMLWrite,
   {$ifdef unix}unix,{$endif}
   DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
   
 
 type

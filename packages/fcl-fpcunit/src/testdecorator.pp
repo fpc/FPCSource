@@ -13,15 +13,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testdecorator; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
 

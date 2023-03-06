@@ -18,8 +18,13 @@ unit asserttest;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpcUnit.Test, FpcUnit.Registry, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpcunit, testregistry, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

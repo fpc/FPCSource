@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -22,10 +24,17 @@ interface
 { Uncomment this define to remove the DUnit compatibility interface. }
 {$DEFINE DUnit}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils
+  ,System.Classes
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils
   ,Classes
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This lets us use a single include file for both the Interface and
@@ -358,8 +367,13 @@ Resourcestring
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpcUnit.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   testutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   sExpectedButWasFmt = 'Expected:' + LineEnding + '"%s"' + LineEnding + 'But was:' + LineEnding + '"%s"';

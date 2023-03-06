@@ -18,8 +18,13 @@ unit suitetest;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpcUnit.Test, FpcUnit.Report, FpcUnit.Registry;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpcunit, testreport, testregistry;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

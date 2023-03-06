@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   {$M+}
