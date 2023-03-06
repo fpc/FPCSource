@@ -18,7 +18,9 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}
 
@@ -28,9 +30,15 @@ unit chmreader;
 {define nonumber}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SYstem.Generics.Collections, System.Classes, System.SysUtils,  System.Contnrs,
+  Chm.Base, Chm.Lzx, Chm.FiftiMain, Chm.Sitemap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Generics.Collections, Classes, SysUtils,  Contnrs,
   chmbase, paslzx, chmFIftiMain, chmsitemap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -177,7 +185,12 @@ const
   function ChmErrorToStr(Error: Integer): String;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ChmTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ChmErrorToStr(Error: Integer): String;
 begin

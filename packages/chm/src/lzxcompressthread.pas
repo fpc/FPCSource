@@ -18,14 +18,21 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lzxcompressthread;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, Chm.Lzx.Compress;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, paslzxcomp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TLZXCompressor = class;
@@ -165,8 +172,13 @@ type
   end;
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils; // for Sleep()
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Sysutils; // for Sleep()
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TLZXCompressor }
 

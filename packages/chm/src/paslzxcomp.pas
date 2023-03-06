@@ -18,12 +18,18 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit paslzxcomp;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE OBJFPC}
 {$GOTO ON}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Lzx.NonSlide;
+{$ELSE FPC_DOTTEDUNITS}
 uses paslznonslide;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
      MIN_MATCH = 2;
@@ -137,7 +143,12 @@ uses paslznonslide;
   function lzx_finish(lzxd:plzx_data; lzxr:plzx_results):longint;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses math, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 var
   rloge2: double; // set in initialization section
   

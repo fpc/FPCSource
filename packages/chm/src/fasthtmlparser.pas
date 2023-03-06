@@ -112,17 +112,28 @@
 
 // {$DEFINE DEBUGLN_ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FastHTMLParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ {$IFDEF KOL_MCK}
+  KOL;
+ {$else}
+  System.SysUtils;
+ {$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 uses
  {$IFDEF KOL_MCK}
   KOL;
  {$else}
   SysUtils;
  {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$IFDEF DEBUGLN_ON}

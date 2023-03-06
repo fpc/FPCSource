@@ -18,14 +18,21 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Xml.Config;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,xmlcfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TSectionName = (snMSCompressed, snUnCompressed);
@@ -244,7 +251,12 @@ function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 Const defvalidflags = [valid_Navigation_pane_style,valid_Window_style_flags,valid_Initial_window_position,valid_Navigation_pane_width,valid_Buttons,valid_Tab_position];
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses chmbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 begin
