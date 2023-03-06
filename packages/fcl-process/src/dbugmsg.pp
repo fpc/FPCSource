@@ -15,11 +15,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbugmsg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DebugServerID = 'fpcdebugserver'; { compiled IPC server's IDentifiant-name. Should be the same as the compiled IPC client dbugintf.DefaultDebugServer }

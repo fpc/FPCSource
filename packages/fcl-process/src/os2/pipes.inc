@@ -13,8 +13,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
  PipeBufSize = 1024;

@@ -11,8 +11,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Resourcestring

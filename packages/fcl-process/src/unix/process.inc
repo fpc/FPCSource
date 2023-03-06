@@ -12,11 +12,20 @@
  **********************************************************************}
  
 {$DEFINE OS_HASEXITCODE}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   System.CTypes,
+   UnixApi.Types,
+   UnixApi.Unix,
+   UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    ctypes,
    UnixType,
    Unix,
    Baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SNoCommandLine        = 'Cannot execute empty command-line';

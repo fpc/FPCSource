@@ -19,11 +19,19 @@ unit pipesipc;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, System.Simpleipc, UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, simpleipc, baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$else}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 

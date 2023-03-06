@@ -13,8 +13,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  UnixApi.Base, UnixApi.Unix, UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   BaseUnix, Unix, TermIO;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint; APipeBufferSize : Cardinal = 1024) : Boolean;
 

@@ -12,30 +12,40 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit processunicode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Classes,
+     System.Pipes,
+     System.SysUtils,
+     System.Math,
+     System.Process;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Classes,
      pipes,
      SysUtils,
      Math,
      Process;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  TProcessOption = process.TProcessOption;
-  TShowWindowOptions = process.TShowWindowOptions;
-  TStartupOption = process.TStartupOption ;
-  TProcessPriority = process.TProcessPriority;
-  TProcessOptions = process.TProcessOptions;
-  TStartupOptions = process.TStartupOptions;
+  TProcessOption = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TProcessOption;
+  TShowWindowOptions = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TShowWindowOptions;
+  TStartupOption = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TStartupOption ;
+  TProcessPriority = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TProcessPriority;
+  TProcessOptions = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TProcessOptions;
+  TStartupOptions = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}process.TStartupOptions;
   {$ifdef UNIX}
-  TProcessForkEvent = Process.TProcessForkEvent;
+  TProcessForkEvent = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.TProcessForkEvent;
   {$endif UNIX}
 
-  TRunCommandEventCode = Process.TRunCommandEventCode;
-  TOnRunCommandEvent = Process.TOnRunCommandEvent;
-  EProcess = Process.EProcess;
+  TRunCommandEventCode = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.TRunCommandEventCode;
+  TOnRunCommandEvent = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.TOnRunCommandEvent;
+  EProcess = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Process.EProcess;
 
 {$macro on}
 {$IF SIZEOF(CHAR)=1}

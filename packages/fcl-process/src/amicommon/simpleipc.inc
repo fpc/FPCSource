@@ -16,8 +16,13 @@
 
 {$DEFINE OSNEEDIPCINITDONE}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrMsgPortExists = 'MsgPort already exists: %s';

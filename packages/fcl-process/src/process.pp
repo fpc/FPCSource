@@ -12,14 +12,23 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit process;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Classes,
+     System.Pipes,
+     System.SysUtils,
+     System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Classes,
      pipes,
      SysUtils,
      Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TProcessOption = (poRunSuspended,poWaitOnExit,
