@@ -14,10 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_locators;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+{$IFDEF DELPHI}
+  xmldom, sdo_win_xml,
+{$ENDIF DELPHI}
+{$IFDEF FPC}
+ Xml.Dom, Xml.Read,
+{$ENDIF FPC}
+ Sdo.Xsd.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
 {$IFDEF DELPHI}
@@ -27,6 +40,7 @@ uses
  DOM, XMLRead,
 {$ENDIF FPC}
  sdo_xsdparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

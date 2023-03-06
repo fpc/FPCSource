@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_xsd_helper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes,
+     Sdo.Base, Sdo.BaseTypes, Sdo.Types, Sdo.Data.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes,
      sdo, sdo_type, sdo_datafactory;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -67,6 +74,17 @@ type
   end;
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   Sdo.Parser.Utils,
+{$IFNDEF FPC}
+   xmldom, sdo_win_xml,
+{$ELSE}
+   Xml.Dom, Xml.Read, Xml.Writer, Sdo.Fpc.Xml,
+{$ENDIF}
+   Sdo.Xsd.Parser, Sdo.Impl.Utils, Sdo.Xsd.Generator, Sdo.Xsd.Consts, Sdo.Consts,
+   Sdo.Xsd.Intf, Sdo.Pas.Generator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    sdo_types, sdo_parserutils,
 {$IFNDEF FPC}
@@ -76,6 +94,7 @@ uses
 {$ENDIF}
    sdo_xsdparser, sdo_imp_utils, xsd_generator, xsd_consts, sdo_consts,
    sdo_xsdintf, pas_generator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SDO_SPECIAL_TYPES = [CharacterType, CurrencyType];
@@ -191,7 +210,7 @@ begin
     AddXsdTypes(tree);
     SdoTypesToPasTree(tree,FDataFactory,lst);
     doc := CreateDoc();
-    gnrt := TXsdGenerator.Create(doc,[xsd_generator.xgoIgnorembeddedArray]);
+    gnrt := TXsdGenerator.Create(doc,[{$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Generator{$ELSE}xsd_generator{$ENDIF}.xgoIgnorembeddedArray]);
     gnrt.SetPreferedShortNames(sdo_namespace,s_sdo);
     gnrt.Execute(tree,ATargetNamespace);
     WriteXMLFile(doc,ADestStream);
@@ -253,7 +272,7 @@ begin
   try
     AddXsdTypes(tree);
     SdoTypesToPasTree(tree,FDataFactory,lst);
-    gnrt := TPasGenerator.Create(ADestStream,[pas_generator.xgoIgnorembeddedArray]);
+    gnrt := TPasGenerator.Create(ADestStream,[{$IFDEF FPC_DOTTEDUNITS}Sdo.Pas.Generator{$ELSE}pas_generator{$ENDIF}.xgoIgnorembeddedArray]);
     gnrt.SetPreferedShortNames(sdo_namespace,s_sdo);
     gnrt.Execute(tree,ATargetNamespace);
   finally
@@ -469,7 +488,7 @@ var
     k : PtrInt;
   begin
     Result := nil;
-    line := Trim(FindTag(AProp,Format('%s#%s',[sdo_namespace,sdo_consts.s_propertyType])));
+    line := Trim(FindTag(AProp,Format('%s#%s',[sdo_namespace,{$IFDEF FPC_DOTTEDUNITS}Sdo.Consts{$ELSE}sdo_consts{$ENDIF}.s_propertyType])));
     if ( Length(line) > 0 ) then begin
       k := Pos('#',line);
       if ( k > 0 ) then begin
@@ -750,7 +769,7 @@ var
       if not AProperty.getContainingType().equals(AType) then
         Exit;
       propTypeSDO := AProperty.getType();
-      isObjRefProp := propTypeSDO.isDataObjectType() and AProperty.isReference();
+      isObjRefProp := propTypeSdo.isDataObjectType() and AProperty.isReference();
       if isObjRefProp then
         propType := Find(FTree,s_xs,s_anyURI)
       else
@@ -764,7 +783,7 @@ var
           prop.setInteger(s_PropertyMaxOccurs,MaxInt);
         prop.setBoolean(
           s_IsAttribute,
-          (not( propTypeSDO.isDataObjectType() or
+          (not( propTypeSdo.isDataObjectType() or
                 isObjRefProp or
                 AProperty.isMany() or
                 AProperty.getType().isChangeSummaryType()
@@ -773,11 +792,11 @@ var
           AProperty.isAttribute()
         );
       res.getList(s_Property).append(prop);
-      if isObjRefProp or (propTypeSDO.getTypeEnum() in SDO_SPECIAL_TYPES) then
+      if isObjRefProp or (propTypeSdo.getTypeEnum() in SDO_SPECIAL_TYPES) then
         SetTagValue(
           prop,
-          Format('%s#%s',[sdo_namespace,sdo_consts.s_propertyType]),
-          Format('%s#%s',[propTypeSDO.getURI(),propTypeSDO.getName()])
+          Format('%s#%s',[sdo_namespace,{$IFDEF FPC_DOTTEDUNITS}Sdo.Consts{$ELSE}sdo_consts{$ENDIF}.s_propertyType]),
+          Format('%s#%s',[propTypeSdo.getURI(),propTypeSdo.getName()])
         );
     end;
 

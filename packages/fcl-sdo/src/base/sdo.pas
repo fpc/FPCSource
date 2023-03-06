@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Types, System.Variants,
+  Sdo.BaseTypes, Sdo.LinkedList, Sdo.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Types,
   sdo_types, sdo_linked_list, sdo_date_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   sdo_namespace = 'commonj.sdo';
@@ -1664,8 +1672,13 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure InitBufferResources(const ADataType : TSDOTypeKind; var ABuffer : TValueBuffer);
 begin

@@ -14,14 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xsd_generator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.TypInfo,
+  {$IFNDEF FPC}xmldom, sdo_win_xml,{$ELSE}Xml.Dom, Sdo.Fpc.Xml,{$ENDIF}
+  Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, TypInfo,
   {$IFNDEF FPC}xmldom, sdo_win_xml,{$ELSE}DOM, sdo_fpc_xml,{$ENDIF}
   sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -103,8 +112,13 @@ type
   function CreateElement(const ANodeName : DOMString; AParent : TDOMNode; ADoc : TDOMDocument):TDOMElement;{$IFDEF USE_INLINE}inline;{$ENDIF}
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Xsd.Intf, Sdo.Xsd.Consts, System.Contnrs, System.StrUtils, Sdo.Types, Sdo.Parser.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_xsdintf, xsd_consts, Contnrs, StrUtils, sdo_types, sdo_parserutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function FindAttributeByValueInNode(
   const AAttValue        : string;
@@ -259,7 +273,7 @@ begin
 
   s := Format('%s:%s',[s_xs_short,s_simpleType]);
   resNode := CreateElement(s,defSchemaNode,Document);
-  resNode.SetAttribute(s_name, typItm.getString(sdo_xsdintf.s_Name)) ;
+  resNode.SetAttribute(s_name, typItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name)) ;
 {$IFDEF SDO_HANDLE_DOC}
   ls := AContainer.Properties.FindList(typItm);
   if ( ls <> nil ) then begin
@@ -301,7 +315,7 @@ procedure TCustomXsdGenerator.GenerateComplex(AContainer, ASymbol: ISDODataObjec
           if ( ACategory = tcSimpleContent ) then begin
             raise EXsdGeneratorException.CreateFmt(
                     'Invalid type definition, a simple type cannot have "not attribute" properties : "%s"',
-                    [AClassType.getString(sdo_xsdintf.s_Name)]
+                    [AClassType.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name)]
                   );
           end;
           Result := True;
@@ -321,14 +335,14 @@ procedure TCustomXsdGenerator.GenerateComplex(AContainer, ASymbol: ISDODataObjec
     if (ls.size() > 0) then begin
       for k := 0 to ls.size() - 1 do begin
         tagObj := ls.getDataObject(k);
-        line := tagObj.getString(sdo_xsdintf.s_Name);
+        line := tagObj.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name);
         q := Pos('#',line);
         if ( q > 0 ) then begin
           ns := Copy(line,1,Pred(q));
           localName := Copy(line,Succ(q),MaxInt);
           ns_short := GetNameSpaceShortName(ns,Document,GetPreferedShortNames());
           attName := Format('%s:%s',[ns_short,localName]);
-          line := tagObj.getString(sdo_xsdintf.s_Value);
+          line := tagObj.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Value);
           q := Pos('#',line);
           if ( q > 0 ) then begin
             ns := Copy(line,1,Pred(q));
@@ -400,7 +414,7 @@ var
     prop_ns_shortName : string;
   begin
     p := AProp;
-    if p.getBoolean(sdo_xsdintf.s_IsAttribute) then begin
+    if p.getBoolean({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_IsAttribute) then begin
       s := Format('%s:%s',[s_xs_short,s_attribute]);
       if Assigned(derivationNode) then
         propNode := CreateElement(s,derivationNode,Document)
@@ -410,13 +424,13 @@ var
       s := Format('%s:%s',[s_xs_short,s_element]);
       propNode := CreateElement(s,sqcNode,Document);
     end;
-    propNode.SetAttribute(s_name,p.getString(sdo_xsdintf.s_Name));
+    propNode.SetAttribute(s_name,p.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name));
     propTypItm := p.getDataObject(s_DataType);
     if Assigned(propTypItm) then begin
-      if propTypItm.getBoolean(sdo_xsdintf.s_Unresolved) then
-        propTypItm := Find( AContainer,propTypItm.getString(sdo_xsdintf.s_NameSpace),propTypItm.getString(sdo_xsdintf.s_Name));
+      if propTypItm.getBoolean({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Unresolved) then
+        propTypItm := Find( AContainer,propTypItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace),propTypItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name));
       propItmUltimeType := GetUltimeType(propTypItm);
-      s := propTypItm.getString(sdo_xsdintf.s_Name);
+      s := propTypItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name);
       prop_ns_shortName := GetNameSpaceShortName(GetTypeNameSpace(propTypItm),Document,GetPreferedShortNames());
       propNode.SetAttribute(s_type,Format('%s:%s',[prop_ns_shortName,s]));
       if (Length(p.getString(s_DefaultValue)) > 0) then
@@ -451,14 +465,14 @@ begin
     Exit;
   typItm := ASymbol;
   GetNameSpaceShortName(
-    AContainer.getDataObject(s_CurrentModule).getString(sdo_xsdintf.s_NameSpace),
+    AContainer.getDataObject(s_CurrentModule).getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace),
     Document,GetPreferedShortNames()
   );
   defSchemaNode := GetSchemaNode(Document) as TDOMElement;
 
   s := Format('%s:%s',[s_xs_short,s_complexType]);
   cplxNode := CreateElement(s,defSchemaNode,Document);
-  cplxNode.SetAttribute(s_name, typItm.getString(sdo_xsdintf.s_Name)) ;
+  cplxNode.SetAttribute(s_name, typItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name)) ;
 
 {$IFDEF SDO_HANDLE_DOC}
   ls := AContainer.Properties.FindList(typItm);
@@ -472,12 +486,12 @@ begin
   typeCategory := tcComplexContent;
   derivationNode := nil;
   hasSequence := True;
-  trueParent := typItm.getDataObject(sdo_xsdintf.s_BaseType);
+  trueParent := typItm.getDataObject({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_BaseType);
   if (trueParent <> nil) then begin
     if trueParent.getBoolean(s_Unresolved) then
-      trueParent := Find(AContainer,trueParent.getString(sdo_xsdintf.s_NameSpace), trueParent.getString(sdo_xsdintf.s_Name));
+      trueParent := Find(AContainer,trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace), trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name));
     if (trueParent <> nil) then begin
-      if (trueParent.getByte(s_ElementKind) = sdo_xsdintf.ELEMENT_KIND_VARIABLE) then
+      if (trueParent.getByte(s_ElementKind) = {$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.ELEMENT_KIND_VARIABLE) then
         trueParent := GetUltimeType(trueParent);
       if not trueParent.getBoolean(s_IsComplex) then
         typeCategory := tcSimpleContent;
@@ -490,7 +504,7 @@ begin
       s := Trim(GetNameSpaceShortName(GetTypeNameSpace(trueParent),Document,GetPreferedShortNames()));
       if ( Length(s) > 0 ) then
         s := s + ':';
-      s := s + trueParent.getString(sdo_xsdintf.s_Name);
+      s := s + trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name);
       derivationNode.SetAttribute(s_base,s);
       hasSequence := False;
     end;

@@ -14,14 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_serialization;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs,
+  Sdo.Base, Sdo.BaseTypes, Sdo.Types,
+  Sdo.Serialization.Utils, Sdo.Serialization.Xml;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs,
   sdo, sdo_types,
   sdo_serialization_utils, sdo_serialization_xml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MAX_NESTED_LEVEL = 256;
@@ -278,10 +287,17 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, Sdo.Consts, Sdo.Xsd.Helper,
+  System.StrUtils, Sdo.Impl.Utils, Sdo.Xpath.Helper, Sdo.ChangeSummary,
+  Sdo.Utils, Sdo.DataObject;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, sdo_consts, sdo_xsd_helper,
   StrUtils, sdo_imp_utils, sdo_xpath_helper, sdo_changesummary,
   sdo_utils, sdo_dataobject;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   //TManyValuePropAction = ( mvpaAppend, mvpaInsert, mvpaChange, mvpaDelete );

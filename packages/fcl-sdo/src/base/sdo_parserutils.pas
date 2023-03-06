@@ -14,14 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_parserutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes
+  {$IFNDEF FPC}, xmldom, sdo_win_xml{$ELSE},Xml.Dom{$ENDIF},
+  Sdo.Cursor.Intf, Sdo.Dom.Cursors, Sdo.Xsd.Consts, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes
   {$IFNDEF FPC}, xmldom, sdo_win_xml{$ELSE},DOM{$ENDIF},
   sdo_cursor_intf, sdo_dom_cursors, xsd_consts, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TNotFoundAction = ( nfaNone, nfaRaiseException );
@@ -101,7 +110,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, Sdo.Rtti.Filters;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils, sdo_rtti_filters;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const LANGAGE_TOKEN : array[0..127] of string = (
   'ABSOLUTE', 'ABSTRACT', 'AND', 'ARRAY', 'AS', 'ASM',
