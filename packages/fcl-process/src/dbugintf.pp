@@ -15,11 +15,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbugintf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Dbugmsg;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbugmsg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TDebugLevel = (dlInformation,dlWarning,dlError);
@@ -85,8 +91,13 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses 
+  System.SysUtils, System.Classes, System.Process, System.Simpleipc;
+{$ELSE FPC_DOTTEDUNITS}
 Uses 
   SysUtils, classes, process, simpleipc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DmtInformation = lctInformation;

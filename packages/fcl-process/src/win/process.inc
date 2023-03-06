@@ -11,9 +11,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WinApi.Windows;
+{$ELSE}
 Uses
   Windows;
-
+{$ENDIF}
 
 Resourcestring
   SNoCommandLine        = 'Cannot execute empty command-line';

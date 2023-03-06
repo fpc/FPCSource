@@ -14,7 +14,11 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows,WinApi.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows,messages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MsgWndClassName: WideString = 'FPCMsgWindowCls';
@@ -119,7 +123,7 @@ begin
   MsgWindowClass.lpszClassName:=PWideChar(MsgWndClassName);
   isreg:=GetClassInfoW(HInstance,PWideChar(MsgWndClassName),@cls);
   if not isreg then
-    if (Windows.RegisterClassW(MsgWindowClass)=0) then
+    if ({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RegisterClassW(MsgWindowClass)=0) then
       Owner.DoError(SErrFailedToRegisterWindowClass,[]);
   Result:=CreateWindowExW(WS_EX_TOOLWINDOW, PWideChar(MsgWndClassName),
     PWideChar(aWindowName), WS_POPUP {!0}, 0, 0, 0, 0, 0, 0, HInstance, nil);
@@ -201,12 +205,12 @@ procedure TWinMsgServerComm.ProcessMessages;
 var
   Msg: TMsg;
 begin
-  // Windows.PeekMessage dispatches incoming sent messages by directly
+  // {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PeekMessage dispatches incoming sent messages by directly
   // calling associated WindowProc, and then checks the thread message queue
   // for posted messages and retrieves a message if any available.
   // Note: WM_COPYDATA is a sent message, not posted, so it will be processed
-  // directly via WindowProc inside of Windows.PeekMessage call.
-  while Windows.PeekMessage(Msg, FHWND, 0, 0, PM_REMOVE) do
+  // directly via WindowProc inside of {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PeekMessage call.
+  while {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PeekMessage(Msg, FHWND, 0, 0, PM_REMOVE) do
   begin
     // Empty the message queue by processing all posted messages.
     HandlePostedMessage(Msg);
@@ -234,11 +238,11 @@ begin
     // We either need to wait infinitely or we have a timer.
     if (TimeOut < 0) or (TimerID <> 0) then
     begin
-      // Windows.GetMessage dispatches incoming sent messages until a posted
+      // {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetMessage dispatches incoming sent messages until a posted
       // message is available for retrieval. Note: WM_COPYDATA will not actually
-      // wake up Windows.GetMessage, so we must post a dummy message when
+      // wake up {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetMessage, so we must post a dummy message when
       // we receive WM_COPYDATA inside of WindowProc.
-      GetMessageResult := Windows.GetMessage(Msg, FHWND, 0, 0);
+      GetMessageResult := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetMessage(Msg, FHWND, 0, 0);
       case LongInt(GetMessageResult) of
         -1, 0: ;
         else HandlePostedMessage(Msg);
@@ -387,7 +391,7 @@ begin
     CDS.dwData:=MsgType;
     CDS.lpData:=Data.Memory;
     CDS.cbData:=Data.Size;
-    Windows.SendMessage(FHWND,WM_COPYDATA,0,PtrInt(@CDS));
+    {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.SendMessage(FHWND,WM_COPYDATA,0,PtrInt(@CDS));
   finally
     FreeAndNil(FMemStr);
   end;

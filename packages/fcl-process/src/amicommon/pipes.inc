@@ -13,8 +13,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, AmigaDos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // No pipes under dos, sorry...
 

@@ -13,7 +13,11 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const piInheritablePipe : TSecurityAttributes = (
                            nlength:SizeOF(TSecurityAttributes);
