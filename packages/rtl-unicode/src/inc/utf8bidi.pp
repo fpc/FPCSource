@@ -2,14 +2,21 @@
 Author Mazen NEIFER
 Licence LGPL
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UTF8BIDI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Unicode.Freebidi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FreeBIDI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TUCS32Char = Cardinal;

@@ -2,7 +2,9 @@
 Author Mazen NEIFER
 Licence LGPL
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FreeBIDI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
