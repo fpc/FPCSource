@@ -1,11 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
  unit fpthreadpool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 { $DEFINE DEBUGTHREADPOOL}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Classes, System.SysUtils, System.DateUtils, System.SyncObjs;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Classes, SysUtils, DateUtils, SyncObjs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const

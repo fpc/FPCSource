@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2015 by Ondrej Pokorny
 
     Unit implementing two-way (request/response) IPC between 1 server and more
@@ -19,18 +19,28 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AdvancedIPC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF Unix}
+  UnixApi.Base,
+  {$endif}
+  System.SysUtils, System.Classes, Fcl.SingleInstance;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF UNIX}
   baseunix,
   {$endif}
   sysutils, Classes, singleinstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   HEADER_VERSION = 2;
@@ -45,7 +55,7 @@ type
     MsgVersion: Integer;
   end;
 
-  TFileHandle = Classes.THandle;
+  TFileHandle = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.THandle;
 
   TReleaseHandleStream = class(THandleStream)
   public

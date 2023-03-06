@@ -15,7 +15,9 @@
 {$mode objfpc}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit idea;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
  IDEA encryption routines for pascal
@@ -46,7 +48,11 @@ Unit idea;
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils,System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Sysutils,Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 CONST 
   IDEAKEYSIZE   = 16;

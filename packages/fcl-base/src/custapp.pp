@@ -14,11 +14,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CustApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes,Fcl.SingleInstance;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,Classes,singleinstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TStringArray = Array of string;
@@ -111,8 +117,13 @@ var CustomApplication : TCustomApplication = nil;
 Implementation
 
 {$ifdef darwin}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.MacOSAll;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   MacOSAll;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 { TCustomApplication }
@@ -303,7 +314,7 @@ end;
 procedure TCustomApplication.HandleException(Sender: TObject);
 begin
   If Not (ExceptObject is Exception) then
-    SysUtils.showexception(ExceptObject,ExceptAddr)
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.showexception(ExceptObject,ExceptAddr)
   else
     begin
     If Not Assigned(FOnexception) then
@@ -355,7 +366,7 @@ end;
 procedure TCustomApplication.ShowException(E: Exception);
 
 begin
-  Sysutils.ShowException(E,ExceptAddr)
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Sysutils.ShowException(E,ExceptAddr)
 end;
 
 procedure TCustomApplication.Terminate;

@@ -10,7 +10,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wformat;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
 {$mode objfpc}
@@ -18,7 +20,11 @@ unit wformat;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TlistType = (ltNumbered,ltOrdered,ltDefinition);

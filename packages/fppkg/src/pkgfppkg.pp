@@ -230,9 +230,9 @@ begin
   FOptions.CommandLineSection.CompilerConfig:=FOptions.GlobalSection.CompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
-    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
+    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
+    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug,SLogLoadingGlobalConfig,[cfgfile]);
   FConfigurationFilename := CfgFile;
   // Log configuration
   FOptions.LogValues(llDebug);
@@ -247,7 +247,7 @@ begin
   FCompilerOptions.UpdateLocalRepositoryOption(FOptions);
   if FileExists(S) then
     begin
-      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug,SLogLoadingCompilerConfig,[S]);
+      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug,SLogLoadingCompilerConfig,[S]);
       FCompilerOptions.LoadCompilerFromFile(S);
       if FCompilerOptions.SaveInifileChanges then
         // The file is in an old format, try to update the file but ignore
@@ -260,7 +260,7 @@ begin
         // A new fppkg.cfg has been created, try to create a new compiler-configuration
         // file too.
         begin
-          {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug,SLogGeneratingCompilerConfig,[S]);
+          {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug,SLogGeneratingCompilerConfig,[S]);
           FCompilerOptions.InitCompilerDefaults;
           if not FCompilerOptions.SaveCompilerToFile(S) then
             Error(SErrMissingCompilerConfig,[S]);
@@ -275,7 +275,7 @@ begin
   FFPMakeCompilerOptions.UpdateLocalRepositoryOption(FOptions);
   if FileExists(S) then
     begin
-      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FFPMakeCompilerOptions.LoadCompilerFromFile(S);
       if FFPMakeCompilerOptions.SaveInifileChanges then
         // The file is in an old format, try to update the file but ignore
@@ -615,12 +615,12 @@ var
 begin
   // Determine the repository to install a package into. See the
   // repositorylogics.dia file.
-  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug, SLogDetermineInstallRepo, [ASourcePackage.GetDebugName]);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug, SLogDetermineInstallRepo, [ASourcePackage.GetDebugName]);
   RepoName := Options.CommandLineSection.InstallRepository;
   if RepoName <> '' then
     // If an install-repository is given on the command line, this overrides
     // everything.
-    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug, SLogUseCommandLineRepo, [RepoName])
+    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug, SLogUseCommandLineRepo, [RepoName])
   else
     begin
       // The source-repository is already determined by the source-package, which
@@ -634,12 +634,12 @@ begin
       Assert(Assigned(SourceRepository.DefaultPackagesStructure));
       RepoName := SourceRepository.DefaultPackagesStructure.InstallRepositoryName;
       if RepoName<>'' then
-        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug, SLogUseSourceRepoInstRepo, [RepoName, SourceRepository.RepositoryName])
+        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug, SLogUseSourceRepoInstRepo, [RepoName, SourceRepository.RepositoryName])
       else
         begin
           RepoName := Options.GlobalSection.InstallRepository;
           if RepoName<>'' then
-            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug, SLogUseConfigurationRepo, [RepoName])
+            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug, SLogUseConfigurationRepo, [RepoName])
           else
             begin
               for i := RepositoryList.Count-1 downto 0 do
@@ -647,7 +647,7 @@ begin
                   if (RepositoryList[i] as TFPRepository).RepositoryType = fprtInstalled then
                     begin
                       Result := TFPRepository(RepositoryList[i]);
-                      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llDebug, SLogUseLastRepo, [Result.RepositoryName]);
+                      {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llDebug, SLogUseLastRepo, [Result.RepositoryName]);
                       Exit;
                     end;
                 end;

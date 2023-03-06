@@ -13,16 +13,24 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit syncobjs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 uses
-  sysutils
+{$IFDEF FPC_DOTTEDUNITS}
   {$IFNDEF VER3_2}
-  ,system.timespan
+  system.timespan,
   {$ENDIF}
-  ;
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
+  {$IFNDEF VER3_2}
+  system.timespan,
+  {$ENDIF}
+  sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PSecurityAttributes = Pointer;
@@ -150,7 +158,11 @@ type
 implementation
 
 {$ifdef MSWindows}
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE}
 uses Windows;
+{$ENDIF}
 {$endif}
 
 
@@ -277,7 +289,7 @@ begin
     raise ESyncObjectException.CreateFmt(SErrEventMaxObjects, [MAXIMUM_WAIT_OBJECTS]);
 
   for HandleIndex := 0 to Len - 1 do
-    WOHandles[HandleIndex] := Windows.HANDLE(HandleObjs[HandleIndex].Handle);
+    WOHandles[HandleIndex] := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HANDLE(HandleObjs[HandleIndex].Handle);
 
   // what about UseCOMWait?
   if UseCOMWait Then

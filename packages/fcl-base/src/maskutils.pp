@@ -19,15 +19,22 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MaskUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {.$define debug_maskutils}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function FormatMaskText(const EditMask: string; const AValue: string): string;

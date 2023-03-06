@@ -20,14 +20,21 @@
     An own memory manager is somewhat faster and makes debugging and
     profiling easier.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pooledmm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PPooledMemManagerItem = ^TPooledMemManagerItem;
