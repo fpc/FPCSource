@@ -6,11 +6,17 @@ O. Rinaudo - 2005 - orinaudo@gmail.com
 G. Marcou  - 2007 - g.marcou@chimie.u-strasbg.fr
 *************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite3DB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  System.Classes,System.Strings,Api.Sqlite3;
+{$ELSE FPC_DOTTEDUNITS}
 uses  Classes,strings,sqlite3;
+{$ENDIF FPC_DOTTEDUNITS}
 {*************************************************************}
 {*************************************************************}
 type

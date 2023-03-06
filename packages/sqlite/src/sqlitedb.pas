@@ -1,11 +1,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLiteDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  System.Classes,System.Strings,Api.Sqlite;
+{$ELSE FPC_DOTTEDUNITS}
 uses  Classes,strings,sqlite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): integer of object; cdecl;
