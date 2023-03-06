@@ -1,0 +1,3 @@
+src/libsee.pas=namespaced/Api.Libsee.pas
+{s*:src/}=namespaced/
+{i+:src/}

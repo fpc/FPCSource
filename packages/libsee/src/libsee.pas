@@ -2,11 +2,18 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libsee;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from libsee.c
@@ -586,8 +593,13 @@ Function  LibseeLoaded : Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
     
 {$ifndef libseehelper}
 function new_SEE_interpreter : PSEE_Interpreter;
