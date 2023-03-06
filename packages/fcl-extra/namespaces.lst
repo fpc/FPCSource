@@ -1,0 +1,7 @@
+src/fileinfo.pp=namespaced/System.Fileinfo.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/win/ServiceManager.pas=namespaced/System.Win.ServiceManager.pas
+{s*:src/win/}=namespaced/
+{i+:src/win/}
+src/daemonapp.pp=namespaced/System.DaemonApp.pp

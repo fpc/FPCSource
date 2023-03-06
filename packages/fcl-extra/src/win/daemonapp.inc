@@ -13,7 +13,11 @@
  **********************************************************************}
 { Win32 implementation of service application }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows,WinApi.Jedi.Winsvc;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows,jwawinsvc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   CM_SERVICE_CONTROL_CODE = WM_USER+1;
@@ -345,7 +349,7 @@ begin
     if not GetClassInfoA(HInstance,AWClass.lpszClassName,TClass) then
       begin
       AWClass.hInstance := HInstance;
-      if Windows.RegisterClassA(AWClass) = 0 then
+      if {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.RegisterClassA(AWClass) = 0 then
         DaemonError(SErrWindowClass);
       end;
     GUIHandle := CreateWindowA(AWClass.lpszClassName, PAnsiChar(Title),
