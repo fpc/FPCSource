@@ -18,12 +18,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inv;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Calc inverse for a matrix with unknown symmetry. General version. }
 procedure invgen(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);
@@ -36,7 +42,11 @@ procedure invgpd(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Mdt, NumLib.Dsl;
+{$ELSE FPC_DOTTEDUNITS}
 uses mdt, dsl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure invgen(n, rwidth: ArbInt; var ai: ArbFloat; var term: ArbInt);
 var

@@ -18,12 +18,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit det;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$I DIRECT.INC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Generic determinant}
 procedure detgen(n, rwidth: ArbInt; var a, f: ArbFloat; var k, term: ArbInt);
@@ -51,7 +57,11 @@ var og          : ArbFloat absolute ogx;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Mdt;
+{$ELSE FPC_DOTTEDUNITS}
 uses mdt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure detgen(n, rwidth: ArbInt; var a, f: ArbFloat; var k, term: ArbInt);
 

@@ -20,12 +20,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NumLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$I direct.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 CONST Numlib_dll_version=2;        {Original is 1, first FPC version=2}
 

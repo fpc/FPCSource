@@ -21,12 +21,18 @@
 {$mode objfpc}{$H+}
 {$modeswitch nestedprocvars}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit roo;
+{$ENDIF FPC_DOTTEDUNITS}
 {$i direct.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ, NumLib.Spe;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ, spe;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Find the all roots of the binomial eq. x^n=a, with "a" a complex number}
 

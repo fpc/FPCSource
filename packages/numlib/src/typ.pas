@@ -38,7 +38,9 @@ complex.inp and scale methods)
 {$mode objfpc}{$H+}
 {$modeswitch nestedprocvars}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I DIRECT.INC}                 {Contains "global" compilerswitches which
                                   are imported into every unit of the library }
@@ -46,8 +48,13 @@ unit typ;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$if sizeof(extended)=10}
 {$DEFINE ArbExtended}

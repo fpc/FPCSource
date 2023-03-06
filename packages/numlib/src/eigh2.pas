@@ -19,12 +19,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit eigh2;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure orthes(var a: ArbFloat; n, rwidth: ArbInt; var u: ArbFloat);
 procedure hessva(var h: ArbFloat; n, rwidth: ArbInt; var lam: complex;

@@ -24,13 +24,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit dsl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$I DIRECT.INC}
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Gen=generic, matrix without special or unknown ordering}
 Procedure dslgen(n, rwidth: ArbInt; Var alu: ArbFloat; Var p: ArbInt;

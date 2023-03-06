@@ -18,12 +18,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit omv;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I direct.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Calculates inproduct of vectors a and b which have N elements. The first
 element is passed in a and b}

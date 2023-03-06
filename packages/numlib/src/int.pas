@@ -19,12 +19,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit int;
+{$ENDIF FPC_DOTTEDUNITS}
 {$I DIRECT.INC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ,System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ,math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Var
     limit    : ArbInt;
