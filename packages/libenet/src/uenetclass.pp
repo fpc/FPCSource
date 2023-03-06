@@ -1,7 +1,9 @@
 {$MODE OBJFPC}
 {$LONGSTRINGS ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UENetClass;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   ENet UDP Class for Free Pascal
@@ -33,8 +35,13 @@ unit UENetClass;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Api.Enet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, ENet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TENetEventType = ( ENetEventNone, ENetEventConnect, ENetEventDisconnect,
