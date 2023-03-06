@@ -21,7 +21,9 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF  *
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.           *
  ****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit maxmod;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc} 
 
@@ -32,8 +34,13 @@ unit maxmod;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, GBAApi.Gba; 
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gba; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib gba}
 {$linklib mm}
