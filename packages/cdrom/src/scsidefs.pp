@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit scsidefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

@@ -1,0 +1,11 @@
+src/fpcddb.pp=namespaced/System.CdRom.Cddb.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/wincd.pp=namespaced/System.CdRom.Windows.pp
+src/cdrom.pp=namespaced/System.CdRom.pp
+src/scsidefs.pp=namespaced/System.CdRom.ScsiDefs.pp
+src/major.pp=namespaced/System.CdRom.Major.pp
+src/lincd.pp=namespaced/System.CdRom.Linux.pp
+src/cdromioctl.pp=namespaced/System.CdRom.Windows.IoCtl.pp
+src/wnaspi32.pp=namespaced/System.CdRom.Windows.Aspi32.pp
+src/discid.pp=namespaced/System.CdRom.DiscId.pp

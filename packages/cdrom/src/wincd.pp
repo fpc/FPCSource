@@ -1,13 +1,19 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCDAccessMethod = (camNone,camASPI,camSPTI,camIOCTL);
@@ -39,7 +45,11 @@ Function  GetNumDrives : Integer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CdRom.Windows.IoCtl, System.CdRom.Windows.Aspi32, System.CdRom.ScsiDefs;
+{$ELSE FPC_DOTTEDUNITS}
 uses cdromioctl,wnaspi32,scsidefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Var
   CurrentAccessMethod : TCDAccessMethod;
