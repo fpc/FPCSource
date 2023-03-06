@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-passrc.inc}
 {$modeswitch advancedrecords}
@@ -33,11 +35,19 @@ unit PParser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef NODEJS}
+  Node.FS,
+  {$endif}
+  System.SysUtils, System.Classes, System.Types, Pascal.Tree, Pascal.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef NODEJS}
   Node.FS,
   {$endif}
   SysUtils, Classes, Types, PasTree, PScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // message numbers
 const
@@ -613,7 +623,13 @@ Function TokenToAssignKind( tk : TToken) : TAssignKind;
 implementation
 
 {$IF FPC_FULLVERSION>=30301}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$ENDIF}
 
 const

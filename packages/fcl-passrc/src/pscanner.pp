@@ -14,12 +14,25 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-passrc.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  js,
+  {$IFDEF NODEJS}
+  Node.FS,
+  {$ENDIF}
+  System.Types,
+  {$endif}
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   js,
@@ -29,6 +42,7 @@ uses
   Types,
   {$endif}
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // message numbers
 const
@@ -1297,6 +1311,7 @@ const
   Digits = ['0'..'9'];
   Letters = ['a'..'z','A'..'Z'];
   HexDigits = ['0'..'9','a'..'f','A'..'F'];
+  
 Var
   SortedTokens : array of TToken;
   LowerCaseTokens  : Array[ttoken] of TPasScannerString;
