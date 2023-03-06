@@ -29,7 +29,9 @@ not be compatible.
 @todo(Rework some functions to support strings longer then 255 chars)
 @todo(Finish functions description)
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FTPAPI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************
 
@@ -40,10 +42,17 @@ unit FTPAPI;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.os2def,
+  OS2Api.pmwin,
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   OS2Def,
   PMWin,
   Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // window message id for post xfer updates

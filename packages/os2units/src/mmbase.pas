@@ -45,13 +45,19 @@ not be compatible.
 //* Revised by Yuri Prokushev (prokushev@freemail.ru)                        */
 //****************************************************************************/
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit mmbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE ObjFPC}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Os2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
         VERSION = WORD;
