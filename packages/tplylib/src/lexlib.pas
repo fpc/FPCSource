@@ -1,7 +1,9 @@
 
 {$I-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit LexLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (* Standard Lex library unit for TP Lex Version 3.0.
    2-11-91 AG *)

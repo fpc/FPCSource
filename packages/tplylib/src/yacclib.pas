@@ -1,7 +1,9 @@
 
 {$I-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit YaccLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (* Yacc Library Unit for TP Yacc Version 3.0, 6-17-91 AG *)
 
