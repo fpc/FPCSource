@@ -14,7 +14,11 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses OS2Api.doscalls, OS2Api.os2def;
+{$ELSE FPC_DOTTEDUNITS}
 uses DosCalls, OS2Def;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrFailedToCreatePipe = 'Failed to create named pipe: %s';

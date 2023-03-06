@@ -14,8 +14,13 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, AmigaDos, Utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SNoCommandLine        = 'Cannot execute empty command-line';

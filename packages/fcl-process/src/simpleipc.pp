@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit simpleipc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Contnrs, System.SyncObjs, System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Contnrs, SyncObjs, Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MsgVersion = 1;
@@ -356,7 +363,7 @@ begin
   if Timeout >= 0 then
     Result := Timeout
   else
-    Result := SyncObjs.INFINITE;
+    Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SyncObjs.INFINITE;
 end;
 
 // Timeout values:
@@ -745,9 +752,9 @@ end;
 function TSimpleIPCServer.StartThread: Boolean;
 begin
   FThreadError := '';
-  FQueueLock := SyncObjs.TCriticalSection.Create;
-  FQueueAddEvent := SyncObjs.TSimpleEvent.Create;
-  FThreadReadyEvent := SyncObjs.TSimpleEvent.Create;
+  FQueueLock := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SyncObjs.TCriticalSection.Create;
+  FQueueAddEvent := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SyncObjs.TSimpleEvent.Create;
+  FThreadReadyEvent := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SyncObjs.TSimpleEvent.Create;
   FThread := TIPCServerThread.Create(Self);
   FThread.Start;
   Result := WaitForReady;
