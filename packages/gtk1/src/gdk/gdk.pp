@@ -19,7 +19,9 @@
    Boston, MA 02111-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdk;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$mode objfpc} { needed for array of const }
@@ -32,8 +34,13 @@ interface
   {$endif}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk1.Glib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win32}
   const
