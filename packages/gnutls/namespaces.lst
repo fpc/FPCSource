@@ -1,0 +1,4 @@
+src/gnutls.pp=namespaced/Api.GnuTls.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gnutlssockets.pp=namespaced/System.Net.Gnutlssockets.pp
