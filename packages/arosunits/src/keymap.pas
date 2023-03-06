@@ -14,11 +14,17 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keymap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Inputevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, inputevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
