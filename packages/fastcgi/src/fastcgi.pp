@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fastcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
