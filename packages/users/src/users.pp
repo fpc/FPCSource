@@ -1,8 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit users;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 {$mode delphi}
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types,UnixApi.Base,UnixApi.Pwd,UnixApi.Grp, {$ifdef Linux} UnixApi.Shadow,{$endif}System.SysUtils,System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses UnixType,BaseUnix,pwd,grp, {$ifdef Linux} shadow,{$endif}SysUtils,Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EUserLookupError = Class(Exception);
@@ -64,7 +70,7 @@ EShadowNotPermitted = 'Not enough permissions to access shadow password file';
 Function getpwnam(Const UserName: AnsiString) : PPasswordRecord;
 
 begin
-  Result:=pwd.fpgetpwnam(PAnsiChar(UserName));
+  Result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}Pwd.fpgetpwnam(PAnsiChar(UserName));
 end;
 
 Procedure GetUserData(Const UserName : AnsiString; Var Data : TPasswordRecord);
@@ -179,7 +185,7 @@ end;
 Function  getgrnam(Const GroupName: AnsiString) : PGroup;
 
 begin
-  Result:=grp.fpgetgrnam(PAnsiChar(GroupName));
+  Result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}Grp.fpgetgrnam(PAnsiChar(GroupName));
 end;
 
 Procedure GetGroupData(Const GroupName : AnsiString; Var Data : TGroup); overload;
@@ -294,13 +300,13 @@ end;
 function getspnam(UserName : AnsiString): PPasswordFileEntry;
 
 begin
-  result:=shadow.getspnam(PAnsiChar(UserName));
+  result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}Shadow.getspnam(PAnsiChar(UserName));
 end;
 
 function sgetspent(Line : AnsiString): PPasswordFileEntry;
 
 begin
-  Result:=shadow.sgetspent(PAnsiChar(Line));
+  Result:={$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}shadow.sgetspent(PAnsiChar(Line));
 end;
 
 Procedure GetUserShadowData(Const UserName : AnsiString; Var Data : TPasswordFileEntry);

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit shadow;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {
