@@ -9,15 +9,22 @@
  * Authors: Kenton Varda <temporal@gauge3d.org> (C interface wrapper)
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit modplug;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
