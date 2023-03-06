@@ -13,14 +13,21 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbuscomp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.CTypes,Api.Dbus;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ctypes,dbus;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -2549,7 +2556,7 @@ Var
   B : dbus_bool_t;
 begin
   B:=Ord(Arg);
-  Append(dbus.DBUS_TYPE_BOOLEAN,B);
+  Append({$IFDEF FPC_DOTTEDUNITS}Api.{$ENDIF}dbus.DBUS_TYPE_BOOLEAN,B);
 end;
 
 procedure TDBusMessageIterator.AppendArgument(const Arg: SmallInt);
