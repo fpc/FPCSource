@@ -252,15 +252,22 @@ loop on input bytes:
         convert samples to integer and queue to soundcard
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$UNDEF LIBA52_DOUBLE}
 
