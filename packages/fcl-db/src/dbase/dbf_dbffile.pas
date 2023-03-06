@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_dbffile;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,25 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+{$ifdef Windows}
+  WinApi.Windows,
+{$else}
+{$ifdef KYLIX}
+  Api.Libc, 
+{$endif}  
+  System.Types, Data.Dbf.Wtil,
+{$endif}
+  Data.Db,
+  Data.Dbf.Common,
+  Data.Dbf.Cursor,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Fields,
+  Data.Dbf.Memo,
+  Data.Dbf.Idxfile;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
 {$ifdef WINDOWS}
@@ -35,6 +56,7 @@ uses
   dbf_fields,
   dbf_memo,
   dbf_idxfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //====================================================================
 //=== Dbf support (first part)
@@ -244,6 +266,22 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifndef WINDOWS}
+ {$IFNDEF OS2}
+  {$ifndef FPC}
+  RTLConsts,
+  {$else FPC}
+  UnixApi.Base,
+  {$endif FPC}
+ {$ENDIF OS2}
+{$endif WinApi.Windows}
+{$ifdef SUPPORT_MATH_UNIT}
+  System.Math,
+{$endif}
+  Data.Dbf.Str, Data.Dbf.Lang, Data.Dbf.Prssupp, Data.Dbf.Prsdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifndef WINDOWS}
  {$IFNDEF OS2}
@@ -258,6 +296,7 @@ uses
   Math,
 {$endif}
   dbf_str, dbf_lang, dbf_prssupp, dbf_prsdef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   sDBF_DEC_SEP = '.';
@@ -1512,25 +1551,25 @@ begin
 
     if DeleteFiles then
     begin
-      SysUtils.DeleteFile(DestFileName);
-      SysUtils.DeleteFile(ChangeFileExt(DestFileName, GetMemoExt));
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(DestFileName);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(ChangeFileExt(DestFileName, GetMemoExt));
     end else begin
       I := 0;
       FindNextName(DestFileName, NewBaseName, I);
-      SysUtils.RenameFile(DestFileName, NewBaseName);
-      SysUtils.RenameFile(ChangeFileExt(DestFileName, GetMemoExt), 
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(DestFileName, NewBaseName);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(DestFileName, GetMemoExt), 
         ChangeFileExt(NewBaseName, GetMemoExt));
     end;
     // delete old index files
     for I := 0 to NewIndexFileNames.Count - 1 do
-      SysUtils.DeleteFile(NewIndexFileNames.Strings[I]);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(NewIndexFileNames.Strings[I]);
     // rename the new dbf files
-    SysUtils.RenameFile(FileName, DestFileName);
-    SysUtils.RenameFile(ChangeFileExt(FileName, GetMemoExt), 
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(FileName, DestFileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(ChangeFileExt(FileName, GetMemoExt), 
       ChangeFileExt(DestFileName, GetMemoExt));
     // rename new index files
     for I := 0 to NewIndexFileNames.Count - 1 do
-      SysUtils.RenameFile(lIndexFileNames.Strings[I], NewIndexFileNames.Strings[I]);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(lIndexFileNames.Strings[I], NewIndexFileNames.Strings[I]);
   finally
     lIndexFileNames.Free;
   end;  
@@ -2747,7 +2786,7 @@ begin
             if addedIndexFile >= 0 then
             begin
               lIndexFile.Close;
-              Sysutils.DeleteFile(lIndexFileName);
+              {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(lIndexFileName);
               if FMdxFile = lIndexFile then
                 FMdxFile := nil;
               lIndexFile.Free;
@@ -2929,7 +2968,7 @@ begin
         lFileName := FMdxFile.FileName;
         FreeAndNil(FMdxFile);
         // erase file
-        Sysutils.DeleteFile(lFileName);
+        {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(lFileName);
         // clear mdx flag
         PDbfHdr(Header)^.MDXFlag := 0;
         WriteHeader;
@@ -2938,7 +2977,7 @@ begin
       // close index first
       CloseIndex(AIndexName);
       // delete file from disk
-      SysUtils.DeleteFile(AIndexName);
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(AIndexName);
     end;
   end;
 end;
@@ -3312,7 +3351,7 @@ begin
 {$else}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
-  Windows.GetComputerName(PAnsiChar(FUserName), 
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetComputerName(PAnsiChar(FUserName), 
     {$ifdef DELPHI_3}Windows.DWORD({$endif}
       FUserNameLen
     {$ifdef DELPHI_3}){$endif}

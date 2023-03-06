@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_str_ru;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // file is encoded in Windows-1251 encoding
 // for using with Linux/Kylix must be re-coded to KOI8-R

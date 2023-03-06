@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDSQLite3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Dict.Base, Data.Dict.Sqldb;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   { TSQLDBSQLite3DDEngine }
@@ -38,7 +45,11 @@ Procedure UnRegisterSQLite3DDEngine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.SqlDb.Sqlite3;
+{$ELSE FPC_DOTTEDUNITS}
 uses sqlite3conn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure RegisterSQLite3DDEngine;
 begin

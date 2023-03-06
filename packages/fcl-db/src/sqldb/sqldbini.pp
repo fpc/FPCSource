@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbini;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -19,8 +21,13 @@ unit sqldbini;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, System.IniFiles, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, inifiles, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TSQLDBIniOption = (sioClearOnRead,      // Clear values first

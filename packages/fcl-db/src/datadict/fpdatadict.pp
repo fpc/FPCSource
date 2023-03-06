@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpdatadict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Fcl.IniCollection, System.IniFiles, System.Contnrs, Data.Db, Data.Sql.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,inicol, inifiles, contnrs, db, sqltypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // Supported objects in this data dictionary
@@ -634,7 +641,11 @@ Var
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   Constants, not to be localized

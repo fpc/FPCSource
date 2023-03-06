@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -12,11 +12,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbwhtml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes,Data.Db,Fcl.Whtml;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,classes,db,whtml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   THTMLAlign = (haDefault,haLeft,haRight,haCenter); // Compatible with Delphi.
@@ -182,7 +188,11 @@ Type
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TTableColumns }
 

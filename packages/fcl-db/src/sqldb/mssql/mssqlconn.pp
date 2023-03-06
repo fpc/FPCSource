@@ -34,14 +34,21 @@
                "TextSize=16777216" - set maximum size of text/image data returned
                "ApplicationName=YourAppName" - Set the app name for the connection. MSSQL 2000 and higher only
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MSSQLConn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types, System.Classes, System.SysUtils, Data.Sqldb, Data.Db, Data.BufDataset, Api.Dblib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Types, Classes, SysUtils, sqldb, db, BufDataset, dblib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -169,7 +176,11 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, Data.FMTBcd;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils, FmtBCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

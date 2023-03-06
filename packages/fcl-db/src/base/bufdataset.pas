@@ -14,14 +14,20 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit BufDataset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils,Data.Db,Data.Bufdataset_parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,Sysutils,db,bufdataset_parser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TCustomBufDataset = Class;
@@ -726,7 +732,11 @@ procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderCla
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Variants, Data.Consts, Data.FMtBcd, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses variants, dbconst, FmtBCD, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SDefaultIndex = 'DEFAULT_ORDER';

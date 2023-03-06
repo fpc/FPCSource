@@ -14,14 +14,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLDatapacketReader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.BufDataset, Xml.Dom, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Bufdataset, dom, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TChangeLogEntry = record
@@ -62,7 +69,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.Writer, Xml.Read, System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
 uses xmlwrite, xmlread, base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   XMLFieldTypeNames : Array [TFieldType] of String[16] =

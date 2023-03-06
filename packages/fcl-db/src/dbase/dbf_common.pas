@@ -1,9 +1,22 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db
+{$ifndef Windows}
+  , System.Types, Data.Dbf.Wtil
+{$ifdef KYLIX}
+  , Libc
+{$endif}  
+{$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DB
 {$ifndef WINDOWS}
@@ -13,6 +26,7 @@ uses
 {$endif}  
 {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 const
@@ -123,8 +137,13 @@ function Max(x, y: integer): integer;
 implementation
 
 {$ifdef WINDOWS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 //====================================================================

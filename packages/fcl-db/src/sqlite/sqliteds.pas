@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLiteDS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   This is TSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -37,8 +39,13 @@ unit SQLiteDS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.SQLite.Customsqliteds;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, CustomSqliteDS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TSqliteDataset }
@@ -64,8 +71,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Sqlite, Data.Db, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sqlite, db, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //function sqlite_last_statement_changes(dbhandle:Pointer):longint;cdecl;external 'sqlite' name 'sqlite_last_statement_changes';
 

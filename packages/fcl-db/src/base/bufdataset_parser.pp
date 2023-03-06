@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bufdataset_parser;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Joost van der Sluis and other members of the
@@ -21,12 +23,21 @@ unit bufdataset_parser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Prscore,
+  Data.Dbf.Prsdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
   db,
   dbf_prscore,
   dbf_prsdef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -70,7 +81,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 // TFieldVar aids in retrieving field values from records

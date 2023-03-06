@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { note this is Brazilian Portuguese }
 

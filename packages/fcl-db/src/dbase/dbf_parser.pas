@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_parser;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,23 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+{$ifdef KYLIX}
+  Api.Libc,
+{$endif}
+{$ifndef Windows}
+  Data.Dbf.Wtil,
+{$endif}
+  Data.Db,
+  Data.Dbf.Prscore,
+  Data.Dbf.Common,
+  Data.Dbf.Fields,
+  Data.Dbf.Prsdef,
+  Data.Dbf.Prssupp;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
@@ -33,6 +52,7 @@ uses
   dbf_fields,
   dbf_prsdef,
   dbf_prssupp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -82,6 +102,16 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Dbf.Dbf,
+  Data.Dbf.Dbffile,
+  Data.Dbf.Str
+{$ifdef WINDOWS}
+  ,WinApi.Windows
+{$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbf,
   dbf_dbffile,
@@ -90,6 +120,7 @@ uses
   ,Windows
 {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 // TFieldVar aids in retrieving field values from records

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit oracleconnection;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     Copyright (c) 2006-2019 by Joost van der Sluis, FPC contributors
@@ -16,6 +18,16 @@ unit oracleconnection;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Consts, Data.Sqldb, Data.BufDataset,
+{$IfDef LinkDynamically}
+  Api.Oracle.OciDyn,
+{$ELSE}
+  Api.Oracle.Oci,
+{$ENDIF}
+  Api.Oracle.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, dbconst, sqldb, bufdataset,
 {$IfDef LinkDynamically}
@@ -24,6 +36,7 @@ uses
   oci,
 {$ENDIF}
   oratypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultTimeOut = 60;
@@ -119,8 +132,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, System.StrUtils, Data.FMTBcd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math, StrUtils, FmtBCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ObjectQuote='"'; //beginning and ending quote for objects such as table names. Note: can be different from quotes around field names

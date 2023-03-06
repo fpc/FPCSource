@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpddmysql80;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Dict.Base, Data.Dict.Sqldb;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   { TSQLDBMySql80DDEngine }
@@ -38,7 +45,11 @@ Procedure UnRegisterMySQL80DDEngine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.SqlDb.Mysql80;
+{$ELSE FPC_DOTTEDUNITS}
 uses mysql80conn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure RegisterMySQL80DDEngine;
 
@@ -57,7 +68,7 @@ end;
 function TSQLDBMySql80DDEngine.CreateConnection(AConnectString: String
   ): TSQLConnection;
 begin
-  Result:=mysql80conn.TMySQL80Connection.Create(Self);
+  Result:={$IFDEF FPC_DOTTEDUNITS}Data.SqlDb.Mysql80{$ELSE}mysql80conn{$ENDIF}.TMySQL80Connection.Create(Self);
 end;
 
 class function TSQLDBMySql80DDEngine.Description: string;

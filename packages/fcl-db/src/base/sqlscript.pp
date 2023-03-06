@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLScript;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   MinSQLSeps = 5; // Default, minimum number of standard SQL separators.

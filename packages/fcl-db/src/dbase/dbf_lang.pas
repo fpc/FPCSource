@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_lang;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,17 @@ unit dbf_lang;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows;
+{$else}
+{$ifdef KYLIX}
+  Api.Libc, 
+{$endif}  
+  System.Types, Data.Dbf.Wtil;
+{$endif}  
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows;
@@ -27,6 +40,7 @@ uses
 {$endif}  
   Types, dbf_wtil;
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -528,8 +542,13 @@ function GetLangId_From_LangName(const LocaleStr: string): Byte;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PCardinal = ^Cardinal;

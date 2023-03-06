@@ -41,8 +41,8 @@ unit Generics.Hashes;
 
 interface
 
-{$IFDEF FPC_DOTTEDUNITS}
 uses
+{$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils;
 {$ELSE FPC_DOTTEDUNITS}
   Classes, SysUtils;

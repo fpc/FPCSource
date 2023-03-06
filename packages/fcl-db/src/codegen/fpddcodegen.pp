@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDCodeGen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Dict.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, fpDataDict;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TPropType = (ptAuto,
