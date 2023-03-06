@@ -19,7 +19,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Regex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode Delphi}
 {$H-}
@@ -62,9 +64,15 @@ interface
   followed by concatenation, finally followed by alternation.
 }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TUpcaseFunc = function(aCh : AnsiChar) : AnsiChar;
@@ -193,7 +201,11 @@ Resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MetaCharacters : set of AnsiChar =

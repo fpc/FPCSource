@@ -1,0 +1,6 @@
+src/regexpr.pas=namespaced/System.Regexpr.pas
+src/uregexpr.pp=namespaced/System.URegexpr.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/oldregexpr.pp=namespaced/System.Oldregexpr.pp
+src/regex.pp=namespaced/System.Regex.pp
