@@ -13,12 +13,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ServiceManager;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, System.SysUtils, System.Classes, WinApi.Jedi.Winnt, WinApi.Jedi.Winsvc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, SysUtils, Classes, jwawinnt, jwawinsvc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -699,7 +706,7 @@ begin
     Pargs:=StringsToPcharList(Args);
     end;
   Try
-    If not jwawinsvc.StartService(SHandle,Argc,PChar(PArgs)) then
+    If not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.StartService(SHandle,Argc,PChar(PArgs)) then
       RaiseLastOSError;
   Finally
     If (PArgs<>Nil) then
@@ -725,7 +732,7 @@ end;
 Procedure TServiceManager.LockServiceDatabase;
 
 begin
-  FDBLock:=jwawinsvc.LockServiceDatabase(Handle);
+  FDBLock:={$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.LockServiceDatabase(Handle);
   If FDBLock=Nil then
     RaiseLastOSError;
 end;
@@ -735,7 +742,7 @@ begin
   If (FDBLock<>Nil) then
     begin
     Try
-      If Not jwawinsvc.UnLockServiceDatabase(FDBLock) then
+      If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.UnLockServiceDatabase(FDBLock) then
         RaiseLastOSError;
     Finally
       FDBLock:=Nil;
@@ -750,12 +757,12 @@ Var
   BytesNeeded : DWord;
 
 begin
-  jwawinsvc.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
   If (GetLastError<>ERROR_INSUFFICIENT_BUFFER) then
     RaiseLastOSError;
   GetMem(SvcCfg,BytesNeeded);
   Try
-    If Not jwawinsvc.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
+    If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
       RaiseLastOSError;
     With config,SvcCfg^ do
       begin
@@ -976,3 +983,4 @@ begin
 end;
 
 end.
+ 

@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FileInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes,  System.Resources.Resource, System.Resources.VersionTypes, System.Resources.Version;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes,  resource, versiontypes, versionresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Low level interface

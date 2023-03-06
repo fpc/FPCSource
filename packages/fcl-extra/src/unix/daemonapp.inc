@@ -13,7 +13,11 @@
  **********************************************************************}
 { System dependent service stuff }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrFailedToFork          = 'Failed to fork daemon process.';

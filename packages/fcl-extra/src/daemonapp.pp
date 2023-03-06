@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit daemonapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp, System.Classes, System.SysUtils, Fcl.EventLog, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Custapp, Classes, SysUtils, eventlog, rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCustomDaemon = Class;
