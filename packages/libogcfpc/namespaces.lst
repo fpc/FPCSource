@@ -1,0 +1,12 @@
+src/gctypes.pp=namespaced/WiiApi.Gctypes.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gcmodplay.pp=namespaced/WiiApi.Gcmodplay.pp
+src/network.pp=namespaced/WiiApi.Network.pp
+src/fat.pp=namespaced/WiiApi.Fat.pp
+src/gccore.pp=namespaced/WiiApi.Gccore.pp
+src/debug.pp=namespaced/WiiApi.Debug.pp
+src/iso9660.pp=namespaced/WiiApi.Iso9660.pp
+src/asndlib.pp=namespaced/WiiApi.Asndlib.pp
+src/aesndlib.pp=namespaced/WiiApi.Aesndlib.pp
+src/mp3player.pp=namespaced/WiiApi.Mp3player.pp
