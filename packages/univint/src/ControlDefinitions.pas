@@ -31,7 +31,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ControlDefinitions;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -216,7 +218,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.TextEdit,MacOsApi.AXUIElement,MacOsApi.AEDataModel,MacOsApi.CFBase,MacOsApi.Events,MacOsApi.QuickdrawTypes,MacOsApi.IconsCore,MacOsApi.CFData,MacOsApi.CFDictionary,MacOsApi.CFString,MacOsApi.DateTimeUtils,MacOsApi.Drag,MacOsApi.TextCommon,MacOsApi.Appearance,MacOsApi.CarbonEvents,MacOsApi.Controls,MacOsApi.Lists,MacOsApi.MacHelp,MacOsApi.Menus,MacOsApi.HIObject;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,TextEdit,AXUIElement,AEDataModel,CFBase,Events,QuickdrawTypes,IconsCore,CFData,CFDictionary,CFString,DateTimeUtils,Drag,TextCommon,Appearance,CarbonEvents,Controls,Lists,MacHelp,Menus,HIObject;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

@@ -64,7 +64,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AudioUnitProperties;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -249,7 +251,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.AUComponent,MacOsApi.AudioFile,MacOsApi.CoreAudioTypes,MacOsApi.MIDIServices,MacOsApi.CFBase,MacOsApi.CFURL;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,AUComponent,AudioFile,CoreAudioTypes,MIDIServices,CFBase,CFURL;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

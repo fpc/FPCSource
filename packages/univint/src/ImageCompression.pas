@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ImageCompression;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Components,MacOsApi.CGLTypes,MacOsApi.ColorSyncDeprecated,MacOsApi.CVBase,MacOsApi.CVImageBuffer,MacOsApi.CVPixelBuffer,MacOsApi.CVPixelBufferPool,MacOsApi.Files,MacOsApi.Dialogs,MacOsApi.OSUtils,MacOsApi.QuickdrawTypes,MacOsApi.QDOffscreen,MacOsApi.CFBase,MacOsApi.CFData,MacOsApi.CFDictionary,MacOsApi.CGContext,MacOsApi.CGImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Components,CGLTypes,ColorSyncDeprecated,CVBase,CVImageBuffer,CVPixelBuffer,CVPixelBufferPool,Files,Dialogs,OSUtils,QuickdrawTypes,QDOffscreen,CFBase,CFData,CFDictionary,CGContext,CGImage;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

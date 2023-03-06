@@ -18,7 +18,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CGWindow;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -203,7 +205,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CGBase,MacOsApi.CGGeometry,MacOsApi.CGImage,MacOsApi.CFBase,MacOsApi.CFDictionary,MacOsApi.CFArray,MacOsApi.CFNumber;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CGBase,CGGeometry,CGImage,CFBase,CFDictionary,CFArray,CFNumber;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

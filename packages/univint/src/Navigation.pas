@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Navigation;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.AEDataModel,MacOsApi.CFBase,MacOsApi.QuickdrawTypes,MacOsApi.Finder,MacOsApi.Events,MacOsApi.AppleEvents,MacOsApi.Translation,MacOsApi.MacWindows,MacOsApi.CodeFragments,MacOsApi.MacErrors,MacOsApi.CFArray,MacOsApi.CFString;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,AEDataModel,CFBase,QuickdrawTypes,Finder,Events,AppleEvents,Translation,MacWindows,CodeFragments,MacErrors,CFArray,CFString;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

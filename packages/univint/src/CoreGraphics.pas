@@ -22,7 +22,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CoreGraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -207,7 +209,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CGBase,MacOsApi.CGAffineTransforms,MacOsApi.CGBitmapContext,MacOsApi.CGColor,MacOsApi.CGColorSpace,MacOsApi.CGContext,MacOsApi.CGDataConsumer,MacOsApi.CGDataProvider,MacOsApi.CGErrors,MacOsApi.CGFont,MacOsApi.CGFunction,MacOsApi.CGGeometry,MacOsApi.CGGradient,MacOsApi.CGImage,MacOsApi.CGLayer,MacOsApi.CGPDFArray,MacOsApi.CGPDFContentStream,MacOsApi.CGPDFContext,MacOsApi.CGPDFDictionary,MacOsApi.CGPDFDocument,MacOsApi.CGPDFObject,MacOsApi.CGPDFOperatorTable,MacOsApi.CGPDFPage,MacOsApi.CGPDFScanner,MacOsApi.CGPDFStream,MacOsApi.CGPDFString,MacOsApi.CGPath,MacOsApi.CGPattern,MacOsApi.CGShading,MacOsApi.CGDirectDisplay,MacOsApi.CGDirectPalette,MacOsApi.CGDisplayConfiguration,MacOsApi.CGDisplayFades,MacOsApi.CGEvent,MacOsApi.CGEventSource,MacOsApi.CGEventTypes,MacOsApi.CGGLContext,MacOsApi.CGPSConverter,MacOsApi.CGRemoteOperation,MacOsApi.CGSession,MacOsApi.CGWindow,MacOsApi.CGWindowLevels;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CGBase,CGAffineTransforms,CGBitmapContext,CGColor,CGColorSpace,CGContext,CGDataConsumer,CGDataProvider,CGErrors,CGFont,CGFunction,CGGeometry,CGGradient,CGImage,CGLayer,CGPDFArray,CGPDFContentStream,CGPDFContext,CGPDFDictionary,CGPDFDocument,CGPDFObject,CGPDFOperatorTable,CGPDFPage,CGPDFScanner,CGPDFStream,CGPDFString,CGPath,CGPattern,CGShading,CGDirectDisplay,CGDirectPalette,CGDisplayConfiguration,CGDisplayFades,CGEvent,CGEventSource,CGEventTypes,CGGLContext,CGPSConverter,CGRemoteOperation,CGSession,CGWindow,CGWindowLevels;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

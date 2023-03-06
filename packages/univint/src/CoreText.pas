@@ -22,7 +22,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CoreText;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -207,7 +209,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CTFont,MacOsApi.CTFontCollection,MacOsApi.CTFontDescriptor,MacOsApi.CTFontManager,MacOsApi.CTFontTraits,MacOsApi.CTFrame,MacOsApi.CTFramesetter,MacOsApi.CTGlyphInfo,MacOsApi.CTLine,MacOsApi.CTParagraphStyle,MacOsApi.CTRun,MacOsApi.CTStringAttributes,MacOsApi.CTTextTab,MacOsApi.CTTypesetter;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CTFont,CTFontCollection,CTFontDescriptor,CTFontManager,CTFontTraits,CTFrame,CTFramesetter,CTGlyphInfo,CTLine,CTParagraphStyle,CTRun,CTStringAttributes,CTTextTab,CTTypesetter;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

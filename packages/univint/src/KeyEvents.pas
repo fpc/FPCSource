@@ -4,7 +4,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit KeyEvents;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
