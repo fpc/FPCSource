@@ -5,13 +5,24 @@
   Copyright (C) 2011 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmlxsdparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF MSWINDOWS}WinApi.Windows,{$ENDIF}
+  {$IFDEF UNIX}UnixApi.Unix,{$ENDIF}
+  System.SysUtils,
+  System.DateUtils,
+  System.Math,
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF MSWINDOWS}windows,{$ENDIF}
   {$IFDEF UNIX}unix,{$ENDIF}
@@ -19,6 +30,7 @@ uses
   dateutils,
   math,
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SXsdParserError = 'parsing "%s" as "%s" failed';
