@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$if defined(aix) or defined(solaris) or (defined(bsd) and not(defined(darwin)))}
@@ -32,12 +34,21 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,System.Console.Video
+{$ifndef NOGPM}
+  ,UnixApi.Gpm,LinuxApi.Vcs
+{$endif ndef NOGPM}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix,Video
 {$ifndef NOGPM}
   ,gpm,linuxvcs
 {$endif ndef NOGPM}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i mouse.inc}
 

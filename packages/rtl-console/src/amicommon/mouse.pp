@@ -15,7 +15,9 @@
  **********************************************************************}
 
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i mouseh.inc}

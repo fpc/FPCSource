@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vesamode;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       TP.DOS,DOSApi.GO32,DOSApi.dpmiexcp,MacOsApi.Video,System.Console.Mouse;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        dos,go32,dpmiexcp,video,mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type
        twordarray = array[0..0] of word;

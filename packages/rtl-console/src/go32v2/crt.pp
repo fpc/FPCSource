@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -24,8 +26,13 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ASMMODE ATT}
 
@@ -44,7 +51,6 @@ begin
   regs.realeax:=mode;
   realintr($10,regs);
 end;
-
 
 function GetScreenHeight : longint;
 begin
@@ -753,4 +759,5 @@ begin
   initdelay;
 { Enable ctrl-c input (JM) }
   __djgpp_set_ctrl_c(0);
+  
 end.

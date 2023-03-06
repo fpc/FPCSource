@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TermInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -646,8 +648,13 @@ function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseUnix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function putp(Ndx: Longint): Longint;
 var

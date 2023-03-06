@@ -11,11 +11,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 {$mode fpc} // Shortstring is assumed
-{$i crth.inc}
+ {$i crth.inc}
 
 Const
   { Controlling consts }
@@ -38,7 +40,11 @@ var
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base ,UnixApi.Unix, UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 uses BaseUnix ,unix, termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   OldTextAttr : byte = $07;
@@ -1466,10 +1472,10 @@ end;
 ******************************************************************************}
 
 var
-  OldIO : termio.TermIos;
+  OldIO : {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.TermIos;
   inputRaw, outputRaw: boolean;
 
-procedure saveRawSettings(const tio: termio.termios);
+procedure saveRawSettings(const tio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios);
 Begin
   with tio do
    begin
@@ -1484,7 +1490,7 @@ Begin
    end;
 end;
 
-procedure restoreRawSettings(tio: termio.termios);
+procedure restoreRawSettings(tio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios);
 begin
   with tio do
     begin

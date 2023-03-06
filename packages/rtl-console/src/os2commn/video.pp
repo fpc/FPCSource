@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -21,8 +23,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.doscalls, OS2Api.viocalls, System.Console.Mouse, System.Unicode.Graphemebreakproperty, System.Unicode.Eastasianwidth, System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DosCalls, VioCalls, Mouse, graphemebreakproperty, eastasianwidth, charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i video.inc}
 

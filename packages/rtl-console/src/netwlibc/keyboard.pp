@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -20,7 +22,11 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Libc;
+{$ELSE FPC_DOTTEDUNITS}
 uses Libc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 

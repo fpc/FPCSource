@@ -13,15 +13,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i keybrdh.inc}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.WinProcs, WinApi.WinTypes, MacOsApi.Video;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   WinProcs, WinTypes, video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 

@@ -15,7 +15,9 @@
  **********************************************************************}
 {2001/04/14 armin: first version, only a dummy, i think there is no 'official' way to support
                    a mouse under netware }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$ifdef NOMOUSE}
