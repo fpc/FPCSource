@@ -44,11 +44,14 @@
 {  1.60     30 Sep 99   Complete recheck preformed         }
 {**********************************************************}
 
+
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UMsgBox;
 {$else FV_UNICODE}
 UNIT MsgBox;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {2.0 compatibility}
 {$ifdef VER2_0}
@@ -85,12 +88,21 @@ UNIT MsgBox;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES System.Objects,                                 { Standard GFV units }
+{$ifdef FV_UNICODE}
+     FreeVision.Ufvcommon,FreeVision.Udialogs;
+{$else FV_UNICODE}
+     FreeVision.Fvcommon,FreeVision.Dialogs;
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 USES objects,                                 { Standard GFV units }
 {$ifdef FV_UNICODE}
      ufvcommon,udialogs;
 {$else FV_UNICODE}
      fvcommon,dialogs;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -181,11 +193,19 @@ FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: Sw_String;
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+USES FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Uapp{, System.Resources.Resource};                 { Standard GFV units }
+{$else FV_UNICODE}
+USES FreeVision.Drivers, FreeVision.Views, FreeVision.App{, System.Resources.Resource};                    { Standard GFV units }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 USES UDrivers, UViews, UApp{, Resource};                 { Standard GFV units }
 {$else FV_UNICODE}
 USES Drivers, Views, App{, Resource};                    { Standard GFV units }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }

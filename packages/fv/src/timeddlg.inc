@@ -18,11 +18,13 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT utimeddlg;
 {$else FV_UNICODE}
 UNIT timeddlg;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -53,6 +55,15 @@ UNIT timeddlg;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES System.Objects,
+  FreeVision.Fvconsts,
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon, FreeVision.Udialogs, FreeVision.Udrivers, FreeVision.Uviews; { Standard GFV unit }
+{$else FV_UNICODE}
+  FreeVision.Fvcommon, FreeVision.Dialogs, FreeVision.Drivers, FreeVision.Views; { Standard GFV unit }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 USES objects,
   fvconsts,
 {$ifdef FV_UNICODE}
@@ -60,6 +71,7 @@ USES objects,
 {$else FV_UNICODE}
   fvcommon, dialogs, drivers, views; { Standard GFV unit }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TTimedDialog = object (TDialog)
@@ -122,6 +134,15 @@ FUNCTION TimedMessageBoxRect (Var R: TRect; Const Msg: Sw_String; Params: Pointe
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+  TP.DOS,
+{$ifdef FV_UNICODE}
+  FreeVision.Uapp, {System.Resources.Resource,} FreeVision.Umsgbox;   { Standard GFV units }
+{$else FV_UNICODE}
+  FreeVision.App, {System.Resources.Resource,} FreeVision.Msgbox;   { Standard GFV units }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 USES
   dos,
 {$ifdef FV_UNICODE}
@@ -129,6 +150,7 @@ USES
 {$else FV_UNICODE}
   app, {resource,} msgbox;   { Standard GFV units }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {***************************************************************************}

@@ -42,11 +42,13 @@
 {  1.41     03 Nov 99   FPC windows code added             }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UValidate;
 {$else FV_UNICODE}
 UNIT Validate;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -77,6 +79,15 @@ UNIT Validate;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,
+{$else FV_UNICODE}
+  FreeVision.Fvcommon,
+{$endif FV_UNICODE}
+  System.Objects, FreeVision.Fvconsts;                      { GFV standard units }
+{$ELSE FPC_DOTTEDUNITS}
 USES
 {$ifdef FV_UNICODE}
   UFVCommon,
@@ -84,6 +95,7 @@ USES
   FVCommon,
 {$endif FV_UNICODE}
   Objects, fvconsts;                      { GFV standard units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -306,11 +318,19 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+USES FreeVision.Umsgbox;                                         { GFV standard unit }
+{$else FV_UNICODE}
+USES FreeVision.Msgbox;                                          { GFV standard unit }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 USES UMsgBox;                                         { GFV standard unit }
 {$else FV_UNICODE}
 USES MsgBox;                                          { GFV standard unit }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PRIVATE ROUTINES                             }

@@ -63,7 +63,9 @@
 {  1.00     12 Nov 99   First multi platform release       }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Gadgets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -96,7 +98,11 @@ UNIT Gadgets;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES FreeVision.Fvconsts, FreeVision.Time, System.Objects,FreeVision.Drivers, FreeVision.Views, FreeVision.App;      { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES FVConsts, Time, Objects, Drivers, Views, App;      { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                        PUBLIC OBJECT DEFINITIONS                          }

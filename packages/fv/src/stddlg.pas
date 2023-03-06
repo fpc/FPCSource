@@ -29,7 +29,9 @@
 1.0   (1992)
   - original implementation }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StdDlg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   This unit has been modified to make some functions global, apply patches
@@ -66,8 +68,14 @@ unit StdDlg;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views, 
+  FreeVision.Dialogs, FreeVision.Validate, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FVConsts, Objects, Drivers, Views, Dialogs, Validate, Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MaxDir   = 255;   { Maximum length of a DirStr. }
@@ -569,8 +577,13 @@ implementation
 {            Local Declarations              }
 {****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FreeVision.App, {FreeVision.Memory,} FreeVision.HistList, FreeVision.MsgBox{, System.Resources.Resource};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   App, {Memory,} HistList, MsgBox{, Resource};
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

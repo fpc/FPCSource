@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ColorTxt;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Vision package
 
@@ -37,8 +39,13 @@ unit ColorTxt;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Dialogs, FreeVision.App, FreeVision.Fvconsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objects, drivers, views, dialogs, app, fvconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PColoredText = ^TColoredText;

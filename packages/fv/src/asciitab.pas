@@ -23,7 +23,9 @@
 {        WIN95/NT - FPC 0.9912+             (32 Bit)       }
 {                                                          }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT AsciiTab;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -44,7 +46,11 @@ UNIT AsciiTab;
 
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.App;      { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES FVConsts, Objects, Drivers, Views, App;      { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                        PUBLIC OBJECT DEFINITIONS                          }

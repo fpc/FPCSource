@@ -14,11 +14,14 @@
 
  **********************************************************************}
 {$H-}
+
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 unit uoutline;
 {$else FV_UNICODE}
 unit outline;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
 
@@ -26,11 +29,19 @@ unit outline;
                                   interface
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+uses  FreeVision.Udrivers,System.Objects,FreeVision.Uviews;
+{$else FV_UNICODE}
+uses  FreeVision.Drivers,System.Objects,FreeVision.Views;
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 uses  udrivers,objects,uviews;
 {$else FV_UNICODE}
 uses  drivers,objects,views;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 type  Pnode=^Tnode;
       Tnode=record

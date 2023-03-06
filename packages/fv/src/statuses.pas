@@ -1,5 +1,7 @@
 {$V-}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Statuses;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
 
@@ -64,9 +66,14 @@ interface
   {$S-}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-
+  FreeVision.Fvcommon, FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, 
+  FreeVision.Views, FreeVision.Dialogs;
+{$ELSE FPC_DOTTEDUNITS}
+uses
   FVCommon, FVConsts, Objects, Drivers, Views, Dialogs;
+{$ENDIF FPC_DOTTEDUNITS}
 {  Resource;}
 
 const
@@ -680,8 +687,13 @@ procedure RegisterStatuses;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FreeVision.Msgbox, FreeVision.App;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   MsgBox, App;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************}
 {                    Local procedures and functions                          }

@@ -25,11 +25,13 @@
 {                                                          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UApp;
 {$else FV_UNICODE}
 UNIT App;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {2.0 compatibility}
 {$ifdef VER2_0}
@@ -55,6 +57,34 @@ UNIT App;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
+       WinApi.Windows,                                       { Standard units }
+   {$ENDIF}
+
+   {$IFDEF OS_OS2}                                    { OS2 CODE }
+     {$IFDEF PPC_FPC}
+     OS2Api.os2def, OS2Api.doscalls, OS2Api.pmwin,                       { Standard units }
+     {$ELSE}
+      OS2Api.os2def, Os2Base, OS2PmApi,                       { Standard units }
+     {$ENDIF}
+   {$ENDIF}
+   TP.DOS,
+   System.Console.Video,
+{$ifdef FV_UNICODE}
+   FreeVision.Ufvcommon, {FreeVision.Memory,}                                { GFV standard units }
+{$else FV_UNICODE}
+   FreeVision.Fvcommon, {FreeVision.Memory,}                                { GFV standard units }
+{$endif FV_UNICODE}
+   System.Objects,
+{$ifdef FV_UNICODE}
+   FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Umenus, FreeVision.Uhistlist, FreeVision.Udialogs, FreeVision.Umsgbox,
+{$else FV_UNICODE}
+   FreeVision.Drivers, FreeVision.Views, FreeVision.Menus, FreeVision.Histlist, FreeVision.Dialogs, FreeVision.Msgbox,
+{$endif FV_UNICODE}
+   FreeVision.Fvconsts;
+{$ELSE FPC_DOTTEDUNITS}
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
        Windows,                                       { Standard units }
@@ -81,6 +111,7 @@ USES
    Drivers, Views, Menus, HistList, Dialogs, msgbox,
 {$endif FV_UNICODE}
    fvconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -370,7 +401,11 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    System.Console.Mouse{,System.Resources.Resource};
+{$ELSE FPC_DOTTEDUNITS}
 uses    Mouse{,Resource};
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring  sVideoFailed='Video initialization failed.';
                 sTypeExitOnReturn='Type EXIT to return...';
@@ -381,7 +416,7 @@ resourcestring  sVideoFailed='Video initialization failed.';
 {***************************************************************************}
 
 {***************************************************************************}
-{                      PRIVATE INITIALIZED VARIABLES                        }
+ {                      PRIVATE INITIALIZED VARIABLES                        }
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
@@ -496,7 +531,7 @@ END;
 {--TDesktop-----------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TDesktop.Init (Var Bounds: Objects.TRect);
+CONSTRUCTOR TDesktop.Init (Var Bounds: {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Objects.TRect);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    GrowMode := gfGrowHiX + gfGrowHiY;                 { Set growmode }
@@ -714,10 +749,10 @@ DESTRUCTOR TProgram.Done;
 BEGIN
    { Do not free the Buffer of Video Unit }
 {$ifdef FV_UNICODE}
-   If Buffer = UViews.PVideoBuf(EnhancedVideoBuf) then
+   If Buffer = {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UViews.PVideoBuf(EnhancedVideoBuf) then
      Buffer:=nil;
 {$else FV_UNICODE}
-   If Buffer = Views.PVideoBuf(VideoBuf) then
+   If Buffer = {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Views.PVideoBuf(VideoBuf) then
      Buffer:=nil;
 {$endif FV_UNICODE}
    If (Desktop <> Nil) Then Dispose(Desktop, Done);   { Destroy desktop }
@@ -837,9 +872,9 @@ BEGIN
     video unit capabilities, the mono modus can't be handled
   }
 {$ifdef FV_UNICODE}
-  UDrivers.DetectVideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Udrivers.DetectVideo;
 {$else FV_UNICODE}
-  Drivers.DetectVideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.DetectVideo;
 {$endif FV_UNICODE}
 { ScreenMode.Row may be 0 if there's no console on startup }
   if ScreenMode.Row = 0 then
@@ -861,16 +896,16 @@ BEGIN
   ShadowSize.Y := 1;
   ShowMarkers := False;
 {$ifdef FV_UNICODE}
-  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UViews.PVideoBuf(EnhancedVideoBuf);
 {$else FV_UNICODE}
-  Buffer := Views.PVideoBuf(VideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Views.PVideoBuf(VideoBuf);
 {$endif FV_UNICODE}
 END;
 
 
 {procedure TProgram.DoneScreen;
 begin
-  Drivers.DoneVideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.DoneVideo;
   Buffer:=nil;
 end;}
 
@@ -931,9 +966,9 @@ begin
 {  InitMemory;}
   InitScreen;
 {$ifdef FV_UNICODE}
-  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UViews.PVideoBuf(EnhancedVideoBuf);
 {$else FV_UNICODE}
-  Buffer := Views.PVideoBuf(VideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Views.PVideoBuf(VideoBuf);
 {$endif FV_UNICODE}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
@@ -954,16 +989,16 @@ begin
    Warning: InitScreen calls DetectVideo which
     resets ScreenMode to old value, call it after
     video mode was changed instead of before }
-  Video.SetVideoMode(Mode);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetVideoMode(Mode);
 
   { Update ScreenMode to new value }
   InitScreen;
-  ScreenWidth:=Video.ScreenWidth;
-  ScreenHeight:=Video.ScreenHeight;
+  ScreenWidth:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ScreenWidth;
+  ScreenHeight:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ScreenHeight;
 {$ifdef FV_UNICODE}
-  Buffer := UViews.PVideoBuf(EnhancedVideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UViews.PVideoBuf(EnhancedVideoBuf);
 {$else FV_UNICODE}
-  Buffer := Views.PVideoBuf(VideoBuf);
+  Buffer := {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Views.PVideoBuf(VideoBuf);
 {$endif FV_UNICODE}
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);
@@ -999,9 +1034,9 @@ BEGIN
            End;
          If (Event.What = evNothing) Then Begin       { No mouse event }
 {$ifdef FV_UNICODE}
-           UDrivers.GetMouseEvent(Event);              { Load mouse event }
+           {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Udrivers.GetMouseEvent(Event);              { Load mouse event }
 {$else FV_UNICODE}
-           Drivers.GetMouseEvent(Event);              { Load mouse event }
+           {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.GetMouseEvent(Event);              { Load mouse event }
 {$endif FV_UNICODE}
            If (Event.What = evNothing) Then
              begin
@@ -1011,9 +1046,9 @@ BEGIN
                  directly on Amiga-like systems. The FV itself cannot
                  handle the System Events anyway. (KB) }
 {$ifdef FV_UNICODE}
-               UDrivers.GetSystemEvent(Event);         { Load system event }
+               {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Udrivers.GetSystemEvent(Event);         { Load system event }
 {$else FV_UNICODE}
-               Drivers.GetSystemEvent(Event);         { Load system event }
+               {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.GetSystemEvent(Event);         { Load system event }
 {$endif FV_UNICODE}
                If (Event.What = evNothing) Then
 {$ENDIF}
@@ -1064,9 +1099,9 @@ BEGIN
      end;}
    initkeyboard;
 {$ifdef FV_UNICODE}
-   if not UDrivers.InitVideo then                              { Start video up }
+   if not {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UDrivers.InitVideo then                              { Start video up }
 {$else FV_UNICODE}
-   if not Drivers.InitVideo then                              { Start video up }
+   if not {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.InitVideo then                              { Start video up }
 {$endif FV_UNICODE}
      begin
        donekeyboard;
@@ -1074,18 +1109,18 @@ BEGIN
        halt(1);
      end;
 {$ifdef FV_UNICODE}
-   UDrivers.InitEvents;                                        { Start event drive }
-   UDrivers.InitSysError;                                      { Start system error }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UDrivers.InitEvents;                                        { Start event drive }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UDrivers.InitSysError;                                      { Start system error }
 {$else FV_UNICODE}
-   Drivers.InitEvents;                                        { Start event drive }
-   Drivers.InitSysError;                                      { Start system error }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.InitEvents;                                        { Start event drive }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.InitSysError;                                      { Start system error }
 {$endif FV_UNICODE}
    InitHistory;                                               { Start history up }
    Inherited Init;                                            { Call ancestor }
    InitMsgBox;
    { init mouse and cursor }
-   Video.SetCursorType(crHidden);
-   Mouse.SetMouseXY(1,1);
+   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
+   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Mouse.SetMouseXY(1,1);
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1096,13 +1131,13 @@ BEGIN
    Inherited Done;                                    { Call ancestor }
    DoneHistory;                                       { Close history }
 {$ifdef FV_UNICODE}
-   UDrivers.DoneSysError;                                      { Close system error }
-   UDrivers.DoneEvents;                                        { Close event drive }
-   Udrivers.donevideo;
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UDrivers.DoneSysError;                                      { Close system error }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}UDrivers.DoneEvents;                                        { Close event drive }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Udrivers.donevideo;
 {$else FV_UNICODE}
-   Drivers.DoneSysError;                                      { Close system error }
-   Drivers.DoneEvents;                                        { Close event drive }
-   drivers.donevideo;
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.DoneSysError;                                      { Close system error }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.DoneEvents;                                        { Close event drive }
+   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.donevideo;
 {$endif FV_UNICODE}
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
@@ -1142,11 +1177,11 @@ BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
 {$ifdef FV_UNICODE}
-  udrivers.donevideo;
-  udrivers.donekeyboard;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.donevideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.donekeyboard;
 {$else FV_UNICODE}
-  drivers.donevideo;
-  drivers.donekeyboard;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.donevideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.donekeyboard;
 {$endif FV_UNICODE}
 {  DoneDosMem;}
   WriteShellMsg;
@@ -1162,13 +1197,13 @@ BEGIN                                                 { Compatability only }
 {$endif}
 {  InitDosMem;}
 {$ifdef FV_UNICODE}
-  udrivers.initkeyboard;
-  udrivers.initvideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.initkeyboard;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.initvideo;
 {$else FV_UNICODE}
-  drivers.initkeyboard;
-  drivers.initvideo;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.initkeyboard;
+  {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}drivers.initvideo;
 {$endif FV_UNICODE}
-  Video.SetCursorType(crHidden);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
   InitScreen;
   InitEvents;
   InitSysError;

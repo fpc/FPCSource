@@ -25,11 +25,13 @@
 {                                                          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UDialogs;
 {$else FV_UNICODE}
 UNIT Dialogs;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
 
@@ -58,6 +60,28 @@ UNIT Dialogs;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
+       WinApi.Windows,                                       { Standard units }
+   {$ENDIF}
+
+   {$IFDEF OS_OS2}                                    { OS2 CODE }
+     OS2Api.os2def, OS2Api.doscalls, OS2Api.pmwin,                         { Standard units }
+   {$ENDIF}
+
+{$ifdef FV_UNICODE}
+   FreeVision.Ufvcommon,
+{$else FV_UNICODE}
+   FreeVision.Fvcommon,
+{$endif FV_UNICODE}
+   FreeVision.Fvconsts, System.Objects,                       { Standard GFV units }
+{$ifdef FV_UNICODE}
+   FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Uvalidate, System.Unicode.Graphemebreakproperty;
+{$else FV_UNICODE}
+   FreeVision.Drivers, FreeVision.Views, FreeVision.Validate;
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
        Windows,                                       { Standard units }
@@ -78,6 +102,7 @@ USES
 {$else FV_UNICODE}
    Drivers, Views, Validate;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -1055,11 +1080,19 @@ resourcestring  slCancel='Cancel';
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+USES FreeVision.Uapp,FreeVision.Uhistlist;                             { Standard GFV unit }
+{$else FV_UNICODE}
+USES FreeVision.App,FreeVision.Histlist;                               { Standard GFV unit }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 USES UApp,UHistList;                             { Standard GFV unit }
 {$else FV_UNICODE}
 USES App,HistList;                               { Standard GFV unit }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                         PRIVATE DEFINED CONSTANTS                         }

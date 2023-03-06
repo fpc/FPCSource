@@ -44,11 +44,13 @@
 {  1.51     03 Nov 99   FPC windows support added          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UHistList;
 {$else FV_UNICODE}
 UNIT HistList;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -79,6 +81,15 @@ UNIT HistList;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,
+{$else FV_UNICODE}
+  FreeVision.Fvcommon,
+{$endif FV_UNICODE}
+  System.Objects;                                 { Standard GFV units }
+{$ELSE FPC_DOTTEDUNITS}
 USES
 {$ifdef FV_UNICODE}
   UFVCommon,
@@ -86,6 +97,7 @@ USES
   FVCommon,
 {$endif FV_UNICODE}
   Objects;                                 { Standard GFV units }
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
