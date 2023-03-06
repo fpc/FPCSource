@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cairogobject;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   Cairo-gobject header translation by Dennis Golovan. Original header
   of cairo-gobject.h
@@ -45,7 +47,11 @@ interface
   {$PACKRECORDS C}
 {$ENDIF}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Cairo.Lib;
+{$ELSE FPC_DOTTEDUNITS}
 uses cairo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const 
 {$ifdef MSWINDOWS}

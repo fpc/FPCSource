@@ -1,0 +1,7 @@
+src/cairogobject.pp=namespaced/Api.Cairo.GObject.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/cairo.pp=namespaced/Api.Cairo.Lib.pp
+src/cairoft.pp=namespaced/Api.Cairo.Ft.pp
+src/cairoxlib.pp=namespaced/Api.Cairo.Xlib.pp
+src/cairowin32.pp=namespaced/Api.Cairo.Win32.pp

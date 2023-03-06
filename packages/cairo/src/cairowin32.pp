@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CairoWin32;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal libraries.
     Copyright (c) 2003-2008 by the Free Pascal development team
@@ -26,8 +28,13 @@ licensed LGPL-MPL see the file cairo.pp for the full license.
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Cairo.Lib, WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Cairo, windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function  cairo_win32_surface_create(dc: HDC): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_win32_printing_surface_create(dc: HDC): Pcairo_surface_t; cdecl; external LIB_CAIRO;
