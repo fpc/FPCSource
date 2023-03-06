@@ -8,15 +8,22 @@
   The original copyright note of is kept on each include file
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtlMacOSX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linkframework CoreServices}
 {$mode macpas}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.ObjC.Rtl, Api.ObjC.Rtl10, Api.ObjC.Rtl20;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objcrtl, objcrtl10, objcrtl20;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 

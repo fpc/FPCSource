@@ -8,14 +8,21 @@
   The original copyright note of is kept on each include file
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtliPhoneOS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.ObjC.Rtl, Api.ObjC.Rtl20;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objcrtl, objcrtl20;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 

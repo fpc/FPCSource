@@ -1,0 +1,8 @@
+src/objcrtlutils.pas=namespaced/Api.ObjC.RtlUtils.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/objcrtlmacosx.pas=namespaced/Api.ObjC.RtlMacOsX.pas
+src/objcrtl10.pas=namespaced/Api.ObjC.Rtl10.pas
+src/objcrtl20.pas=namespaced/Api.ObjC.Rtl20.pas
+src/objcrtl.pas=namespaced/Api.ObjC.Rtl.pas
+src/objcrtliphoneos.pas=namespaced/Api.ObjC.RtlIPhoneOs.pas

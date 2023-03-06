@@ -10,14 +10,21 @@
 
 {.$DEFINE DEBUG}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtl10;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.ObjC.Rtl, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, objcrtl, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Mac OS X Version 10.5 Delta
