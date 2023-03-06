@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit unixcrypt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$linklib crypt}
@@ -6,8 +8,13 @@ unit unixcrypt;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function crypt(const key: PAnsiChar; const salt: PAnsiChar): PAnsiChar; cdecl; external;
 

@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ntlm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math, System.Strings, System.Hash.Md5;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math, Strings, md5;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function LMGenerate(const Password: PAnsiChar): TMDDigest;
