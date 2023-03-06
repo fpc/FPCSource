@@ -32,7 +32,9 @@
  * DEALINGS IN THE SOFTWARE.
  ******************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit proj;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
@@ -40,8 +42,13 @@ unit proj;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
