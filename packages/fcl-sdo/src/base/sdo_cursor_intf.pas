@@ -14,12 +14,19 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_cursor_intf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

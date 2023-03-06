@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_date_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Sdo.BaseTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
 
@@ -144,16 +151,20 @@ resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  Result := DateOf(AValue) + DateUtils.IncHour(TimeOf(AValue),ANumberOfHours);
+  Result := DateOf(AValue) +{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IncHour(TimeOf(AValue),ANumberOfHours);
 end;
 
 function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result := DateOf(AValue) + DateUtils.IncMinute(TimeOf(AValue),ANumberOfMinutes);
+  Result := DateOf(AValue) + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IncMinute(TimeOf(AValue),ANumberOfMinutes);
 end;
 
 function NormalizeToUTC(const ADate : TDateTimeRec) : TDateTime;

@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF DELPHI}
   type
@@ -51,7 +58,7 @@ type
 {$ENDIF}
   TBinaryString = TStringBufferType;
 
-  TByteDynArray = Types.TByteDynArray;
+  TByteDynArray = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.TByteDynArray;
   
 implementation
 

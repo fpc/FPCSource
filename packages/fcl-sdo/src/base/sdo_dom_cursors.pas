@@ -14,10 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_dom_cursors;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+  Sdo.Cursor.Intf,
+{$IFNDEF FPC}
+  xmldom, sdo_win_xml,
+{$ELSE}
+  Xml.Dom, Sdo.Fpc.Xml,
+{$ENDIF}
+  Sdo.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
   sdo_cursor_intf,
@@ -27,6 +40,7 @@ uses
   DOM, sdo_fpc_xml,
 {$ENDIF}
   sdo_types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -140,6 +154,7 @@ type
 
 
 implementation
+
 {$IFDEF INTF_DOM}
   function CreateChildrenCursor(
           ANode : TDOMNode;

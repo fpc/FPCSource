@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_das;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db, 
+  Sdo.Base, Sdo.Das.DataAcces.Intf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DB, 
   sdo, data_acces_intf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

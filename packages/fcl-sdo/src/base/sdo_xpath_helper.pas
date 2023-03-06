@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_xpath_helper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Contnrs,
+  Sdo.Types, Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Contnrs,
   sdo_types, sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -302,8 +310,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ParseXPath(const AString : string) : TXPathNode;
 var

@@ -14,14 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_serialization_binary;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs,
+  Sdo.Binary.Streamer,
+  Sdo.Types, Sdo.Base, Sdo.Consts, Sdo.Serialization.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs,
   sdo_binary_streamer,
   sdo_types, sdo, sdo_consts, sdo_serialization_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$DEFINE sdo_binary_header}
   

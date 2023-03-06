@@ -14,9 +14,23 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_xsdparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs,
+{$IFDEF DELPHI}
+  xmldom, sdo_win_xml,
+{$ENDIF DELPHI}
+{$IFDEF FPC}
+  Xml.Dom, Sdo.Fpc.Xml,
+{$ENDIF FPC}
+  Sdo.Cursor.Intf, Sdo.Rtti.Filters, Sdo.Logger.Intf,
+  Sdo.Types, Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs,
 {$IFDEF DELPHI}
@@ -27,6 +41,7 @@ uses
 {$ENDIF FPC}
   sdo_cursor_intf, sdo_rtti_filters, sdo_logger_intf,
   sdo_types, sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -296,12 +311,21 @@ type
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF FPC}
+  Xml.Read,
+{$ENDIF FPC}
+  Sdo.Dom.Cursors, Sdo.Parser.Utils, System.StrUtils, Sdo.Xsd.Consts, Sdo.Consts,
+  Sdo.Xsd.Intf, Sdo.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF FPC}
   xmlread,
 {$ENDIF FPC}
   sdo_dom_cursors, sdo_parserutils, StrUtils, xsd_consts, sdo_consts,
   sdo_xsdintf, sdo_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure ParseSchema(
   const AFileName : string;

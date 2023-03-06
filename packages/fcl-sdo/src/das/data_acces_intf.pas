@@ -14,11 +14,18 @@
 
  **********************************************************************}
 {$I sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit data_acces_intf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   s_DatabaseName = 'DatabaseName';

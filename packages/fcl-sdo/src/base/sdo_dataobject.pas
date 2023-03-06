@@ -14,13 +14,22 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_dataobject;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Contnrs,
+  Sdo.Types, Sdo.Base, Sdo.BaseTypes, Sdo.ChangeSummary, Sdo.Xpath.Helper, Sdo.LinkedList,
+  Sdo.Field.Impl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Contnrs,
   sdo_types, sdo, sdo_type, sdo_changesummary, sdo_xpath_helper, sdo_linked_list,
   sdo_field_imp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -716,8 +725,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Impl.Utils, Sdo.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_imp_utils, sdo_utils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TSDOBaseDataObject }
 
@@ -2142,7 +2156,7 @@ begin
   if Assigned(AContainerProperty) then begin
     if not Assigned(AContainer) then
       raise ESDOIllegalArgumentException.Create('AContainer');
-    if not sdo_utils.InheritsFrom(AContainer.getType(), AContainerProperty.getContainingType()) then //if ( AContainerProperty.getContainingType() <> AContainer.getType() ) then
+    if not {$IFDEF FPC_DOTTEDUNITS}Sdo.Utils.{$ELSE}sdo_utils.{$ENDIF}InheritsFrom(AContainer.getType(), AContainerProperty.getContainingType()) then //if ( AContainerProperty.getContainingType() <> AContainer.getType() ) then
       raise ESDOIllegalArgumentException.Create('AContainerProperty');
   end;
   if Self.IsAncestorOf(AContainer) then

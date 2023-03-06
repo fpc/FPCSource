@@ -15,12 +15,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pas_generator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.TypInfo, Sdo.Base, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, TypInfo, sdo, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -212,8 +219,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Sdo.Xsd.Intf, Sdo.Xsd.Consts,  System.StrUtils, Sdo.Types, Sdo.Parser.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sdo_xsdintf, xsd_consts,  StrUtils, sdo_types, sdo_parserutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TPasClass }
 
@@ -433,7 +445,7 @@ begin
         GenerateDocumentation(resNode,DecodeLineBreak(ls.ValueFromIndex[i]),ADocument);
     end;
   {$ENDIF SDO_HANDLE_DOC}
-  S:=typItm.getString(sdo_xsdintf.s_Name)+' = (';
+  S:=typItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name)+' = (';
   ET:=TPasEnumeration.CreateNamed(S,'');
   Self.FIdentifiers.Add(Et);
   valueList := typItm.getList(s_EnumValue);
@@ -456,7 +468,7 @@ begin
       if not p.getBoolean(s_IsAttribute) then begin
         if ( ACategory = tcSimpleContent ) then begin
           Error(  'Invalid type definition, a simple type cannot have "not attribute" properties : "%s"',
-                  [AClassType.getString(sdo_xsdintf.s_Name)]
+                  [AClassType.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name)]
                 );
         end;
         Result := True;
@@ -476,9 +488,9 @@ var
 
 begin
   p := AProp;
-  PP:=TPasProperty.CreateNamed(p.getString(sdo_xsdintf.s_Name),'');
+  PP:=TPasProperty.CreateNamed(p.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name),'');
   AClass.Members.Add(pp);
-  if p.getBoolean(sdo_xsdintf.s_IsAttribute) then
+  if p.getBoolean({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_IsAttribute) then
     begin
 {    s := Format('%s:%s',[s_xs_short,s_attribute]);
     if Assigned(derivationNode) then
@@ -490,10 +502,10 @@ begin
   pt := p.getDataObject(s_DataType);
   if Assigned(pt) then
     begin
-    if pt.getBoolean(sdo_xsdintf.s_Unresolved) then
-      pt := Find( AContainer,pt.getString(sdo_xsdintf.s_NameSpace),pt.getString(sdo_xsdintf.s_Name));
+    if pt.getBoolean({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Unresolved) then
+      pt := Find( AContainer,pt.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace),pt.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name));
     propItmUltimeType := GetUltimeType(pt);
-    PP.TypeName:=pt.getString(sdo_xsdintf.s_Name);
+    PP.TypeName:=pt.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name);
     PP.TypeNamespace := GetTypeNameSpace(pt);
     PP.DefaultValue:=p.getString(s_DefaultValue);
     if p.getBoolean(s_IsAttribute) then
@@ -527,7 +539,7 @@ begin
   if (ASymbol = nil) then
     Exit;
   typItm := ASymbol;
-  PC:=TPasClass.CreateNamed(typItm.getString(sdo_xsdintf.s_Name),AContainer.getDataObject(s_CurrentModule).getString(sdo_xsdintf.s_NameSpace));
+  PC:=TPasClass.CreateNamed(typItm.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name),AContainer.getDataObject(s_CurrentModule).getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace));
   Self.FIdentifiers.Add(PC);
 {$IFDEF SDO_HANDLE_DOC}
   ls := AContainer.Properties.FindList(typItm);
@@ -540,19 +552,19 @@ begin
 
   typeCategory := tcComplexContent;
   hasSequence := True;
-  trueParent := typItm.getDataObject(sdo_xsdintf.s_BaseType);
+  trueParent := typItm.getDataObject({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_BaseType);
   if (trueParent <> nil) then
     begin
     if trueParent.getBoolean(s_Unresolved) then
-      trueParent := Find(AContainer,trueParent.getString(sdo_xsdintf.s_NameSpace), trueParent.getString(sdo_xsdintf.s_Name));
+      trueParent := Find(AContainer,trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_NameSpace), trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name));
     if (trueParent <> nil) then
       begin
-      if (trueParent.getByte(s_ElementKind) = sdo_xsdintf.ELEMENT_KIND_VARIABLE) then
+      if (trueParent.getByte(s_ElementKind) = {$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.ELEMENT_KIND_VARIABLE) then
         trueParent := GetUltimeType(trueParent);
       if not trueParent.getBoolean(s_IsComplex) then
         typeCategory := tcSimpleContent;
       PC.ParentNameSpace:=GetTypeNameSpace(trueParent);
-      PC.ParentName:=trueParent.getString(sdo_xsdintf.s_Name);
+      PC.ParentName:=trueParent.getString({$IFDEF FPC_DOTTEDUNITS}Sdo.Xsd.Intf{$ELSE}sdo_xsdintf{$ENDIF}.s_Name);
       hasSequence := False;
       end;
     end;

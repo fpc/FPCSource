@@ -14,12 +14,20 @@
 
  **********************************************************************}
 {$INCLUDE sdo_global.inc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdo_xsdintf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  Sdo.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   sdo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 { Type tree :

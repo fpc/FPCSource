@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xsd_consts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
