@@ -24,7 +24,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Generics.Defaults;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE DELPHI}{$H+}
 {$POINTERMATH ON}
@@ -38,8 +40,13 @@ unit Generics.Defaults;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Generics.Hashes, System.TypInfo, System.Variants, System.Math, System.Generics.Strings, System.Generics.Helpers;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Generics.Hashes, TypInfo, Variants, Math, Generics.Strings, Generics.Helpers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   IComparer<T> = interface
@@ -1167,7 +1174,7 @@ end;
 
 class function TCompare.Integer(const ALeft, ARight: Integer): Integer;
 begin
-  Result := Math.CompareValue(ALeft, ARight);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.CompareValue(ALeft, ARight);
 end;
 
 class function TCompare.Int8(const ALeft, ARight: Int8): Integer;
@@ -1731,7 +1738,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf(Math.Float), 0);
+  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), 0);
   Result := HASH_FACTORY.GetHashCode(@LExponent, SizeOf(System.Integer), Result);
 end;
 
@@ -1745,7 +1752,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf(Math.Float), 0);
+  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), 0);
   Result := HASH_FACTORY.GetHashCode(@LExponent, SizeOf(System.Integer), Result);
 end;
 
@@ -1759,7 +1766,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf(Math.Float), 0);
+  Result := HASH_FACTORY.GetHashCode(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), 0);
   Result := HASH_FACTORY.GetHashCode(@LExponent, SizeOf(System.Integer), Result);
 end;
 
@@ -1941,7 +1948,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf(Math.Float), AHashList, []);
+  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), AHashList, []);
   EXTENDED_HASH_FACTORY.GetHashList(@LExponent, SizeOf(System.Integer), AHashList, [ghloHashListAsInitData]);
 end;
 
@@ -1955,7 +1962,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf(Math.Float), AHashList, []);
+  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), AHashList, []);
   EXTENDED_HASH_FACTORY.GetHashList(@LExponent, SizeOf(System.Integer), AHashList, [ghloHashListAsInitData]);
 end;
 
@@ -1969,7 +1976,7 @@ begin
   if LMantissa = 0 then
     LMantissa := Abs(LMantissa);
 
-  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf(Math.Float), AHashList, []);
+  EXTENDED_HASH_FACTORY.GetHashList(@LMantissa, SizeOf({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.Float), AHashList, []);
   EXTENDED_HASH_FACTORY.GetHashList(@LExponent, SizeOf(System.Integer), AHashList, [ghloHashListAsInitData]);
 end;
 

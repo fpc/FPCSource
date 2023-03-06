@@ -16,7 +16,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Generics.MemoryExpanders;
+{$ENDIF FPC_DOTTEDUNITS}
 // Memory expanders
 
 {$mode delphi}
@@ -28,8 +30,13 @@ unit Generics.MemoryExpanders;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TProbeSequence = class
