@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Registry;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -25,6 +27,15 @@ interface
 {$define XMLREG}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  {$ifndef Xmlreg}
+    WinApi.Windows,
+  {$endif Xmlreg}
+    System.Classes,
+    System.SysUtils,
+    System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   {$ifndef XMLREG}
     Windows,
@@ -32,6 +43,7 @@ Uses
     Classes,
     SysUtils,
     inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I regdef.inc}
 

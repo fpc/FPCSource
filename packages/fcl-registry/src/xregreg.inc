@@ -19,7 +19,11 @@
     System dependent Registry implementation - using XML file.
   ---------------------------------------------------------------------}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.Xmlreg;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, xmlreg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   XFileName = 'reg.xml';
