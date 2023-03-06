@@ -1,0 +1,12 @@
+src/aprutil/aprutil.pas=namespaced/Api.Httpd22.Aprutil.pas
+{s*:src/aprutil/}=namespaced/
+{i+:src/aprutil/}
+src/apriconv/apriconv.pas=namespaced/Api.Httpd22.Apriconv.pas
+{s*:src/apriconv/}=namespaced/
+{i+:src/apriconv/}
+src/apr/apr.pas=namespaced/Api.Httpd22.Apr.pas
+{s*:src/apr/}=namespaced/
+{i+:src/apr/}
+src/httpd.pas=namespaced/Api.Httpd22.pas
+{s*:src/}=namespaced/
+{i+:src/}

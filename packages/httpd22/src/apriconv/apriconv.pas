@@ -21,7 +21,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit apriconv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -41,7 +43,11 @@ interface
   {$PACKRECORDS C}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Httpd22.Apr;
+{$ELSE FPC_DOTTEDUNITS}
 uses apr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
