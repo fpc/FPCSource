@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit versionconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 

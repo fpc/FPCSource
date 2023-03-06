@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit elfwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Elf.Consts, System.Resources.Elf.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, elfconsts, elftypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EElfResourceWriterException = class(EResourceWriterException);
@@ -58,7 +65,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Tree, System.Resources.StringTable.Types, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses resourcetree, strtable, fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

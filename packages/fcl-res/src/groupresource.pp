@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit groupresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.DataStream;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, resdatastream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -73,8 +80,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Resources.GroupTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   icocurtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TGroupResource }
 

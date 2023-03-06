@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit rcreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -47,8 +54,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Streamio, System.Resources.DataStream, System.Resources.Factory, Pascal.Lexlib, System.Resources.Rc.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   StreamIO, resdatastream, resfactory, lexlib, rcparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TRCResourceReader }
 
@@ -88,26 +100,26 @@ procedure TRCResourceReader.ReadRCFile(aResources: TResources; aLocation: String
 var
   i: Integer;
 begin
-  AssignStream(lexlib.yyinput, aStream);
-  Reset(lexlib.yyinput);
+  AssignStream({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput, aStream);
+  Reset({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput);
   try
-    rcparser.yyfilename:= '#MAIN.RC';
-    rcparser.SetDefaults;
-    SetTextCodePage(lexlib.yyinput, rcparser.opt_code_page);
-    rcparser.yinclude:= tyinclude.Create;
-    rcparser.yinclude.WorkDir:= aLocation;
-    rcparser.yinclude.SearchPaths.Assign(fRCIncludeDirs);
-    rcparser.ypreproc:= typreproc.Create;
-    rcparser.ypreproc.Defines.Add('RC_INVOKED', '');
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yyfilename:= '#MAIN.RC';
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}SetDefaults;
+    SetTextCodePage({$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}Lexlib.yyinput, {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}opt_code_page);
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yinclude:= tyinclude.Create;
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yinclude.WorkDir:= aLocation;
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yinclude.SearchPaths.Assign(fRCIncludeDirs);
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}ypreproc:= typreproc.Create;
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}ypreproc.Defines.Add('RC_INVOKED', '');
     for i:= 0 to fRCDefines.Count-1 do
-      rcparser.ypreproc.Defines.KeyData[fRCDefines.Names[i]]:= fRCDefines.ValueFromIndex[i];
-    rcparser.aktresources:= aResources;
-    if rcparser.yyparse <> 0 then
+      {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}ypreproc.Defines.KeyData[fRCDefines.Names[i]]:= fRCDefines.ValueFromIndex[i];
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}aktresources:= aResources;
+    if {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yyparse <> 0 then
       raise EReadError.Create('Parse Error');
   finally
-    rcparser.DisposePools;
-    FreeAndNil(rcparser.ypreproc);
-    FreeAndNil(rcparser.yinclude);
+    {$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}DisposePools;
+    FreeAndNil({$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}ypreproc);
+    FreeAndNil({$IFDEF FPC_DOTTEDUNITS}System.Resources.Rc.Parser.{$ELSE}rcparser.{$ENDIF}yinclude);
   end;
 end;
 

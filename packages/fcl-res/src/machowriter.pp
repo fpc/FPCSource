@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit machowriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Macho.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, machotypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EMachOResourceWriterException = class(EResourceWriterException);
@@ -58,7 +65,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Tree, System.Resources.Macho.Consts, System.Resources.StringTable.Types, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses resourcetree, machoconsts, strtable, fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

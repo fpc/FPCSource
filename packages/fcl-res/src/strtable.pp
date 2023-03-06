@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit strtable;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

@@ -7,7 +7,9 @@
 Vorspann
  ****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit rcparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I rcparserfn.inc}
 
@@ -2835,6 +2837,6 @@ end(*yyparse*);
 {$I rclex.inc}
 begin
   bufptr:= 0;
-  lexlib.get_char:= @rc_get_char;
-  lexlib.unget_char:= @rc_unget_char;
+  {$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}lexlib.get_char:= @rc_get_char;
+  {$IFDEF FPC_DOTTEDUNITS}Pascal.{$ENDIF}lexlib.unget_char:= @rc_unget_char;
 end.

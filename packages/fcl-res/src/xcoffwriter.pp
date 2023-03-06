@@ -13,14 +13,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xcoffwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.StringTable.Types, System.Resources.Resource, System.Resources.Tree,  
+  System.Resources.Coff.Types, System.Resources.Coff.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, strtable, resource, resourcetree, cofftypes, coffwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TXCoffResourceWriter }
@@ -52,7 +60,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Coff.Consts, System.Resources.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses coffconsts,fpcrestypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Todo: 64 bit

@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit winpeimagereader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Coff.Reader;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, coffreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
