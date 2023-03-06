@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit resourcetree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -82,7 +89,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses resfactory;
+{$ENDIF FPC_DOTTEDUNITS}
 
   { TTypeResTreeNode }
 

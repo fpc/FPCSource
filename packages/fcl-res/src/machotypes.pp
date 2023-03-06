@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit machotypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$packrecords c}
 
@@ -196,8 +203,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.Resources.Macho.Consts;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     machoconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
   function MachOMachineTypesToPas(mach: tmach_cpu_type; sub: tmach_cpu_subtype; out machPas: TMachOMachineType; out subPas: TMachOSubMachineType): boolean;
     begin

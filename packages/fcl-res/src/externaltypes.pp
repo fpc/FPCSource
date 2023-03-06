@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit externaltypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 

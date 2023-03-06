@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit externalwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Tree, System.Resources.External.Types, System.Resources.StringTable.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, resourcetree, externaltypes, strtable;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
   EExternalResourceWriterException = class(EResourceWriterException);

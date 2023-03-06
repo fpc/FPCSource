@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit versionresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Resources.Resource, System.Resources.VersionTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, resource, versiontypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TVerBlockHeader = packed record
@@ -83,8 +90,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Resources.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   resfactory;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
   TVSFixedFileInfo = packed record

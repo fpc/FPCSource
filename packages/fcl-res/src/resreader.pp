@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit resreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -49,7 +56,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.DataStream, System.Resources.Factory;
+{$ELSE FPC_DOTTEDUNITS}
 uses resdatastream, resfactory;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //This exception is raised when end of stream is detected and expected,
 //that is, before reading a new resource header. It's not an error.
