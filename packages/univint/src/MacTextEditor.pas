@@ -30,7 +30,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacTextEditor;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -215,7 +217,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFURL,MacOsApi.CFArray,MacOsApi.CFData,MacOsApi.CFString,MacOsApi.CFDictionary,MacOsApi.CGBase,MacOsApi.AEDataModel,MacOsApi.TextCommon,MacOsApi.QuickdrawTypes,MacOsApi.QDOffscreen,MacOsApi.Menus,MacOsApi.ATSUnicodeTypes,MacOsApi.ConditionalMacros,MacOsApi.Drag,MacOsApi.MacWindows,MacOsApi.Files,MacOsApi.Events,MacOsApi.MacErrors,MacOsApi.CarbonEvents,MacOsApi.HIObject,MacOsApi.HIView,MacOsApi.HIGeometry;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFURL,CFArray,CFData,CFString,CFDictionary,CGBase,AEDataModel,TextCommon,QuickdrawTypes,QDOffscreen,Menus,ATSUnicodeTypes,ConditionalMacros,Drag,MacWindows,Files,Events,MacErrors,CarbonEvents,HIObject,HIView,HIGeometry;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTMLRendering;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.QuickdrawTypes,MacOsApi.Events,MacOsApi.Files,MacOsApi.CodeFragments,MacOsApi.Controls,MacOsApi.CFData,MacOsApi.CFString,MacOsApi.CFURL,MacOsApi.HIObject;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,QuickdrawTypes,Events,Files,CodeFragments,Controls,CFData,CFString,CFURL,HIObject;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

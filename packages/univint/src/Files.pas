@@ -23,7 +23,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Files;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -208,7 +210,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.Acl,MacOsApi.MacTypes,MacOsApi.MixedMode,MacOsApi.OSUtils,MacOsApi.TextCommon,MacOsApi.UTCUtils,MacOsApi.Finder,MacOsApi.MacOSXPosix,MacOsApi.DADisk,MacOsApi.CFBase,MacOsApi.CFDate,MacOsApi.CFDictionary,MacOsApi.CFRunLoop,MacOsApi.CFUUID;
+{$ELSE FPC_DOTTEDUNITS}
 uses acl,MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

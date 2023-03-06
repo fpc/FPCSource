@@ -72,7 +72,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AUComponent;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -257,7 +259,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.AudioComponents,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.CFDate,MacOsApi.CoreAudioTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,AudioComponents,CFBase,CFArray,CFDate,CoreAudioTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

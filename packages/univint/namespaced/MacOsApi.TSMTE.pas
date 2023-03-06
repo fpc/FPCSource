@@ -1,0 +1,3 @@
+unit MacOsApi.TSMTE;
+{$DEFINE FPC_DOTTEDUNITS}
+{$i TSMTE.pas}

@@ -37,7 +37,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SecTrust;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -222,7 +224,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.SecBase,MacOsApi.Cssmtype,MacOsApi.Cssmapple,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.CFData,MacOsApi.CFDate,MacOsApi.CFDictionary;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,SecBase,cssmtype,cssmapple,CFBase,CFArray,CFData,CFDate,CFDictionary;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

@@ -9,7 +9,9 @@
 {$calling mwpascal}
 
 {$setc MACOSALLINCLUDE := TRUE}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MacOSAll;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$ifc (defined CPUPOWERPC32 or defined CPUI386) and not defined(iphonesim)}

@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DrawSprocket;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Video,MacOsApi.Events,MacOsApi.QuickdrawTypes,MacOsApi.QDOffscreen,MacOsApi.Displays,MacOsApi.MacErrors;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Video,Events,QuickdrawTypes,QDOffscreen,Displays,MacErrors;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

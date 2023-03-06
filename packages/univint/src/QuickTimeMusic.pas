@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit QuickTimeMusic;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.Components,MacOsApi.Dialogs,MacOsApi.Endian,MacOsApi.Files,MacOsApi.ImageCompression,MacOsApi.Movies,MacOsApi.QuickdrawTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,Components,Dialogs,Endian,Files,ImageCompression,Movies,QuickdrawTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

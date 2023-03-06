@@ -19,7 +19,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CGContext;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -204,7 +206,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CGGeometry,MacOsApi.CGBase,MacOsApi.CFDictionary,MacOsApi.CGAffineTransforms,MacOsApi.CGColorSpace,MacOsApi.CGFont,MacOsApi.CGGradient,MacOsApi.CGImage,MacOsApi.CGPDFDocument,MacOsApi.CGPath,MacOsApi.CGColor,MacOsApi.CGShading,MacOsApi.CGPDFPage;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CGGeometry,CGBase,CFDictionary,CGAffineTransforms,CGColorSpace,CGFont,CGGradient,CGImage,CGPDFDocument,CGPath,CGColor,CGShading,CGPDFPage;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

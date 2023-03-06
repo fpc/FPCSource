@@ -27,7 +27,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PMCore;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -212,7 +214,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.MacErrors,MacOsApi.Files,MacOsApi.QuickdrawTypes,MacOsApi.PMDefinitions,MacOsApi.CFData,MacOsApi.CFDictionary,MacOsApi.CFString,MacOsApi.CFURL,MacOsApi.CGContext,MacOsApi.CGDataProvider,MacOsApi.CGImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFArray,MacErrors,Files,QuickdrawTypes,PMDefinitions,CFData,CFDictionary,CFString,CFURL,CGContext,CGDataProvider,CGImage;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

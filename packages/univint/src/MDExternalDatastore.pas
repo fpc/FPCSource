@@ -23,7 +23,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MDExternalDatastore;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -208,7 +210,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.CFUUID,MacOsApi.CFPlugIn,MacOsApi.CFPlugInCOM;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFArray,CFUUID,CFPlugIn,CFPlugInCOM;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ifc TARGET_OS_MAC}

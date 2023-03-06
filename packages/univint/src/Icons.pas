@@ -33,7 +33,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Icons;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -218,7 +220,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CGGeometry,MacOsApi.QuickdrawTypes,MacOsApi.IconStorage,MacOsApi.IconsCore,MacOsApi.Files,MacOsApi.CGContext,MacOsApi.HIShape;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CGGeometry,QuickdrawTypes,IconStorage,IconsCore,Files,CGContext,HIShape;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

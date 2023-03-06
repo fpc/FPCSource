@@ -23,7 +23,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CVOpenGLTextureCache;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -208,7 +210,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFString,MacOsApi.CFDictionary,MacOsApi.CVBase,MacOsApi.CVReturns,MacOsApi.CVBuffer,MacOsApi.CVImageBuffer,MacOsApi.CVOpenGLTexture,MacOsApi.CGLTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFString,CFDictionary,CVBase,CVReturns,CVBuffer,CVImageBuffer,CVOpenGLTexture,CGLTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

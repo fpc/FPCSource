@@ -21,7 +21,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit QLThumbnail;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -206,7 +208,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFURL,MacOsApi.CFDictionary,MacOsApi.CGGeometry,MacOsApi.CGImage,MacOsApi.QLBase,MacOsApi.QLThumbnailImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFURL,CFDictionary,CGGeometry,CGImage,QLBase,QLThumbnailImage;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
