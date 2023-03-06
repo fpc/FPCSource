@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpparsettf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -22,10 +24,17 @@ unit fpparsettf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpPdf.Ttf.Encodings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   fpttfencodings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ETTF = Class(Exception);

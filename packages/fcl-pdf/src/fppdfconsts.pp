@@ -1,4 +1,20 @@
+{ **********************************************************************
+  This file is part of the Free Component Library
+
+  PDF names/constants.
+  Copyright (c) 2022 by Michael Van Canneyt michael@freepascal.org
+
+  See the file COPYING.FPC, included in this distribution,
+  for details about the copyright.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 

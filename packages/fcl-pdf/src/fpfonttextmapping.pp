@@ -14,16 +14,25 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPFontTextMapping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

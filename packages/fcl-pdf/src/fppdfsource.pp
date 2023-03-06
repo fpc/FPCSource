@@ -18,14 +18,21 @@
   we implement this here.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfsource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   PDFDefaultBufferSize  = 4 * 1024; // 4K buffer
