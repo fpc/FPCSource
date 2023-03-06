@@ -1,0 +1,3 @@
+src/pthreads.pp=namespaced/UnixApi.Pthreads.pp
+{s*:src/}=namespaced/
+{i+:src/}
