@@ -1,7 +1,13 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql4;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes,Api.My4_sys,Api.Mysql4_com,System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes,my4_sys,mysql4_com,dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 0.99.15 from mysql.ph
