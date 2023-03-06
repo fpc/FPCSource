@@ -14,12 +14,19 @@
 
  **********************************************************************}
 {$mode ObjFPC}{$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebsocketclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, FpWeb.WebSocket.Protocol, System.Net.Ssockets, System.Net.Sslsockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, classes, fpwebsocket, ssockets, sslsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EWebSocketClient = Class(EWebSocket);
@@ -213,7 +220,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Sha1;
+{$ELSE FPC_DOTTEDUNITS}
 uses sha1;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TWebSocketClientConnection }
 
@@ -402,7 +413,7 @@ begin
   FreeAndNil(FHandshakeResponse);
   FHandshakeResponse:=CreateHandshakeResponse(aHeaders);
   k := Trim(FHandshake.Key) + SSecWebSocketGUID;
-  hash:=sha1.SHA1String(k);
+  hash:=SHA1String(k);
   SetLength(B,SizeOf(hash));
   Move(hash[0],B[0],SizeOf(hash));
   k:=EncodeBytesBase64(B);

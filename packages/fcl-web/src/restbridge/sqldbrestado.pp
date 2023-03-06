@@ -12,14 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestado;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.DateUtils, Data.Db, FpJson.Data, Xml.Dom, Xml.Read, 
+  Xml.Writer, FpWeb.RestBridge.Schema, FpWeb.RestBridge.IO, FpWeb.RestBridge.Bridge;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DateUtils, db,fpjson, dom, XMLRead, XMLWrite,sqldbrestschema,sqldbrestio, sqldbrestbridge;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -85,7 +93,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TADOInputStreamer }
 
@@ -209,7 +221,7 @@ begin
     end
   else
 {$ENDIF}
-    xmlwrite.WriteXML(FXML,Stream);
+  WriteXML(FXML,Stream);
   FreeAndNil(FXML);
 end;
 

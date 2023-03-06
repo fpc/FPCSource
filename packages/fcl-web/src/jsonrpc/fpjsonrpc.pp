@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjsonrpc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$inline on}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -193,7 +200,7 @@ Type
     function CreateAPI : TJSONObject; overload;
     Property Dispatcher : TCustomJSONRPCDispatcher Read FDispatcher;
   Published
-    // Namespace for API description. Must be set. Default 'FPWeb'
+    // Namespace for API description. Must be set. Default 'FpWeb'
     Property NameSpace : String Read GetNameSpace Write FNameSpace Stored isNameSpaceStored;
     // URL property for API router. Must be set.
     Property URL : String Read FURL Write FURL;
@@ -461,7 +468,11 @@ Const
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses {$IFDEF WMDEBUG}System.Dbugintf, {$ENDIF} FpWeb.JsonRpc.Codegen, FpWeb.JsonRpc.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses {$IFDEF WMDEBUG}dbugintf, {$ENDIF} fprpccodegen, fprpcstrings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function CreateJSONErrorObject(const AMessage: String; const ACode: Integer
   ): TJSONObject;

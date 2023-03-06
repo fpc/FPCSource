@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpextjs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Base, Data.Db, FpWeb.Http.Defs, FpWeb.Data.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttp, db, httpdefs, fpwebdata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

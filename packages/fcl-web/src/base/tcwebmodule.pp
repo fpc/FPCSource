@@ -11,14 +11,21 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tcwebmodule;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FPCUnit.Reports.LaTeX, FpWeb.Handler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fphttp, fpcunit, custweb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -120,7 +127,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
 uses base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFakeWebHandler }
 

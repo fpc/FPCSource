@@ -16,12 +16,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custweb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp,System.Classes,System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, Fcl.EventLog;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TCustomWebApplication }
@@ -167,18 +174,26 @@ Type
     Property LegacyRouting : Boolean Read GetLegacyRouting Write SetLegacyRouting;
   end;
 
-  EFPWebError = Class(EFPHTTPError);
+  EFpWebError = Class(EFPHTTPError);
 
 procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
 
 Implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef CGIDEBUG}
+  dbugintf,
+  {$endif}
+  FpWeb.Route;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef CGIDEBUG}
   dbugintf,
   {$endif}
   httproute;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
@@ -409,10 +424,10 @@ end;
 Class Procedure TWebHandler.DoError(Const Msg : String;AStatusCode : Integer = 0; const AStatusText : String = '');
 
 Var
-  E : EFPWebError;
+  E : EFpWebError;
 
 begin
-  E:=EFPWebError.Create(Msg);
+  E:=EFpWebError.Create(Msg);
   E.StatusCode:=AStatusCode;
   E.StatusText:=AStatusText;
   Raise E;

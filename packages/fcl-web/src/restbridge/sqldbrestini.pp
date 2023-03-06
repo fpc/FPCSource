@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestini;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.RestBridge.IO, FpWeb.RestBridge.Auth, FpWeb.RestBridge.Bridge, FpWeb.RestBridge.Schema, System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldbrestio, sqldbrestauth, sqldbrestbridge, sqldbrestschema, inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TConnectionIniOption = (scoClearOnRead,      // Clear values first
@@ -103,7 +110,11 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils, FpWeb.RestBridge.Authini;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo,strutils, sqldbrestauthini;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   KeyHost = 'Host';

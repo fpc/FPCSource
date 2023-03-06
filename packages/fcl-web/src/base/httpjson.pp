@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit httpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

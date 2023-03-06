@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, fpjson, bufdataset, sqldb, db, httpdefs, sqldbrestschema;
+  System.Classes, System.SysUtils, FpJson.Data, Data.BufDataset, Data.Sqldb, Data.Db, FpWeb.Http.Defs, FpWeb.RestBridge.Schema;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, fpjson, sqldb, db, httpdefs, sqldbrestschema;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -421,7 +428,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Base64, System.DateUtils, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses base64, dateutils, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 

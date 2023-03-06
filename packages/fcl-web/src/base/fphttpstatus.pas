@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPHTTPStatus;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, FpWeb.Http.Server, FpWeb.Http.Protocol, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, fphttpserver, httpprotocol, HTTPDefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (* construct and return the default error message for a given
  * HTTP defined error code

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPHTTPClientAsyncPool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Default HTTP Client asynchronous pool.
@@ -21,8 +23,13 @@ unit FPHTTPClientAsyncPool;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Client, FpWeb.Http.Protocol, Fcl.UriParser, System.SyncObjs, System.DateUtils, FpWeb.Http.Client.Pool;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttpclient, httpprotocol, URIParser, syncobjs, DateUtils, FPHTTPClientPool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPHTTPClientPoolMethodResult = (mrSuccess, mrAbortedByClient, mrAbortedWithException);

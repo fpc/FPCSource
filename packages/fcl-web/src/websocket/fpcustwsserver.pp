@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2021 - by the Free Pascal development team
 
     Abstract websocket server implementation
@@ -14,14 +14,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcustwsserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Ssockets, Fcl.ThreadPool, FpWeb.WebSocket.Protocol;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ssockets, fpthreadpool, fpwebsocket;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefaultAcceptTimeout = 50;

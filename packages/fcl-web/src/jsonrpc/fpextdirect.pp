@@ -12,27 +12,39 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpextdirect;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $define extdebug}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpWeb.JsonRpc.Base, FpWeb.JsonRpc.DispExtDirect, FpWeb.JsonRpc.Web, FpWeb.Http.Defs, Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, fpjsonrpc, fpdispextdirect, webjsonrpc, httpdefs, uriparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Redefinition for backwards compatibility
-  DefaultExtDirectOptions = fpdispextdirect.DefaultExtDirectOptions;
+  
+{$IFDEF FPC_DOTTEDUNITS}  
+   DefaultExtDirectOptions = FpWeb.JsonRpc.DispExtDirect.DefaultExtDirectOptions;
+{$ELSE}
+   DefaultExtDirectOptions = fpdispextdirect.DefaultExtDirectOptions;
+{$ENDIF}
 
 Type
   // Redefinition for backwards compatibility
 
   { TCustomExtDirectDispatcher }
 
-  TCustomExtDirectDispatcher = Class(fpdispextdirect.TCustomExtDirectDispatcher)
-    Procedure InitContainer(H: TCustomJSONRPCHandler;  AContext: TJSONRPCCallContext; AContainer: TComponent); override;
+  TCustomExtDirectDispatcher = Class({$IFDEF FPC_DOTTEDUNITS}FpWeb.JsonRpc.DispExtDirect{$ELSE}fpdispextdirect{$ENDIF}.TCustomExtDirectDispatcher)
+    Procedure InitContainer(H: TCustomJsonRpcHandler;  AContext: TJsonRpcCallContext; AContainer: TComponent); override;
   end;
 
   { TExtDirectDispatcher }
@@ -50,7 +62,7 @@ Type
 
   { TCustomExtDirectContentProducer }
 
-  TCustomExtDirectContentProducer = Class(TCustomJSONRPCContentProducer)
+  TCustomExtDirectContentProducer = Class(TCustomJsonRpcContentProducer)
   Protected
     Function GetIDProperty : String; override;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); override;
@@ -63,7 +75,7 @@ Type
     FDispatcher: TCustomExtDirectDispatcher;
     procedure SetDispatcher(const AValue: TCustomExtDirectDispatcher);
   Protected
-    Function GetDispatcher : TCustomJSONRPCDispatcher; override;
+    Function GetDispatcher : TCustomJsonRpcDispatcher; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation);override;
   Published
     Property Dispatcher :  TCustomExtDirectDispatcher Read FDispatcher Write SetDispatcher;
@@ -71,12 +83,12 @@ Type
 
   { TCustomExtDirectModule }
 
-  TCustomExtDirectModule = Class(TJSONRPCDispatchModule)
+  TCustomExtDirectModule = Class(TJsonRpcDispatchModule)
   private
     FAPIPath: String;
     FDispatcher: TCustomExtDirectDispatcher;
     FNameSpace: String;
-    FOptions: TJSONRPCDispatchOptions;
+    FOptions: TJsonRpcDispatchOptions;
     FRequest: TRequest;
     FResponse: TResponse;
     FRouterPath: String;
@@ -89,7 +101,7 @@ Type
     // Set to a custom dispatcher. If not set, one is created (and kept for all subsequent requests)
     Property Dispatcher :  TCustomExtDirectDispatcher Read FDispatcher Write SetDispatcher;
     // Options to use when creating a dispatcher.
-    Property DispatchOptions : TJSONRPCDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
+    Property DispatchOptions : TJsonRpcDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
     // API path/action. Append to BaseURL to get API. Default 'API'
     Property APIPath : String Read FAPIPath Write FAPIPath;
     // Router path/action. Append to baseURL to get router. Default 'router'
@@ -125,18 +137,22 @@ Type
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses {$ifdef extdebug}System.Dbugintf,{$endif} FpWeb.JsonRpc.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses {$ifdef extdebug}dbugintf,{$endif} fprpcstrings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
 { TCustomExtDirectDispatcher }
 
-Procedure TCustomExtDirectDispatcher.InitContainer(H: TCustomJSONRPCHandler;
-  AContext: TJSONRPCCallContext; AContainer: TComponent);
+Procedure TCustomExtDirectDispatcher.InitContainer(H: TCustomJsonRpcHandler;
+  AContext: TJsonRpcCallContext; AContainer: TComponent);
 begin
   inherited InitContainer(H, AContext, AContainer);
-  If (AContext is TJSONRPCSessionContext) and (AContainer is TCustomJSONRPCModule) then
-    TCustomJSONRPCModule(AContainer).Session:=TJSONRPCSessionContext(AContext).Session;
+  If (AContext is TJsonRpcSessionContext) and (AContainer is TCustomJsonRpcModule) then
+    TCustomJsonRpcModule(AContainer).Session:=TJsonRpcSessionContext(AContext).Session;
 end;
 
 { TCustomExtDirectContentProducer }
@@ -177,7 +193,7 @@ begin
     FDispatcher.FreeNotification(Self);
 end;
 
-function TExtDirectContentProducer.GetDispatcher: TCustomJSONRPCDispatcher;
+function TExtDirectContentProducer.GetDispatcher: TCustomJsonRpcDispatcher;
 begin
   Result:=FDispatcher;
 end;
@@ -286,7 +302,7 @@ begin
         end;
         end
       else
-        JSONRPCError(SErrInvalidPath);
+        JsonRpcError(SErrInvalidPath);
   finally
     Self.FRequest:=Nil;
     Self.FResponse:=Nil;

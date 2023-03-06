@@ -11,14 +11,21 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpoauth2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,System.Classes, System.SysUtils, FpJson.Data, Jwt.Types, FpWeb.Client;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Typinfo,Classes, SysUtils, fpjson, fpjwt, fpwebclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TOAuth2Config }
@@ -259,7 +266,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrFailedToRefreshToken = 'Failed to refresh access token: Status %d, Error: %s';

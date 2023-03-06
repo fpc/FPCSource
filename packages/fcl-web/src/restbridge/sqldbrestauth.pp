@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestauth;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Db, FpWeb.RestBridge.Consts, FpWeb.RestBridge.Io, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, db, sqldbrestconst, sqldbrestio, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TAuthenticateEvent = procedure (Sender : TObject; aRequest : TRequest) of object;
@@ -80,7 +87,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils, base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TRestBasicAuthenticator }
 
