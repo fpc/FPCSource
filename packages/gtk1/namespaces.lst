@@ -1,0 +1,14 @@
+src/gtkgl/gtkglarea.pp=namespaced/Api.Gtk1.Gtkglarea.pp
+{s*:src/gtkgl/}=namespaced/
+{i+:src/gtkgl/}
+src/gtk/gtk.pp=namespaced/Api.Gtk1.Gtk.pp
+{s*:src/gtk/}=namespaced/
+{i+:src/gtk/}
+src/glib/gmodule.pp=namespaced/Api.Gtk1.Gmodule.pp
+{s*:src/glib/}=namespaced/
+{i+:src/glib/}
+src/glib/glib.pp=namespaced/Api.Gtk1.Glib.pp
+src/gdk/gdkpixbuf.pp=namespaced/Api.Gtk1.Gdkpixbuf.pp
+{s*:src/gdk/}=namespaced/
+{i+:src/gdk/}
+src/gdk/gdk.pp=namespaced/Api.Gtk1.Gdk.pp

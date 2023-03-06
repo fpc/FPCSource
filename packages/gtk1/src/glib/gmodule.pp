@@ -18,7 +18,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gmodule;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$mode objfpc}
@@ -31,8 +33,13 @@ interface
   {$endif}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk1.Glib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win32}
   const

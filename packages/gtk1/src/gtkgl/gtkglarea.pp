@@ -22,7 +22,9 @@
   * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtkglarea;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$PACKRECORDS C}
@@ -30,8 +32,13 @@ unit gtkglarea;
 interface
 {$ifndef os2}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk1.Gdk, Api.Gtk1.Gtk, Api.OpenGL.Gl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   GDK, GTK, GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libgtkgl = 'gtkgl';

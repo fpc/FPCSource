@@ -25,7 +25,9 @@
    Boston, MA 02111-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdkpixbuf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$ifndef os2}
@@ -59,6 +61,21 @@ interface
 
 {$EndIf}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  Api.Gtk1.Glib,
+  {$IFDef XLIB_SUPPORT}
+  Api.X11.Xlib,
+  {$Else}
+    Api.Gtk1.Gdk
+    {$IFDef GTK_SUPPORT}
+      ,Api.Gtk1.Gtk
+      {$IfDef GNOME_SUPPORT}
+        ,GNOME
+      {$ENDIF}
+    {$ENDIF}
+  {$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   GLIB,
   {$IFDef XLIB_SUPPORT}
@@ -72,6 +89,7 @@ Uses
       {$ENDIF}
     {$ENDIF}
   {$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$IFDef XLIB_SUPPORT}
