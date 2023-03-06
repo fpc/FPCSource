@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdAPIstd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original : jdapistd.c ;  Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -17,6 +19,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdmaster;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -24,6 +35,7 @@ uses
   jerror,
   jpeglib,
   jdmaster;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Read some scanlines of data from the JPEG decompressor.
 

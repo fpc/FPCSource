@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcInit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original: jcinit.c ;  Copyright (C) 1991-1997, Thomas G. Lane. }
 
@@ -15,6 +17,18 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+{$ifdef C_PROGRESSIVE_SUPPORTED}
+  System.Jpeg.Jcphuff,
+{$endif}
+  System.Jpeg.Jchuff, System.Jpeg.Jcmaster, System.Jpeg.Jccolor, System.Jpeg.Jcsample, System.Jpeg.Jcprepct,
+  System.Jpeg.Jcdctmgr, System.Jpeg.Jccoefct, System.Jpeg.Jcmainct, System.Jpeg.Jcmarker;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jinclude,
   jdeferr,
@@ -25,6 +39,7 @@ uses
 {$endif}
   JcHuff, JcMaster, JcColor, JcSample, JcPrepCt,
   JcDCTMgr, JcCoefCT, JcMainCT, JcMarker;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Master selection of compression modules.
   This is done once at the start of processing an image.  We determine

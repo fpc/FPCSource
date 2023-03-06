@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdMainCt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This file is part of the Independent JPEG Group's software.
@@ -107,6 +109,17 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+{$ifdef QUANT_2PASS_SUPPORTED}
+  System.Jpeg.Jquant2,
+{$endif}
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -116,6 +129,7 @@ uses
   jdeferr,
   jerror,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {GLOBAL}

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcTrans;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains library routines for transcoding compression,
   that is, writing raw DCT coefficient arrays to an output JPEG file.
@@ -10,6 +12,16 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jcapimin, System.Jpeg.Jcparam, System.Jpeg.Jcomapi, System.Jpeg.Jcmaster, System.Jpeg.Jchuff, System.Jpeg.Jcphuff, System.Jpeg.Jcmarker;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -18,6 +30,7 @@ uses
   jutils,
   jpeglib,
   jcapimin, jcparam, jcomapi, jcmaster, jchuff, jcphuff, jcmarker;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Compression initialization for writing raw-coefficient data.
   Before calling this, all parameters and a data destination must be set up.

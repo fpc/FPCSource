@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit jmemdosa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$G+} {enable 286/287 instructions }
 
@@ -11,8 +13,13 @@ Unit jmemdosa;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   XMSDRIVER = pointer; {far}    { actually a pointer to code }

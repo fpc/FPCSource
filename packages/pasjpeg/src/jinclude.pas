@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit jinclude;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file exists to provide a single place to fix any problems with
   including the wrong system include files.  (Common problems are taken
@@ -16,11 +18,19 @@ interface
 
 { Include auto-config file to find out which system include files we need. }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Delphi_Stream}
+  System.Classes,
+{$endif}
+  System.Jpeg.Jmorecfg;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef Delphi_Stream}
   classes,
 {$endif}
   jmorecfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Nomssi:
   To write a dest/source manager that handle streams rather than files,

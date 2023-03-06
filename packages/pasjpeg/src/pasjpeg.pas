@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasJPeg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jconfig.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EJPEG = class(Exception);
@@ -29,6 +36,23 @@ procedure StoreJPEG(
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+//  WinTypes, Dialogs,
+  {PASJPG10 library}
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jdmarker,
+  System.Jpeg.Jdmaster,
+  System.Jpeg.Jdapimin,
+  System.Jpeg.Jdapistd,
+  System.Jpeg.Jcparam,
+  System.Jpeg.Jcapimin,
+  System.Jpeg.Jcapistd,
+  System.Jpeg.Jcomapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 //  WinTypes, Dialogs,
   {PASJPG10 library}
@@ -44,6 +68,7 @@ uses
   jcapimin,
   jcapistd,
   jcomapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------- }
 {   source manager to read compressed data                               }

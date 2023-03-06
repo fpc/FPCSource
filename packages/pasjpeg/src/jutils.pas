@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains tables and miscellaneous utility routines needed
   for both compression and decompression.
@@ -11,10 +13,17 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { jpeg_zigzag_order[i] is the zigzag-order position of the i'th element

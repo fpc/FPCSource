@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JIDctFst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains a fast, not so accurate integer implementation of the
   inverse DCT (Discrete Cosine Transform).  In the IJG code, this routine
@@ -33,11 +35,19 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct;                 { Private declarations for DCT subsystem }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib,
   jdct;                 { Private declarations for DCT subsystem }
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Perform dequantization and inverse DCT on one block of coefficients. }

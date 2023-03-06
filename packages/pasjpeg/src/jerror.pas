@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains simple error-reporting and trace-message routines.
   These are suitable for Unix-like systems and others where writing to
@@ -12,10 +14,17 @@ Unit Jerror;
 {$i jconfig.inc}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jdeferr,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   jversion;
 }
@@ -91,6 +100,17 @@ implementation
   {.$DEFINE NO_FORMAT}
 {$ENDIF}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFNDEF NO_FORMAT}
+  {$IFDEF VER70}
+    drivers, { Turbo Vision unit with FormatStr }
+  {$ELSE}
+    System.SysUtils,  { Delphi Unit with Format() }
+  {$ENDIF}
+{$ENDIF}
+  System.Jpeg.Jcomapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFNDEF NO_FORMAT}
   {$IFDEF VER70}
@@ -100,6 +120,7 @@ uses
   {$ENDIF}
 {$ENDIF}
   jcomapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Error exit handler: must not return to caller.
 

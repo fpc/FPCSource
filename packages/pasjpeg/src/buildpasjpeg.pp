@@ -2,8 +2,62 @@
 
   Unit to build all units of Pasjpeg
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit buildpasjpeg;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jcapimin,
+  System.Jpeg.Jcapistd,
+  System.Jpeg.Jccoefct,
+  System.Jpeg.Jccolor,
+  System.Jpeg.Jcdctmgr,
+  System.Jpeg.Jchuff,
+  System.Jpeg.Jcinit,
+  System.Jpeg.Jcmainct,
+  System.Jpeg.Jcmarker,
+  System.Jpeg.Jcmaster,
+  System.Jpeg.Jcomapi,
+  System.Jpeg.Jcparam,
+  System.Jpeg.Jcphuff,
+  System.Jpeg.Jcprepct,
+  System.Jpeg.Jcsample,
+  System.Jpeg.Jdapimin,
+  System.Jpeg.Jdapistd,
+  System.Jpeg.Jdatadst,
+  System.Jpeg.Jdatasrc,
+  System.Jpeg.Jdcoefct,
+  System.Jpeg.Jdcolor,
+  System.Jpeg.Jdct,
+  System.Jpeg.Jddctmgr,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jdhuff,
+  System.Jpeg.Jdinput,
+  System.Jpeg.Jdmainct,
+  System.Jpeg.Jdmarker,
+  System.Jpeg.Jdmaster,
+  System.Jpeg.Jdmerge,
+  System.Jpeg.Jdphuff,
+  System.Jpeg.Jdpostct,
+  System.Jpeg.Jdsample,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jfdctflt,
+  System.Jpeg.Jfdctfst,
+  System.Jpeg.Jfdctint,
+  System.Jpeg.Jidctflt,
+  System.Jpeg.Jidctfst,
+  System.Jpeg.Jidctint,
+  System.Jpeg.Jidctred,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jmemmgr,
+  System.Jpeg.Jmemnobs,
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jquant1,
+  System.Jpeg.Jquant2,
+  System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jcapimin,
   jcapistd,
@@ -54,6 +108,7 @@ uses
   jquant1,
   jquant2,
   jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 

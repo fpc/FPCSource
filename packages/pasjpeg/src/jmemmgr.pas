@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JMemMgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains the JPEG system-independent memory management
   routines.  This code is usable across a wide variety of machines; most
@@ -24,6 +26,27 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   System.Jpeg.Jmorecfg,
+   System.Jpeg.Jinclude,
+   System.Jpeg.Jdeferr,
+   System.Jpeg.Jerror,
+   System.Jpeg.Jpeglib,
+   System.Jpeg.Jutils,
+{$IFDEF VER70}
+{$ifndef NO_GETENV}
+   TP.DOS,                         { DOS unit should declare getenv() }
+                                   { function GetEnv(name : string) : string; }
+{$endif}
+   System.Jpeg.Jmemdos;                     { import the system-dependent declarations }
+{$ELSE}
+   System.Jpeg.Jmemnobs;
+  {$DEFINE NO_GETENV}
+{$ENDIF}
+   
+{$ELSE FPC_DOTTEDUNITS}
+
 uses
    jmorecfg,
    jinclude,
@@ -41,6 +64,7 @@ uses
    jmemnobs;
   {$DEFINE NO_GETENV}
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Memory manager initialization.
   When this is called, only the error manager pointer is valid in cinfo! }

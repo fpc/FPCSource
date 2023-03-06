@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

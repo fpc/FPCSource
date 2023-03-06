@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JFDctFst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains a fast, not so accurate integer implementation of the
   forward DCT (Discrete Cosine Transform).
@@ -31,11 +33,19 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct;         { Private declarations for DCT subsystem }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib,
   jdct;         { Private declarations for DCT subsystem }
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Perform the forward DCT on one block of samples. }

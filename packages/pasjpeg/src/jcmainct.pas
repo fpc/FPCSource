@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcMainCt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains the main buffer controller for compression.
   The main buffer lies between the pre-processor and the JPEG
@@ -17,6 +19,17 @@ interface
 
 {$undef FULL_MAIN_BUFFER_SUPPORTED}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+{$ifdef FULL_MAIN_BUFFER_SUPPORTED}
+  System.Jpeg.Jutils,
+{$endif}
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -26,6 +39,7 @@ uses
   jutils,
 {$endif}
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Initialize main buffer controller. }
 

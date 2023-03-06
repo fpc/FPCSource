@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcPrepCT;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original : jcprepct.c ;  Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -14,6 +16,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jpeglib,
@@ -21,6 +32,7 @@ uses
   jerror,
   jinclude,
   jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {GLOBAL}
 procedure jinit_c_prep_controller (cinfo : j_compress_ptr;

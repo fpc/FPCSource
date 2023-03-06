@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcCoefCt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains the coefficient buffer controller for compression.
   This controller is the top level of the JPEG compressor proper.
@@ -10,6 +12,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -17,6 +28,7 @@ uses
   jdeferr,
   jutils,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { We use a full-image coefficient buffer when doing Huffman optimization,
