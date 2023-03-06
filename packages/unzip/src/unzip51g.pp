@@ -1,6 +1,8 @@
 {
 }
-UNIT Unzip51g;
+{$IFNDEF FPC_DOTTEDUNITS}
+unit Unzip51g;
+{$ENDIF FPC_DOTTEDUNITS}
 {
 Unzips deflated, imploded, shrunk and stored files
   ** COMPATIBLE WITH
@@ -64,10 +66,17 @@ INTERFACE
 
 {$R-}         {No range checking}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+  System.Strings,
+  TP.DOS,
+  System.Ziptypes;
+{$ELSE FPC_DOTTEDUNITS}
 USES
   strings,
   dos,
   ziptypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {**********************************************************************}
 {**********************************************************************}
