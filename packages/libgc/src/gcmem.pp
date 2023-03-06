@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gcmem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
