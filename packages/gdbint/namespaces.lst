@@ -1,0 +1,5 @@
+src/freadlin.pp=namespaced/Api.Freadlin.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gdbint.pp=namespaced/Api.Gdbint.pp
+src/gdbcon.pp=namespaced/Api.Gdbcon.pp

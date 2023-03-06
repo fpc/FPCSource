@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GDBCon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef USE_GDBLIBINC}
   {$i gdblib.inc}
@@ -21,8 +23,13 @@ unit GDBCon;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gdbint;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   GDBInt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TBreakpointFlags = set of (bfTemporary, bfHardware);
@@ -100,12 +107,21 @@ procedure UnixDir(var s : ShortString);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef win32}
+  WinApi.Windows,
+{$endif win32}
+  TP.DOS,
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef win32}
   windows,
 {$endif win32}
   dos,
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win32}
 const
