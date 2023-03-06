@@ -1,6 +1,8 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ibase40;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

@@ -9,7 +9,9 @@
   when finished.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ibase60dyn;
+{$ENDIF}
 
 {$DEFINE LinkDynamically}
 
