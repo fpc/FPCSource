@@ -21,7 +21,11 @@ unit System.NetEncoding;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Sysutils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   // Not used here
@@ -108,7 +112,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Base64, FpWeb.Http.Protocol, Html.Defs, Xml.Read;
+{$ELSE FPC_DOTTEDUNITS}
 uses base64, httpprotocol, HTMLDefs, xmlread;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   sInvalidHTMLEntity = 'Invalid HTML encoded character: %s';
