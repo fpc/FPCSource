@@ -1,5 +1,8 @@
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CdRom.Windows;
+{$ELSE}
 uses wincd;
-
+{$ENDIF}
 
 Function ReadCDTOC(Device : AnsiString; Var CDTOC : Array of TTocEntry) : Integer;
 

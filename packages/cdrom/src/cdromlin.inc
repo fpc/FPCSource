@@ -1,7 +1,14 @@
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,
+  UnixApi.Unix,
+  System.CdRom.Linux;
+{$ELSE}
 uses
   baseunix,
   unix,
   lincd;
+{$ENDIF}
 
 Function ReadCDTOC(Device : AnsiString; Var CDTOC : Array of TTocEntry) : Integer;
 

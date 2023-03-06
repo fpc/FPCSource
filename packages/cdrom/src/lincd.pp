@@ -11,15 +11,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lincd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,
+  UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseunix,
   unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     cdrom.h header translation.
@@ -721,7 +729,11 @@ Function DetectCd : AnsiString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CDROM.Major,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses major,sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     Functions from cdrom.h translation.
