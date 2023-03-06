@@ -2,7 +2,9 @@
   (c) 2000 Sebastian Guenther, sg@freepascal.org; modified MarkMLl 2012.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Serial;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
@@ -10,7 +12,11 @@ unit Serial;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Base,UnixApi.TermIO,UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses BaseUnix,termio,unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

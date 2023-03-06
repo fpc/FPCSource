@@ -3,14 +3,20 @@
   Windows variant written with reference to Dejan Crnila's TComPort v1.01.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Serial;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -148,10 +154,10 @@ begin
   DCB.BaudRate := BitsPerSec;
   DCB.ByteSize := ByteSize;
   case Parity of
-    OddParity:  DCB.Parity := Windows.ODDPARITY;
-    EvenParity: DCB.Parity := Windows.EVENPARITY
+    OddParity:  DCB.Parity := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.ODDPARITY;
+    EvenParity: DCB.Parity := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.EVENPARITY
   else
-    DCB.Parity := Windows.NOPARITY
+    DCB.Parity := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.NOPARITY
   end;
   if StopBits > 1 then
     DCB.StopBits := TWOSTOPBITS

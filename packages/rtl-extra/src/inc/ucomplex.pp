@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit UComplex;
+{$ENDIF FPC_DOTTEDUNITS}
 {$INLINE ON}
 {$define TEST_INLINE}
 
@@ -23,7 +25,11 @@ Unit UComplex;
   interface
 
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+    uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
     uses math;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type complex = record
                      re : real;

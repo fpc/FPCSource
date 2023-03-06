@@ -29,7 +29,9 @@
 
   ---------------------------------------------------------------------}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit printer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
@@ -56,7 +58,11 @@ Procedure AssignLst ( Var F : text; ToFile : string);
 }
 
 Implementation
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Unix,UnixApi.Base,System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Unix,BaseUnix,Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I printer.inc}
 

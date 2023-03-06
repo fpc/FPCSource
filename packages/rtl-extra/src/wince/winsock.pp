@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit winsock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { convention is cdecl for WinCE API}
 {$calling cdecl}
@@ -72,8 +74,13 @@ unit winsock;
 
   interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //begin common win32 & wince
 

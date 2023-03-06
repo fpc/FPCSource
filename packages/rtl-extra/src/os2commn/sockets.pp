@@ -18,12 +18,19 @@
 { $DEFINE notUnix}      // To make ssockets.pp compile
 {$ModeSwitch out}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.so32dll, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   so32dll, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   AF_UNSPEC      = so32dll.AF_UNSPEC;      // unspecified
@@ -587,8 +594,13 @@ function NativeSocket (AEMXSocket: cInt): cInt;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {******************************************************************************
                           Basic Socket Functions

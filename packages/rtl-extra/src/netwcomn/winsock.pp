@@ -20,7 +20,9 @@
 {$PACKRECORDS 1}
 {$R-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit winsock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 

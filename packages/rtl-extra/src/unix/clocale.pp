@@ -14,7 +14,9 @@
 
 { Initial implementation by petr kristan }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit clocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef android}
   {$error This unit is not intended for Android. Something wrong with the make file. }
@@ -43,8 +45,13 @@ implementation
 
 {$linklib c}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  System.SysUtils, UnixApi.Types, System.InitC;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   SysUtils, unixtype, initc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$if defined(BSD) or defined(SUNOS) or defined(aix)}
