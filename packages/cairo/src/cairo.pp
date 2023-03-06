@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Cairo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (* cairo - a vector graphics library with display and print output
  *
@@ -62,8 +64,13 @@ unit Cairo;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   CTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef MSWINDOWS}
