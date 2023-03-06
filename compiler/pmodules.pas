@@ -211,23 +211,30 @@ implementation
     procedure maybeloadvariantsunit;
       var
         hp : tmodule;
+        addsystemnamespace : Boolean;
       begin
         { Do we need the variants unit? Skip this
           for VarUtils unit for bootstrapping }
         if not(mf_uses_variants in current_module.moduleflags) or
-           (current_module.modulename^='VARUTILS') then
+           (current_module.modulename^='VARUTILS') or
+           (current_module.modulename^='SYSTEM.VARUTILS') then
           exit;
         { Variants unit already loaded? }
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            if hp.modulename^='VARIANTS' then
+            if (hp.modulename^='VARIANTS') or (hp.modulename^='SYSTEM.VARIANTS') then
               exit;
             hp:=tmodule(hp.next);
           end;
         { Variants unit is not loaded yet, load it now }
         Message(parser_w_implicit_uses_of_variants_unit);
+        addsystemnamespace:=namespacelist.Find('System')=Nil;
+        if addsystemnamespace then
+          namespacelist.concat('System');
         AddUnit('variants');
+        if addsystemnamespace then
+          namespacelist.Remove('System');
       end;
 
 
