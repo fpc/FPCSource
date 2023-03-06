@@ -20,7 +20,9 @@
 {$S-}
 {$B-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit NF_OPS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -92,8 +94,13 @@ function nf_exit(exitcode: integer): longint;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    AtariApi.Xbios;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     xbios;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     NATFEAT_ID = $7300;
@@ -132,7 +139,7 @@ asm
   * on ColdFire, the NATFEAT_ID opcode is actually
   * "mvs.b d0,d1".
   * But since there is no emulator that emulates a ColdFire,
-  * this feature isn't available.
+  * this feature is not available.
   *)
   moveq #0,d0
 {$ELSE}
