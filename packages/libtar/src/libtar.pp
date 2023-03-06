@@ -84,7 +84,9 @@ Date        Author Changes
 									Mostly rawbytestring and a couple of more hary typecasts.
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT libtar;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
@@ -97,6 +99,19 @@ INTERFACE
   {$ENDIF}
 {$ENDIF} 
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+{$IFDEF LIBCUNIT}
+   Api.Libc,		// MvdV: Nothing is used from this???
+{$ENDIF}
+{$ifdef Unix} 
+  UnixApi.Types, UnixApi.Base, UnixApi.Unix,
+{$endif}
+(*$IFDEF MSWINDOWS *)
+   WinApi.Windows,
+(*$ENDIF *)
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 USES
 {$IFDEF LIBCUNIT}
    Libc,		// MvdV: Nothing is used from this???
@@ -108,6 +123,7 @@ USES
    Windows,
 (*$ENDIF *)
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 TYPE
