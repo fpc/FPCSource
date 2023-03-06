@@ -21,11 +21,17 @@
 {$MODESWITCH OUT+}
 {$LONGSTRINGS OFF} { this unit always uses shortstrings }
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses AtariApi.Gemdos, AtariApi.Xbios, AtariApi.Bios, AtariApi.Metados;
+{$ELSE FPC_DOTTEDUNITS}
 uses gemdos, xbios, bios, metados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     FO_READ     = 0;

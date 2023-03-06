@@ -21,11 +21,17 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses AtariApi.Aes, AtariApi.Vdi, AtariApi.Gemcmmn;
+{$ELSE FPC_DOTTEDUNITS}
 uses aes, vdi, gemcmmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
         LWhite          = DWHITE;

@@ -1,0 +1,12 @@
+src/gemdos.pas=namespaced/AtariApi.Gemdos.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/vdi.pas=namespaced/AtariApi.Vdi.pas
+src/tos.pas=namespaced/AtariApi.Tos.pas
+src/nf_ops.pas=namespaced/AtariApi.Nf_ops.pas
+src/gem.pas=namespaced/AtariApi.Gem.pas
+src/aes.pas=namespaced/AtariApi.Aes.pas
+src/metados.pas=namespaced/AtariApi.Metados.pas
+src/gemcmmn.pas=namespaced/AtariApi.Gemcmmn.pas
+src/bios.pas=namespaced/AtariApi.Bios.pas
+src/xbios.pas=namespaced/AtariApi.Xbios.pas

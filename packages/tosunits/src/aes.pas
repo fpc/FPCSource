@@ -16,11 +16,17 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses AtariApi.Gemcmmn;
+{$ELSE FPC_DOTTEDUNITS}
 uses gemcmmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { The API description of this file is based on the information available
   online at: https://freemint.github.io/tos.hyp/en/index.html }
