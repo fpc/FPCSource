@@ -11,7 +11,9 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha512;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
@@ -19,8 +21,13 @@ unit fpsha512;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   THashBuffer = array[0..127] of Byte;

@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpecdsa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Hash.Ecc, System.Hash.Sha256;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, fpecc, fpsha256;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TECDSA }
