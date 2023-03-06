@@ -1,9 +1,15 @@
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit OleServer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinApi.Messages, WinApi.Activex, System.SysUtils, System.Classes, WinApi.Comobj;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, Messages, ActiveX, SysUtils, Classes, ComObj;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TVariantArray = Array of OleVariant;
@@ -160,13 +166,13 @@ implementation
 
 procedure TOleServer.ConnectEvents(const Obj: IUnknown);
 begin
-  ComObj.InterfaceConnect(Obj, FServerData^.EventIID, FEventDispatch, FEventsConnection);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ComObj.InterfaceConnect(Obj, FServerData^.EventIID, FEventDispatch, FEventsConnection);
 end;
 
 
 procedure TOleServer.DisconnectEvents(const Obj: Iunknown);
 begin
-  ComObj.InterfaceDisconnect(Obj, FServerData^.EventIID, FEventsConnection);
+  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ComObj.InterfaceDisconnect(Obj, FServerData^.EventIID, FEventsConnection);
 end;
 
 

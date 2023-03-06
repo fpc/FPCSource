@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit StdOle2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //  Imported on 24/12/2011 13:43:11 from C:\WINDOWS\system32\stdole2.tlb
 //  Modified by Ludo Brands to remove redeclarations
@@ -10,7 +12,11 @@ Unit StdOle2;
 {$mode delphi}{$H+}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinApi.Activex, System.Classes, WinApi.Oleserver, System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, ActiveX, Classes, OleServer, Variants;
+{$ENDIF FPC_DOTTEDUNITS}
 Const
   stdoleMajorVersion = 2;
   stdoleMinorVersion = 0;
@@ -46,10 +52,10 @@ Const
 //Forward declarations
 Type
  // for activex aliases see mantis 25907
- IEnumVARIANT = ActiveX.IEnumVariant;
- IFont = ActiveX.IFont;
+ IEnumVARIANT = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.IEnumVariant;
+ IFont = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.IFont;
  Font = dispinterface;
- IPicture =  ActiveX.IPicture;
+ IPicture =  {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ActiveX.IPicture;
  Picture = dispinterface;
  FontEvents = dispinterface;
 
@@ -154,7 +160,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Comobj;
+{$ELSE FPC_DOTTEDUNITS}
 uses comobj;
+{$ENDIF FPC_DOTTEDUNITS}
 
 class function CoStdFont.Create: Font;
 begin

@@ -14,7 +14,9 @@
 {$mode objfpc}
 {$H+}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ComObj;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -24,8 +26,13 @@ unit ComObj;
 {$ifdef wince}
   {$define DUMMY_REG}
 {$endif}
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      WinApi.Windows,System.Types,System.Variants,System.SysUtils,WinApi.Activex,System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       Windows,Types,Variants,Sysutils,ActiveX,classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type
       EOleError = class(Exception);
@@ -332,8 +339,13 @@ unit ComObj;
   {$endif}
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+      WinApi.Comconst, WinApi.Ole2, {$ifndef dummy_reg} System.Registry, {$endif} System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
     uses
       ComConst, Ole2, {$ifndef dummy_reg} Registry, {$endif} RtlConsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
     var
       Uninitializing : boolean;
@@ -1926,11 +1938,11 @@ begin
     TProcedure(SaveInitProc)();
   if not CoInitDisable then
 {$ifndef wince}
-    if (CoInitFlags=-1) or not(assigned(ComObj.CoInitializeEx)) then
+    if (CoInitFlags=-1) or not(assigned({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ComObj.CoInitializeEx)) then
       Initialized:=Succeeded(CoInitialize(nil))
     else
 {$endif wince}
-      Initialized:=Succeeded(ComObj.CoInitializeEx(nil, CoInitFlags));
+      Initialized:=Succeeded({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}ComObj.CoInitializeEx(nil, CoInitFlags));
 end;
 
 initialization

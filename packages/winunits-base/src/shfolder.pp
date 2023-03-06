@@ -27,12 +27,19 @@
   systems.
   ---------------------------------------------------------------------}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit shfolder;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   LibName = 'SHFolder.dll';

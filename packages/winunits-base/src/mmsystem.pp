@@ -6,7 +6,9 @@
 {*********************************} (*   LCC-win32 (c) Jacob Navia   *)
                                     (*********************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit MMSystem;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ifndef NO_SMART_LINK}
   {$smartlink on}
 {$endif}
@@ -16,8 +18,13 @@ Unit MMSystem;
   {$define UNICODE}
 {$endif}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
     MMRESULT   = UINT;

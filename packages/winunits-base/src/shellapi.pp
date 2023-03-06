@@ -30,7 +30,9 @@
   {$define UNICODE}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit ShellApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //+-------------------------------------------------------------------------
 //
@@ -47,7 +49,11 @@ Unit ShellApi;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows, WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows, ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
   {
     shellapi.h -  SHELL.DLL functions, types, and definitions
     Copyright (c) Microsoft Corporation. All rights reserved.             }

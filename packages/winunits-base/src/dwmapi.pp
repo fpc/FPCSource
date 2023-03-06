@@ -22,13 +22,20 @@
     Description: DWM API declarations
 
  *=========================================================================*}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DwmApi;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, WinApi.Uxtheme;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, UxTheme;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure FreeDwmLibrary;
 function InitDwmLibrary: Boolean;

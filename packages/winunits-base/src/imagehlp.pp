@@ -18,11 +18,17 @@
 	    I added a dummy nested record union.
 	  
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit imagehlp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$packrecords 8}
 {$ifdef win64}

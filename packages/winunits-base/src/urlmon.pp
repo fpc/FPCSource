@@ -6,12 +6,19 @@
   Copyright (c) Microsoft Corporation. All rights reserved.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit urlmon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WinApi.Windows, WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   windows, activex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   liburlmon = 'urlmon.dll';

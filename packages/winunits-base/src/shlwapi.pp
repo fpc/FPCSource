@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit shlwapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     This file is part of the Free Pascal run time library.
@@ -18,7 +20,11 @@ unit shlwapi;
 interface
 {$mode delphi}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows,WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows,ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
   const
     SHLWAPIDLL='shlwapi.dll'; {Setup as you need}
 
