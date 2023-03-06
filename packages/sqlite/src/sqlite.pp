@@ -4,7 +4,9 @@
   {$linklib c}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

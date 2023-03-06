@@ -15,15 +15,23 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite3Ext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+  Api.Sqlite3;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
   sqlite3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$packrecords c}
 
