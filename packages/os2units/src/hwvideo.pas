@@ -31,14 +31,23 @@ Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit HWVideo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.os2def,
+  OS2Api.pmwin,
+  OS2Api.pmgpi;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Os2Def,
   PMWin,
   PMGpi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // GRADD function class
 Const

@@ -30,13 +30,21 @@ function prototypes for Multimedia Applets.
 Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit SW;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.os2def,
+  OS2Api.pmwin;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   Os2Def,
   PmWin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   MAX_SMBDTEXT=35;

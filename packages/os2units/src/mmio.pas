@@ -30,12 +30,19 @@ OS/2 2.0 Multimedia Extensions Input/Output Manager
 Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit MMIO;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.Mmbase;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   MMBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   LibName='MMPM'; // !!TODO!! Subject to replace by MMIO

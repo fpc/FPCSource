@@ -26,12 +26,19 @@ with OS/2 and eComStation. However, the Clock API DLL is not Rexx
 enabled.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit clkdll;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 If you need to know the universal world time call this API. The

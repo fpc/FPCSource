@@ -1,0 +1,15 @@
+src/lvm.pas=namespaced/OS2Api.Lvm.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/mmio.pas=namespaced/OS2Api.Mmio.pas
+src/clkdll.pas=namespaced/OS2Api.Clkdll.pas
+src/mciapi.pas=namespaced/OS2Api.Mciapi.pas
+src/sw.pas=namespaced/OS2Api.Sw.pas
+src/mcidrv.pas=namespaced/OS2Api.Mcidrv.pas
+src/dive.pas=namespaced/OS2Api.Dive.pas
+src/som.pas=namespaced/OS2Api.Som.pas
+src/hwvideo.pas=namespaced/OS2Api.Hwvideo.pas
+src/buildall.pas=namespaced/OS2Api.Buildall.pas
+src/mmbase.pas=namespaced/OS2Api.Mmbase.pas
+src/ftpapi.pas=namespaced/OS2Api.Ftpapi.pas
+src/mci.pas=namespaced/OS2Api.Mci.pas

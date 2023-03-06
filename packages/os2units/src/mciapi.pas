@@ -32,7 +32,9 @@ See "Multimedia with REXX" for more information.).
 Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit mciapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE ObjFPC}
 

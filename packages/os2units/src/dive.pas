@@ -30,14 +30,20 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit DIVE;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {Warning: This code is alfa. Future versions of this unit will propably
  not be compatible.}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses OS2Api.os2def, OS2Api.pmwin, OS2Api.Mmbase;
+{$ELSE FPC_DOTTEDUNITS}
 Uses OS2Def, PMWin, MMBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const Max_Dive_Instances = 64;
 

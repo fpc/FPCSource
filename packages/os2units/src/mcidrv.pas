@@ -30,7 +30,9 @@ MCI drivers interface
 Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit mcidrv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
