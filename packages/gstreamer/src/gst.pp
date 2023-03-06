@@ -21,14 +21,20 @@
  * Boston, MA 02110-1301, USA.
  *}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Glib2;
+{$ELSE FPC_DOTTEDUNITS}
 uses glib2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   gstreamerlib = 'libgstreamer-1.0'; {Setup as you need}
