@@ -4,7 +4,9 @@
 {$LONGSTRINGS ON}
 {$MACRO ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ENet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   ENet - Reliable UDP networking library
@@ -35,6 +37,15 @@ unit ENet;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+{$IFDEF Windows}
+  WinApi.Winsock2;
+{$ELSE}
+  UnixApi.Base, System.Net.Sockets;
+{$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
 {$IFDEF WINDOWS}
@@ -42,6 +53,7 @@ uses
 {$ELSE}
   BaseUnix, Sockets;
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 ////////////////////////////////////////////////////////////////////////////////
 // types.h
