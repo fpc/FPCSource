@@ -1,0 +1,3 @@
+src/matroska.pas=namespaced/Api.Matroska.pas
+{s*:src/}=namespaced/
+{i+:src/}
