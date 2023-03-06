@@ -15,14 +15,20 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XHTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.Dom, Html.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses DOM, DOM_HTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

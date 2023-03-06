@@ -27,11 +27,17 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SAX_HTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom, Html.Dom, Html.Defs,Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

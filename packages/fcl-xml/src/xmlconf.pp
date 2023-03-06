@@ -24,12 +24,19 @@
 {$H+}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLConf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Xml.Dom, Xml.Read, Xml.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, DOM, XMLRead, XMLWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SWrongRootName = 'XML file has wrong root element name: expected "%s" but was "%s"';

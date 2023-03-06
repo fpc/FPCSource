@@ -12,14 +12,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmliconv;
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$mode objfpc}
+{$h+}
 
 interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Read, UnixApi.Iconvenc, UnixApi.Types, UnixApi.Base, System.InitC;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   xmlread, iconvenc, unixtype, baseunix, initc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef FPC_LITTLE_ENDIAN}

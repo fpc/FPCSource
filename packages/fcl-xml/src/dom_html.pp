@@ -17,11 +17,17 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DOM_HTML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.Dom, Html.Defs, Xml.Utils, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses DOM, htmldefs, xmlutils, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THTMLDocument = class;
