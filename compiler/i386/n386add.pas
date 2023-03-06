@@ -573,6 +573,18 @@ interface
       { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
       if (right.location.loc=LOC_CONSTANT) then
         begin
+          { if left has side effects, it could be that this code is called with right.location.value64=0,
+            see also #40182 }
+          if right.location.value64=0 then
+            begin
+              location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+              location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              emit_const_reg(A_MOV,S_L,0,location.register64.reglo);
+              location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              emit_const_reg(A_MOV,S_L,0,location.register64.reghi);
+              exit;
+            end;
+
           { Omit zero terms, if any }
           hreg1:=NR_NO;
           hreg2:=NR_NO;
