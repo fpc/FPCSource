@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Original:

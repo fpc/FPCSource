@@ -13,15 +13,25 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Zipper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  {$IFDEF Unix}
+   UnixApi.Base,
+  {$ENDIF}
+   System.SysUtils,System.Classes,System.ZLib.Zstream;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   {$IFDEF UNIX}
    BaseUnix,
   {$ENDIF}
    SysUtils,Classes,zstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const
@@ -619,7 +629,11 @@ Type
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrBufsizeChange = 'Changing buffer size is not allowed while (un)zipping.';
