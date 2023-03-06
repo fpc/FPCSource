@@ -12,11 +12,17 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Stl.Deque;
+{$ELSE FPC_DOTTEDUNITS}
 uses gdeque;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type 
   generic TQueue<T>=class

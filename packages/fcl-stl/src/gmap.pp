@@ -12,11 +12,17 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Stl.Sets;
+{$ELSE FPC_DOTTEDUNITS}
 uses gset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   generic TMapCompare<TPair, TKeyCompare>=class
