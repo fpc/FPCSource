@@ -1,0 +1,3 @@
+src/gst.pp=namespaced/Api.Gstreamer.Gst.pp
+{s*:src/}=namespaced/
+{i+:src/}
