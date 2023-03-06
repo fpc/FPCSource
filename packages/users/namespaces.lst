@@ -1,0 +1,7 @@
+src/crypth.pp=namespaced/UnixApi.Crypth.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/pwd.pp=namespaced/UnixApi.Pwd.pp
+src/shadow.pp=namespaced/UnixApi.Shadow.pp
+src/users.pp=namespaced/UnixApi.Users.pp
+src/grp.pp=namespaced/UnixApi.Grp.pp
