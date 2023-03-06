@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit nCrt;
+{$ENDIF FPC_DOTTEDUNITS}
 {---------------------------------------------------------------------------
                                  CncWare
                          (c) Copyright 1999-2000
@@ -24,6 +26,15 @@ Unit nCrt;
 }
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+{$ifdef Unix}
+    UnixApi.Base,
+    UnixApi.TermIO,
+{$endif}
+  Api.Ncurses,
+  TP.DOS;  {TP.DOS needed for TextRec}
+{$ELSE FPC_DOTTEDUNITS}
 Uses
 {$ifdef Unix}
     baseunix,
@@ -31,6 +42,7 @@ Uses
 {$endif}
   ncurses,
   dos;  {dos needed for TextRec}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i ncrt.inc}
 
