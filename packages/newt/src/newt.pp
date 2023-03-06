@@ -1,5 +1,7 @@
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit newt;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {
   Automatically converted by H2Pas 0.99.15 from newt.h
