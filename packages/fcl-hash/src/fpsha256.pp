@@ -11,15 +11,22 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha256;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$MODESWITCH advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TSHA256Digest = packed array[0..31] of Byte;
@@ -68,7 +75,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //------------------------------------------------------------------------------
 // SHA256

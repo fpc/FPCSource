@@ -12,14 +12,21 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit onetimepass;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils , Fcl.BaseNEnc, System.Types, System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils , basenenc, types, DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   TOTP_Mod = 1000000;
@@ -36,7 +43,11 @@ Function TOTPSharedSecret(aRandom : TRandomBytes = Nil) : AnsiString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Sha1, System.Hash.Hmac;
+{$ELSE FPC_DOTTEDUNITS}
 uses sha1, hmac;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // @Result[8]
 Function Int64ToRawString(const Value: Int64) : AnsiString;

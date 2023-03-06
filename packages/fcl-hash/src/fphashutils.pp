@@ -14,15 +14,22 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EHashUtil = Class(Exception);

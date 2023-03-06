@@ -1,12 +1,19 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpasn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.BaseNEnc, System.Classes, System.SysUtils, System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Basenenc, Classes, SysUtils, fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ASN1_BOOL       = $01;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprsa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}
 {$H+}
@@ -8,8 +10,13 @@ interface
 
 {off $DEFINE CRYPTO_DEBUG}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Hash.Sha1, System.Hash.Sha512, System.Hash.Sha256, System.Hash.Tlsbigint, System.Hash.Utils, System.Hash.Asn, Fcl.BaseNEnc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, Classes, sha1, fpsha512, fpsha256, fpTLSBigInt, fphashutils, fpasn, basenenc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';

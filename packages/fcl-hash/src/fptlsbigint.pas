@@ -10,13 +10,19 @@
 {$R-}
 {$Q-}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpTLSBigInt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 

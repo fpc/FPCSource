@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.BaseNEnc, System.Hash.Sha256, System.Hash.Asn, System.Hash.Utils, System.Hash.Ecc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, basenenc, fpsha256, fpasn, fphashutils, fpecc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   _BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
@@ -340,7 +347,7 @@ begin
         raise Exception.Create('20220428220523');
       TxtBase64:=TxtBase64+Line;
     end;
-    Result:=basenenc.Base64.Decode(TxtBase64,True);
+    Result:={$ifdef FPC_DOTTEDUNITS}Fcl.{$ENDIF}basenenc.Base64.Decode(TxtBase64,True);
   finally
     sl.Free;
   end;
