@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googlemanager;
+{$ENDIF FPC_DOTTEDUNITS}
 {
    **********************************************************************
       This file is part of the Free Component Library (FCL)
@@ -19,7 +21,11 @@ unit googlemanager;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, GoogleApi.Service, FpWeb.Rest.Base, GoogleApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, googleservice, restbase, googlebase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   

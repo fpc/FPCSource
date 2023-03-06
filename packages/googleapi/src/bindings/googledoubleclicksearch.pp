@@ -1,10 +1,16 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googledoubleclicksearch;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, GoogleApi.Service, FpWeb.Rest.Base, GoogleApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, googleservice, restbase, googlebase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   
