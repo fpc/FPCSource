@@ -1,0 +1,11 @@
+src/pasresolver.pp=namespaced/Pascal.Resolver.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/pparser.pp=namespaced/Pascal.Parser.pp
+src/pasresolveeval.pas=namespaced/Pascal.ResolveEval.pp
+src/passrcutil.pp=namespaced/Pascal.Utils.pp
+src/pastounittest.pp=namespaced/Pascal.ToUnitTest.pp
+src/pscanner.pp=namespaced/Pascal.Scanner.pp
+src/pastree.pp=namespaced/Pascal.Tree.pp
+src/pasuseanalyzer.pas=namespaced/Pascal.UseAnalyzer.pp
+src/paswrite.pp=namespaced/Pascal.Writer.pp

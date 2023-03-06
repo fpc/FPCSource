@@ -18,11 +18,17 @@
 {$h+}
 {$inline on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.SysUtils, System.Classes, Pascal.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils, SysUtils, Classes, PasTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EPasWriter = Class(Exception);

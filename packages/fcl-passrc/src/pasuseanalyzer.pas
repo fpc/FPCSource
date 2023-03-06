@@ -37,12 +37,24 @@ Working:
 - TPasArgument: compute the effective Access
 - calls: use the effective Access of arguments
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasUseAnalyzer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-passrc.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  js,
+  {$else}
+  Fcl.AVLTree,
+  {$endif}
+  System.Classes, System.SysUtils, System.Types, System.Contnrs,
+  Pascal.Tree, Pascal.Scanner, Pascal.ResolveEval, Pascal.Resolver;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   js,
@@ -51,6 +63,7 @@ uses
   {$endif}
   Classes, SysUtils, Types, contnrs,
   PasTree, PScanner, PasResolveEval, PasResolver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // non fpc hints

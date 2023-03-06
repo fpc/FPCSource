@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit passrcutil;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit passrcutil;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Pascal.Scanner, Pascal.Parser, Pascal.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, pscanner, pparser, pastree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
