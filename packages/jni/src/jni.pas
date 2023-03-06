@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jni;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ifdef fpc}
  {$mode delphi}
  {$packrecords c}
