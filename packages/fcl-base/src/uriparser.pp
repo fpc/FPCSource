@@ -18,7 +18,9 @@
 {$H+}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit URIParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -53,7 +55,11 @@ function IsAbsoluteURI(const UriReference: string): Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   GenDelims = [':', '/', '?', '#', '[', ']', '@'];

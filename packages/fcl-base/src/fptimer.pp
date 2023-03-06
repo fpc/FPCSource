@@ -33,7 +33,9 @@
      still greater than TEvent, where the delay is only a few milliseconds (0-3).     
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fptimer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -51,8 +53,13 @@ unit fptimer;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPTimerDriver = Class;
@@ -120,8 +127,13 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     TFPTimer

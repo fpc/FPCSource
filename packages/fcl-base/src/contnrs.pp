@@ -17,12 +17,19 @@
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
 {$IFOPT R+}{$DEFINE RangeChecking}{$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -600,8 +607,13 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   RtlConsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   DuplicateMsg   = 'An item with key %0:s already exists';

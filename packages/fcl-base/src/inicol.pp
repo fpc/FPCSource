@@ -13,11 +13,17 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inicol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils,System.Classes,System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 Uses SysUtils,Classes,Inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

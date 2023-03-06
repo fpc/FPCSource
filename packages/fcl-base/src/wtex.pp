@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -10,7 +10,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wtex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -19,7 +21,11 @@ interface
 {$endif}
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.Wformat,System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses wformat,classes,sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TTexWriter=Class(TFormattingWriter)

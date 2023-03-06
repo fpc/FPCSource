@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit LZWStream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
@@ -21,8 +23,13 @@ unit LZWStream;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   ELZWStreamError = Class(EStreamError);

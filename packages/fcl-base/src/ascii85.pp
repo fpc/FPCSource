@@ -14,7 +14,9 @@
 
 // I, Danny Milosavljevic, hereby release this code into the public domain.
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ascii85;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$M+}
 {$MODE OBJFPC}
@@ -23,7 +25,11 @@ unit ascii85;
 //   which is based on C code from <http://www.stillhq.com/cgi-bin/cvsweb/ascii85/>.
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TASCII85State = (ascInitial = 0, ascOneEncodedChar = 1, ascTwoEncodedChars = 2, ascThreeEncodedChars = 3, ascFourEncodedChars = 4, ascNoEncodedChar = 5, ascPrefix = 6);

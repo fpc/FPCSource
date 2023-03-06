@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2015 by Ondrej Pokorny
 
     Unit implementing Single Instance functionality.
@@ -19,14 +19,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AdvancedSingleInstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.AdvancedIpc, Fcl.SingleInstance;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, AdvancedIPC, singleinstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

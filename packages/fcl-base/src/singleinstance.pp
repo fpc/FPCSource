@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit singleinstance;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     This file is part of the Free Component Library (FCL)
@@ -18,8 +20,13 @@ unit singleinstance;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

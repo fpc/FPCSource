@@ -16,11 +16,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gettext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MOFileHeaderMagic = $950412DE;
@@ -79,8 +85,15 @@ type
 implementation
 
 {$ifdef Windows}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    windows;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$endif}
 
 

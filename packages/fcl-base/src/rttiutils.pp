@@ -29,12 +29,19 @@
 
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RttiUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, {Graphics, MacOsApi.Controls, Forms,} System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, {Graphics, Controls, Forms,} TypInfo, StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

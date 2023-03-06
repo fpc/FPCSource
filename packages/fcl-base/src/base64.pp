@@ -22,11 +22,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -91,8 +97,13 @@ function DecodeStringBase64(const s: AnsiString;strict:boolean=false): AnsiStrin
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SStrictNonBase64Char    = 'Non-valid Base64 Encoding character in input';

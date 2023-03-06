@@ -19,12 +19,19 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit streamex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, RtlConsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MIN_BUFFER_SIZE = 128;

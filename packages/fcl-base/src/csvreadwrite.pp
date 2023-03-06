@@ -35,15 +35,22 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit csvreadwrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCSVChar = Char;
