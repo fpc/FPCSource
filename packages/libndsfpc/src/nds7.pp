@@ -30,7 +30,9 @@
 ---------------------------------------------------------------------------------*)
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nds7;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$apptype arm7}
 {$define arm7}
@@ -42,8 +44,13 @@ unit nds7;
 {$modeswitch ADVANCEDRECORDS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib nds7}
 

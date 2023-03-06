@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dswifi7;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$apptype arm7}
 {$define arm7}
@@ -10,8 +12,13 @@ unit dswifi7;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, NdsApi.Nds7;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, nds7;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib nds7}
 {$linklib dswifi7}
