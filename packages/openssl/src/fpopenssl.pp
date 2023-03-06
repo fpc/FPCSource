@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpopenssl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$DEFINE DUMPCERT}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Sslbase, Api.Openssl, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sslbase, openssl, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF DUMPCERT}
 Const
@@ -127,7 +134,11 @@ Function BioToString(B : PBIO; FreeBIO : Boolean = False) : AnsiString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrCountNotGetContext = 'Failed to create SSL Context';

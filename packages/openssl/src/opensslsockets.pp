@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit opensslsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets, System.Net.Sslsockets, System.Net.Sslbase, Api.Openssl, System.Net.Fpopenssl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sockets, ssockets, sslsockets, sslbase, openssl, fpopenssl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
