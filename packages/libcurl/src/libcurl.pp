@@ -16,21 +16,35 @@
    website for this. 
  }
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libcurl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$IFDEF WINDOWS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   time_t = clong;
   PTime_t = ^time_t;
   off_t  = clong;
 {$ELSE}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$ENDIF}
 
 {$IFDEF FPC}
