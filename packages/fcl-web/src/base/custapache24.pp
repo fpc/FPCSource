@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custapache24;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, FpWeb.Handler, FpWeb.Http.Defs, FpWeb.Http.Base, Api.Httpd24, Api.Httpd24.Apr, System.SyncObjs, FpWeb.Http.Protocol;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, CustWeb, httpDefs, fpHTTP, httpd24, apr24, SyncObjs, httpprotocol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -156,7 +163,11 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.CustApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses CustApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';

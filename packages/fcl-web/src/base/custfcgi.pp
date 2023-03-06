@@ -21,7 +21,9 @@
 
 {$RANGECHECKS OFF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custfcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
@@ -29,6 +31,16 @@ Interface
 {$define windowspipe}
 {$ifend}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils, FpWeb.Http.Defs, 
+{$ifdef Unix}
+  UnixApi.Base,
+{$else}
+  WinApi.Winsock2, WinApi.Windows,
+{$endif}
+  System.Net.Sockets, FpWeb.Handler, FpWeb.Cgi.Protocol, FpWeb.Http.Protocol, FpWeb.HostApp.Custom.Cgi, Api.Fastcgi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,SysUtils, httpdefs, 
 {$ifdef unix}
@@ -37,6 +49,7 @@ uses
   winsock2, windows,
 {$endif}
   Sockets, custweb, cgiprotocol, httpprotocol, custcgi, fastcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TFCGIRequest }
@@ -197,11 +210,19 @@ ResourceString
   
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef CGIDEBUG}
+  dbugintf,
+{$endif}
+  System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef CGIDEBUG}
   dbugintf,
 {$endif}
   strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$undef nosignal}
 
@@ -618,7 +639,7 @@ Var
 begin
   // This is normally only used in mod_fastcgi.
   // mod_fcgid just kills off the process...
-  H:=THandle(StrToIntDef(sysutils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
+  H:=THandle(StrToIntDef({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
   If (H<>0) then
     FShutDownThread:=TShutdownThread.CreateWithEvent(H,@HandleShutDownEvent);
 end;
@@ -900,7 +921,7 @@ begin
     Result:=FileRead(AHandle,ABuf,ACount)
   else
 {$endif}
-    Result:=sockets.fpRecv(AHandle, @Abuf, ACount, NoSignalAttr);
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpRecv(AHandle, @Abuf, ACount, NoSignalAttr);
 end;
 
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
@@ -919,9 +940,9 @@ begin
     begin
     Repeat
       ExtendedErrorCode:=0;
-      Result:=sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+      Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
       if (Result<0) then
-        ExtendedErrorCode:=sockets.socketerror;
+        ExtendedErrorCode:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.socketerror;
     until (Result>=0) {$ifdef unix} or (ExtendedErrorCode<>ESysEINTR);{$endif}
     end;
 end;

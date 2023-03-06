@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestdata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.BufDataset, Data.Sqldb, Data.Db, FpJson.Data, FpWeb.RestBridge.IO, FpWeb.RestBridge.Schema;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, bufdataset, sqldb, db, fpjson, sqldbrestio, sqldbrestschema;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TSQLQueryClass = Class of TSQLQuery;
@@ -120,7 +127,15 @@ Type
 
 implementation
 
+<<<<<<< HEAD
 uses typinfo, strutils, variants, dateutils, base64, sqldbrestconst;
+=======
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.Variants, System.DateUtils, System.Hash.Base64, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
+uses strutils, variants, dateutils, base64, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
+>>>>>>> f4da77c296 (* Dotted filenames for package fcl-web)
 
 
 Const

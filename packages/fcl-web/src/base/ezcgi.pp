@@ -10,14 +10,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ezcgi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode delphi}
 {$H+ }
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
    hexTable = '0123456789ABCDEF';

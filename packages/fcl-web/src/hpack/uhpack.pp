@@ -56,7 +56,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uhpack;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*
   This file exposes only the needed symbols instead the whole
@@ -67,19 +69,24 @@ unit uhpack;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpWeb.UhpackImp;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   uhpackimp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
-  HPACK_MAX_HEADER_SIZE = uhpackimp.HPACK_MAX_HEADER_SIZE;
-  HPACK_MAX_HEADER_TABLE_SIZE = uhpackimp.HPACK_MAX_HEADER_TABLE_SIZE;
+  HPACK_MAX_HEADER_SIZE = {$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.HPACK_MAX_HEADER_SIZE;
+  HPACK_MAX_HEADER_TABLE_SIZE = {$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.HPACK_MAX_HEADER_TABLE_SIZE;
 
 type
-  THPackDecoder=uhpackimp.THPackDecoder;
-  THPackEncoder=uhpackimp.THPackEncoder;
-  THPackHeaderAddEvent = uhpackimp.THPackHeaderAddEvent;
-  THPACKException= uhpackimp.THPACKException;
-  THPackHeaderTextList = uhpackimp.THPackHeaderTextList;
+  THPackDecoder={$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.THPackDecoder;
+  THPackEncoder={$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.THPackEncoder;
+  THPackHeaderAddEvent = {$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.THPackHeaderAddEvent;
+  THPACKException= {$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.THPACKException;
+  THPackHeaderTextList = {$IFDEF FPC_DOTTEDUNITS}FpWeb.{$ENDIF}UhpackImp.THPackHeaderTextList;
 
 implementation
 

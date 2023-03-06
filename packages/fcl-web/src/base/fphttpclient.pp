@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphttpclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Ssockets, FpWeb.Http.Defs, Fcl.UriParser, System.Hash.Base64, System.Net.Sslsockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ssockets, httpdefs, uriparser, base64, sslsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Socket Read buffer size

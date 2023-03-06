@@ -13,11 +13,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphttp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes,FpWeb.Http.Defs, FpWeb.Route;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,classes,httpdefs, httproute;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 { TODO : Implement wkSession }

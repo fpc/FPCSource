@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iniwebsession;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $define cgidebug}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Base, System.IniFiles, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttp, inifiles, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
 

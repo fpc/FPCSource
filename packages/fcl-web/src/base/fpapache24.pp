@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,20 +13,27 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpapache24;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Fcl.CustApp, FpWeb.HostApp.Custom.Apache24;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, custapp, custapache24;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // Backwards compatibility defines.
-  TApacheHandler = custapache24.TApacheHandler;
-  TApacheRequest = custapache24.TApacheRequest;
-  TApacheResponse = custapache24.TApacheResponse;
-  THandlerPriority = custapache24.THandlerPriority;
-  TBeforeRequestEvent = custapache24.TBeforeRequestEvent;
-  TCustomApacheApplication = custapache24.TCustomApacheApplication;
+  TApacheHandler = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.TApacheHandler;
+  TApacheRequest = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.TApacheRequest;
+  TApacheResponse = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.TApacheResponse;
+  THandlerPriority = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.THandlerPriority;
+  TBeforeRequestEvent = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.TBeforeRequestEvent;
+  TCustomApacheApplication = {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.TCustomApacheApplication;
 
 
   TApacheApplication = Class(TCustomApacheApplication)
@@ -51,24 +58,24 @@ Implementation
 Function Application : TCustomApacheApplication;
 
 begin
-  Result:=CustApache24.Application;
+  Result:={$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.Application;
 end;
 
 Procedure InitApache;
 
 begin
-  CustApache24.Application:=TApacheApplication.Create(Nil);
+  {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.Application:=TApacheApplication.Create(Nil);
   if not assigned(CustomApplication) then
-    CustomApplication := CustApache24.Application;
+    CustomApplication := {$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.Application;
 end;
 
 Procedure DoneApache;
 
 begin
   Try
-    if CustomApplication=CustApache24.Application then
+    if CustomApplication={$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.Application then
       CustomApplication := nil;
-    FreeAndNil(CustApache24.Application);
+    FreeAndNil({$IFDEF FPC_DOTTEDUNITS}FpWeb.HostApp.Custom.Apache24{$ELSE}custapache24{$ENDIF}.Application);
   except
     if ShowCleanUpErrors then
       Raise;

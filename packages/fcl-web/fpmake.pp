@@ -39,6 +39,7 @@ begin
     P.Dependencies.Add('fcl-registry',AllWindowsOSes);
     P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
+    P.Dependencies.Add('httpd20', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('winunits-base', [Win32,Win64]);

@@ -11,14 +11,21 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -158,7 +165,11 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TAbstractRequestSigner }
 

@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjwarsa;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.BaseNEnc, Jwt.Types, System.Hash.Rsa, System.Hash.Sha256, System.Hash.Sha512, System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, basenenc, fpjwt, fprsa, fpsha256, fpsha512, fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

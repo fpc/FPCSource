@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpoauth2ini;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Jwt.Oauth2, System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpoauth2, inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -52,7 +59,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Default sections.

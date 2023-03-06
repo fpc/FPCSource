@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjwasha256;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Jwt.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, fpjwt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -20,7 +27,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Hash.Sha256, Fcl.BaseNEnc;
+{$ELSE FPC_DOTTEDUNITS}
 uses fpsha256, basenenc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SErrHMACFailed = 'HMAC SHA256 of JWT Failed';

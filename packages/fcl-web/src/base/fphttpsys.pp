@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2017-2018 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -10,14 +10,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpHTTPSys;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpWeb.HostApp.Custom.HttpSys;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   custHTTPSys;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THTTPSysApplication = class(TCustomHTTPSysApplication)
@@ -29,8 +36,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Fcl.CustApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, custApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure InitHTTPSys;
 begin

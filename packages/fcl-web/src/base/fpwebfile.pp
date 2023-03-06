@@ -16,11 +16,17 @@
 {$h+}
 {$modeswitch advancedrecords}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpWeb.Http.Defs, FpWeb.Http.Base, FpWeb.Route;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, httpdefs, fphttp, httproute;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EFileLocation = class(EHTTP);
@@ -129,7 +135,11 @@ Procedure UnRegisterFileLocation(Const ALocation: String);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, FpWeb.MimeTypes, FpWeb.Http.Protocol, FpJson.Data, FpWeb.Http.Json;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils, fpmimetypes, httpprotocol, fpjson, httpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrNoLocation = 'Cannot register an empty location.';

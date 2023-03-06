@@ -2,7 +2,7 @@
   This file is part of the Free Component Library (FCL)
   Copyright (c) 2015 by the Free Pascal development team
         
-  FPHTTPClient implementation of TFPWebclient.
+  FPHTTPClient implementation of TFpWebclient.
             
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
@@ -12,14 +12,21 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
                                  
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fphttpwebclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Client, FpWeb.Http.Client;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpwebclient, fphttpclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -57,7 +64,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFPHTTPRequest }
 

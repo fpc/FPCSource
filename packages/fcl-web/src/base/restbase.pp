@@ -11,15 +11,22 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit restbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $DEFINE DEBUGBASEOBJMEMLEAK}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, FpJson.Data, System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo, fpjson, Classes, SysUtils, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   ERESTAPI = Class(Exception);

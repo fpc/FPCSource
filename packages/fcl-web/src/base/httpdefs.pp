@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -25,11 +25,17 @@
 {$mode objfpc}
 {$H+}
 { $DEFINE CGIDEBUG}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTTPDefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.Classes, System.SysUtils, FpWeb.Http.Protocol, Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, Classes, Sysutils, httpprotocol, uriparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultTimeOut = 15;
@@ -91,13 +97,13 @@ const
 
   NoHTTPFields    = 28;
 
-  HTTPDateFmt     = httpProtocol.HTTPDateFmt;
-  SCookieExpire   = httpProtocol.SCookieExpire;
-  SCookieDomain   = httpProtocol.SCookieDomain;
-  SCookiePath     = httpProtocol.SCookiePath;
-  SCookieSecure   = httpProtocol.SCookieSecure;
-  SCookieHttpOnly = httpProtocol.SCookieHttpOnly;
-  SCookieSameSite = httpProtocol.SCookieSameSite;
+  HTTPDateFmt     = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.HTTPDateFmt;
+  SCookieExpire   = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookieExpire;
+  SCookieDomain   = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookieDomain;
+  SCookiePath     = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookiePath;
+  SCookieSecure   = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookieSecure;
+  SCookieHttpOnly = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookieHttpOnly;
+  SCookieSameSite = {$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.SCookieSameSite;
 
   HTTPMonths : array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
@@ -741,11 +747,19 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef CGIDEBUG}
+  dbugintf,
+{$endif}
+  System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef CGIDEBUG}
   dbugintf,
 {$endif}
   strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrContentAlreadySent        = 'HTTP Response content was already sent';
@@ -783,19 +797,19 @@ end;
 Function HTTPDecode(const AStr: String): String;
 
 begin
-  Result:=httpProtocol.HTTPDecode(AStr);
+  Result:={$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.HTTPDecode(AStr);
 end;
 
 Function HTTPEncode(const AStr: String): String;
 
 begin
-  Result:=httpProtocol.HTTPEncode(AStr);
+  Result:={$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.HTTPEncode(AStr);
 end;
 
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 begin
-  Result:=httpProtocol.IncludeHTTPPathDelimiter(AStr);
+  Result:={$IFDEF FPC_DOTTEDUNITS}FpWeb.Http.Protocol{$ELSE}httpProtocol{$ENDIF}.IncludeHTTPPathDelimiter(AStr);
 end;
 
 { -------------------------------------------------------------------

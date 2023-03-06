@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPHTTPClientPool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Simple thread-safe HTTP Client pool.
@@ -13,8 +15,13 @@ unit FPHTTPClientPool;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Client, Fcl.UriParser, System.SyncObjs, System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttpclient, URIParser, syncobjs, DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPHTTPClientList = class(TList)

@@ -11,14 +11,23 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}unit sqldbrestmodule;
+ **********************************************************************}
+
+{$IFNDEF FPC_DOTTEDUNITS}
+ unit sqldbrestmodule;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpWeb.RestBridge.Bridge;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fphttp, sqldbrestbridge;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -48,7 +57,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.RestBridge.Schema, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses sqldbrestschema, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TSQLDBRestModule }
 

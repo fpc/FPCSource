@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprpcrtti;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpWeb.JsonRpc.Base, System.TypInfo, System.Rtti;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, fpjsonrpc, typinfo, rtti;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRTTIInstanceCreator = Function(const aClassName : string) : IInterface;
@@ -86,7 +93,11 @@ function RTTIJSONRPCRegistry : TRTTIJSONRPCRegistry;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.JSONRPC.Strings, FpJson.Value;
+{$ELSE FPC_DOTTEDUNITS}
 uses fprpcstrings, fpjsonvalue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function RTTIJSONRPCRegistry : TRTTIJSONRPCRegistry;
 
@@ -199,13 +210,13 @@ end;
 
 class function TRTTIJSONRPCHandler.ValueToJSON(const aValue: TValue; aType: TRttiType): TJSONData;
 begin
-  result:=fpjsonvalue.ValueToJSON(aValue,aType);
+  result:={$IFDEF FPC_DOTTEDUNITS}FpJson.Value{$ELSE}fpjsonvalue{$ENDIF}.ValueToJSON(aValue,aType);
 end;
 
 class function TRTTIJSONRPCHandler.JSONToValue(aData: TJSONData; aType: TRttiType): TValue;
 
 begin
-  result:=fpjsonvalue.JSONToValue(aData,aType);
+  result:={$IFDEF FPC_DOTTEDUNITS}FpJson.Value{$ELSE}fpjsonvalue{$ENDIF}.JSONToValue(aData,aType);
 end;
 
 

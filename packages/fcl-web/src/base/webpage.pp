@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WebPage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Html, Xml.HtmlElements, Html.Writer, FpWeb.Http.Defs, FpWeb.Base, System.Contnrs, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphtml, htmlelements, htmlwriter, HTTPDefs, fpweb, contnrs, dom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TRequestResponseEvent = procedure(Sender: TObject; ARequest: TRequest; AResponse: TResponse) of object;
@@ -142,7 +149,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var RegisteredScriptList : TStrings;
 

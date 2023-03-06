@@ -16,12 +16,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custmicrohttpapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs, FpWeb.Handler, Api.Microhttpd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpprotocol, httpdefs, custweb, libmicrohttpd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCustomMicroHTTPApplication = Class;

@@ -11,20 +11,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Protocol, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpprotocol, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 
 implementation
-
-
 
 procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 

@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpdispextdirect;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpWeb.JsonRpc.Base ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, fpjsonrpc ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefaultExtDirectOptions = DefaultDispatchOptions + [jdoRequireClass];
@@ -60,7 +67,7 @@ Type
     Function HandlerDefToAPIMethod (H: TJSONRPCHandlerDef): TJSONObject; virtual;
     // Create API
     Function DoAPI : TJSONData; virtual;
-    // Namespace for API description. Must be set. Default 'FPWeb'
+    // Namespace for API description. Must be set. Default 'FpWeb'
     Property NameSpace : String Read GetNameSpace Write FNameSpace Stored isNameSpaceStored;
     // URL property for router. Must be set
     Property URL : String Read FURL Write FURL;
@@ -91,6 +98,7 @@ Type
 
 
 implementation
+
 {$ifdef EXTDEBUG}
   uses
     dbugintf;
@@ -98,7 +106,7 @@ implementation
 
 { TCustomExtDirectDispatcher }
 Const
-  DefaultNameSpace = 'FPWeb';
+  DefaultNameSpace = 'FpWeb';
 
 function TCustomExtDirectDispatcher.GetNameSpace: String;
 begin

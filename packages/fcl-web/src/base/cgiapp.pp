@@ -16,15 +16,25 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cgiapp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Unix}
+  UnixApi.CWString,
+  {$endif}
+  Fcl.CustApp,System.Classes, System.SysUtils, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef unix}
   cwstring,
   {$endif}
   CustApp,Classes, SysUtils, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   CGIVarCount = 23 deprecated;
@@ -146,8 +156,13 @@ ResourceString
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.Streams.IO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   iostream;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TFormFile = Class(TObject)

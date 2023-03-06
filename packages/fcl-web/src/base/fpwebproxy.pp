@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebproxy;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -21,8 +23,13 @@ unit fpwebproxy;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Base, FpWeb.Http.Defs, FpWeb.Http.Protocol, FpWeb.Http.Client;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttp, httpdefs, httpprotocol, fphttpclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TProxyRequestLog = Procedure(Sender : TObject; Const Method,Location,FromURL,ToURL : String) of object;
@@ -98,7 +105,11 @@ Function ProxyManager: TProxyManager;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrDuplicateProxy = 'Duplicate proxy location: "%s"';

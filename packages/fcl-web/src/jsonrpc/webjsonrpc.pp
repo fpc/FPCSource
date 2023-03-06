@@ -12,47 +12,54 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webjsonrpc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $define debugjsonrpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpWeb.JsonRpc.Base, FpWeb.Http.Defs, FpWeb.Http.Base, FpJson.Scanner, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, fpjsonrpc, httpdefs, fphttp, jsonscanner, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 { ---------------------------------------------------------------------
   HTTP handling and content producing methods
   ---------------------------------------------------------------------}
 
-  { TCustomJSONRPCContentProducer }
+  { TCustomJsonRpcContentProducer }
 
-  TCustomJSONRPCContentProducer = Class(THTTPContentProducer)
+  TCustomJsonRpcContentProducer = Class(THTTPContentProducer)
   Protected
     Function GetIDProperty : String; virtual;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); override;
-    Function GetDispatcher : TCustomJSONRPCDispatcher; virtual; abstract;
+    Function GetDispatcher : TCustomJsonRpcDispatcher; virtual; abstract;
   end;
 
-  { TJSONRPCContentProducer }
+  { TJsonRpcContentProducer }
 
-  TJSONRPCContentProducer = Class(TCustomJSONRPCContentProducer)
+  TJsonRpcContentProducer = Class(TCustomJsonRpcContentProducer)
   private
-    FDispatcher: TCustomJSONRPCDispatcher;
-    procedure SetDispatcher(const AValue: TCustomJSONRPCDispatcher);
+    FDispatcher: TCustomJsonRpcDispatcher;
+    procedure SetDispatcher(const AValue: TCustomJsonRpcDispatcher);
   Protected
-    Function GetDispatcher : TCustomJSONRPCDispatcher; override;
+    Function GetDispatcher : TCustomJsonRpcDispatcher; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation);override;
   Published
-    Property Dispatcher :  TCustomJSONRPCDispatcher Read FDispatcher Write SetDispatcher;
+    Property Dispatcher :  TCustomJsonRpcDispatcher Read FDispatcher Write SetDispatcher;
   end;
 
 
-  { TJSONRPCSessionContext }
+  { TJsonRpcSessionContext }
 
-  TJSONRPCSessionContext = Class(TJSONRPCCallContext)
+  TJsonRpcSessionContext = Class(TJsonRpcCallContext)
   private
     FSession: TCustomSession;
   Public
@@ -60,11 +67,11 @@ Type
     Property Session : TCustomSession Read FSession;
   end;
 
-  { TSessionJSONRPCDispatcher }
+  { TSessionJsonRpcDispatcher }
 
-  TSessionJSONRPCDispatcher = Class(TCustomJSONRPCDispatcher)
+  TSessionJsonRpcDispatcher = Class(TCustomJsonRpcDispatcher)
   Protected
-    Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; override;
+    Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJsonRpcCallContext; Out FreeObject : TComponent) : TCustomJsonRpcHandler; override;
   Published
     Property OnStartBatch;
     Property OnDispatchRequest;
@@ -73,15 +80,15 @@ Type
     Property Options;
   end;
 
-  { TJSONRPCDispatchModule }
+  { TJsonRpcDispatchModule }
 
-  TJSONRPCDispatchModule = Class(TSessionHTTPModule)
+  TJsonRpcDispatchModule = Class(TSessionHTTPModule)
   protected
-    Function CreateContext : TJSONRPCSessionContext;
-    Function DispatchRequest(Const ARequest : TRequest; ADispatcher : TCustomJSONRPCDispatcher) : TJSONData;
+    Function CreateContext : TJsonRpcSessionContext;
+    Function DispatchRequest(Const ARequest : TRequest; ADispatcher : TCustomJsonRpcDispatcher) : TJSONData;
   end;
 
-  { TCustomJSONRPCModule }
+  { TCustomJsonRpcModule }
   TAPIRequestSource = (asURL,  // Next part of URL: RPC/API
                        asQuery // Next part of URL: RPC?API=1
                       );
@@ -91,26 +98,26 @@ Const
 type
   TAPIRequestSources = Set of TAPIRequestSource;
 
-  TCustomJSONRPCModule = Class(TJSONRPCDispatchModule)
+  TCustomJsonRpcModule = Class(TJsonRpcDispatchModule)
   private
     FAPICreateOptions: TCreateAPIOptions;
     FAPIRequestName: String;
     FAPIRequestSources: TAPIRequestSources;
-    FDispatcher: TCustomJSONRPCDispatcher;
-    FOptions: TJSONRPCDispatchOptions;
+    FDispatcher: TCustomJsonRpcDispatcher;
+    FOptions: TJsonRpcDispatchOptions;
     FRequest: TRequest;
     FResponse: TResponse;
     FResponseContentType: String;
-    procedure SetDispatcher(const AValue: TCustomJSONRPCDispatcher);
+    procedure SetDispatcher(const AValue: TCustomJsonRpcDispatcher);
   Protected
-    function GetAPI(aDisp: TCustomJSONRPCDispatcher; ARequest: TRequest): TJSONStringType; virtual;
+    function GetAPI(aDisp: TCustomJsonRpcDispatcher; ARequest: TRequest): TJSONStringType; virtual;
     Function GetResponseContentType : String;
-    Function CreateDispatcher : TCustomJSONRPCDispatcher; virtual;
+    Function CreateDispatcher : TCustomJsonRpcDispatcher; virtual;
     Function IsAPIRequest(ARequest : TRequest) : Boolean; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    Property Dispatcher :  TCustomJSONRPCDispatcher Read FDispatcher Write SetDispatcher;
+    Property Dispatcher :  TCustomJsonRpcDispatcher Read FDispatcher Write SetDispatcher;
     // Options to use when creating a custom dispatcher
-    Property DispatchOptions : TJSONRPCDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
+    Property DispatchOptions : TJsonRpcDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
     // Where to look for API request
     property APIRequestSources : TAPIRequestSources Read FAPIRequestSources Write FAPIRequestSources default DefaultAPIRequestSources;
     // URL part or variable name to check for API request
@@ -130,11 +137,11 @@ type
     Property CORS;
   end;
 
-  { TJSONRPCDataModule }
+  { TJsonRpcDataModule }
 
-  { TJSONRPCModule }
+  { TJsonRpcModule }
 
-  TJSONRPCModule = Class(TCustomJSONRPCModule)
+  TJsonRpcModule = Class(TCustomJsonRpcModule)
   Published
     Property Dispatcher;
     // Only if Dispatcher is not set
@@ -154,25 +161,29 @@ type
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses {$ifdef debugjsonrpc}System.Dbugintf,{$endif} FpWeb.JsonRpc.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses {$ifdef debugjsonrpc}dbugintf,{$endif} fprpcstrings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const
   SApplicationJSON = 'application/json';
 
-{ TCustomJSONRPCContentProducer }
+{ TCustomJsonRpcContentProducer }
 
-function TCustomJSONRPCContentProducer.GetIDProperty: String;
+function TCustomJsonRpcContentProducer.GetIDProperty: String;
 begin
   Result:='id';
 end;
 
 
-procedure TCustomJSONRPCContentProducer.DoGetContent(ARequest: TRequest;
+procedure TCustomJsonRpcContentProducer.DoGetContent(ARequest: TRequest;
   Content: TStream; var Handled: Boolean);
 
 Var
-  Disp : TCustomJSONRPCDispatcher;
+  Disp : TCustomJsonRpcDispatcher;
   P : TJSONParser;
   Req,res : TJSONData;
   R : TJSONStringType;
@@ -189,11 +200,11 @@ begin
         If (Disp<>Nil) then
           Res:=Disp.Execute(Req,Nil)
         else // No dispatcher, create error(s)
-          Res:=CreateErrorForRequest(Req,CreateJSON2ErrorResponse(SErrNoDispatcher,EJSONRPCInternalError,Nil,GetIDProperty));
+          Res:=CreateErrorForRequest(Req,CreateJSON2ErrorResponse(SErrNoDispatcher,EJsonRpcInternalError,Nil,GetIDProperty));
       except
         On E : Exception Do
           begin
-          Res:=CreateJSON2ErrorResponse(E.Message,EJSONRPCParseError,Nil,GetIDProperty);
+          Res:=CreateJSON2ErrorResponse(E.Message,EJsonRpcParseError,Nil,GetIDProperty);
           end;
       end;
       try
@@ -214,10 +225,10 @@ begin
   end;
 end;
 
-{ TJSONRPCContentProducer }
+{ TJsonRpcContentProducer }
 
-procedure TJSONRPCContentProducer.SetDispatcher(
-  const AValue: TCustomJSONRPCDispatcher);
+procedure TJsonRpcContentProducer.SetDispatcher(
+  const AValue: TCustomJsonRpcDispatcher);
 begin
   if FDispatcher=AValue then exit;
   If Assigned(FDispatcher) then
@@ -227,12 +238,12 @@ begin
     FDispatcher.FreeNotification(Self);
 end;
 
-function TJSONRPCContentProducer.GetDispatcher: TCustomJSONRPCDispatcher;
+function TJsonRpcContentProducer.GetDispatcher: TCustomJsonRpcDispatcher;
 begin
   Result:=FDispatcher;
 end;
 
-procedure TJSONRPCContentProducer.Notification(AComponent: TComponent;
+procedure TJsonRpcContentProducer.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
@@ -240,10 +251,10 @@ begin
     FDispatcher:=Nil;
 end;
 
-{ TCustomJSONRPCModule }
+{ TCustomJsonRpcModule }
 
-procedure TCustomJSONRPCModule.SetDispatcher(
-  const AValue: TCustomJSONRPCDispatcher);
+procedure TCustomJsonRpcModule.SetDispatcher(
+  const AValue: TCustomJsonRpcDispatcher);
 begin
   if FDispatcher=AValue then exit;
   If Assigned(FDispatcher) then
@@ -253,27 +264,27 @@ begin
     FDispatcher.FreeNotification(Self);
 end;
 
-function TCustomJSONRPCModule.GetResponseContentType: String;
+function TCustomJsonRpcModule.GetResponseContentType: String;
 begin
   Result:=FResponseContentType;
   if Result='' then
     Result:=SApplicationJSON;
 end;
 
-function TCustomJSONRPCModule.CreateDispatcher: TCustomJSONRPCDispatcher;
+function TCustomJsonRpcModule.CreateDispatcher: TCustomJsonRpcDispatcher;
 
 Var
-  S : TSessionJSONRPCDispatcher;
+  S : TSessionJsonRpcDispatcher;
 
 begin
-  S:=TSessionJSONRPCDispatcher.Create(Self);
+  S:=TSessionJsonRpcDispatcher.Create(Self);
   S.Options:=DispatchOptions;
   S.APICreator.DefaultOptions:=APICreateOptions;
   S.APICreator.URL:=Self.BaseURL;
   Result:=S;
 end;
 
-function TCustomJSONRPCModule.IsAPIRequest(ARequest: TRequest): Boolean;
+function TCustomJsonRpcModule.IsAPIRequest(ARequest: TRequest): Boolean;
 begin
   Result:=False;
   if APIRequestName<>'' then
@@ -286,7 +297,7 @@ begin
 end;
 
 
-procedure TCustomJSONRPCModule.Notification(AComponent: TComponent;
+procedure TCustomJsonRpcModule.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
@@ -294,7 +305,7 @@ begin
     FDispatcher:=Nil;
 end;
 
-constructor TCustomJSONRPCModule.CreateNew(AOwner: TComponent;
+constructor TCustomJsonRpcModule.CreateNew(AOwner: TComponent;
   CreateMode: Integer);
 begin
   inherited CreateNew(AOwner, CreateMode);
@@ -304,7 +315,7 @@ begin
   APIRequestName:='API';
 end;
 
-Function TCustomJSONRPCModule.GetAPI(aDisp : TCustomJSONRPCDispatcher; ARequest: TRequest) : TJSONStringType;
+Function TCustomJsonRpcModule.GetAPI(aDisp : TCustomJsonRpcDispatcher; ARequest: TRequest) : TJSONStringType;
 
   Function GetV(Name1,Name2 : String) : string;
 
@@ -354,10 +365,10 @@ begin
     Result:=aDisp.APIAsString(APIOptions);
 end;
 
-procedure TCustomJSONRPCModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TCustomJsonRpcModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
-  Disp : TCustomJSONRPCDispatcher;
+  Disp : TCustomJsonRpcDispatcher;
   res : TJSONData;
   R : TJSONStringType;
 
@@ -373,7 +384,7 @@ begin
   R:='';
   if IsAPIRequest(aRequest) then
     begin
-    if (jdoAllowAPI in TJSONRPCDispatcher(Disp).Options) then
+    if (jdoAllowAPI in TJsonRpcDispatcher(Disp).Options) then
       R:=GetAPI(Disp,aRequest)
     else
       begin
@@ -404,29 +415,29 @@ begin
     AResponse.SendResponse;
 end;
 
-{ TJSONRPCSessionContext }
+{ TJsonRpcSessionContext }
 
-constructor TJSONRPCSessionContext.CreateSession(ASession: TCustomSession);
+constructor TJsonRpcSessionContext.CreateSession(ASession: TCustomSession);
 begin
   FSession:=ASession;
 end;
 
-{ TJSONRPCDispatchModule }
+{ TJsonRpcDispatchModule }
 
-function TJSONRPCDispatchModule.CreateContext: TJSONRPCSessionContext;
+function TJsonRpcDispatchModule.CreateContext: TJsonRpcSessionContext;
 begin
   If CreateSession then
-    Result:=TJSONRPCSessionContext.CreateSession(Session)
+    Result:=TJsonRpcSessionContext.CreateSession(Session)
   else
-    Result:=TJSONRPCSessionContext.CreateSession(Nil);
+    Result:=TJsonRpcSessionContext.CreateSession(Nil);
 end;
 
-Function TJSONRPCDispatchModule.DispatchRequest(const ARequest: TRequest;
-  ADispatcher: TCustomJSONRPCDispatcher): TJSONData;
+Function TJsonRpcDispatchModule.DispatchRequest(const ARequest: TRequest;
+  ADispatcher: TCustomJsonRpcDispatcher): TJSONData;
 var
   P : TJSONParser;
   Req : TJSONData;
-  C : TJSONRPCSessionContext;
+  C : TJsonRpcSessionContext;
 
 
 begin
@@ -446,7 +457,7 @@ begin
         end;
       except
         On E : Exception Do
-          Result:=CreateJSON2ErrorResponse(E.Message,EJSONRPCParseError,Nil,ADispatcher.TransactionProperty);
+          Result:=CreateJSON2ErrorResponse(E.Message,EJsonRpcParseError,Nil,ADispatcher.TransactionProperty);
       end;
     finally
       Req.Free;
@@ -456,15 +467,15 @@ begin
   end;
 end;
 
-{ TSessionJSONRPCDispatcher }
+{ TSessionJsonRpcDispatcher }
 
-function TSessionJSONRPCDispatcher.FindHandler(const AClassName,
-  AMethodName: TJSONStringType; AContext: TJSONRPCCallContext; out
-  FreeObject: TComponent): TCustomJSONRPCHandler;
+function TSessionJsonRpcDispatcher.FindHandler(const AClassName,
+  AMethodName: TJSONStringType; AContext: TJsonRpcCallContext; out
+  FreeObject: TComponent): TCustomJsonRpcHandler;
 begin
   Result:=Inherited FindHandler(AClassName,AMethodName,AContext,FreeObject);
-  If (AContext is TJSONRPCSessionContext) and (FreeObject is TCustomJSONRPCModule) then
-    TCustomJSONRPCModule(FreeObject).Session:=TJSONRPCSessionContext(AContext).Session;
+  If (AContext is TJsonRpcSessionContext) and (FreeObject is TCustomJsonRpcModule) then
+    TCustomJsonRpcModule(FreeObject).Session:=TJsonRpcSessionContext(AContext).Session;
 end;
 
 end.

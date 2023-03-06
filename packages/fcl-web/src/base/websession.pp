@@ -11,19 +11,30 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit websession deprecated;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $define cgidebug}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Base, FpWeb.Session.Ini, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fphttp, iniwebsession, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
-  TIniWebSession = iniwebsession.TIniWebSession;
+{$IFDEF FPC_DOTTEDUNITS}
+  TIniWebSession = FpWeb.Session.Ini.TIniWebSession;
+{$ELSE}
+   TIniWebSession = iniwebsession.TIniWebSession;
+{$ENDIF}
 
-  TFPWebSession = Class(iniwebsession.TIniWebSession)
+  TFPWebSession = Class(TIniWebSession)
   Public
     Property Cached;
     property SessionCookie;
@@ -41,6 +52,7 @@ Var
 Function GetDefaultSession : TCustomSession;
 
 implementation
+
 type
 
   { TWebSessionFactory }

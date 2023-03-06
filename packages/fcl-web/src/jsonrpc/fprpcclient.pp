@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprpcclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FpJson.Data, FpWeb.Client, FpWeb.Client.Http, System.Rtti, FpJson.Value;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, fpjson, fpwebclient, fphttpwebclient, rtti, fpjsonvalue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   ERPCClient = Class(Exception);
@@ -125,7 +132,11 @@ Function RPCServiceRegistry : TFPRPCServiceRegistry;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.JsonRpc.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses fprpcstrings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function IsGUIDEqual(const guid1, guid2: tguid): boolean;
   begin

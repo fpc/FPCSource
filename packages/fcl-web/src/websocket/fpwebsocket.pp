@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebsocket;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -23,8 +25,13 @@ unit fpwebsocket;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sockets, ssockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SSecWebSocketGUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -491,7 +498,11 @@ function EncodeBytesBase64(const aBytes : TBytes) : String;
 
 implementation
 
-uses strutils, sha1,base64;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.Hash.Sha1, System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
+uses strutils, sha1, base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFrameTypeHelper }
 
@@ -544,7 +555,7 @@ procedure TWSHandShakeResponse.ToStrings(aHandShake: TWSHandshakeRequest; aRespo
     // respond key
     b:=[];
     k:= Trim(aHandshake.Key) + SSecWebSocketGUID;
-    hash:=sha1.SHA1String(k);
+    hash:=SHA1String(k);
     SetLength(B,SizeOf(hash));
     Move(Hash,B[0],Length(B));
     Result:=EncodeBytesBase64(B);
@@ -588,7 +599,7 @@ end;
 
 procedure TWSTransport.CloseSocket;
 begin
-  sockets.CloseSocket(FStream.Handle);
+  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.CloseSocket(FStream.Handle);
 end;
 
 { TWSTransport }
