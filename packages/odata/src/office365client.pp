@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit office365client;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Client, Jwt.Oauth2, Jwt.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpwebclient, fpoauth2, fpjwt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TAuthMethod = (amOAuth2);

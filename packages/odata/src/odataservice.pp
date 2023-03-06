@@ -1,5 +1,5 @@
 { **********************************************************************
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2015 The free pascal team.
 
     Base OData service API classes
@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit odataservice;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$DEFINE DEBUGODATASERVICE}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, FpWeb.Rest.Base, Web.OData.Types, FpWeb.Client, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, restbase, odatabase, fpwebclient, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TODataService = Class;
@@ -275,7 +282,11 @@ Function ODataFactory : TODataServiceFactory;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.UriParser,FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses uriparser,httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   TODataServiceFactory
