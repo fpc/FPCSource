@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pas2jsjsresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Pas2Js.Resources, Pas2Js.Files.Fs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, pas2jsResources, pas2jsFS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

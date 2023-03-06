@@ -16,7 +16,9 @@
   Abstract:
     Extends the FCL Pascal parser for the language subset of pas2js.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsPParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -24,9 +26,15 @@ unit Pas2jsPParser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Pascal.Parser, Pascal.Scanner, Pascal.Tree, Pascal.Resolver, Pas2Js.Compiler.Transpiler,
+  Pas2Js.Logger;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, PParser, PScanner, PasTree, PasResolver, fppas2js,
   Pas2jsLogger;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const // Messages
   nFinalizationNotSupported = 3001;

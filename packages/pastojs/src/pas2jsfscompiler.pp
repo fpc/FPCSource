@@ -16,12 +16,23 @@
   Abstract:
     FileSystem aware compiler descendent. No support for PCU.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSFSCompiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  Pascal.UseAnalyzer,
+  Pas2Js.SrcMap,
+  Pas2Js.Files.Cache, Pas2Js.Compiler.Base,
+  Pas2Js.Files.Fs,
+  Pas2Js.Files.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   PasUseAnalyzer,
@@ -29,6 +40,7 @@ uses
   Pas2jsFileCache, Pas2jsCompiler,
   Pas2JSFS,
   Pas2jsFileUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

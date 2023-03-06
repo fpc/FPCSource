@@ -453,7 +453,9 @@ ToDos:
 Debugging this unit: -d<x>
    VerbosePas2JS
 *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPPas2Js;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$inline on}
@@ -471,6 +473,16 @@ unit FPPas2Js;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  {$else}
+  Fcl.AVLTree,
+  {$endif}
+  System.Classes, System.SysUtils, System.Math, System.Contnrs,
+  Js.Base, Js.Tree, Js.Writer,
+  Pascal.Tree, Pascal.Scanner, Pascal.ResolveEval, Pascal.Resolver;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   {$else}
@@ -479,6 +491,7 @@ uses
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
   PasTree, PScanner, PasResolveEval, PasResolver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // message numbers
 const

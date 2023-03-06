@@ -157,7 +157,7 @@ end;
 
 function FileIsWritable(const AFilename: string): boolean;
 begin
-  Result := BaseUnix.FpAccess(AFilename, BaseUnix.W_OK) = 0;
+  Result := {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FpAccess(AFilename, {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.W_OK) = 0;
 end;
 
 function FileIsExecutable(const AFilename: string): boolean;
@@ -166,7 +166,7 @@ var
 begin
   // first check AFilename is not a directory and then check if executable
   Result:= (FpStat(AFilename,info{%H-})<>-1) and FPS_ISREG(info.st_mode) and
-           (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
+           ({$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FpAccess(AFilename,{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.X_OK)=0);
 end;
 
 function GetEnvironmentVariableCountPJ: Integer;

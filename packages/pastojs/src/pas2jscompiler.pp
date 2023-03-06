@@ -16,7 +16,9 @@ Compiler-ToDos:
   -Fa<x>[,y] (for a program) load units <x> and [y] before uses is parsed
   Add Windows macros, see InitMacros.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsCompiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -28,6 +30,21 @@ unit Pas2jsCompiler;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF Pas2js}
+  JS,
+  {$ELSE}
+  System.RtlConsts,
+  {$ENDIF}
+  // !! No NdsApi.Filesystem units here.
+  System.Classes, System.SysUtils, System.Contnrs,
+  Js.Base, Js.Tree, Js.Writer, Js.SrcMap, FpJson.Data,
+  Pascal.Scanner, Pascal.Parser, Pascal.Tree, Pascal.Resolver, Pascal.ResolveEval, Pascal.UseAnalyzer,
+  Pas2Js.Utils,
+  Pas2Js.Resources.Strings, Pas2Js.Resources, Pas2Js.Resources.Html, Pas2Js.Resources.Js,
+  Pas2Js.Compiler.Transpiler, Pas2Js.SrcMap, Pas2Js.Logger, Pas2Js.Files.Fs, Pas2Js.Parser, Pas2Js.UseAnalyzer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF Pas2js}
   JS,
@@ -41,6 +58,7 @@ uses
   Pas2JSUtils,
   pas2jsresstrfile, pas2jsresources, pas2jshtmlresources, pas2jsjsresources,
   FPPas2Js, FPPJsSrcMap, Pas2jsLogger, Pas2jsFS, Pas2jsPParser, Pas2jsUseAnalyzer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   VersionMajor = 2;
@@ -1059,27 +1077,27 @@ begin
   Result:=DefaultPasToJSOptions;
 
   if coUseStrict in Compiler.Options then
-    Include(Result,fppas2js.coUseStrict)
+    Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coUseStrict)
   else
-    Exclude(Result,fppas2js.coUseStrict);
+    Exclude(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coUseStrict);
 
   if coEnumValuesAsNumbers in Compiler.Options then
-    Include(Result,fppas2js.coEnumNumbers);
+    Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coEnumNumbers);
   if (coShortRefGlobals in Compiler.Options) or IsUnitReadFromPCU then
-    Include(Result,fppas2js.coShortRefGlobals);
+    Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coShortRefGlobals);
   if coObfuscateLocalIdentifiers in Compiler.Options then
-    Include(Result,fppas2js.coObfuscateLocalIdentifiers);
+    Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coObfuscateLocalIdentifiers);
 
   if coLowerCase in Compiler.Options then
-    Include(Result,fppas2js.coLowerCase)
+    Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coLowerCase)
   else
-    Exclude(Result,fppas2js.coLowerCase);
+    Exclude(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coLowerCase);
 
   case Compiler.RTLVersionCheck of
     rvcNone: ;
-    rvcMain: Include(Result,fppas2js.coRTLVersionCheckMain);
-    rvcSystem: Include(Result,fppas2js.coRTLVersionCheckSystem);
-    rvcUnit: Include(Result,fppas2js.coRTLVersionCheckUnit);
+    rvcMain: Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coRTLVersionCheckMain);
+    rvcSystem: Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coRTLVersionCheckSystem);
+    rvcUnit: Include(Result,{$IFDEF FPC_DOTTEDUNITS}Pas2Js.Compiler.Transpiler{$ELSE}fppas2js{$ENDIF}.coRTLVersionCheckUnit);
   end;
 end;
 
@@ -3356,7 +3374,7 @@ begin
   r(mtInfo,nRTLIdentifierChanged,sRTLIdentifierChanged);
   r(mtNote,nSkipNoConstResourcestring,sSkipNoConstResourcestring);
   r(mtWarning,nUnknownOptimizationOption,sUnknownOptimizationOption);
-  Pas2jsPParser.RegisterMessages(Log);
+  {$IFDEF FPC_DOTTEDUNITS}Pas2js.Parser{$ELSE}Pas2jsPParser{$ENDIF}.RegisterMessages(Log);
 end;
 
 procedure TPas2jsCompiler.LoadConfig(CfgFilename: string);

@@ -18,15 +18,23 @@ Abstract:
 
 
 *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPPJsSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Math,
+  Js.Writer, Js.Tree, Js.SrcMap, FpJson.Data, Pas2Js.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, math,
   jswriter, jstree, JSSrcMap, fpjson, Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TPas2JSSrcMap }
