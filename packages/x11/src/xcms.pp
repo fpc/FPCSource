@@ -1,7 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xcms;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.X11.X,Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   x,xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef os2}
   {$LinkLib c}

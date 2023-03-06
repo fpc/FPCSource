@@ -40,15 +40,22 @@
     Description:
       Xft interface functions
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xft;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$packrecords c}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Api.X11.X, Api.X11.Xlib, Api.X11.Xutil, System.CTypes, Api.X11.Fontconfig, Api.X11.Xrender;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, X, XLib, Xutil, ctypes, fontconfig, xrender;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //#include FT_FREETYPE_H
 //#include <fontconfig/fontconfig.h>

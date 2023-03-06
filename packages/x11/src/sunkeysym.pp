@@ -46,7 +46,9 @@ in this Software without prior written authorization from The Open Group.
 
 ***********************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sunkeysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

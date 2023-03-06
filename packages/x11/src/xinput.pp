@@ -46,15 +46,22 @@ SOFTWARE.
 
 { Definitions used by the library and client }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xinput;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 {$MODE objfpc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXi = 'Xi';

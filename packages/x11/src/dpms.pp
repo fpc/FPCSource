@@ -26,12 +26,19 @@ Equipment Corporation.
 
 ******************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dpms;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.Xmd, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, xmd, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';

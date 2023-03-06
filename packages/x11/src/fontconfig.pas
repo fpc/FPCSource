@@ -21,15 +21,22 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  *}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fontconfig;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$packrecords c}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Api.X11.X, Api.X11.Xlib, Api.X11.Xutil, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, X, XLib, Xutil, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   {$IF Defined(DARWIN)}

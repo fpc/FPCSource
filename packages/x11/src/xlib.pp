@@ -1,8 +1,15 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$mode objfpc}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,Api.X11.X;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,x;
+{$ENDIF FPC_DOTTEDUNITS}
 {$define MACROS}
 
 {$ifndef os2}
