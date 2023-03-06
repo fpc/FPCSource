@@ -29,7 +29,9 @@
    Free Pascal porting by Francesco Lombardi.
 ---------------------------------------------------------------------------------*)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nds9;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$apptype arm9}
 {$define arm9}
@@ -42,8 +44,13 @@ unit nds9;
 {$modeswitch ADVANCEDRECORDS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib nds9}
 

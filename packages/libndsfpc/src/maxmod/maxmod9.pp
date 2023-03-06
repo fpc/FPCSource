@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit maxmod9;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$apptype arm9}
 {$define arm9}
@@ -10,8 +12,13 @@ unit maxmod9;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, NdsApi.Nds9; 
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, nds9; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib nds9}
 {$linklib mm9}
