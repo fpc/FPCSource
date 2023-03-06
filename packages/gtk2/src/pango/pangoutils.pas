@@ -18,7 +18,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pangoutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$MODE objfpc}
@@ -29,8 +31,13 @@ unit pangoutils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Glib2, Api.Pango;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib2, pango;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type

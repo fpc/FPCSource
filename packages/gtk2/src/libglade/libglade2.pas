@@ -19,7 +19,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libglade2; // keep unit name lowercase for kylix
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$mode objfpc}
@@ -30,8 +32,13 @@ unit libglade2; // keep unit name lowercase for kylix
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Glib2, Api.Gtk2.Gtk2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib2, gtk2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef windows}

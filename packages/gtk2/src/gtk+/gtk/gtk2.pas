@@ -16,7 +16,9 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtk2; // keep unit name lowercase for kylix
+{$ENDIF FPC_DOTTEDUNITS}
 
 // default GTK2_8
 {$define GTK2_8}
@@ -67,8 +69,13 @@ unit gtk2; // keep unit name lowercase for kylix
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Glib2, Api.Atk, Api.Pango, Api.Gtk2.Gdk2pixbuf, Api.Gdk2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib2, atk, pango, gdk2pixbuf, gdk2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 // OS dependent defines
@@ -138,8 +145,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 { There is a bug in the compiler. If an external variable is not used, it will
