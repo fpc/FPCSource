@@ -8,14 +8,21 @@
   The original copyright note of is kept on each include file
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.ObjC.Rtl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   objcrtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function alloc(classname: PAnsiChar): id; inline;
 function allocex(classname: PAnsiChar; extraBytes: Integer): id; inline;

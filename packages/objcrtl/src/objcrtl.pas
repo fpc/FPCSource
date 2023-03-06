@@ -8,14 +8,21 @@
   The original copyright note of is kept on each include file
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit objcrtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultObjCLibName : AnsiString = 'libobjc.A.dylib';
