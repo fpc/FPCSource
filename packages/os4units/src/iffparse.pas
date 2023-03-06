@@ -14,12 +14,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iffparse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Clipboard, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, clipboard, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 // Struct associated with an active IFF stream. "iff_Stream" is a value used by the client's read/write/seek functions -
