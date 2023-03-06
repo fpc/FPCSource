@@ -33,12 +33,19 @@
 // CL_MEM_FLAGS              CL_MEM_FLAGS_INFO
 // CL_IMAGE_FORMAT           CL_IMAGE_FORMAT_INFO
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MACRO ON}
 
