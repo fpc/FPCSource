@@ -1,0 +1,5 @@
+src/fpwavformat.pas=namespaced/System.Sound.Wav.Format.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/fpwavreader.pas=namespaced/System.Sound.Wav.Reader.pas
+src/fpwavwriter.pas=namespaced/System.Sound.Wav.Writer.pas
