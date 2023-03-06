@@ -1,11 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fppdfcommands;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpPdf.Consts, System.Types, FpPdf.Objects;
+{$ELSE}
   Classes, SysUtils, fppdfconsts, types, fppdfobjects;
+{$ENDIF}
 
 Type
 

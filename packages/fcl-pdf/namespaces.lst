@@ -1,0 +1,15 @@
+src/fppdfpredict.pp=namespaced/FpPdf.Predict.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/fppdfparser.pp=namespaced/FpPdf.Parser.pp
+src/fppdfobjects.pp=namespaced/FpPdf.Objects.pp
+src/fppdfscanner.pp=namespaced/FpPdf.Scanner.pp
+src/fpfonttextmapping.pp=namespaced/FpPdf.FontTextMapping.pp
+src/fpttfsubsetter.pp=namespaced/FpPdf.Ttf.Subsetter.pp
+src/fppdfconsts.pp=namespaced/FpPdf.Consts.pp
+src/fppdf.pp=namespaced/FpPdf.Pdf.pp
+src/fpttfencodings.pp=namespaced/FpPdf.Ttf.Encodings.pp
+src/fpttf.pp=namespaced/FpPdf.Ttf.pp
+src/fpparsettf.pp=namespaced/FpPdf.Ttf.Parser.pp
+src/fppdfsource.pp=namespaced/FpPdf.Source.pp
+src/fppdfcommands.pp=namespaced/FpPdf.Commands.pp

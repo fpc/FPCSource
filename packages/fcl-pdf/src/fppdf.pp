@@ -20,7 +20,9 @@
        If you do localise anything, make sure you know what you are doing.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpPDF;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -29,6 +31,19 @@ unit fpPDF;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.StrUtils,
+  System.Contnrs,
+  FpImage,
+  FpImage.Reader.JPEG, FpImage.Reader.PNG, FpImage.Reader.Bitmap, // these are required for auto image-handler functionality
+  System.ZLib.Zstream,
+  FpPdf.Ttf.Parser,
+  FpPdf.Ttf.Subsetter,
+  FpPdf.FontTextMapping;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -40,6 +55,7 @@ uses
   fpparsettf,
   fpTTFSubsetter,
   FPFontTextMapping;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   { Some popular predefined colors. Channel format is: RRGGBB }
@@ -1258,10 +1274,17 @@ Operator = (a,b : TPDFPaper) z : boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math,
+  System.Hash.Md5,
+  FpPdf.Ttf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math,
   md5,
   fpttf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 resourcestring
