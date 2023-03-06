@@ -1,0 +1,5 @@
+src/ggi.pp=namespaced/Api.Ggi.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/gii.pp=namespaced/Api.Gii.pp
+src/ggi2d.pp=namespaced/Api.Ggi2d.pp
