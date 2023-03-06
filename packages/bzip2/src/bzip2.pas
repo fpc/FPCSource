@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bzip2;
+{$ENDIF FPC_DOTTEDUNITS}
 {****************************************************************************
 
                              BZIP2 decompression unit
@@ -26,7 +28,11 @@ interface
 
 {$goto on}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Objects, System.Bzip2comn;
+{$ELSE FPC_DOTTEDUNITS}
 uses objects, bzip2comn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
       Tbzip2_decode_stream=object(Tstream)
