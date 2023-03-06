@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit infutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { types and macros common to blocks and codes
   Copyright (C) 1995-1998 Mark Adler
@@ -16,8 +18,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { copy as much as possible from the sliding window to the output area }
 function inflate_flush(var s : inflate_blocks_state;

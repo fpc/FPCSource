@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gzio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Pascal unit based on gzio.c -- IO on .gz files
@@ -15,6 +17,15 @@ interface
 {$mode objfpc}
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Unix}
+  UnixApi.Base,
+  {$else}
+  TP.DOS,
+  {$endif}
+  System.ZLib.Zbase, System.Hash.Crc, System.ZLib.Zdeflate, System.ZLib.Zinflate;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef UNIX}
   baseunix,
@@ -22,6 +33,7 @@ uses
   dos,
   {$endif}
   zbase, crc, zdeflate, zinflate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type gzFile = pointer;
 type z_off_t = int64;

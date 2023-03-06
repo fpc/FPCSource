@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Unzip;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode tp}
 
@@ -27,11 +29,19 @@ interface
   {$define Delphi}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  //zutil,
+  System.ZLib.Zbase,
+  //Api.Z,
+  System.ZLib.Ziputils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   //zutil,
   zbase,
   //zLib,
   ziputils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   UNZ_OK    = (0);
@@ -223,6 +233,15 @@ function unzGetLocalExtrafield(afile: unzFile; buf: pointer; len: cardinal): lon
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Delphi}
+  SysUtils,
+  {$else}
+  System.Strings,
+  {$endif}
+  System.ZLib.Zinflate, System.Hash.Crc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef Delphi}
   SysUtils,
@@ -230,6 +249,7 @@ uses
   strings,
   {$endif}
   zInflate, crc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef unix and not def (CASESENSITIVITYDEFAULT_YES) and \
                       !defined(CASESENSITIVITYDEFAULT_NO)}

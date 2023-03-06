@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit infblock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 
@@ -15,8 +17,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function inflate_blocks_new(var z : z_stream;
                             c : check_func;  { check function }
@@ -44,8 +51,13 @@ function inflate_blocks_sync_point(var s : inflate_blocks_state) : integer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Infcodes, System.ZLib.Inftrees, System.ZLib.Infutil{$IFDEF ZLIB_DEBUG}, System.SysUtils{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   infcodes, inftrees, infutil{$IFDEF ZLIB_DEBUG}, SysUtils{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Tables for deflate from PKZIP's appnote.txt. }
 Const

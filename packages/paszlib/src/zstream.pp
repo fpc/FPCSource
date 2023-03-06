@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZStream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {**********************************************************************
     This file is part of the Free Pascal free component library.
@@ -27,7 +29,11 @@ unit ZStream;
                                     interface
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    System.Classes,System.ZLib.Zbase,System.ZLib.Gzio;
+{$ELSE FPC_DOTTEDUNITS}
 uses    classes,zbase,gzio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
         Tcompressionlevel=(
@@ -147,7 +153,11 @@ type
                                  implementation
 {***************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses    System.ZLib.Zdeflate,System.ZLib.Zinflate;
+{$ELSE FPC_DOTTEDUNITS}
 uses    zdeflate,zinflate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const   bufsize=16384;     {Size of the buffer used for temporarily storing
                             data from the child stream.}

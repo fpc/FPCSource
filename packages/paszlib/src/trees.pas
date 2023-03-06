@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Trees;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$T-}
 {$define ORG_DEBUG}
@@ -41,12 +43,21 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef ZLIB_DEBUG}
+  System.SysUtils,
+  {$endif}
+  System.ZLib.Zbase
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef ZLIB_DEBUG}
   sysutils,
   {$endif}
   zbase
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ===========================================================================
   Internal compression state. }

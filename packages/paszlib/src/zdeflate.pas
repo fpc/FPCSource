@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ZDeflate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$goto on}
 
@@ -59,8 +61,13 @@ interface
 
 {$I zconf.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ System.ZLib.Zbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  zbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function deflateInit_(strm : z_streamp;
@@ -336,8 +343,13 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Trees, System.ZLib.Adler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   trees, adler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {  ===========================================================================
    Function prototypes. }
