@@ -14,7 +14,9 @@ Revision History
 1.0
   - original implementation }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Resource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -37,9 +39,15 @@ interface
   {$S-}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+
+  FreeVision.Fvconsts, System.Objects, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 
   FVConsts, Objects, Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -278,8 +286,13 @@ implementation
 {                           Private Declarations                             }
 {****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {FreeVision.Memory, }Drivers;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {Memory, }Drivers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************}
 { TConstant object                                                           }

@@ -51,11 +51,13 @@
 {  0.4.0   14 Nov 00  LdB    Revamp of whole unit          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UFVCommon;
 {$else FV_UNICODE}
 UNIT FVCommon;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -65,10 +67,17 @@ UNIT FVCommon;
 {$I platform.inc}
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef OS_WINDOWS}
+  uses
+    WinApi.Windows;
+{$endif}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef OS_WINDOWS}
   uses
     Windows;
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }

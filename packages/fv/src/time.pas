@@ -45,7 +45,9 @@
 {  1.61     07 Jul 99   Speedsoft SYBIL 2.0 code added.    }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Time;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
@@ -141,7 +143,11 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
   {$IFNDEF PPC_SPEED}                                 { NON SPEED COMPILER }
     {$IFDEF PPC_FPC}                                  { FPC WINDOWS COMPILER }
-    USEs Windows;                                     { Standard unit }
+    {$IFDEF FPC_DOTTEDUNITS}
+    USES WinApi.Windows;                                     { Standard unit }
+    {$ELSE}
+    USES Windows;
+    {$ENDIF}
     {$ELSE}                                           { OTHER COMPILERS }
     USES WinTypes, WinProcs;                          { Standard units }
     {$ENDIF}
@@ -176,6 +182,23 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
 {$ENDIF}
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef OS_UNIX}
+  USES TP.DOS;
+{$endif OS_UNIX}
+
+{$ifdef OS_GO32}
+  USES TP.DOS;
+{$endif OS_GO32}
+
+{$ifdef OS_NETWARE}
+  USES TP.DOS;
+{$endif OS_NETWARE}
+
+{$ifdef OS_AMIGA}
+  USES TP.DOS;
+{$endif OS_AMIGA}
+{$ELSE FPC_DOTTEDUNITS}
 {$ifdef OS_UNIX}
   USES Dos;
 {$endif OS_UNIX}
@@ -191,6 +214,7 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 {$ifdef OS_AMIGA}
   USES Dos;
 {$endif OS_AMIGA}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -465,7 +489,7 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
        unstable on Win2000 because some registers are not properly
        restored if a mouse interrupt is generated while the Dos
        interrupt is called... PM }
-       Dos.GetTime(Hour,Minute,Second,Sec100);
+       {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}DOS.GetTime(Hour,Minute,Second,Sec100);
      END;
      {$ENDIF}
    {$ENDIF}
@@ -570,17 +594,17 @@ END;
 {$ENDIF}
 {$ifdef OS_UNIX}
 BEGIN
-  Dos.GetTime(Hour,Minute,Second,Sec100);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}DOS.GetTime(Hour,Minute,Second,Sec100);
 END;
 {$endif OS_UNIX}
 {$IFDEF OS_NETWARE}
 BEGIN
-  Dos.GetTime(Hour,Minute,Second,Sec100);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}DOS.GetTime(Hour,Minute,Second,Sec100);
 END;
 {$ENDIF OS_NETWARE}
 {$IFDEF OS_AMIGA}
 BEGIN
-  Dos.GetTime(Hour,Minute,Second,Sec100);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}DOS.GetTime(Hour,Minute,Second,Sec100);
 END;
 {$ENDIF OS_AMIGA}
 
