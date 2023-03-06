@@ -1,0 +1,3 @@
+src/libmicrohttpd.pp=namespaced/Api.Microhttpd.pp
+{s*:src/}=namespaced/
+{i+:src/}
