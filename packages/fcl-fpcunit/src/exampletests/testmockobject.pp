@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testmockobject;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Utils, FpcUnit.Registry, FpcUnit.Ubmockobject;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, ubmockobject;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

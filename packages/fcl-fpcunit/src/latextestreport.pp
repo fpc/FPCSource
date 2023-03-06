@@ -4,7 +4,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2006 by Dean Zobec
 
-    an example of latex report for FPCUnit tests.
+    an example of latex report for FpcUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit latextestreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Reports, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, SysUtils, fpcunit, fpcunitreport, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
    
@@ -56,7 +63,11 @@ function GetSuiteAsLatex(aSuite: TTestSuite): string;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function TLatexResultsWriter.TimeFormat(ATiming: TDateTime): String;
 Var
@@ -118,8 +129,8 @@ begin
   FDoc.Add('\definecolor{Red}{rgb}{1,0,0}');
   FDoc.Add('\definecolor{Pink}{rgb}{1,0,1}');
   FDoc.Add('\definecolor{Yellow}{rgb}{1,1,0}');
-  FDoc.Add('\author{FPCUnit}');
-  FDoc.Add('\title{Unit tests run by FPCUnit}');
+  FDoc.Add('\author{FpcUnit}');
+  FDoc.Add('\title{Unit tests run by FpcUnit}');
   FDoc.Add('\begin{document}');
   FDoc.Add('\maketitle');
   FDoc.Add('\flushleft');

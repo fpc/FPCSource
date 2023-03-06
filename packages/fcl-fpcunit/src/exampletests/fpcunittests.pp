@@ -4,7 +4,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
 
-    unit tests of the FPCUnit framework.
+    unit tests of the FpcUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcunittests;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, FpcUnit.Test, FpcUnit.Utils, FpcUnit.Registry, FpcUnit.Decorator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, fpcunit, testutils, testregistry, testdecorator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

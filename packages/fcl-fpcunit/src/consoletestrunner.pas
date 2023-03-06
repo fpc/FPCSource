@@ -17,16 +17,25 @@
   along with this library; if not, write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit consoletestrunner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.CustApp, System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Registry, FpcUnit.Utils,
+  FpcUnit.Reports, FpcUnit.Reports.LaTeX, FpcUnit.Reports.XMLTest, FpcUnit.Reports.Plain,
+  FpcUnit.Reports.JUnit, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   custapp, Classes, SysUtils, fpcunit, testregistry, testutils,
   fpcunitreport, latextestreport, xmltestreport, plaintestreport,
   junittestreport, dom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Version = '0.3';
@@ -81,7 +90,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.IniFiles, FpcUnit.Decorator;
+{$ELSE FPC_DOTTEDUNITS}
 uses inifiles, testdecorator;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ShortOpts = 'alhpsyrn';
