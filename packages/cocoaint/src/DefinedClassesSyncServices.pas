@@ -3,7 +3,9 @@
 {$modeswitch cvar}
 {$packrecords c}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DefinedClassesSyncServices;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 type

@@ -3,7 +3,9 @@
 {$modeswitch cvar}
 {$packrecords c}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DefinedClassesAVKit;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 type
