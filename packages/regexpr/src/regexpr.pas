@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit regexpr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   TRegExpr class library
@@ -106,6 +108,18 @@ interface
 {$IFDEF D8} {$DEFINE InlineFuncs} {$ENDIF}
 {$IFDEF FPC} {$DEFINE InlineFuncs} {$ENDIF}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, // Exception
+  {$IFDEF D2009}
+    {$IFDEF D_XE2}
+    System.System.Character,
+    {$ELSE}
+    System.Character,
+    {$ENDIF}
+  {$ENDIF}
+  System.Classes; // TStrings in Split method
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, // Exception
   {$IFDEF D2009}
@@ -116,6 +130,7 @@ uses
     {$ENDIF}
   {$ENDIF}
   Classes; // TStrings in Split method
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   {$IFNDEF FPC}

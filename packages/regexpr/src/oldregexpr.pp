@@ -17,15 +17,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit OldRegExpr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H-}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Regex;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Regex;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
    tregexprflag = (
