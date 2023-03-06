@@ -22,12 +22,19 @@
 
 {$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lualib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
   Lua;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Lua;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LUA_COLIBNAME = 'coroutine';
