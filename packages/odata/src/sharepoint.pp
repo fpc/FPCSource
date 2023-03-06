@@ -1,10 +1,16 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sharepoint;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpJson.Data, FpWeb.Rest.Base, Web.OData.Types, Web.OData.Service;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, fpjson, restbase, odatabase, odataservice;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*
   Options used to generate: 

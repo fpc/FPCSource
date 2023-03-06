@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit odatabase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,System.Classes, System.SysUtils, FpJson.Data, FpWeb.Rest.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo,Classes, SysUtils, fpjson, restbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TInt16 = Type Smallint;
