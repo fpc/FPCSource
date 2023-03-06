@@ -1,0 +1,9 @@
+src/crc.pas=namespaced/System.Hash.Crc.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/sha1.pp=namespaced/System.Hash.Sha1.pp
+src/unixcrypt.pas=namespaced/System.Hash.Unixcrypt.pas
+src/uuid.pas=namespaced/System.Hash.Uuid.pas
+src/ntlm.pas=namespaced/System.Hash.Ntlm.pas
+src/hmac.pp=namespaced/System.Hash.Hmac.pp
+src/md5.pp=namespaced/System.Hash.Md5.pp

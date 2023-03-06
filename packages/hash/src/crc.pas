@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 

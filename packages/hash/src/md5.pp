@@ -49,7 +49,9 @@ documentation and/or software.
 {$DEFINE MD5PASCAL}
 {$endif darwin}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit md5;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$inline on}
@@ -189,7 +191,11 @@ function MD5Match(const Digest1, Digest2: TMD5Digest): Boolean; inline;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
