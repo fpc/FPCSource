@@ -1,0 +1,4 @@
+src/macuuid.pp=namespaced/System.Macuuid.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/libuuid.pp=namespaced/System.Libuuid.pp

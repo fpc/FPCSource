@@ -1,10 +1,16 @@
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Libuuid;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Var
   LibUUIDName : String = 'libuuid.so.1';
