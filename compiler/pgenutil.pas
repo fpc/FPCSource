@@ -2702,6 +2702,8 @@ uses
       unitsyms : TFPHashObjectList;
       sym : tsym;
       i : Integer;
+      n : string;
+
     begin
       if not assigned(genericdef) then
         internalerror(200705151);
@@ -2728,7 +2730,12 @@ uses
           begin
             sym:=tsym(hmodule.globalsymtable.symlist[i]);
             if sym.typ=unitsym then
-              unitsyms.add(upper(sym.realname),sym);
+              begin
+              n:=sym.realname;
+              if (Copy(n,1,7)='$hidden') then
+                Delete(n,1,7);
+              unitsyms.add(upper(n),sym);
+              end;
           end;
       { add all units if we are specializing inside the current unit (as the
         generic could have been declared in the implementation part), but load
