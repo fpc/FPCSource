@@ -1,10 +1,17 @@
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit menu;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Ncurses;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ncurses;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$LINKLIB menuw}
 {$PACKRECORDS C}

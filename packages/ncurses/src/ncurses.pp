@@ -32,11 +32,18 @@
 {$MODE OBJFPC}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ncurses;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 {$LINKLIB ncursesw}

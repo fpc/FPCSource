@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit oCrt;
+{$ENDIF FPC_DOTTEDUNITS}
 {---------------------------------------------------------------------------
                                  CncWare
                          (c) Copyright 1999-2000
@@ -152,6 +154,15 @@ Unit oCrt;
 }
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+{$ifdef Unix}
+    UnixApi.Base,
+    UnixApi.TermIO,
+{$endif}
+  Api.Ncurses,Api.NCurses.Panel,Api.NCurses.Menu,
+  TP.DOS;  {TP.DOS needed for TextRec}
+{$ELSE FPC_DOTTEDUNITS}
 Uses
 {$ifdef unix}
     baseunix,
@@ -159,6 +170,7 @@ Uses
 {$endif}
   ncurses,panel,menu,
   dos;  {dos needed for TextRec}
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 

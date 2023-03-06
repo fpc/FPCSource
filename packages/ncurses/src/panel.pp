@@ -1,9 +1,16 @@
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit panel;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Ncurses;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ncurses;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$PACKRECORDS C}

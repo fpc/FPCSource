@@ -1,9 +1,16 @@
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit form;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Ncurses, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ncurses, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$LINKLIB formw}
 const

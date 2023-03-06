@@ -192,7 +192,11 @@ Const
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
    { standard file descriptors }
