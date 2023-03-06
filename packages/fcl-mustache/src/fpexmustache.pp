@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpexmustache;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, Fcl.Expressions, Mustache.Base, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, fpexprpars, fpmustache, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -102,7 +109,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrLengthStartMustBe1 = 'Length expression start delimiter must be 1';
