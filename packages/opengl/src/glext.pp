@@ -13,7 +13,9 @@
   {$DEFINE extdecl:=cdecl }
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GLext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (**************************************************
  *        OpenGL extension loading library        *
@@ -25,14 +27,25 @@ unit GLext;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-SysUtils,
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows,
+  {$ELSE}
+  System.DynLibs,
+  {$ENDIF}
+  Api.OpenGL.Gl;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  SysUtils,
   {$IFDEF Windows}
   Windows,
   {$ELSE}
   dynlibs,
   {$ENDIF}
   GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Windows}
 { Declared in Windows unit as well in FPC; but declared here as well, to be

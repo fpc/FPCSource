@@ -1,0 +1,8 @@
+src/glx.pp=namespaced/Api.OpenGL.Glx.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/freeglut.pp=namespaced/Api.OpenGL.Freeglut.pp
+src/glut.pp=namespaced/Api.OpenGL.Glut.pp
+src/glext.pp=namespaced/Api.OpenGL.Glext.pp
+src/glu.pp=namespaced/Api.OpenGL.Glu.pp
+src/gl.pp=namespaced/Api.OpenGL.Gl.pp

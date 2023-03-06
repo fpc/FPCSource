@@ -30,15 +30,22 @@
  This is necessary for supporting different platforms with different calling
  conventions via a single unit.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GLX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MACRO ON}
 
 {$IFDEF Unix}
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xutil;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     ctypes, X, XLib, XUtil;
+{$ENDIF FPC_DOTTEDUNITS}
   {$DEFINE HasGLX}  // Activate GLX stuff
 {$ELSE}
   {$MESSAGE Unsupported platform.}
@@ -269,7 +276,7 @@ var
   glXGetFBConfigAttrib: function(dpy: PDisplay; config: TGLXFBConfig; attribute: cint; var value: cint): cint; cdecl;
   glXGetFBConfigs: function(dpy: PDisplay; screen: cint; var nelements: cint): PGLXFBConfig; cdecl;
   glXGetVisualFromFBConfig: function(dpy: PDisplay; config: TGLXFBConfig): PXVisualInfo; cdecl;
-  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: X.TWindow; attribList: Pcint): TGLXWindow; cdecl;
+  glXCreateWindow: function(dpy: PDisplay; config: TGLXFBConfig; win: {$IFDEF FPC_DOTTEDUNITS}Api.X11.{$ENDIF}X.TWindow; attribList: Pcint): TGLXWindow; cdecl;
   glXDestroyWindow: procedure (dpy: PDisplay; window: TGLXWindow); cdecl;
   glXCreatePixmap: function(dpy: PDisplay; config: TGLXFBConfig; pixmap: TXPixmap; attribList: Pcint): TGLXPixmap; cdecl;
   glXDestroyPixmap: procedure (dpy: PDisplay; pixmap: TGLXPixmap); cdecl;
@@ -370,7 +377,11 @@ function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.OpenGL.Gl, System.DynLibs, Api.OpenGL.Glext { for glext_ExtensionSupported Amiga.Core.Utility };
+{$ELSE FPC_DOTTEDUNITS}
 uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility };
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$LINKLIB m}
 

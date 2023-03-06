@@ -50,10 +50,25 @@
   {$ENDIF}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows, System.DynLibs
+  {$ELSE WinApi.Windows}
+  {$IFDEF MorphOS}
+  MorphApi.Tinygl
+  {$ELSE MorphOS}
+  System.DynLibs
+  {$ENDIF MorphOS}
+  {$ENDIF Windows};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   {$IFDEF Windows}
@@ -65,6 +80,7 @@ uses
   dynlibs
   {$ENDIF MorphOS}
   {$ENDIF Windows};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF MORPHOS}
 var
@@ -1504,8 +1520,13 @@ procedure FreeOpenGL;
 implementation
 
 {$if defined(cpui386) or defined(cpux86_64)}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 {$ifdef windows}
