@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpReport.Report, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpreport, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -126,7 +133,7 @@ begin
     JSON:=Nil
   else
     begin
-    aJSON:=fpjson.GetJSON(aValue);
+    aJSON:=fpjson.{$IFDEF FPC_DOTTEDUNITS}Data.{$ENDIF}GetJSON(aValue);
     try
       JSON:=aJSON;
       OwnsJSON:=True;
@@ -274,7 +281,7 @@ Var
 
 begin
   try
-    aJSON:=fpjson.GetJSON(S);
+    aJSON:=fpjson.{$IFDEF FPC_DOTTEDUNITS}Data.{$ENDIF}GetJSON(S);
     JSON:=aJSON;
     OwnsJSON:=True;
   except

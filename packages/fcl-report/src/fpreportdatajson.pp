@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportdatajson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.JsonDataset, FpJson.Data, FpReport.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpjsondataset, fpjson, fpreportdata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TDBFReportDataFrame }
 
@@ -104,7 +111,11 @@ Resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, FpJson.Parser,Fcl.UriParser, FpWeb.Http.Client;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo,jsonparser,uriparser, fphttpclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function FieldTypeToString(Ft : TFieldType; Strict : Boolean) : String;
 

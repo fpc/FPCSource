@@ -15,12 +15,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprepexprpars;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // tokens
@@ -826,7 +833,11 @@ function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFPExpressionParser }
 

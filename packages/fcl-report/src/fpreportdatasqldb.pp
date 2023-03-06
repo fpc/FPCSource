@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportdatasqldb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.StrUtils, Data.Sqldb, Data.Db, FpJson.Data, FpReport.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, strutils, sqldb, db, fpjson, fpreportdata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   keyConnection   = 'connection';

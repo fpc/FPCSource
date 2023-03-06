@@ -115,13 +115,20 @@
 
 // {$DEFINE DEBUGLN_ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpReportHTMLParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$IFDEF DEBUGLN_ON}

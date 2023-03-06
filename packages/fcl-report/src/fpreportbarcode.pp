@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportbarcode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, FpImage, Fcl.Expressions, FpImage.ImgBarCode, FpImage.BarCode, FpReport.Report, FpReport.Streamer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, fpimage, fpexprpars, fpimgbarcode, fpbarcode, fpreport, fpreportstreamer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -61,7 +68,11 @@ Procedure UnRegisterReportBarcode;
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { TFPReportBarcode }
