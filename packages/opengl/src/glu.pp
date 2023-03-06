@@ -40,7 +40,9 @@
 {$DEFINE GLU_UNIT}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit glu;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {
@@ -55,6 +57,18 @@ interface
     glu.pp
 }
     
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows,
+  {$ELSE}
+  {$IFDEF MORPHOS}
+  MorphApi.Tinygl,
+  {$ENDIF}
+  {$ENDIF}
+  Api.OpenGL.Gl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   {$IFDEF Windows}
@@ -65,6 +79,7 @@ uses
   {$ENDIF}
   {$ENDIF}
   GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$if defined(Windows)}
@@ -414,8 +429,13 @@ implementation
 
 {$ELSE MORPHOS}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+   System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
   uses
    dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
   var
     hlib : tlibhandle;

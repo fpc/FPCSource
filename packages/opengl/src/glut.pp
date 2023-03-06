@@ -18,7 +18,9 @@
 {$DEFINE GLUT_UNIT}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Glut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Copyright (c) Mark J. Kilgard, 1994, 1995, 1996. */
 
@@ -34,6 +36,20 @@ unit Glut;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  {$IFDEF Windows}
+  WinApi.Windows, System.DynLibs,
+  {$ELSE}
+  {$IFDEF MORPHOS}
+  MorphApi.Tinygl,
+  {$ELSE}
+  System.DynLibs,
+  {$ENDIF}
+  {$ENDIF}
+  Api.OpenGL.Gl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   {$IFDEF Windows}
@@ -46,6 +62,7 @@ uses
   {$ENDIF}
   {$ENDIF}
   GL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGlutVoidCallback = procedure; cdecl;
@@ -468,7 +485,11 @@ implementation
 {$INCLUDE tinygl.inc}
 
 {$ELSE MORPHOS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.OpenGL.Freeglut;
+{$ELSE FPC_DOTTEDUNITS}
 uses FreeGlut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   hDLL: TLibHandle;
