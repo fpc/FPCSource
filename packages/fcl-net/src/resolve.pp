@@ -1,6 +1,8 @@
 {$MODE OBJFPC}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit resolve;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef win32}
 // Here till BSD supports the netbsd unit.
@@ -33,8 +35,13 @@ Unit resolve;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Net.Sockets,System.Classes,Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Sockets,Classes,UriParser;
+ {$ENDIF FPC_DOTTEDUNITS}
 
 Type
   THostAddr = in_addr;		
@@ -194,7 +201,11 @@ Implementation
   ---------------------------------------------------------------------}
 
 {$ifdef usenetdb}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Net.Netdb;
+{$ELSE FPC_DOTTEDUNITS}
 uses netdb;
+{$ENDIF FPC_DOTTEDUNITS}
 {$else}
 {$i resolve.inc}
 {$endif}
@@ -774,7 +785,7 @@ Var
   U : TURI;
 
 begin
-  U:=UriParser.ParseURI(AUri);
+  U:={$IFDEF FPC_DOTTEDUNITS}Fcl.{$ENDIF}UriParser.ParseURI(AUri);
   FProtocol := u.Protocol;
   FUsername := u.Username;
   FPassword := u.Password;
