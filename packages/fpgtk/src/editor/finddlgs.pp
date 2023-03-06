@@ -16,7 +16,11 @@ unit Finddlgs;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Gtk1.Gtk, Fpgtk;
+{$ELSE FPC_DOTTEDUNITS}
 uses gtk, FPgtk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFindDialog = class (TFPgtkWindow)

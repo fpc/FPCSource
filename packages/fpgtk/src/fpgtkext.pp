@@ -19,7 +19,11 @@ unit FPgtkExt;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fpgtk, Api.Gtk1.Gtk, Api.Gtk1.Gdk, Api.Gtk1.Glib, System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses FPgtk, gtk, gdk, glib, sysutils, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ==== Application object ==== }
 

@@ -18,7 +18,11 @@ unit ButtonRow;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Api.Gtk1.Glib, Api.Gtk1.Gtk, Api.Gtk1.Gdk, Fpgtk;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, glib, gtk, gdk, FPgtk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -71,7 +75,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xpms, Gtkdeftexts, Fpgtkext;
+{$ELSE FPC_DOTTEDUNITS}
 uses XPMs, GtkDefTexts, FPgtkExt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   DefAdd, DefCopy, DefDel, DefUp, DefDown : PGdkPixmap;

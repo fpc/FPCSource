@@ -19,8 +19,13 @@ unit ObjectDef;
 {_$define writecreate}{_$define loaddebug}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   VersionNumber = '1.08';

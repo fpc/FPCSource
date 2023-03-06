@@ -18,9 +18,15 @@ unit GtkEditor;
 
 interface
 {__$define debug}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes,
+     Api.Gtk1.Glib, Api.Gtk1.Gdk, Api.Gtk1.Gtk, Fpgtk, Fpgtkext,
+     Buttonrow, Objectdef, Settingsrec;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes,
      glib, gdk, gtk, FPGtk, FPgtkExt,
      buttonrow, ObjectDef, SettingsRec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -161,7 +167,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xpms, Gtkdeftexts, System.IniFiles, Progwin;
+{$ELSE FPC_DOTTEDUNITS}
 uses XPMs, GtkDefTexts, inifiles, ProgWin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRightLabel = class (TFPgtkLabel)
