@@ -18,12 +18,19 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmlreg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.Classes,Xml.Dom,Xml.Read,Xml.Writer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils,classes,dom,xmlread,xmlwrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
