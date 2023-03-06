@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mp3player;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -10,8 +12,13 @@ unit mp3player;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes, Api.Mad;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes, mad;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type 
   pmad_stream=^mad_stream;

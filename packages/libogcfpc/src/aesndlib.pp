@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aesndlib;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -8,8 +10,13 @@ unit aesndlib;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MAX_VOICES = 32;

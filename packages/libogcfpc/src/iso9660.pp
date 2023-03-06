@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iso9660;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -7,8 +9,13 @@ unit iso9660;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes, WiiApi.Gccore;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes, gccore;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ISO_MAXPATHLEN = 128;

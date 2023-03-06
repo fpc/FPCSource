@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit debug;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc} 
 {$J+}
@@ -8,8 +10,13 @@ unit debug;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
   GDBSTUB_DEVICE_USB = 0;

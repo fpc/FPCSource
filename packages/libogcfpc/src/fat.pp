@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fat;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -7,8 +9,13 @@ unit fat;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes, WiiApi.Gccore;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes, gccore;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function fatInit(cacheSize: cuint32; setAsDefaultDevice: cbool): cbool; cdecl; external;
 function fatInitDefault: cbool; cdecl; external;
