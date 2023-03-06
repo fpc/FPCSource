@@ -1,0 +1,6 @@
+src/maxmod/maxmod.pp=namespaced/GBAApi.Maxmod.pp
+{s*:src/maxmod/}=namespaced/
+{i+:src/maxmod/}
+src/gba.pp=namespaced/GBAApi.Gba.pp
+{s*:src/}=namespaced/
+{i+:src/}
