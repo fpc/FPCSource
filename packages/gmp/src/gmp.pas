@@ -13,7 +13,9 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gmp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$h+}
 {$packrecords c}
@@ -51,8 +53,13 @@ unit gmp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   BASE10 = 10;
@@ -1582,8 +1589,13 @@ operator >= (op1: MPRational; op2: MPRational): boolean; inline;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef NO_GMP_GLOBVARS}
 var

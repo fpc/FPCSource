@@ -1,0 +1,4 @@
+src/gmp.pas=namespaced/Api.Gmp.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/libgmp.pp=namespaced/Api.Libgmp.pp
