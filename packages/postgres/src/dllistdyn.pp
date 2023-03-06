@@ -3,14 +3,21 @@
   when finished.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DllistDyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DynLibs, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dynlibs, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
