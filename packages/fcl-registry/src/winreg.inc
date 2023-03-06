@@ -189,9 +189,9 @@ end;
 
 function TRegistry.GetKeyInfo(out Value: TRegKeyInfo): Boolean;
 var
-  winFileTime: Windows.FILETIME;
+  winFileTime: {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FILETIME;
   sysTime: TSystemTime;
-  LocalFileTime: Windows.FILETIME;
+  LocalFileTime: {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.FILETIME;
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
