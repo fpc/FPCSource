@@ -1,0 +1,3 @@
+src/libfontconfig.pp=namespaced/Api.Libfontconfig.pp
+{s*:src/}=namespaced/
+{i+:src/}
