@@ -1,0 +1,8 @@
+src/sqlite3.pp=namespaced/Api.Sqlite3.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/sqlite.pp=namespaced/Api.Sqlite.pp
+src/sqlite3ext.pp=namespaced/Api.Sqlite3ext.pp
+src/sqlite3db.pas=namespaced/Api.Sqlite3db.pas
+src/sqlitedb.pas=namespaced/Api.Sqlitedb.pas
+src/sqlite3dyn.pp=namespaced/Api.Sqlite3dyn.pp

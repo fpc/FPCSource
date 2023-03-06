@@ -11,6 +11,19 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+{$ifdef LOAD_DYNAMICALLY}
+  System.SysUtils, System.DynLibs;
+{$else}
+  System.DynLibs;
+
+  {$ifdef darwin}
+    {$linklib sqlite3}
+  {$endif}
+{$endif}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
 {$ifdef LOAD_DYNAMICALLY}
@@ -22,6 +35,7 @@ uses
     {$linklib sqlite3}
   {$endif}
 {$endif}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
