@@ -30,11 +30,17 @@
 {$PACKRECORDS 2}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT AHI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR AHIBase : pLibrary = nil;
 
@@ -573,7 +579,7 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : ShortString[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization

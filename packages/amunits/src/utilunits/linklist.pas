@@ -15,7 +15,9 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit linklist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    A unit for an easy way to use exec linked lists
@@ -31,11 +33,19 @@ unit linklist;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Amiga}
+   Amiga.Core.Exec,Amiga.Core.Amigalib,
+{$endif}
+   System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef Amiga}
    Exec,amigalib,
 {$endif}
    strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $define showall}
 

@@ -47,13 +47,21 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit datatypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Utility,
+  Amiga.Core.Agraphics, Amiga.Core.Iffparse, Amiga.Core.Amigaprinter, Amiga.Core.Prtbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, intuition, utility,
   agraphics, iffparse, amigaprinter, prtbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // datatypes
 const

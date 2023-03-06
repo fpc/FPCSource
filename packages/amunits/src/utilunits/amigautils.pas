@@ -24,11 +24,17 @@
    nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit amigautils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ExtractFilePath(FileName: PAnsiChar): PAnsiChar;
 function FileType(thefile :  PAnsiChar): Longint;

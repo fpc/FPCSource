@@ -28,10 +28,16 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT CYBERGRAPHICS;
+{$ENDIF FPC_DOTTEDUNITS}
 {$packrecords 2}
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Agraphics,Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,agraphics,utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR CyberGfxBase : pLibrary = nil;
 

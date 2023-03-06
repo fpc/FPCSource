@@ -35,10 +35,16 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT PICASSO96API;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Agraphics, Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec, utility, agraphics, intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
   {  Picasso96.h -- include File
       (C) Copyright 1996-98 Alexander Kneer & Tobias Abt

@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit doublebuffer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {
@@ -62,7 +64,11 @@ unit doublebuffer;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     OpenDoubleBuffer opens the Screen described in "ns" without

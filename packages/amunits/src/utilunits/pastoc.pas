@@ -43,7 +43,9 @@
 }
 
 unit PasToC
+{$IFNDEF FPC_DOTTEDUNITS}
   deprecated 'Pas2C function is leaking memory, don''t use it. StrPCopy in strings unit provides equivalent functionality.';
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit amigaprinter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,Amiga.Core.Agraphics,Amiga.Core.Utility,Amiga.Core.Intuition,Amiga.Core.Prefs;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,agraphics,utility,intuition,prefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const

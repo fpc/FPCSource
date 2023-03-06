@@ -31,11 +31,17 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT ptreplay;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
  const
      PTREPLAYNAME : PAnsiChar = 'ptreplay.library';

@@ -28,10 +28,16 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT MYSTICVIEW;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Agraphics,Amiga.Core.Utility,Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,agraphics,utility,intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR MysticBase : pLibrary = nil;
 

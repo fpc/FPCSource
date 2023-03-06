@@ -33,10 +33,16 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT lowlevel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Timer;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, utility, timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 { structure for use with QueryKeys() }

@@ -60,11 +60,17 @@
 }
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit workbench;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,Amiga.Core.Amigados,Amiga.Core.Utility,Amiga.Core.Intuition,Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,amigados,utility,intuition,agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type
@@ -940,7 +946,7 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : ShortString[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization
