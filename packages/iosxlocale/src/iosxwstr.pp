@@ -16,7 +16,9 @@
 {$mode objfpc}
 {$implicitexceptions off}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iosxwstr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -26,12 +28,21 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    UnixApi.CP,
+    { for access to libiconv-based routines }
+    UnixApi.CWString,
+    MacOsApi.MacTypes,
+    MacOsApi.CFBase,MacOsApi.CFString,MacOsApi.CFStringEncodingExt,MacOsApi.CFLocale;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     unixcp,
     { for access to libiconv-based routines }
     cwstring,
     MacTypes,
     CFBase,CFString,CFStringEncodingExt,CFLocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
   procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
