@@ -12,16 +12,27 @@
  **********************************************************************}
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprepos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils,
+  System.Contnrs,
+  Fpmkunit,
+  Fcl.Streams.Collection,
+  FpPkg.Options;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes,sysutils,
   contnrs,
   fpmkunit,
   streamcoll,
   pkgoptions;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   StreamVersion   : Integer = 1;
@@ -330,6 +341,15 @@ Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  FpPkg.Globals,
+  FpPkg.Messages,
+  FpPkg.PackageRepos,
+  FpPkg.XmlRep,
+  Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
   pkgglobals,
@@ -337,6 +357,7 @@ uses
   pkgrepos,
   fpxmlrep,
   uriparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // Keys for unit config

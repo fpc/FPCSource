@@ -12,12 +12,18 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgoptions;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 // pkgglobals must be AFTER fpmkunit
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils, System.IniFiles, System.StrUtils, Fcl.Template, Fpmkunit, FpPkg.Globals, System.FGL;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes, Sysutils, Inifiles, StrUtils, fpTemplate, fpmkunit, pkgglobals, fgl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   UnitConfigFileName   = 'fpunits.cfg';
@@ -270,10 +276,17 @@ Type
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpPkg.UninstalledSrcsRepo,
+  FpPkg.Packages.Structure,
+  FpPkg.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   pkgUninstalledSrcsRepo,
   pkgPackagesStructure,
   pkgmessages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefaultMirrorsURL  = 'https://www.freepascal.org/repository/'+MirrorsFileName;

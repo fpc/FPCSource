@@ -10,14 +10,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpxmlrep;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.Dom, FpPkg.Repos, Fpmkunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, dom, fprepos, fpmkunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -106,7 +113,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.Writer,Xml.Read,System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses xmlwrite,xmlread,typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SNodeRepository   = 'repository';
@@ -764,7 +775,7 @@ procedure TFPXMLRepositoryHandler.LoadFromXml(D: TFPDependency; Stream: TStream)
 Var
   XML : TXMLDocument;
 begin
-  Xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToDependency(XML.DocumentElement,D);
   finally
@@ -777,7 +788,7 @@ procedure TFPXMLRepositoryHandler.LoadFromXml(DS: TFPDependencies; Stream: TStre
 Var
   XML : TXMLDocument;
 begin
-  xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToDependencies(XML.DocumentElement,DS);
   finally
@@ -790,7 +801,7 @@ procedure TFPXMLRepositoryHandler.LoadFromXml(P: TFPPackage; Stream: TStream);
 Var
   XML : TXMLDocument;
 begin
-  xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToPackage(XML.DocumentElement,P);
   finally
@@ -803,7 +814,7 @@ procedure TFPXMLRepositoryHandler.LoadFromXml(PS: TFPPackages; Stream: TStream);
 Var
   XML : TXMLDocument;
 begin
-  xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToPackages(XML.DocumentElement,PS);
   finally
@@ -816,7 +827,7 @@ procedure TFPXMLRepositoryHandler.LoadFromXml(R: TFPRepository; Stream: TStream)
 Var
   XML : TXMLDocument;
 begin
-  xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToRepository(XML.DocumentElement,R);
   finally
@@ -946,7 +957,7 @@ procedure TFPXMLMirrorHandler.LoadFromXml(PS: TFPMirrors; Stream: TStream);
 Var
   XML : TXMLDocument;
 begin
-  xmlread.ReadXMLFile(XML,Stream);
+  ReadXMLFile(XML,Stream);
   try
     XmlToMirrors(XML.DocumentElement,PS);
   finally

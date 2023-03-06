@@ -10,14 +10,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgmkconv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,FpPkg.Handler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,pkghandler;
+{$ENDIF FPC_DOTTEDUNITS}
   { TMakeFileConverter }
 
 Type
@@ -60,10 +67,17 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  FpPkg.Globals,
+  FpPkg.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo,
   pkgglobals,
   pkgmessages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function GetWord(var S : String; Sep : AnsiChar) : String;
 
@@ -133,7 +147,7 @@ begin
     Add('{$mode objfpc}{$H+}');
     Add('program fpmake;');
     Add('');
-    Add(' { Generated automatically by '+ExtractFileName(Paramstr(0))+' on '+DateToStr(Sysutils.Date)+' }');
+    Add(' { Generated automatically by '+ExtractFileName(Paramstr(0))+' on '+DateToStr({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Sysutils.Date)+' }');
     Add('');
     Add('uses fpmkunit;');
     Add('');
