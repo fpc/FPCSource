@@ -24,13 +24,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RAS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Tapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, Tapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS 4} // #include "pshpack4.h"
 

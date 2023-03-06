@@ -26,7 +26,9 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wininet;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF NO_SMART_LINK}
 {$SMARTLINK ON}
@@ -40,7 +42,11 @@ unit wininet;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // *
 // * Set up Structure Packing to be 4 bytes

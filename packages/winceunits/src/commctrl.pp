@@ -80,11 +80,17 @@
             33    Str_SetPtrW
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit commctrl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$calling cdecl}
 

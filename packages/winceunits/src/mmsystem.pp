@@ -28,7 +28,9 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mmsystem;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
@@ -38,7 +40,11 @@ unit mmsystem;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Mmreg;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, mmreg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS 1} // #include "pshpack1.h"   // Assume byte packing throughout
 

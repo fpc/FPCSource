@@ -11,15 +11,22 @@
 
 ********************************************************************* }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tsp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$mode objfpc}
 {$calling cdecl}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //***************************************************************
 //

@@ -21,14 +21,20 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit msacm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 {$PACKRECORDS 1} // #pragma pack(1)         /* Assume byte packing throughout */
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Mmreg;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, mmreg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //
 //  there are four types of 'handles' used by the ACM. the first three

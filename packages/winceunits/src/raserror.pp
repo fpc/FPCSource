@@ -25,7 +25,9 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RASError;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

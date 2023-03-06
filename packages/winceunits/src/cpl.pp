@@ -50,7 +50,9 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cpl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef FPC_OS_UNICODE}
   {$define UNICODE}
@@ -58,7 +60,11 @@ unit cpl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS 1} // #include "pshpack1.h"   /* Assume byte packing throughout */
 

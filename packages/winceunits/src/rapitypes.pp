@@ -15,14 +15,21 @@
   Types from rapitypes.h, others are directly in rapi.pp, but this unit is used
   from Win32 and WinCE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RAPITypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   RAPISTREAMFLAG = (

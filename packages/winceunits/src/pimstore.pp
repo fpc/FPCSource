@@ -18,13 +18,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pimstore;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinApi.Activex, WinceAPI.Windbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, ActiveX, windbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 // Flags for receiving notifications
