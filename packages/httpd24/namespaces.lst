@@ -1,0 +1,6 @@
+src/httpd24.pas=namespaced/Api.Httpd24.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/apr/apr24.pas=namespaced/Api.Httpd24.Apr.pas
+{s*:src/apr/}=namespaced/
+{i+:src/apr/}
