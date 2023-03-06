@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googleservice;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, FpWeb.Rest.Base, GoogleApi.Base, FpWeb.Client, FpJson.Data, GoogleApi.Client;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, restbase, googlebase, fpwebclient, fpjson, googleclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TGoogleAPI = Class;
@@ -161,7 +168,11 @@ Function APIFactory : TGoogleAPIFactory;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function APIFactory : TGoogleAPIFactory;
 Var
