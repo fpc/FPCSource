@@ -3,7 +3,9 @@
   Copyright (C) 2006 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lber;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
