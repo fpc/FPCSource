@@ -15,7 +15,9 @@
 
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdbm;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
