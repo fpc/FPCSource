@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Zip;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { zip.c -- IO on .zip files using zlib
   zip.h -- IO for compress .zip files using zlib
@@ -24,11 +26,19 @@ interface
   {$define Delphi}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  //zutil,
+  System.ZLib.Zbase,
+  //Api.Z,
+  System.ZLib.Ziputils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   //zutil,
   zbase,
   //zLib,
   ziputils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ZIP_OK    = (0);
@@ -95,6 +105,15 @@ function zipClose(afile: zipFile; const global_comment: PAnsiChar): longint; {ZE
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Delphi}
+  SysUtils,
+  {$else}
+  System.Strings,
+  {$endif}
+  System.ZLib.Zdeflate, System.Hash.Crc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef Delphi}
   SysUtils,
@@ -102,6 +121,7 @@ uses
   strings,
   {$endif}
   zDeflate, crc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   VERSIONMADEBY = ($0); { platform depedent }

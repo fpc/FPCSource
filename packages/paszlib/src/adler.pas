@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit adler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   adler32.c -- compute the Adler-32 checksum of a data stream
