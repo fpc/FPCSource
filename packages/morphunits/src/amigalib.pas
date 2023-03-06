@@ -17,7 +17,9 @@
  **********************************************************************}
 {$INLINE ON}
 unit amigalib
+{$IFNDEF FPC_DOTTEDUNITS}
   deprecated 'Unit will be removed. Functions are moved to intuition, utility unit.';
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -38,8 +40,13 @@ function HookEntry: PtrUInt;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, intuition, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function DoMethod(obj : longword; const msg : array of LongWord): longword; inline;
 begin

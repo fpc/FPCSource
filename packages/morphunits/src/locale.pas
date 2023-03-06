@@ -14,12 +14,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit locale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // Internal String-Numbers GetLocaleStr()

@@ -15,12 +15,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit workbench;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility, Amiga.Core.Intuition, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, amigados, utility, intuition, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // wb startup defines
 type

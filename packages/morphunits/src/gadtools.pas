@@ -16,11 +16,17 @@
 
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gadtools;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Agraphics, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, intuition, agraphics, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {------------------------------------------------------------------------}
