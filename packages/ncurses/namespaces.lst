@@ -1,0 +1,8 @@
+src/form.pp=namespaced/Api.NCurses.Form.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/ocrt.pp=namespaced/Api.NCurses.Ocrt.pp
+src/ncurses.pp=namespaced/Api.Ncurses.pp
+src/ncrt.pp=namespaced/Api.NCurses.Ncrt.pp
+src/menu.pp=namespaced/Api.NCurses.Menu.pp
+src/panel.pp=namespaced/Api.NCurses.Panel.pp
