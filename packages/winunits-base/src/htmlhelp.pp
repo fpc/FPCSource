@@ -21,14 +21,20 @@
 ****************************************************************************/
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit htmlhelp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$ifdef FPC_OS_UNICODE}
   {$define UNICODE}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 // Commands to pass to HtmlHelp()

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Winspool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -8,8 +10,13 @@ interface
 {$smartlink on}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.CTypes,WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     ctypes,windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   Automatically converted by H2Pas 1.0.0 from winspool.h
   The following command line parameters were used:

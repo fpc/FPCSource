@@ -22,11 +22,17 @@
 {$H+}
 {$PACKRECORDS C}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libkinect10;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LibKinect = 'kinect10.dll';
@@ -430,7 +436,11 @@ Procedure UnloadNuiLibrary;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   LoadedLib : String;

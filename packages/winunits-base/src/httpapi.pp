@@ -34,7 +34,9 @@ Revision History:
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HttpApi;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {
@@ -54,8 +56,13 @@ interface
 
 {$MODE OBJFPC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    WinApi.Windows, WinApi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     Windows, WinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
     External_library='httpapi.dll'; {Setup as you need}
@@ -1265,8 +1272,13 @@ function HttpUpdateServiceConfiguration(ServiceHandle: HANDLE; ConfigId: HTTP_SE
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
   function Present(var a : _HTTP_PROPERTY_FLAGS) : ULONG;
     begin

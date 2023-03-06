@@ -26,7 +26,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //
 //=============================================================================
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MultiMon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -36,8 +38,13 @@ unit MultiMon;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //
 // If we are building with Win95/NT4 headers, we need to declare
@@ -54,7 +61,7 @@ const
 // HMONITOR is already declared if WINVER >= 0x0500 in windef.h
 // This is for components built with an older version number.
 type
-  HMONITOR = Windows.HMonitor;
+  HMONITOR = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HMonitor;
 
 const
   MONITOR_DEFAULTTONULL    = $00000000;

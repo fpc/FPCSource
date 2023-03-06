@@ -14,7 +14,9 @@
 {$mode objfpc}
 {$H+}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ComConst;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 

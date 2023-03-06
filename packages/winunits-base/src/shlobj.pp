@@ -14,7 +14,9 @@
 
 }
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit shlobj;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -22,8 +24,13 @@ interface
   {$define UNICODE}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+      WinApi.Windows,WinApi.Activex,WinApi.Shellapi,WinApi.Commctrl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
       windows,activex,shellapi,commctrl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
    IID_IShellExtInit   : TGUID ='{000214E8-0000-0000-C000-000000000046}';

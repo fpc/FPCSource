@@ -39,7 +39,9 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit CommCtrl;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 {$Mode ObjFPC}
@@ -47,7 +49,11 @@ Interface
 {$ifdef FPC_OS_UNICODE}
   {$define UNICODE}
 {$endif}
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows,System.CTypes,WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows,CTypes,ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // --------------------
 
@@ -10776,7 +10782,7 @@ end;
 Function ListView_GetHeader( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), LVM_GETHEADER, 0, LPARAM(0)));
 end;
 
 
@@ -12066,7 +12072,7 @@ end;
 Function TreeView_EditLabel( hwnd : hwnd; hitem : HTREEITEM):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_EDITLABEL, 0, LParam(hitem)))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_EDITLABEL, 0, LParam(hitem)))
 end;
 
 
@@ -12078,7 +12084,7 @@ end;
 Function TreeView_GetEditControl( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_GETEDITCONTROL, 0, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_GETEDITCONTROL, 0, 0))
 end;
 
 
@@ -12194,7 +12200,7 @@ end;
 Function TreeView_SetToolTips( hwnd : hwnd; hwndTT : WPARAM):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_SETTOOLTIPS, hwndTT, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_SETTOOLTIPS, hwndTT, 0))
 end;
 
 
@@ -12206,7 +12212,7 @@ end;
 Function TreeView_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TVM_GETTOOLTIPS, 0, 0))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TVM_GETTOOLTIPS, 0, 0))
 end;
 
 
@@ -12743,7 +12749,7 @@ end;
 Function TabCtrl_GetToolTips( hwnd : hwnd):HWND;
 
 Begin
- Result:=Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
+ Result:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(SendMessage((hwnd), TCM_GETTOOLTIPS, 0, LPARAM(0)))
 end;
 
 
