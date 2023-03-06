@@ -14,13 +14,17 @@
  **********************************************************************}
 
 {$MODE ObjFPC}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit varutils;
+{$ENDIF}
 
 Interface
 
-Uses sysutils;
-
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils, System.Variants;
+{$ELSE}
+uses sysutils, variants;
+{$ENDIF}
 // Read definitions.
 
 {$i varutilh.inc}

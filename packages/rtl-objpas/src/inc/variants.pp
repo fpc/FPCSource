@@ -23,12 +23,19 @@
 {$inline on}
 {$define VARIANTINLINE}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Variants;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+  uses
+    System.SysUtils,System.SysConst,System.RtlConsts,System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
   uses
     sysutils,sysconst,rtlconsts,typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EVariantParamNotFoundError = class(EVariantError);
@@ -357,9 +364,15 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Math,
+  System.VarUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Math,
   VarUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   customvarianttypes    : array of TCustomVariantType;
@@ -1504,9 +1517,9 @@ begin
 {$endif}
       end;
     except
-      on E: SysUtils.ERangeError do
+      on E: {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.ERangeError do
         Overflow := True;
-      on E: SysUtils.EIntOverflow do
+      on E: {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.EIntOverflow do
         Overflow := True;
     end;
 {$pop}
@@ -4245,14 +4258,14 @@ function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: AnsiStr
 function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: AnsiString): Boolean;
   begin
     Result:=true;
-    Variant(Dest):=TypInfo.GetPropValue(getinstance(v),name);
+    Variant(Dest):={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetPropValue(getinstance(v),name);
   end;
 
 
 function TPublishableVariantType.SetProperty(var V: TVarData; const Name: AnsiString; const Value: TVarData): Boolean;
   begin
     Result:=true;
-    TypInfo.SetPropValue(getinstance(v),name,Variant(value));
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.SetPropValue(getinstance(v),name,Variant(value));
   end;
 
 
@@ -4573,7 +4586,7 @@ end;
 
 Function GetPropValue(Instance: TObject; const PropName: AnsiString): Variant;
 begin
-  Result:=TypInfo.GetPropValue(Instance,PropName,True);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}TypInfo.GetPropValue(Instance,PropName,True);
 end;
 
 

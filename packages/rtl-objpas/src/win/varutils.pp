@@ -19,11 +19,17 @@
 {$smartlink on}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit VarUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils,System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses sysutils,Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i varutilh.inc}
 
