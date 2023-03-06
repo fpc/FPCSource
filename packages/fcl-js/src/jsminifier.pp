@@ -42,14 +42,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsminifier;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$inline on}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes,Fcl.Streams.Buffer;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,classes,bufstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const
