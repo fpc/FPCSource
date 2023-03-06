@@ -12,10 +12,16 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ghashset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Stl.Vector, System.Stl.Util, System.Stl.Arrayutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses gvector, gutil, garrayutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const baseFDataSize = 8;
 

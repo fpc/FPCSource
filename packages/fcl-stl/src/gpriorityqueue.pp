@@ -12,11 +12,17 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gpriorityqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Stl.Vector;
+{$ELSE FPC_DOTTEDUNITS}
 uses gvector;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {TCompare is comparing class, which should have class method c(a,b:T):boolean, which returns true is a is less than b}
 

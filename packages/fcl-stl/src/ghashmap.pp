@@ -14,10 +14,16 @@
 
   { $define STL_INTERFACE_EXT}
 
+{$IFNDEF FPC_DOTTEDUNITS}
   unit ghashmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
+{$IFDEF FPC_DOTTEDUNITS}
+  uses System.Stl.Vector, System.Stl.Util, System.Stl.Arrayutils;
+{$ELSE FPC_DOTTEDUNITS}
   uses gvector, gutil, garrayutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
     baseFDataSize = 8;             // must be > 0
@@ -32,7 +38,7 @@
       hash(a: TKey, n: SizeUInt): SizeUInt;
               return uniformly distributed i value in range <0,n-1> base only on arguments,
               n will be always power of 2
-      equal(const AKey1, AKey2: TKey): Boolean;            [when STL_INTERFACE_EXT is defined]
+      equal(const AKey1, AKey2: TKey): Boolean;            [when Stl_INTERFACE_EXT is defined]
               return the boolean test for equality of the two keys.  Typically this is operator=,
               but it doesn't have to be (e.g. case-insensitive string comparison)
   }
@@ -170,7 +176,7 @@ begin
   bs:=curbucket.size;
   i:=0;
   while i < bs do begin
-{$ifdef STL_INTERFACE_EXT}
+{$ifdef Stl_INTERFACE_EXT}
     if THash.equal(curbucket[i].Key, key) then exit(true);
 {$else}
     if (curbucket[i].Key = key) then exit(true);
@@ -188,7 +194,7 @@ begin
   bs:=curbucket.size;
   i:=0;
   while i < bs do begin
-{$ifdef STL_INTERFACE_EXT}
+{$ifdef Stl_INTERFACE_EXT}
     if THash.equal(curbucket[i].Key, key) then exit(curbucket[i].Value);
 {$else}
     if (curbucket[i].Key = key) then exit(curbucket[i].Value);
@@ -207,7 +213,7 @@ begin
   bs:=curbucket.size;
   i:=0;
   while i < bs do begin
-{$ifdef STL_INTERFACE_EXT}
+{$ifdef Stl_INTERFACE_EXT}
     if THash.equal(curbucket[i].Key, key) then begin
 {$else}
     if (curbucket[i].Key = key) then begin
@@ -229,7 +235,7 @@ begin
   bs:=curbucket.size;
   i:=0;
   while i < bs do begin
-{$ifdef STL_INTERFACE_EXT}
+{$ifdef Stl_INTERFACE_EXT}
     if THash.equal(curbucket[i].Key, key) then begin
 {$else}
     if (curbucket[i].Key = key) then begin
@@ -256,7 +262,7 @@ begin
   bs:=curbucket.size;
   i:=0;
   while i < bs do begin
-{$ifdef STL_INTERFACE_EXT}
+{$ifdef Stl_INTERFACE_EXT}
     if THash.equal(curbucket[i].Key, key) then begin
 {$else}
     if (curbucket[i].Key = key) then begin

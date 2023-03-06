@@ -12,7 +12,9 @@
 **********************************************************************}
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
