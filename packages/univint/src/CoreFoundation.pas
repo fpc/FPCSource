@@ -16,7 +16,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CoreFoundation;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -201,7 +203,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CFArray,MacOsApi.CFBag,MacOsApi.CFCharacterSet,MacOsApi.CFData,MacOsApi.CFDate,MacOsApi.CFDictionary,MacOsApi.CFNumber,MacOsApi.CFPropertyList,MacOsApi.CFSet,MacOsApi.CFString,MacOsApi.CFStringEncodingExt,MacOsApi.CFTimeZone,MacOsApi.CFTree,MacOsApi.CFURL,MacOsApi.CFXMLNode,MacOsApi.CFXMLParser,MacOsApi.CFMachPort,MacOsApi.CFMessagePort,MacOsApi.CFRunLoop,MacOsApi.CFSocket,MacOsApi.CFBinaryHeap,MacOsApi.CFBitVector,MacOsApi.CFBundle,MacOsApi.CFByteOrders,MacOsApi.CFPlugIn,MacOsApi.CFPreferences,MacOsApi.CFURLAccess,MacOsApi.CFUUID,MacOsApi.CFLocale,MacOsApi.CFStream,MacOsApi.CFDateFormatter,MacOsApi.CFNumberFormatter,MacOsApi.CFCalendar,MacOsApi.CFUserNotification,MacOsApi.CFNotificationCenter,MacOsApi.CFAttributedString;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CFArray,CFBag,CFCharacterSet,CFData,CFDate,CFDictionary,CFNumber,CFPropertyList,CFSet,CFString,CFStringEncodingExt,CFTimeZone,CFTree,CFURL,CFXMLNode,CFXMLParser,CFMachPort,CFMessagePort,CFRunLoop,CFSocket,CFBinaryHeap,CFBitVector,CFBundle,CFByteOrders,CFPlugIn,CFPreferences,CFURLAccess,CFUUID,CFLocale,CFStream,CFDateFormatter,CFNumberFormatter,CFCalendar,CFUserNotification,CFNotificationCenter,CFAttributedString;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

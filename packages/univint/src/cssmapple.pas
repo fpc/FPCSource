@@ -40,7 +40,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cssmapple;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -225,7 +227,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.MacOSXPosix,MacOsApi.Cssmerr,MacOsApi.Cssmtype,MacOsApi.X509defs,MacOsApi.Certextensions;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,MacOSXPosix,cssmerr,cssmtype,x509defs,certextensions;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

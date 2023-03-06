@@ -15,7 +15,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CFStream;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -200,7 +202,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.MacOSXPosix,MacOsApi.CFBase,MacOsApi.CFString,MacOsApi.CFDictionary,MacOsApi.CFURL,MacOsApi.CFRunLoop,MacOsApi.CFSocket,MacOsApi.CFError;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,MacOSXPosix,CFBase,CFString,CFDictionary,CFURL,CFRunLoop,CFSocket,CFError;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 {$ALIGN POWER}

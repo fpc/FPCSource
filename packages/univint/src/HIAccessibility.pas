@@ -29,7 +29,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HIAccessibility;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -214,7 +216,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFBase,MacOsApi.CarbonEvents,MacOsApi.Events,MacOsApi.Menus,MacOsApi.Controls,MacOsApi.MacWindows,MacOsApi.HIObject,MacOsApi.AXUIElement;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFBase,CarbonEvents,Events,Menus,Controls,MacWindows,HIObject,AXUIElement;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

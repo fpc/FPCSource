@@ -21,7 +21,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GPCStrings;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$definec UNIVERSAL_INTERFACES_VERSION $0400}
 {$definec GAP_INTERFACES_VERSION $0308}
@@ -209,7 +211,11 @@ interface
 
 {$modeswitch result}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   kEmptyStr15 : Str15 = '';

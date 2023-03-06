@@ -28,7 +28,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Displays;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -213,7 +215,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.QuickdrawTypes,MacOsApi.ColorSyncDeprecated,MacOsApi.AEDataModel,MacOsApi.ConditionalMacros,MacOsApi.Components,MacOsApi.Video,MacOsApi.AppleEvents,MacOsApi.Events,MacOsApi.Processes,MacOsApi.Dialogs;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,QuickdrawTypes,ColorSyncDeprecated,AEDataModel,ConditionalMacros,Components,Video,AppleEvents,Events,Processes,Dialogs;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

@@ -65,7 +65,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HIToolbar;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -250,7 +252,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes,MacOsApi.CFArray,MacOsApi.CFBase,MacOsApi.CGImage,MacOsApi.IconsCore,MacOsApi.Menus,MacOsApi.HIObject,MacOsApi.QuickdrawTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes,CFArray,CFBase,CGImage,IconsCore,Menus,HIObject,QuickdrawTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 

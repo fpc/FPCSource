@@ -1,0 +1,3 @@
+unit MacOsApi.CFURL;
+{$DEFINE FPC_DOTTEDUNITS}
+{$i CFURL.pas}

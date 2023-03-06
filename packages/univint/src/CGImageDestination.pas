@@ -22,7 +22,9 @@
 {$inline on}
 {$calling mwpascal}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CGImageDestination;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0400}
 {$setc GAP_INTERFACES_VERSION := $0308}
@@ -207,7 +209,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses MacOsApi.MacTypes, MacOsApi.CFArray, MacOsApi.CFBase, MacOsApi.CFData, MacOsApi.CFDictionary, MacOsApi.CFError, MacOsApi.CFURL, MacOsApi.CGDataConsumer, MacOsApi.CGImage, MacOsApi.CGImageSource, MacOsApi.CGImageMetadata;
+{$ELSE FPC_DOTTEDUNITS}
 uses MacTypes, CFArray, CFBase, CFData, CFDictionary, CFError, CFURL, CGDataConsumer, CGImage, CGImageSource, CGImageMetadata;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endc} {not MACOSALLINCLUDE}
 
 
