@@ -17,11 +17,17 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inputevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Timer;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility, timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { * input.device event definitions

@@ -17,12 +17,19 @@
 
 {$mode fpc}
 {$packrecords 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cgxvideo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, intuition, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
     Contents of this file is based on cgxvideo.h from the MorphOS SDK:

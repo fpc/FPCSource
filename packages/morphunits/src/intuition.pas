@@ -20,12 +20,19 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 {$INLINE ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Agraphics, Amiga.Core.Utility, Amiga.Core.Inputevent, Amiga.Core.Timer, Amiga.Core.Layers;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, agraphics, utility, inputevent, timer, layers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$define INTUI_V36_NAMES_ONLY}
 

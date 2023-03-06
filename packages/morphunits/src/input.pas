@@ -14,7 +14,9 @@
 **********************************************************************}
 
 {$MODE FPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit input;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    Contents of this file is based on input.h from the MorphOS SDK:
@@ -27,8 +29,13 @@ unit input;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   IND_ADDHANDLER    = CMD_NONSTD + 0;

@@ -18,11 +18,17 @@
 {$INLINE ON}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AmigaDOS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Timer;
+{$ELSE FPC_DOTTEDUNITS}
 uses Exec, Timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   DosBase: Pointer;
