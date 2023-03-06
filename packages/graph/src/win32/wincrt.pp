@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinCRT;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
@@ -41,8 +43,13 @@ unit WinCRT;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows, TP.Graph;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        windows,graph;
+{$ENDIF FPC_DOTTEDUNITS}
 
     const
        keybuffersize = 32;
@@ -93,7 +100,7 @@ unit WinCRT;
                 end;
               LeaveCriticalSection(keyboardhandling);
               { give other threads a chance }
-              Windows.Sleep(10);
+              {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Sleep(10);
            end;
       end;
 
@@ -119,7 +126,7 @@ unit WinCRT;
     procedure sound(hz : word);
 
       begin
-         Windows.Beep(hz,500);
+         {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.Beep(hz,500);
       end;
 
     procedure nosound;

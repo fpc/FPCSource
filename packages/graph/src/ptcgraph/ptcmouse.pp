@@ -15,7 +15,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptcmouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
@@ -104,8 +106,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   System.PTC.Ptcgraph, Ptc, PTC.Wrapper;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    ptcgraph, ptc, ptcwrapper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function InGraphMode: Boolean;
 begin

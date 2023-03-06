@@ -43,7 +43,9 @@ TODO: configure refresh (flip) time. SDL_AddTimer(100...: time interval must be 
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdlgraph;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef darwin}
 {$linkframework Cocoa}
@@ -138,10 +140,17 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
   m1280x1024x64k    = $11A;
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses {$ifdef Unix}UnixApi.CThreads,{$endif}
+   Api.Sdl,Api.Sdl.Utils,
+          Api.Sdl.Logger,
+          System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses {$ifdef unix}cthreads,{$endif}
    sdl,sdlutils,
           logger,
           SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   InternalDriverName = 'SDL';

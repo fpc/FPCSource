@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinMouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
     { initializes the mouse with the default values for the current screen mode }
@@ -100,8 +102,13 @@ unit WinMouse;
 
   implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows, TP.Graph;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        windows,graph;
+{$ENDIF FPC_DOTTEDUNITS}
 
     var
        oldexitproc : pointer;
@@ -116,13 +123,13 @@ unit WinMouse;
     procedure ShowMouse;
 
       begin
-         Windows.ShowCursor(true);
+         {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.ShowCursor(true);
       end;
 
     procedure HideMouse;
 
       begin
-         Windows.ShowCursor(false);
+         {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.ShowCursor(false);
       end;
 
     function msghandler(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): LResult; stdcall;

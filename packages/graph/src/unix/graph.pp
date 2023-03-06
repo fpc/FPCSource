@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Graph;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i graphh.inc}
@@ -83,8 +85,13 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.TermIO,System.X86;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   termio,x86;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   InternalDriverName = 'LinuxVGA';

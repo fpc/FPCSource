@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptcgraph;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {//$define logging}
 {$define FPC_GRAPH_SUPPORTS_TRUECOLOR}
@@ -24,8 +26,13 @@ unit ptcgraph;
                                     interface
 {******************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Ptc, PTC.Wrapper;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ptc, ptcwrapper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef VER2_6}
 type
