@@ -1,0 +1,5 @@
+src/libc.pp=namespaced/Api.Libc.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/kerneldefs.pp=namespaced/Api.Kerneldefs.pp
+src/kernelioctl.pp=namespaced/Api.Kernelioctl.pp

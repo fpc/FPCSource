@@ -6,11 +6,17 @@
   {$error The KernelDefs unit is a legacy Kylix-compatibility unit that is only supported on Linux/i386. It is known not to work in various ways on other OSes and architectures (including Linux/x86_64). }
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libc deprecated 'Unportable Kylix legacy unit that only exists on Linux/x86. see http://wiki.freepascal.org/libc_unit ';
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types,Api.Kerneldefs;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype,kerneldefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   clib = 'c';
@@ -230,7 +236,11 @@ Const
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Kernelioctl;
+{$ELSE FPC_DOTTEDUNITS}
 uses kernelioctl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i types.inc}         // types.h macros.
 {$i cerrno.inc}       // errno.h asm/errno.h bits/errno.h macros.
