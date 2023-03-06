@@ -20,7 +20,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * ***********************************************************************
  *}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Tcl80;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 {$ifdef CPUI386}
@@ -942,7 +944,11 @@ type
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils {, System.Classes};
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils {, Classes};
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 // Macro emulation

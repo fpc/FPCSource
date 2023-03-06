@@ -1,0 +1,3 @@
+src/tcl80.pp=namespaced/Api.Tcl80.pp
+{s*:src/}=namespaced/
+{i+:src/}
