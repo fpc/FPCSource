@@ -33,7 +33,9 @@ not be compatible.
 * REXX SAA Interface
 *
 *********************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit RexxSAA;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
