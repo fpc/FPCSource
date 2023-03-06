@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TinyPTC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
@@ -10,8 +12,13 @@ procedure ptc_close;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Ptc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, ptc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   Console: TPTCConsole = nil;

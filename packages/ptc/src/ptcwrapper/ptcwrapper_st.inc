@@ -29,14 +29,21 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptcwrapper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Ptc, PTC.EventQueue;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, ptc, ptceventqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TPTCWrapperThread = class
