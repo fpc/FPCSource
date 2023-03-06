@@ -24,12 +24,19 @@
 
 {$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lauxlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
   Lua;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Lua;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // functions added for Pascal
 procedure lua_pushstring(L: Plua_State; const s: ansistring);
