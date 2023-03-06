@@ -26,11 +26,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit seltimezone;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Localemgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, localemgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function SelectTimeZone(var ioTimeZoneP: Int16; var ioLocaleInTimeZoneP: LmLocaleType;
                         {const} titleP: PAnsiChar; showTimes, anyLocale: Boolean): Boolean; syscall sysTrapSelectTimeZone;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

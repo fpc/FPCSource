@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chars;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Standard Unicode 2.0 names for the ascii characters. These exist in
 // all of the text fonts, no matter what character encoding is being

@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 {$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit window;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Errorbase, PalmApi.Bitmap;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, errorbase, bitmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   kWinVersion = 3;

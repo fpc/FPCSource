@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit seltime;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Datetime;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, datetime;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //-------------------------------------------------------------------
 // structures

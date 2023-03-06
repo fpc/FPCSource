@@ -28,11 +28,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit netmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Sysevent, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, sysevent, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (********************************************************************
  * Type and creator of Net Library database
@@ -1603,7 +1609,11 @@ function NetLibConfigAliasGet(refNum: UInt16; aliasIndex: UInt16; var indexP: UI
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Systemmgr, PalmApi.Timemgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses SystemMgr, TimeMgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function NetNow: UInt32;
 begin

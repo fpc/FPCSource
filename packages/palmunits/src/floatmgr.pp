@@ -25,11 +25,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit floatmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************************
  * Differences between FloatMgr (PalmOS v1.0) and (this) NewFloatMgr
