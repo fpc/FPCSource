@@ -13,7 +13,9 @@
 
  **********************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pas2jslibcompiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -23,10 +25,17 @@ unit pas2jslibcompiler;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.Math,
+  Pas2Js.SrcMap, Pas2Js.Files.Cache, Pas2Js.Compiler.Base, Pas2Js.Compiler.Pcu,
+  Pas2Js.Compiler.Config, Pas2Js.Compiler.PostProcess;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Math,
   FPPJsSrcMap, Pas2jsFileCache, Pas2JSCompiler, Pas2jsPCUCompiler,
   Pas2JSCompilerCfg, Pas2JSCompilerPP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   Compiler descendant, usable in library

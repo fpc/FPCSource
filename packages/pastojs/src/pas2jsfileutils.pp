@@ -16,7 +16,9 @@
   Abstract:
     Low level file path handling.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsFileUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -24,6 +26,16 @@ unit Pas2jsFileUtils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF Unix}
+  UnixApi.Base,
+  {$ENDIF}
+  {$IFDEF Pas2JS}
+  JS, NodeJS, Node.FS,
+  {$ENDIF}
+  System.SysUtils, System.Classes, Pas2Js.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF Unix}
   BaseUnix,
@@ -32,6 +44,7 @@ uses
   JS, NodeJS, Node.FS,
   {$ENDIF}
   SysUtils, Classes, Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function FilenameIsAbsolute(const aFilename: string):boolean;
 function FilenameIsWinAbsolute(const aFilename: string):boolean;
@@ -106,9 +119,15 @@ function UTF8ToConsole(const s: ansistring): ansistring;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+{$IFDEF Windows}
+uses WinApi.Windows;
+{$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 {$IFDEF Windows}
 uses Windows;
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   EncodingValid: boolean = false;
@@ -937,7 +956,7 @@ begin
   {$IFDEF Windows}
   NonUTF8System:=true;
   {$ELSE}
-  NonUTF8System:=SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
+  NonUTF8System:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
   {$ENDIF}
   {$ENDIF}
 

@@ -21,17 +21,26 @@ Works:
 - TPascalDescendantOfExt.Create marks class method NewInstance
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2jsUseAnalyzer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$inline on}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  Pascal.UseAnalyzer, Pascal.Tree, Pascal.Resolver,
+  Pas2Js.Compiler.Transpiler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   PasUseAnalyzer, PasTree, PasResolver,
   FPPas2Js;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
@@ -22,8 +24,13 @@ unit Pas2JSUtils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function ChompPathDelim(const Path: string): string;
 function GetNextDelimitedItem(const List: string; Delimiter: Char;
@@ -70,7 +77,11 @@ procedure SplitCmdLineParams(const Params: string; ParamList: TStrings;
 implementation
 
 {$IFDEF Windows}
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 Var
@@ -332,7 +343,7 @@ begin
   {$IFDEF Windows}
   gNonUTF8System:=true;
   {$ELSE}
-  gNonUTF8System:=SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
+  gNonUTF8System:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CompareText(DefaultTextEncoding,'UTF8')<>0;
   {$ENDIF}
   {$ENDIF}
 end;

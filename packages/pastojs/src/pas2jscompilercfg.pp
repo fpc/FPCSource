@@ -16,17 +16,27 @@
   Abstract:
     Config file handling for compiler, depends on filesystem.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSCompilerCfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF NodeJS}
+  node.fs,
+  {$ENDIF}
+  System.SysUtils, System.Classes, Pas2Js.Files.Utils, Pas2Js.Files.Fs, Pas2Js.Compiler.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF NodeJS}
   node.fs,
   {$ENDIF}
   SysUtils, Classes, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)
