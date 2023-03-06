@@ -42,7 +42,9 @@
 
 // $Id: JwaWinWlx.pas,v 1.12 2007/09/05 11:58:54 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinWlx;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaWinWlx;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winuser, WinApi.Jedi.Winnt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinUser, JwaWinNT;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 

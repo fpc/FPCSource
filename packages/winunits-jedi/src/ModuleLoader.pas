@@ -27,7 +27,9 @@
 {                                                                  }
 {******************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ModuleLoader;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {.$I jvcl.inc}
@@ -44,8 +46,13 @@ uses
 {$ENDIF MSWINDOWS}
 {$IFDEF UNIX}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Types, Api.Libc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Types, Libc;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF UNIX}
 
 

@@ -42,7 +42,9 @@
 
 // $Id: JwaWinBase.pas,v 1.17 2007/09/14 06:48:47 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinBase;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$WEAKPACKAGEUNIT}
@@ -59,11 +61,19 @@ unit JwaWinBase;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF USE_DELPHI_TYPES}
+  WinApi.Windows,
+  {$ENDIF USE_DELPHI_TYPES}
+  WinApi.Jedi.Ntstatus, WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows,
   {$ENDIF USE_DELPHI_TYPES}
   JwaNtStatus, JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -398,10 +408,10 @@ type
   LPSYSTEMTIME = ^SYSTEMTIME;
   {$EXTERNALSYM LPSYSTEMTIME}
   {$IFDEF USE_DELPHI_TYPES}
-  _SYSTEMTIME = Windows._SYSTEMTIME;
-  SYSTEMTIME = Windows.SYSTEMTIME;
-  TSystemTime = Windows.TSystemTime;
-  PSystemtime = Windows.PSystemTime;
+  _SYSTEMTIME = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows._SYSTEMTIME;
+  SYSTEMTIME = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.SYSTEMTIME;
+  TSystemTime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TSystemTime;
+  PSystemtime = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.PSystemTime;
   {$ELSE}
   _SYSTEMTIME = record
     wYear: Word;

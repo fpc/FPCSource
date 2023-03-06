@@ -165,12 +165,19 @@
 {**                                                                          **}
 {******************************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaNative;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$INCLUDE jediapilib.inc}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winnt, WinApi.Jedi.Winbase, WinApi.Jedi.Ntstatus;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinNT, JwaWinBase, JwaNtStatus;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 

@@ -51,7 +51,9 @@
 {******************************************************************}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinDNS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -67,8 +69,13 @@ unit JwaWinDNS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype, WinApi.Jedi.Ws2atm;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinsock2, JwaWinType, JwaWS2atm;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

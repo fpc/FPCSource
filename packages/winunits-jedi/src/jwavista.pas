@@ -43,11 +43,17 @@
 { This unit is not part of JwaWindows.pas and MUST be included by uses clause. }
 { To use this unit you must compile JwaWindows.pas with include mode.}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaVista;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Jedi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses JwaWindows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
@@ -355,7 +361,11 @@ const
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Jedi.Windllnames;
+{$ELSE FPC_DOTTEDUNITS}
 uses JwaWinDLLNames;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF DYNAMIC_LINK}
   function AddMandatoryAce(pAcl: PACL; dwAceRevision, AceFlags, MandatoryPolicy: DWORD;

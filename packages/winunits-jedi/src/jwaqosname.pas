@@ -42,7 +42,9 @@
 
 // $Id: JwaQosName.pas,v 1.10 2007/09/14 06:48:47 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaQosName;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,6 +58,15 @@ unit JwaQosName;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF USE_DELPHI_TYPES}
+  WinApi.Windows,
+  {$ELSE}
+  WinApi.Jedi.Wintype,
+  {$ENDIF USE_DELPHI_TYPES}
+  WinApi.Jedi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows,
@@ -63,6 +74,7 @@ uses
   JwaWinType,
   {$ENDIF USE_DELPHI_TYPES}
   JwaWinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

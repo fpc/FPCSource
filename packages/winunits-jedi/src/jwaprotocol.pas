@@ -41,8 +41,11 @@
 {******************************************************************************}
 
 // $Id: JwaProtocol.pas,v 1.9 2007/09/05 11:58:52 dezipaitor Exp $
+
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaProtocol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,12 +59,22 @@ unit JwaProtocol;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF USE_DELPHI_TYPES}
+  WinApi.Windows;
+  {$ELSE}
+  WinApi.JwaWinType;
+  {$ENDIF USE_DELPHI_TYPES}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows;
   {$ELSE}
   JwaWinType;
   {$ENDIF USE_DELPHI_TYPES}
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

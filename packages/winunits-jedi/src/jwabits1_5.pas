@@ -42,7 +42,9 @@
 
 // $Id: JwaBits1_5.pas,v 1.9 2007/09/05 11:58:49 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaBits1_5;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaBits1_5;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase, WinApi.Jedi.Wintype, WinApi.Jedi.Bits;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase, JwaWinType, JwaBits;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

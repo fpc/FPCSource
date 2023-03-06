@@ -21,17 +21,26 @@
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinSta;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DateUtils, System.SysUtils, WinApi.Jedi.Wintype, // WinApi.Jedi.Wintype must be declared before WinApi.Jedi.Winbase because of duplicate declaration of FILETIME
+  WinApi.Jedi.Winbase, WinApi.Jedi.Winerror, WinApi.Jedi.Ntstatus, WinApi.Jedi.Winnt, WinApi.Jedi.Winsock2,
+  WinApi.Jedi.Winsvc, WinApi.Jedi.Wtsapi32, WinApi.Jedi.Native;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DateUtils, SysUtils, JwaWinType, // JwaWinType must be declared before JwaWinBase because of duplicate declaration of FILETIME
   JwaWinBase, JwaWinError, JwaNTStatus, JwaWinNT, JwaWinsock2,
   JwaWinSvc, JwaWtsApi32, JwaNative;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
@@ -488,8 +497,13 @@ function WinStationTerminateProcess(hServer: Handle; dwPID: DWORD;
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Windllnames;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinDLLNames;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_INCLUDEMODE}

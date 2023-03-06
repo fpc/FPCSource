@@ -42,7 +42,9 @@
 
 // $Id: JwaPdh.pas,v 1.15 2007/09/14 06:48:46 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaPdh;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaPdh;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase, WinApi.Jedi.Wintype, WinApi.Jedi.Winperf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase, JwaWinType, JwaWinPerf;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

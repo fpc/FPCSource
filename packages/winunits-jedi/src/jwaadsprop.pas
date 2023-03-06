@@ -43,7 +43,9 @@
 // $Id: JwaAdsProp.pas,v 1.13 2007/09/06 14:57:10 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAdsProp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaAdsProp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Activex, WinApi.Jedi.Adstlb, WinApi.Jedi.Winuser, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaActiveX, JwaAdsTLB, JwaWinUser, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 

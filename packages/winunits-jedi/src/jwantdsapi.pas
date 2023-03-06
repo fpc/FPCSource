@@ -42,7 +42,9 @@
 
 // $Id: JwaNtDsApi.pas,v 1.12 2007/09/05 11:58:51 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaNtDsApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -65,8 +67,13 @@ unit JwaNtDsApi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase, WinApi.Jedi.Wintype, WinApi.Jedi.Winnt, WinApi.Jedi.Winnls, WinApi.Jedi.Rpcdce, WinApi.Jedi.Schedule;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase, JwaWinType, JwaWinNT, JwaWinNLS, JwaRpcDce, JwaSchedule;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 

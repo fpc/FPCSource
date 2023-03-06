@@ -42,7 +42,9 @@
 
 // $Id: JwaRpcNsi.pas,v 1.12 2007/09/05 11:58:52 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaRpcNsi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaRpcNsi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Rpc, WinApi.Jedi.Rpcdce;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaRpc, JwaRpcDce;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

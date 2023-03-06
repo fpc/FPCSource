@@ -93,7 +93,9 @@
 
 // $Id: JwaWindows.pas,v 1.20 2007/10/19 19:54:18 dezipaitor Exp $
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWindows;
+{$ENDIF FPC_DOTTEDUNITS}
 {
 The following defines can be changed to remove headers from JwaWindows.
 PACKAGE_CONDITIONS can be set in the options of a project
@@ -178,6 +180,37 @@ interface
 
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+
+{$IFDEF USE_DELPHI_TYPES}
+  WinApi.Windows,
+{$IFDEF HAS_UNIT_DATEUTILS}
+   System.DateUtils, //used by WinApi.Jedi.Winsta.pas
+{$ENDIF}
+{$IFDEF JWA_INCLUDE_JWAADSTLB}
+{The following units may not be included because of problems}
+
+//OleUnits creates PalmApi.Window handles that prevents SetThreadDesktop to work
+  WinApi.Oleserver, //[warning] requires D5 or higher - required by WinApi.Jedi.Adstlb.pas
+  OleCtrls,
+//JwaAdsTlb.pas and WinApi.Jedi.Dde.pas use these units and is therfore excluded
+{$ENDIF JWA_INCLUDE_JWAADSTLB}
+  
+  {$ENDIF USE_DELPHI_TYPES}
+  System.SysUtils, // TODO
+
+{$IFDEF JWA_INCLUDE_SETUP_API}
+  WinApi.Commctrl, //used by SetupAPI.pas
+{$ENDIF JWA_INCLUDE_SETUP_API}
+
+  WinApi.Activex, System.Classes, WinApi.Comobj 
+{$IFNDEF NOVCL}
+  ,Graphics,
+  StdVCL
+{$ENDIF}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
+
 {$IFDEF USE_DELPHI_TYPES}
   Windows,
 {$IFDEF HAS_UNIT_DATEUTILS}
@@ -205,6 +238,7 @@ uses
   StdVCL
 {$ENDIF}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
