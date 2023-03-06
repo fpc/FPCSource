@@ -25,11 +25,13 @@
 {                                                          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UMenus;
 {$else FV_UNICODE}
 UNIT Menus;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
 
@@ -62,6 +64,26 @@ UNIT Menus;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
+     {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
+       {$IFDEF PPC_FPC}                               { FPC WinApi.Windows COMPILER }
+       WinApi.Windows,                                { Standard unit }
+       {$ELSE}                                        { OTHER COMPILERS }
+       WinApi.WinTypes,WinApi.WinProcs,                             { Standard units }
+       {$ENDIF}
+     {$ELSE}                                          { SPEEDSOFT COMPILER }
+       WinBase, WinDef,                               { Standard units }
+     {$ENDIF}
+   {$ENDIF}
+
+{$ifdef FV_UNICODE}
+   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts;               { GFV standard units }
+{$else FV_UNICODE}
+   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                 { GFV standard units }
+{$endif FV_UNICODE}
+{$ELSE FPC_DOTTEDUNITS}
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
      {$IFNDEF PPC_SPEED}                              { NON SPEED COMPILER }
@@ -80,6 +102,7 @@ USES
 {$else FV_UNICODE}
    objects, drivers, views, fvcommon, fvconsts;                 { GFV standard units }
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -419,8 +442,13 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+  System.Console.Video;
+{$ELSE FPC_DOTTEDUNITS}
 USES
   Video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 CONST
 {$ifdef FV_UNICODE}

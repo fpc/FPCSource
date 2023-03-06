@@ -19,9 +19,12 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit SysMsg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+
 {$i platform.inc}
 
 type

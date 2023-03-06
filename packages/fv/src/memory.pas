@@ -43,7 +43,9 @@
 {  1.41     03 Nov 99   FPC Windows support added          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Memory;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {====Include file to sort compiler platform out =====================}
 {$I platform.inc}
@@ -74,7 +76,11 @@ UNIT Memory;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES FreeVision.Fvcommon;
+{$ELSE FPC_DOTTEDUNITS}
 USES FVCommon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -191,6 +197,24 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+
+{$IFDEF FPC_DOTTEDUNITS}
+{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
+   {$IFDEF PPC_FPC}                                   { FPC WinApi.Windows COMPILER }
+   USES WinApi.Windows;                                      { Standard unit }
+   {$ELSE}                                            { OTHER COMPILERS }
+   USES WinApi.WinProcs, WinApi.WinTypes;                           { Standard units }
+   {$ENDIF}
+{$ENDIF}
+
+{$IFDEF OS_OS2}                                       { OS2 CODE }
+  {$IFDEF PPC_FPC}
+     USES OS2Api.doscalls;                                        { Standard unit }
+  {$ELSE}
+     USES Os2Base;                                         { Standard unit }
+  {$ENDIF}
+{$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
    {$IFDEF PPC_FPC}                                   { FPC WINDOWS COMPILER }
    USES Windows;                                      { Standard unit }
@@ -206,6 +230,7 @@ CONST
      USES Os2Base;                                         { Standard unit }
   {$ENDIF}
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 {                      PRIVATE RECORD TYPE DEFINITIONS                      }

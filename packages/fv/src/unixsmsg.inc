@@ -22,8 +22,13 @@
 { This file is still a dummy,
   it should use ioctl to get information about resizing of windows }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix,termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SystemEventActive : Boolean = false;

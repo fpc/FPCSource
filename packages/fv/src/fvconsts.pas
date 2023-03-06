@@ -24,7 +24,11 @@
 { Only Free Pascal Compiler supported                      }
 {                                                          }
 {**********************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FVConsts;
+{$ENDIF FPC_DOTTEDUNITS}
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {

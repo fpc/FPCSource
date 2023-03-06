@@ -25,11 +25,13 @@
 {                                                          }
 {**********************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
 UNIT UViews;
 {$else FV_UNICODE}
 UNIT Views;
 {$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
 
@@ -51,6 +53,28 @@ UNIT Views;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES
+   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
+         WinApi.Windows,                                     { Standard unit }
+   {$ENDIF}
+
+   {$IFDEF OS_OS2}                                    { OS2 CODE }
+     OS2Api.os2def, OS2Api.doscalls, OS2Api.pmwin,
+   {$ENDIF}
+
+   System.Objects, 
+   {$ifdef FV_UNICODE}
+   FreeVision.Ufvcommon,FreeVision.Udrivers,
+   System.Unicode.Graphemebreakproperty,
+   {$else}
+   FreeVision.Fvcommon,
+   FreeVision.Drivers,
+   {$endif}
+   FreeVision.Fvconsts, 
+   { GFV standard units }
+   System.Console.Video;
+{$ELSE FPC_DOTTEDUNITS}
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
          Windows,                                     { Standard unit }
@@ -62,6 +86,7 @@ USES
 
    Objects, {$ifdef FV_UNICODE}UFVCommon,UDrivers,GraphemeBreakProperty{$else}FVCommon,Drivers{$endif}, fvconsts, { GFV standard units }
    Video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {***************************************************************************}
@@ -1344,11 +1369,11 @@ begin
         G:=p^.owner;
         if G=Nil then { top view }
          begin
-           Video.SetCursorPos(cur.x,cur.y);
+           {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorPos(cur.x,cur.y);
            if (state and sfCursorIns)<>0 then
-             Video.SetCursorType(crBlock)
+             {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crBlock)
            else
-             Video.SetCursorType(crUnderline);
+             {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crUnderline);
            exit;
          end;
         if (G^.state and sfVisible)=0 then
@@ -1358,7 +1383,7 @@ begin
          break;
       end; { while }
    end; { if }
-  Video.SetCursorType(crHidden);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
 end;
 
 
@@ -1899,7 +1924,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.CalcBounds (Var Bounds: Objects.TRect; Delta: TPoint);
+PROCEDURE TView.CalcBounds (Var Bounds: {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Objects.TRect; Delta: TPoint);
 VAR S, D: Sw_Integer; Min, Max: TPoint;
 
    FUNCTION Range (Val, Min, Max: Sw_Integer): Sw_Integer;
