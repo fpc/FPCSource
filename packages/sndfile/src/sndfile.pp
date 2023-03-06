@@ -34,12 +34,19 @@
 ** types.
 }
 {$PACKRECORDS C}{$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sndfile; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   sndfilelib = 'sndfile';
