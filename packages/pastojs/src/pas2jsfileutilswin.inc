@@ -247,7 +247,7 @@ begin
   begin
     res := GetCurrentDirectoryW(0, nil);
     SetLength(SavedDir{%H-}, res);
-    res:=Windows.GetCurrentDirectoryW(res, @SavedDir[1]);
+    res:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetCurrentDirectoryW(res, @SavedDir[1]);
     SetLength(SavedDir,res);
 
     D := WideChar(64 + DriveNr) + ':';
@@ -392,7 +392,7 @@ begin
   {$else}
   res:=GetCurrentDirectoryW(0, nil);
   SetLength(w{%H-}, res);
-  res:=Windows.GetCurrentDirectoryW(res, @w[1]);
+  res:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetCurrentDirectoryW(res, @w[1]);
   SetLength(w, res);
   Result:=UTF16ToUTF8(w);
   {$endif}
@@ -463,7 +463,7 @@ end;
 
 function FileGetAttrUTF8(const FileName: String): Longint;
 begin
-  Result:=Integer(Windows.GetFileAttributesW(PWideChar(UTF8Decode(FileName))));
+  Result:=Integer({$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.GetFileAttributesW(PWideChar(UTF8Decode(FileName))));
 end;
 
 function FileIsWritable(const AFilename: string): boolean;
@@ -512,7 +512,7 @@ end;
 
 function GetEnvironmentVariablePJ(const EnvVar: string): String;
 begin
-  Result:=UTF16ToUTF8(SysUtils.GetEnvironmentVariable(UTF8ToUTF16(EnvVar)));
+  Result:=UTF16ToUTF8({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable(UTF8ToUTF16(EnvVar)));
 end;
 
 // AConsole - If false, it is the general system encoding,

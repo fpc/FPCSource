@@ -19,16 +19,24 @@
     interacts with the filesystem.
     See Pas2JSFileCache for an actual implementation.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JSFS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$I pas2js_defines.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  // No NdsApi.Filesystem-dependent units here !
+  System.Classes, System.SysUtils, Pascal.Scanner, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   // No filesystem-dependent units here !
   Classes, SysUtils, PScanner, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const // Messages
   nUsingPath = 104; sUsingPath = 'Using %s: "%s"';

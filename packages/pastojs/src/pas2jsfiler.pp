@@ -76,7 +76,9 @@ Todo:
 - when pcu is bad, unload and use src
 - replace GUID with crc
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pas2JsFiler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -86,6 +88,17 @@ unit Pas2JsFiler;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.Types, System.SysUtils, System.Contnrs,
+  {$ifdef pas2js}
+  {$else}
+  System.ZLib.Zstream, Fcl.AVLTree,
+  {$endif}
+  FpJson.Data, FpJson.Parser, FpJson.Scanner,
+  Pascal.Tree, Pascal.Scanner, Pascal.Parser, Pascal.ResolveEval, Pascal.Resolver,
+  Pas2Js.Files.Utils, Pas2Js.Compiler.Transpiler, Pas2Js.Utils, Js.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, Types, SysUtils, contnrs,
   {$ifdef pas2js}
@@ -95,6 +108,7 @@ uses
   fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js, Pas2JSUtils, jsbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   PCUMagic = 'Pas2JSCache';
@@ -5010,7 +5024,7 @@ begin
     {$IFDEF VerbosePCUFiler}
     writeln('TPCUWriter.WritePCU create js');
     {$ENDIF}
-    Pas2jsFiler.WriteJSON(aJSON,TargetStream,Compressed);
+    {$IFDEF FPC_DOTTEDUNITS}Pas2js.Filer{$ELSE}Pas2jsFiler{$ENDIF}.WriteJSON(aJSON,TargetStream,Compressed);
     if Compressed then
       try
         {$IFDEF VerbosePCUFiler}
