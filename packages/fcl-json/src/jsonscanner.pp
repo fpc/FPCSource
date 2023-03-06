@@ -16,11 +16,17 @@
 {$h+}
 { $INLINE ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';

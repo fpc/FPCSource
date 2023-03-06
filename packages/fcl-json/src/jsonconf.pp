@@ -23,12 +23,19 @@
 {$H+}
 {$ENDIF}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonConf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, FpJson.Data, FpJson.Scanner, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, fpjson, jsonscanner, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefaultJSONOptions = [joUTF8,joComments,joBOMCheck];
