@@ -1,17 +1,27 @@
 {$mode objfpc}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit macuuid;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function CreateMacGUID(Out GUID : TGUID) : Integer;
 
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types, System.Net.Sockets, UnixApi.Base, UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype, sockets, baseunix, unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const 
   MAX_ADJUSTMENT = 10;
