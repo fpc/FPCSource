@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit BFD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode Delphi}
 interface
