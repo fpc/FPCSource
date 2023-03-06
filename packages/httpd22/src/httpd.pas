@@ -21,7 +21,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit httpd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
   {$mode delphi}
@@ -45,6 +47,15 @@ unit httpd;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows,
+{$ELSE}
+  UnixApi.Types,
+{$ENDIF}
+  Api.Httpd22.Apr, Api.Httpd22.Aprutil, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows,
@@ -52,6 +63,7 @@ uses
   UnixType,
 {$ENDIF}
   apr, aprutil, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifndef fpc}

@@ -21,7 +21,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit apr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -41,6 +43,15 @@ interface
   {$PACKRECORDS C}
 {$endif}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows, WinApi.Winsock,
+{$ELSE}
+  UnixApi.Types,
+{$ENDIF}
+  System.SysUtils, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows, winsock,
@@ -48,6 +59,7 @@ uses
   UnixType,
 {$ENDIF}
   SysUtils, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
 {$IFDEF WINDOWS}
