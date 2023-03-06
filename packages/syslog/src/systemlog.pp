@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit systemlog;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$linklib c}
