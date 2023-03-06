@@ -1,6 +1,8 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UnzipDLL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF VIRTUALPASCAL}
 {$Cdecl+,AlignRec-,OrgName+}
@@ -12,8 +14,13 @@ unit UnzipDLL;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ System.Ziptypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  ZipTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
  UnzipErr: longint = 0;
@@ -36,6 +43,25 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF OS2}
+ {$IFDEF FPC}
+     DosCalls,
+ {$ELSE FPC}
+  {$IFDEF VirtualPascal}
+     OS2Base,
+  {$ELSE VirtualPascal}
+     BseDos,
+  {$ENDIF VirtualPascal}
+ {$ENDIF FPC}
+{$ELSE}
+ {$IFDEF WIN32}
+     Windows,
+ {$ENDIF WIN32}
+{$ENDIF OS2}
+ System.Unzip51g, TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF OS2}
  {$IFDEF FPC}
@@ -53,6 +79,7 @@ uses
  {$ENDIF WIN32}
 {$ENDIF OS2}
  Unzip51g, Dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
  UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint; cdecl;
