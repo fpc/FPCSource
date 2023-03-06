@@ -8,7 +8,9 @@
   Omitted is only deprecated stuff, and glutGetProcAddress
   (which is not needed as we have nice glext unit in FPC). }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FreeGlut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode Delphi} {< to keep assignments to proc vars look the same as in glut.pp }
 {$MACRO ON}
@@ -21,7 +23,11 @@ unit FreeGlut;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs, Api.OpenGL.Gl, Api.OpenGL.Glut;
+{$ELSE FPC_DOTTEDUNITS}
 uses DynLibs, GL, Glut;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGLdouble3 = array [0..2] of GLdouble;
