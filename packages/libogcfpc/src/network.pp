@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit network;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc} 
 {$J+}
 {$INLINE ON}
@@ -7,8 +9,13 @@ unit network;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, WiiApi.Gctypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, gctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   INVALID_SOCKET = ( not 0 );
