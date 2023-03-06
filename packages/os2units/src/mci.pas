@@ -30,14 +30,23 @@ This is Media Control Interface of MMPM/2.
 Warning: This code is alfa. Future versions of this unit will propably
 not be compatible.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit mci;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  OS2Api.Mmbase,
+  OS2Api.os2def,
+  OS2Api.pmgpi;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   mmbase,
   os2def,
   pmgpi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   MCI_TRUE                      = 1;

@@ -20,7 +20,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit SOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

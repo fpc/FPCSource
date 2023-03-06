@@ -22,7 +22,9 @@
    MA 02110-1301, USA.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit LVM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
@@ -33,7 +35,7 @@ Interface
 {$endif}
 
 {$ifdef linux}
-  {$define lvm2}
+  { $define lvm2}
 {$endif}
 
 // The number of bytes in a sector on the disk.
