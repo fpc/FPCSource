@@ -4,14 +4,20 @@
   Call InitialiseMysql4_com before using any of the calls, and call ReleaseMysql4_com
   when finished.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql4_comdyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$MACRO on}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes,Api.My4_sys,System.DynLibs, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes,my4_sys,dynlibs, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}

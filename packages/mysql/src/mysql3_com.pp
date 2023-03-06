@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql3_com;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
 
@@ -13,8 +15,13 @@ unit mysql3_com;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Mysql3_version;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   mysql3_version;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}

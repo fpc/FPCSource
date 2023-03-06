@@ -20,12 +20,26 @@
 {$MACRO on}
 
 interface
-{$ifdef Load_Dynamically}{$define LinkDynamically}{$endif}
+
+{$ifdef Load_Dynamically}
+{$define LinkDynamically}
+{$endif}
+
+{$IFDEF FPC_DOTTEDUNITS}
+
+uses
+{$IFDEF LinkDynamically}
+     System.SysUtils,
+{$ENDIF}
+     System.CTypes, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
+
 uses
 {$IFDEF LinkDynamically}
      sysutils,
 {$ENDIF}
      ctypes, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
