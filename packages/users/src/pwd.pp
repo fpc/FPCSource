@@ -1,9 +1,16 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pwd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.InitC,UnixApi.Types,UnixApi.Base,System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   initc,unixtype,baseunix,ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
