@@ -23,12 +23,19 @@
 
 // ported to FPC by Dmitry 'skalogryz' Boyarintsev: 28th apr 2009
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cl_gl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  OpenCLApi.Cl, Api.OpenGL.Gl, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   cl, gl, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
  // NOTE:  Make sure that appropriate GL header file is included separately
 

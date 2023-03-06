@@ -1,0 +1,4 @@
+src/cl.pp=namespaced/OpenCLApi.Cl.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/cl_gl.pp=namespaced/OpenCLApi.Cl_gl.pp
