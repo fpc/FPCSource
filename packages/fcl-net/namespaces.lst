@@ -1,0 +1,10 @@
+src/httpsvlt.pp=namespaced/System.Net.Httpsvlt.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/resolve.pp=namespaced/System.Net.Resolve.pp
+src/sslbase.pp=namespaced/System.Net.Sslbase.pp
+src/sslsockets.pp=namespaced/System.Net.Sslsockets.pp
+src/cnetdb.pp=namespaced/System.Net.Cnetdb.pp
+src/netdb.pp=namespaced/System.Net.Netdb.pp
+src/ssockets.pp=namespaced/System.Net.Ssockets.pp
+src/fpsock.pp=namespaced/System.Net.Fpsock.pp

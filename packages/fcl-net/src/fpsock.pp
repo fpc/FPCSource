@@ -15,11 +15,17 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpSock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Errors, System.SysUtils, System.Net.Sockets, System.Classes, System.Async.Fpasync, System.Net.Resolve;
+{$ELSE FPC_DOTTEDUNITS}
 uses Errors, SysUtils, Sockets, Classes, fpAsync, Resolve;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -188,8 +194,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseunix,Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SSocketNoEventLoopAssigned = 'No event loop assigned';
@@ -372,7 +383,7 @@ begin
     CanWriteNotifyHandle := nil;
 
     ErrorLen := SizeOf(Error);
-    GetResult := Sockets.fpGetSockOpt(Stream.Handle, SOL_SOCKET, SO_ERROR,
+    GetResult := {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpGetSockOpt(Stream.Handle, SOL_SOCKET, SO_ERROR,
       @Error, @ErrorLen);
     if GetResult <> 0 then
       raise ESocketError.CreateFmt(SSocketConnectFailed,
@@ -499,7 +510,7 @@ var
   Socket: Integer;
 begin
 
-  Socket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
+  Socket := {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if Socket = -1 then
     raise ESocketError.CreateFmt(SSocketCreationError,
       [StrError(SocketError)]);
@@ -515,7 +526,7 @@ begin
   SockAddr.sin_Family := AF_INET;
   SockAddr.sin_Port := ShortHostToNet(Port);
   SockAddr.sin_Addr.s_addr := Cardinal(HostAddr);
-  if Sockets.FpConnect(Stream.Handle, @SockAddr, SizeOf(SockAddr))<>0 Then
+  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpConnect(Stream.Handle, @SockAddr, SizeOf(SockAddr))<>0 Then
     if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
       raise ESocketError.CreateFmt(SSocketConnectFailed,
         [GetPeerName, StrError(SocketError)]);
@@ -550,12 +561,12 @@ begin
     FActive := False;
     if Value then
     begin
-      Socket := Sockets.fpSocket(AF_INET, SOCK_STREAM, 0);
+      Socket := {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpSocket(AF_INET, SOCK_STREAM, 0);
       if Socket = -1 then
         raise ESocketError.CreateFmt(SSocketCreationError,
           [StrError(SocketError)]);
       TrueValue := 1;
-      Sockets.fpSetSockOpt(Socket, SOL_SOCKET, SO_REUSEADDR,
+      {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpSetSockOpt(Socket, SOL_SOCKET, SO_REUSEADDR,
         @TrueValue, SizeOf(TrueValue));
       FStream := TSocketStream.Create(Socket);
       Addr.sin_Family := AF_INET;

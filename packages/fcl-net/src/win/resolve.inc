@@ -13,7 +13,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Winsock;
+{$ELSE FPC_DOTTEDUNITS}
 uses winsock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   PHostEntry = PHostEnt;

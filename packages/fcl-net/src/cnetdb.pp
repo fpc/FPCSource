@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cNetDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*-
  * Copyright (c) 1980, 1983, 1988, 1993
@@ -64,8 +66,13 @@ unit cNetDB;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base, System.Net.Sockets,System.InitC;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix, Sockets,initc;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
   LIB_C = clib; // use initc's idea of what libc is called. In the future overrides might be necessary here.

@@ -15,7 +15,9 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit netdb;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   WARNING
   This unit hardly does any error checking. For example, stringfromlabel
@@ -30,7 +32,11 @@ unit netdb;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Net.Sockets;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF OS2}
 (* ETC directory location determined by environment variable ETC *)
@@ -355,12 +361,21 @@ function DNSRRGetSRV(const RR: TRRNameData; const pl: TPayloadTCP;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+{$ifdef FPC_USE_LIBC}
+   cNetDB,
+{$endif FPC_USE_LIBC}
+   UnixApi.Base,
+   System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
 {$ifdef FPC_USE_LIBC}
    cNetDB,
 {$endif FPC_USE_LIBC}
    BaseUnix,
    sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function AnsiToString(S : AnsiString) : String; inline;
 
