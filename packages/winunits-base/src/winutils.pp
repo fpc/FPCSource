@@ -14,11 +14,17 @@
  **********************************************************************}
 
 {$mode objfpc}{$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows, WinApi.Comobj, WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows, ComObj, ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // returns True if the currently logged Windows user has Administrator rights. Delphi.about.com
 // From Delphi.about.com with permission, http://delphi.about.com/od/delphitips2007/qt/is_win_admin.htm

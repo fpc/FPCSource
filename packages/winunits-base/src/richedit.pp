@@ -1,5 +1,7 @@
 { Converted by H2Pas from richedit.h }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RichEdit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$calling stdcall}
@@ -10,7 +12,11 @@ unit RichEdit;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Messages, WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Messages, Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}

@@ -14,11 +14,17 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinVer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Win32Platform     : Integer = 0;
@@ -34,7 +40,11 @@ function CheckWin32Version(Major : Integer): Boolean;
 Implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure InitVersion;
 

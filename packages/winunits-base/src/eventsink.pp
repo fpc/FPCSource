@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit EventSink;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { COM EventSink.
@@ -33,8 +35,13 @@ unit EventSink;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ WinApi.Windows, System.SysUtils, System.Classes, WinApi.Activex;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  Windows, SysUtils, Classes, ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
  TInvokeEvent = procedure(Sender: TObject; DispID: Integer;
@@ -89,8 +96,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ WinApi.Comobj;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  ComObj;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TAbstractEventSink }
 

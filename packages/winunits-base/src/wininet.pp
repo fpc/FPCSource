@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinINet;
+{$ENDIF FPC_DOTTEDUNITS}
 //+-------------------------------------------------------------------------
 //
 //  Microsoft Windows
@@ -22,7 +24,11 @@ unit WinINet;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef win64}
   {$packrecords 8}

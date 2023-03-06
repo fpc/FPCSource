@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit ActiveX;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //+-------------------------------------------------------------------------
 //
@@ -20,14 +22,18 @@ Unit ActiveX;
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Variants,WinApi.Windows,System.CTypes,System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses variants,Windows,ctypes,types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
 { extra types }
-   TOleChar = Types.TOleChar;
-   POleStr = Types.POleStr;
-   PPOleStr = Types.PPOleStr;
+   TOleChar = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.TOleChar;
+   POleStr = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.POleStr;
+   PPOleStr = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.PPOleStr;
    TBStr = POleStr;
    TBStrList = array[0..65535] of TBstr;
    PBStrList = ^TBStrList;
@@ -36,10 +42,10 @@ type
 
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
-   LargeInt = Types.LargeInt;
-   LargeUInt = Types.LargeUInt;
-   PLargeInt = Types.PLargeInt;
-   PLargeUInt = Types.PLargeUInt;
+   LargeInt = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.LargeInt;
+   LargeUInt = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.LargeUInt;
+   PLargeInt = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.PLargeInt;
+   PLargeUInt = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.PLargeUInt;
    FMTID  =  TGUID;
    pFMTID = pGUID;
 
@@ -1570,10 +1576,10 @@ TYPE
 
 
 
-   tagSTATSTG                   = types.tagSTATSTG;
+   tagSTATSTG                   = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.tagSTATSTG;
 
    TStatStg                     = tagSTATSTG;
-   PStatStg                     = types.PStatStg;
+   PStatStg                     = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.PStatStg;
    STATSTG                      = TStatStg;
 
 {    TagRemSNB = Record
@@ -2243,7 +2249,7 @@ TYPE
 
 // Forward interfaces.
 
-   IStream             = Types.IStream;
+   IStream             = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.IStream;
    IMoniker            = Interface;
    IEnumMoniker        = Interface;
    IEnumString         = Interface;
@@ -2655,7 +2661,7 @@ TYPE
        Function Clone(Out penum:IEnumString):HResult;StdCall;
        End;
 
-    ISequentialStream = Types.ISequentialStream;
+    ISequentialStream = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.ISequentialStream;
     (*interface(IUnknown)
        ['{0c733a30-2a1c-11ce-ade5-00aa0044773d}']
        function Read(pv : Pointer;cb : ULONG;pcbRead : PULONG) : HRESULT;stdcall;

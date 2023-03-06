@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit typelib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -36,8 +38,13 @@ unit typelib;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,WinApi.Comobj,WinApi.Activex,WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,comobj,activex,windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Style of input ref parameters:
 Type
