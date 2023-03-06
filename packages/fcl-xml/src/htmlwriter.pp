@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit htmlwriter; 
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.Dom, Xml.HtmlElements;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DOM, htmlelements;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -73,7 +80,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Html.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses HTMLDefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   sErrNoCorespondingParent = 'No open element found with tag "%s"';

@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XmlReader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TErrorSeverity = (esWarning, esError, esFatal);

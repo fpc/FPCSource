@@ -16,7 +16,9 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTMLDefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
@@ -402,7 +404,11 @@ function IsAutoClose(NewTag, OldTag: THTMLElementTag): Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Define which elements auto-close other elements, modelled after libxml2.
   This is an array of variable-length lists, each terminated by etUnknown.

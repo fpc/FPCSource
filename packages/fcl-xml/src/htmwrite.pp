@@ -15,14 +15,20 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTMWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure WriteHTMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteHTMLFile(doc: TXMLDocument; var AFile: Text);
@@ -37,7 +43,11 @@ procedure WriteHTML(Element: TDOMNode; AStream: TStream);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, Html.Defs, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, HTMLDefs, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TSpecialCharCallback = procedure(c: WideChar) of object;

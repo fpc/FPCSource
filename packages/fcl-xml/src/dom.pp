@@ -29,7 +29,9 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}
 {$MODE objfpc}{$H+}
@@ -37,8 +39,13 @@ unit DOM;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Xml.Utils, Xml.DtdModel;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, xmlutils, dtdmodel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // -------------------------------------------------------
 //   DOMException
@@ -114,7 +121,7 @@ type
 //   DOMString
 // -------------------------------------------------------
 
-  TSetOfChar = xmlutils.TSetOfChar;  { to be removed: not used in DOM unit }
+  TSetOfChar = {$IFDEF FPC_DOTTEDUNITS}Xml.Utils{$ELSE}xmlutils{$ENDIF}.TSetOfChar;  { to be removed: not used in DOM unit }
   DOMString = XMLString;
   DOMPChar = PXMLChar;
   PDOMString = ^DOMString;
@@ -548,7 +555,7 @@ type
 //   Attr
 // -------------------------------------------------------
 
-  TAttrDataType = xmlutils.TAttrDataType;
+  TAttrDataType = {$IFDEF FPC_DOTTEDUNITS}Xml.Utils{$ELSE}xmlutils{$ENDIF}.TAttrDataType;
 
   TDOMNode_NS = class(TDOMNode_WithChildren)
   protected
@@ -808,8 +815,13 @@ function LoadElement(doc: TDOMDocument; src: PNodeData; attrCount: Integer): TDO
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   UriParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { a namespace-enabled NamedNodeMap }
 type
