@@ -3,7 +3,9 @@
   Copyright(C) 2009 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$MACRO on}
@@ -37,12 +39,21 @@ unit gd;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+{$IFDEF FPC_TARGET_SUPPORTS_DYNLIBS}
+  System.DynLibs,
+{$ENDIF FPC_TARGET_SUPPORTS_DYNLIBS}
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
 {$IFDEF FPC_TARGET_SUPPORTS_DYNLIBS}
   dynlibs,
 {$ENDIF FPC_TARGET_SUPPORTS_DYNLIBS}
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (* cdecl as default unless defined differently below *)
 {$DEFINE EXTDECL := cdecl}
