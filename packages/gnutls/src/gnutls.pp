@@ -16,11 +16,17 @@
 
 {$mode objfpc}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gnutls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from gnutls.c
@@ -2327,8 +2333,13 @@ Function GnuTLSloaded : Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { was #define dname def_expr }
 function GNUTLS_X509_NO_WELL_DEFINED_EXPIRATION : Ttime_t;

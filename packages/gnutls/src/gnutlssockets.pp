@@ -1,12 +1,20 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gnutlssockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Sockets, System.Net.Ssockets, System.Net.Sslsockets, 
+  System.DateUtils, System.CTypes, System.Net.Sslbase, Api.GnuTls;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sockets, ssockets, sslsockets, dateUtils,
   cTypes, sslbase, gnutls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   DefCertSize = 8192;
