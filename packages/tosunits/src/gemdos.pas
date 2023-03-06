@@ -14,7 +14,9 @@
 
 {$PACKRECORDS 2}
 {$MODESWITCH OUT+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gemdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

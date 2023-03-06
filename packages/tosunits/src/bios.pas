@@ -13,7 +13,9 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bios;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

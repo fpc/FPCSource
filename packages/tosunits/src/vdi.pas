@@ -16,11 +16,17 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vdi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses AtariApi.Gemcmmn;
+{$ELSE FPC_DOTTEDUNITS}
 uses gemcmmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { The API description of this file is based on the information available
   online at: https://freemint.github.io/tos.hyp/en/index.html }
@@ -396,6 +402,7 @@ var
   _ptsin: TVDIPtsIn;
   _ptsout: TVDIPtsOut;
 
+{$ifndef FPDOC}
 const
   pblock: TVDIPB = (
     control: @_contrl;
@@ -404,6 +411,7 @@ const
     intout: @_intout;
     ptsout: @_ptsout;
   ); public name 'vdipb';
+{$ENDIF}
 
 function string_to_vdi(const src: shortstring; dst: psmallint): smallint;
 var
@@ -455,7 +463,7 @@ asm
   movea.l     (a7)+,a2
 end;
 
-function vq_vgdos: LongInt; assembler; assembler; nostackframe;
+function vq_vgdos: LongInt; assembler; nostackframe;
 asm
   pea.l       (a2)
   moveq.l     #-2,d0
