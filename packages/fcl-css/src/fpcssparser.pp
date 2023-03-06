@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpCSSParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 {$WARN 6060 off} // Case statement does not handle all possible cases
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FPCSS.Tree, FPCSS.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   TypInfo, Classes, SysUtils, fpcsstree, fpcssscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   ECSSParser = Class(ECSSException);

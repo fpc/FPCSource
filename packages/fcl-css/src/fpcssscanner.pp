@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpCSSScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpCss.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpCSSTree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TCSSToken =  (
