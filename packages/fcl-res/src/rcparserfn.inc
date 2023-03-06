@@ -19,10 +19,17 @@ interface
 {$COPERATORS ON}
 {$GOTO ON}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, System.StrUtils, System.FGL, Pascal.Lexlib, Pascal.Yacclib, System.Resources.Resource,
+  System.Resources.Accelerator, System.Resources.GroupIcon, System.Resources.StringTable,
+  System.Resources.Bitmap, System.Resources.Version, System.Resources.VersionTypes, System.Resources.GroupCursor;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, StrUtils, fgl, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
   bitmapresource, versionresource, versiontypes, groupcursorresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TStringHashTable = specialize TFPGMap<AnsiString, AnsiString>;

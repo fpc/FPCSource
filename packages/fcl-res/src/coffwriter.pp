@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit coffwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC} {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource, System.Resources.Tree, System.Resources.Coff.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource, resourcetree, cofftypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -144,7 +151,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Resources.Coff.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses coffconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TCoffStringTable }
 

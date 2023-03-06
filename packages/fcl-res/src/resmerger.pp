@@ -13,12 +13,23 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit resmerger;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Resources.Resource,
+  System.Resources.StringTable,
+
+  //these two System.Resources.Resource System.Types know how to do it on their own... add them so that
+  //they got registered
+  System.Resources.GroupIcon, System.Resources.GroupCursor;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, resource,
   stringtableresource,
@@ -26,6 +37,7 @@ uses
   //these two resource types know how to do it on their own... add them so that
   //they got registered
   groupiconresource, groupcursorresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
