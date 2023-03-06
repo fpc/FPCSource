@@ -15,11 +15,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JSScanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Js.Token;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, jstoken;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TECMAVersion = (ecma5,ecma2015,ecma2021);

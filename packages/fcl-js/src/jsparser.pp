@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                                 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $define debugparser}
 {$mode objfpc}{$H+}
@@ -20,8 +22,13 @@ unit jsparser;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Js.Scanner, Js.Tree, Js.Token, Js.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, jsscanner, jstree, jstoken, jsbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
    SEmptyLabel = '';
@@ -36,7 +43,7 @@ Const
    MinGeneratorVersion = ecma2021;
 
 Type
-  TECMAVersion = jsScanner.TECMAVersion;
+  TECMAVersion = {$IFDEF FPC_DOTTEDUNITS}Js.Scanner{$ELSE}jsscanner{$ENDIF}.TECMAVersion;
   TScopeType = (stFunction,stClass,stModule,stNamespace);
   TListType = (ltUnknown,ltTuple,ltTemplate);
   TFunctionFlag = (ffAmbient,ffConstructor,ffGenerator);
@@ -61,11 +68,11 @@ Type
     FScanner : TJSScanner;
     FPrevious,
     FCurrent : TJSToken;
-    FCurrentString : JSBase.TJSString;
+    FCurrentString : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
     FFreeScanner : Boolean;
     FCurrentVars : TJSElementNodes;
     FPeekToken: TJSToken;
-    FPeekTokenString: JSBase.TJSString;
+    FPeekTokenString: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
     FLabelSets,
     FCurrentLabelSet:TJSLabelSet;
     FLabels : TJSLabel;
@@ -75,11 +82,11 @@ Type
     procedure ClassDefToMembers(aClass: TJSClassDeclaration; aClassDef: TJSObjectTypeDef);
     function CurrentTokenIsValidIdentifier: Boolean;
     function GetIsTypeScript: Boolean;
-    function  IdentifierIsLiteral(const aValue : jsbase.TJSString) : Boolean;
-    Procedure CheckIdentifierLiteral(const aValue : jsbase.TJSString);
-    function ConsumeIdentifierLiteral(const aValue: jsbase.TJSString): TJSToken;
+    function  IdentifierIsLiteral(const aValue : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString) : Boolean;
+    Procedure CheckIdentifierLiteral(const aValue : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString);
+    function ConsumeIdentifierLiteral(const aValue: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): TJSToken;
     function CheckSemiColonInsert(aToken: TJSToken; Consume: Boolean): Boolean;
-    function EnterLabel(const ALabelName: jsBase.TJSString): TJSLabel;
+    function EnterLabel(const ALabelName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): TJSLabel;
     // Check that current token is aToken
     procedure Expect(aToken: TJSToken);
     // Check that current token is aToken and goto next token.
@@ -87,14 +94,14 @@ Type
     procedure FreeCurrentLabelSet;
     function GetVersion: TECMAVersion;
     procedure LeaveLabel;
-    function LookupLabel(const ALabelName: jsBase.TJSString; Kind: TJSToken): TJSLabel;
+    function LookupLabel(const ALabelName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; Kind: TJSToken): TJSLabel;
     function ParseAdditiveExpression: TJSElement;
     procedure ParseAliasElements(aElements: TJSAliasElements);
     procedure ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     function ParseArguments: TJSarguments;
     function ParseArrayLiteral: TJSElement;
     procedure ParseArrowFunctionTypeDef(aDef: TJSArrowFunctionTypeDef; aFirstParam: TJSTypedParam); overload;
-    function ParseArrowFunctionTypeDef(const  aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef; overload;
+    function ParseArrowFunctionTypeDef(const  aArgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef; overload;
     function ParseArrowFunctionTypeDef(aFirst: TJSObjectTypeDef; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;  overload;
     function ParseAssignmentExpression: TJSElement;
     function ParseBitwiseAndExpression: TJSElement;
@@ -123,7 +130,7 @@ Type
     function ParseFunctionStatement: TJSElement;
     function ParseFunctionBody: TJSFunctionBody;
     procedure ParseGenericParamList(aList: TJSElementNodes);
-    function ParseIdentifier(AcceptAsIdentifier: TJSTokens=[]): JSBase.TJSString;
+    function ParseIdentifier(AcceptAsIdentifier: TJSTokens=[]): {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
     function ParseIfStatement: TJSElement;
     function ParseImportStatement: TJSElement;
     function ParseIndexSignature: TJSObjectTypeElementDef;
@@ -190,7 +197,7 @@ Type
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; Args : Array of const);
     // Parse functions
-    Function IsIdentifier(const aIdentifier : jsBase.TJSString) : Boolean; inline;
+    Function IsIdentifier(const aIdentifier : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString) : Boolean; inline;
     function ParseSourceElements(ScopeType : TScopeType = stFunction; ParentisAmbient : Boolean = False): TJSSourceElements;
     Property FunctionDepth : Integer Read FFunctionDepth Write FFunctionDepth;
     Property NoIn : Boolean Read FNoIn Write FNoIn;
@@ -203,7 +210,7 @@ Type
     Function Parse : TJSElement;
     Function ParseProgram : TJSFunctionDeclarationStatement;
     Function CurrentToken : TJSToken;
-    Function CurrentTokenString : jsBase.TJSString;
+    Function CurrentTokenString : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
     Function GetNextToken : TJSToken;
     Function PeekNextToken : TJSToken;
     Function IsEndOfLine : Boolean;
@@ -214,7 +221,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrUnmatchedCurlyBrace    = 'Unmatched }';
@@ -270,7 +281,7 @@ begin
   Result:=FCurrent;
 end;
 
-Function TJSParser.CurrentTokenString: JSBase.TJSString;
+Function TJSParser.CurrentTokenString: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 begin
   Result:=FCurrentString;
 end;
@@ -288,9 +299,9 @@ begin
   else
     begin
     FCurrent:=FScanner.FetchToken;
-    FCurrentString:=JSBase.TJSString(FScanner.CurTokenString);
+    FCurrentString:={$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString(FScanner.CurTokenString);
     if (FCurrentString='') then
-       FCurrentString:=JSBase.TJSString(TokenInfos[FCurrent]);
+       FCurrentString:={$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString(TokenInfos[FCurrent]);
     end;
   Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
@@ -301,7 +312,7 @@ begin
   If (FPeekToken=tjsUnknown) then
     begin
     FPeekToken:=FScanner.FetchToken;
-    FPeekTokenString:=JSBase.TJSString(FScanner.CurTokenString);
+    FPeekTokenString:={$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString(FScanner.CurTokenString);
     end;
   {$ifdef debugparser}Writeln('PeekNextToken : ',GetEnumName(TypeInfo(TJSToken),Ord(FPeekToken)), ' As string: ',FPeekTokenString);{$endif debugparser}
   Result:=FPeekToken;
@@ -353,7 +364,7 @@ begin
   L.Free; // ??
 end;
 
-function TJSParser.LookupLabel(const ALabelName: jsBase.TJSString; Kind: TJSToken): TJSLabel;
+function TJSParser.LookupLabel(const ALabelName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; Kind: TJSToken): TJSLabel;
 
 Var
   L : TJSLabel;
@@ -382,7 +393,7 @@ begin
     end;
 end;
 
-function TJSParser.EnterLabel(const ALabelName: jsBase.TJSString): TJSLabel;
+function TJSParser.EnterLabel(const ALabelName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): TJSLabel;
 
 Var
   L : TJSLabel;
@@ -475,7 +486,7 @@ begin
   Error(Format(Fmt,Args));
 end;
 
-function TJSParser.IsIdentifier(const aIdentifier: jsBase.TJSString): Boolean;
+function TJSParser.IsIdentifier(const aIdentifier: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): Boolean;
 begin
   Result:=IdentifierIsLiteral(aIdentifier);
 end;
@@ -514,7 +525,7 @@ begin
       Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
 end;
 
-function TJSParser.IdentifierIsLiteral(const aValue: jsbase.TJSString): Boolean;
+function TJSParser.IdentifierIsLiteral(const aValue: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): Boolean;
 begin
   Result:=(CurrentToken=tjsIdentifier) and (CurrentTokenString=aValue);
 end;
@@ -525,13 +536,13 @@ begin
   Result:=FScanner.IsTypeScript;
 end;
 
-procedure TJSParser.CheckIdentifierLiteral(const aValue: jsbase.TJSString);
+procedure TJSParser.CheckIdentifierLiteral(const aValue: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString);
 begin
   if Not IdentifierIsLiteral(aValue) then
     Error(SErrExpectedButFound,[aValue,CurrentTokenString]);
 end;
 
-function TJSParser.ConsumeIdentifierLiteral(const aValue: jsbase.TJSString): TJSToken;
+function TJSParser.ConsumeIdentifierLiteral(const aValue: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): TJSToken;
 begin
   CheckidentifierLiteral(aValue);
   Result:=GetNextToken;
@@ -557,7 +568,7 @@ begin
     GetNextToken;
 end;
 
-function TJSParser.ParseIdentifier (AcceptAsIdentifier : TJSTokens = []): JSBase.TJSString;
+function TJSParser.ParseIdentifier (AcceptAsIdentifier : TJSTokens = []): {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 { On entry, on identifier,
   on exit, after identifier
 }
@@ -593,7 +604,7 @@ begin
   PrevRShift:=FScanner.DisableRShift;
   Try
     FScanner.DisableRShift:=True;
-    ParseTypeList(aList,jstoken.tjsGT,ltTemplate);
+    ParseTypeList(aList,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsGT,ltTemplate);
   Finally
     FScanner.DisableRShift:=PrevRShift;
   end;
@@ -630,7 +641,7 @@ begin
   try
     Result:=SigDecl;
     Consume(tjsSQuaredBraceOpen);
-    if (CurrentToken in [TJSToken.tjsNumber,TJSToken.tjsString]) then
+    if (CurrentToken in [TJsToken.tjsNumber,TjsToken.tjsString]) then
       begin
       SigDecl.IndexName:=CurrentTokenString;
       GetNextToken
@@ -700,7 +711,7 @@ end;
 Function TJSParser.CurrentTokenIsValidIdentifier : Boolean;
 
 Const
-   Valididents = [tjsIdentifier,jstoken.tjsString,jstoken.tjsnumber,tjsDelete,
+   Valididents = [tjsIdentifier,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsnumber,tjsDelete,
                   tjsWith,tjsThrow,tjsDefault,tjsAwait,tjscase,tjsdebugger,tjsCatch,
                   tjsextends,tjsexport,tjsImport,tjsEnum,tjsClass,tjsFor,tjsReturn,
                   tjsDo,tjsFinally,tjsWhile,tjsIf,tjsYield,tjsvoid,tjsbreak, 
@@ -727,7 +738,7 @@ Procedure TJSParser.ParseObjectBody(aObj: TJSObjectTypeDef);
 
 
 var
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   IsMinus, isReadOnly, isOptional : Boolean;
   E : TJSObjectTypeElementDef;
   F : TJSMethodDeclaration ;
@@ -898,7 +909,7 @@ begin
     end;
 end;
 
-function TJSParser.ParseArrowFunctionTypeDef(const aArgName: jsBase.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;
+function TJSParser.ParseArrowFunctionTypeDef(const aArgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aArgIsSpread: Boolean): TJSArrowFunctionTypeDef;
 
 var
   P : TJSTypedParam;
@@ -969,7 +980,7 @@ Procedure TJSParser.ParseArrowFunctionTypeDef(aDef : TJSArrowFunctionTypeDef; aF
 
 Var
   P : TJSTypedParam;
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   IsSpread : Boolean;
 
 begin
@@ -1010,7 +1021,7 @@ Function TJSParser.ParseTypeParenthesised (aOptions : TParseTypeOptions): TJSTyp
 
 Var
   aDef : TJSTypeDef;
-  aArgName : jsbase.TJSString;
+  aArgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   isSpread : Boolean;
 
 begin
@@ -1063,7 +1074,7 @@ function TJSParser.ParseTypeSimple(aOptions : TParseTypeOptions): TJSTypeDef;
 
   Var
     NeedNext : Boolean;
-    aName : jsbase.TJSString;
+    aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
   begin
     Result:=TJSTypeReference(CreateElement(TJSTypeReference));
@@ -1093,7 +1104,7 @@ function TJSParser.ParseTypeSimple(aOptions : TParseTypeOptions): TJSTypeDef;
 Var
   CurrT : TJSToken;
   isInferred,IsReadOnly,IsTypeOf,IsKeyOf : Boolean;
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
 begin
   Result:=Nil;
@@ -1119,7 +1130,7 @@ begin
         begin
         Consume(tjsImport);
         Consume(tjsBraceOpen);
-        Expect(tjsToken.tjsString);
+        Expect(TjsToken.tjsString);
         Result:=TJSImportTypeRef(CreateElement(TJSImportTypeRef));
         TJSImportTypeRef(Result).FileName:=CurrentTokenString;
         getNextToken;
@@ -1143,7 +1154,7 @@ begin
             TJSTypeFuncCall(Result).ArgType:=ParseTypeParenthesised(aOptions);
             end;
         end;
-      tjsTrue,tjsFalse,tjsToken.tjsNumber,tjsToken.tjsString :
+      tjsTrue,tjsFalse,TjsToken.tjsNumber,TjsToken.tjsString :
         if (ptoAllowLiteral in aOptions) then
           begin
           Result:=TJSFixedValueReference(CreateElement(TJSFixedValueReference));
@@ -1426,7 +1437,7 @@ Var
   P : TJSTypedParam;
   IsSpread : Boolean;
   allowed : TJSTokens;
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
 begin
   allowed:=[tjsEllipsis, tjsIdentifier];
@@ -1473,7 +1484,7 @@ end;
 function TJSParser.ParseFunctionDeclaration(aFlags : TFunctionFlags) : TJSFunctionDeclarationStatement;
 
 Var
-  Id : jsBase.TJSString;
+  Id : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   D : TJSFuncDef;
   isGenerator : Boolean;
   TP : TJSElementNodes;
@@ -1641,7 +1652,7 @@ begin
       While CurrentToken=tjsComma do
          GetNextToken;
       NeedAssign:=True;
-      If (CurrentToken in [tjsIdentifier,jstoken.tjsString,jstoken.tjsnumber]) then
+      If (CurrentToken in [tjsIdentifier,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsnumber]) then
          begin
          E:=N.Elements.AddElement;
          E.Name:=CurrentTokenString;
@@ -1724,7 +1735,7 @@ end;
 function TJSParser.ParseRegularExpressionLiteral: TJSElement;
 
 Var
-  S,pa,fl : jsBase.TJSString;
+  S,pa,fl : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   P : integer;
   R : TJSRegularExpressionLiteral;
 begin
@@ -1776,8 +1787,8 @@ begin
               L.Value.AsBoolean:=(CurrentToken=tjsTrue);
               GetNextToken;
               end;
-    jstoken.tjsNumber : Result:=ParseNumericLiteral;
-    jstoken.tjsString : Result:=ParseStringLiteral;
+    {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsNumber : Result:=ParseNumericLiteral;
+    {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString : Result:=ParseStringLiteral;
     tjsDiv,
     tjsDivEq : Result:=ParseRegularExpressionLiteral
   else
@@ -2731,7 +2742,7 @@ end;
 Procedure TJSParser.ParseAliasElements(aElements : TJSAliasElements);
 // Parse { N [as M] }. On entry, must be on {, on exit curtoken is token after }
 Var
-  aName,aAlias : jsbase.TJSString;
+  aName,aAlias : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 begin
   Consume(tjsCurlyBraceOpen);
   if (CurrentToken<>tjsCurlyBraceClose) then
@@ -2799,7 +2810,7 @@ begin
   try
     Result:=Imp;
     // Just module name
-    if CurrentToken = jstoken.tjsString then
+    if CurrentToken = {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString then
       begin
       Imp.ModuleName:=CurrentTokenString;
       GetNextToken;
@@ -2842,9 +2853,9 @@ begin
     if not IsAssigned then
       begin
       ConsumeIdentifierLiteral('from');
-      Expect(jstoken.tjsString);
+      Expect({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
       Imp.ModuleName:=CurrentTokenString;
-      Consume(jstoken.tjsString);
+      Consume({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
       end;
     Consume(tjsSemicolon,True);
   except
@@ -2956,7 +2967,7 @@ begin
             Exp.Declaration:=ParseAssignmentExpression;
         end;
         end;
-      jsToken.tjsAssign:
+      {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsAssign:
       begin
       if IsTypeScript then
         begin
@@ -3011,9 +3022,9 @@ begin
     if aExpectFrom and IdentifierIsLiteral('from') then
       begin
       ConsumeIdentifierLiteral('from');
-      Expect(jstoken.tjsString);
+      Expect({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
       Exp.ModuleName:=CurrentTokenString;
-      Consume(jstoken.tjsString);
+      Consume({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
       end;
     Consume(tjsSemicolon,True);
   except
@@ -3194,7 +3205,7 @@ function TJSParser.ParseTryStatement : TJSElement;
 
 Var
   BO,BC,BF : TJSElement;
-  Id : jstree.TJSString;
+  Id : {$IFDEF FPC_DOTTEDUNITS}Js.Tree{$ELSE}jsTree{$ENDIF}.TJSString;
   T : TJSTryStatement;
 
 begin
@@ -3353,7 +3364,7 @@ Var
   Oni,olhs: Boolean;
   F : TJSFunctionDeclarationStatement;
   TP : TJSElementNodes;
-  N : jsBase.TJSString;
+  N : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
 begin
   {$ifdef debugparser} Writeln('>>> ParseFunctionExpression');{$endif}
@@ -3700,14 +3711,14 @@ function TJSParser.ParseSourceElements (ScopeType : TScopeType = stFunction; Par
 
 Const
   StatementTokens = [tjsNULL, tjsTRUE, tjsFALSE,
-      tjsAWait, tjsTHIS, tjsIdentifier,jstoken.tjsSTRING,jstoken.tjsNUMBER,
+      tjsAWait, tjsTHIS, tjsIdentifier,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsSTRING,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsNUMBER,
       tjsBraceOpen,tjsCurlyBraceOpen,tjsSquaredBraceOpen,
       tjsLet, tjsConst, tjsDebugger, tjsImport, tjsExport,
       tjsNew,tjsDelete,tjsVoid,tjsTypeOf,
       tjsPlusPlus,tjsMinusMinus,
       tjsPlus,tjsMinus,tjsNot,tjsNE,tjsSNE,tjsSemicolon,
-      tjsVAR,tjsIF,tjsDO,tjsWHILE,tjsFOR,jstoken.tjsCONTINUE,jstoken.tjsBREAK,jstoken.tjsReturn,
-      tjsWith,jstoken.tjsSWITCH,tjsThrow,TjsTry,tjsDIV,tjsDIVEQ, tjsEnum];
+      tjsVAR,tjsIF,tjsDO,tjsWHILE,tjsFOR,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsCONTINUE,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsBREAK,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsReturn,
+      tjsWith,{$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsSWITCH,tjsThrow,TjsTry,tjsDIV,tjsDIVEQ, tjsEnum];
 
 Var
   F : TJSFunctionDeclarationStatement;
@@ -3768,9 +3779,9 @@ begin
         if aSync then
           GetNextToken;
         Case CurrentToken of
-        jstoken.tjsEOF:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsEOF:
           done:=True;
-        jstoken.tjsFunction:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsFunction:
           begin
           If (PeekNextToken<>tjsBraceOpen) then
             begin
@@ -3788,20 +3799,20 @@ begin
             Result.Statements.AddNode(IsAmbient).Node:=E;
             end;
           end;
-        jstoken.tjsClass:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsClass:
           begin
           E:=Self.ParseClassStatement(isAmbient,isAbstract);
           Result.Statements.AddNode(IsAmbient).Node:=E;
           C:=TJSClassStatement(E).Decl;
           Result.Classes.AddNode(IsAmbient).Node:=C;
           end;
-        jstoken.tjsEnum:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsEnum:
           begin
           E:=Self.ParseEnumDeclarationStatement;
           Result.Statements.AddNode(IsAmbient).Node:=E;
           Result.Enums.AddNode(IsAmbient).Node:=TJSEnumStatement(E).EnumDecl;
           end;
-        jsToken.tjsMul:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsMul:
           begin
           if (ScopeType=stClass) then
             begin
@@ -3810,7 +3821,7 @@ begin
           else
             DefaultParsing;
           end;
-        jsToken.tjsSQuaredBraceOpen:
+        {$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsSQuaredBraceOpen:
           begin
           if isTypeScript and (ScopeType=stClass) then
             begin
@@ -3891,7 +3902,7 @@ end;
 function TJSParser.ParseClassDeclaration(isAmbient: Boolean; IsAbstract: Boolean): TJSClassDeclaration;
 
 Var
-//  aName : jsBase.TJSString;
+//  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 //  aTypeDef : TJSTypeDef;
   aClassDef : TJSObjectTypeDef;
 
@@ -3979,7 +3990,7 @@ Procedure TJSParser.ParseAmbientClassBody(aObj: TJSObjectTypeDef);
     Result.Name:='any';
   end;
   
-  Function CheckSpecial(aName : jsBase.TJSstring) : Boolean;
+  Function CheckSpecial(aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSstring) : Boolean;
   
   begin
     Result:=IsIdentifier(aName) and Not (PeekNextToken in [tjsConditional,tjsColon]);
@@ -3988,7 +3999,7 @@ Procedure TJSParser.ParseAmbientClassBody(aObj: TJSObjectTypeDef);
   end;
 
 var
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   IsSet, IsGet, IsAbstract,isStatic, isReadOnly, isOptional : Boolean;
   E : TJSObjectTypeElementDef;
   F : TJSMethodDeclaration ;
@@ -4142,7 +4153,7 @@ function TJSParser.ParseClassExpression: TJSClassDeclaration;
 Var
   Oni,olhs: Boolean;
   C : TJSClassDeclaration;
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   aType : TJSTypeDef;
 
 begin
@@ -4186,7 +4197,7 @@ function TJSParser.ParseModuleDeclaration: TJSModuleDeclaration;
 // on exit, we're after closing }
 
 Var
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
 begin
   Consume(tjsIdentifier);
@@ -4197,9 +4208,9 @@ begin
     end
   else  
     begin
-    Expect(jstoken.tjsString);
+    Expect({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
     aname:=CurrentTokenString;
-    Consume(jsToken.tjsString);
+    Consume({$IFDEF FPC_DOTTEDUNITS}Js.Token{$ELSE}jsToken{$ENDIF}.tjsString);
     end;
   Result:=TJSModuleDeclaration(CreateElement(TJSModuleDeclaration));
   try
@@ -4231,7 +4242,7 @@ end;
 function TJSParser.ParseInterfaceDeclaration: TJSInterfaceDeclaration;
 
 Var
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   PT : TJSElementNodes;
 
 begin
@@ -4288,7 +4299,7 @@ function TJSParser.ParseNamespaceDeclaration(IsAmbient : Boolean): TJSNamespaceD
 // on exit, we're after closing }
 
 Var
-  aName : jsBase.TJSString;
+  aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   IsGlobal : Boolean;
   
 begin

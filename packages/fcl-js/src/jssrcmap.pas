@@ -15,7 +15,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JSSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -34,6 +36,22 @@ unit JSSrcMap;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  JS,
+    {$ifdef nodejs}
+    Node.FS,
+    {$endif}
+  {$else}
+  System.Contnrs,
+  {$endif}
+  System.Classes, System.SysUtils, FpJson.Data
+  {$ifdef HasJsonParser}
+  , FpJson.Parser, FpJson.Scanner
+  {$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   JS,
@@ -48,6 +66,7 @@ uses
   , jsonparser, jsonscanner
   {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Base64Chars = AnsiString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/');

@@ -13,7 +13,9 @@
                                 
   **********************************************************************}
                                  
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 

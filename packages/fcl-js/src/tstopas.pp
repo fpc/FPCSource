@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit tstopas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, Js.Base, Js.Tree, Js.Scanner, Js.Parser,Pascal.CodeGenerator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, jsbase, jstree, jsscanner, jsparser,pascodegen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   ETSToPas = Class(Exception);
@@ -33,7 +40,7 @@ Type
     FOriginalName: TJSString;
     FPasName: String;
   Public
-    Constructor Create(const aOriginalName : jsBase.TJSString; const APasName : String);
+    Constructor Create(const aOriginalName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const APasName : String);
     Destructor destroy; override;
     Property PasName : String read FPasName;
     Property OriginalName : TJSString Read FOriginalName;
@@ -70,13 +77,13 @@ Type
     Procedure PushScope(aScope : TJSSourceElements; aForwards : TStringList);
     Procedure PopScope(aScope : TJSSourceElements; aForwards : TStringList);
     function ResolveTypeRef(D: TJSTypeDef): TJSTypeDef;
-    function GetTypeName(const aTypeName: jsBase.TJSString; ForTypeDef: Boolean; UsePascal : Boolean): String;
+    function GetTypeName(const aTypeName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; ForTypeDef: Boolean; UsePascal : Boolean): String;
     Function FindInNodes(aNodes: TJSElementNodes; const aName: String): TJSTypeDeclaration;
     Function FindInScope(aScope: TJSSourceElements; const aName: String): TJSTypeDef;
     Function FindTypeDef(const aName : String) : TJSTypeDef;
-    Function FindTypeAlias(const aName : jsbase.TJSString) : String;
+    Function FindTypeAlias(const aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString) : String;
     Procedure AddToTypeMap(const aName : UTF8String; const aPasName : String);
-    Procedure AddToTypeMap(const aName : jsbase.TJSString; const aPasName : String);
+    Procedure AddToTypeMap(const aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const aPasName : String);
     Procedure AddToTypeMap(aType : TJSElement);
     Procedure RemoveFromTypeMap(aType : TJSElement);
     Property TypeMap : TFPObjectHashTable Read FTypeMap;
@@ -163,7 +170,7 @@ Type
     Procedure PushNameScope;
     Procedure PopNameScope;
     function NameScopeHas(const aName : string) : Boolean;
-    procedure AddToNameScope(const aName : String; aData : jsbase.TJSString);
+    procedure AddToNameScope(const aName : String; aData : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString);
     Procedure Parse; virtual;
     Procedure WritePascal; virtual;
     Function NeedsTypeMap(El : TJSElement) : Boolean;
@@ -177,19 +184,19 @@ Type
     procedure ProcessDefinitions; virtual;
     Function ExportNode(aNode : TJSElementNode) : Boolean;
     function CheckUnionTypeDefinition(D: TJSTypeDef): TJSUnionTypeDef;
-    function CreatePasName(const aOriginal : jsBase.TJSString; const aName: String): TPasData;virtual;
+    function CreatePasName(const aOriginal : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const aName: String): TPasData;virtual;
     function TypeNeedsTypeName(aType: TJSElement; IgnoreData : Boolean; IsResultType : Boolean = False): Boolean;
     procedure AllocatePasNames(FD: TJSFuncDef; const aPrefix: String='');
     procedure AllocatePasNames(aList: TJSSourceElements; const ParentName: String=''); virtual;
     procedure AllocatePasNames(aList: TJSElementNodes; Const ParentName: String=''); virtual;
     Function AllocatePasName(D: TJSElement; Const ParentName: String='') : TPasData;virtual;
     procedure EnsureUniqueNames(ML: TJSSourceElements);virtual;
-    function GetExternalMemberName(const aName: jsBase.TJSString): string;
+    function GetExternalMemberName(const aName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): string;
     function GetName(ADef: TJSElement): String;virtual;
     function GetName(ADef: TJSTypedParam): String;virtual;
     function GetName(ADef: TJSFuncDef): String;virtual;
     function HaveConsts(aList: TJSSourceElements): Boolean;virtual;
-    function GetTypeName(Const aTypeName: JSBase.TJSString; ForTypeDef: Boolean=False): String;virtual;
+    function GetTypeName(Const aTypeName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; ForTypeDef: Boolean=False): String;virtual;
     function GetTypeName(aTypeDef: TJSTypeDef; ForTypeDef: Boolean=False): String;virtual;
     // Functions
     // Overload handling
@@ -257,16 +264,16 @@ Type
     function GetTupleTypeAsString(aTypeDef: TJSTupleTypeDef; asPascal, asSubType: Boolean): String;
     // Write types
     procedure WriteTypeDefs(Types: TJSElementNodes); virtual;
-    procedure WriteObjectTypeMembers(const aPasName: String; const aOrigName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef);
-    procedure WriteObjectTypedef(const aPasName: String; const aOrigName : jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef); virtual;
-    procedure WriteAliasTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSTypeReference); virtual;
-    procedure WriteUnionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSUnionTypeDef); virtual;
-    procedure WriteTupleTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSTupleTypeDef); virtual;
-    procedure WriteIntersectionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSIntersectionTypeDef); virtual;
-    procedure WriteArrayTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSArrayTypeDef); virtual;
-    procedure WriteEnumTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSEnumTypeDef); virtual;
-    function  WriteFunctionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aDef: TJSFuncDef): Boolean; virtual;
-    procedure WriteTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSTypeDef); virtual;
+    procedure WriteObjectTypeMembers(const aPasName: String; const aOrigName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef);
+    procedure WriteObjectTypedef(const aPasName: String; const aOrigName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef); virtual;
+    procedure WriteAliasTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSTypeReference); virtual;
+    procedure WriteUnionTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSUnionTypeDef); virtual;
+    procedure WriteTupleTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSTupleTypeDef); virtual;
+    procedure WriteIntersectionTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSIntersectionTypeDef); virtual;
+    procedure WriteArrayTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSArrayTypeDef); virtual;
+    procedure WriteEnumTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;  aTypeDef: TJSEnumTypeDef); virtual;
+    function  WriteFunctionTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aDef: TJSFuncDef): Boolean; virtual;
+    procedure WriteTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSTypeDef); virtual;
     // Indirect type handling
     Function HasIndirectTypeDefs(aParams: TJStypedParams): Boolean;
     Function HasIndirectTypeDefs(aElements: TJSElementNodes): Boolean;
@@ -316,7 +323,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrorCannotPopNilScope = 'Cannot pop nil scope';
@@ -519,7 +530,7 @@ begin
     Result:=D;
 end;
 
-function TTSContext.GetTypeName(const aTypeName: jsBase.TJSString; ForTypeDef: Boolean; UsePascal: Boolean): String;
+function TTSContext.GetTypeName(const aTypeName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; ForTypeDef: Boolean; UsePascal: Boolean): String;
 
   Function UsePascalType(Const aPascalType : string) : String;
 
@@ -628,7 +639,7 @@ begin
     end;
 end;
 
-function TTSContext.FindTypeAlias(const aName: jsbase.TJSString): String;
+function TTSContext.FindTypeAlias(const aName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString): String;
 
 Var
   S : UTF8String;
@@ -710,7 +721,7 @@ begin
   FTypeMap.Add(aName,FConverter.CreatePasName(UTF8Decode(aName),aPasName));
 end;
 
-procedure TTSContext.AddToTypeMap(const aName: jsbase.TJSString; const aPasName: String);
+procedure TTSContext.AddToTypeMap(const aName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const aPasName: String);
 begin
   AddToTypeMap(UTF8Encode(aName),aPasName);
 end;
@@ -729,7 +740,7 @@ end;
 
 { TPasData }
 
-constructor TPasData.Create(const aOriginalName : jsBase.TJSString; const APasName : String);
+constructor TPasData.Create(const aOriginalName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const APasName : String);
 begin
   FOriginalName:=aOriginalName;
   FPasName:=APasName;
@@ -850,7 +861,7 @@ begin
   end;
 end;
 
-function TTypescriptToPas.GetExternalMemberName(const aName : jsBase.TJSString) : string;
+function TTypescriptToPas.GetExternalMemberName(const aName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString) : string;
 
 begin
   if FCurrentNameSpace<>'' then
@@ -897,7 +908,7 @@ begin
     end;
 end;
 
-function TTypescriptToPas.GetTypeName(const aTypeName: jsBase.TJSString; ForTypeDef: Boolean): String;
+function TTypescriptToPas.GetTypeName(const aTypeName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; ForTypeDef: Boolean): String;
 
 
 begin
@@ -923,7 +934,7 @@ end;
 function TTypescriptToPas.GetTypeName(aTypeDef : TJSTypeDef; ForTypeDef : Boolean = False): String;
 
 Var
-  S : jsbase.TJSString;
+  S : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
 
 begin
   if (aTypeDef.Data is TPasData) then
@@ -1010,7 +1021,7 @@ function TTypescriptToPas.GetGenericParams(aTypeParams: TJSElementNodes) : Strin
 
 Var
   I : Integer;
-  aName: jsBase.TJSString;
+  aName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   N : TJSTypeDef;
 
 begin
@@ -1050,7 +1061,7 @@ begin
     Result:=UTF8Encode(aTypeDef.Name);
 end;
 
-procedure TTypescriptToPas.WriteAliasTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef : TJSTypeReference);
+procedure TTypescriptToPas.WriteAliasTypeDef(const aPasName : string; const aOrgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef : TJSTypeReference);
 
 Var
   TN, gen, genparams: String;
@@ -1141,7 +1152,7 @@ begin
     Result:=Assigned(FScopeNameList[FScopeIdx].Find(aName));
 end;
 
-procedure TTypescriptToPas.AddToNameScope(const aName: String; aData: jsbase.TJSString);
+procedure TTypescriptToPas.AddToNameScope(const aName: String; aData: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString);
 begin
   if FScopeIdx>=0 then
     FScopeNameList[FScopeIdx].Add(aName,UTF8Encode(aData));
@@ -1377,7 +1388,7 @@ begin
   Result:='SysUtils, JS'
 end;
 
-function TTypescriptToPas.CreatePasName(const aOriginal: jsBase.TJSString; const aName: String): TPasData;
+function TTypescriptToPas.CreatePasName(const aOriginal: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; const aName: String): TPasData;
 
 
 begin
@@ -1908,7 +1919,7 @@ begin
     Result:='('+Result+')';
 end;
 
-Procedure TTypescriptToPas.WriteUnionTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSUnionTypeDef);
+Procedure TTypescriptToPas.WriteUnionTypeDef(const aPasName : string; const aOrgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSUnionTypeDef);
 
 var
   TN, gen, genparams, tcomment: String;
@@ -1957,7 +1968,7 @@ begin
   else
     raise ETSToPas.CreateFmt(SErrUnsupportedTupleElementType, [aTypeDef.Values[0].Node.ClassName]);
 end;
-procedure TTypescriptToPas.WriteTupleTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString;
+procedure TTypescriptToPas.WriteTupleTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   aTypeParams: TJSElementNodes; aTypeDef: TJSTupleTypeDef);
 
 var
@@ -1973,7 +1984,7 @@ begin
 end;
 
 
-Procedure TTypescriptToPas.WriteIntersectionTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSIntersectionTypeDef);
+Procedure TTypescriptToPas.WriteIntersectionTypeDef(const aPasName : string; const aOrgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSIntersectionTypeDef);
 
 var
   TN, gen, genparams: String;
@@ -1986,7 +1997,7 @@ begin
   AddLn('%s%s%s = %s; // %s',[gen,aPasName,genparams,TN,GetTypeAsString(aTypeDef,False,false)]);
 end;
 
-Procedure TTypescriptToPas.WriteArrayTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSArrayTypeDef);
+Procedure TTypescriptToPas.WriteArrayTypeDef(const aPasName : string; const aOrgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;aTypeDef : TJSArrayTypeDef);
 
 var
   arr,gen, genparams: String;
@@ -1999,7 +2010,7 @@ begin
   AddLn('%s%s%s = %s;',[gen,aPasName,genparams,arr]);
 end;
 
-procedure TTypescriptToPas.WriteEnumTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes;
+procedure TTypescriptToPas.WriteEnumTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes;
   aTypeDef: TJSEnumTypeDef);
 var
  arr,gen, genparams: String;
@@ -2013,7 +2024,7 @@ begin
 end;
 
 
-Procedure TTypescriptToPas.WriteTypeDef(const aPasName : string; const aOrgName : jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef : TJSTypeDef);
+Procedure TTypescriptToPas.WriteTypeDef(const aPasName : string; const aOrgName : {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef : TJSTypeDef);
 
 begin
   if NameScopeHas(aPasName) then
@@ -2630,7 +2641,7 @@ begin
     exit;
 end;
 
-procedure TTypescriptToPas.WriteObjectTypeMembers(const aPasName: String; const aOrigName: jsBase.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef);
+procedure TTypescriptToPas.WriteObjectTypeMembers(const aPasName: String; const aOrigName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef);
 
 Var
   I : Integer;
@@ -2685,7 +2696,7 @@ begin
       end;
 end;
 
-procedure TTypescriptToPas.WriteObjectTypedef(const aPasName: String; const aOrigName: jsBase.TJSString;
+procedure TTypescriptToPas.WriteObjectTypedef(const aPasName: String; const aOrigName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString;
   aTypeParams: TJSElementNodes; aTypeDef: TJSObjectTypeDef);
 
 Var
@@ -2918,7 +2929,7 @@ begin
   end;
 end;
 
-function TTypescriptToPas.WriteFunctionTypeDef(const aPasName: string; const aOrgName: jsBase.TJSString; aTypeParams: TJSElementNodes; aDef: TJSFuncDef): Boolean;
+function TTypescriptToPas.WriteFunctionTypeDef(const aPasName: string; const aOrgName: {$IFDEF FPC_DOTTEDUNITS}Js.Base{$ELSE}jsBase{$ENDIF}.TJSString; aTypeParams: TJSElementNodes; aDef: TJSFuncDef): Boolean;
 
 Var
   FN,RT,Args : String;
