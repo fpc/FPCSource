@@ -1,0 +1,3 @@
+src/rexxsaa.pp=namespaced/Api.Rexxsaa.pp
+{s*:src/}=namespaced/
+{i+:src/}
