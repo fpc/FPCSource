@@ -9,12 +9,19 @@
     https://qlwiki.qlforum.co.uk/doku.php?id=qlwiki:c68
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit qlfloat;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SinclairApi.Qdos;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   qdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function longint_to_qlfp(qlf: Pqlfloat; val: longint): Pqlfloat;
 function double_to_qlfp(qlf: Pqlfloat; val: Pdouble): Pqlfloat;

@@ -1,0 +1,6 @@
+src/qlutil.pas=namespaced/SinclairApi.Qlutil.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/sms.pas=namespaced/SinclairApi.Sms.pas
+src/qdos.pas=namespaced/SinclairApi.Qdos.pas
+src/qlfloat.pas=namespaced/SinclairApi.Qlfloat.pas

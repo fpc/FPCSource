@@ -14,7 +14,9 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit qdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
@@ -341,8 +343,13 @@ procedure sd_line(chan: Tchanid; timeout: Ttimeout; x_start: double; y_start: do
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SinclairApi.Qlfloat;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   qlfloat;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   _SD_POINT = $30;

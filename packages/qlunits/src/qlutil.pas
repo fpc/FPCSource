@@ -13,7 +13,9 @@
 
  **********************************************************************}
 {$MODE FPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit qlutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

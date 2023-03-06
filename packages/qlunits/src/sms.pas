@@ -14,13 +14,20 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sms;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  SinclairApi.Qdos;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   qdos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Variable/type includes before function declarations }
