@@ -29,12 +29,24 @@
 
  Note: this isn't perfect, it needs to be improved.. see comments  }
   
-unit HTMLUtil; {$ifdef fpc} {$MODE Delphi} {$H+}{$endif}
+{$IFNDEF FPC_DOTTEDUNITS}
+unit HTMLUtil; 
+{$ENDIF FPC_DOTTEDUNITS}
+
+{$ifdef fpc} 
+{$MODE Delphi} 
+{$H+}
+{$endif}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+  System.SysUtils, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
   SysUtils, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { most commonly used }
 function GetVal(const tag, attribname_ci: string): string;

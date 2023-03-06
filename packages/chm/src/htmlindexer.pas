@@ -18,10 +18,17 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HTMLIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE OBJFPC}{$H+}
 interface
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, System.SysUtils, Fcl.FastHtmlParser,{$ifdef userb}fos_redblacktree_gen{$else}Fcl.AVLTree{$endif};
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes, SysUtils, FastHTMLParser,{$ifdef userb}fos_redblacktree_gen{$else}avl_tree{$endif};
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

@@ -18,7 +18,9 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ITSFTransform;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $DEFINE DEBUG_HELP2}
 
@@ -26,8 +28,13 @@ unit ITSFTransform;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, Chm.Lzx, Chm.ItolItls.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, paslzx, ITOLITLSTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGetObject = function(AName: String): TMemoryStream of object;
@@ -103,8 +110,13 @@ function RegisteredTransforms: TITSFTransformList;
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   LocTransforms: TITSFTransformList = nil;

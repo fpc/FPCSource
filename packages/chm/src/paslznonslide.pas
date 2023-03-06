@@ -19,7 +19,9 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit paslznonslide;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE OBJFPC}
 
 interface
@@ -87,8 +89,13 @@ type
 
 
 implementation
+
 {$IFDEF DEBUG_LZ}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 const

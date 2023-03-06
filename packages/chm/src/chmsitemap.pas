@@ -18,14 +18,21 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmsitemap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode Delphi}{$H+}
 {define preferlower}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.FastHtmlParser, System.Contnrs, System.StrUtils, System.Generics.Collections;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fasthtmlparser, contnrs, strutils, generics.collections;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TChmSiteMapItems = class; // forward
@@ -217,8 +224,14 @@ type
 
 
 function indexitemcompare(Item1, Item2: Pointer): Integer;
+
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.HtmlUtil;
+{$ELSE FPC_DOTTEDUNITS}
 uses HTMLUtil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const sitemapkws : array[TChmSiteMapItemAttrName] of string = (
                     '',
