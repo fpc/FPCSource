@@ -13,14 +13,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 {*****************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JPEGcomn;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.Jpeg.Jpeglib, FpImage;
+{$ELSE}
   Classes, JPEGLib, FPImage;
+{$ENDIF}
 
 type
     TFPJPEGCompressionQuality = 1..100;   // 100 = best quality, 25 = pretty awful

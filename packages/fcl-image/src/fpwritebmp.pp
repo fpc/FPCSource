@@ -24,11 +24,17 @@
 }
 
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPWriteBMP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, BMPComn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.Bitmap;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, BMPComn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

@@ -13,7 +13,9 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit qoicomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

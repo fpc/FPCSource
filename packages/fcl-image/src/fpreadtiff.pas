@@ -39,7 +39,9 @@
  2023-07  - Massimo Magnano added Resolution support
  2023-08  - Massimo Magnano added BigTif and LabA color support
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadTiff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -47,8 +49,13 @@ unit FPReadTiff;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Math, Classes, SysUtils, ctypes, zinflate, zbase, FPimage, FPColorSpace, FPTiffCmn;
+  System.Math, System.Classes, System.SysUtils, System.CTypes, System.ZLib.Zinflate, System.ZLib.Zbase, FpImage, FpImage.Common.TIFF, FpImage.ColorSpace;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Math, Classes, SysUtils, ctypes, zinflate, zbase, FPimage, FPTiffCmn, fpcolorspace;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderTiff = class;

@@ -14,14 +14,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpbarcode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // Various encodings. Sorted

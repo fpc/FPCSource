@@ -13,11 +13,17 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadQoi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, QoiComn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.QOI;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, QoiComn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderQoi = class (TFPCustomImageReader)

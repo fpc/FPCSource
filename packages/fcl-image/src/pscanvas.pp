@@ -22,12 +22,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pscanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,FpImage,FpImage.Canvas;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,fpimage,fpcanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TPostScript = class;

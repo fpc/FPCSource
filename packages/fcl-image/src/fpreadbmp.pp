@@ -26,11 +26,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadBMP;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, BMPcomn;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, FpImage.Common.Bitmap;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, BMPcomn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TFPReaderBMP = class (TFPCustomImageReader)

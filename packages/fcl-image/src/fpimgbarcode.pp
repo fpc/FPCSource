@@ -13,18 +13,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPImgBarCode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage.Canvas, FpImage, System.Types, FpImage.BarCode;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcanvas, fpimage, types, fpbarcode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   // So people don't need to include fpBarcode
-  TBarcodeEncoding = fpbarcode.TBarcodeEncoding;
+  TBarcodeEncoding = {$IFDEF FPC_DOTTEDUNITS}FpImage.BarCode{$ELSE}fpbarcode{$ENDIF}.TBarcodeEncoding;
 
   { TFPDrawBarCode }
 
@@ -81,8 +88,13 @@ Function DrawBarCode(Img : TFPCustomImage; Rect : TRect; S : String; E : TBarcod
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpImage.ImageCanvas;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   FPImgCanv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function DrawBarCode(Img : TFPCustomImage; S : String; E : TBarcodeEncoding; aWidth : Integer = 1; AWeight : Double = 2.0) : Boolean;
 

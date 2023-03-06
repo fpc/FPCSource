@@ -15,11 +15,17 @@
 {*****************************************************************************}
 
 {$mode objfpc}{$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPQuantizer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, FpImage, FpImage.ColorHash;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, classes, fpimage, fpcolhash;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   FPQuantizerException = class (exception);

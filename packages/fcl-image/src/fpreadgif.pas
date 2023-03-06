@@ -15,14 +15,21 @@
 
   ToDo: read further images
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadGif;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, FPimage;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TGifRGB = packed record

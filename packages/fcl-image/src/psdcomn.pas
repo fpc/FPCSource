@@ -13,14 +13,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 {*****************************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PSDcomn;
+{$ENDIF}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, FpImage;
+{$ELSE}  
   Classes, FPimage;
+{$ENDIF}
 
 const
   { Image color modes  }

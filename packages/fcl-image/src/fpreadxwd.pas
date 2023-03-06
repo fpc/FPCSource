@@ -23,11 +23,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPReadXWD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
-uses FPImage, classes, sysutils, xwdfile;
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpImage, System.Classes, System.SysUtils, Api.Xwdfile;
+{$ELSE FPC_DOTTEDUNITS}
+uses FpImage, classes, sysutils, xwdfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TXWDColors = array of TXWDColor;

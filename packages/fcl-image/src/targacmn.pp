@@ -16,7 +16,9 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit targacmn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
