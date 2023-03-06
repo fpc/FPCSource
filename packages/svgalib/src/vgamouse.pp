@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vgamouse;
+{$ENDIF FPC_DOTTEDUNITS}
 
   interface
 
