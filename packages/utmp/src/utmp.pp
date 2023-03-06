@@ -1,10 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Utmp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,
+  UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   BaseUnix,
   Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Device_name_length = 12;

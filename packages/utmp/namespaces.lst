@@ -1,0 +1,3 @@
+src/utmp.pp=namespaced/UnixApi.Utmp.pp
+{s*:src/}=namespaced/
+{i+:src/}
