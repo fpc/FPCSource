@@ -27,7 +27,9 @@ from The Open Group.
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cursorfont;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

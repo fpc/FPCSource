@@ -60,11 +60,18 @@ Histroy:
 }
 {$PACKRECORDS C} {$MACRO ON} {$DEFINE MACROS}
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xi;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
         sz_xGetExtensionVersionReq           =  8;

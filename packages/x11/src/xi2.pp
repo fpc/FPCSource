@@ -21,14 +21,21 @@
  * DEALINGS IN THE SOFTWARE.
  *
  *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xi2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   XInput_2_0                              = 7;

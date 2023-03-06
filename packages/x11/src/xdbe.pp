@@ -30,14 +30,21 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xdbe;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';

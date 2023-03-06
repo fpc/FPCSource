@@ -55,7 +55,9 @@ performance, or use of this material.
 
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hpkeysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

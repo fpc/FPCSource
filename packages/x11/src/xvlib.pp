@@ -51,12 +51,19 @@ SOFTWARE.
 **
 *}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xvlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xshm, Api.X11.Xv;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xshm, xv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 

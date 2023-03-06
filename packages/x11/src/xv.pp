@@ -23,14 +23,21 @@ SOFTWARE.
 ******************************************************************}
 { $XFree86: xc/include/extensions/Xv.h,v 1.3 1999/05/23 06:33:22 dawes Exp $ }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS c}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.X11.X;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   x;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   XvName = 'XVideo';

@@ -10,7 +10,9 @@ XK_a   XK_a
 XK_A   XKc_A
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit keysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

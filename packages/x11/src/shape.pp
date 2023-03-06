@@ -24,14 +24,21 @@ in this Software without prior written authorization from The Open Group.
 
 ********************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit shape;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xutil;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';

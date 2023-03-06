@@ -24,14 +24,21 @@
   Author:  Jim Gettys, HP Labs, HP.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xrandr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS c}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXrandr = 'Xrandr';

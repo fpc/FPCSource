@@ -1,7 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xutil;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,Api.X11.X,Api.X11.Xlib,Api.X11.Keysym;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,x,xlib,keysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$define MACROS}
 
