@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdSample;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original: jdsample.c; Copyright (C) 1991-1996, Thomas G. Lane. }
 
@@ -18,6 +20,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -25,6 +36,7 @@ uses
   jpeglib,
   jdeferr,
   jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Pointer to routine to upsample a single component }

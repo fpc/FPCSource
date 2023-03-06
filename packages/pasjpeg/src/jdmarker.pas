@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdMarker;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains routines to decode JPEG datastream markers.
   Most of the complexity arises from our desire to support input
@@ -16,6 +18,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jcomapi,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -23,6 +34,7 @@ uses
   jerror,
   jcomapi,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const                   { JPEG marker codes }
   M_SOF0  = $c0;
@@ -152,8 +164,13 @@ Var
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { At all times, cinfo1.src.next_input_byte and .bytes_in_buffer reflect
   the current restart point; we update them only when we have reached a

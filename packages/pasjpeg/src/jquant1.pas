@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JQuant1;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains 1-pass color quantization (color mapping) routines.
   These routines provide mapping to a fixed color map using equally spaced
@@ -10,8 +12,13 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {GLOBAL}
@@ -19,11 +26,19 @@ procedure jinit_1pass_quantizer (cinfo : j_decompress_ptr);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jdeferr,
   jerror,
   jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { The main purpose of 1-pass quantization is to provide a fast, if not very
   high quality, colormapped output capability.  A 2-pass quantizer usually

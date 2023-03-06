@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit Jdct;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original: jdct.h; Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -12,8 +14,13 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { A forward DCT routine is given a pointer to a work area of type DCTELEM[];

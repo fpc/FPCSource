@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdMerge;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {  This file contains code for merged upsampling/color conversion.
 
@@ -32,11 +34,19 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib,
   jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Module initialization routine for merged upsampling/color conversion.
 

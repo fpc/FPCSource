@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JFDctFlt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$N+}
 { This file contains a floating-point implementation of the
@@ -35,11 +37,19 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct;         { Private declarations for DCT subsystem }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib,
   jdct;         { Private declarations for DCT subsystem }
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Perform the forward DCT on one block of samples.}

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdefErr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file defines the error and message codes for the cjpeg/djpeg
   applications.  These strings are not needed as part of the JPEG library

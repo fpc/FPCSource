@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JIDctRed;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This file contains inverse-DCT routines that produce reduced-size output:
@@ -22,11 +24,19 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct;                 { Private declarations for DCT subsystem }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
   jpeglib,
   jdct;                 { Private declarations for DCT subsystem }
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Perform dequantization and inverse DCT on one block of coefficients,
   producing a reduced-size 1x1 output block. }

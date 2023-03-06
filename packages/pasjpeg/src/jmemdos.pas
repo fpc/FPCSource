@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JmemDos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This file provides an MS-DOS-compatible implementation of the system-
@@ -21,9 +23,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { If you have both extended and expanded memory, you may want to change the
   order in which they are tried in jopen_backing_store.  On a 286 machine
@@ -127,11 +135,19 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS,
+  System.Jpeg.Jmemdosa,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dos,
   jmemdosa,
   jdeferr,
   jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

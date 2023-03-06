@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JDataDst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains compression data destination routines for the case of
   emitting JPEG data to a file (or any stdio stream).  While these routines
@@ -15,12 +17,21 @@ interface
 {$I jconfig.inc}
 
 { this is not a core library module, so it doesn't define JPEG_INTERNALS }
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jpeglib,
   jinclude,
   jdeferr,
   jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Prepare for output to a stdio stream.
   The caller must have already opened the stream, and is responsible
