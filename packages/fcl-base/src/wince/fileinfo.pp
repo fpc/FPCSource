@@ -25,12 +25,19 @@
          FileVersionInfo1.fileName := 'd:\winnt\system32\comctl32.dll';
          showMessage(FileVersionInfo1.getVersionSetting('ProductVersion'));
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fileinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Record to receive charset }
@@ -52,7 +59,7 @@ type
   public
      constructor Create(AOwner: TComponent);  override;
      destructor Destroy; override;
-     function getVersionSetting(inp : ): ;
+     function getVersionSetting(inp : string): string;
   published
     property fileName : widestring  read FFileName write SetFileName;
     property VersionStrings  : TStringList  read FmyVersionStrings;
@@ -156,7 +163,7 @@ begin
 end;
 
 { get single version  }
-function TFileVersionInfo.getVersionSetting(inp : ): ;
+function TFileVersionInfo.getVersionSetting(inp : string): string;
 var i : integer;
 begin
   inp:=LowerCase(inp);

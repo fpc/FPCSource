@@ -678,7 +678,7 @@ begin
   if L.Count > 0 then
     begin
       if DependenciesDepth=0 then
-        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llProgress,SProgrInstallDependencies);
+        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrInstallDependencies);
       inc(DependenciesDepth);
 
       for i:=0 to L.Count-1 do
@@ -687,7 +687,7 @@ begin
 
       dec(DependenciesDepth);
       if DependenciesDepth=0 then
-        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llProgress,SProgrDependenciesInstalled);
+        {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if assigned(ManifestPackages) then
@@ -710,7 +710,7 @@ begin
     PackageManager.FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
-    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llProgress,SProgrReinstallDependent);
+    {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llProgress,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         if not ExecuteAction(SL[i],'build') then
@@ -720,7 +720,7 @@ begin
         if PackageManager.PackageIsBroken(PackageManager.PackageByName(SL[i], pkgpkInstalled), Reason, nil) then
           begin
             BreakLoop := true;
-            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i], Reason]);
+            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i], Reason]);
           end;
       end;
   until BreakLoop;

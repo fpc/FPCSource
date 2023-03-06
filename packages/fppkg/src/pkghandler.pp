@@ -300,25 +300,25 @@ end;
 
 Procedure TPackageHandler.Log(Level:TLogLevel; Msg:String);
 begin
-  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(Level,PackageLogPrefix+Msg);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Log(Level,PackageLogPrefix+Msg);
 end;
 
 
 Procedure TPackageHandler.Log(Level:TLogLevel; Fmt:String; const Args:array of const);
 begin
-  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.log(Level,PackageLogPrefix+Fmt,Args);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.log(Level,PackageLogPrefix+Fmt,Args);
 end;
 
 
 Procedure TPackageHandler.Error(Msg:String);
 begin
-  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Error(PackageLogPrefix+Msg);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Error(PackageLogPrefix+Msg);
 end;
 
 
 Procedure TPackageHandler.Error(Fmt:String; const Args:array of const);
 begin
-  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Error(PackageLogPrefix+Fmt,Args);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.Error(PackageLogPrefix+Fmt,Args);
 end;
 
 

@@ -25,7 +25,7 @@ uses
   System.Classes, System.SysUtils, FpJson.Data, Data.BufDataset, Data.Sqldb, Data.Db, FpWeb.Http.Defs, FpWeb.RestBridge.Schema;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, fpjson, sqldb, db, httpdefs, sqldbrestschema;
+  Classes, SysUtils, fpjson, bufdataset, sqldb, db, httpdefs, sqldbrestschema;
 {$ENDIF FPC_DOTTEDUNITS}
 
 

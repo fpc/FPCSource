@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit RTFPars;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt, Member of the
@@ -19,7 +21,11 @@ Unit RTFPars;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 Uses classes,sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i rtfdata.inc}
 

@@ -16,11 +16,17 @@ all data.
 Emulates a memorystream as far as needed: by writing past the end you can
 increase its size; reading past the end gives an error}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit nullstream;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ENullStreamError = class(EStreamError);

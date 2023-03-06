@@ -13,7 +13,11 @@
 
  **********************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SKeyEventLog = 'SYSTEM\CurrentControlSet\Services\EventLog\Application\%s';

@@ -16,11 +16,17 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StreamIO;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure AssignStream(var F: Textfile; Stream: TStream);
 Function GetStream(var F: TTextRec) : TStream;

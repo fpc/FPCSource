@@ -127,15 +127,11 @@ Type
 
 implementation
 
-<<<<<<< HEAD
-uses typinfo, strutils, variants, dateutils, base64, sqldbrestconst;
-=======
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.StrUtils, System.Variants, System.DateUtils, System.Hash.Base64, FpWeb.RestBridge.Consts;
+uses System.TypInfo, System.StrUtils, System.Variants, System.DateUtils, System.Hash.Base64, FpWeb.RestBridge.Consts;
 {$ELSE FPC_DOTTEDUNITS}
-uses strutils, variants, dateutils, base64, sqldbrestconst;
+uses typinfo, strutils, variants, dateutils, base64, sqldbrestconst;
 {$ENDIF FPC_DOTTEDUNITS}
->>>>>>> f4da77c296 (* Dotted filenames for package fcl-web)
 
 
 Const

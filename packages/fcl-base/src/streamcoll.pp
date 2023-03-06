@@ -12,12 +12,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit streamcoll;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TStreamCollectionItem = Class(TCollectionItem)
