@@ -15,7 +15,9 @@
 
 {$MODE OBJFPC}
 {$H+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cliputils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -24,8 +26,13 @@ function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Clipboard, Amiga.Core.Iffparse;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, clipboard, iffparse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ID_FTXT = 1179932756;

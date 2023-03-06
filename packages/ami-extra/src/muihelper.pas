@@ -19,12 +19,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit muihelper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Other.Mui, Amiga.Core.Amigados, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, intuition, mui, amigados, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THookFunc = function(Hook: PHook; Obj: PObject_; Msg: Pointer): PtrInt;

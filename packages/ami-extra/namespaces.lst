@@ -1,0 +1,6 @@
+src/pcq.pas=namespaced/AmigaApi.Pcq.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/amsgbox.pas=namespaced/AmigaApi.Amsgbox.pas
+src/muihelper.pas=namespaced/AmigaApi.Muihelper.pas
+src/cliputils.pas=namespaced/AmigaApi.Cliputils.pas

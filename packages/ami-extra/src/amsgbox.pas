@@ -22,7 +22,9 @@
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit AMsgBox;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -33,8 +35,13 @@ function MessageBox(const tit,txt,gad:PAnsiChar): LongInt;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 FUNCTION MessageBox(const tit,txt,gad:RawByteString): LongInt;
 begin

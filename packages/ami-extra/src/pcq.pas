@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pcq;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 
@@ -54,7 +56,11 @@ unit pcq;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function CheckBreak: boolean;
 
