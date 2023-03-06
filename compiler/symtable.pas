@@ -3617,8 +3617,9 @@ implementation
       var
         pmod : tmodule;
       begin
-        pmod:=tmodule(pm);
         result:=false;
+        if not assigned(pm) then exit;
+        pmod:=tmodule(pm);
         if assigned(pmod.globalsymtable) then
           begin
             srsym:=tsym(pmod.globalsymtable.Find(s));
