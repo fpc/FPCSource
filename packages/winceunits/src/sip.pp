@@ -17,13 +17,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sip;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE OBJFPC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, System.Types, WinceAPI.Sipapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, Types, SIPAPI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       IID_IIMCallback:TIID    = '{42429669-AE04-11D0-A4F8-00AA00A749B9}';

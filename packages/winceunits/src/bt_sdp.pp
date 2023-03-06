@@ -28,11 +28,17 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bt_sdp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       SDP_ERROR_INVALID_SDP_VERSION           = $0001;

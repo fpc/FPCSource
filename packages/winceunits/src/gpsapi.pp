@@ -21,13 +21,19 @@
 // Microsoft Windows Mobile 5.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GPSApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       GPS_MAX_SATELLITES    = 12;

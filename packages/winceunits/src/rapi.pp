@@ -1,5 +1,7 @@
 {$mode delphi}
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT RAPI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Created and donated to the public domain 2001
 //   by Scott Crossen, scottc@hotmail.com
@@ -8,7 +10,11 @@ UNIT RAPI;
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Rapitypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, RAPITypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   FAF_ATTRIBUTES = $00000001;

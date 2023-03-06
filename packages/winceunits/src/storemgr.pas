@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StoreMgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKSET 1}
 {$mode objfpc}
@@ -25,8 +27,13 @@ unit StoreMgr;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   BLOCK_DRIVER_GUID: GUID                    = '{A4E7EDDA-E575-4252-9D6B-4195D48BB865}';

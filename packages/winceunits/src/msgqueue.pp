@@ -18,13 +18,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit MsgQueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Declarations of constants and structures transferred from winbase.h.
 

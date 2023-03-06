@@ -20,11 +20,17 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit keybd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Winioctl;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows, WinIOCtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // EXTERNAL DRIVERS
 // KEY_STATE_FLAGS | Flags for keyboard events and shift state.

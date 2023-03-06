@@ -18,13 +18,19 @@
 //  Microsoft Windows Mobile 5.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SIPApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       SIP_STATUS_UNAVAILABLE	= 0;

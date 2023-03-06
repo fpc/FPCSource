@@ -15,11 +15,17 @@
  Converted from cesync.h by Yury Sidorov                               }
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cesync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows {$ifdef UNDER_CE}, WinceAPI.Windbase {$endif};
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows {$ifdef UNDER_CE}, windbase {$endif};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}

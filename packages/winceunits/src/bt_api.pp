@@ -33,13 +33,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bt_api;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinApi.Winsock2, WinceAPI.Winioctl, WinceAPI.Ws2bth;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, WinSock2, WinIOCtl, ws2bth;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //
 //		COD classes

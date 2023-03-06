@@ -18,13 +18,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bthapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       LIBID_BTHAPILib:TIID = '{00BC26C8-0A87-41d0-82BA-61FF9E0B1BB5}';

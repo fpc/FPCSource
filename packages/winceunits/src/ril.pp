@@ -21,14 +21,20 @@
 //
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit RIL;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 {$INLINE ON}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       RILDLL = 'ril.dll';

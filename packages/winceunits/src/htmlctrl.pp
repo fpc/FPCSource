@@ -18,11 +18,17 @@
     -w
     htmlctrl.h
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit htmlctrl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$PACKRECORDS C}

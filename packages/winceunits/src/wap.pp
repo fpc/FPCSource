@@ -11,12 +11,19 @@
 
  ********************************************************************** }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
   
 {$calling cdecl}
 
