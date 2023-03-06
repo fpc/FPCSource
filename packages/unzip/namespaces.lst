@@ -1,0 +1,5 @@
+src/unzipdll.pp=namespaced/System.Unzipdll.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/ziptypes.pp=namespaced/System.Ziptypes.pp
+src/unzip51g.pp=namespaced/System.Unzip51g.pp

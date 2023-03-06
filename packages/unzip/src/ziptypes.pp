@@ -1,6 +1,8 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT ZipTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 {
 Type definitions for UNZIP
   * original version by Christian Ghisler
