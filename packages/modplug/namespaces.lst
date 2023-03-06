@@ -1,0 +1,3 @@
+src/modplug.pas=namespaced/Api.Modplug.pas
+{s*:src/}=namespaced/
+{i+:src/}
