@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webidltopas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, WebIdl.Parser, WebIdl.Scanner, WebIdl.Defs, Pascal.CodeGenerator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, WebIDLParser, WebIDLScanner, WebIDLDefs, pascodegen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -208,7 +215,11 @@ function BaseConversionOptionsToStr(Opts: TBaseConversionOptions): string;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function BaseConversionOptionsToStr(Opts: TBaseConversionOptions): string;
 var

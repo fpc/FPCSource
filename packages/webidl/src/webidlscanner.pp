@@ -15,11 +15,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webidlscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type
@@ -402,7 +408,11 @@ Function GetTokenNames(aTokenList : TIDLTokens) : String;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrUnknownTerminator = 'Unknown terminator: "%s"';
