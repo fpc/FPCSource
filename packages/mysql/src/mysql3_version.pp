@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql3_version;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$undef use_mysql_321} { if undefined, use mysql 3.23 interface }
 

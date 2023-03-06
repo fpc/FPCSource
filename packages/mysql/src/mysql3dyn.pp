@@ -4,7 +4,9 @@
   Call InitialiseMysql3 before using any of the calls, and call ReleaseMysql3
   when finished.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql3dyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Adapted from mysql4dyn by Bram Kuijvenhoven (Hexis BV, The Netherlands)
@@ -15,7 +17,11 @@ unit mysql3dyn;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs, System.Classes, System.SysUtils, Api.Mysql3_comdyn;
+{$ELSE FPC_DOTTEDUNITS}
 uses dynlibs, classes, sysutils, mysql3_comdyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}

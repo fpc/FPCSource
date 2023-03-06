@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql4_version;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {

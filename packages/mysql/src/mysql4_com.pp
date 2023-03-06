@@ -2,11 +2,18 @@
 {$MACRO on}
 
 {$PACKRECORDS C}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mysql4_com;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
