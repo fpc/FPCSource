@@ -10,15 +10,22 @@
 *)
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gl2d;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, NdsApi.Nds9;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, nds9;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   GL_FLIP_MODE = cint;
