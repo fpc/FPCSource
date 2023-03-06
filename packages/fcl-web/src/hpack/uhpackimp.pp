@@ -25,14 +25,21 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 *)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uhpackimp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.UhpackTables;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, uhpacktables;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   HPACK_MAX_HEADER_SIZE = 8192;

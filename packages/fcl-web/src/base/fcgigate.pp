@@ -43,18 +43,28 @@ begin
     end;
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fcgigate;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $define CGIGDEBUG}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF CGIGDEBUG}
+  System.Dbugintf,
+{$endif}
+  System.Classes, System.SysUtils,FpWeb.Http.Defs,FpWeb.HostApp.Custom.Cgi,Api.Fastcgi,System.Net.Ssockets,System.IniFiles,FpWeb.Handler;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF CGIGDEBUG}
   dbugintf,
 {$endif}
   Classes, SysUtils,httpDefs,custcgi,fastcgi,ssockets,inifiles,custweb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

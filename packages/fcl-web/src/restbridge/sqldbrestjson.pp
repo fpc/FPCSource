@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, Data.Db, FpWeb.RestBridge.IO, FpWeb.RestBridge.Schema;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, db, sqldbrestio, sqldbrestschema;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TJSONInputStreamer }
@@ -65,7 +72,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses DateUtils, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TJSONInputStreamer }
 

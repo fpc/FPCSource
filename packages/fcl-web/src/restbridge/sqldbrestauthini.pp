@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestauthini;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.RestBridge.Auth, System.IniFiles;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldbrestauth, inifiles;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TBasicAuthIniOption = (baoClearOnRead,      // Clear values first
@@ -52,7 +59,11 @@ Function StrToBasicAuthIniOptions(const S : String) : TBasicAuthIniOptions;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo,strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function BasicAuthIniOptionsToStr(Options: TBasicAuthIniOptions): String;
 

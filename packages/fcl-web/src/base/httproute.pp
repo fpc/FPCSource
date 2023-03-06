@@ -20,12 +20,19 @@
 {$mode objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit httproute;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.SyncObjs, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, syncobjs, httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EHTTPRoute = Class(EHTTP);
@@ -290,7 +297,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils, typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   EDuplicateRoute = 'Duplicate route pattern: %s and method: %s';

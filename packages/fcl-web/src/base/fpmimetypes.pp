@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpmimetypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -82,7 +89,11 @@ Function MimeTypes : TFPMimeTypes;
 implementation
 
 {$IFDEF WINDOWS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Registry;
+{$ELSE FPC_DOTTEDUNITS}
 uses registry;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF}
 
 { TFPMimeTypes }

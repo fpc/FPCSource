@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custapache;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.Classes,FpWeb.Handler,FpWeb.Http.Defs,FpWeb.Http.Base,Api.Httpd22,FpWeb.Http.Protocol, Api.Httpd22.Apr, System.SyncObjs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,Classes,CustWeb,httpDefs,fpHTTP,httpd,httpprotocol, apr, SyncObjs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TApacheHandler = Class;
@@ -155,7 +162,11 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fcl.CustApp;
+{$ELSE FPC_DOTTEDUNITS}
 uses CustApp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';

@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cgiprotocol;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -79,7 +81,11 @@ Function IndexOfCGIVar(const AVarName: String): Integer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Function IndexOfCGIVar(const AVarName: String): Integer;
 

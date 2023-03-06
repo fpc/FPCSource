@@ -12,14 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestbridge;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb, FpWeb.Http.Defs, FpWeb.Route, FpJson.Data, FpWeb.RestBridge.Schema, FpWeb.RestBridge.IO, 
+  FpWeb.RestBridge.Data, FpWeb.RestBridge.Auth, Data.SqlDb.Pool;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, SQLDB, httpdefs, httproute, fpjson, sqldbrestschema, sqldbrestio, sqldbrestdata, sqldbrestauth, sqldbpool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRestDispatcherOption = (rdoConnectionInURL,        // Route includes connection :Connection/:Resource[/:ID]
@@ -413,7 +421,11 @@ Const
 
 implementation
 
-uses typinfo,uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, Fcl.UriParser, FPJSON.Rtti, System.DateUtils, Data.BufDataset, FpWeb.RestBridge.Json, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
+uses typinfo, uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

@@ -1,6 +1,6 @@
 {
     $Id: header,v 1.1 2000/07/13 06:33:45 michael Exp $
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Component Library (Fcl)
     Copyright (c) 2021 - by the Free Pascal development team
 
     Standalone websocket server implementation
@@ -15,12 +15,19 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwebsocketserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Net.Ssockets, System.Net.Sslbase, FpWeb.WebSocket.Protocol, FpWeb.WebSocket.Custom.Server, Fcl.ThreadPool;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ssockets, sslbase, fpwebsocket, fpcustwsserver, fpThreadPool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TWebSocketServer = Class;
@@ -114,8 +121,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Net.Sslsockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sslsockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TAcceptThread }

@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fprpccodegen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}
 {$h+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, Pascal.CodeGenerator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpjson, pascodegen;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

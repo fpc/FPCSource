@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit extjsjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpWeb.Http.Defs, FpWeb.Http.Base, FpWeb.Data.Base, FpWeb.Data.Extjs.Base, FpJson.Data, Data.Db, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, httpdefs, fphttp, fpwebdata, fpextjs, fpjson, db, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

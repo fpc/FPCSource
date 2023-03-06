@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit custHTTPSys;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, WinApi.Httpapi, FpWeb.Handler, FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, HttpApi, custWeb, HTTPDefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -89,7 +96,7 @@ type
     property Urls: TStrings read fUrls;
   end;
 
-  EHTTPSys = class(EFPWebError);
+  EHTTPSys = class(EFpWebError);
 
 var
   HTTPSysRequestClass: THTTPSysRequestClass = THTTPSysRequest;
@@ -98,8 +105,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, FpWeb.Http.Protocol, WinApi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, httpprotocol, WinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrReceiveRequest = 'Failed to receive HTTP request (Errorcode: 0x%x)';

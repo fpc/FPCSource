@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbrestschema;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -21,8 +23,13 @@ unit sqldbrestschema;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, Data.Db, Data.Sqldb, FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, db, sqldb, fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TRestFieldType = (rftUnknown,rftInteger,rftLargeInt,rftFloat,rftDate,rftTime,rftDateTime,rftString,rftBoolean,rftBlob);
@@ -440,7 +447,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils, FpJson.Rtti,Data.Consts, FpWeb.RestBridge.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses strutils, fpjsonrtti,dbconst, sqldbrestconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TSQLDBRestParam }
 
