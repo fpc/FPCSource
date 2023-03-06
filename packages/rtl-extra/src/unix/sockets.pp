@@ -10,13 +10,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 {$ModeSwitch out}
 
 {$ifdef Unix}
+
+{$IFDEF FPC_DOTTEDUNITS}
+Uses UnixApi.Base,UnixApi.Types;
+{$ELSE}
 Uses baseunix,UnixType;
+{$ENDIF}
+
 {$endif}
+
 
 {$i osdefs.inc}       { Compile time defines }
 
@@ -29,7 +38,7 @@ Uses baseunix,UnixType;
 {$endif}
 
 Type 
- TSockLen = BaseUnix.TSocklen;
+ TSockLen = {$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.TSocklen;
 
 {$i unxsockh.inc}
 {$i socketsh.inc}
@@ -76,8 +85,13 @@ Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolea
 
 Implementation
 
-Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
-
+{$IFDEF FPC_DOTTEDUNITS}
+Uses 
+  {$ifndef FPC_USE_LIBC}UnixApi.SysCall{$else}System.InitC{$endif};
+{$ELSE}
+Uses 
+  {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
+{$ENDIF}
 threadvar internal_socketerror : cint;
 
 {******************************************************************************

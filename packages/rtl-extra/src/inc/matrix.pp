@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit matrix;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004 by Daniel Mantione

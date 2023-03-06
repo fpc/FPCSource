@@ -12,16 +12,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ipc;
+{$ENDIF}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+{$ifdef FPC_USE_LIBC}
+  System.InitC,
+{$endif}
+  UnixApi.Base,UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
 {$ifdef FPC_USE_LIBC}
   initc,
 {$endif}
   BaseUnix,UnixType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i osdefs.inc}       { Compile time defines }
 
@@ -882,9 +891,19 @@ Function semtimedop(semid:cint; sops: psembuf; nsops: size_t; timeOut: ptimespec
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+
+{$ifndef FPC_USE_LIBC}
+uses UnixApi.SysCall;
+{$endif ndef FPC_USE_LIBC}
+
+{$ELSE}
+
 {$ifndef FPC_USE_LIBC}
 uses Syscall;
 {$endif ndef FPC_USE_LIBC}
+
+{$ENDIF}
 
 {$ifndef FPC_USE_LIBC}
  {$if defined(Linux)}

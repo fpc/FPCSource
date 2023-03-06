@@ -14,7 +14,9 @@
 {$mode objfpc}
 {$ModeSwitch out}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
@@ -23,8 +25,13 @@ Interface
 
 {$R-}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  WinApi.Winsock;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   winsock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   cushort=word;

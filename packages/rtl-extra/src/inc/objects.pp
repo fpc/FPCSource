@@ -33,7 +33,9 @@
 {    Free Vision project coordinator Balazs Scheidler      }
 {    bazsi@tas.vein.hu                                     }
 {                                                          }
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT Objects;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef cpullvm}
 {$define TYPED_LOCAL_CALLBACKS}
