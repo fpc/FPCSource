@@ -18,14 +18,20 @@
   See the file COPYING.modifiedLGPL, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ITOLITLSTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Chm.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses ChmBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

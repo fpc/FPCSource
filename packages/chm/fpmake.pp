@@ -117,8 +117,8 @@ begin
         end;
 
 //    P.ProgramPath.Add('src');
-    T:=P.Targets.AddProgram('chmls.lpr');
-    T:=P.Targets.AddProgram('chmcmd.lpr');
+//    T:=P.Targets.AddProgram('chmls.lpr');
+//    T:=P.Targets.AddProgram('chmcmd.lpr');
 
 
 

@@ -18,11 +18,18 @@
   See the file COPYING.FPC, included in this distribution,
   for details about the copyright.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit chmwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 {$MODE OBJFPC}{$H+}
 
 interface
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Generics.Collections,System.Classes, Chm.Base, Chm.Types, Chm.SpecialFiles, Chm.HtmlIndexer, Chm.Sitemap, System.Contnrs, Fcl.Streams.Extra, Fcl.AVLTree, Chm.Lzx.Compressthread;
+{$ELSE FPC_DOTTEDUNITS}
 uses Generics.Collections,Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
    DefaultHHC = 'Default.hhc';
@@ -226,7 +233,11 @@ Type
 Function CompareStrings(Node1, Node2: Pointer): integer; // also used in filewriter
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils, System.SysUtils, Chm.Lzx.Compress, Chm.FiftiMain;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils, sysutils, paslzxcomp, chmFiftiMain;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LZX_WINDOW_SIZE = 16; // 16 = 2 frames = 1 shl 16

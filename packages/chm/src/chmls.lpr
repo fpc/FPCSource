@@ -29,11 +29,16 @@ program chmls;
 
 {$mode objfpc}{$H+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.GetOpts, System.SysUtils, System.Types,
+  Fcl.Streams.Extra, Chm.Reader, Chm.Base, Chm.Sitemap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, GetOpts, SysUtils, Types,
   StreamEx,
   chmreader, chmbase, chmsitemap;
-
+{$ENDIF FPC_DOTTEDUNITS}
 {$R-} // CHM spec puts "-1" in dwords etc.
 type
 
