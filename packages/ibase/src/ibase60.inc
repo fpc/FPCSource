@@ -8,13 +8,24 @@
 interface
 
 {$IFDEF LinkDynamically}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs, System.SysUtils, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Dynlibs, sysutils,ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Var
   UseEmbeddedFirebird : Boolean = False;
 
 {$ELSE}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses Dynlibs,ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$ENDIF}
 
 {$IFDEF Unix}
