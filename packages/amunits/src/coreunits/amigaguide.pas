@@ -38,11 +38,17 @@
 }
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit amigaguide;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,amigados, intuition, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
  APSH_TOOL_ID           = 11000;

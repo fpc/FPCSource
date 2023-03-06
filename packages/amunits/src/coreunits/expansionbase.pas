@@ -23,11 +23,17 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit expansionbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Configvars;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, configvars;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 

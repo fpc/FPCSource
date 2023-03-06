@@ -29,11 +29,17 @@
         printer device data definition
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit prtbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Parallel, Amiga.Core.Serial, Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Timer,Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, parallel, serial, amigados, intuition, timer,utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Type

@@ -50,12 +50,18 @@
 {$INLINE ON}
 {$mode objfpc}
 unit amigalib
+{$IFNDEF FPC_DOTTEDUNITS}
   deprecated 'Unit will be removed. Functions are moved to exec, intuition, utility and commodities unit.';
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec,Amiga.Core.Intuition,Amiga.Core.Utility,Amiga.Core.Commodities,Amiga.Core.Inputevent,Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec,intuition,utility,commodities,inputevent,amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // moved to exec, use them from there
 {*  Exec support functions from amiga.lib  *}

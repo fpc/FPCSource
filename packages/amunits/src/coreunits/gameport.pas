@@ -14,11 +14,17 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gameport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 

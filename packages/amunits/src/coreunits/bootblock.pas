@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bootblock;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 

@@ -15,11 +15,17 @@
  **********************************************************************}
 {$packrecords 2}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit configregs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
 ** AutoConfig (tm) boards each contain a 32 byte "ExpansionRom" area that is

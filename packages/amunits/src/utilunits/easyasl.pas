@@ -33,12 +33,18 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit easyasl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Asl, Amiga.Core.Utility, Amiga.Utils.Amigautils,System.Strings, Amiga.Core.Workbench, Amiga.Utils.Linklist;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, asl, utility, amigautils,strings, workbench, linklist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 TYPE
@@ -77,7 +83,11 @@ FUNCTION SaveFileAsl(title : String; VAR path, fname : PAnsiChar; win : Pointer)
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+ uses Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
  uses pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

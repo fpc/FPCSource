@@ -23,10 +23,16 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT XADMASTER;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec,Amiga.Core.Utility,Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec,utility,amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     XADMASTERNAME : PAnsiChar = 'xadmaster.library';

@@ -35,10 +35,16 @@
 }
 
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT realtime;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 USES exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
 

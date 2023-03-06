@@ -37,13 +37,19 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit amarquee;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 interface
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
@@ -294,8 +300,13 @@ FUNCTION QNewServerSessionTags(hostNames : ShortString; progNames : ShortString;
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Utils.Pastoc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   pastoc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 FUNCTION QDebugOp(session : pQSession; string_ : ShortString) : LONGINT;
 begin

@@ -14,11 +14,17 @@
 
  **********************************************************************}
 {$PACKRECORDS 2}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit clipboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     CBD_POST            = CMD_NONSTD + 0;

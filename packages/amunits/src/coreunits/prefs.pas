@@ -29,10 +29,16 @@
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit prefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec, Amiga.Core.Iffparse, Amiga.Core.Agraphics, Amiga.Core.Timer, Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec, iffparse, agraphics, timer, intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Asl }

@@ -28,10 +28,16 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT LUCYPLAY;
+{$ENDIF FPC_DOTTEDUNITS}
 
 INTERFACE
+{$IFDEF FPC_DOTTEDUNITS}
+USES Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 USES Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 VAR LucyPlayBase : pLibrary = nil;
 
