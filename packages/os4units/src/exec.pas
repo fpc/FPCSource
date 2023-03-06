@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS 2}
 

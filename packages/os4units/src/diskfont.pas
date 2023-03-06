@@ -12,12 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit diskfont;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Agraphics,Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, agraphics,utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MAXFONTPATH = 256; // including null terminator
