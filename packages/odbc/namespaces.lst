@@ -1,0 +1,4 @@
+src/odbcsqldyn.pas=namespaced/Api.OdbcDyn.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/odbcsql.pas=namespaced/Api.Odbc.pas
