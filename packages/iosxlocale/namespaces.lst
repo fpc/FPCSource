@@ -1,0 +1,4 @@
+src/iosxlocale.pp=namespaced/IosApi.Iosxlocale.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/iosxwstr.pp=namespaced/IosApi.Iosxwstr.pp
