@@ -1,0 +1,3 @@
+src/png.pp=namespaced/Api.Png.pp
+{s*:src/}=namespaced/
+{i+:src/}
