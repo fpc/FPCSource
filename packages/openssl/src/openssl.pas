@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit openssl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {==============================================================================|
 | Project : Ararat Synapse                                       | 003.004.001 |
@@ -79,11 +81,19 @@ requested OpenSSL function just return errorcode.
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF OS2}
+  System.Net.Sockets,
+{$ENDIF OS2}
+  System.DynLibs, System.CTypes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF OS2}
   Sockets,
 {$ENDIF OS2}
   DynLibs, cTypes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TLibreSSLSupport = (lssFirst,lssLast,lssDisabled);
