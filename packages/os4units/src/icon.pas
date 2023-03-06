@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit icon;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Workbench, Amiga.Core.Utility, Amiga.Core.Amigados, Amiga.Core.Agraphics, Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, workbench, utility, amigados, agraphics, intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ICONNAME: PAnsiChar = 'icon.library';

@@ -12,13 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Workbench;
+{$ENDIF FPC_DOTTEDUNITS}
 {$PACKRECORDS 2}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+   Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility, Amiga.Core.Intuition, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
    exec, AmigaDos, Utility, Intuition, AGraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // ###### workbench/startup.h ###############################################
 

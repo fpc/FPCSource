@@ -12,12 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit picasso96api;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Agraphics, Amiga.Core.Intuition;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, utility, agraphics, intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Picasso96.h -- include File
 //  (C) Copyright 1996-98 Alexander Kneer & Tobias Abt
