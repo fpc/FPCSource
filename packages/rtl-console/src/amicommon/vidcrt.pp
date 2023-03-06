@@ -1,11 +1,20 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vidcrt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, MacOsApi.Video, System.SysUtils,
+  System.Console.Mouse,
+  System.Types, System.Math, PalmApi.Keyboard;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, Video, sysutils,
   mouse,
   Types, Math, keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$include crth.inc}
 

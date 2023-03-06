@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 {$ifdef DEBUG}
 uses
@@ -35,12 +37,21 @@ implementation
            from Win9x.
 }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifndef DEBUG}
+   WinApi.Windows,
+{$endif WiiApi.Debug}
+   TP.DOS,
+   System.Console.Winevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifndef DEBUG}
    Windows,
 {$endif DEBUG}
    Dos,
    WinEvent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 

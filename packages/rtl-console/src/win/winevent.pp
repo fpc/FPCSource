@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit WinEvent;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {
@@ -21,8 +23,13 @@ interface
    because win32 uses only one message queue for mouse and key events
 }
 
+{$IFDEF FPC_DOTTEDUNITS}
+    uses
+       WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
     uses
        Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
     type
        TEventProcedure = Procedure(var ir:INPUT_RECORD);

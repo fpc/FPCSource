@@ -13,15 +13,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i keybrdh.inc}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ OS2Api.kbdcalls, OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  KbdCalls, DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 

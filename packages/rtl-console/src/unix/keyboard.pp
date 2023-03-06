@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$inline on}
 
@@ -56,10 +58,17 @@ function AddSpecialSequence(const St : Shortstring;Proc : Tprocedure) : PTreeEle
                                implementation
 {*****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Console.Mouse,  System.Strings,System.Console.Unixkvmbase,
+  UnixApi.TermIO,UnixApi.Base
+  {$ifdef Linux},LinuxApi.Vcs{$endif};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Mouse,  Strings,unixkvmbase,
   termio,baseUnix
   {$ifdef linux},linuxvcs{$endif};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 
@@ -1646,7 +1655,7 @@ End;
 procedure SysInitKeyboard;
 begin
   PendingEnhancedKeyEvent:=NilEnhancedKeyEvent;
-  Utf8KeyboardInputEnabled:=UnixKVMBase.UTF8Enabled;
+  Utf8KeyboardInputEnabled:={$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}UnixKVMBase.UTF8Enabled;
   SetRawMode(true);
 {$ifdef logging}
      assign(f,'keyboard.log');

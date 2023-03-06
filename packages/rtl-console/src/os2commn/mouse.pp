@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i mouseh.inc}
@@ -23,9 +25,15 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ MacOsApi.Video,
+ OS2Api.moucalls, OS2Api.doscalls;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  Video,
  MouCalls, DosCalls;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i mouse.inc}
 

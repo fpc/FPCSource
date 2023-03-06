@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Video;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i videoh.inc}
@@ -22,8 +24,13 @@ procedure VideoSetConsoleOutHandle (NewHandle: THandle);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows,TP.DOS,System.Unicode.Graphemebreakproperty,System.Unicode.Eastasianwidth,System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows,dos,graphemebreakproperty,eastasianwidth,charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i video.inc}
 
