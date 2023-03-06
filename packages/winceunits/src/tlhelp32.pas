@@ -44,14 +44,21 @@
 {                                                                              }
 {******************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TlHelp32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libtoolhelp = 'toolhelp.dll';

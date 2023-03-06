@@ -24,13 +24,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinceAPI.Winioctl;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, WinIOCtl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //**********************************************************************
 // WinCE Device Interface GUIDs for Power Manager controlled devices.

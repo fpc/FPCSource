@@ -36,13 +36,19 @@
 //  Microsoft Windows Mobile 6.0 for PocketPC SDK.
 //
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit connmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$CALLING cdecl}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows, WinApi.Winsock2;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows, WinSock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
       CellcoreDLL = 'cellcore.dll';
