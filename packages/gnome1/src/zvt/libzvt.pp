@@ -19,7 +19,9 @@
    Boston, MA 02111-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libzvt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 {$Mode ObjFPC}
@@ -28,7 +30,11 @@ interface
 
 {$linklib util}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.Gtk1.Glib, Api.Gtk1.Gdk, Api.Gtk1.Gtk, Api.Gdk_imlib;
+{$ELSE FPC_DOTTEDUNITS}
 Uses glib, gdk, gtk, gdk_imlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libzvtdll='zvt';

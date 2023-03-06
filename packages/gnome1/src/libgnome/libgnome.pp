@@ -1,11 +1,17 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libgnome;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.Gtk1.Glib;
+{$ELSE FPC_DOTTEDUNITS}
 Uses glib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib esd}
 {$linklib popt}

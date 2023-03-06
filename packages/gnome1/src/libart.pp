@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libart;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 {$mode objfpc}
