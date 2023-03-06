@@ -23,7 +23,9 @@
    files for a list of changes.  These files are distributed with
    GLib at ftp://ftp.gtk.org/pub/gtk/.
   }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit glib2; // keep unit name lowercase for kylix
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$mode objfpc}
@@ -34,8 +36,13 @@ unit glib2; // keep unit name lowercase for kylix
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef windows}
@@ -683,7 +690,7 @@ function GLIB_CHECK_VERSION (major, minor, micro: guint):boolean;
  *}
 procedure g_error    (format:Pgchar; args: array of const);
 begin
-  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, Pgchar(SysUtils.Format(string(format), args)));
+  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, Pgchar({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format(string(format), args)));
 end;
 
 procedure g_error    (format:Pgchar);
@@ -693,7 +700,7 @@ end;
 
 procedure g_message  (format:Pgchar; args: array of const);
 begin
-  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, Pgchar(SysUtils.Format(string(format), args)));
+  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, Pgchar({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format(string(format), args)));
 end;
 
 procedure g_message  (format:Pgchar);
@@ -703,7 +710,7 @@ end;
 
 procedure g_critical (format:Pgchar; args: array of const);
 begin
-  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL, Pgchar(SysUtils.Format(string(format), args)));
+  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL, Pgchar({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format(string(format), args)));
 end;
 
 procedure g_critical (format:Pgchar);
@@ -713,7 +720,7 @@ end;
 
 procedure g_warning  (format:Pgchar; args: array of const);
 begin
-  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, Pgchar(SysUtils.Format(string(format), args)));
+  g_log (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, Pgchar({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format(string(format), args)));
 end;
 
 procedure g_warning  (format:Pgchar);

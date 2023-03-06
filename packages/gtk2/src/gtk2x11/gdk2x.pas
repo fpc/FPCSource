@@ -13,7 +13,9 @@
   Author: Mattias Gaertner
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdk2x;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$mode objfpc}
@@ -24,8 +26,13 @@ unit gdk2x;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, UnixApi.Types, UnixApi.Unix, UnixApi.Base, Api.Glib2, Api.Gdk2, Api.X11.Xlib, Api.X11.X, Api.X11.Xrender;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, UnixType, Unix, BaseUnix, glib2, gdk2, XLib, X, XRender;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef FREEBSD}
   {$linklib pthread}

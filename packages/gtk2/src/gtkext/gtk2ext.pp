@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtk2ext;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Glib2, Api.Gdk2, Api.Gtk2.Gdk2pixbuf, Api.Gtk2.Gtk2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   glib2, gdk2, gdk2pixbuf, gtk2;
+{$ENDIF FPC_DOTTEDUNITS}
   
 const
   { This is equired when people don't have -dev/-devel packages on linux.
@@ -28,8 +35,13 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   gtkhandle : tlibhandle;
