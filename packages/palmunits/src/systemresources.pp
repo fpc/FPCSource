@@ -41,7 +41,9 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit systemresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

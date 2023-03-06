@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fontselect_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Coretraps, PalmApi.Font;
+{$ELSE FPC_DOTTEDUNITS}
 uses coretraps, font;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function FontSelect(fontID: FontID): FontID; syscall sysTrapFontSelect;
 

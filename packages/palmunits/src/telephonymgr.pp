@@ -22,11 +22,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit telephonymgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Systemresources, PalmApi.Event_, PalmApi.Systemmgr, PalmApi.Telephonymgrtypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, systemresources, event_, systemmgr, telephonymgrtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // sysMakeROMVersion(major, minor, fix, stage, buildNum)
 const

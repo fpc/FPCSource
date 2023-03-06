@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dlserver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Datamgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, datamgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * DLK result codes

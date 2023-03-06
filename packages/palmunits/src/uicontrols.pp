@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uicontrols;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Bitmap, PalmApi.Window;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, bitmap, window;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // for UIPickColor
 const

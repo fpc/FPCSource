@@ -17,9 +17,15 @@
  *    02/25/00 jed   Created by Jesse Donaldson.
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit expansionmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 const
   sysTrapExpansionMgr = sysTrapExpansionDispatch;
   expFtrIDVersion = 0; // ID of feature containing version of ExpansionMgr.

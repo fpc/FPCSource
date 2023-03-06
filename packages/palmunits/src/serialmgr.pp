@@ -16,9 +16,15 @@
  *    1/14/98     SerialMgr.h created by Ben Manuto
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit serialmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Systemresources, PalmApi.Systemmgr, PalmApi.Netmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, systemresources, systemmgr, netmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 // New Serial manager feature numbers
 const
   sysFtrNewSerialPresent = 1;

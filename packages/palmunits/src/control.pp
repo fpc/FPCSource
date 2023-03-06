@@ -20,11 +20,17 @@
  *****************************************************************************)
 {$MACRO ON}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit control;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Datamgr, PalmApi.Font;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, datamgr, font;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   ControlAttrType = record

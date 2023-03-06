@@ -15,11 +15,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit lz77mgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Systemresources;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, systemresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //
 // Common PalmOS and Windows section

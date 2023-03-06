@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inetmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Datamgr, PalmApi.Systemresources, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, datamgr, systemresources, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Creator. Used for both the database that contains the INet Library and
 //  it's features for the feature manager.

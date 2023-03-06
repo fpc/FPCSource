@@ -16,11 +16,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libtraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //--------------------------------------------------------------------
 // Define Library Trap Numbers

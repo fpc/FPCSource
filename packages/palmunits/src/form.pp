@@ -16,11 +16,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit form;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Font, PalmApi.Window, PalmApi.Control, PalmApi.Field, PalmApi.List, PalmApi.Scrollbar, PalmApi.Table, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, font, window, control, field, list, scrollbar, table, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   noFocus = $ffff;

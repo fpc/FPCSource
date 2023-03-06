@@ -25,11 +25,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit netbitutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Netmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, netmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // # of bits in a byte
 const

@@ -17,11 +17,17 @@
  *
  ************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit udamgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Exgmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, exgmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
  (***********************************************************************
  * Generic options flags

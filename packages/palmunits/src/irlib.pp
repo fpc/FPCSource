@@ -24,11 +24,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit irlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Exgmgr, PalmApi.Systemresources;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, exgmgr, systemresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The Ir library is used as an Exchange library. ExgLib.h defines all the
 // primary entrypoints into the library. The rest of this include file defines the

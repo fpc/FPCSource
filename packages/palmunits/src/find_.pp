@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit find_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   maxFinds      = 9;

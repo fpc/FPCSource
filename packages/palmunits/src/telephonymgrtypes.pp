@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit telephonymgrtypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Errorbase, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, errorbase, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   telErrorClass = appErrorClass + $100; // DOLATER: remove this constant

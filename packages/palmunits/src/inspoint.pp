@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit inspoint;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Systemmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, systemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Blink interval is half of a second
 const

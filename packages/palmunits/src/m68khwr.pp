@@ -15,11 +15,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit m68khwr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Breakpoint words we use

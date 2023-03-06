@@ -47,7 +47,9 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

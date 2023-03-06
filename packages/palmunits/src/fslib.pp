@@ -39,11 +39,17 @@
  * A label is created from the first 11 valid non-space characters.
  ********************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fslib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Vfsmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, vfsmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // When building the PalmOS 3.5 version of ExpansionMgr,
 // since this constant was not in the 3.5 SystemResources.h...

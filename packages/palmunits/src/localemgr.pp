@@ -34,11 +34,17 @@
  *                in LmLocaleToIndex's iLocale parameter (as wildcards).
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit localemgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Supporting lmChoiceLanguageName would add over 3K to the 'locs' resource.
 // DOLATER CS - either do it or punt.

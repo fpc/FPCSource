@@ -22,11 +22,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit exglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Exgmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, libtraps, exgmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // special exchange mgr event key
 const

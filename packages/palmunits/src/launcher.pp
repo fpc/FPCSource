@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit launcher;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * Launcher procedures

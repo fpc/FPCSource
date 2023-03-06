@@ -48,11 +48,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit palmlocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Localemgr, PalmApi.Textmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses localemgr, textmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Names of the known encodings.
 const

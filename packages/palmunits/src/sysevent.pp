@@ -26,11 +26,17 @@
  *       09/14/99 gap   Removed EvtGetTrapState.
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sysevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Rect, PalmApi.Window;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, rect, window;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   SysEventsEnum = WordEnum;

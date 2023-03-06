@@ -29,11 +29,17 @@
  *
  ***********************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit connectionmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Datamgr, PalmApi.Modemmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, coretraps, errorbase, datamgr, modemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Definition

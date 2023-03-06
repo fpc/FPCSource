@@ -18,7 +18,9 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hwrmiscflags;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

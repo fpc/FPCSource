@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit smslib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Errorbase, PalmApi.Exgmgr, PalmApi.Telephonymgrui, PalmApi.Telephonymgrtypes, PalmApi.Telephonymgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, errorbase, exgmgr, telephonymgrui, telephonymgrtypes, telephonymgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The Sms library is used as an Exchange library. ExgLib.h defines all the
 // primary entrypoints into the library. The rest of this include file defines the

@@ -35,11 +35,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit systemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Bitmap, PalmApi.Datamgr, PalmApi.Systemresources, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, libtraps, errorbase, bitmap, datamgr, systemresources, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************************************
  * System Constants
