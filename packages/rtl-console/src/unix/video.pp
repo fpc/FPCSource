@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I-}
 {$GOTO on}
@@ -28,9 +30,15 @@ unit video;
                                 implementation
 {*****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  UnixApi.Base,UnixApi.TermIO,System.Strings,System.Console.Unixkvmbase,System.Unicode.Graphemebreakproperty,System.Unicode.Eastasianwidth
+     ,System.CharSet
+     {$ifdef Linux},LinuxApi.Vcs{$endif};
+{$ELSE FPC_DOTTEDUNITS}
 uses  baseunix,termio,strings,unixkvmbase,graphemebreakproperty,eastasianwidth
      ,charset
      {$ifdef linux},linuxvcs{$endif};
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   CP_ISO01 = 28591;  {ISO 8859-1}
@@ -875,10 +883,10 @@ end;
 {$endif}
 
 var
-  preInitVideoTio, postInitVideoTio: termio.termios;
+  preInitVideoTio, postInitVideoTio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios;
   inputRaw, outputRaw: boolean;
 
-procedure saveRawSettings(const tio: termio.termios);
+procedure saveRawSettings(const tio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios);
 
 begin
   with tio do
@@ -894,7 +902,7 @@ begin
    end;
 end;
 
-procedure restoreRawSettings(tio: termio.termios);
+procedure restoreRawSettings(tio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios);
 begin
   with tio do
     begin
@@ -965,7 +973,7 @@ end;
 
 procedure prepareDoneVideo;
 var
-  tio: termio.termios;
+  tio: {$IFDEF FPC_DOTTEDUNITS}UnixApi.{$ENDIF}TermIo.termios;
 begin
   TCGetAttr(1,tio);
   saveRawSettings(tio);

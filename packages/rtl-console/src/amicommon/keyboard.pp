@@ -14,7 +14,9 @@
  **********************************************************************}
 
 {$MODE OBJFPC}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Keyboard;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i keybrdh.inc}
@@ -42,8 +44,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   MacOsApi.Video, Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Inputevent, System.Console.Mouse, System.SysUtils, Amiga.Core.Keymap, Amiga.Core.Timer, Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    video, exec, intuition, inputevent, mouse, sysutils, keymap, timer, amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
 {$i keyscan.inc}

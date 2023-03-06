@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i mouseh.inc}
@@ -23,8 +25,13 @@ procedure DoCustomMouse(b : boolean);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.Video,TP.DOS;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   video,dos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i mouse.inc}
 
@@ -319,7 +326,6 @@ asm
 @@no_mouse:
 end;
 
-
 procedure SysShowMouse;
 
 begin
@@ -332,6 +338,7 @@ begin
           begin
              oldmousex:=getmousex-1;
              oldmousey:=getmousey-1;
+             
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
              CustomMouse_MouseIsVisible:=true;
@@ -555,7 +562,6 @@ Const
     PollMouseEvent  : Nil;
     PutMouseEvent  : Nil;
   );
-
 Begin
   SetMouseDriver(SysMouseDriver);
 end.

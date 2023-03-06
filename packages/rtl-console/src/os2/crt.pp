@@ -10,7 +10,9 @@
 
 ****************************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

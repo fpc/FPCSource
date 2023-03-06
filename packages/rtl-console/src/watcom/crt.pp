@@ -2,7 +2,9 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -10,8 +12,13 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WatcomApi.WatCom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   watcom;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$ASMMODE ATT}
@@ -739,4 +746,5 @@ begin
   initdelay;
 { Enable ctrl-c input (JM) }
 //  __djgpp_set_ctrl_c(0);
+
 end.

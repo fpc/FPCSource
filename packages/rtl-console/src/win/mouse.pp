@@ -13,15 +13,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i mouseh.inc}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   WinApi.Windows,TP.DOS,System.Console.Winevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    windows,dos,Winevent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i mouse.inc}
 

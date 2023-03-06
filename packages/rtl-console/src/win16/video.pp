@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$modeswitch advancedrecords}
@@ -23,8 +25,13 @@ unit video;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   WinTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I videoh.inc}
 
@@ -33,8 +40,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.WinProcs, System.Unicode.Graphemebreakproperty, System.Unicode.Eastasianwidth, System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   WinProcs, graphemebreakproperty, eastasianwidth, charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I video.inc}
 

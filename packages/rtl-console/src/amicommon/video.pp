@@ -16,7 +16,9 @@
 
 {$MODE OBJFPC}
 {$modeswitch advancedrecords}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Video;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {.$define VIDEODEBUG}
 {.$define WITHBUFFERING}
@@ -30,8 +32,13 @@ unit Video;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Amigados, Amiga.Core.Intuition, Amiga.Core.Utility, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   amigados, intuition, utility, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i videoh.inc}
 
@@ -56,8 +63,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+   Amiga.Core.Exec, Amiga.Core.Agraphics, System.Unicode.Graphemebreakproperty, System.Unicode.Eastasianwidth, System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
    exec, agraphics, graphemebreakproperty, eastasianwidth, charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure SysUpdateScreen(Force: Boolean); forward;
 

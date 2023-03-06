@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -25,7 +27,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Libc;
+{$ELSE FPC_DOTTEDUNITS}
 uses Libc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$ASMMODE ATT}

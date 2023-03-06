@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$GOTO on}
 
@@ -26,8 +28,13 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.Video, PalmApi.Keyboard, WinApi.WinProcs, WinApi.WinTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   video, keyboard, WinProcs, WinTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************
                            Low level Routines

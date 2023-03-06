@@ -21,7 +21,9 @@
                    TextMode, Sound and NoSound are dummys, don't know how to
                    implement that for netware
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit crt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

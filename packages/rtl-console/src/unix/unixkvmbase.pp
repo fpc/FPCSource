@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit UnixKvmBase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************}
                                    interface
@@ -26,8 +28,13 @@ function UTF8Enabled: Boolean;
                                 implementation
 {*****************************************************************************}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseunix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef BEOS}
 function UTF8Enabled: Boolean;

@@ -15,15 +15,22 @@
  **********************************************************************}
 { 2001/04/16 armin: first version for netware
   2002/02/26 armin: changes for current fpc }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Video;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i videoh.inc}
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  TP.DOS,System.Unicode.Graphemebreakproperty,System.Unicode.Eastasianwidth,System.CharSet;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dos,graphemebreakproperty,eastasianwidth,charset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i video.inc}
 {$i nwsys.inc}

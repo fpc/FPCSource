@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Mouse;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {$i mouseh.inc}
@@ -23,8 +25,14 @@ procedure DoCustomMouse(b : boolean);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  MacOsApi.Video,DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   video,go32;
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 {$i mouse.inc}
 
