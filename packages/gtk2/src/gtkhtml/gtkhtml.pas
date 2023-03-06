@@ -21,7 +21,9 @@
 {
   !!!!! Maybe wrong for kylix !!!!!
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtkhtml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$H+}
 {$IFDEF FPC}
@@ -33,8 +35,13 @@ unit gtkhtml;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk2.Gtk2, Api.Glib2, Api.Atk, Api.Pango, Api.Gtk2.Gdk2pixbuf, Api.Gdk2;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   gtk2, glib2, atk, pango, gdk2pixbuf, gdk2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 // OS dependent defines

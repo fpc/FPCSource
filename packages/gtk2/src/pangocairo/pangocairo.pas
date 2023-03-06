@@ -20,7 +20,9 @@
     Boston, MA 02111-1301, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pangocairo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$mode objfpc}
@@ -30,7 +32,11 @@ unit pangocairo;
 {$ENDIF}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Glib2, Api.Pango, Api.Cairo.Lib;
+{$ELSE FPC_DOTTEDUNITS}
 uses glib2, pango, cairo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifdef windows}

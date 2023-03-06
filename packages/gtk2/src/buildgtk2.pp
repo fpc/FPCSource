@@ -18,18 +18,29 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit buildgtk2; // keep unit name lowercase for kylix
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Gtk2.Gtk2, Api.Glade2,Api.Gtk2.Gdkglext,Api.Gtk2.Gtkglext, Api.Gtk2.Gtk2ext
+{$ifdef Unix}  
+  ,Api.Gtk2.Gdk2x
+{$endif Unix}
+  , Api.Pangocairo;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   gtk2, libglade2,gdkglext,gtkglext, gtk2ext
 {$ifdef unix}  
   ,gdk2x
 {$endif unix}
   , pangocairo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 implementation
 
