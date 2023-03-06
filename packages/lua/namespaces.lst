@@ -1,0 +1,4 @@
+src/lauxlib.pas=namespaced/Api.Lua.Aux.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/lualib.pas=namespaced/Api.Lua.Std.pas
