@@ -1,0 +1,6 @@
+src/oratypes.pp=namespaced/Api.Oracle.Types.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/oci.pp=namespaced/Api.Oracle.Oci.pp
+src/oraoci.pp=namespaced/Api.Oracle.OraOci.pp
+src/ocidyn.pp=namespaced/Api.Oracle.OciDyn.pp
