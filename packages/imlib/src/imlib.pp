@@ -20,14 +20,20 @@
    Boston, MA 02110-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Imlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 {$mode objfpc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.X11.X, Api.X11.Xlib, Api.X11.Xutil;
+{$ELSE FPC_DOTTEDUNITS}
 Uses X, Xlib, XUtil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifndef os2}

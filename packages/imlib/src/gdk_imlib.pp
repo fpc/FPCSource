@@ -20,14 +20,20 @@
    Boston, MA 02110-1301, USA.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gdk_imlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$PACKRECORDS C}
 {$mode objfpc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses Api.Gtk1.Glib, Api.Gtk1.Gdk, Api.Gtk1.Gtk;
+{$ELSE FPC_DOTTEDUNITS}
 Uses glib, gdk, gtk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$ifndef os2}
