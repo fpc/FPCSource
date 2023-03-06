@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpReport.Report, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpreport, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 

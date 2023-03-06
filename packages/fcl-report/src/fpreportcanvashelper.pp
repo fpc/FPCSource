@@ -2,7 +2,7 @@
     This file is part of the Free Component Library.
     Copyright (c) 2017 Michael Van Canneyt, member of the Free Pascal development team
 
-    Canvas helper class for fpReport. Used by HTML and FPImage exporters.[B
+    Canvas helper class for fpReport. Used by HTML and FpImage exporters.[B
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportcanvashelper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage, FpReport.Report, FpImage.Canvas;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpimage, fpreport, fpcanvas;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -53,7 +60,11 @@ const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TReportImageFriend = class(TFPReportCustomImage);

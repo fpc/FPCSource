@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreporthtmlutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpImage, FpReport.Report, Xml.Dom, Html.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpimage, fpreport, dom, dom_html;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -234,7 +241,11 @@ resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Xml.HtmWrite;
+{$ELSE FPC_DOTTEDUNITS}
 uses htmwrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Auxiliary functions }
 
