@@ -1,7 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xresource; {$DEFINE MACRO}
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.X11.X,Api.X11.Xlib {$IFDEF MACROS}, System.Strings{$ENDIF};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   x,xlib {$IFDEF MACROS}, strings{$ENDIF};
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef os2}
   {$LinkLib c}

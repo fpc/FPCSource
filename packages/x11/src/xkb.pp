@@ -70,9 +70,15 @@ History:
 {$PACKRECORDS C}
 {$MODE OBJFPC} {$MACRO ON} {$DEFINE MACRO}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XKB;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 uses X, Xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function XkbCharToInt    (v       : Byte) : SmallInt;
 procedure XkbIntTo2Chars (i : Word; var h, l : byte);
@@ -2130,7 +2136,11 @@ procedure SrvXkbFreeGeometry (geom : PXkbGeometryPtr; which : Word; freeMap : Bo
 {$endif}
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.X11.Xi;
+{$ELSE FPC_DOTTEDUNITS}
 uses xi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (************************************* xkb *************************************)
 function XkbLegalXILedClass (c : Cardinal) : LongBool;

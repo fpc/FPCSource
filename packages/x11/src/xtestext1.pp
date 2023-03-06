@@ -51,14 +51,21 @@ University of California.
 
 *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xtestext1;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS c}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib, Api.X11.Xmd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, x, xlib, xmd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   libXext = 'Xext';

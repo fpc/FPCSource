@@ -3,14 +3,21 @@
 }
 { $XFree86: xc/include/extensions/xf86dga.h,v 3.20 1999/10/13 04:20:48 dawes Exp $ }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit xf86dga;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses
+  System.CTypes, Api.X11.X, Api.X11.Xlib;
+{$ELSE FPC_DOTTEDUNITS}
 Uses
   ctypes, x, xlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   libXxf86dga='Xxf86dga';

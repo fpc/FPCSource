@@ -13,7 +13,9 @@
  * these archives, these are from memory and usage.
  *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xf86keysym;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 

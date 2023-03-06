@@ -51,10 +51,16 @@ History:
 {$PACKRECORDS C}
 {$MODE OBJFPC} {$MACRO ON} {$DEFINE MACRO}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xkblib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.X11.X, Api.X11.Xlib, Api.X11.Xkb;
+{$ELSE FPC_DOTTEDUNITS}
 uses X, Xlib, XKB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
         PXkbAnyEvent = ^TXkbAnyEvent;

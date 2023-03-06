@@ -1,9 +1,16 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xrender;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.X11.X, Api.X11.Xlib, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   x, xlib, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifndef os2}
   {$LinkLib c}
