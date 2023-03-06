@@ -28,15 +28,22 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googlebase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $DEFINE DEBUGBASEOBJMEMLEAK}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo, System.Classes, System.SysUtils, FpWeb.Rest.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo, Classes, SysUtils, restbase;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EGoogleAPI = Class(ERestAPI);

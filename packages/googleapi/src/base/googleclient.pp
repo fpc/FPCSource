@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit googleclient;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.IniFiles, FpJson.Data, FpWeb.Client, Jwt.Oauth2, Jwt.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, inifiles, fpjson, fpwebclient, fpoauth2, fpjwt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -98,7 +105,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses FpWeb.Http.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses httpdefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const
