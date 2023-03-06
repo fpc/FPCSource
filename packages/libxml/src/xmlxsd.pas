@@ -3,13 +3,25 @@
   Copyright (C) 2008 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmlxsd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+  Api.XML.Xml2,
+  Api.XML.Xsdparser,
+  System.Math,
+  System.Classes,
+  System.DateUtils,
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
   xml2,
@@ -18,6 +30,7 @@ uses
   Classes,
   DateUtils,
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SChildNotFound = 'child %s not found';

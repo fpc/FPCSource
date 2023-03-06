@@ -1,0 +1,5 @@
+src/xmlxsdparser.pas=namespaced/Api.XML.Xsdparser.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/xml2.pas=namespaced/Api.XML.Xml2.pas
+src/xmlxsd.pas=namespaced/Api.XML.Xsd.pas

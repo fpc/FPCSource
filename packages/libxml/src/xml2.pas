@@ -3,7 +3,9 @@
   Copyright (C) 2008 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xml2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -14,9 +16,15 @@ unit xml2;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DynLibs,
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dynlibs,
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IF Defined(WINDOWS)}
