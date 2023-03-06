@@ -1,0 +1,3 @@
+src/a52.pas=namespaced/Api.A52.pas
+{s*:src/}=namespaced/
+{i+:src/}
