@@ -45,7 +45,9 @@
 // $Id: JwaMsi.pas,v 1.17 2007/09/05 11:58:51 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaMsi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -53,8 +55,13 @@ unit JwaMsi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Wincrypt { for PCCERT_CONTEXT };
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinCrypt { for PCCERT_CONTEXT };
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$HPPEMIT ''}

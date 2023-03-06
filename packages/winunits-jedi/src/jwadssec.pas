@@ -42,7 +42,9 @@
 
 // $Id: JwaDsSec.pas,v 1.13 2007/09/14 06:48:45 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaDsSec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -57,8 +59,13 @@ unit JwaDsSec;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winnt, WinApi.Jedi.Prsht;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinNT, JwaPrSht;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

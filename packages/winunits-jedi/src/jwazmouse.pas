@@ -43,14 +43,21 @@
 // $Id: JwaZMOUSE.pas,v 1.8 2007/09/14 06:48:49 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaZMOUSE;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jediapilib.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winuser, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinUser, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

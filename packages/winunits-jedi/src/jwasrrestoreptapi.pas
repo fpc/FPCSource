@@ -43,7 +43,9 @@
 
 // $Id: JwaSrRestorePtApi.pas,v 1.9 2007/09/05 11:58:52 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaSrRestorePtApi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -57,8 +59,13 @@ unit JwaSrRestorePtApi;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 

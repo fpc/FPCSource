@@ -45,7 +45,9 @@
 
 // $Id: JwaHtmlHelp.pas,v 1.15 2007/09/14 06:48:45 marquardt Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaHtmlHelp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jediapilib.inc}
 
@@ -66,11 +68,19 @@ interface
 (*$HPPEMIT ''*)
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF HAS_UNIT_VARIANTS}
+  System.Variants,
+  {$ENDIF HAS_UNIT_VARIANTS}
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winuser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF HAS_UNIT_VARIANTS}
   Variants,
   {$ENDIF HAS_UNIT_VARIANTS}
   JwaWinType, JwaWinUser;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 // Commands to pass to HtmlHelp()
 

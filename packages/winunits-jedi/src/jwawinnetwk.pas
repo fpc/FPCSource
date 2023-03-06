@@ -43,7 +43,9 @@
 // $Id: JwaWinNetWk.pas,v 1.13 2007/09/05 11:58:54 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinNetWk;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -58,8 +60,13 @@ unit JwaWinNetWk;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winerror, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinError, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

@@ -43,7 +43,9 @@
 // $Id: JwaWinReg.pas,v 1.13 2007/09/05 11:58:54 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinReg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -61,8 +63,13 @@ unit JwaWinReg;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Reason, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaReason, JwaWinBase, JwaWinNT, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

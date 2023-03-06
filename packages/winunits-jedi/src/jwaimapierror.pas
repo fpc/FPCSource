@@ -42,7 +42,9 @@
 
 // $Id: JwaImapiError.pas,v 1.9 2007/09/05 11:58:50 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaImapiError;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -56,8 +58,13 @@ interface
 {$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winerror, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinError, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

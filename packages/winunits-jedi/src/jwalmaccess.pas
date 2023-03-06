@@ -42,7 +42,9 @@
 
 // $Id: JwaLmAccess.pas,v 1.13 2007/09/05 11:58:50 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaLmAccess;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -57,8 +59,13 @@ unit JwaLmAccess;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winnt, WinApi.Jedi.Wintype, WinApi.Jedi.Lmcons;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinNT, JwaWinType, JwaLmCons;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

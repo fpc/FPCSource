@@ -76,7 +76,9 @@ already declared.
 {$ENDIF JWA_INCLUDEMODE}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinternl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -92,11 +94,19 @@ unit JwaWinternl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF USE_DELPHI_TYPES}
+  WinApi.Windows,
+  {$ENDIF USE_DELPHI_TYPES}
+  WinApi.Jedi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows,
   {$ENDIF USE_DELPHI_TYPES}
   JwaWindows;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
@@ -761,8 +771,13 @@ type
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
          
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Windllnames;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinDLLNames;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

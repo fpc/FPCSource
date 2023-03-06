@@ -43,7 +43,9 @@
 // $Id: JwaWinPerf.pas,v 1.8 2007/09/05 11:58:54 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinPerf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -58,8 +60,13 @@ unit JwaWinPerf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winbase, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinBase, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

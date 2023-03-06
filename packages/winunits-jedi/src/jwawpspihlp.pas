@@ -42,7 +42,9 @@
 
 // $Id: JwaWPSpiHlp.pas,v 1.7 2007/09/05 11:58:53 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWPSpiHlp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaWPSpiHlp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wptypes, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWPTypes, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

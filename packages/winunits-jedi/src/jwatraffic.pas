@@ -42,7 +42,9 @@
 
 // $Id: JwaTraffic.pas,v 1.11 2007/09/05 11:58:52 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaTraffic;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -56,8 +58,13 @@ unit JwaTraffic;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Qos;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaQos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 

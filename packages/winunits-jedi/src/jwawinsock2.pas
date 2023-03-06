@@ -43,7 +43,9 @@
 // $Id: JwaWinsock2.pas,v 1.17 2007/09/14 06:48:49 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinsock2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -58,8 +60,13 @@ unit JwaWinsock2;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Qos, WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Winerror, WinApi.Jedi.Winnt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaQos, JwaWinType, JwaWinBase, JwaWinError, JwaWinNT;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

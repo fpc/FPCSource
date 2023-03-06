@@ -1,7 +1,9 @@
 // $Id: JwaAdsTLB.pas,v 1.7 2007/09/06 14:57:10 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAdsTLB;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 // ************************************************************************ //
@@ -76,9 +78,15 @@ unit JwaAdsTLB;
 {$IFNDEF JWA_OMIT_SECTIONS}
 interface
 {$i jediapilib.inc}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows, WinApi.Activex, System.Classes 
+     {$ifndef FPC} {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} {$endif} ;  // Are these used at all?
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows, ActiveX, Classes 
      {$ifndef FPC} {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} {$endif} ;  // Are these used at all?
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
@@ -109,8 +117,8 @@ Type
                  end;
 
 
-  SysUINT    = Windows.UINT;
-  SysINT     = Windows.WINT;
+  SysUINT    = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.UINT;
+  SysINT     = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.WINT;
 {$endif}
 
 // *********************************************************************//
@@ -6282,7 +6290,11 @@ procedure Register;
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Comobj;
+{$ELSE FPC_DOTTEDUNITS}
 uses ComObj;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_INTERFACESECTION}

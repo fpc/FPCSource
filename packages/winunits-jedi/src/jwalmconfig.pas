@@ -43,7 +43,9 @@
 // $Id: JwaLmConfig.pas,v 1.13 2007/09/05 11:58:50 dezipaitor Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS_LM}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaLmConfig;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I jediapilib.inc}
 {$I jedi.inc} //used for D5 compiling
@@ -52,8 +54,13 @@ unit JwaLmConfig;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Lmcons, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaLmCons, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS_LM}
 
 {$HPPEMIT ''}

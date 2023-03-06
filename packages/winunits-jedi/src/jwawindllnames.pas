@@ -34,7 +34,9 @@
 {******************************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
 // $Id: JwaWinDLLNames.pas,v 1.2 2007/09/05 11:58:53 dezipaitor Exp $
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinDLLNames;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 

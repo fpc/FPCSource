@@ -41,7 +41,9 @@
 // $Id: JwaBluetoothAPIs.pas,v 1.15 2007/09/06 14:57:11 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaBluetoothAPIs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 
@@ -57,8 +59,13 @@ unit JwaBluetoothAPIs;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Bthsdpdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaWinBase, JwaBthSdpDef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
