@@ -1,0 +1,5 @@
+src/fpmustache.pp=namespaced/Mustache.Base.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/fpexmustache.pp=namespaced/Mustache.Extended.pp
+src/fpdbmustache.pp=namespaced/Mustache.Data.pp
