@@ -1,8 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit postgres;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Dllist;
+{$ELSE FPC_DOTTEDUNITS}
 uses dllist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib pq}
 {$linklib c}

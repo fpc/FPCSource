@@ -5,14 +5,21 @@
   when finished.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit postgres3dyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.DynLibs, System.SysUtils, Api.Dllistdyn, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dynlibs, SysUtils, dllistdyn, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   const

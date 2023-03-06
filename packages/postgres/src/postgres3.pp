@@ -5,11 +5,17 @@
   It is for postgreSQL version 7.4 and higher with support for the v3.0
   connection-protocol
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit postgres3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Dllist;
+{$ELSE FPC_DOTTEDUNITS}
 uses dllist;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
