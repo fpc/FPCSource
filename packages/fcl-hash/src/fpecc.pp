@@ -15,7 +15,9 @@
 
 
 {$mode delphi}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpECC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -76,7 +78,11 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Hash.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils, fphashutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   UInt128 = record
