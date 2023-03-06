@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpAsync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Api.Async;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, libasync;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

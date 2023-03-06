@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libasync;
+{$ENDIF}
 
 {$MODE objfpc}
 
@@ -39,7 +41,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses UnixApi.Types, UnixApi.Base, UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses unixtype, baseunix, Unix;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   MaxHandle = SizeOf(TFDSet) * 8 - 1;
