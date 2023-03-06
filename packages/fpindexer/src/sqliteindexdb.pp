@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLiteIndexDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, FpIndexer.Indexer, System.CTypes, Api.Sqlite3;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, fpIndexer, ctypes, sqlite3;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TDatabaseID = record

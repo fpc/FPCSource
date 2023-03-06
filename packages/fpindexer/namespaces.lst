@@ -1,0 +1,13 @@
+src/dbindexer.pp=namespaced/FpIndexer.Db.Types.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/fpmasks.pp=namespaced/FpIndexer.Masks.pp
+src/ireadertxt.pp=namespaced/FpIndexer.Reader.Txt.pp
+src/ireaderpas.pp=namespaced/FpIndexer.Reader.Pascal.pp
+src/sqldbindexdb.pp=namespaced/FpIndexer.Db.SqlDb.pp
+src/ireaderhtml.pp=namespaced/FpIndexer.Reader.Html.pp
+src/fpindexer.pp=namespaced/FpIndexer.Indexer.pp
+src/memindexdb.pp=namespaced/FpIndexer.Db.Memory.pp
+src/fbindexdb.pp=namespaced/FpIndexer.Db.Fb.pp
+src/sqliteindexdb.pp=namespaced/FpIndexer.Db.Sqlite.pp
+src/pgindexdb.pp=namespaced/FpIndexer.Db.Pg.pp
