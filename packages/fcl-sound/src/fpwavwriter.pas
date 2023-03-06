@@ -13,15 +13,23 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpwavwriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Sound.Wav.Format,
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpWavFormat,
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TWaveReader }
@@ -44,8 +52,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure NtoLE(var fmt: TWaveFormat); overload;
 begin
