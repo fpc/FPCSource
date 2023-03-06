@@ -2141,16 +2141,7 @@ end;
 class function TComparerService.SelectBinaryComparer(ATypeData: PTypeData;
   ASize: SizeInt): Pointer;
 begin
-  case ASize of
-    1: Exit(@Comparer_UInt8_Instance);
-    2: Exit(@Comparer_UInt16_Instance);
-    4: Exit(@Comparer_UInt32_Instance);
-{$IFDEF CPU64}
-    8: Exit(@Comparer_UInt64_Instance)
-{$ENDIF}
-  else
-    Result := CreateInterface(@Comparer_Binary_VMT, ASize);
-  end;
+  Result := CreateInterface(@Comparer_Binary_VMT, ASize);
 end;
 
 class function TComparerService.SelectDynArrayComparer(ATypeData: PTypeData; ASize: SizeInt): Pointer;
@@ -2254,16 +2245,7 @@ end;
 class function THashService<T>.SelectBinaryEqualityComparer(ATypeData: PTypeData;
   ASize: SizeInt): Pointer;
 begin
-  case ASize of
-    1: Exit(@FEqualityComparer_UInt8_Instance);
-    2: Exit(@FEqualityComparer_UInt16_Instance);
-    4: Exit(@FEqualityComparer_UInt32_Instance);
-{$IFDEF CPU64}
-    8: Exit(@FEqualityComparer_UInt64_Instance)
-{$ENDIF}
-  else
-    Result := CreateInterface(@FEqualityComparer_Binary_VMT, ASize);
-  end;
+  Result := CreateInterface(@FEqualityComparer_Binary_VMT, ASize);
 end;
 
 class function THashService<T>.SelectDynArrayEqualityComparer(
@@ -2467,16 +2449,7 @@ end;
 class function TExtendedHashService<T>.SelectBinaryEqualityComparer(ATypeData: PTypeData;
   ASize: SizeInt): Pointer;
 begin
-  case ASize of
-    1: Exit(@FExtendedEqualityComparer_UInt8_Instance);
-    2: Exit(@FExtendedEqualityComparer_UInt16_Instance);
-    4: Exit(@FExtendedEqualityComparer_UInt32_Instance);
-{$IFDEF CPU64}
-    8: Exit(@FExtendedEqualityComparer_UInt64_Instance)
-{$ENDIF}
-  else
-    Result := CreateInterface(@FExtendedEqualityComparer_Binary_VMT, ASize);
-  end;
+  Result := CreateInterface(@FExtendedEqualityComparer_Binary_VMT, ASize);
 end;
 
 class function TExtendedHashService<T>.SelectDynArrayEqualityComparer(
