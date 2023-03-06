@@ -3,14 +3,24 @@
 {$h+}
 {$PACKRECORDS C}
 {$ENDIF}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pxlib;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Unix}
+  UnixApi.Types,
+{$endif}  
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef unix}
   unixtype,
 {$endif}  
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Automatically converted by H2Pas 1.0.0 from pxlib.h
   The following command line parameters were used:
@@ -387,8 +397,13 @@ Procedure Loadpxlib(lib : String);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
   
 var
   hlib : tlibhandle;
