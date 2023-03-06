@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_memo;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,10 +20,17 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   dbf_pgfile,
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -117,8 +126,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Data.Dbf.Dbffile;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, dbf_dbffile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //====================================================================
 //=== Memo and binary fields support

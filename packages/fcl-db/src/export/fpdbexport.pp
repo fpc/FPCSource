@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpDBExport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fpDBExport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TCustomDatasetExporter = Class;
@@ -320,7 +327,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Streamio;
+{$ELSE FPC_DOTTEDUNITS}
 uses streamio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrNoDataset           = 'Dataset not assigned';
@@ -865,8 +876,8 @@ begin
   FDateTimeFormat:=ShortDateFormat+' '+ShortTimeFormat;
   FBooleanTrue:='True';
   FBooleanFalse:='False';
-  FDecimalSeparator:=sysutils.decimalseparator;
-  FCurrencySymbol:=sysutils.CurrencyString;
+  FDecimalSeparator:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.decimalseparator;
+  FCurrencySymbol:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.CurrencyString;
 end;
 
 constructor TCustomExportFormatSettings.Create(DoInitSettings: Boolean);

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcsvexport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fpcsvexport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Export.Db, Fcl.Csv.ReadWrite;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpDBExport, csvreadwrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TCSVFormatSettings }

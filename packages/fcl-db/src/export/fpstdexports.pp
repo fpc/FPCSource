@@ -25,15 +25,22 @@
   are registered.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpstdexports;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Export.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpDBExport;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   TStdExportformat = (sefCSV,sefFixedLength,sefSimpleXMl,sefXMLXSD,sefSimpleJSON,sefSQL,seTeX,seRTF,sefDBF);
@@ -69,6 +76,18 @@ Function UnRegisterStdFormats(Fmts : TStdExportFormats) : TStdExportFormats;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Export.Csv,
+  Data.Export.Fixed,
+  Data.Export.SimpleXml,
+  Data.Export.XmlXsd,
+  Data.Export.SimpleJson,
+  Data.Export.Sql,
+  Data.Export.Tex,
+  Data.Export.Rtf,
+  Data.Export.Dbf;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpcsvexport,
   fpfixedexport,
@@ -79,6 +98,7 @@ uses
   fptexexport,
   fprtfexport,
   fpdbfexport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   StdExportNames : Array[TStdExportFormat] of string

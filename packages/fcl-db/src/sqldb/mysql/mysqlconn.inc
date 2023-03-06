@@ -34,6 +34,40 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.Types, System.SysUtils,Data.BufDataset,Data.Sqldb,Data.Db,System.CTypes,Data.FMTBcd,
+{$IFDEF mysql80}
+  Api.Mysql80dyn;
+{$ELSE}
+{$IFDEF mysql57}
+  Api.Mysql57dyn;
+{$ELSE}
+{$IFDEF mysql56}
+  Api.Mysql56dyn;
+{$ELSE}
+{$IFDEF Mysql55}
+  Api.Mysql55dyn;
+{$ELSE}
+{$IFDEF Mysql51}
+   Api.Mysql51dyn;
+{$ELSE}  
+  {$IfDef Mysql50}
+    Api.Mysql50dyn;
+  {$ELSE}
+    {$IfDef Mysql41}
+      Api.Mysql41dyn;
+    {$ELSE}
+      Api.Mysql40dyn;
+    {$EndIf}
+  {$EndIf}
+{$endif}
+{$endif}
+{$ENDIF}
+{$ENDIF}
+{$ENDIF}
+
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,Types, SysUtils,bufdataset,sqldb,db,ctypes,fmtbcd,
 {$IFDEF mysql80}
@@ -65,6 +99,8 @@ uses
 {$ENDIF}
 {$ENDIF}
 {$ENDIF}
+
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   MySQLVersion =
@@ -294,10 +330,17 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Consts,
+  System.StrUtils,
+  System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbconst,
   StrUtils,
   DateUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   Mysql_Option_Names : array[mysql_option] of string = (

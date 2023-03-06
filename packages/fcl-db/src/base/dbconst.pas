@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DBConst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 

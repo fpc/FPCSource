@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit extjsdataset;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit extjsdataset;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, FpJson.Data, System.TypInfo, Data.JsonDataset;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpjson, typinfo, fpjsondataset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
    { TExtJSJSONDataSet }

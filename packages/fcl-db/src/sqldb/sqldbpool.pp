@@ -1,12 +1,19 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sqldbpool;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb, Data.SqlDb.Pq, System.SyncObjs, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, sqldb, pqconnection, syncobjs, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultDisconnectTimeOut = 10*60; // Number of seconds before connection is considered old and is discarded.
@@ -232,7 +239,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SFindingConnection = 'Finding Connection (%s)';

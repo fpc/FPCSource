@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDFB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Dict.Base, Data.Dict.Sqldb, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb, db;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
 
@@ -58,7 +65,11 @@ Procedure UnRegisterFBDDEngine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.SqlDb.Ib;
+{$ELSE FPC_DOTTEDUNITS}
 uses ibconnection;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure RegisterFBDDEngine;
 

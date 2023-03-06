@@ -1014,8 +1014,8 @@ end;
 procedure TDataSet.InternalHandleException;
 
 begin
-  if assigned(classes.ApplicationHandleException) then
-    classes.ApplicationHandleException(self)
+  if assigned({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.ApplicationHandleException) then
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}classes.ApplicationHandleException(self)
   else
     ShowException(ExceptObject,ExceptAddr);
 end;

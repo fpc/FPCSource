@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsqlparser;
+{$ENDIF FPC_DOTTEDUNITS}
 { $define debugparser}
 { $define debugexpr}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.SQL.Scanner, Data.SQL.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpsqlscanner, fpsqltree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TParseTypeFlag = (ptfAllowDomainName,ptfAlterDomain,ptfAllowConstraint,
@@ -209,7 +216,11 @@ Function StringToSQLExtractElement(Const S : TSQLStringType; Out Res : TSQLExtra
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SerrUnmatchedBrace  = 'Expected ).';

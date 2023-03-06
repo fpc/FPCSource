@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PQEventMonitor;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { PostGresql notification monitor
 
@@ -35,6 +37,15 @@ unit PQEventMonitor;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,Data.SqlDb.Pq,Data.Db,Data.Consts,
+{$IfDef LinkDynamically}
+  Api.Postgres3dyn;
+{$Else}
+  Api.Postgres3;
+{$EndIf}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,pqconnection,db,dbconst,
 {$IfDef LinkDynamically}
@@ -42,6 +53,7 @@ uses
 {$Else}
   postgres3;
 {$EndIf}
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type

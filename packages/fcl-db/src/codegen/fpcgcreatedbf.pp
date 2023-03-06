@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcgcreatedbf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.CodeGen.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpddCodeGen;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
 
@@ -67,7 +74,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Db,System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses db,typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TDDCreateDBFOptions }
 

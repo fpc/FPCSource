@@ -15,8 +15,13 @@
  **********************************************************************}
 
 {$ifdef FPC}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Unix;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   unix;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 (*
@@ -171,7 +176,7 @@ const
 
 function LockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh: DWORD): BOOL;
 var
-  FLockInfo: {$ifdef FPC}BaseUnix.FLock{$else}TFLock{$endif};
+  FLockInfo: {$ifdef FPC}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FLock{$else}TFLock{$endif};
   FLastError: Cardinal;
 begin
   FLockInfo.l_type := F_WRLCK;
@@ -192,7 +197,7 @@ end;
 
 function UnlockFile(hFile: THandle; dwFileOffsetLow, dwFileOffsetHigh: DWORD; nNumberOfBytesToUnlockLow, nNumberOfBytesToUnlockHigh: DWORD): BOOL;
 var
-  FLockInfo: {$ifdef FPC}BaseUnix.FLock{$else}TFLock{$endif};
+  FLockInfo: {$ifdef FPC}{$IFDEF FPC_DOTTEDUNITS}UnixApi.Base{$ELSE}BaseUnix{$ENDIF}.FLock{$else}TFLock{$endif};
 begin
   FLockInfo.l_type := F_UNLCK;
   FLockInfo.l_whence := SEEK_SET;

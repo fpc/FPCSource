@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_fields;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,12 +21,21 @@ unit dbf_fields;
 interface
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Common,
+  Data.Dbf.Str;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
   db,
   dbf_common,
   dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PDbfFieldDef = ^TDbfFieldDef;
@@ -151,8 +162,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Dbf.Dbffile;      // for Data.Dbf.Dbf header structures
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbf_dbffile;      // for dbf header structures
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I dbf_struct.inc}
 

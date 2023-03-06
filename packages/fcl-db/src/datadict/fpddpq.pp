@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDPQ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Dict.Base, Data.Dict.Sqldb;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, fpdatadict, fpddsqldb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TSQLDBPostGreSQLDDEngine }
@@ -38,7 +45,11 @@ Procedure UnRegisterPostgreSQLDDengine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.SqlDb.Pq;
+{$ELSE FPC_DOTTEDUNITS}
 uses pqconnection;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure RegisterPostgreSQLDDengine;
 begin

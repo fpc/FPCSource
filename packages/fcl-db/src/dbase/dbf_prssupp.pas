@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_prssupp;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,8 +21,13 @@ unit dbf_prssupp;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -71,7 +78,11 @@ procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PAn
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 destructor TOCollection.Destroy;
 begin

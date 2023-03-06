@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_wtil;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,7 +21,22 @@ unit dbf_wtil;
 
 interface
 
+
 {$ifndef WINDOWS}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ {$IFDEF OS2}
+  OS2Api.os2def,
+ {$ELSE OS2}
+  {$ifdef FPC}
+  UnixApi.Base,
+  {$else}
+  Api.Libc, 
+  {$endif}
+ {$ENDIF OS2}
+  System.Types, System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  {$IFDEF OS2}
   OS2Def,
@@ -31,6 +48,7 @@ uses
   {$endif}
  {$ENDIF OS2}
   Types, SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   LCID_INSTALLED = $00000001;  { installed locale ids }

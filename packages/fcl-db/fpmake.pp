@@ -97,7 +97,6 @@ begin
       with T.Dependencies do
         begin
         AddUnit('db');
-        AddUnit('sqldb');
         AddUnit('bufdataset');
         end;
 

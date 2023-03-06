@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_collate;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -19,8 +21,13 @@ unit dbf_collate;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses 
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses 
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 
@@ -52,7 +59,11 @@ var
 
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Dbf.Lang, System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbf_lang, math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 procedure InitialiseCollationTables;
