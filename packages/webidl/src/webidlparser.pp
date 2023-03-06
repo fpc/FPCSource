@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webidlparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$IF FPC_FULLVERSION>=30301}
@@ -20,15 +22,20 @@ unit webidlparser;
 {$ENDIF}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, WebIdl.Scanner, WebIdl.Defs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, Contnrs, webidlscanner, webidldefs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EWebIDLParser = Class(Exception);
 
   { TWebIDLContext }
 
-  TWebIDLVersion = webidlscanner.TWebIDLVersion;
+  TWebIDLVersion = {$IFDEF FPC_DOTTEDUNITS}WebIdl.Scanner{$ELSE}webidlscanner{$ENDIF}.TWebIDLVersion;
 
   TWebIDLContext = Class (TIDLBaseObject)
   private
