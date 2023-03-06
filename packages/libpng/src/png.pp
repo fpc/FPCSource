@@ -1,7 +1,9 @@
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PNG;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -12,9 +14,15 @@ interface
 
 {$PACKRECORDS C}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ System.CTypes,
+ Api.Z;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  ctypes,
  zlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
 {$ifdef windows}
