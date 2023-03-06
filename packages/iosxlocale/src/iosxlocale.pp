@@ -17,14 +17,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iosxlocale;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, MacOsApi.MacOSAll;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, MacOSAll;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure GetMacFormatSettings(var ASettings: TFormatSettings);
 
