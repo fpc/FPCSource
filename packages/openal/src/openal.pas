@@ -3,14 +3,21 @@
   Copyright (C) 2006 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit openal;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
