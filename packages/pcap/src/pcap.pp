@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Pcap;
+{$ENDIF FPC_DOTTEDUNITS}
 
   { -*- Mode: c; tab-width: 8; indent-tabs-mode: 1; c-basic-offset: 8; -*-  }
   {
@@ -39,6 +41,16 @@ unit Pcap;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef Unix}
+  UnixApi.Types,UnixApi.Base,
+  {$endif}
+  {$ifdef Windows}
+  WinApi.Winsock, WinApi.Windows,
+  {$endif}
+  System.Types, System.Net.Sockets;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef UNIX}
   UnixType,BaseUnix,
@@ -47,6 +59,7 @@ uses
   WinSock, Windows,
   {$endif}
   Types, Sockets;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$PACKRECORDS C}
