@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GGIGraph;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 { objfpc is needed for array of const support }
@@ -86,8 +88,13 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.TermIO;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   termio;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   OldIO : TermIos;

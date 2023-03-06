@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptccrt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$DEFINE HasCRT}
@@ -25,21 +27,26 @@ unit ptccrt;
 interface
 
 {$IFDEF HasCRT}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Console.Crt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   crt;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF HasCRT}
 
 type
 {$IFDEF HasCRT}
-  tcrtcoord = crt.tcrtcoord;
+  tcrtcoord = {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.tcrtcoord;
 {$ELSE HasCRT}
   tcrtcoord = 1..255;
 {$ENDIF HasCRT}
   tkeymode = (kmTP7, kmGO32, kmFPWINCRT);
 
 var
-  DirectVideo: Boolean {$IFDEF HasCRT}absolute crt.DirectVideo{$ENDIF HasCRT};
-  TextAttr: Byte {$IFDEF HasCRT}absolute crt.TextAttr{$ENDIF HasCRT};
+  DirectVideo: Boolean {$IFDEF HasCRT}absolute {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.DirectVideo{$ENDIF HasCRT};
+  TextAttr: Byte {$IFDEF HasCRT}absolute {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.TextAttr{$ENDIF HasCRT};
   KeyMode: TKeyMode = kmTP7;
 
 function KeyPressed: Boolean;
@@ -55,6 +62,17 @@ procedure NoSound;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.PTC.Ptcgraph, Ptc, PTC.Wrapper
+  {$IFDEF Unix}
+  , UnixApi.Base
+  {$ENDIF UNIX}
+  {$IF defined(Win32) or defined(Win64) or defined(WinCE)}
+  , WinApi.Windows
+  {$ENDIF defined(Win32) or defined(Win64) or defined(WinCE)}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ptcgraph, ptc, ptcwrapper
   {$IFDEF UNIX}
@@ -64,6 +82,7 @@ uses
   , windows
   {$ENDIF defined(Win32) or defined(Win64) or defined(WinCE)}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function InGraphMode: Boolean;
 begin
@@ -538,7 +557,7 @@ begin
   if not InGraphMode then
   begin
 {$IFDEF HasCRT}
-    Result := crt.KeyPressed
+    Result := {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.KeyPressed
 {$ELSE HasCRT}
     Result := False;
 {$ENDIF HasCRT}
@@ -559,7 +578,7 @@ begin
   if not InGraphMode then
   begin
 {$IFDEF HasCRT}
-    Result := crt.ReadKey;
+    Result := {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.ReadKey;
 {$ELSE HasCRT}
     Result := #0;
 {$ENDIF HasCRT}
@@ -584,56 +603,56 @@ end;
 procedure ClrScr;
 begin
 {$IFDEF HasCRT}
-  crt.ClrScr;
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.ClrScr;
 {$ENDIF HasCRT}
 end;
 
 procedure ClrEol;
 begin
 {$IFDEF HasCRT}
-  crt.ClrEol;
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.ClrEol;
 {$ENDIF HasCRT}
 end;
 
 procedure GotoXY(X, Y: tcrtcoord);
 begin
 {$IFDEF HasCRT}
-  crt.GotoXY(X, Y);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.GotoXY(X, Y);
 {$ENDIF HasCRT}
 end;
 
 procedure TextColor(Color: Byte);
 begin
 {$IFDEF HasCRT}
-  crt.TextColor(Color);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.TextColor(Color);
 {$ENDIF HasCRT}
 end;
 
 procedure TextBackground(Color: Byte);
 begin
 {$IFDEF HasCRT}
-  crt.TextBackground(Color);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.TextBackground(Color);
 {$ENDIF HasCRT}
 end;
 
 procedure Delay(MS: Word);
 begin
 {$IFDEF HasCRT}
-  crt.Delay(MS);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.Delay(MS);
 {$ENDIF HasCRT}
 end;
 
 procedure Sound(HZ: Word);
 begin
 {$IFDEF HasCRT}
-  crt.Sound(HZ);
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.Sound(HZ);
 {$ENDIF HasCRT}
 end;
 
 procedure NoSound;
 begin
 {$IFDEF HasCRT}
-  crt.NoSound;
+  {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Crt.NoSound;
 {$ENDIF HasCRT}
 end;
 
