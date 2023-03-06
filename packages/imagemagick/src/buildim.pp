@@ -18,11 +18,17 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111-1301, USA.
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit buildim;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Imagemagick, Api.Magick_wand;
+{$ELSE FPC_DOTTEDUNITS}
 uses imagemagick, magick_wand;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Implementation
 

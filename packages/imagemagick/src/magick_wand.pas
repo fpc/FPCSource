@@ -24,7 +24,9 @@
 	Thanks to Marc Geldon and RuBBeR
 }
 {Version 0.4}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit magick_wand;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
   {$mode objfpc}
@@ -35,7 +37,11 @@ unit magick_wand;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Api.Imagemagick, System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ImageMagick, ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Various types }
 type
