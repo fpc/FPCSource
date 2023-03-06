@@ -1,10 +1,16 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit wnaspi32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   LPSRB = Pointer;
@@ -218,7 +224,11 @@ procedure UnloadASPI;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   HWNASPI : TLibHandle = 0;

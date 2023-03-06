@@ -1,8 +1,14 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cdromioctl;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 0.99.15 from cdromioctl.h
