@@ -4,7 +4,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2006 by Dean Zobec
 
-    common base classes for FPCUnit test reports
+    common base classes for FpcUnit test reports
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,12 +14,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcunitreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, sysutils, fpcunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   

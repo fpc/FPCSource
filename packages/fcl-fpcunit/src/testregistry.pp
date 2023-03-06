@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit testregistry;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpcUnit.Test, FpcUnit.Decorator;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   fpcunit, testdecorator;
+{$ENDIF FPC_DOTTEDUNITS}
   
 type
 
@@ -41,9 +48,15 @@ function NumberOfRegisteredTests: longint;
 function GetTestRegistry: TTestSuite;
 
 implementation
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   FTestRegistry: TTestSuite;

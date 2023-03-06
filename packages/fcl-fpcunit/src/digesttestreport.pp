@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DigestTestReport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -19,8 +21,13 @@ unit DigestTestReport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Reports, FpcUnit.Utils{, tresults};
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, SysUtils, fpcunit, fpcunitreport, testutils{, tresults};
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------------- }
 { This section is copy-pasted from the tresults unit of the testsuite          }
@@ -121,6 +128,16 @@ type
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Libx.Libtar,
+{$IFDEF UNIX}
+     UnixApi.Types,UnixApi.Unix,UnixApi.Base,
+{$ENDIF}
+{$IFDEF MSWINDOWS}
+     WinApi.Windows,
+{$ENDIF}
+     System.ZLib.Zstream;
+{$ELSE FPC_DOTTEDUNITS}
 uses LibTar,
 {$IFDEF UNIX}
      UnixType,Unix,BaseUnix,
@@ -129,6 +146,7 @@ uses LibTar,
      windows,
 {$ENDIF}
      zstream;
+{$ENDIF FPC_DOTTEDUNITS}
      
 Function PathExists (Const F : String) : Boolean;
 {
@@ -138,7 +156,7 @@ Var
   info : Tsearchrec;
 begin
   PathExists:=(FindFirst (F,faAnyFile,Info)=0) and  ((Info.Attr and faDirectory)=faDirectory);
-  sysutils.FindClose (Info);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose (Info);
 end;
 
 function CompilerFullTarget:string;
@@ -195,7 +213,7 @@ begin
       mkdirtree(SplitPath(hs));
       { make this dir }
       {$push}{$I-}
-       mkdir(s);
+      mkdir(s);
       {$pop}
       ioresult;
     end;
@@ -238,7 +256,7 @@ var TarWriter : TTarWriter;
           else if d.Name <> TarFileName then
             TarWriter.AddFile (ADir+'/'+ d.Name);
         until findnext(d)<>0;
-        sysutils.Findclose(d);
+        {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}sysutils.Findclose(d);
       end;
   end;
 
@@ -336,8 +354,8 @@ begin
     AddLog(DigestFileName,'CPU='+{$I %FPCTARGETCPU%});
     AddLog(DigestFileName,'Version='+{$I %FPCVERSION%});
     AddLog(DigestFileName,'LogFile=log');
-    AddLog(DigestFileName,'Submitter='+sysutils.GetEnvironmentVariable('USER'));
-    FHostName:=sysutils.GetEnvironmentVariable('HOSTNAME');
+    AddLog(DigestFileName,'Submitter='+{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('USER'));
+    FHostName:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('HOSTNAME');
     if pos('.',FHostName)>0 then
       FHostName:=system.Copy(FHostName,1,pos('.',FHostName)-1);
     AddLog(DigestFileName,'Machine='+FHostName);

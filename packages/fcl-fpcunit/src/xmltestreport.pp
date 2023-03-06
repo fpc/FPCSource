@@ -2,7 +2,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2006 by Dean Zobec, Graeme Geldenhuys
 
-    An example of an XML report writer for FPCUnit tests.
+    An example of an XML report writer for FpcUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -28,14 +28,21 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmltestreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils,fpcunit, fpcunitreport, testutils, dom, XMLWrite;
+  System.Classes, System.SysUtils, FpcUnit.Test, FpcUnit.Reports, FpcUnit.Utils, Xml.Dom, Xml.Writer;
+{$ELSE FPC_DOTTEDUNITS}
+uses
+  Classes, SysUtils, fpcunit, fpcunitreport, testutils, dom, XMLWrite;
+{$ENDIF FPC_DOTTEDUNITS}
   
 
 type
@@ -222,7 +229,7 @@ procedure TXMLResultsWriter.WriteHeader;
 begin
   inherited;
   FResults := FDoc.CreateElement('TestResults');
-  FResults.AppendChild(FDoc.CreateComment(' Generated using FPCUnit on '
+  FResults.AppendChild(FDoc.CreateComment(' Generated using FpcUnit on '
     + FormatDateTime('yyyy-mm-dd hh:nn:ss', Now) ));
   FDoc.AppendChild(FResults);
   FListing := FDoc.CreateElement('TestListing');
