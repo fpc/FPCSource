@@ -1,0 +1,16 @@
+{s*:src/win/}=namespaced/
+{i+:src/win/}
+{s*:src/inc/}=namespaced/
+{i+:src/inc/}
+src/inc/stdconvs.pp=namespaced/System.StdConvs.pp
+src/inc/variants.pp=namespaced/System.Variants.pp
+src/inc/strutils.pp=namespaced/System.StrUtils.pp
+src/win/varutils.pp=namespaced/System.VarUtils.pp
+src/common/varutils.pp=namespaced/System.VarUtils.pp
+src/inc/convutils.pp=namespaced/System.ConvUtils.pp
+src/inc/dateutils.pp=namespaced/System.DateUtils.pp
+src/inc/nullable.pp=namespaced/System.Nullable.pp
+src/inc/rtti.pp=namespaced/System.Rtti.pp
+src/inc/widestrutils.pp=namespaced/System.WideStrUtils.pp
+src/inc/syshelpers.pp=namespaced/System.Syshelpers.pp
+src/inc/fmtbcd.pp=namespaced/Data.FMTBcd.pp

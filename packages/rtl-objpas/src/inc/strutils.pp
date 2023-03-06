@@ -15,12 +15,19 @@
 {$mode objfpc}
 {$h+}
 {$inline on}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     Case insensitive search/replace
@@ -300,7 +307,11 @@ Function SplitCommandLine(S : UnicodeString) : TUnicodeStringArray;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysConst; // HexDigits
+{$ELSE FPC_DOTTEDUNITS}
 uses sysconst; // HexDigits
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*
   FindMatchesBoyerMooreCaseSensitive
@@ -861,7 +872,7 @@ Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceF
 
 begin
   Case Algorithm of
-    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
+    sraDefault    : Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags,aCount);
     sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags,aCount);
     sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags,aCount);
   end;
@@ -872,13 +883,13 @@ end;
 function StringReplace(const S, OldPattern, NewPattern: unicodestring; Flags: TReplaceFlags): unicodestring;
 
 begin
-  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags);
 end;
 
 function StringReplace(const S, OldPattern, NewPattern: widestring; Flags: TReplaceFlags): widestring;
 
 begin
-  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.StringReplace(S,OldPattern,NewPattern,Flags);
 end;
 {$ENDIF}
 

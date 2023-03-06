@@ -12,7 +12,9 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit Rtti experimental;
+{$IFNDEF FPC_DOTTEDUNITS}
+unit Rtti;
+{$ENDIF}
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
@@ -37,11 +39,17 @@ unit Rtti experimental;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   typinfo;
-
+{$ENDIF FPC_DOTTEDUNITS}
 type
   TRttiObject = class;
   TRttiType = class;
@@ -649,6 +657,16 @@ resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef windows}
+  WinApi.Windows,
+{$endif}
+{$ifdef unix}
+  UnixApi.Base,
+{$endif}
+  System.FGL;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef windows}
   Windows,
@@ -657,6 +675,7 @@ uses
   BaseUnix,
 {$endif}
   fgl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function AlignToPtr(aPtr: Pointer): Pointer; inline;
 begin
@@ -3396,7 +3415,7 @@ begin
       addr := vmt[VirtualIndex];
   end;
 
-  Result := Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(Name, addr, CallingConvention, IsStatic, aInstance, aArgs, GetParameters(True), ReturnType);
 end;
 
 function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
@@ -3686,7 +3705,7 @@ begin
   { by using a pointer we can also use this for non-class instance methods }
   TValue.Make(@method^.Data, PTypeInfo(TypeInfo(Pointer)), inst);
 
-  Result := Rtti.Invoke(Name, method^.Code, CallingConvention, False, inst, aArgs, GetParameters(True), ReturnType);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(Name, method^.Code, CallingConvention, False, inst, aArgs, GetParameters(True), ReturnType);
 end;
 
 { TRttiProcedureType }
@@ -3771,7 +3790,7 @@ begin
   if aCallable.Kind <> tkProcVar then
     raise EInvocationError.CreateFmt(SErrInvokeCallableNotProc, [Name]);
 
-  Result := Rtti.Invoke(Name, PCodePointer(aCallable.GetReferenceToRawData)^, CallingConvention, True, TValue.Empty, aArgs, GetParameters(True), ReturnType);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(Name, PCodePointer(aCallable.GetReferenceToRawData)^, CallingConvention, True, TValue.Empty, aArgs, GetParameters(True), ReturnType);
 end;
 
 { TRttiStringType }
@@ -4276,7 +4295,7 @@ end;
 
 function TRttiType.GetIsManaged: boolean;
 begin
-  result := Rtti.IsManaged(FTypeInfo);
+  result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.IsManaged(FTypeInfo);
 end;
 
 function TRttiType.GetIsOrdinal: boolean;

@@ -14,14 +14,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DateUtils;
+{$ENDIF}
 
 interface
 
+
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Math;
+{$ELSE}
 uses
   SysUtils, Math;
+{$ENDIF}
 
 { ---------------------------------------------------------------------
     Various constants
@@ -476,7 +483,11 @@ Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; Re
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   TDateTimeEpsilon = 2.2204460493e-16;
@@ -2730,25 +2741,25 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=SysUtils.UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
-  Result:=SysUtils.UniversalTimeToLocal(UT,TZOffset);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UT,TZOffset);
 end;
  
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=SysUtils.LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
-  Result:=SysUtils.LocalTimeToUniversal(LT,TZOffset);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.LocalTimeToUniversal(LT,TZOffset);
 end;
 
 Const

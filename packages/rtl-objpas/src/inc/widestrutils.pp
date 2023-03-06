@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit widestrutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -20,8 +22,13 @@ unit widestrutils;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 function WideStringReplace(const S, OldPattern, NewPattern: WideString; Flags: TReplaceFlags): WideString;
 function WideReplaceStr(const AText, AFromText, AToText: WideString): WideString; inline;
@@ -135,13 +142,13 @@ end;
 Function WideStringReplace(const S, OldPattern, NewPattern: WideString; Flags: TReplaceFlags): WideString;
 
 begin
-  Result:= sysutils.WideStringReplace(S,OldPattern,NewPattern,Flags);
+  Result:= {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.WideStringReplace(S,OldPattern,NewPattern,Flags);
 end;
 
 Function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString; Flags: TReplaceFlags): UnicodeString;
 
 begin
-  Result:= sysutils.UnicodeStringReplace(S,OldPattern,NewPattern,Flags);
+  Result:=  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UnicodeStringReplace(S,OldPattern,NewPattern,Flags);
 end;
 
 function HasUTF8BOM(S: TStream): boolean;
