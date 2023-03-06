@@ -44,7 +44,7 @@ ResourceString
   SCannotCreateName             = 'Cannot use standard name for and unknown component';
   SCannotCreateSocket           = 'Unable to create new socket';
   SCannotDragForm               = 'Forms cannot be dragged';
-  SCannotFocus                  = 'A disbled or invisible Window cannot get focus';
+  SCannotFocus                  = 'A disabled or invisible Window cannot get focus';
   SCannotListenOnOpen           = 'Listening on an open socket is not allowed';
   SCannotOpenAVI                = 'AVI can not be opened';
   SCannotShowModal              = 'A visible Window can not be made modal';
