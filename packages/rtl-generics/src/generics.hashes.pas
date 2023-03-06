@@ -24,7 +24,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Generics.Hashes;
+{$ENDIF}
 
 {$MODE DELPHI}{$H+}
 {$POINTERMATH ON}
@@ -39,8 +41,12 @@ unit Generics.Hashes;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
 uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Warning: the following set of macro code
   that decides to use assembler or normal code
@@ -126,10 +132,18 @@ var
   mORMotHasher: THasher;
 
 implementation
+
+{$IFDEF FPC_DOTTEDUNITS}
+{$ifdef CPUINTEL}
+  uses
+    System.CPU;
+{$endif CPUINTEL}
+{$ELSE}
 {$ifdef CPUINTEL}
   uses
     cpu;
 {$endif CPUINTEL}
+{$ENDIF}
 
 function SimpleChecksumHash(AKey: Pointer; ALength: SizeInt): UInt32;
 var

@@ -24,7 +24,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Generics.Collections;
+{$ENDIF}
 
 {$MODE DELPHI}{$H+}
 {$MACRO ON}
@@ -41,9 +43,15 @@ unit Generics.Collections;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+    System.RtlConsts, System.Classes, System.SysUtils, System.Generics.MemoryExpanders, System.Generics.Defaults,
+    System.Generics.Helpers, System.Generics.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
     RtlConsts, Classes, SysUtils, Generics.MemoryExpanders, Generics.Defaults,
     Generics.Helpers, Generics.Strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {.$define EXTRA_WARNINGS}
 {.$define ENABLE_METHODS_WITH_TEnumerableWithPointers}
@@ -52,7 +60,7 @@ type
   EAVLTree = class(Exception);
   EIndexedAVLTree = class(EAVLTree);
 
-  TDuplicates = Classes.TDuplicates;
+  TDuplicates = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.TDuplicates;
 
   {$ifdef VER3_0_0}
   TArray<T> = array of T;
@@ -2480,7 +2488,7 @@ end;
 
 { TCustomSet<T> }
 
-function TCustomSet<T>.DoGetEnumerator: Generics.Collections.TEnumerator<T>;
+function TCustomSet<T>.DoGetEnumerator:  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Generics.Collections.TEnumerator<T>;
 begin
   Result := GetEnumerator;
 end;
