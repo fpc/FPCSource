@@ -12,14 +12,21 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit gtree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Stl.Vector,System.Stl.Stack,System.Stl.Queue;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   gvector,gstack,gqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
