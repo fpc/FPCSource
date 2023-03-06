@@ -3,15 +3,23 @@
   Copyright (C) 2006 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ldap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,
+  Api.Lber;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,
   lber;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$linklib ldap}
 
