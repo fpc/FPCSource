@@ -849,6 +849,7 @@ Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 Function AlignTypeData(p : Pointer) : Pointer; inline;
 Function AlignTParamFlags(p : Pointer) : Pointer; inline;
 Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
+Generic Function ConstParamIsRef<T>(aCallConv: TCallConv = ccReg): Boolean; inline;
 
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
 Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -1494,6 +1495,82 @@ begin
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
   Result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+end;
+
+
+Generic Function ConstParamIsRef<T>(aCallConv: TCallConv): Boolean;
+
+  Function SameAddrRegister(const aArg1: T; constref aArg2: T): Boolean; register;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+
+  Function SameAddrCDecl(const aArg1: T; constref aArg2: T): Boolean; cdecl;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+
+{$if defined(cpui8086) or defined(cpui386)}
+  Function SameAddrPascal(const aArg1: T; constref aArg2: T): Boolean; pascal;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+{$endif}
+
+  Function SameAddrStdCall(const aArg1: T; constref aArg2: T): Boolean; stdcall;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+
+  Function SameAddrCppDecl(const aArg1: T; constref aArg2: T): Boolean; cppdecl;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+
+{$if defined(cpui386)}
+  Function SameAddrOldFPCCall(const aArg1: T; constref aArg2: T): Boolean; oldfpccall;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+{$endif}
+
+  Function SameAddrMWPascal(const aArg1: T; constref aArg2: T): Boolean; mwpascal;
+  begin
+    Result := @aArg1 = @aArg2;
+  end;
+
+var
+  v: T;
+begin
+  v := Default(T);
+  case aCallConv of
+    ccReg:
+      Result := SameAddrRegister(v, v);
+    ccCdecl:
+      Result := SameAddrCDecl(v, v);
+{$if defined(cpui386) or defined(cpui8086)}
+    ccPascal:
+      Result := SameAddrPascal(v, v);
+{$endif}
+{$if not defined(cpui386)}
+    ccOldFPCCall,
+{$endif}
+{$if not defined(cpui386) and not defined(cpui8086)}
+    ccPascal,
+{$endif}
+    ccStdCall:
+      Result := SameAddrStdCall(v, v);
+    ccCppdecl:
+      Result := SameAddrCppDecl(v, v);
+{$if defined(cpui386)}
+    ccOldFPCCall:
+      Result := SameAddrOldFPCCall(v, v);
+{$endif}
+    ccMWPascal:
+      Result := SameAddrMWPascal(v, v);
+    else
+      raise EArgumentException.CreateFmt(SUnsupportedCallConv, [GetEnumName(PTypeInfo(TypeInfo(TCallConv)), Ord(aCallConv))]);
+  end;
 end;
 
 
