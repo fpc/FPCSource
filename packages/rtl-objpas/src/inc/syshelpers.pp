@@ -13,7 +13,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit syshelpers;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -24,8 +26,13 @@ unit syshelpers;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ///////////////////////
 //                   //
@@ -197,7 +204,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ///////////////////////
 //                   //

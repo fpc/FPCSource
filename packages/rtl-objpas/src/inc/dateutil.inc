@@ -15,14 +15,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DateUtils;
+{$ENDIF}
 
 interface
 
+
 {$ifndef FPUNONE}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Math;
+{$ELSE}
 uses
   SysUtils, Math;
+{$ENDIF}
 
 { ---------------------------------------------------------------------
     Various constants
@@ -588,7 +595,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   TDateTimeEpsilon = 2.2204460493e-16;
@@ -2847,25 +2858,25 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=SysUtils.UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
-  Result:=SysUtils.UniversalTimeToLocal(UT,TZOffset);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.UniversalTimeToLocal(UT,TZOffset);
 end;
  
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=SysUtils.LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
-  Result:=SysUtils.LocalTimeToUniversal(LT,TZOffset);
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.LocalTimeToUniversal(LT,TZOffset);
 end;
 
 Const
@@ -3240,7 +3251,7 @@ end;
 
 function TDateTimeHelper.DaysBetween(const aDateTime: TDateTime): Integer;
 begin
-  Result :=DateUtils.DaysBetween(Self, aDateTime);
+  Result :={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.DaysBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.EndOfDay: TDateTime;
@@ -3310,7 +3321,7 @@ end;
 
 class function TDateTimeHelper.GetNow: TDateTime;
 begin
-  Result := SysUtils.Now;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Now;
 end;
 
 function TDateTimeHelper.GetSecond: Word;
@@ -3325,12 +3336,12 @@ end;
 
 class function TDateTimeHelper.GetToday: TDateTime;
 begin
-  Result := SysUtils.Date;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Date;
 end;
 
 class function TDateTimeHelper.GetTomorrow: TDateTime;
 begin
-  Result := SysUtils.Date + 1;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Date + 1;
 end;
 
 function TDateTimeHelper.GetTotalSecounds: Int64;
@@ -3350,12 +3361,12 @@ end;
 
 class function TDateTimeHelper.GetYesterDay: TDateTime;
 begin
-  Result := SysUtils.Date - 1;
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Date - 1;
 end;
 
 function TDateTimeHelper.HoursBetween(const aDateTime: TDateTime): Int64;
 begin
-  Result := DateUtils.HoursBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.HoursBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.InRange(const aStartDateTime, aEndDateTime: TDateTime;
@@ -3366,47 +3377,47 @@ end;
 
 function TDateTimeHelper.IsAM: Boolean;
 begin
-  Result := DateUtils.IsAM(Self);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IsAM(Self);
 end;
 
 function TDateTimeHelper.IsInLeapYear: Boolean;
 begin
-  Result := DateUtils.IsInLeapYear(Self);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IsInLeapYear(Self);
 end;
 
 function TDateTimeHelper.IsPM: Boolean;
 begin
-  Result := DateUtils.IsPM(Self);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IsPM(Self);
 end;
 
 function TDateTimeHelper.IsSameDay(const aDateTime: TDateTime): Boolean;
 begin
-  Result := DateUtils.IsSameDay(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IsSameDay(Self, aDateTime);
 end;
 
 function TDateTimeHelper.IsToday: Boolean;
 begin
-  Result := DateUtils.IsToday(Self);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.IsToday(Self);
 end;
 
 function TDateTimeHelper.MilliSecondsBetween(const aDateTime: TDateTime): Int64;
 begin
-  Result := DateUtils.MilliSecondsBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.MilliSecondsBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.MinutesBetween(const aDateTime: TDateTime): Int64;
 begin
-  Result := DateUtils.MinutesBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.MinutesBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.MonthsBetween(const aDateTime: TDateTime): Integer;
 begin
-  Result := DateUtils.MonthsBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.MonthsBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.SecondsBetween(const aDateTime: TDateTime): Int64;
 begin
-  Result := DateUtils.SecondsBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.SecondsBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.StartOfDay: TDateTime;
@@ -3439,60 +3450,60 @@ end;
 
 function TDateTimeHelper.WeeksBetween(const aDateTime: TDateTime): Integer;
 begin
-  Result := DateUtils.WeeksBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WeeksBetween(Self, aDateTime);
 end;
 
 function TDateTimeHelper.WithinDays(const aDateTime: TDateTime; const aDays:
   Integer): Boolean;
 begin
-  Result := DateUtils.WithinPastDays(Self, aDateTime, aDays);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastDays(Self, aDateTime, aDays);
 end;
 
 function TDateTimeHelper.WithinHours(const aDateTime: TDateTime; const aHours:
   Int64): Boolean;
 begin
-  Result := DateUtils.WithinPastHours(Self, aDateTime, aHours);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastHours(Self, aDateTime, aHours);
 end;
 
 function TDateTimeHelper.WithinMilliseconds(const aDateTime: TDateTime; const
   AMilliseconds: Int64): Boolean;
 begin
-  Result := DateUtils.WithinPastMilliSeconds(Self, aDateTime, AMilliseconds);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastMilliSeconds(Self, aDateTime, AMilliseconds);
 end;
 
 function TDateTimeHelper.WithinMinutes(const aDateTime: TDateTime; const
   aMinutes: Int64): Boolean;
 begin
-  Result := DateUtils.WithinPastMinutes(Self, aDateTime, aMinutes);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastMinutes(Self, aDateTime, aMinutes);
 end;
 
 function TDateTimeHelper.WithinMonths(const aDateTime: TDateTime; const aMonths:
   Integer): Boolean;
 begin
-  Result := DateUtils.WithinPastMonths(Self, aDateTime, aMonths);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastMonths(Self, aDateTime, aMonths);
 end;
 
 function TDateTimeHelper.WithinSeconds(const aDateTime: TDateTime; const
   aSeconds: Int64): Boolean;
 begin
-  Result := DateUtils.WithinPastSeconds(Self, aDateTime, aSeconds);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastSeconds(Self, aDateTime, aSeconds);
 end;
 
 function TDateTimeHelper.WithinWeeks(const aDateTime: TDateTime; const aWeeks:
   Integer): Boolean;
 begin
-  Result := DateUtils.WithinPastWeeks(Self, aDateTime, aWeeks);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastWeeks(Self, aDateTime, aWeeks);
 end;
 
 function TDateTimeHelper.WithinYears(const aDateTime: TDateTime; const aYears:
   Integer): Boolean;
 begin
-  Result := DateUtils.WithinPastYears(Self, aDateTime, aYears);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.WithinPastYears(Self, aDateTime, aYears);
 end;
 
 function TDateTimeHelper.YearsBetween(const aDateTime: TDateTime): Integer;
 begin
-  Result := DateUtils.YearsBetween(Self, aDateTime);
+  Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.YearsBetween(Self, aDateTime);
 end;
 
 class function TDateTimeHelper.Parse(Date: string; aFormat: string = '';

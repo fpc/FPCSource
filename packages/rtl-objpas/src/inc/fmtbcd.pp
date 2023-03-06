@@ -136,13 +136,21 @@
   {$define maybe_packed := (**)}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 UNIT FmtBCD;
+{$ENDIF}
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+  USES
+    System.SysUtils,
+    System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
   USES
     SysUtils,
     Variants;
+{$ENDIF FPC_DOTTEDUNITS}
 
   const
     MaxStringDigits = 100;          { not used ! }
@@ -858,8 +866,13 @@ INTERFACE
 
 IMPLEMENTATION
 
+{$IFDEF FPC_DOTTEDUNITS}
+  USES
+    System.Classes {$ifopt r+}, System.SysConst {$endif};
+{$ELSE}
   USES
     classes {$ifopt r+}, sysconst {$endif};
+{$ENDIF}
 
   type
     TFMTBcdFactory = CLASS(TPublishableVarianttype)
@@ -2592,10 +2605,10 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
           if E < 0 then
           begin
             System.Delete(Result, P+E-1, -E);
-            Result := Result + SysUtils.Format('E%.*d' , [Digits,E])
+            Result := Result + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format('E%.*d' , [Digits,E])
           end
           else
-            Result := Result + SysUtils.Format('E+%.*d', [Digits,E]);
+            Result := Result + {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.Format('E+%.*d', [Digits,E]);
         End;
 
         ffFixed:
