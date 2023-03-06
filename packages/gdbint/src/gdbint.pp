@@ -11,13 +11,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit GdbInt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$smartlink off}
 
 {$define NotImplemented}
-
 {$define COMPILING_GDBINT_UNIT}
 {$ifdef USE_GDBLIBINC}
   {$i gdblib.inc}
@@ -1068,6 +1069,24 @@ function cli_out_new (stream : pui_file):ui_out;cdecl;external;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef win32}
+  {$ifdef USE_MINGW_GDB}
+  {$else not USE_MINGW_GDB}
+    initc,
+  {$endif not USE_MINGW_GDB}
+{$endif win32}
+{$ifdef unix}
+  UnixApi.Base,
+{$endif}
+{$ifdef go32v2}
+  DOSApi.GO32,
+  DOSApi.dpmiexcp,
+  System.InitC,
+{$endif}
+  System.Strings;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef win32}
   {$ifdef USE_MINGW_GDB}
@@ -1084,6 +1103,7 @@ uses
   initc,
 {$endif}
   strings;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*****************************************************************************
                           Types used by libgdb.a
