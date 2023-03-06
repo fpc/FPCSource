@@ -20,8 +20,13 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.CTypes, System.DynLibs, Api.Xqc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Sysutils,ctypes, dynlibs, xqc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF UNIX}
   {$DEFINE extdecl:=cdecl}
