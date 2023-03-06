@@ -19,15 +19,23 @@
  *                                                                           *
  *****************************************************************************
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPMasks;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  // For Smart Linking: Do not use the LCL!
+  System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   // For Smart Linking: Do not use the LCL!
   Classes, SysUtils, Contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TMaskCharType = (mcChar, mcCharSet, mcAnyChar, mcAnyText);

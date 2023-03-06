@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fbIndexdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpIndexer.Indexer, FpIndexer.Db.SqlDb ,Data.Sqldb, Data.SqlDb.Ib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpIndexer, sqldbIndexDB ,sqldb, ibconnection;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TFBIndexDB }

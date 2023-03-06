@@ -13,7 +13,9 @@
 
  **********************************************************************}
  
-unit FPIndexer;
+{$IFNDEF FPC_DOTTEDUNITS}
+unit FpIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
@@ -21,8 +23,13 @@ unit FPIndexer;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TWordTokenType = (wtOr, wtAnd, wtWord);
@@ -463,11 +470,19 @@ function QuoteString(S: UTF8String): UTF8String;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef LangDetect}
+     fpTextCat, Math,
+  {$endif}
+  FpIndexer.Masks;     //please note that this is an LCL unit, should be moved to FCL afaic
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef LangDetect}
      fpTextCat, Math,
   {$endif}
   fpmasks;     //please note that this is an LCL unit, should be moved to FCL afaic
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNoSuchLanguage = 'Unknown language : "%s".';

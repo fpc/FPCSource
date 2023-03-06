@@ -13,14 +13,21 @@
 
  **********************************************************************}
  
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DBIndexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpIndexer.Reader.Txt, Data.Db, Data.Sqldb, Data.SqlDb.Ib, FpIndexer.Indexer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, ireadertxt, db, sqldb, ibconnection, fpindexer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -68,7 +75,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TIBIndexer }
 
