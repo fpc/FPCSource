@@ -1,0 +1,4 @@
+src/dbuscomp.pp=namespaced/Api.Dbuscomp.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/dbus.pas=namespaced/Api.Dbus.pas
