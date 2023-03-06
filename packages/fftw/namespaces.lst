@@ -1,0 +1,3 @@
+src/fftw_s.pas=namespaced/Api.Fftw_s.pas
+{s*:src/}=namespaced/
+{i+:src/}

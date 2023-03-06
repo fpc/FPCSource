@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fftw_s;
+{$ENDIF FPC_DOTTEDUNITS}
 {
    FFTW - Fastest Fourier Transform in the West library
 
