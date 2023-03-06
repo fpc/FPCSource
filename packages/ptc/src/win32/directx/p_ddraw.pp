@@ -7,7 +7,9 @@
  *
  ***************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit p_ddraw;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 {$MACRO on}
@@ -19,8 +21,13 @@ unit p_ddraw;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {#ifndef __DDRAW_INCLUDED__
 #define __DDRAW_INCLUDED__

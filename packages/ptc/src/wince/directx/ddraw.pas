@@ -16,15 +16,22 @@
  *  Content:    DirectDraw include file
  *
  ***************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ddraw;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$MODE objfpc}{$H+}
 {$PACKRECORDS c}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //#pragma once
 

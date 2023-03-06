@@ -29,7 +29,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit mouse33h;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 
@@ -49,8 +51,13 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure InitMouse;
 

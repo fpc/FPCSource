@@ -30,14 +30,21 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptceventqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, Ptc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, ptc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PEventLinkedList = ^TEventLinkedList;

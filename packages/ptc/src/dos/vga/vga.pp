@@ -35,7 +35,9 @@
 
 {$DEFINE X86_ASSEMBLER}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vga;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -65,8 +67,13 @@ procedure fakemode_load(src: PByte; wvr: Boolean);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   RealRegs: TRealRegs;

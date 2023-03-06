@@ -7,7 +7,9 @@
  *
  ****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit p_dinput;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 {$MACRO on}
@@ -17,8 +19,13 @@ unit p_dinput;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   windows;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //#ifndef __DINPUT_INCLUDED__
 //#define __DINPUT_INCLUDED__
@@ -342,13 +349,13 @@ const
   DIEP_DIRECTION              = $00000040;
   DIEP_ENVELOPE               = $00000080;
   DIEP_TYPESPECIFICPARAMS     = $00000100;
-{$IF DIRECTINPUT_VERSION >= 0x0600}
+{$IF DIRECTINPUT_VERSION >= $0600}
   DIEP_STARTDELAY             = $00000200;
   DIEP_ALLPARAMS_DX5          = $000001FF;
   DIEP_ALLPARAMS              = $000003FF;
-{$ELSE} { DIRECTINPUT_VERSION < 0x0600 }
+{$ELSE} { DIRECTINPUT_VERSION < $0600 }
   DIEP_ALLPARAMS              = $000001FF;
-{$ENDIF} { DIRECTINPUT_VERSION < 0x0600 }
+{$ENDIF} { DIRECTINPUT_VERSION < $0600 }
   DIEP_START                  = $20000000;
   DIEP_NORESTART              = $40000000;
   DIEP_NODOWNLOAD             = $80000000;
@@ -468,7 +475,7 @@ const
   DI8DEVTYPE_SCREENPOINTER = $1A;
   DI8DEVTYPE_REMOTE        = $1B;
   DI8DEVTYPE_SUPPLEMENTAL  = $1C;
-{$ENDIF} { DIRECTINPUT_VERSION <= 0x700 }
+{$ENDIF} { DIRECTINPUT_VERSION <= $700 }
 
 const
   DIDEVTYPE_HID            = $00010000;
@@ -594,7 +601,7 @@ type
     dwButtons: DWORD;
     dwPOVs: DWORD;
   end;
-{$ENDIF} { DIRECTINPUT_VERSION >= 0x0500 }
+{$ENDIF} { DIRECTINPUT_VERSION >= $0500 }
 
   LPDIDEVCAPS = ^TDIDEVCAPS;
   PDIDEVCAPS = ^TDIDEVCAPS;
@@ -721,7 +728,7 @@ var
   c_dfDIJoystick: TDIDATAFORMAT; cvar; external;
 //extern const DIDATAFORMAT c_dfDIJoystick2;
   c_dfDIJoystick2: TDIDATAFORMAT; cvar; external;
-{$ENDIF} { DIRECTINPUT_VERSION >= 0x0500 }
+{$ENDIF} { DIRECTINPUT_VERSION >= $0500 }
 
 //#ifdef __cplusplus
 //};
@@ -1204,7 +1211,7 @@ const
   DIPH_BYUSAGE          = 3;
 {$ENDIF} { DIRECTINPUT_VERSION >= $050a }
 
-//#if(DIRECTINPUT_VERSION >= 0x050a)
+//#if(DIRECTINPUT_VERSION >= $050a)
 //#define DIMAKEUSAGEDWORD(UsagePage, Usage) \
 //                                (DWORD)MAKELONG(Usage, UsagePage)
 //#endif /* DIRECTINPUT_VERSION >= 0x050a */

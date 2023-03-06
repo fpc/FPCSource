@@ -29,15 +29,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ptcwrapper;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF UnixApi.Unix}UnixApi.CThreads,{$ENDIF}
+  System.SysUtils, System.Classes, System.SyncObjs, Ptc, PTC.EventQueue;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF unix}cthreads,{$ENDIF}
   SysUtils, Classes, syncobjs, ptc, ptceventqueue;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TPTCWrapperOpenType = (pwotDefault, pwotFormat, pwotWidthHeightFormat, pwotMode);
