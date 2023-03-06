@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libusb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
 {$mode objfpc}
@@ -7,9 +9,20 @@ unit libusb;
 
 interface
 {$ifdef MSWINDOWS}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses WinApi.Windows;
+{$ELSE FPC_DOTTEDUNITS}
 uses windows;
+{$ENDIF FPC_DOTTEDUNITS}
+
 {$else}
+
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes,System.Net.Sockets,UnixApi.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes,sockets,unixtype;
+{$ENDIF FPC_DOTTEDUNITS}
 {$endif}
 
 
