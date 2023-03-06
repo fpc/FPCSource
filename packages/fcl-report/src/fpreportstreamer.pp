@@ -14,16 +14,25 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpReportStreamer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

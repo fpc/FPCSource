@@ -13,18 +13,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpExtFuncs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.StrUtils,
+  System.DateUtils,
+  Fcl.Expressions;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   StrUtils,
   DateUtils,
   fpexprpars;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 procedure RegisterExtraFunctions;

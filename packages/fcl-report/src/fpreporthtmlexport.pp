@@ -3,7 +3,7 @@
     Copyright (c) 2016 Michael Van Canneyt,
     member of the Free Pascal development team
 
-    FPReport FPImage export filter.
+    FPReport FpImage export filter.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -16,16 +16,34 @@
 {
   HTML Export filter.
 
-  FPImage is included as standard with FPC. This exporter uses those classes
+  FpImage is included as standard with FPC. This exporter uses those classes
   to generate image output. 
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreporthtmlexport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpReport.Report,
+  FpImage,
+  FpImage.Canvas,
+  System.Contnrs,
+  FpImage.Common,
+  Xml.Dom,
+  Html.Dom,
+  Xml.HtmWrite,
+  FpReport.CanvasHelper,
+  FpReport.Html.Utils,
+  FpImage.ImageCanvas;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -40,6 +58,7 @@ uses
   fpreportcanvashelper,
   fpreporthtmlutil,
   fpimgcanv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TStyleElement = (sePosition,seSize, seFrame, seBackGroundColor);
@@ -226,12 +245,21 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  // ftFont,
+  FpPdf.Ttf,
+  FpPdf.Ttf.Parser,
+  System.Hash.Base64,
+  FpImage.Writer.PNG;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   // ftFont,
   fpTTF,
   fpparsettf,
   base64,
   fpwritepng;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //  RGBA_Width = 4;
 

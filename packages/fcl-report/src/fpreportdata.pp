@@ -14,13 +14,20 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportdata;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, FpJson.Data, FpReport.Report, FpReport.Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DB, fpjson, fpreport, fpreportdb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   EReportDataError = class(EReportError);

@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportdatadbf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Dbf.Dbf, FpJson.Data, FpReport.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, dbf, fpjson, fpreportdata;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 Const

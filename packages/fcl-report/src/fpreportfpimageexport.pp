@@ -3,7 +3,7 @@
     Copyright (c) 2016 Michael Van Canneyt,
     member of the Free Pascal development team
 
-    FPReport FPImage export filter.
+    FPReport FpImage export filter.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,19 +14,37 @@
 
  **********************************************************************}
 {
-  FPImage Export filter.
+  FpImage Export filter.
 
-  FPImage is included as standard with FPC. This exporter uses those classes
+  FpImage is included as standard with FPC. This exporter uses those classes
   to generate image output. One image per report page, and by default as a
   PNG image.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportfpimageexport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  FpReport.Report,
+  FpImage,
+  FpImage.Canvas,
+  FpReport.CanvasHelper,
+  System.Contnrs,
+  Xml.Dom,
+  Html.Dom,
+  Xml.HtmWrite,
+  FpImage.Common,
+  FpImage.ImageCanvas,
+  FpReport.Html.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -41,6 +59,7 @@ uses
   FPImgCmn,
   fpimgcanv,
   fpreporthtmlutil;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -149,11 +168,19 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  FpImage.Ftfont,
+  FpPdf.Ttf,
+  FpPdf.Ttf.Parser,
+  FpImage.Writer.PNG;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ftFont,
   fpTTF,
   fpparsettf,
   fpwritepng;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 //  RGBA_Width = 4;
@@ -413,7 +440,7 @@ begin
       );
     end;
     Canvas.Font.FPColor := ColorToRGBTriple(txtblk.FGColor);
-    { FPImage text origin coordinate is Bottom-Left, and Report Layout is Top-Left }
+    { FpImage text origin coordinate is Bottom-Left, and Report Layout is Top-Left }
     lYPos := lYPos + txtblk.Height;
     Canvas.TextOut(
         mmToPixels(lXPos),
@@ -563,12 +590,12 @@ end;
 
 class function TFPReportExportfpImage.Name: String;
 begin
-  Result:='FPImage';
+  Result:='FpImage';
 end;
 
 class function TFPReportExportfpImage.Description: String;
 begin
-  Result:='Image file export (using FPImage)';
+  Result:='Image file export (using FpImage)';
 end;
 
 class function TFPReportExportfpImage.DefaultExtension: String;

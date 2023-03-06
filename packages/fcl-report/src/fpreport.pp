@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreport;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$inline on}
@@ -26,6 +28,23 @@ unit fpreport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  System.Variants,
+  System.Contnrs,
+  FpImage.Canvas,
+  FpImage,
+  FpPdf.Ttf,
+  FpReport.Streamer,
+{$IF FPC_FULLVERSION>=30101}
+  Fcl.Expressions,
+{$ELSE}
+  FpReport.Expressions,
+{$ENDIF}
+  FpReport.Html.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -41,6 +60,7 @@ uses
   fprepexprpars,
 {$ENDIF}
   fpReportHTMLParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -2368,12 +2388,21 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.StrUtils,
+  System.TypInfo,
+  FpImage.Reader.PNG,
+  FpImage.Writer.PNG,
+  System.Hash.Base64;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strutils,
   typinfo,
   FPReadPNG,
   FPWritePNG,
   base64;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   cPageCountMarker = '~PC~';

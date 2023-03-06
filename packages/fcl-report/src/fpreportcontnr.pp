@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportcontnr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpReport.Report, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpreport, contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TFPReportObjectData }
@@ -79,7 +86,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.Variants;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, variants;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFPReportObjectListData }
 

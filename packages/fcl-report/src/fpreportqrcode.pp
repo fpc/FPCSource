@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpreportqrcode;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, FpImage, Fcl.Expressions, FpImage.QRCode, FpImage.QRCodeGen, FpReport.Report, FPReport.Streamer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, fpimage, fpexprpars, fpimgqrcode, fpqrcodegen, fpreport, fpreportstreamer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -62,7 +69,11 @@ Procedure UnRegisterReportQRCode;
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.TypInfo, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses typinfo, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { TFPReportQRCode }
