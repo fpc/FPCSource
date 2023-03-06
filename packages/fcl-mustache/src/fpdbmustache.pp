@@ -13,14 +13,21 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpdbmustache;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Mustache.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpMustache;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -79,7 +86,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses StrUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
   SErrPopSectionNoPush = 'PopSection %s without push';
