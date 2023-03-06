@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdInput;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original: jdinput.c ; Copyright (C) 1991-1997, Thomas G. Lane. }
 
@@ -14,12 +16,21 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jinclude, System.Jpeg.Jutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jpeglib,
   jdeferr,
   jerror,
   jinclude, jutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Initialize the input controller module.
   This is called only once, when the decompression object is created. }

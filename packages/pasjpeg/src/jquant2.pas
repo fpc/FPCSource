@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JQuant2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { This file contains 2-pass color quantization (color mapping) routines.
@@ -18,12 +20,21 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jdeferr,
   jerror,
   jutils,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Module initialization routine for 2-pass color quantization. }
 

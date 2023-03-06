@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdPostCt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original: jdpostct.c ; Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -16,6 +18,15 @@ Unit JdPostCt;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -23,6 +34,7 @@ uses
   jerror,
   jutils,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Initialize postprocessing controller. }

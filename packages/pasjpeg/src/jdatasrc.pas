@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JDataSrc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains decompression data source routines for the case of
   reading JPEG data from a file (or any stdio stream).  While these routines
@@ -15,6 +17,15 @@ interface
 {$I jconfig.inc}
 
 { this is not a core library module, so it doesn't define JPEG_INTERNALS }
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdmarker,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -22,6 +33,7 @@ uses
   jdmarker,
   jdeferr,
   jerror;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Prepare for input from a stdio stream.

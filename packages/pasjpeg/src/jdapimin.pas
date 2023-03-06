@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdAPImin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$N+}  { Nomssi: cinfo^.output_gamma }
 
@@ -18,6 +20,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jmemmgr, System.Jpeg.Jdmarker, System.Jpeg.Jdinput, System.Jpeg.Jcomapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -25,6 +36,7 @@ uses
   jerror,
   jpeglib,
   jmemmgr, jdmarker, jdinput, jcomapi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Nomssi }
 procedure jpeg_create_decompress(cinfo : j_decompress_ptr);

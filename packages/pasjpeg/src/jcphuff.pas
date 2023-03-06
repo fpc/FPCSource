@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcpHuff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains Huffman entropy encoding routines for progressive JPEG.
 
@@ -11,6 +13,17 @@ Unit JcpHuff;
 interface
 
 {$I jconfig.inc}
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jutils,
+  System.Jpeg.Jcomapi,
+  System.Jpeg.Jchuff;               { Declarations shared with System.Jpeg.Jchuff.c }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -20,6 +33,7 @@ uses
   jutils,
   jcomapi,
   jchuff;               { Declarations shared with jchuff.c }
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 { Module initialization routine for progressive Huffman entropy encoding. }

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JmoreCfg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains additional configuration options that customize the
   JPEG software for special applications or support machine-dependent

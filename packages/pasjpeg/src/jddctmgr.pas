@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JdDctMgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Original : jddctmgr.c ;  Copyright (C) 1994-1996, Thomas G. Lane. }
 
@@ -17,6 +19,22 @@ interface
 
 {$N+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jpeglib,
+  System.Jpeg.Jdct,         { Private declarations for DCT subsystem }
+  System.Jpeg.Jidctfst,
+  {$IFDEF BASM}
+  System.Jpeg.Jidctasm,
+  {$ELSE}
+  System.Jpeg.Jidctint,
+  {$ENDIF}
+  System.Jpeg.Jidctflt, System.Jpeg.Jidctred;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -31,6 +49,7 @@ uses
   jidctint,
   {$ENDIF}
   jidctflt, JIDctRed;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

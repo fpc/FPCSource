@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JPEGLib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file defines the application interface for the JPEG library.
   Most applications using the library need only include this file,
@@ -16,9 +18,15 @@ interface
   generated automatically for many systems.  jmorecfg.h contains
   manual configuration options that most people need not worry about. }
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jmorecfg;                     { seldom changed options }
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jdeferr,
   jmorecfg;                     { seldom changed options }
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Version ID for the JPEG library.
   Might be useful for tests like "#if JPEG_LIB_VERSION >= 60". }

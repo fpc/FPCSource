@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit JcParam;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { This file contains optional default-setting code for the JPEG compressor.
   Applications do not have to use this file, but those that don't use it
@@ -10,6 +12,15 @@ interface
 
 {$I jconfig.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Jpeg.Jmorecfg,
+  System.Jpeg.Jinclude,
+  System.Jpeg.Jdeferr,
+  System.Jpeg.Jerror,
+  System.Jpeg.Jcomapi,
+  System.Jpeg.Jpeglib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   jmorecfg,
   jinclude,
@@ -17,6 +28,7 @@ uses
   jerror,
   jcomapi,
   jpeglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Quantization table setup routines }
 
