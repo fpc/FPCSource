@@ -287,6 +287,7 @@ ResourceString
   SUnknownGroup                 = '%s not in a class registration group';
   SUnknownProperty              = 'Unknown property: "%s"';
   SUnknownPropertyType          = 'Unknown property type %d';
+  SUnsupportedCallConv          = 'Unsupported calling convention: %s';
   SUnsupportedPropertyVariantType = 'Unsupported property variant type %d';
   SUntitled                     = '(Untitled)';
   SVBitmaps                     = 'Bitmaps';
