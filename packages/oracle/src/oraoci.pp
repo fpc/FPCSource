@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit OraOCI;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE FPC}
 {$linklib clntsh}

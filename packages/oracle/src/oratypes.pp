@@ -1,5 +1,7 @@
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit oratypes;
+{$ENDIF FPC_DOTTEDUNITS}
 interface
 
 {

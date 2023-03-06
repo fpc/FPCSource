@@ -4,12 +4,21 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes,
+{$IFDEF LinkDynamically}
+ System.SysUtils,
+{$ENDIF}
+    System.DynLibs, // always for sharedsuffix
+    Api.Oracle.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes,
 {$IFDEF LinkDynamically}
  sysutils,
 {$ENDIF}
     Dynlibs, // always for sharedsuffix
     oratypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from oci.h
