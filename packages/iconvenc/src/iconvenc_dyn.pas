@@ -14,15 +14,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit iconvenc_dyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$mode objfpc}{$H+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes,UnixApi.Types,UnixApi.Base,
+  UnixApi.Dl,
+  System.InitC;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes,unixtype,baseunix,
   dl,
   initc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   n = 1;
