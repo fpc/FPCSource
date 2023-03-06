@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SVGALib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {*************************************************************************
   VGAlib version 1.2 - (c) 1993 Tommy Frandsen
