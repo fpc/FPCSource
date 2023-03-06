@@ -12,12 +12,26 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-json.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFNDEF PAS2JS}
+  System.Variants,
+  {$ENDIF}
+  {$IFDEF PAS2JS}
+  JS, System.RtlConsts, System.Types,
+  {$ENDIF}
+  System.SysUtils,
+  System.Classes,
+  System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFNDEF PAS2JS}
   variants,
@@ -28,6 +42,7 @@ uses
   SysUtils,
   classes,
   contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
@@ -803,7 +818,11 @@ Function GetJSONStringParserHandler: TJSONStringParserHandler;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 Uses typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFNDEF Pas2js}
 const
@@ -2002,7 +2021,11 @@ end;
 
 function TJSONNull.GetValue: TJSONVariant;
 begin
-  Result:={$IFDEF PAS2JS}js.Null{$else}variants.Null{$ENDIF};
+  {$IFDEF PAS2JS}
+    Result:=js.Null;
+  {$ELSE PAS2JS}
+    Result:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}variants.Null;
+  {$ENDIF}
 end;
 
 procedure TJSONNull.SetValue(const AValue: TJSONVariant);

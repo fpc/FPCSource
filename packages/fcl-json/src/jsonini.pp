@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonini;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -20,8 +22,13 @@ unit jsonini;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.IniFiles, FpJson.Data, FpJson.Scanner, FpJson.Parser, System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, inifiles, fpjson, jsonscanner, jsonparser, dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
