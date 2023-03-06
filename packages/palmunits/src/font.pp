@@ -20,11 +20,17 @@
  *
  *****************************************************************************)
 {$MACRO ON}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit font;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Pixel width of tab stops in fields
 const

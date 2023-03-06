@@ -39,11 +39,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit palmcompatibility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Localemgr, PalmApi.Palmlocale, PalmApi.Window, PalmApi.Fslib;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, localemgr, palmlocale, window, fslib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // The data types Byte, Word, DWord and so on are now deprecated.  We
 // recommend that you use the corresponding new data types: for example,

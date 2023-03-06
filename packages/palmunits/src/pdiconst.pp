@@ -17,11 +17,17 @@
  * Property fields access
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pdiconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   kPdiPVF_ADR_POST_OFFICE = UInt8(0);

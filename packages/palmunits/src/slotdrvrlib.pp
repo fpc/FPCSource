@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit slotdrvrlib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Expansionmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, expansionmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   slotDrvrAPIVersion = $00000002;

@@ -18,11 +18,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit menu_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Control, PalmApi.Event_;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, control, event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Errors returned by Menu routines
 

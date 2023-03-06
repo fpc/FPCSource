@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pdilib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Libtraps, PalmApi.Errorbase, PalmApi.Textmgr, PalmApi.Udamgr, PalmApi.Pdiconst;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, libtraps, errorbase, textmgr, udamgr, pdiconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*******************************************************************
  * Unified data access types and macros

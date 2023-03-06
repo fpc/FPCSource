@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit stringmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos,PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos,coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Max length of string returned by StrIToA, for -2147483647, plus space
 // for the terminating null.

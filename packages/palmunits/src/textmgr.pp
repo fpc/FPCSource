@@ -51,11 +51,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit textmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Errorbase, PalmApi.Intlmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, errorbase, intlmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  * Public types & constants
@@ -382,7 +388,11 @@ function TxtCompare(const s1: PAnsiChar; s1Len: UInt16; var s1MatchLen: UInt16;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Chars, PalmApi.Sysevent;
+{$ELSE FPC_DOTTEDUNITS}
 uses Chars, SysEvent;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 function TxtCharIsSpace(ch: WChar): Boolean;

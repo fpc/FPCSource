@@ -17,11 +17,17 @@
  *    05/16/00 CS    Changed DayOfWeekType ot DayOfMonthType.
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit datetime;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Chars, PalmApi.Localemgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, chars, localemgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TimeFormatType = Enum;

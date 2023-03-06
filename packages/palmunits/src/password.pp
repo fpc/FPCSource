@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit password;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Coretraps;
+{$ELSE FPC_DOTTEDUNITS}
 uses coretraps;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   pwdLength = 32;

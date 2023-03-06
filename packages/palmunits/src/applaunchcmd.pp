@@ -19,11 +19,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit applaunchcmd;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Systemmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, systemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (*
 #define LaunchWithCommand(type, creator, command, commandParams) \

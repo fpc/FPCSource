@@ -17,11 +17,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit progress;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Control;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, control;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   progressMaxMessage    = 128;

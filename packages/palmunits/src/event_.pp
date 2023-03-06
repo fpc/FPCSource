@@ -18,11 +18,17 @@
  *    10/28/99 kwk   Added EvtKeydownIsVirtual macro.
  *
  *****************************************************************************)
+{$IFNDEF FPC_DOTTEDUNITS}
 unit event_;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Sysevent, PalmApi.Control, PalmApi.Day, PalmApi.Field, PalmApi.List, PalmApi.Scrollbar, PalmApi.Table;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, sysevent, control, day, field, list, scrollbar, table;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   eventsEnum = WordEnum;

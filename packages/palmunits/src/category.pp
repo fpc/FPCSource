@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit category;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses  PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Datamgr, PalmApi.Control, PalmApi.List, PalmApi.Form;
+{$ELSE FPC_DOTTEDUNITS}
 uses  palmos, coretraps, datamgr, control, list, form;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // Note: although these constants are in the range of system resource IDs, the are actually
 // constants passed to CategoryCreateList, CategorySelect, and CategoryFreeList which will

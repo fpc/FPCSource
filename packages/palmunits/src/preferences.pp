@@ -52,11 +52,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit preferences;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Datamgr, PalmApi.Localemgr, PalmApi.Datetime, PalmApi.Localize, PalmApi.Attentionmgr, PalmApi.Systemmgr;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, datamgr, localemgr, datetime, localize, attentionmgr, systemmgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 (***********************************************************************
  *  Constants

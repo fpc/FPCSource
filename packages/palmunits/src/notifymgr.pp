@@ -21,11 +21,17 @@
  *
  *****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit notifymgr;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses PalmApi.Palmos, PalmApi.Coretraps, PalmApi.Datamgr, PalmApi.Localemgr, PalmApi.Systemresources;
+{$ELSE FPC_DOTTEDUNITS}
 uses palmos, coretraps, datamgr, localemgr, systemresources;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   SysNotifyParamType = record
