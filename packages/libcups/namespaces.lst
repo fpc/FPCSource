@@ -1,0 +1,3 @@
+src/cupsdyn.pp=namespaced/Api.Cupsdyn.pp
+{s*:src/}=namespaced/
+{i+:src/}

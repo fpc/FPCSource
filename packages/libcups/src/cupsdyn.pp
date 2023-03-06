@@ -29,13 +29,29 @@
    mars 08 2005 - Dynamique link lib by Jesus Reyes (big thanks)
                 - Some modifications for work with Mdk 10.1
 ------------------------------------------------------------------------------}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit cupsdyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {.$define UseLibC}
 interface
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.DynLibs,
+  {$ifdef UseLibC}
+  {$IFDEF darwin}
+  miniCupsLibc
+  {$ELSE}
+  Api.Libc
+  {$ENDIF}
+  {$else}
+  UnixApi.Base, UnixApi.Unix, System.Net.Sockets
+  {$endif}
+  ;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, dynlibs,
   {$ifdef UseLibC}
@@ -48,6 +64,7 @@ uses
   baseunix, unix, sockets
   {$endif}
   ;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
