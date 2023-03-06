@@ -26,10 +26,17 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+     System.DynLibs,
+     System.CTypes,
+     System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
      Dynlibs,
      ctypes,
      sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
