@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Intuition;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$define INTUI_V36_NAMES_ONLY}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Agraphics, Amiga.Core.Inputevent, Amiga.Core.Timer, Amiga.Core.Layers, Amiga.Core.Keymap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, Utility, AGraphics, InputEvent, Timer, Layers, Keymap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 type

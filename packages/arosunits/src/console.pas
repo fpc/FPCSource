@@ -21,12 +21,19 @@
     nils.sjoholm@mailbox.swipnet.se  Nils Sjoholm
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit console;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Inputevent, Amiga.Core.Keymap, Amiga.Core.Utility, Amiga.Core.Amigados;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, inputevent, keymap, utility, amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 

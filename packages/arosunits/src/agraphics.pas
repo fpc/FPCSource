@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Hardware, Amiga.Core.Utility;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, Hardware, Utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 const

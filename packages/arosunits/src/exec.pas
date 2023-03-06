@@ -26,7 +26,9 @@ defines:
 }
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 

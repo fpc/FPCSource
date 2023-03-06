@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit utility;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PClockData = ^TClockData;

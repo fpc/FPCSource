@@ -12,12 +12,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit datatypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Amigados, Amiga.Core.Utility, Amiga.Core.Agraphics, Amiga.Core.Intuition, Amiga.Core.Iffparse;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec, AmigaDOS, Utility, AGraphics, Intuition, IFFParse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DATATYPESNAME = 'datatypes.library';

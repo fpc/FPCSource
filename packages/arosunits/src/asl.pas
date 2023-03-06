@@ -13,12 +13,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit asl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Workbench, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, utility, workbench, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ASLNAME: PAnsiChar = 'asl.library';

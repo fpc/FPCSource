@@ -17,12 +17,19 @@
     registers and bits in the Complex Interface Adapter (CIA) chip
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit hardware;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
  * ciaa is on an ODD Pointer (e.g. the low Byte) -- $bfe001

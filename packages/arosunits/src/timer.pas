@@ -26,12 +26,19 @@
 
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 

@@ -22,12 +22,19 @@
 
 {$define AROS_FAST_BPTR}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit amigados;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Utility, Amiga.Core.Timer;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, utility, timer;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$PACKRECORDS C}
 
