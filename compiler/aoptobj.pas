@@ -1387,10 +1387,11 @@ Unit AoptObj;
           If Assigned(StartPai) And
              (StartPai.typ = ait_regAlloc) Then
             Begin
-              if (tai_regalloc(StartPai).ratype=ra_alloc) and
-                SuperRegistersEqual(tai_regalloc(StartPai).Reg,Reg) then
+              if SuperRegistersEqual(tai_regalloc(StartPai).Reg,Reg) then
                begin
-                 Result:=tai_regalloc(StartPai);
+                 { If we find a dealloc first, say, return nil }
+                 if (tai_regalloc(StartPai).ratype<>ra_dealloc) then
+                   Result:=tai_regalloc(StartPai);
                  exit;
                end;
               StartPai := Tai(StartPai.Previous);
