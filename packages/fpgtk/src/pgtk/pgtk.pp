@@ -1,6 +1,10 @@
 program PGtk;
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.SysUtils, Objectdef, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 Uses sysutils, ObjectDef, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PGtkexception = class (Exception);

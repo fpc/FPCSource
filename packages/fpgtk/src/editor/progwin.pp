@@ -3,7 +3,11 @@ unit ProgWin;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fpgtk, Api.Gtk1.Gtk, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses FPgtk, gtk, classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -19,7 +23,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Gtkdeftexts;
+{$ELSE FPC_DOTTEDUNITS}
 uses gtkDefTexts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure TProgressWindow.ComposeWindow;
 begin

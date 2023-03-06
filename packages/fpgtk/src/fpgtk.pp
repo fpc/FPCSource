@@ -23,7 +23,11 @@ UNIT FPgtk;
 
 INTERFACE
 
+{$IFDEF FPC_DOTTEDUNITS}
+USES System.Classes, System.SysUtils, Api.Gtk1.Gtk, Api.Gtk1.Gdk, Api.Gtk1.Glib, Fpglib;
+{$ELSE FPC_DOTTEDUNITS}
 USES classes, sysutils, gtk, gdk, glib, FPglib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 TYPE
 
@@ -3326,7 +3330,7 @@ end;
 
 function TFPgtkToolTips.GetEnabled : boolean;
 begin
-  result := boolean(gtk.enabled(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.enabled(TheGtkObject^));
 end;
 
 procedure TFPgtkToolTips.SetEnabled (TheValue:boolean);
@@ -3339,7 +3343,7 @@ end;
 
 function TFPgtkToolTips.GetDelay : integer;
 begin
-  result := gtk.delay(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.delay(TheGtkObject^);
 end;
 
 procedure TFPgtkToolTips.SetDelay (TheValue:integer);
@@ -4843,7 +4847,7 @@ end;
 
 function TFPgtkLabel.GetJustify : TGtkJustification;
 begin
-  result := gtk.jtype(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.jtype(TheGtkObject^);
 end;
 
 procedure TFPgtkLabel.SetJustify (TheValue:TGtkJustification);
@@ -5054,7 +5058,7 @@ end;
 
 function TFPgtkPixmap.GetBuildInsensitive : longbool;
 begin
-  result := longbool(gtk.build_insensitive(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.build_insensitive(TheGtkObject^));
 end;
 
 procedure TFPgtkPixmap.SetBuildInsensitive (TheValue:longbool);
@@ -5199,7 +5203,7 @@ end;
 
 function TFPgtkContainer.GetBorder : integer;
 begin
-  result := gtk.border_width(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.border_width(TheGtkObject^);
 end;
 
 procedure TFPgtkContainer.SetBorder (TheValue:integer);
@@ -5646,12 +5650,12 @@ end;
 
 function TFPgtkToggleButton.GetDrawIndicator : boolean;
 begin
-  result := boolean(gtk.draw_indicator(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.draw_indicator(TheGtkObject^));
 end;
 
 procedure TFPgtkToggleButton.SetDrawIndicator (TheValue:boolean);
 begin
-  gtk.Set_draw_indicator(TheGtkObject^,guint(TheValue))
+  {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.Set_draw_indicator(TheGtkObject^,guint(TheValue))
 end;
 
  { TFPgtkCheckButton }
@@ -6057,7 +6061,7 @@ end;
 
 function TFPgtkMenuItem.GetToggleIndicator : boolean;
 begin
-  result := boolean(gtk.show_toggle_indicator(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_toggle_indicator(TheGtkObject^));
 end;
 
 procedure TFPgtkMenuItem.SetToggleIndicator (TheValue:boolean);
@@ -6067,7 +6071,7 @@ end;
 
 function TFPgtkMenuItem.GetSubMenuIndicator : boolean;
 begin
-  result := boolean(gtk.show_submenu_indicator(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_submenu_indicator(TheGtkObject^));
 end;
 
 procedure TFPgtkMenuItem.SetSubMenuIndicator (TheValue:boolean);
@@ -6077,12 +6081,12 @@ end;
 
 function TFPgtkMenuItem.GetJustifyRight : boolean;
 begin
-  result := boolean(gtk.right_justify(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.right_justify(TheGtkObject^));
 end;
 
 procedure TFPgtkMenuItem.SetJustifyRight (TheValue:boolean);
 begin
-  gtk.Set_right_justify(TheGtkObject^,guint(TheValue))
+  {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.Set_right_justify(TheGtkObject^,guint(TheValue))
 end;
 
 function TFPgtkMenuItem.GetSubMenu : TFPgtkMenuShell;
@@ -6136,7 +6140,7 @@ end;
 
 function TFPgtkCheckMenuItem.GetActive : boolean;
 begin
-  result := boolean(gtk.active(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.active(TheGtkObject^));
 end;
 
 procedure TFPgtkCheckMenuItem.SetActive (TheValue:boolean);
@@ -6146,7 +6150,7 @@ end;
 
 function TFPgtkCheckMenuItem.GetShowToggle : boolean;
 begin
-  result := boolean(gtk.always_show_toggle(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.always_show_toggle(TheGtkObject^));
 end;
 
 procedure TFPgtkCheckMenuItem.SetShowToggle (TheValue:boolean);
@@ -6449,7 +6453,7 @@ end;
 
 function TFPgtkTreeItem.GetExpanded : boolean;
 begin
-  result := boolean(gtk.expanded(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.expanded(TheGtkObject^));
 end;
 
 procedure TFPgtkTreeItem.SetExpanded (TheValue:boolean);
@@ -6551,7 +6555,7 @@ end;
 
 function TFPgtkWindow.GetModal : boolean;
 begin
-  result := boolean(gtk.modal(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.modal(TheGtkObject^));
 end;
 
 procedure TFPgtkWindow.SetModal (TheValue:boolean);
@@ -6679,7 +6683,7 @@ end;
 
 function TFPgtkWindow.GetPosition : TGtkWindowPosition;
 begin
-  result := TGtkWindowPosition (gtk.position (TheGtkObject^));
+  result := TGtkWindowPosition ({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.position (TheGtkObject^));
 end;
 
 procedure TFPgtkWindow.SetPosition (TheValue:TGtkWindowPosition);
@@ -7061,7 +7065,7 @@ end;
 
 function TFPgtkHandleBox.GetHandlePosition : TGtkPositionType;
 begin
-  result := TGtkPositionType (gtk.handle_position(TheGtkObject^));
+  result := TGtkPositionType ({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.handle_position(TheGtkObject^));
 end;
 
 procedure TFPgtkHandleBox.SetHandlePosition (TheValue:TGtkPositionType);
@@ -7071,7 +7075,7 @@ end;
 
 function TFPgtkHandleBox.GetSnapEdge : TGtkPositionType;
 begin
-  result := TGtkPositionType (gtk.snap_edge(TheGtkObject^));
+  result := TGtkPositionType ({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.snap_edge(TheGtkObject^));
 end;
 
 procedure TFPgtkHandleBox.SetSnapEdge (TheValue:TGtkPositionType);
@@ -7081,7 +7085,7 @@ end;
 
 function TFPgtkHandleBox.GetChildDetached : boolean;
 begin
-  result := boolean(gtk.child_detached(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.child_detached(TheGtkObject^));
 end;
 
 function TFPgtkHandleBox.ConnectChildAttached (proc:TFPgtkWidgetSignalFunction; data:pointer) : guint;
@@ -7137,7 +7141,7 @@ end;
 
 function TFPgtkScrolledWindow.GetHPolicy : TGtkPolicyType;
 begin
-  result := gtk.hscrollbar_policy(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.hscrollbar_policy(TheGtkObject^);
 end;
 
 procedure TFPgtkScrolledWindow.SetHPolicy (TheValue:TGtkPolicyType);
@@ -7147,7 +7151,7 @@ end;
 
 function TFPgtkScrolledWindow.GetVPolicy : TGtkPolicyType;
 begin
-  result := gtk.vscrollbar_policy(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.vscrollbar_policy(TheGtkObject^);
 end;
 
 procedure TFPgtkScrolledWindow.SetVPolicy (TheValue:TGtkPolicyType);
@@ -7194,7 +7198,7 @@ end;
 
 function TFPgtkScrolledWindow.GetPlacement : TGtkCornerType;
 begin
-  result := gtk.window_placement(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.window_placement(TheGtkObject^);
 end;
 
 procedure TFPgtkScrolledWindow.SetPlacement (TheValue:TGtkCornerType);
@@ -7307,7 +7311,7 @@ end;
 
 function TFPgtkBox.GetHomogeneous : boolean;
 begin
-  result := boolean(gtk.homogeneous(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.homogeneous(TheGtkObject^));
 end;
 
 procedure TFPgtkBox.SetHomogeneous (TheValue:boolean);
@@ -7635,7 +7639,7 @@ end;
 
 function TFPgtkCombo.GetValueInList : longbool;
 begin
-  result := longbool(gtk.value_in_list(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.value_in_list(TheGtkObject^));
 end;
 
 procedure TFPgtkCombo.SetValueInListProp (TheValue:longbool);
@@ -7645,7 +7649,7 @@ end;
 
 function TFPgtkCombo.GetOkIfEmpty : longbool;
 begin
-  result := longbool(gtk.ok_if_empty(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.ok_if_empty(TheGtkObject^));
 end;
 
 procedure TFPgtkCombo.SetOkIfEmpty (TheValue:longbool);
@@ -7655,7 +7659,7 @@ end;
 
 function TFPgtkCombo.GetUseArrows : longbool;
 begin
-  result := longbool(gtk.use_arrows(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.use_arrows(TheGtkObject^));
 end;
 
 procedure TFPgtkCombo.SetUseArrows (TheValue:longbool);
@@ -7665,7 +7669,7 @@ end;
 
 function TFPgtkCombo.GetUseArrowsAlways : longbool;
 begin
-  result := longbool(gtk.use_arrows_always(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.use_arrows_always(TheGtkObject^));
 end;
 
 procedure TFPgtkCombo.SetUseArrowsAlways (TheValue:longbool);
@@ -7675,7 +7679,7 @@ end;
 
 function TFPgtkCombo.GetCaseSensitive : longbool;
 begin
-  result := longbool(gtk.case_sensitive(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.case_sensitive(TheGtkObject^));
 end;
 
 procedure TFPgtkCombo.SetCaseSensitive (TheValue:longbool);
@@ -8544,7 +8548,7 @@ end;
 
 function TFPgtkCTree.GetLineStyle : TGtkCTreeLineStyle;
 begin
-  result := TGtkCTreeLineStyle(gtk.line_style(TheGtkObject^));
+  result := TGtkCTreeLineStyle({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.line_style(TheGtkObject^));
 end;
 
 procedure TFPgtkCTree.SetLineStyle (TheValue:TGtkCTreeLineStyle);
@@ -8554,7 +8558,7 @@ end;
 
 function TFPgtkCTree.GetShowStub : boolean;
 begin
-  result := boolean(gtk.show_stub(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_stub(TheGtkObject^));
 end;
 
 procedure TFPgtkCTree.SetShowStub (TheValue:boolean);
@@ -8564,7 +8568,7 @@ end;
 
 function TFPgtkCTree.GetExpanderStyle : TGtkCTreeExpanderStyle;
 begin
-  result := TGtkCTreeExpanderStyle(gtk.expander_style(TheGtkObject^));
+  result := TGtkCTreeExpanderStyle({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.expander_style(TheGtkObject^));
 end;
 
 procedure TFPgtkCTree.SetExpanderStyle (TheValue:TGtkCTreeExpanderStyle);
@@ -9069,7 +9073,7 @@ end;
 
 function TFPgtkNotebook.GetTabPos : TGtkPositionType;
 begin
-  result := gtk.tab_pos(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.tab_pos(TheGtkObject^);
 end;
 
 procedure TFPgtkNotebook.SetTabPos (TheValue:TGtkPositionType);
@@ -9079,7 +9083,7 @@ end;
 
 function TFPgtkNotebook.GetShowTabs : boolean;
 begin
-  result := boolean(gtk.show_tabs(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_tabs(TheGtkObject^));
 end;
 
 procedure TFPgtkNotebook.SetShowTabs (TheValue:boolean);
@@ -9089,7 +9093,7 @@ end;
 
 function TFPgtkNotebook.GetShowBorder : boolean;
 begin
-  result := boolean(gtk.show_border(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_border(TheGtkObject^));
 end;
 
 procedure TFPgtkNotebook.SetShowBorder (TheValue:boolean);
@@ -9099,7 +9103,7 @@ end;
 
 function TFPgtkNotebook.GetScrollable : boolean;
 begin
-  result := boolean(gtk.scrollable(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.scrollable(TheGtkObject^));
 end;
 
 procedure TFPgtkNotebook.SetScrollable (TheValue:boolean);
@@ -9109,7 +9113,7 @@ end;
 
 function TFPgtkNotebook.GetHomogenous : boolean;
 begin
-  result := boolean(gtk.homogeneous(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.homogeneous(TheGtkObject^));
 end;
 
 procedure TFPgtkNotebook.SetHomogenous (TheValue:boolean);
@@ -9971,7 +9975,7 @@ end;
 
 function TFPgtkMenu.GetTearOffState : boolean;
 begin
-  result := boolean(gtk.torn_off(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.torn_off(TheGtkObject^));
 end;
 
 procedure TFPgtkMenu.SetTearOffState (TheValue:boolean);
@@ -10138,7 +10142,7 @@ end;
 
 function TFPgtkTable.GetHomogeneous : boolean;
 begin
-  result := boolean(gtk.homogeneous(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.homogeneous(TheGtkObject^));
 end;
 
 procedure TFPgtkTable.SetHomogeneous (TheValue:boolean);
@@ -10496,7 +10500,7 @@ end;
 
 function TFPgtkTree.GetSelectionMode : TGtkSelectionMode;
 begin
-  result := gtk.selection_mode(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.selection_mode(TheGtkObject^);
 end;
 
 procedure TFPgtkTree.SetSelectionMode (TheValue:TGtkSelectionMode);
@@ -10506,7 +10510,7 @@ end;
 
 function TFPgtkTree.GetViewLines : boolean;
 begin
-  result := boolean(gtk.view_line(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.view_line(TheGtkObject^));
 end;
 
 procedure TFPgtkTree.SetViewLines (TheValue:boolean);
@@ -10516,7 +10520,7 @@ end;
 
 function TFPgtkTree.GetViewMode : TGtkTreeViewMode;
 begin
-  result := gtk.view_mode(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.view_mode(TheGtkObject^);
 end;
 
 procedure TFPgtkTree.SetViewMode (TheValue:TGtkTreeViewMode);
@@ -10820,7 +10824,7 @@ end;
 
 function TFPgtkEditable.GetEditable : boolean;
 begin
-  result := boolean(gtk.editable(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.editable(TheGtkObject^));
 end;
 
 procedure TFPgtkEditable.SetEditable (TheValue:boolean);
@@ -10830,12 +10834,12 @@ end;
 
 function TFPgtkEditable.GetVisible : boolean;
 begin
-  result := boolean(gtk.visible(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.visible(TheGtkObject^));
 end;
 
 procedure TFPgtkEditable.SetVisible (TheValue:boolean);
 begin
-  gtk.Set_visible(TheGtkObject^,guint(TheValue))
+  {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.Set_visible(TheGtkObject^,guint(TheValue))
 end;
 
 function TFPgtkEditable.GetPosition : integer;
@@ -11266,7 +11270,7 @@ end;
 
 function TFPgtkEntry.GetVisibility : boolean;
 begin
-  result := boolean(gtk.visible(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.visible(TheGtkObject^));
 end;
 
 procedure TFPgtkEntry.SetVisibility (TheValue:boolean);
@@ -11327,7 +11331,7 @@ end;
 
 function TFPgtkSpinButton.GetDigits : integer;
 begin
-  result := gtk.digits(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.digits(TheGtkObject^);
 end;
 
 procedure TFPgtkSpinButton.SetDigits (TheValue:integer);
@@ -11367,7 +11371,7 @@ end;
 
 function TFPgtkSpinButton.GetNumeric : boolean;
 begin
-  result := boolean(gtk.numeric(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.numeric(TheGtkObject^));
 end;
 
 procedure TFPgtkSpinButton.SetNumeric (TheValue:boolean);
@@ -11382,7 +11386,7 @@ end;
 
 function TFPgtkSpinButton.GetWrap : boolean;
 begin
-  result := boolean(gtk.wrap(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.wrap(TheGtkObject^));
 end;
 
 procedure TFPgtkSpinButton.SetWrap (TheValue:boolean);
@@ -11402,7 +11406,7 @@ end;
 
 function TFPgtkSpinButton.GetSnapToTicks : boolean;
 begin
-  result := boolean(gtk.snap_to_ticks(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.snap_to_ticks(TheGtkObject^));
 end;
 
 procedure TFPgtkSpinButton.SetSnapToTicks (TheValue:boolean);
@@ -11497,7 +11501,7 @@ end;
 
 function TFPgtkText.GetWordWrap : boolean;
 begin
-  result := boolean(gtk.word_wrap(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.word_wrap(TheGtkObject^));
 end;
 
 procedure TFPgtkText.SetWordWrap (TheValue:boolean);
@@ -11507,7 +11511,7 @@ end;
 
 function TFPgtkText.GetLineWrap : boolean;
 begin
-  result := boolean(gtk.Line_Wrap(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.Line_Wrap(TheGtkObject^));
 end;
 
 procedure TFPgtkText.SetLineWrap (TheValue:boolean);
@@ -11629,7 +11633,7 @@ end;
 
 function TFPgtkRange.GetUpdatePolicy : TgtkUpdateType;
 begin
-  result := gtk.policy(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.policy(TheGtkObject^);
 end;
 
 procedure TFPgtkRange.SetUpdatePolicy (TheValue:TgtkUpdateType);
@@ -11729,7 +11733,7 @@ end;
 
 function TFPgtkScale.GetDrawValue : boolean;
 begin
-  result := boolean(gtk.draw_value(TheGtkObject^));
+  result := boolean({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.draw_value(TheGtkObject^));
 end;
 
 procedure TFPgtkScale.SetDrawValue (TheValue:boolean);
@@ -11739,7 +11743,7 @@ end;
 
 function TFPgtkScale.GetValuePos : TGtkPositionType;
 begin
-  result := gtk.value_pos(TheGtkObject^);
+  result := {$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.value_pos(TheGtkObject^);
 end;
 
 procedure TFPgtkScale.SetValuePos (TheValue:TGtkPositionType);
@@ -11884,7 +11888,7 @@ end;
 
 function TFPgtkPreview.GetExpand : longbool;
 begin
-  result := longbool(gtk.expand(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.expand(TheGtkObject^));
 end;
 
 procedure TFPgtkPreview.SetExpand (TheValue:longbool);
@@ -11912,7 +11916,7 @@ end;
 
 function TFPgtkProgress.GetShowtext : longbool;
 begin
-  result := longbool(gtk.show_text(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.show_text(TheGtkObject^));
 end;
 
 procedure TFPgtkProgress.SetShowtext (TheValue:longbool);
@@ -11993,7 +11997,7 @@ end;
 
 function TFPgtkProgress.GetActivityMode : longbool;
 begin
-  result := longbool(gtk.activity_mode(TheGtkObject^));
+  result := longbool({$IFDEF FPC_DOTTEDUNITS}Api.Gtk1.{$ENDIF}Gtk.activity_mode(TheGtkObject^));
 end;
 
 procedure TFPgtkProgress.SetActivityMode (TheValue:longbool);

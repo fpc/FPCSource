@@ -18,7 +18,11 @@ unit FPGlib;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Api.Gtk1.Glib;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes, glib;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

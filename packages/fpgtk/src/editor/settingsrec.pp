@@ -20,7 +20,11 @@ unit SettingsRec;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Fpgtk, Fpgtkext;
+{$ELSE FPC_DOTTEDUNITS}
 uses FPgtk, FPgtkExt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -58,7 +62,11 @@ procedure Log (indent:integer; fmt:AnsiString; params:array of const);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Gtkdeftexts, Api.Gtk1.Gdk, Api.Gtk1.Gtk, System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses GtkDefTexts, gdk, gtk, sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 constructor TSettingsDialog.Create;
 begin
