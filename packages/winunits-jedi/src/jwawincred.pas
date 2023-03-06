@@ -43,7 +43,9 @@
 // $Id: JwaWinCred.pas,v 1.15 2007/09/14 06:48:48 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaWinCred;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -58,8 +60,13 @@ unit JwaWinCred;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Lmcons, WinApi.Jedi.Winbase, WinApi.Jedi.Winerror, WinApi.Jedi.Wintype, WinApi.Jedi.Ntsecapi;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaLmCons, JwaWinBase, JwaWinError, JwaWinType, JwaNtSecApi;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

@@ -42,7 +42,9 @@
 
 // $Id: JwaAtalkWsh.pas,v 1.9 2007/09/05 11:58:48 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaAtalkWsh;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -56,8 +58,13 @@ interface
 {$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Winsock2, WinApi.Jedi.Wintype;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinSock2, JwaWinType;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

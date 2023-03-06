@@ -42,7 +42,9 @@
 
 // $Id: JwaUserEnv.pas,v 1.12 2007/09/05 11:58:52 dezipaitor Exp $
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaUserEnv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -66,8 +68,13 @@ unit JwaUserEnv;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Activex, WinApi.Jedi.Profinfo, WinApi.Jedi.Wbemcli, WinApi.Jedi.Wintype, WinApi.Jedi.Winbase, WinApi.Jedi.Winnt;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaActiveX, JwaProfInfo, JwaWbemCli, JwaWinType, JWaWinBase, JwaWinNT;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 //=============================================================================

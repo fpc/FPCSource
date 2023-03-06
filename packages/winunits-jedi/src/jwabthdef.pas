@@ -41,7 +41,9 @@
 // $Id: JwaBtHDef.pas,v 1.13 2007/09/06 14:57:11 marquardt Exp $
 
 {$IFNDEF JWA_OMIT_SECTIONS}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit JwaBtHDef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$WEAKPACKAGEUNIT}
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -55,8 +57,13 @@ unit JwaBtHDef;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  WinApi.Jedi.Wintype, WinApi.Jedi.Bthsdpdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   JwaWinType, JwaBthSdpDef;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
