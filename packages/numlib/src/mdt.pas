@@ -22,12 +22,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit mdt;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$I DIRECT.INC}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses NumLib.Typ, NumLib.Dsl, NumLib.Omv;
+{$ELSE FPC_DOTTEDUNITS}
 uses typ, dsl, omv;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure mdtgen(n, rwidth: ArbInt; Var alu: ArbFloat; Var p: ArbInt;
                  Var ca:ArbFloat; Var term: ArbInt);
