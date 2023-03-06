@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpfixedexport;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit fpfixedexport;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Export.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpDBExport;
+{$ENDIF FPC_DOTTEDUNITS}
   
   { TFixedLengthExportFieldItem }
 
@@ -108,7 +115,11 @@ Resourcestring
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math;
+{$ELSE FPC_DOTTEDUNITS}
 uses math;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { TFixedExportFormatSettings }
 

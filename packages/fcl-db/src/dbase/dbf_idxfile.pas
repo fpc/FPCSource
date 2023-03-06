@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_idxfile;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,6 +20,29 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef Windows}
+  WinApi.Windows,
+{$else}
+{$ifdef KYLIX}
+  Api.Libc,
+{$endif}
+  System.Types, Data.Dbf.Wtil,
+{$endif}
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Pgfile,
+{$ifdef USE_CACHE}
+  Data.Dbf.Pgcfile,
+{$endif}
+  Data.Dbf.Parser,
+  Data.Dbf.Prsdef,
+  Data.Dbf.Cursor,
+  Data.Dbf.Collate,
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows,
@@ -39,6 +64,7 @@ uses
   dbf_cursor,
   dbf_collate,
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef _DEBUG}
 {$define TDBF_INDEX_CHECK}
@@ -418,6 +444,15 @@ type
 //------------------------------------------------------------------------------
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Dbf.Dbffile,
+  Data.Dbf.Fields,
+  Data.Dbf.Str,
+  Data.Dbf.Prssupp,
+  Data.Dbf.Prscore,
+  Data.Dbf.Lang;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbf_dbffile,
   dbf_fields,
@@ -425,6 +460,7 @@ uses
   dbf_prssupp,
   dbf_prscore,
   dbf_lang;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   RecBOF = 0;
@@ -2614,8 +2650,8 @@ begin
   // rename temporary file if all went successfull
   if not TempFile.WriteError then
   begin
-    SysUtils.DeleteFile(FileName);
-    SysUtils.RenameFile(TempFile.FileName, FileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(FileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(TempFile.FileName, FileName);
   end;
 
   TempFile.Free;
@@ -2781,8 +2817,8 @@ begin
   // rename temporary file if all went successfull
   if not TempFile.WriteError then
   begin
-    SysUtils.DeleteFile(FileName);
-    SysUtils.RenameFile(TempFile.FileName, FileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(FileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.RenameFile(TempFile.FileName, FileName);
   end;
 
   TempFile.Free;

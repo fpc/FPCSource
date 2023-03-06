@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite3DS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   This is TSqlite3Dataset, a TDataset descendant class for use with fpc compiler
@@ -37,8 +39,13 @@ unit SQLite3DS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.SQLite.Customsqliteds;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, CustomSqliteDS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TSqlite3Dataset }
@@ -61,8 +68,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.Sqlite3, Data.Db, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sqlite3, db, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
   
 function SqliteCode2Str(Code: Integer): String;
 begin

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit IBConnection;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -20,6 +22,15 @@ unit IBConnection;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Db, Data.Consts, Data.BufDataset,
+{$IfDef LinkDynamically}
+  Api.Ibase60dyn;
+{$Else}
+  Api.Ibase60;
+{$EndIf}
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, db, dbconst, bufdataset,
 {$IfDef LinkDynamically}
@@ -27,6 +38,7 @@ uses
 {$Else}
   ibase60;
 {$EndIf}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DEFDIALECT = 3;
@@ -175,8 +187,13 @@ type
                   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.StrUtils, Data.FMTBcd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   StrUtils, FmtBCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   SQL_BOOLEAN_INTERBASE = 590;

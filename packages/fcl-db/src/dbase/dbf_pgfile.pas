@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_pgfile;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,10 +20,17 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //const
 //  MaxHeaders = 256;
@@ -166,6 +175,18 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$ifdef WINDOWS}
+  WinApi.Windows,
+{$else}
+{$ifdef KYLIX}
+  Libc, 
+{$endif}  
+  System.Types, Data.Dbf.Wtil,
+{$endif}
+  Data.Dbf.Str;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$ifdef WINDOWS}
   Windows,
@@ -176,6 +197,7 @@ uses
   Types, dbf_wtil,
 {$endif}
   dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 //====================================================================
 // TPagedFile
@@ -307,7 +329,7 @@ procedure TPagedFile.DeleteFile;
 begin
   // opened -> we can not delete
   if not FActive then
-    SysUtils.DeleteFile(FileName);
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(FileName);
 end;
 
 function TPagedFile.FileCreated: Boolean;

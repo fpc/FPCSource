@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -20,6 +22,19 @@ unit dbf;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Common,
+  Data.Dbf.Dbffile,
+  Data.Dbf.Parser,
+  Data.Dbf.Prsdef,
+  Data.Dbf.Cursor,
+  Data.Dbf.Fields,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Idxfile;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   Db,
@@ -31,6 +46,7 @@ uses
   dbf_fields,
   dbf_pgfile,
   dbf_idxfile;
+{$ENDIF FPC_DOTTEDUNITS}
 {$ifndef fpc}
 // If you got a compilation error here or asking for dsgnintf.pas, then just add
 // this file in your project:
@@ -507,6 +523,28 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+{$ifndef FPC}
+  DBConsts,
+{$endif}
+{$ifdef Windows}
+  WinApi.Windows,
+{$else}
+{$ifdef KYLIX}
+  Api.Libc,
+{$endif}  
+  System.Types,
+  Data.Dbf.Wtil,
+{$endif}
+{$ifdef SUPPORT_SEPARATE_VARIANTS_UNIT}
+  System.Variants,
+{$endif}
+  Data.Dbf.Idxcur,
+  Data.Dbf.Memo,
+  Data.Dbf.Str;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
 {$ifndef FPC}
@@ -527,6 +565,7 @@ uses
   dbf_idxcur,
   dbf_memo,
   dbf_str;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef FPC}
 const
@@ -1098,7 +1137,7 @@ end;
 
 procedure TDbf.InternalHandleException; {override virtual abstract from TDataset}
 begin
-  SysUtils.ShowException(ExceptObject, ExceptAddr);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.ShowException(ExceptObject, ExceptAddr);
 end;
 
 procedure TDbf.GetFieldDefsFromDbfFieldDefs;
@@ -1629,7 +1668,7 @@ begin
       if (FDbfFile <> nil) and (FStorage = stoFile) then
       begin
         FreeAndNil(FDbfFile);
-        SysUtils.DeleteFile(FAbsolutePath+FTableName);
+        {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.DeleteFile(FAbsolutePath+FTableName);
       end;
       raise;
     end;
@@ -2708,13 +2747,13 @@ var
 begin
   CheckActive;
   Strings.Clear;
-  if SysUtils.FindFirst(IncludeTrailingPathDelimiter(ExtractFilePath(FDbfFile.FileName))
+  if {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindFirst(IncludeTrailingPathDelimiter(ExtractFilePath(FDbfFile.FileName))
         + '*.NDX', faAnyFile, SR) = 0 then
   begin
     repeat
       Strings.Add(SR.Name);
-    until SysUtils.FindNext(SR)<>0;
-    SysUtils.FindClose(SR);
+    until {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindNext(SR)<>0;
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SR);
   end;
 end;
 

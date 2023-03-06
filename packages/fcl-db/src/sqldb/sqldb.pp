@@ -12,7 +12,9 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLDB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$H+}
@@ -20,14 +22,18 @@ unit SQLDB;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Data.Db, Data.BufDataset, Data.Sql.Script, Data.Sql.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DB, bufdataset, sqlscript, sqltypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
-  TSchemaType = sqltypes.TSchemaType;
-  TStatementType = sqltypes.TStatementType; 
-  TDBEventType = sqltypes.TDBEventType; 
-  TDBEventTypes = sqltypes.TDBEventTypes;
-  TQuoteChars = sqltypes.TQuoteChars;
+  TSchemaType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TSchemaType;
+  TStatementType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TStatementType; 
+  TDBEventType = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventType; 
+  TDBEventTypes = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TDBEventTypes;
+  TQuoteChars = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.TQuoteChars;
 
 const
   StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
@@ -45,39 +51,39 @@ const
 
   // Backwards compatibility alias constants.
   
-  stNoSchema         = sqltypes.stNoSchema;
-  stTables           = sqltypes.stTables;
-  stSysTables        = sqltypes.stSysTables;
-  stProcedures       = sqltypes.stProcedures;
-  stColumns          = sqltypes.stColumns;
-  stProcedureParams  = sqltypes.stProcedureParams;
-  stIndexes          = sqltypes.stIndexes;
-  stPackages         = sqltypes.stPackages;
-  stSchemata         = sqltypes.stSchemata;
-  stSequences        = sqltypes.stSequences;
+  stNoSchema         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stNoSchema;
+  stTables           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stTables;
+  stSysTables        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSysTables;
+  stProcedures       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stProcedures;
+  stColumns          = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stColumns;
+  stProcedureParams  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stProcedureParams;
+  stIndexes          = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stIndexes;
+  stPackages         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPackages;
+  stSchemata         = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSchemata;
+  stSequences        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSequences;
 
-  stUnknown       = sqltypes.stUnknown; 
-  stSelect        = sqltypes.stSelect; 
-  stInsert        = sqltypes.stInsert; 
-  stUpdate        = sqltypes.stUpdate; 
-  stDelete        = sqltypes.stDelete;
-  stDDL           = sqltypes.stDDL; 
-  stGetSegment    = sqltypes.stGetSegment; 
-  stPutSegment    = sqltypes.stPutSegment; 
-  stExecProcedure = sqltypes.stExecProcedure;
-  stStartTrans    = sqltypes.stStartTrans; 
-  stCommit        = sqltypes.stCommit; 
-  stRollback      = sqltypes.stRollback;  
-  stSelectForUpd  = sqltypes.stSelectForUpd;
+  stUnknown       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUnknown; 
+  stSelect        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelect; 
+  stInsert        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stInsert; 
+  stUpdate        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stUpdate; 
+  stDelete        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDelete;
+  stDDL           = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stDDL; 
+  stGetSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stGetSegment; 
+  stPutSegment    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stPutSegment; 
+  stExecProcedure = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stExecProcedure;
+  stStartTrans    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stStartTrans; 
+  stCommit        = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stCommit; 
+  stRollback      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stRollback;  
+  stSelectForUpd  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.stSelectForUpd;
 
-  detCustom      = sqltypes.detCustom; 
-  detPrepare     = sqltypes.detPrepare; 
-  detExecute     = sqltypes.detExecute; 
-  detFetch       = sqltypes.detFetch; 
-  detCommit      = sqltypes.detCommit; 
-  detRollBack    = sqltypes.detRollBack; 
-  detParamValue  = sqltypes.detParamValue; 
-  detActualSQL   = sqltypes.detActualSQL;
+  detCustom      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCustom; 
+  detPrepare     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detPrepare; 
+  detExecute     = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detExecute; 
+  detFetch       = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detFetch; 
+  detCommit      = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detCommit; 
+  detRollBack    = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detRollBack; 
+  detParamValue  = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detParamValue; 
+  detActualSQL   = {$IFDEF FPC_DOTTEDUNITS}Data.Sql.Types{$ELSE}sqltypes{$ENDIF}.detActualSQL;
   DefaultMacroChar     = '%';
 Type
   TRowsCount = LargeInt;
@@ -862,7 +868,11 @@ const DefaultSQLFormatSettings : TFormatSettings = (
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   // Flags to check which fields must be refreshed.

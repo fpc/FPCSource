@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDDiff;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Dict.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpdatadict;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -65,7 +72,11 @@ type
   
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrMissingDatadict = 'Source and/or target datadictionary not assigned.';

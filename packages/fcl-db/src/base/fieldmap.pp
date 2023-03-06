@@ -14,12 +14,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fieldmap;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 {$H+}
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.Classes, Data.FMTBcd, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils,Classes, fmtBCD, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
   TFieldMap

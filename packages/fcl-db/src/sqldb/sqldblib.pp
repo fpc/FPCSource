@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLDBLib;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -18,8 +20,13 @@ unit SQLDBLib;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, sqldb;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -91,7 +98,7 @@ end;
 
 function TSQLDBLibraryLoader.GetConnectionDef: TConnectionDef;
 begin
-  Result:=sqldb.GetConnectionDef(ConnectionType);
+  Result:={$IFDEF FPC_DOTTEDUNITS}Data.{$ENDIF}SqlDb.GetConnectionDef(ConnectionType);
   if (Result=Nil) then
     DatabaseErrorFmt(SErrInvalidConnectionType,[FCType],Self)
 end;

@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDMySQL41;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Sqldb, Data.Dict.Base,Data.Dict.Sqldb;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, sqldb, fpDataDict,fpddsqldb;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
   { TSQLDBMySql41DDEngine }
@@ -38,7 +45,11 @@ Procedure UnRegisterMySQL41DDEngine;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.SqlDb.Mysql41;
+{$ELSE FPC_DOTTEDUNITS}
 uses mysql41conn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Procedure RegisterMySQL41DDEngine;
 
@@ -57,7 +68,7 @@ end;
 function TSQLDBMySql41DDEngine.CreateConnection(AConnectString: String
   ): TSQLConnection;
 begin
-  Result:=mysql41conn.TMySQL41Connection.Create(Self);
+  Result:={$IFDEF FPC_DOTTEDUNITS}Data.SqlDb.Mysql41{$ELSE}Mysql41conn{$ENDIF}.TMySQL41Connection.Create(Self);
 end;
 
 class function TSQLDBMySql41DDEngine.Description: string;

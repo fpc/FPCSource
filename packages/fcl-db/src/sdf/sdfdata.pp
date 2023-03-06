@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SdfData;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$h+}
@@ -132,8 +134,13 @@ How to Install
 //-----------------------------------------------------------------------------
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Db, System.Classes, System.SysUtils, Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DB, Classes, SysUtils, DBConst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 //-----------------------------------------------------------------------------

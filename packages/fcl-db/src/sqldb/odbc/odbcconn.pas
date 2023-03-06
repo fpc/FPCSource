@@ -9,14 +9,21 @@
  *                                                                            *
  ******************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit odbcconn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.Sqldb, Data.BufDataset, Api.OdbcDyn;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, sqldb, BufDataset, odbcsqldyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -150,8 +157,13 @@ function ODBCSuccess(const Res:SQLRETURN):boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;

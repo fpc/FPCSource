@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcgtypesafedataset;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.CodeGen.Base,Data.Dict.Base, Data.CodeGen.FieldMap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpddcodegen,fpDataDict, fpcgfieldmap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   SNonInterfacedParentClass = 'TTypeSafeDatasetAccess';

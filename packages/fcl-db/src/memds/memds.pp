@@ -23,12 +23,19 @@
   E-mail: harri.kasulke@okay.net
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit memds;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+ System.SysUtils, System.Classes, Data.Db, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
  sysutils, classes, db, types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   // Stream Markers.
@@ -184,8 +191,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Consts, System.Variants, Data.FMTBcd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   DBConst, Variants, FmtBCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrFieldTypeNotSupported = 'Fieldtype of Field "%s" not supported.';

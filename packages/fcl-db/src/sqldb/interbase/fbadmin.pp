@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FBAdmin;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interbase/Firebird Administration using the service manager
 
@@ -36,6 +38,16 @@ unit FBAdmin;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+{$IfDef LinkDynamically}
+  Api.Ibase60dyn,
+{$Else}
+  Api.Ibase60,
+{$EndIf}
+  Data.SqlDb.Ib;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
 {$IfDef LinkDynamically}
@@ -44,6 +56,7 @@ uses
   ibase60,
 {$EndIf}
   IBConnection;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TIBBackupOption=(IBBkpVerbose,IBBkpIgnoreChecksums,IBBkpIgnoreLimbo,IBBkpMetadataOnly,
@@ -196,7 +209,11 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrNotConnected = '%s : %s : Not connected.';

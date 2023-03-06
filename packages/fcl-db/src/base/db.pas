@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit DB;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 
@@ -22,7 +24,11 @@ unit DB;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils,System.Variants,Data.FMTBcd,System.Maskutils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,SysUtils,Variants,FmtBCD,MaskUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 
@@ -2506,7 +2512,11 @@ operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
  
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Consts,System.TypInfo;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbconst,typinfo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { ---------------------------------------------------------------------
     Auxiliary functions

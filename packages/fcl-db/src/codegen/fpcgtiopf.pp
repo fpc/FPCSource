@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpcgtiopf;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db, Data.CodeGen.Base;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db, fpddcodegen;
+{$ENDIF FPC_DOTTEDUNITS}
   
 TYpe
   TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,

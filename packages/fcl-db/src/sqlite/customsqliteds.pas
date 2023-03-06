@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit CustomSQLiteDS;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   This is TCustomSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -38,8 +40,13 @@ unit CustomSQLiteDS;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   DefaultStringSize = 255;
@@ -305,8 +312,13 @@ type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.StrUtils, System.Variants, Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   strutils, variants, dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   //sqlite2.x.x and sqlite3.x.x define these constants equally

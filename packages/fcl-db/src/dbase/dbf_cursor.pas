@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_cursor;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Pascal Ganaye,Micha Nelissen and other members of the
@@ -18,11 +20,19 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Dbf.Pgfile,
+  Data.Dbf.Common;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
   dbf_pgfile,
   dbf_common;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit dbf_prscore;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {--------------------------------------------------------------
 | TCustomExpressionParser
@@ -22,12 +24,21 @@ interface
 
 {$I dbf_common.inc}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,
+  System.Classes,
+  Data.Db,
+  Data.Dbf.Prssupp,
+  Data.Dbf.Prsdef;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,
   Classes,
   Db,
   dbf_prssupp,
   dbf_prsdef;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$define ENG_NUMBERS}
 

@@ -24,14 +24,21 @@
 
 } 
  
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SQLite3Conn;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}
 {$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, Data.Db, Data.BufDataset, Data.Sqldb, Api.Sqlite3dyn, System.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   classes, db, bufdataset, sqldb, sqlite3dyn, types;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   sqliteerrormax = 99;
@@ -144,12 +151,17 @@ Type
   end;
   
 Var
-  SQLiteLibraryName : String absolute sqlite3dyn.SQLiteDefaultLibrary deprecated 'use sqlite3dyn.SQLiteDefaultLibrary instead';
+  SQLiteLibraryName : String absolute {$IFDEF FPC_DOTTEDUNITS}Api.{$ENDIF}Sqlite3dyn.SQLiteDefaultLibrary deprecated 'use sqlite3dyn.SQLiteDefaultLibrary instead';
    
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Data.Consts, System.SysUtils, System.DateUtils, Data.FMTBcd;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   dbconst, sysutils, dateutils, FmtBCD;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IF NOT DECLARED(JulianEpoch)} // sysutils/datih.inc
 const

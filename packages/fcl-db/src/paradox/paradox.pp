@@ -24,12 +24,19 @@
   The TParadox component was implemented by Michael Van Canneyt
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit paradox;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Data.Db, Api.Pxlib, Data.Bufdataset_parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils, classes, db, pxlib, bufdataset_parser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   EParadox=class(Exception);
@@ -157,7 +164,11 @@ Const
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrFieldTypeNotSupported = 'Fieldtype of Field "%s" not supported: %d.';

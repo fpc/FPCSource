@@ -16,11 +16,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsqlscanner;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, Contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';

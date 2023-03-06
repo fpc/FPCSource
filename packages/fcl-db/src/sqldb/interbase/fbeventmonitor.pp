@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FBEventMonitor;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Interbase/Firebird Event monitor
 
@@ -36,6 +38,16 @@ unit FBEventMonitor;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils,
+{$IfDef LinkDynamically}
+  Api.Ibase60dyn,
+{$Else}
+  Api.Ibase60,
+{$EndIf}
+  Data.SqlDb.Ib,System.SyncObjs,Data.Db,Data.Consts;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils,
 {$IfDef LinkDynamically}
@@ -44,6 +56,7 @@ uses
   ibase60,
 {$EndIf}
   IBConnection,syncobjs,db,dbconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TEventAlert = procedure(Sender: TObject; EventName: string; EventCount: longint;

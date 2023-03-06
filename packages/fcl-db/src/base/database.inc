@@ -397,8 +397,8 @@ end;
 procedure TDBTransaction.InternalHandleException;
 
 begin
-  if assigned(classes.ApplicationHandleException) then
-    classes.ApplicationHandleException(self)
+  if assigned({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}classes.ApplicationHandleException) then
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}classes.ApplicationHandleException(self)
   else
     ShowException(ExceptObject,ExceptAddr);
 end;
@@ -624,8 +624,8 @@ end;
 
 procedure TCustomConnection.InternalHandleException;
 begin
-  if assigned(classes.ApplicationHandleException) then
-    classes.ApplicationHandleException(self)
+  if assigned({$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}classes.ApplicationHandleException) then
+    {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}classes.ApplicationHandleException(self)
   else
     ShowException(ExceptObject,ExceptAddr);
 end;

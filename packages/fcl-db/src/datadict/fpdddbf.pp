@@ -13,14 +13,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FPDDDBF;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Data.Db,Data.Dbf.Dbf, Data.Dict.Base, Data.Sql.Types;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, db,dbf, fpdatadict, sqltypes;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
 
@@ -49,7 +56,11 @@ Procedure DoneDBFImporter;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Data.Dbf.Idxfile;
+{$ELSE FPC_DOTTEDUNITS}
 uses dbf_idxfile;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure TDBFDDEngine.Disconnect;
 begin
