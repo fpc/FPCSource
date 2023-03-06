@@ -1,6 +1,8 @@
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bzip2stream;
+{$ENDIF FPC_DOTTEDUNITS}
 {****************************************************************************
 
                              BZIP2 decompression unit
@@ -30,7 +32,11 @@ interface
 
 {$goto on}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,System.SysUtils, System.Bzip2comn;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,SysUtils, bzip2comn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TDecompressBzip2Stream=Class(TOwnerStream)

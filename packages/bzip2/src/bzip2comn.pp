@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit bzip2comn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
