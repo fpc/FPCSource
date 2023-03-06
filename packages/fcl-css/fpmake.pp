@@ -37,6 +37,7 @@ begin
 
     T:=P.Targets.AddUnit('fpcsstree.pp');
     T:=P.Targets.AddUnit('fpcssscanner.pp');
+    T.Dependencies.AddUnit('fpcsstree');
     T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('fpcssparser.pp');
     T.ResourceStrings:=True;

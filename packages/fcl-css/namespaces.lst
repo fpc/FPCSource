@@ -1,0 +1,7 @@
+{s*:src/}=namespaced/
+{i+:src/}
+src/fpcssscanner.pp=namespaced/FpCss.Scanner.pp
+src/fpcssresolver.pas=namespaced/FpCss.Resolver.pas
+src/fpcssutils.pp=namespaced/FpCss.Utils.pp
+src/fpcssparser.pp=namespaced/FpCss.Parser.pp
+src/fpcsstree.pp=namespaced/FpCss.Tree.pp
