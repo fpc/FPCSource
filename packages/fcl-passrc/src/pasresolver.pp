@@ -304,7 +304,9 @@ Notes:
    if f=g then : can implicit resolve each side once
    p(f), f as var parameter: can implicit
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 unit PasResolver;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-passrc.inc}
 
@@ -313,6 +315,17 @@ unit PasResolver;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  js,
+  {$IFDEF NODEJS}
+  Node.FS,
+  {$ENDIF}
+  {$endif}
+  System.Classes, System.SysUtils, System.Math, System.Types, System.Contnrs,
+  Pascal.Tree, Pascal.Scanner, Pascal.Parser, Pascal.ResolveEval;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   js,
@@ -322,6 +335,7 @@ uses
   {$endif}
   Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ParserMaxEmbeddedColumn = 2048;
