@@ -14,13 +14,20 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit libnettle;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.Libgmp;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, libgmp;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Automatically converted by H2Pas 1.0.0 from libnettle.c
@@ -1769,7 +1776,11 @@ Var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysUtils, dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   hlibnettle,hlibhogweed : tlibhandle;

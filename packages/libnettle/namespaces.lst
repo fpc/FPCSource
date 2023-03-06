@@ -1,0 +1,3 @@
+src/libnettle.pp=namespaced/Api.Libnettle.pp
+{s*:src/}=namespaced/
+{i+:src/}
