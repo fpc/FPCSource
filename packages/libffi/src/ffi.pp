@@ -39,12 +39,19 @@
    http://gcc.gnu.org/ml/java/1999-q3/msg00174.html
    -------------------------------------------------------------------- *)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit ffi;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
    from the various ffitarget.h
