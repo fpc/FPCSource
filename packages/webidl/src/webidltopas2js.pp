@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit webidltopas2js;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode ObjFPC}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, WebIDL.Defs, WebIDL.ToPascal, System.Contnrs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, webidldefs, webidltopas, Contnrs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TPas2jsConversionOption = (
