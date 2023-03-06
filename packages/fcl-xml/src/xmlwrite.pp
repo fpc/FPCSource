@@ -15,14 +15,20 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLWrite;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}{$MODE objfpc}{$endif}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes, Xml.Dom, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes, DOM, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   TXMLWriter = Class;
@@ -124,7 +130,11 @@ procedure WriteXML(Element: TDOMNode; AStream: TStream); overload;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PAttrFixup = ^TAttrFixup;

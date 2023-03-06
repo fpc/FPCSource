@@ -14,14 +14,23 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmliconv_windows;
+{$ENDIF FPC_DOTTEDUNITS}
+{$mode objfpc}
+{$h+}
 
 interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Read;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   xmlread;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   iconv_t = Pointer;

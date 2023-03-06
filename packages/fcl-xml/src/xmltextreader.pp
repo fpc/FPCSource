@@ -14,13 +14,20 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmltextreader;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$h+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Xml.Utils, Xml.Reader, Xml.DtdModel;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, xmlutils, xmlreader, dtdmodel;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TDecoder = record
@@ -314,8 +321,13 @@ procedure RegisterDecoder(Proc: TGetDecoderProc);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Fcl.UriParser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   UriParser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TXMLDecodingSource = class(TXMLCharSource)

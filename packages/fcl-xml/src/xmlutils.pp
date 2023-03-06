@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);

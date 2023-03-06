@@ -17,11 +17,17 @@
 {$MODE objfpc}
 {$H+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XPath;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   { XPath variables type names }
@@ -504,7 +510,11 @@ function EvaluateXPathExpression(const AExpressionString: DOMString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Math, Xml.Utils;
+{$ELSE FPC_DOTTEDUNITS}
 uses Math, xmlutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i xpathkw.inc}
 

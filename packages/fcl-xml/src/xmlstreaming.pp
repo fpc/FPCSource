@@ -14,14 +14,20 @@
  **********************************************************************}
 
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit XMLStreaming;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE objfpc}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

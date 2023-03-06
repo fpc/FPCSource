@@ -17,11 +17,17 @@
 {$mode objfpc}
 {$h+}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SAX_XML;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils, System.Classes, Xml.Sax, Xml.Dom;
+{$ELSE FPC_DOTTEDUNITS}
 uses SysUtils, Classes, SAX, DOM;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -108,9 +114,15 @@ procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Xml.Utils,
+  Html.Defs; // for entities...
+{$ELSE FPC_DOTTEDUNITS}
 uses
   xmlutils,
   htmldefs; // for entities...
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];

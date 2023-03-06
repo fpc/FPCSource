@@ -11,14 +11,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit htmlelements;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Xml.Dom, Html.Defs, System.StrUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, DOM, HtmlDefs, strutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
