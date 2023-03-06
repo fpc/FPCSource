@@ -1,0 +1,4 @@
+src/libvlc.pp=namespaced/Api.Vlc.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/vlc.pp=namespaced/Api.Vlc.Component.pp
