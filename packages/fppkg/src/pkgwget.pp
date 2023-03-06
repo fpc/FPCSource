@@ -12,11 +12,17 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgwget;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,FpPkg.Download,FpPkg.Options,FpPkg.Repos;
+{$ELSE FPC_DOTTEDUNITS}
 uses Classes,pkgdownload,pkgoptions,fprepos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -36,10 +42,17 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.Process,
+  FpPkg.Globals,
+  FpPkg.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   sysutils,process,
   pkgglobals,
   pkgmessages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Constructor TWGetDownloader.Create(AOwner: TComponent);
 

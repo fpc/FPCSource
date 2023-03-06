@@ -10,14 +10,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgDownload;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpPkg.Handler, FpPkg.Package;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, pkghandler, pkgFppkg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -53,6 +60,16 @@ function DownloadFile(const RemoteFile,LocalFile:String; PackageManager: TpkgFPp
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Contnrs,
+  Fcl.UriParser,
+  FpPkg.PackageRepos,
+  FpPkg.Globals,
+  FpPkg.Options,
+  FpPkg.Messages,
+  FpPkg.Repos;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   contnrs,
   uriparser,
@@ -61,6 +78,7 @@ uses
   pkgoptions,
   pkgmessages,
   pkgrepos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   DownloaderList  : TFPHashList;
@@ -197,7 +215,7 @@ begin
           if RemoteArchive <> '' then
             begin
               Log(llCommands,SLogDownloading,[RemoteArchive,PackageManager.PackageLocalArchive(P)]);
-              pkgglobals.log(llProgress,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+              {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkgglobals{$ENDIF}.log(llProgress,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
 
               // Force the existing of the archives-directory if it is being used
               if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then

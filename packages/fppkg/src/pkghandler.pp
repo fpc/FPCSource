@@ -13,7 +13,9 @@
 
 {$mode objfpc}
 {$h+}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkghandler;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
@@ -29,6 +31,17 @@ unit pkghandler;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,System.SysUtils,
+  FpPkg.Globals,
+  FpPkg.Options,
+{$ifdef HAS_UNIT_PROCESS}
+  System.Process,
+{$endif HAS_UNIT_PROCESS}
+  FpPkg.Repos,
+  FpPkg.Package;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,SysUtils,
   pkgglobals,
@@ -38,6 +51,7 @@ uses
 {$endif HAS_UNIT_PROCESS}
   fprepos,
   pkgFppkg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   { TPackageHandler }
@@ -76,12 +90,21 @@ procedure ClearExecutedAction;
 
 Implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.TypInfo,
+  System.Contnrs,
+  Fcl.UriParser,
+  FpPkg.PackageRepos,
+  FpPkg.Messages;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   typinfo,
   contnrs,
   uriparser,
   pkgrepos,
   pkgmessages;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   PkgHandlerList  : TFPHashList;
@@ -255,7 +278,7 @@ end;
 Procedure TPackageHandler.SetCurrentDir(Const ADir:String);
 begin
   Log(llCommands,SLogChangeDir,[ADir]);
-  if not SysUtils.SetCurrentDir(ADir) then
+  if not {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.SetCurrentDir(ADir) then
     Error(SErrChangeDirFailed,[ADir]);
 end;
 
@@ -271,31 +294,31 @@ end;
 
 function TPackageHandler.ExecuteAction(const APackageName, AAction: string): Boolean;
 begin
-  Result := pkghandler.ExecuteAction(APackageName,AAction,PackageManager);
+  Result := {$IFDEF FPC_DOTTEDUNITS}FpPkg.Handler{$ELSE}pkghandler{$ENDIF}.ExecuteAction(APackageName,AAction,PackageManager);
 end;
 
 
 Procedure TPackageHandler.Log(Level:TLogLevel; Msg:String);
 begin
-  pkgglobals.Log(Level,PackageLogPrefix+Msg);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Log(Level,PackageLogPrefix+Msg);
 end;
 
 
 Procedure TPackageHandler.Log(Level:TLogLevel; Fmt:String; const Args:array of const);
 begin
-  pkgglobals.log(Level,PackageLogPrefix+Fmt,Args);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.log(Level,PackageLogPrefix+Fmt,Args);
 end;
 
 
 Procedure TPackageHandler.Error(Msg:String);
 begin
-  pkgglobals.Error(PackageLogPrefix+Msg);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Error(PackageLogPrefix+Msg);
 end;
 
 
 Procedure TPackageHandler.Error(Fmt:String; const Args:array of const);
 begin
-  pkgglobals.Error(PackageLogPrefix+Fmt,Args);
+  {$IFDEF FPC_DOTTEDUNITS}FpPkg.Globals{$ELSE}pkglobals{$ENDIF}.Error(PackageLogPrefix+Fmt,Args);
 end;
 
 

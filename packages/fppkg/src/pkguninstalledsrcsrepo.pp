@@ -10,12 +10,28 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgUninstalledSrcsRepo;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils,
+  Fpmkunit,
+  FpPkg.Options,
+  FpPkg.Package,
+  FpPkg.Globals,
+  FpPkg.Messages,
+  FpPkg.Repos,
+  FpPkg.PackageRepos,
+  FpPkg.Handler,
+  FpPkg.Packages.Structure;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils,
@@ -28,6 +44,7 @@ uses
   pkgrepos,
   pkghandler,
   pkgPackagesStructure;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 
@@ -277,7 +294,7 @@ begin
                             TempPackagesStructure.SetTempPath(Path+SR.Name);
                             PackageName :=  SR.Name + '_create_manifest';
                             TempPackagesStructure.TempPackageName := PackageName;
-                            pkghandler.ExecuteAction(PackageName,'fpmakemanifest',PackageManager);
+                            {$IFDEF FPC_DOTTEDUNITS}FpPkg.Handler{$ELSE}pkghandler{$ENDIF}.ExecuteAction(PackageName,'fpmakemanifest',PackageManager);
                           except
                             on E: Exception do
                               begin

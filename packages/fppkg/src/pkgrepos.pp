@@ -10,17 +10,27 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit pkgrepos;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils,System.Classes,
+  FpPkg.Repos,FpPkg.Options,
+  FpPkg.Package,
+  Fpmkunit;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils,Classes,
   fprepos,pkgoptions,
   pkgFppkg,
   fpmkunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 procedure LoadLocalAvailableMirrors;
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
@@ -40,12 +50,21 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.ZLib.Zipper,
+  FpPkg.XmlRep,
+  FpPkg.Globals,
+  FpPkg.Messages,
+  FpPkg.Packages.Structure;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   zipper,
   fpxmlrep,
   pkgglobals,
   pkgmessages,
   pkgPackagesStructure;
+{$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring
   SErrRepositoryClassAlreadyAssigned = 'Default repository class is already assigned.';
