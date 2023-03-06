@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit Symbolic;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     $ id:                                                       $
     Copyright (c) 2000 by Marco van de Voort(marco@freepascal.org)
@@ -23,7 +25,11 @@ interface
  {$Mode ObjFpc}
 {$ENDIF}
 
+{$IFDEF FPC_DOTTEDUNITS}
+Uses System.Math,System.Classes,System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 Uses Math,Classes,Sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
       VLIWIncr       = 40;    { Initial size and increment of VLIW array}
