@@ -18,7 +18,7 @@ ANDROIDR14UNIT=AndroidAPI.AndroidR14
 ATHREADSUNIT=AmigaApi.AThreads
 BASEUNIXUNIT=UnixApi.Base
 BETHREADSUNIT=BeosApi.Bethreads
-BLOCKRTLUNIT=CApi.BlockRtl
+BLOCKRTLUNIT=blockrtl
 BSDUNIT=BsdApi
 CHARACTERUNIT=System.Character
 CHARSETUNIT=System.CharSet
@@ -1371,9 +1371,6 @@ BLOCKRTL_DEPS=$(INC)/blockrtl.pp \
               $(BLOCKRTL_DEPS_OS) $(BLOCKRTL_DEPS_CPU)
 
 blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
-	$(COMPILER) $(BLOCKRTL_OPT) $<
-
-CApi.BlockRtl$(PPUEXT) : $(NSINC)/CApi.BlockRtl.pp  $(BLOCKRTL_DEPS)
 	$(COMPILER) $(BLOCKRTL_OPT) $<
 
 ####################

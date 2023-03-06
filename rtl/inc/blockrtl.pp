@@ -12,9 +12,7 @@
 
  **********************************************************************}
 
-{$IFNDEF FPC_DOTTEDUNITS}
 unit blockrtl;
-{$ENDIF FPC_DOTTEDUNITS}
 
 { for tmethod }
 {$mode objfpc}
