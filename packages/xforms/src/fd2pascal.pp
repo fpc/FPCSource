@@ -21,10 +21,17 @@ Program fd2pascal;
   --------------------------------------------------------------------------- }
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  UnixApi.Base,
+  UnixApi.Unix,
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   baseunix,
   Unix,
   sysutils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const RevString = '$Revision: 1.5 $';
   NrOptions = 4;

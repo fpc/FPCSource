@@ -1,14 +1,21 @@
 {
 }
+{$IFNDEF FPC_DOTTEDUNITS}
 Unit xforms;
+{$ENDIF FPC_DOTTEDUNITS}
 Interface
 
 {$linklib forms}
 {$linklib c}
 {$linklib m}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Api.X11.X,Api.X11.Xlib,Api.X11.Xutil,Api.X11.Xresource;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   x,xlib,xutil,xresource;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   FL_VERSION=0;
