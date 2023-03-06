@@ -1,0 +1,4 @@
+src/iconvenc.pas=namespaced/UnixApi.Iconvenc.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/iconvenc_dyn.pas=namespaced/UnixApi.Iconvenc_dyn.pas
