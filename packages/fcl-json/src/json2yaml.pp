@@ -12,14 +12,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit json2yaml;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$MODE OBJFPC}
 {$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.Classes,FpJson.Data;
+{$ELSE FPC_DOTTEDUNITS}
 uses classes,fpjson;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 
@@ -127,7 +133,7 @@ begin
       begin
       D:=JSON.Items[I];
       N:=JSON.Names[I];
-      if D.JSONType in fpjson.StructuredJSONTypes then
+      if D.JSONType in fpjson.{$IFDEF FPC_DOTTEDUNITS}Data.{$ENDIF}StructuredJSONTypes then
         begin
         Push(N+': ');
         Indent('');

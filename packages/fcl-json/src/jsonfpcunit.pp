@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonfpcunit;
+{$ENDIF}
 
 {$mode objfpc}
 {$H+}
@@ -21,7 +23,11 @@ unit jsonfpcunit;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, FpJson.Data, FpcUnit.Test;
+{$ELSE}  
   Classes, SysUtils, fpjson, fpcunit;
+{$ENDIF}
 
 Type
 
@@ -90,7 +96,11 @@ Type
 
 implementation
 
+{$IFNDEF FPC_DOTTEDUNITS}
 uses typinfo;
+{$ELSE}
+uses System.TypInfo;
+{$ENDIF}
 
 resourcestring
   SDataNotNull = ': Data is not null';

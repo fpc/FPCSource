@@ -12,14 +12,21 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jsonreader;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I fcl-json.inc}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FpJson.Data, FpJson.Scanner;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpJSON, jsonscanner;
+{$ENDIF FPC_DOTTEDUNITS}
   
 Type
 

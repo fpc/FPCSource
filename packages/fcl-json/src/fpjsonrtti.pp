@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpjsonrtti;
+{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -19,8 +21,13 @@ unit fpjsonrtti;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, System.Contnrs, System.TypInfo, FpJson.Data, Fcl.RttiUtils, FpJson.Parser;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, contnrs, typinfo, fpjson, rttiutils, jsonparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Const
   RFC3339DateTimeFormat = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss';
@@ -194,7 +201,11 @@ Type
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.DateUtils, System.Variants, System.RtlConsts;
+{$ELSE FPC_DOTTEDUNITS}
 uses dateutils, variants, rtlconsts;
+{$ENDIF FPC_DOTTEDUNITS}
 
 ResourceString
   SErrUnknownPropertyKind     = 'Unknown property kind for property : "%s"';
