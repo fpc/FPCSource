@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                                 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jswriter;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-js.inc}
 
@@ -20,11 +22,19 @@ unit jswriter;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$ifdef pas2js}
+  JS,
+  {$endif}
+  System.SysUtils, System.Classes, Js.Base, Js.Tree;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$ifdef pas2js}
   JS,
   {$endif}
   SysUtils, Classes, jsbase, jstree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   {$ifdef pas2js}

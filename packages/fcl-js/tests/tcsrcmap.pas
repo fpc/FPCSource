@@ -1,11 +1,18 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit TCSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, FPCUnit.Reports.LaTeX, FPCUnit.Registry, FPJSON.Fpjson, Jssrcmap;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, fpcunit, testregistry, fpjson, JSSrcMap;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
 

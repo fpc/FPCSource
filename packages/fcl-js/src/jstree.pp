@@ -12,15 +12,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
                                 
   **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit jstree;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 { $DEFINE NOCLASSES}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFNDEF NOCLASSES}  System.Classes, {$ENDIF} System.SysUtils, Js.Base, Js.Token;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFNDEF NOCLASSES}  Classes, {$ENDIF} SysUtils, jsbase, jstoken;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
 {$IFDEF NOCLASSES}
@@ -105,6 +112,8 @@ Type
   end;
 
   { TJSLabel }
+  TJSString = {$IFDEF FPC_DOTTEDUNITS}Js.Base.{$ELSE}jsBase.{$ENDIF}TJSString; // beware of jstoken.tjsString
+  TJSTreeString = {$IFDEF FPC_DOTTEDUNITS}Js.Base.{$ELSE}jsBase.{$ENDIF}TJSString; // beware of jstoken.tjsString
 
   TJSLabel = Class(TJSObject)
   private
@@ -112,10 +121,10 @@ Type
     FLocationLine: Integer;
     FLocationPos: Integer;
     FLocationSource: String;
-    FName: jsBase.TJSString;
+    FName: TJSTreeString;
     FNext: TJSLabel;
   Public
-    Property Name : jsBase.TJSString Read FName Write FName;
+    Property Name : TJSTreeString Read FName Write FName;
     Property LabelSet : TJSLabelSet Read FLabelSet Write FLabelSet;
     Property LocationSource : String Read FLocationSource Write FLocationSource;
     Property LocationLine : Integer Read FLocationLine Write FLocationLine;
@@ -123,7 +132,6 @@ Type
     Property Next : TJSLabel Read FNext Write FNext;
   end;
 
-  TJSString = jsbase.TJSString; // beware of jstoken.tjsString
 
   { TJSFuncDef - part of TJSFunctionDeclarationStatement, e.g. 'function Name(Params)Body' }
   TJSTypedParams = Class;
@@ -1194,13 +1202,13 @@ Type
     FIsInferred: Boolean;
     FIsOptional: Boolean;
     FIsSpread: Boolean;
-    FName: jsbase.TJSString;
+    FName: TJSTreeString;
     function GetTypeDef: TJSTypeDef;
   Public
     Procedure Assign(Source : TPersistent); override;
     Destructor Destroy; override;
     Property Type_ : TJSTypeDef read GetTypeDef;
-    Property Name : jsbase.TJSString Read FName Write FName;
+    Property Name : TJSTreeString Read FName Write FName;
     Property IsInferred : Boolean Read FIsInferred Write FIsInferred;
     Property IsOptional : Boolean Read FIsOptional Write FIsOptional;
     Property IsSpread : Boolean Read FIsSpread Write FIsSpread;
@@ -1224,7 +1232,7 @@ Type
   Public
     Constructor Create; Reintroduce;
     Constructor CreateTransient;
-    function AddParam(aName : jsBase.TJSString) : TJSTypedParam;
+    function AddParam(aName : TJSTreeString) : TJSTypedParam;
     Property Params[aIndex : Integer] : TJSTypedParam Read GetParams; default;
     Property Types[aIndex : Integer] : TJSElement Read GetTypes;
     Property Names[aIndex : Integer] : TJSString Read GetNames;
@@ -1385,14 +1393,14 @@ Type
   private
     FIsConst: Boolean;
     function GetElement(aIndex : Integer): TJSEnumElement;
-    function GetName(aIndex : Integer): jsBase.TJSString;
+    function GetName(aIndex : Integer): TJSTreeString;
     function GetNameCount: Integer;
   Public
     // names are TJSEnumElement.Name
-    Function AddName(aName : jsBase.TJSString) : TJSEnumElement;
+    Function AddName(aName : TJSTreeString) : TJSEnumElement;
     Property IsConst : Boolean Read FIsConst Write FIsConst;
     Property NameCount : Integer Read GetNameCount;
-    Property Names[aIndex : Integer] : jsBase.TJSString Read GetName;
+    Property Names[aIndex : Integer] : TJSTreeString Read GetName;
     Property Elements[aIndex : Integer] : TJSEnumElement Read GetElement; default;
   end;
   { TJSArrowFunctionTypeDef }
@@ -1519,9 +1527,9 @@ Type
 
   TJSPropertyDeclaration = Class(TJSObjectTypeElementDef)
   private
-    function GetFixedStringValue: jsBase.TJSString;
+    function GetFixedStringValue: TJSTreeString;
   Public
-    Property FixedStringValue : jsBase.TJSString Read GetFixedStringValue;
+    Property FixedStringValue : TJSTreeString Read GetFixedStringValue;
   end;
 
   { TJSClassConstDeclaration }
@@ -1993,7 +2001,7 @@ end;
 
 { TJSPropertyDeclaration }
 
-function TJSPropertyDeclaration.GetFixedStringValue: jsBase.TJSString;
+function TJSPropertyDeclaration.GetFixedStringValue: TJSTreeString;
 begin
   if ElementType is TJSFixedValueReference then
     Result:=TJSFixedValueReference(ElementType).FixedValue.Value.AsString
@@ -2093,7 +2101,7 @@ end;
 
 { TJSEnumTypeDef }
 
-function TJSEnumTypeDef.GetName(aIndex : Integer): jsBase.TJSString;
+function TJSEnumTypeDef.GetName(aIndex : Integer): TJSTreeString;
 begin
   Result:=GetElement(aIndex).Name;
 end;
@@ -2108,7 +2116,7 @@ begin
   Result:=Values.Count;
 end;
 
-Function TJSEnumTypeDef.AddName(aName: jsBase.TJSString) : TJSEnumElement;
+Function TJSEnumTypeDef.AddName(aName: TJSTreeString) : TJSEnumElement;
 
 
 begin
@@ -2373,7 +2381,7 @@ begin
   Inherited Create(TJSTransientParamType);
 end;
 
-function TJSTypedParams.AddParam(aName: jsBase.TJSString): TJSTypedParam;
+function TJSTypedParams.AddParam(aName: TJSTreeString): TJSTypedParam;
 begin
   Result:=add as TJSTypedParam;
   Result.Name:=aName;
