@@ -13,12 +13,18 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit clipboard;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 {$H+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
     CBD_POST            = CMD_NONSTD + 0;
@@ -79,8 +85,13 @@ function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
 implementation
 
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Iffparse;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   iffparse;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
   ID_FTXT = 1179932756;

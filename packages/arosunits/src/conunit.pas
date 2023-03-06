@@ -14,12 +14,19 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit conunit;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec, Amiga.Core.Console, Amiga.Core.Keymap, Amiga.Core.Inputevent, Amiga.Core.Intuition, Amiga.Core.Agraphics;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   exec, console, keymap, inputevent, intuition, agraphics;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 { ---- console unit numbers for OpenDevice() }

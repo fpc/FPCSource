@@ -26,12 +26,19 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit longarray;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$H+}
 
 interface
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  Amiga.Core.Exec;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Exec;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   PArgList = ^TArgList;
