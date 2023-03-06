@@ -15,7 +15,9 @@
  *                                                                  *
  ********************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit vorbis;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
@@ -23,8 +25,13 @@ unit vorbis;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes, Api.Ogg;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   ctypes, ogg;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
