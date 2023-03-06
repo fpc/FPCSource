@@ -19,7 +19,9 @@
   Copyright(C) 2009 by Ivo Steinmann
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit xqc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 {$PACKRECORDS C}
@@ -27,9 +29,15 @@ unit xqc;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF UNIX}
   {$DEFINE extdecl:=cdecl}
