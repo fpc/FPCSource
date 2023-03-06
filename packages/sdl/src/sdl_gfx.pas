@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_gfx;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdl_gfx.pas,v 1.3 2007/05/29 21:31:04 savage Exp $
 
@@ -22,11 +24,19 @@ unit sdl_gfx;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF MORPHOS}
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}

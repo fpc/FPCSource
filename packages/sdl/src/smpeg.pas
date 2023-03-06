@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit smpeg;
+{$ENDIF FPC_DOTTEDUNITS}
 {******************************************************************************}
 {
   $Id: smpeg.pas,v 1.7 2004/08/14 22:54:30 savage Exp $
@@ -130,6 +132,16 @@ unit smpeg;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -138,6 +150,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF windows}

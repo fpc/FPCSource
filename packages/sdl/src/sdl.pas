@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: sdl.pas,v 1.31 2007/05/29 21:30:48 savage Exp $
 
@@ -279,6 +281,57 @@ unit sdl;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  system,
+  {$IFDEF Windows}
+  WinApi.WinTypes,
+  {$ELSE}
+  {$ENDIF}
+  gpc;
+{$ENDIF}
+
+{$IFDEF HAS_TYPES}
+  System.Types{$IFNDEF NDS},{$ELSE};{$ENDIF}
+{$ENDIF}
+
+{$IFDEF Windows}
+  WinApi.Windows;
+{$ENDIF}
+
+{$IFDEF OS2}
+  OS2Api.doscalls;
+{$ENDIF OS2}
+
+{$IFDEF Unix}
+  {$IFDEF FPC}
+  UnixApi.Pthreads,
+  UnixApi.Types,
+  UnixApi.Base,
+  {$IFNDEF GP2X}    
+  UnixApi.Unix,
+  {$ELSE}
+  UnixApi.Unix;
+  {$ENDIF}
+  {$IFNDEF GP2X}
+  Api.X11.X,
+  Api.X11.Xlib;
+  {$ENDIF}
+  {$ELSE}
+  Api.Libc,
+  Xlib;
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF __MACH__}
+  GPCMacOSAll;
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec;
+{$ENDIF}
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   system,
@@ -328,6 +381,7 @@ uses
 {$IFDEF MORPHOS}
   exec;
 {$ENDIF}
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF WINDOWS}
@@ -2260,13 +2314,13 @@ PSDL_semaphore = ^TSDL_semaphore;
 
   PPoint = ^TPoint;
   {$IFDEF HAS_TYPES}
-  TPoint = Types.TPoint;
+  TPoint = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.TPoint;
   {$ELSE}
     {$IFDEF WINDOWS}
       {$IFDEF __GPC__}
-      TPoint = wintypes.TPoint;
+      TPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}wintypes.TPoint;
       {$ELSE}
-      TPoint = Windows.TPoint;
+      TPoint = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TPoint;
       {$ENDIF}
     {$ELSE}
       //Can't define TPoint : neither Types nor Windows unit available.
@@ -2275,13 +2329,13 @@ PSDL_semaphore = ^TSDL_semaphore;
 
   PRect = ^TRect;
   {$IFDEF HAS_TYPES}
-  TRect = Types.TRect;
+  TRect = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types.TRect;
   {$ELSE}
     {$IFDEF WINDOWS}
       {$IFDEF __GPC__}
-      TRect = wintypes.TRect;
+      TRect = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}wintypes.TRect;
       {$ELSE}
-      TRect = Windows.TRect;
+      TRect = {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.TRect;
       {$ENDIF}
     {$ELSE}
       //Can't define TRect: neither Types nor Windows unit available.
