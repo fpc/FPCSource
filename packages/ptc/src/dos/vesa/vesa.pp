@@ -32,7 +32,9 @@
 {$MODE objfpc}{$H+}
 {$ASMMODE intel}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit VESA;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -297,8 +299,13 @@ function LFBNearPtrAccessPtr: Pointer;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TVBEInfoBlock = packed record

@@ -142,7 +142,7 @@ begin
     WM_PALETTECHANGED:
       begin
         LOG('TDirectXHook WM_PALETTECHANGED');
-        if Windows.HWND(wParam) <> hWnd then
+        if {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Windows.HWND(wParam) <> hWnd then
         begin
           LOG('not our window');
           if FConsole.FPrimary.Active then

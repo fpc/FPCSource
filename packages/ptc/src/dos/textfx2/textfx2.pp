@@ -16,7 +16,9 @@
 {$MODE objfpc}
 {$INLINE on}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit textfx2;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
@@ -127,8 +129,13 @@ procedure dump_320x(y0, y1: Integer; buffer: PInteger);
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  DOSApi.GO32;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   go32;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { $define __USE_178NOT176}
  { uncomment to use 75% AnsiChar instead of 25% AnsiChar }
