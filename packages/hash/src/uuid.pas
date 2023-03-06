@@ -13,15 +13,22 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit uuid;
+{$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
 {$mode objfpc}
 {$h+}
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.DateUtils, System.Hash.Md5, System.Hash.Sha1;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, DateUtils, md5, sha1;
+{$ENDIF FPC_DOTTEDUNITS}
 
 
 

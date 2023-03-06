@@ -12,14 +12,21 @@
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit HMAC;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$mode objfpc}{$H+}
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Hash.Md5, System.Hash.Sha1;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   MD5, SHA1;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   THMACMD5Digest = TMD5Digest;

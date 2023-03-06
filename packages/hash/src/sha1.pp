@@ -20,7 +20,9 @@
 {$DEFINE SHA1PASCAL}
 {$endif}
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sha1;
+{$ENDIF FPC_DOTTEDUNITS}
 {$mode objfpc}{$h+}
 
 interface
@@ -51,7 +53,11 @@ function SHA1Match(const Digest1, Digest2: TSHA1Digest): Boolean;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.SysUtils,System.SysConst;
+{$ELSE FPC_DOTTEDUNITS}
 uses sysutils,sysconst;
+{$ENDIF FPC_DOTTEDUNITS}
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
