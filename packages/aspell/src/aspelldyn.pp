@@ -1,4 +1,6 @@
-﻿unit aspelldyn;
+﻿{$IFNDEF FPC_DOTTEDUNITS}
+unit aspelldyn;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { * This file is header translation of The New Aspell
   * Copyright (C) 2001-2002 by Kevin Atkinson under the GNU LGPL
@@ -12,8 +14,13 @@
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   cTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF UNIX}
   // TODO: check if it works pathless in beosOB
@@ -443,11 +450,19 @@ var
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  {$IFDEF WINDOWS}
+  Windows, SysUtils, Classes,
+  {$ENDIF}
+  System.DynLibs;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF WINDOWS}
   Windows, SysUtils, Classes,
   {$ENDIF}
   dynlibs;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var
   LibHandle: TLibHandle = 0;

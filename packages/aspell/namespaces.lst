@@ -1,0 +1,5 @@
+src/aspell.pp=namespaced/Api.Aspell.pp
+{s*:src/}=namespaced/
+{i+:src/}
+src/aspelldyn.pp=namespaced/Api.Aspelldyn.pp
+src/spellcheck.pp=namespaced/Api.Spellcheck.pp

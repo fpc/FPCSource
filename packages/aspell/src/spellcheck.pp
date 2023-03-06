@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit SpellCheck;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { Simple unit to simplify/OOP-ize pascal-style the aspell interface. Currently
   very limited, will be expanded eventually. Use like you wish. }
@@ -7,8 +9,13 @@ unit SpellCheck;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.SysUtils, System.Classes, Api.Aspell;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, Aspell;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TSuggestionArray = array of AnsiString;

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit aspell;
+{$ENDIF FPC_DOTTEDUNITS}
 
 { * This file is header translation of The New Aspell
   * Copyright (C) 2001-2002 by Kevin Atkinson under the GNU LGPL
@@ -12,8 +14,13 @@ unit aspell;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   cTypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF UNIX}
   const libaspell = 'aspell';
