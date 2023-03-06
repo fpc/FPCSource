@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit logger;
+{$ENDIF FPC_DOTTEDUNITS}
 {
   $Id: logger.pas,v 1.2 2006/11/26 16:58:04 savage Exp $
 
@@ -78,9 +80,15 @@ unit logger;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes,
+  System.SysUtils;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes,
   SysUtils;
+{$ENDIF FPC_DOTTEDUNITS}
 
 type
   TLogger = class

@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit sdl_net;
+{$ENDIF FPC_DOTTEDUNITS}
 {******************************************************************************}
 {
   $Id: sdl_net.pas,v 1.7 2005/01/01 02:14:21 savage Exp $
@@ -115,6 +117,23 @@ unit sdl_net;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+{$IFDEF __GPC__}
+  gpc,
+{$ENDIF}
+
+{$IFDEF Windows}
+{$IFNDEF __GPC__}
+  WinApi.Windows,
+{$ENDIF}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  Amiga.Core.Exec,
+{$ENDIF}
+  Api.Sdl;
+{$ELSE FPC_DOTTEDUNITS}
 uses
 {$IFDEF __GPC__}
   gpc,
@@ -130,6 +149,7 @@ uses
   exec,
 {$ENDIF}
   sdl;
+{$ENDIF FPC_DOTTEDUNITS}
 
 const
 {$IFDEF windows}

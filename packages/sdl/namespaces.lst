@@ -1,0 +1,13 @@
+src/sdl.pas=namespaced/Api.Sdl.pas
+{s*:src/}=namespaced/
+{i+:src/}
+src/sdl_image.pas=namespaced/Api.Sdl.Image.pas
+src/sdl_ttf.pas=namespaced/Api.Sdl.Ttf.pas
+src/smpeg.pas=namespaced/Api.Sdl.SMpeg.pas
+src/sdl_net.pas=namespaced/Api.Sdl.Net.pas
+src/sdl_mixer.pas=namespaced/Api.Sdl.Mixer.pas
+src/sdlutils.pas=namespaced/Api.Sdl.Utils.pas
+src/sdl_gfx.pas=namespaced/Api.Sdl.Gfx.pas
+src/libxmlparser.pas=namespaced/Api.Sdl.XmlParser.pas
+src/sdl_mixer_nosmpeg.pas=namespaced/Api.Sdl.Mixer.NoSMpeg.pas
+src/logger.pas=namespaced/Api.Sdl.Logger.pas
