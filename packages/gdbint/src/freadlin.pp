@@ -1,4 +1,6 @@
+{$IFNDEF FPC_DOTTEDUNITS}
 unit freadlin;
+{$ENDIF FPC_DOTTEDUNITS}
 {**********************************************************************
     Copyright (c) 2007 by Daniel Mantione
 
@@ -20,7 +22,11 @@ interface
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.CTypes;
+{$ELSE FPC_DOTTEDUNITS}
 uses ctypes;
+{$ENDIF FPC_DOTTEDUNITS}
 
 var rl_end:cint;public name 'rl_end';               {The number of characters in the readline buffer.}
     rl_point:cint;public name 'rl_point';           {The cursor position in the readline buffer.}
