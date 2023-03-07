@@ -65,6 +65,7 @@ begin
   Writeln('-g --generate  Generate and print new key');
   Writeln('-l --list      List known keys');
   Writeln('-c --check     Check code against key for given name');
+  Writeln('config file: ',GetAppConfigFile(False));
   ExitCode:=Ord(AError<>'')
 end;
 
@@ -194,7 +195,10 @@ begin
       end;
     mPrint:
       begin
-      PrintKey(NonArgs[0]);
+      if length(NonArgs)>0 then
+        PrintKey(NonArgs[0])
+      else
+        Usage('');
       end;
     mGenerate:
       Writeln(TOTPSharedSecret());
