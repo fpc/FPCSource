@@ -44,9 +44,6 @@
         <DebugInfoType Value="dsDwarf3"/>
       </Debugging>
     </Linking>
-    <Other>
-      <CompilerPath Value="/usr/lib/fpc/3.3.1/ppcx64"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>
