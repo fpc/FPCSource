@@ -1384,7 +1384,7 @@ end;
 
 class function TCustomJSONRPCDispatcher.ClassNameProperty: String;
 begin
-  Result:='classname'; // Do not localize
+  Result:='class'; // Do not localize
 end;
 
 class function TCustomJSONRPCDispatcher.ParamsProperty: String;
