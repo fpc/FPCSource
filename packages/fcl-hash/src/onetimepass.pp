@@ -65,7 +65,7 @@ var
   Offset: Longint;
   Part1, Part2, Part3, Part4: UInt32;
   SecretBinBuf: TBytes;
-  STime: String;
+  STime, SSecretBin: String;
   Time: Longint;
 
 begin
@@ -74,7 +74,9 @@ begin
     Time := DateTimeToUnix(Now,False) div TOTP_KeyRegeneration;
   SecretBinBuf:=Base32.Decode(aSecret);
   STime:=Int64ToRawString(Time);
-  Digest:=HMACSHA1Digest(TEncoding.UTF8.GetAnsiString(SecretBinBuf), STime);
+  SetLength(SSecretBin{%H-},length(SecretBinBuf));
+  Move(SecretBinBuf[0],SSecretBin[1],length(SecretBinBuf));
+  Digest:=HMACSHA1Digest(SSecretBin, STime);
   Offset := Digest[19] and $0F;
   Part1 := (Digest[Offset + 0] and $7F);
   Part2 := (Digest[Offset + 1] and $FF);
