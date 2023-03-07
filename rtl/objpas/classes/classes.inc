@@ -1404,21 +1404,27 @@ end;
 
 { all targets should at least include the sysres.inc dummy in the system unit to compile this }
 function CreateComponentfromRes(const res : string;Inst : THandle;var Component : TComponent) : Boolean;
+
   var
     ResStream : TResourceStream;
+    ResID : TFPResourceHandle;
+    
   begin
-    result:=true;
 
     if Inst=0 then
       Inst:=HInstance;
-
+    ResId:=FindResource(Inst, Res, RT_RCDATA);
+    result:=ResID<>0;
     try
-      ResStream:=TResourceStream.Create(Inst,res,RT_RCDATA);
-      try
-        Component:=ResStream.ReadComponent(Component);
-      finally
-        ResStream.Free;
-      end;
+      if Result then
+        begin
+        ResStream:=TResourceStream.CreateFromID(Inst,ResID,RT_RCDATA);
+        try
+          Component:=ResStream.ReadComponent(Component);
+        finally
+          ResStream.Free;
+        end;
+        end;
     except
       on EResNotFound do
         result:=false;
