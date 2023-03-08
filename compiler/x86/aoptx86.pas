@@ -1555,6 +1555,8 @@ unit aoptx86;
         l : TCGInt;
       begin
         result:=false;
+        if not(GetNextInstruction(p, hp1)) then
+          exit;
         { changes the code sequence
           shr/sar const1, x
           shl     const2, x
@@ -1562,9 +1564,8 @@ unit aoptx86;
           to
 
           either "sar/and", "shl/and" or just "and" depending on const1 and const2 }
-        if GetNextInstruction(p, hp1) and
+        if (taicpu(p).oper[0]^.typ = top_const) and
           MatchInstruction(hp1,A_SHL,[]) and
-          (taicpu(p).oper[0]^.typ = top_const) and
           (taicpu(hp1).oper[0]^.typ = top_const) and
           (taicpu(hp1).opsize = taicpu(p).opsize) and
           (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[1]^.typ) and
@@ -1576,6 +1577,7 @@ unit aoptx86;
                 { shr/sar const1, %reg
                   shl     const2, %reg
                   with const1 > const2 }
+                DebugMsg(SPeepholeOptimization + 'SxrShl2SxrAnd 1 done',p);
                 taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
                 taicpu(hp1).opcode := A_AND;
                 l := (1 shl (taicpu(hp1).oper[0]^.val)) - 1;
@@ -1594,6 +1596,7 @@ unit aoptx86;
                 { shr/sar const1, %reg
                   shl     const2, %reg
                   with const1 < const2 }
+                DebugMsg(SPeepholeOptimization + 'SxrShl2SxrAnd 2 done',p);
                 taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val-taicpu(p).oper[0]^.val);
                 taicpu(p).opcode := A_AND;
                 l := (1 shl (taicpu(p).oper[0]^.val))-1;
@@ -1611,6 +1614,7 @@ unit aoptx86;
                 { shr/sar const1, %reg
                   shl     const2, %reg
                   with const1 = const2 }
+                DebugMsg(SPeepholeOptimization + 'SxrShl2And done',p);
                 taicpu(p).opcode := A_AND;
                 l := (1 shl (taicpu(p).oper[0]^.val))-1;
                 case taicpu(p).opsize Of
