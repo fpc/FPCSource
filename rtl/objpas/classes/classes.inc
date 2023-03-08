@@ -1413,7 +1413,7 @@ function CreateComponentfromRes(const res : string;Inst : THandle;var Component 
 
     if Inst=0 then
       Inst:=HInstance;
-    ResId:=FindResource(Inst, Res, RT_RCDATA);
+    ResId:=System.FindResource(Inst, Res, RT_RCDATA);
     result:=ResID<>0;
     try
       if Result then
