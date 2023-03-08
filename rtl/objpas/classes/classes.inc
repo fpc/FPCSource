@@ -1418,7 +1418,7 @@ function CreateComponentfromRes(const res : string;Inst : THandle;var Component 
     try
       if Result then
         begin
-        ResStream:=TResourceStream.CreateFromID(Inst,ResID,RT_RCDATA);
+        ResStream:=TResourceStream.Create(Inst,Res,RT_RCDATA);
         try
           Component:=ResStream.ReadComponent(Component);
         finally
