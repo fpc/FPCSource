@@ -304,10 +304,10 @@ Implementation
           begin
             {
               change
-              <op> reg,x,y
+              <op> reg,x
               cp reg,r1
               into
-              <op>s reg,x,y
+              <op>s reg,x
             }
             { this optimization can applied only to the currently enabled operations because
               the other operations do not update all flags and FPC does not track flag usage }
@@ -327,13 +327,13 @@ Implementation
                 (taicpu(p).opcode = A_ANDI) and
                 (taicpu(p).oper[1]^.typ=top_const) and
                 (taicpu(hp1).oper[1]^.typ=top_const) and
-                (taicpu(p).oper[1]^.val=taicpu(hp1).oper[1]^.val))) and
+                (taicpu(hp1).oper[1]^.val=0))) and
               GetNextInstruction(hp1, hp2) and
               { be careful here, following instructions could use other flags
                 however after a jump fpc never depends on the value of flags }
               { All above instructions set Z and N according to the following
                 Z := result = 0;
-                N := result[31];
+                N := result[7];
                 EQ = Z=1; NE = Z=0;
                 MI = N=1; PL = N=0; }
               MatchInstruction(hp2, A_BRxx) and
