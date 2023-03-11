@@ -846,41 +846,27 @@ function IsDynArrayRectangular(a: Pointer; typeInfo: Pointer): Boolean;
 function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Pointer): Pointer;
   var
     i,h: sizeint;
-    elsize: sizeuint;
   begin
     h:=High(indices);
     for i:=0 to h do
     begin
-      if i<h then
-        a := PPointerArray(a)^[indices[i]];
-
       { skip kind and name }
 {$ifdef VER3_0}
       typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
 {$else VER3_0}
       typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
 {$endif VER3_0}
-      { store the last element size for the index calculation }
-      elsize:=pdynarraytypedata(typeInfo)^.elSize;
+      if i=h then
+        break;
+      a := PPointerArray(a)^[indices[i]];
       { element type info}
       {$ifdef VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
       {$else VER3_0}
       typeInfo:=pdynarraytypedata(typeInfo)^.elType2^;
       {$endif VER3_0}
-
-      if typeInfo=nil then
-        exit(nil);
     end;
-
-    { skip kind and name }
-{$ifdef VER3_0}
-      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
-{$else VER3_0}
-      typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
-{$endif VER3_0}
-
-    result:=@(PByte(a)[indices[h]*elsize]);
+    result:=a+SizeUint(indices[h])*pdynarraytypedata(typeInfo)^.elSize;
   end;
 
 { obsolete but needed for bootstrapping }
