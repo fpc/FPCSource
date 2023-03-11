@@ -683,6 +683,13 @@ begin
   InternalQueue(aThread, aMethod, True);
 end;
 
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadProcedure); static;
+begin
+  InternalQueue(aThread, aMethod, True);
+end;
+{$endif}
+
 class procedure TThread.RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod);
 var
   entry, tmpentry, lastentry: PThreadQueueEntry;
