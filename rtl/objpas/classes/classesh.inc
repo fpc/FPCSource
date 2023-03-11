@@ -2009,6 +2009,9 @@ type
     class procedure Queue(aThread: TThread; AProcedure : TThreadProcedure); static;
     {$endif}
     class procedure ForceQueue(aThread: TThread; aMethod: TThreadMethod); inline; static;
+    {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    class procedure ForceQueue(aThread: TThread; aMethod: TThreadProcedure); inline; static;
+    {$endif}
     class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aThread: TThread); static;
