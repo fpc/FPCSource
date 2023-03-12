@@ -19,7 +19,6 @@ interface
 
 {$linklib app_trace.a,static}
 {$linklib app_update.a,static}
-{$linklib bootloader_spport.a,static}
 {$linklib bootloader_support.a,static}
 {$linklib cmock.a,static}
 {$linklib console.a,static}
