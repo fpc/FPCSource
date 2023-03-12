@@ -542,7 +542,7 @@ Type
   end;
   pstatx = ^tstatx;
 
-  function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'statx'; {$ENDIF}
+  function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; weakexternal name 'statx'; {$ENDIF}
 
 Type
    kernel_time64_t = clonglong;
