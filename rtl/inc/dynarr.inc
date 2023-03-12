@@ -165,15 +165,22 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      { and high are at positive offsets                 }
      realp,newp : pdynarray;
      ti : pointer;
-     updatep: boolean;
      elesize : sizeint;
      eletype,eletypemngd : pointer;
      movsize : sizeint;
 
   begin
-     { negative length is not allowed }
-     if dims[0]<0 then
-       HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+     { negative or zero length? }
+     if dims[0]<=0 then
+       { negative length is not allowed }
+       if dims[0]<0 then
+         HandleErrorAddrFrameInd(201,get_pc_addr,get_frame)
+       else
+         begin
+           { if the new dimension is 0, we've to release all data }
+           fpc_dynarray_clear(p,pti);
+           exit;
+         end;
 
      { skip kind and name }
 {$ifdef VER3_0}
@@ -198,41 +205,30 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
        eletypemngd:=nil;
      {$endif}
 
-     { determine new memory size }
+     { determine new memory size, throw a runtime error on overflow }
+{$push} {$q+,r+}
      size:=elesize*dims[0]+sizeof(tdynarray);
-     updatep := false;
+{$pop}
 
      { not assigned yet? }
      if not(assigned(p)) then
        begin
-          { do we have to allocate memory? }
-          if dims[0] = 0 then
-            exit;
           newp:=AllocMem(size);
 {$ifndef VER3_0}
           { call int_InitializeArray for management operators }
           if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
             int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
 {$endif VER3_0}
-          updatep := true;
        end
      else
        begin
-          { if the new dimension is 0, we've to release all data }
-          if dims[0]=0 then
-            begin
-               fpc_dynarray_clear(p,pti);
-               exit;
-            end;
-
           realp:=pdynarray(p-sizeof(tdynarray));
           newp := realp;
 
           if realp^.refcount<>1 then
             begin
-               updatep := true;
                { make an unique copy }
-               getmem(newp,size);
+               newp:=getmem(size);
                fillchar(newp^,sizeof(tdynarray),0);
                if realp^.high < dims[0] then
                  movelen := realp^.high+1
@@ -241,7 +237,13 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                movsize := elesize*movelen;
                move(p^,(pointer(newp)+sizeof(tdynarray))^, movsize);
                if size-sizeof(tdynarray)>movsize then
-                 fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
+                 begin
+                   fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
+{$ifndef VER3_0}
+                   if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
+                     int_InitializeArray(pointer(newp)+sizeof(tdynarray)+movsize, eletype, dims[0]-movelen);
+{$endif VER3_0}
+                 end;
 
                { increment ref. count of managed members }
                if assigned(eletypemngd) then
@@ -256,47 +258,34 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                { if the array is now removed             }
                fpc_dynarray_clear(p,pti);
             end
-          else if dims[0]<>realp^.high+1 then
+          else if dims[0]<newp^.high+1 then
             begin
-               { range checking is quite difficult ...  }
-               { if size overflows then it is less than }
-               { the values it was calculated from      }
-               if (size<sizeof(tdynarray)) or
-                 ((elesize>0) and (size<elesize)) then
-                 HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
-
-               { resize? }
-               { here, realp^.refcount has to be one, otherwise the previous }
-               { if-statement would have been taken. Or is this also for MT  }
-               { code? (JM)                                                  }
-               if realp^.refcount=1 then
-                 begin
-                    { shrink the array? }
-                    if dims[0]<realp^.high+1 then
-                      begin
-                         if assigned(eletypemngd) then
-                           int_finalizearray(pointer(realp)+sizeof(tdynarray)+
-                              elesize*dims[0],
-                              eletypemngd,realp^.high-dims[0]+1);
-                         reallocmem(realp,size);
-                      end
-                    else if dims[0]>realp^.high+1 then
-                      begin
-                         reallocmem(realp,size);
-                         fillchar((pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1))^,
-                           (dims[0]-realp^.high-1)*elesize,0);
+               { shrink the array }
+               if assigned(eletypemngd) then
+                 int_finalizearray(pointer(newp)+sizeof(tdynarray)+
+                    elesize*dims[0],
+                    eletypemngd,newp^.high-dims[0]+1);
+               reallocmem(realp,size);
+               newp := realp;
+            end
+          else if dims[0]>newp^.high+1 then
+            begin
+               { grow the array }
+               reallocmem(realp,size);
+               newp := realp;
+               fillchar((pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1))^,
+                 (dims[0]-newp^.high-1)*elesize,0);
 {$ifndef VER3_0}
-                         { call int_InitializeArray for management operators }
-                         if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
-                           int_InitializeArray(pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1),
-                             eletype, dims[0]-realp^.high-1);
+               { call int_InitializeArray for management operators }
+               if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
+                 int_InitializeArray(pointer(newp)+sizeof(tdynarray)+elesize*(newp^.high+1),
+                   eletype, dims[0]-newp^.high-1);
 {$endif VER3_0}
-                      end;
-                    newp := realp;
-                    updatep := true;
-                 end;
             end;
        end;
+    p:=pointer(newp)+sizeof(tdynarray);
+    newp^.refcount:=1;
+    newp^.high:=dims[0]-1;
     { handle nested arrays }
     if dimcount>1 then
       begin
@@ -304,12 +293,6 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
            int_dynarray_setlength(pointer((pointer(newp)+sizeof(tdynarray)+i*elesize)^),
              eletype,dimcount-1,@dims[1]);
       end;
-     if updatep then
-       begin
-         p:=pointer(newp)+sizeof(tdynarray);
-         newp^.refcount:=1;
-         newp^.high:=dims[0]-1;
-       end;
   end;
 
 
