@@ -580,7 +580,8 @@ begin
 
 {$ifdef USE_STATX}
   { first try statx }
-  if (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
+  if {$ifdef FPC_USE_LIBC} (@statx<>nil) and {$endif}
+     (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
     begin
       Result:=Infox.stx_mtime.tv_sec;
       exit;
@@ -612,7 +613,8 @@ begin
   flags:=0;
   if Not FollowLink then
     Flags:=AT_SYMLINK_NOFOLLOW;
-  if (statx(AT_FDCWD,PAnsiChar(FN),FLags,STATXMASK, stx)>=0) then
+  if {$ifdef FPC_USE_LIBC} (@statx<>nil) and {$endif}
+    (statx(AT_FDCWD,PAnsiChar(FN),FLags,STATXMASK, stx)>=0) then
     begin
     DateTime.Data:=stx;
     Exit(True);
@@ -980,10 +982,17 @@ Var
   WinAttr : longint;
 begin
 {$ifdef USE_STATX}
+{$ifdef FPC_USE_LIBC}
+  if (@statx=nil) then
+    FindGetFileInfo:=false
+  else
+{$endif}
   if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
     FindGetFileInfo:=statx(AT_FDCWD,pointer(s),AT_SYMLINK_NOFOLLOW,STATX_ALL,stx)=0
   else
-    FindGetFileInfo:=statx(AT_FDCWD,pointer(s),0,STATX_ALL,stx)=0;
+    begin
+        FindGetFileInfo:=statx(AT_FDCWD,pointer(s),0,STATX_ALL,stx)=0;
+    end;
   if FindGetFileInfo then
     begin
       WinAttr:=LinuxToWinAttr(s,stx);
@@ -1133,7 +1142,8 @@ begin
   Result:=-1;
 {$ifdef USE_STATX}
   Char0:=#0;
-  if statx(Handle,@Char0,AT_EMPTY_PATH,STATX_MTIME,Infox)=0 then
+  if {$ifdef FPC_USE_LIBC} (@statx<>nil) and {$endif}
+     (statx(Handle,@Char0,AT_EMPTY_PATH,STATX_MTIME,Infox)=0) then
     Result:=Infox.stx_Mtime.tv_sec
   else if fpgeterrno=ESysENOSYS then
 {$endif USE_STATX}
