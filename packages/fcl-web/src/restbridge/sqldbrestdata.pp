@@ -19,7 +19,7 @@ unit sqldbrestdata;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, fpjson, sqldbrestio, sqldbrestschema;
+  Classes, SysUtils, bufdataset, sqldb, db, fpjson, sqldbrestio, sqldbrestschema;
 
 Type
   TSQLQueryClass = Class of TSQLQuery;
@@ -49,12 +49,14 @@ Type
     FStrings : TRestStringsConfig;
     FResource : TSQLDBRestResource;
     FOwnsResource : Boolean;
+    FUpdatedData: TBufDataset;
     procedure CheckAllRequiredFieldsPresent;
     function GetAllowMultiUpdate: Boolean;
     function GetCheckUpdateCount: Boolean;
     function GetUseLegacyPUT: Boolean;
     procedure SetExternalDataset(AValue: TDataset);
   Protected
+    Procedure CreateUpdatedData(aSrc : TDataset);
     function StreamRecord(O: TRestOutputStreamer; D: TDataset; FieldList: TRestFieldPairArray): Boolean; virtual;
     function FindExistingRecord(D: TDataset): Boolean;
     function GetRequestFields: TSQLDBRestFieldArray;
@@ -110,7 +112,7 @@ Type
     Property EmulateOffsetLimit : Boolean Read FEmulateOffsetLimit Write FEmulateOffsetLimit;
     Property DeriveResourceFromDataset : Boolean Read FDeriveResourceFromDataset Write FDeriveResourceFromDataset;
     Property Options : TSQLDBRestDBHandlerOptions Read FOptions Write FOptions;
-
+    Property UpdatedData : TBufDataset Read FUpdatedData Write FUpdatedData;
   end;
   TSQLDBRestDBHandlerClass = class of TSQLDBRestDBHandler;
 
@@ -655,6 +657,17 @@ begin
     FExternalDataset.FreeNotification(Self);
 end;
 
+procedure TSQLDBRestDBHandler.CreateUpdatedData(aSrc: TDataset);
+
+begin
+  if not Assigned(FUpdatedData) then
+    Exit;
+  aSrc.First;
+  FUpdatedData.CopyFromDataset(aSrc,True);
+  FUpdatedData.First;
+  aSrc.First;
+end;
+
 function TSQLDBRestDBHandler.SpecialResource: Boolean;
 
 begin
@@ -930,10 +943,13 @@ begin
   try
     D.Open;
     IO.RESTOutput.OutputOptions:=IO.RESTOutput.OutputOptions-[ooMetadata];
+    CreateUpdatedData(D);
     StreamDataset(IO.RESTOutput,D,FieldList);
   finally
     D.Free;
   end;
+  if Assigned(UpdatedData) then
+    UpdatedData.First;
 end;
 
 procedure TSQLDBRestDBHandler.DoHandlePutPatch(IsPatch: Boolean);
@@ -966,10 +982,13 @@ begin
       D.Open;
       end;
     IO.RESTOutput.OutputOptions:=IO.RESTOutput.OutputOptions-[ooMetadata];
+    CreateUpdatedData(D);
     StreamDataset(IO.RESTOutput,D,FieldList);
   finally
     D.Free;
   end;
+  if Assigned(UpdatedData) then
+    UpdatedData.First;
 end;
 
 
@@ -1139,6 +1158,8 @@ end;
 
 destructor TSQLDBRestDBHandler.Destroy;
 begin
+  if Assigned(FUpdatedData) and (FUpdatedData.Owner=Self) then
+    FreeAndNil(FUpdatedData);
   FreeAndNil(FPostParams);
   If FOwnsResource then
      FreeAndNil(FResource);
