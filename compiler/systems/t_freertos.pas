@@ -1453,8 +1453,7 @@ begin
           '--config $OUTPUT/sdkconfig --fragments';
 
   { Pick corresponding linker fragments list for SDK version }
-  if (current_settings.controllertype = ct_esp32c3) then
-    idf_index:=esp32c3_v5_0;
+  idf_index:=esp32c3_v5_0;
 
   for S in esp_fragment_list[idf_index] do
     cmdstr:=cmdstr+' $IDF_PATH/components/'+S+'.lf';
