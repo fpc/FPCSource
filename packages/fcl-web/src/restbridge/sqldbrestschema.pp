@@ -69,6 +69,7 @@ Type
     function DoGetInputData(aName: UTF8string): TJSONData; virtual; abstract;
     Function GetConnection : TSQLConnection; virtual; abstract;
     Function GetTransaction : TSQLTransaction; virtual; abstract;
+    Function GetUpdateData : TDataset; virtual; abstract;
   Public
     Destructor Destroy; override;
     // Call this to get a HTTP Query variable, header,...
@@ -84,6 +85,8 @@ Type
     Property Connection : TSQLConnection Read GetConnection;
     // Get transaction in use
     Property Transaction : TSQLTransaction Read GetTransaction;
+    // Updated data after PUT/POST/PATCH
+    Property UpdatedData : TDataset Read GetUpdateData;
   end;
 
   { ESQLDBRest }

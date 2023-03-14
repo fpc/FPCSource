@@ -19,7 +19,7 @@ unit sqldbrestio;
 interface
 
 uses
-  Classes, SysUtils, fpjson, sqldb, db, httpdefs, sqldbrestschema;
+  Classes, SysUtils, fpjson, bufdataset, sqldb, db, httpdefs, sqldbrestschema;
 
 
 Type
@@ -279,6 +279,7 @@ Type
     function GetConnection: TSQLConnection; override;
     function GetTransaction: TSQLTransaction; override;
     Function DoGetInputData(aName : UTF8string) : TJSONData; override;
+    Function GetUpdateData : TDataset; override;
     property IO : TRestIO Read FIO;
   Public
     Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; override;
@@ -304,6 +305,7 @@ Type
     FSchema: UTF8String;
     FTrans: TSQLTransaction;
     FContentStream : TStream;
+    FUpdatedData: TBufDataset;
     function GetResourceName: UTF8String;
     function GetUserID: String;
     procedure SetUserID(AValue: String);
@@ -341,6 +343,7 @@ Type
     Property RestStrings : TRestStringsConfig Read FRestStrings;
     Property RestStatuses : TRestStatusConfig Read FRestStatuses;
     // owned by TRestIO
+    Property UpdatedData : TBufDataset Read FUpdatedData;
     Property RESTInput : TRestInputStreamer read FInput;
     Property RESTOutput : TRestOutputStreamer read FOutput;
     Property RequestContentStream : TStream Read FContentStream;
@@ -352,6 +355,7 @@ Type
     Property UserID : String Read GetUserID Write SetUserID;
     // For logging
     Property OnSQLLog :TSQLLogNotifyEvent Read FOnSQLLog Write FOnSQLLog;
+
   end;
   TRestIOClass = Class of TRestIO;
 
@@ -553,6 +557,11 @@ end;
 function TRestContext.DoGetInputData(aName: UTF8string): TJSONData;
 begin
   Result:=IO.RESTInput.GetContentField(aName);
+end;
+
+function TRestContext.GetUpdateData: TDataset;
+begin
+  Result:=IO.UpdatedData;
 end;
 
 
@@ -972,10 +981,12 @@ begin
   FContentStream:=TStringStream.Create(aRequest.Content);
   FRestContext:=CreateRestContext;
   FRestContext.FIO:=Self;
+  FUpdatedData:=TBufDataset.Create(Nil);
 end;
 
 destructor TRestIO.Destroy;
 begin
+  FreeAndNil(FUpdatedData);
   FreeAndNil(FRestContext);
   if Assigned(FInput) then
     Finput.FOnGetVar:=Nil;

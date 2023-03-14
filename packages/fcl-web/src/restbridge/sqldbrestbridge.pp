@@ -1334,7 +1334,7 @@ begin
       R:=Nil;
     end;
   If Assigned(Evt) then
-    Evt(Self,IO.OPeration,IO.RestContext,IO.Resource);
+    Evt(Self,IO.Operation,IO.RestContext,IO.Resource);
   If Assigned(ResEvt) then
     ResEvt(Self,IO.Operation,IO.RestContext,IO.Resource);
   If Assigned(R) then
@@ -1378,6 +1378,7 @@ begin
     Include(opts,rhoAllowMultiUpdate);
   // Options may have been set in handler class, make sure we don't unset any.
   Result.Options:=Result.Options+Opts;
+  Result.UpdatedData:=IO.UpdatedData;
 end;
 
 
