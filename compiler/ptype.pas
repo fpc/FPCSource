@@ -1584,7 +1584,10 @@ implementation
             olddef:=nil;
 
             is_func:=(token=_FUNCTION);
-            consume(token);
+            if token in [_FUNCTION,_PROCEDURE] then
+              consume(token)
+            else
+              consume(_FUNCTION);
             pd:=cprocvardef.create(normal_function_level,doregister);
 
             if assigned(sym) then
