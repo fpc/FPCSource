@@ -13,7 +13,7 @@
         <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="ppcppc64"/>
+      <Title Value="ppcppc64le"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
