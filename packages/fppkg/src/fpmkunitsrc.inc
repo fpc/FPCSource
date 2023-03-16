@@ -2091,7 +2091,7 @@ const fpmkunitsrc : array[0..1237,1..240] of char=(
   'und but "%s" is older then "%s"'#039';'#010+
   '  SWarnDuplicatePackage = '#039'Warning: Package %s is already added. U'+
   'sing the e','xisting package'#039';'#010+
-  '  SWarngccNotFound        = '#039'Could not find libgcc'#039';'#010+
+  '  SWarngccNotFound        = '#039'Could not find gcc'#039';'#010+
   '  SWarngcclibpath         = '#039'Warning: Unable to determine the libg'+
   'cc path.'#039';'#010+
   '  SWarnNoFCLProcessSupport= '#039'No FCL-Process support'#039';'#010+
