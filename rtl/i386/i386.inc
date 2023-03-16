@@ -261,7 +261,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+function IndexByte_Plain(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 asm
         push  %esi
         push  %edi
@@ -389,12 +389,77 @@ asm
         pop   %edi
         pop   %esi
 end;
+
+function IndexByte_SSE2(const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+asm
+        test      %edx, %edx
+        je        .LNothing
+        push      %ebx
+        mov       %eax, %ebx
+        and       $-16, %eax
+        pxor      %xmm1, %xmm1
+        movd      %ecx, %xmm1
+        punpcklbw %xmm1, %xmm1
+        punpcklwd %xmm1, %xmm1
+        pshufd    $0, %xmm1, %xmm1
+        lea       16(%eax), %ecx
+        movdqa    %xmm1, %xmm0
+        pcmpeqb   (%eax), %xmm0
+        sub       %ebx, %ecx
+        pmovmskb  %xmm0, %eax
+        sal       %cl, %eax
+        xor       %ax, %ax
+        shr       %cl, %eax
+        jz        .L16xAligned_Test
+        sub       $16, %ecx
+.LFound:
+        bsf       %eax, %eax
+        add       %ecx, %eax
+        pop       %ebx
+        cmp       %edx, %eax
+        jnb       .LNothing
+        ret
+
+.balign 16
+.L16xAligned_Body:
+        movdqa    %xmm1, %xmm0
+        pcmpeqb   (%ebx,%ecx), %xmm0
+        pmovmskb   %xmm0, %eax
+        test      %eax, %eax
+        jne       .LFound
+        add       $16, %ecx
+.L16xAligned_Test:
+        cmp       %edx, %ecx
+        jb        .L16xAligned_Body
+        pop       %ebx
+.LNothing:
+        mov       $-1, %eax
+end;
+
+function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt; forward;
+
+var
+  IndexByte_Impl: function(const buf;len:SizeInt;b:byte):SizeInt = @IndexByte_Dispatch;
+
+function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt;
+begin
+  if has_sse2_support then
+    IndexByte_Impl:=@IndexByte_SSE2
+  else
+    IndexByte_Impl:=@IndexByte_Plain;
+  result:=IndexByte_Impl(buf,len,b);
+end;
+
+function IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
+begin
+  result:=IndexByte_Impl(buf,len,b);
+end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(Const buf;len:SizeInt;b:word):SizeInt; assembler;
+function IndexWord_Plain(Const buf;len:SizeInt;b:word):SizeInt; assembler;
 var
   saveedi,saveebx : longint;
 asm
@@ -424,12 +489,144 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
+
+function IndexWord_SSE2(const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
+asm
+        test      %edx, %edx
+        je        .LInstantNothing
+        push      %edi
+        movd      %ecx, %xmm0
+        push      %esi
+        mov       %eax, %esi
+        push      %ebx
+        and       $-0x10, %esi
+        punpcklwd %xmm0, %xmm0
+        movdqa    (%esi), %xmm2
+        sub       %eax, %esi
+        mov       %edx, %edi
+        pshufd    $0, %xmm0, %xmm0
+        lea       16(%esi), %edx
+        mov       %eax, %ebx
+        movdqa    %xmm0, %xmm1
+        mov       %edx, %ecx
+
+        test      $1, %al
+        jnz       .LUnaligned
+
+        pcmpeqw   %xmm0, %xmm2
+        pmovmskb  %xmm2, %eax
+
+        shl       %cl, %eax
+        xor       %ax, %ax
+        shr       $1, %edx
+        shr       %cl, %eax
+        jz        .LLoopTest
+        lea       -8(%edx), %ecx
+.LMatch:
+        bsf       %eax, %eax
+        shr       $1, %eax
+        add       %ecx, %eax
+        cmp       %edi, %eax
+        jnb       .LNothing
+        pop       %ebx
+        pop       %esi
+        pop       %edi
+        ret
+
+.balign 16
+.LLoop:
+        movdqa    (%ebx,%edx,2), %xmm0
+        mov       %edx, %ecx
+        add       $8, %edx
+        pcmpeqw   %xmm1, %xmm0
+        pmovmskb  %xmm0, %eax
+        test      %eax, %eax
+        jne       .LMatch
+.LLoopTest:
+        cmp       %edi, %edx
+        jb        .LLoop
+.LNothing:
+        pop       %ebx
+        pop       %esi
+        pop       %edi
+.LInstantNothing:
+        mov       $-1, %eax
+        ret
+
+.LUnaligned:
+        psllw     $8, %xmm1
+        add       %edi, %edi
+        psrlw     $8, %xmm0
+        por       %xmm1, %xmm0
+        pcmpeqb   %xmm0, %xmm2
+        movdqa    %xmm0, %xmm1
+        pmovmskb  %xmm2, %eax
+        shl       %cl, %eax
+        xor       %ax, %ax
+        shr       %cl, %eax
+        lea       (%eax,%eax), %ecx
+        and       %ecx, %eax
+        and       $0x5555, %eax
+        je        .LUnalignedLoopTest
+.LUnalignedMatch:
+        bsf       %eax, %eax
+        add       %esi, %eax
+        cmp       %edi, %eax
+        jnb       .LNothing
+        pop       %ebx
+        shr       $1, %eax
+        pop       %esi
+        pop       %edi
+        ret
+
+.balign 16
+.LUnalignedLoop:
+        movdqa    (%ebx,%edx), %xmm0
+        shr       $16, %ecx
+        mov       %edx, %esi
+        add       $16, %edx
+        pcmpeqb   %xmm1, %xmm0
+        pmovmskb  %xmm0, %eax
+        add       %eax, %eax
+        or        %eax, %ecx
+        mov       %ecx, %eax
+        shr       $1, %eax
+        and       %ecx, %eax
+        and       $0x5555, %eax
+        jne       .LUnalignedMatch
+.LUnalignedLoopTest:
+        cmp       %edi, %edx
+        jb        .LUnalignedLoop
+        pop       %ebx
+        pop       %esi
+        pop       %edi
+        mov       $-1, %eax
+end;
+
+function IndexWord_Dispatch(const buf;len:SizeInt;b:word):SizeInt; forward;
+
+var
+  IndexWord_Impl: function(const buf;len:SizeInt;b:word):SizeInt = @IndexWord_Dispatch;
+
+function IndexWord_Dispatch(const buf;len:SizeInt;b:word):SizeInt;
+begin
+  if has_sse2_support then
+    IndexWord_Impl:=@IndexWord_SSE2
+  else
+    IndexWord_Impl:=@IndexWord_Plain;
+  result:=IndexWord_Impl(buf,len,b);
+end;
+
+function IndexWord(const buf;len:SizeInt;b:word):SizeInt; inline;
+begin
+  result:=IndexWord_Impl(buf,len,b);
+end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
-function IndexDWord(Const buf;len:SizeInt;b:DWord):SizeInt; assembler;
+function IndexDWord_Plain(Const buf;len:SizeInt;b:DWord):SizeInt; assembler;
 var
   saveedi,saveebx : longint;
 asm
@@ -459,12 +656,88 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
+
+function IndexDWord_SSE2(const buf;len:SizeInt;b:DWord):SizeInt; assembler; nostackframe;
+asm
+        push     %esi
+        lea      (%eax,%edx,4), %esi
+        push     %ebx
+        mov      %eax, %ebx
+        cmp      $536870911, %edx
+        ja       .LUnbounded
+        and      $-4, %edx
+        jz       .LDWordwise_Test
+        push     %edi
+        shl      $2, %edx
+        movd     %ecx, %xmm2
+        add      %eax, %edx
+        pshufd   $0, %xmm2, %xmm1
+.L4x_Body:
+        movdqu   (%eax), %xmm0
+        pcmpeqd  %xmm1, %xmm0
+        pmovmskb %xmm0, %edi
+        test     %edi, %edi
+        jne      .L4x_Found
+.L4x_Next:
+        add      $16, %eax
+        cmp      %eax, %edx
+        jne      .L4x_Body
+        pop      %edi
+.LDWordwise_Test:
+        cmp      %esi, %eax
+        je       .LNothing
+.LDWordwise_Body:
+        cmp      %ecx, (%eax)
+        je       .LDWordwise_Found
+        add      $4, %eax
+        cmp      %esi, %eax
+        jne      .LDWordwise_Body
+.LNothing:
+        mov      $-1, %eax
+        pop      %ebx
+        pop      %esi
+        ret
+
+.L4x_Found:
+        bsf      %edi, %edi
+        add      %edi, %eax
+        pop      %edi
+.LDWordwise_Found:
+        sub      %ebx, %eax
+        shr      $2, %eax
+        pop      %ebx
+        pop      %esi
+        ret
+
+.LUnbounded:
+        mov      %eax, %esi
+        jmp      .LDWordwise_Body
+end;
+
+function IndexDWord_Dispatch(const buf;len:SizeInt;b:DWord):SizeInt; forward;
+
+var
+  IndexDWord_Impl: function(const buf;len:SizeInt;b:DWord):SizeInt = @IndexDWord_Dispatch;
+
+function IndexDWord_Dispatch(const buf;len:SizeInt;b:DWord):SizeInt;
+begin
+  if has_sse2_support then
+    IndexDWord_Impl:=@IndexDWord_SSE2
+  else
+    IndexDWord_Impl:=@IndexDWord_Plain;
+  result:=IndexDWord_Impl(buf,len,b);
+end;
+
+function IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
+begin
+  result:=IndexDWord_Impl(buf,len,b);
+end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+function CompareByte_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         sub     %eax, %edx
         cmp     $6, %ecx
@@ -547,12 +820,143 @@ asm
         pop     %esi
         sub     %ecx, %eax
 end;
+
+function CompareByte_SSE2(const buf1, buf2; len: SizeInt): SizeInt; assembler; nostackframe;
+asm
+        cmp      $3, %ecx
+        push     %esi
+        lea      (%eax,%ecx), %esi { esi = buf1 end }
+        jle      .LBytewise_Test
+        push     %ebx
+        and      $-16, %ecx
+        lea      (%eax,%ecx), %ebx { ebx = end of full XMMs in buf1 }
+        cmp      %ebx, %eax
+        jne      .L16x_Body
+.L16x_Tail:
+        lea      15(%ebx), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
+        lea      15(%edx), %ecx
+        xor      %ebx, %eax
+        xor      %edx, %ecx
+        or       %ecx, %eax
+        cmp      $4095, %eax
+        ja       .LCantOverReadBothTails
+        movdqu   (%ebx), %xmm0
+        movdqu   (%edx), %xmm2
+        pcmpeqb  %xmm2, %xmm0
+        pmovmskb %xmm0, %eax
+        xor      $65535, %eax
+        jz       .LReturnEAX
+        bsf      %eax, %ecx
+        add      %ecx, %ebx
+        cmp      %esi, %ebx { ignore over-read garbage bytes }
+        jnb      .L16x_Nothing
+        movzbl   (%ebx), %eax
+        movzbl   (%edx,%ecx), %edx
+        sub      %edx, %eax
+.LReturnEAX:
+        pop      %ebx
+        pop      %esi
+        ret
+
+.balign 16
+.L16x_Body:
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqb  %xmm1, %xmm0
+        pmovmskb %xmm0, %ecx
+        xor      $65535, %ecx
+        jnz      .L16x_Found
+        add      $16, %eax
+        add      $16, %edx
+        cmp      %eax, %ebx
+        jne      .L16x_Body
+        cmp      %ebx, %esi
+        jne      .L16x_Tail
+.L16x_Nothing:
+        pop      %ebx
+        xor      %eax, %eax
+        pop      %esi
+        ret
+
+.L16x_Found:
+        bsf      %ecx, %ecx
+        pop      %ebx
+        movzbl   (%eax,%ecx), %eax
+        movzbl   (%edx,%ecx), %edx
+        pop      %esi
+        sub      %edx, %eax
+        ret
+
+.LCantOverReadBothTails:
+        mov      %esi, %eax
+        sub      %ebx, %eax
+        and      $-4, %eax
+        add      %ebx, %eax
+        cmp      %eax, %ebx
+        je       .LPopEbxAndGoBytewise
+.L4x_Body:
+        mov      (%ebx), %ecx
+        cmp      (%edx), %ecx
+        jne      .L4x_Found
+        add      $4, %ebx
+        add      $4, %edx
+        cmp      %ebx, %eax
+        jne      .L4x_Body
+.LPopEbxAndGoBytewise:
+        pop      %ebx
+.LBytewise_Test:
+        cmp      %esi, %eax
+        je       .LBytewise_Nothing
+.LBytewise_Body:
+        movzbl   (%edx), %ecx
+        cmp      (%eax), %cl
+        jne      .LDoSbb
+        add      $1, %eax
+        add      $1, %edx
+        cmp      %esi, %eax
+        jne      .LBytewise_Body
+.LBytewise_Nothing:
+        xor      %eax, %eax
+        pop      %esi
+        ret
+
+.L4x_Found:
+        mov      (%edx), %eax
+        bswap    %ecx
+        bswap    %eax
+        cmp      %ecx, %eax
+        pop      %ebx
+.LDoSbb:
+        sbb      %eax, %eax
+        and      $2, %eax
+        sub      $1, %eax
+        pop      %esi
+end;
+
+function CompareByte_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
+
+var
+  CompareByte_Impl: function(const buf1, buf2; len: SizeInt): SizeInt = @CompareByte_Dispatch;
+
+function CompareByte_Dispatch(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  if has_sse2_support then
+    CompareByte_Impl:=@CompareByte_SSE2
+  else
+    CompareByte_Impl:=@CompareByte_Plain;
+  result:=CompareByte_Impl(buf1, buf2, len);
+end;
+
+function CompareByte(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  result:=CompareByte_Impl(buf1, buf2, len);
+end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+function CompareWord_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         sub     %eax, %edx
         push    %esi
@@ -614,12 +1018,122 @@ asm
         mov     %eax, %esi
         jmp     .LWordwise_Body
 end;
+
+function CompareWord_SSE2(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+        push     %ebx
+        cmp      $1073741823, %ecx
+        ja       .LUnbounded
+        lea      (%eax,%ecx,2), %ebx { ebx = buf1 end }
+        cmp      $3, %ecx
+        jle      .LWordwise_Test
+        push     %esi
+        and      $-8, %ecx
+        lea      (%eax,%ecx,2), %esi { esi = end of full XMMs in buf1 }
+        cmp      %esi, %eax
+        jne      .L8x_Body
+.L8x_Tail:
+        lea      15(%esi), %eax
+        lea      15(%edx), %ecx
+        xor      %esi, %eax
+        xor      %edx, %ecx
+        or       %ecx, %eax
+        cmp      $4095, %eax
+        ja       .LCantOverReadBothTails
+        movdqu   (%esi), %xmm0
+        movdqu   (%edx), %xmm2
+        pcmpeqw  %xmm2, %xmm0
+        pmovmskb %xmm0, %eax
+        xor      $65535, %eax
+        jz       .LReturnEAX
+        bsf      %eax, %eax
+        lea      (%esi,%eax), %ecx
+        cmp      %ebx, %ecx
+        jnb      .LNothing
+        movzwl   (%esi,%eax), %ebx
+        cmp      %bx, (%edx,%eax)
+.L8x_DoSbb:
+        pop      %esi
+.LWordwise_DoSbb:
+        pop      %ebx
+        sbb      %eax, %eax
+        and      $2, %eax
+        sub      $1, %eax
+        ret
+
+.balign 16
+.L8x_Body:
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqw  %xmm1, %xmm0
+        pmovmskb %xmm0, %ecx
+        xor      $65535, %ecx
+        jnz      .L8x_Found
+        add      $16, %eax
+        add      $16, %edx
+        cmp      %eax, %esi
+        jne      .L8x_Body
+        cmp      %esi, %ebx
+        jne      .L8x_Tail
+.LNothing:
+        xor      %eax, %eax
+.LReturnEAX:
+        pop      %esi
+        pop      %ebx
+        ret
+
+.L8x_Found:
+        bsf      %ecx, %ecx
+        movzwl   (%eax,%ecx), %eax
+        cmp      %ax, (%edx,%ecx)
+        jmp      .L8x_DoSbb
+
+.LCantOverReadBothTails:
+        mov      %esi, %eax
+        pop      %esi
+.LWordwise_Body:
+        movzwl   (%eax), %ecx
+        cmp      %cx, (%edx)
+        jne      .LWordwise_DoSbb
+.LWordwise_Next:
+        add      $2, %eax
+        add      $2, %edx
+.LWordwise_Test:
+        cmp      %ebx, %eax
+        jne      .LWordwise_Body
+        xor      %eax, %eax
+        pop      %ebx
+        ret
+
+.LUnbounded:
+        mov      %eax, %ebx
+        jmp      .LWordwise_Body
+end;
+
+function CompareWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
+
+var
+  CompareWord_Impl: function(const buf1, buf2; len: SizeInt): SizeInt = @CompareWord_Dispatch;
+
+function CompareWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  if has_sse2_support then
+    CompareWord_Impl:=@CompareWord_SSE2
+  else
+    CompareWord_Impl:=@CompareWord_Plain;
+  result:=CompareWord_Impl(buf1, buf2, len);
+end;
+
+function CompareWord(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  result:=CompareWord_Impl(buf1, buf2, len);
+end;
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+function CompareDWord_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
         cmp     $536870912, %ecx
         push    %ebx
@@ -652,6 +1166,82 @@ asm
 .LUnbounded:
         mov     %eax, %ebx
         jmp     .LDwordwise_Body
+end;
+
+function CompareDWord_SSE2(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
+asm
+        push     %esi
+        cmp      $536870912, %ecx
+        jnb      .LUnbounded
+        lea      (%eax,%ecx,4), %esi { esi = buf1 end }
+        cmp      $3, %ecx
+        jle      .LDWordwise_Test
+        push     %ebx
+        and      $-4, %ecx
+        lea      (%eax,%ecx,4), %ecx { ecx = end of full XMMs in buf1 }
+.balign 16
+.L4x_Body:
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqd  %xmm1, %xmm0
+        pmovmskb %xmm0, %ebx
+        xor      $65535, %ebx
+        jnz      .L4x_Found
+        add      $16, %eax
+        add      $16, %edx
+        cmp      %eax, %ecx
+        jne      .L4x_Body
+        pop      %ebx
+.LDWordwise_Test:
+        cmp      %esi, %eax
+        je       .LNothing
+.LDWordwise_Body:
+        mov      (%eax), %ecx
+        cmp      %ecx, (%edx)
+        jne      .LDoSbb
+        add      $4, %eax
+        add      $4, %edx
+        cmp      %esi, %eax
+        jne      .LDWordwise_Body
+.LNothing:
+        xor      %eax, %eax
+        pop      %esi
+        ret
+
+.L4x_Found:
+        bsf      %ebx, %ebx
+        mov      (%eax,%ebx), %eax
+        cmp      %eax, (%edx,%ebx)
+        pop      %ebx
+.LDoSbb:
+        pop      %esi
+        sbb      %eax, %eax
+        and      $2, %eax
+        sub      $1, %eax
+        ret
+
+.LUnbounded:
+        mov      %eax, %esi
+        jmp      .LDWordwise_Body
+end;
+
+function CompareDWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
+
+var
+  CompareDWord_Impl: function(const buf1, buf2; len: SizeInt): SizeInt = @CompareDWord_Dispatch;
+
+function CompareDWord_Dispatch(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  if has_sse2_support then
+    CompareDWord_Impl:=@CompareDWord_SSE2
+  else
+    CompareDWord_Impl:=@CompareDWord_Plain;
+  result:=CompareDWord_Impl(buf1, buf2, len);
+end;
+
+function CompareDWord(const buf1, buf2; len: SizeInt): SizeInt;
+begin
+  result:=CompareDWord_Impl(buf1, buf2, len);
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 

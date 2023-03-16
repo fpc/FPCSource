@@ -898,14 +898,14 @@ Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
-function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
-function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
-function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
+function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386)} inline; {$endif}
 function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
+function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
+function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386)} inline; {$endif}
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
