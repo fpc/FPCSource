@@ -1792,8 +1792,8 @@ ResourceString
   SWarnCanNotGetFileAge = 'Warning: Failed to get FileAge for %s';
   SWarnExtCommandNotFound = 'Warning: External command "%s" not found but "%s" is older then "%s"';
   SWarnDuplicatePackage = 'Warning: Package %s is already added. Using the existing package';
-  SWarngccNotFound        = 'Could not find libgcc';
-  SWarncrossgccNotFound   = 'Could not find libgcc for cross-configuration';
+  SWarngccNotFound        = 'Could not find gcc';
+  SWarncrossgccNotFound   = 'Could not find gcc for cross-configuration';
   SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
 {$IFNDEF HAS_UNIT_PROCESS}
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
