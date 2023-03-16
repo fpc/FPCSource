@@ -3062,6 +3062,8 @@ begin
       m68k:         result := GetGccDirArch('cpum68k',['-march=68020']);
       mips:         result := GetGccDirArch('cpumips',['-mips32','-EB','-mabi=32']);
       mipsel:       result := GetGccDirArch('cpumipsel',['-mips32','-EL','-mabi=32']);
+      mips64el:     result := GetGccDirArch('cpumipsel',['-mips64','-EL','-mabi=64']);
+      mips64:       result := GetGccDirArch('cpumipsel',['-mips64','-EB','-mabi=64']);
       riscv32:      result := GetGccDirArch('cpuriscv32',['-march=rv32imafdc']);
       riscv64:      result := GetGccDirArch('cpuriscv64',['-march=rv64imafdc']);
       sparc:        result := GetGccDirArch('cpusparc',['-m32']);
