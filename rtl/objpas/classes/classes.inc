@@ -564,6 +564,8 @@ begin
   tmpentry := PopThreadQueueHead;
   while Assigned(tmpentry) do
     begin
+    { at least one method is handled, so return true }
+    result := true;
     { step 2: execute the method }
     exceptobj := Nil;
     try
