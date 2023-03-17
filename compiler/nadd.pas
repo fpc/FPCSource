@@ -1833,7 +1833,8 @@ implementation
                       t:=nil;
                       cr:=0;
                     end;
-                if (t<>nil) and (PopCnt(cr) = 1) then
+                { using cr.uvalue is fine as we are interested only in the bit pattern }
+                if (t<>nil) and (PopCnt(cr.uvalue) = 1) then
                   begin
                     if is_constintnode(taddnode(t).left) then
                       vl:=taddnode(t).left
