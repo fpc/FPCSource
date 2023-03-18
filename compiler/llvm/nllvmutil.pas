@@ -180,6 +180,7 @@ implementation
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
             targetinfos[target_info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
+          include(itemdef.defoptions,df_llvm_no_typename);
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
           arraydef:=carraydef.getreusable(itemdef,procdefs.Count);

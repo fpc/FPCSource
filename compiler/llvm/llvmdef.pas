@@ -502,7 +502,8 @@ implementation
           recorddef :
             begin
               { avoid endlessly recursive definitions }
-              if not(lef_typedecl in flags) then
+              if not(lef_typedecl in flags) and
+                 not(df_llvm_no_typename in def.defoptions) then
                 encodedstr:=encodedstr+llvmtypeidentifier(def)
               else
                 llvmaddencodedabstractrecordtype(trecorddef(def),encodedstr);

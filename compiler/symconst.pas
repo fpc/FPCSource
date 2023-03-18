@@ -251,7 +251,9 @@ type
     df_has_global_ref,
     { the def was derived with generic type or const fields so the size
       of the def can not be determined }
-    df_has_generic_fields
+    df_has_generic_fields,
+    {  never use the typename for this type, always expand full definition }
+    df_llvm_no_typename
   );
   tdefoptions=set of tdefoption;
 
