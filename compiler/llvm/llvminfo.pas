@@ -32,12 +32,12 @@ uses
 {$j-}
 
 Type
-   { possible supported processors for this target }
+   { supported LLVM versions }
    tllvmversion =
       (llvmver_invalid,
        { Xcode versions use snapshots of LLVM and don't correspond to released
          versions of llvm (they don't ship with the llvm utilities either, but
-         they do come with Clang, which can be used instead of opt/llc) }
+         they do come with clang, which is what we use as assembler) }
        llvmver_7_0,
        llvmver_7_1,
        llvmver_8_0,
