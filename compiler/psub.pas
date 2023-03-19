@@ -424,6 +424,7 @@ implementation
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
                         block:=statement_block(_INITIALIZATION);
+                        init_main_block_syms(block);
                      end
                    else if token=_FINALIZATION then
                      begin
