@@ -97,8 +97,8 @@ Procedure Fail;
 Function TypeOf(T : TObjectType) : Pointer;
 Function IsManagedType(T : TType) : Boolean;
 Function IsConstValue(V : TAnyType) : Boolean;
-Procedure Initialize(Var T : TAnyType; ACount : SizeInt = 1);
-Procedure Finalize(Var T : TAnyType; ACount : SizeInt = 1);
+Procedure Initialize(Var T : TManagedType; ACount : SizeInt = 1);
+Procedure Finalize(Var T : TManagedType; ACount : SizeInt = 1);
 
 {$IFNDEF GO32V2}
 Var
