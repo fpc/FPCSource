@@ -52,6 +52,8 @@ Resourcestring
   SErrMissingInputFields = 'Missing required fields in input data: %s.';
   SErrNoRecordsUpdated = 'No records were updated.';
   SErrTooManyRecordsUpdated = 'Too many records (%d) were updated.';
+  SErrUnknownParam = 'Unknown parameter "%s"';
+  SErrDuplicateParam = 'Duplicate parameter "%s"';
 
 Const
   DefaultAuthenticationRealm = 'REST API Server';

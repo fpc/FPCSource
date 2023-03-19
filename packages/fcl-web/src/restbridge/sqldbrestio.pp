@@ -74,7 +74,9 @@ Type
                          rpCustomViewResourceName,
                          rpCustomViewSQLParam,
                          rpXMLDocumentRoot,
-                         rpConnectionResourceName
+                         rpConnectionResourceName,
+                         rpParametersResourceName,
+                         rpParametersRoutePart
                          );
   TRestStringProperties = Set of TRestStringProperty;
 
@@ -127,6 +129,8 @@ Type
     Property OffsetParam : UTF8string Index ord(rpOffset) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property SortParam : UTF8string Index ord(rpOrderBy) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property MetadataResourceName : UTF8string Index ord(rpMetadataResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataParametersName : UTF8string Index ord(rpParametersResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property MetadataParametersRoutePart : UTF8string Index ord(rpParametersRoutePart) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property InputFormatParam : UTF8string Index ord(rpInputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property OutputFormatParam : UTF8string Index ord(rpOutputFormat) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property CustomViewResourceName : UTF8string Index ord(rpCustomViewResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
@@ -407,6 +411,14 @@ Type
     Function FindStreamerByContentType(aType : TRestStreamerType; const aContentType : string) : TStreamerDef;
   end;
 
+  { TRestBufDataset }
+
+  TRestBufDataset = class (TBufDataset)
+  protected
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
+  end;
+
+
 implementation
 
 uses base64, dateutils, sqldbrestconst;
@@ -451,7 +463,9 @@ Const
     'customview',      { rpCustomViewResourceName }
     'sql',             { rpCustomViewSQLParam }
     'datapacket',      { rpXMLDocumentRoot}
-    '_connection'      { rpConnectionResourceName }
+    '_connection',     { rpConnectionResourceName }
+    '_parameters',     { rpParametersResourceName }
+    'parameters'       { rpParametersRoutePart }
   );
   DefaultStatuses : Array[TRestStatus] of Word = (
     500, { rsError }
@@ -473,6 +487,14 @@ Const
     400, { rsInvalidContent }
     200  { rsPatchOK }
   );
+
+{ TRestBufDataset }
+
+procedure TRestBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  If (FieldDef=Nil) or (aBlobBuf=Nil) then
+    exit;
+end;
 
 { TRestStatusConfig }
 
@@ -981,7 +1003,7 @@ begin
   FContentStream:=TStringStream.Create(aRequest.Content);
   FRestContext:=CreateRestContext;
   FRestContext.FIO:=Self;
-  FUpdatedData:=TBufDataset.Create(Nil);
+  FUpdatedData:=TRestBufDataset.Create(Nil);
 end;
 
 destructor TRestIO.Destroy;

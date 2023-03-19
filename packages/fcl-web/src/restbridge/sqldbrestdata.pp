@@ -62,9 +62,12 @@ Type
     function GetRequestFields: TSQLDBRestFieldArray;
     procedure CreateResourceFromDataset(D: TDataset); virtual;
     procedure DoNotFound; virtual;
+    procedure SetParamFromStringAndType(P: TParam; S: UTF8String; aDataType: TFieldType); virtual;
     procedure SetPostParams(aParams: TParams; Old : TFields = Nil);virtual;
     procedure SetPostFields(aFields: TFields);virtual;
     procedure SetFieldFromData(DataField: TField; ResField: TSQLDBRestField; D: TJSONData); virtual;
+    procedure FillParams(aOperation: TRestOperation; aParams: TParams;  FilteredFields: TRestFilterPairArray); virtual;
+
     procedure InsertNewRecord; virtual;
     procedure UpdateExistingRecord(OldData: TDataset; IsPatch : Boolean); virtual;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -74,8 +77,6 @@ Type
     function FindFieldForParam(aOperation: TRestOperation; P: TParam): TSQLDBRestField; virtual;
     function BuildFieldList(ForceAll : Boolean): TRestFieldPairArray; virtual;
     function CreateQuery(aSQL: String): TSQLQuery; virtual;
-    procedure FillParams(aOperation: TRestOperation; aParams: TParams;
-      FilteredFields: TRestFilterPairArray); virtual;
     function GetDatasetForResource(aFieldList: TRestFieldPairArray; Singleton : Boolean): TDataset; virtual;
     function GetOrderByFieldArray: TRestFieldOrderPairArray;
     function GetOrderBy: UTF8String;virtual;
@@ -119,7 +120,7 @@ Type
 
 implementation
 
-uses strutils, variants, dateutils, base64, sqldbrestconst;
+uses typinfo, strutils, variants, dateutils, base64, sqldbrestconst;
 
 
 Const
@@ -381,6 +382,7 @@ function TSQLDBRestDBHandler.GetDataForParam(P: TParam; F: TSQLDBRestField;
 Var
   vs : TVariableSource;
   S,N : UTF8String;
+  RP: TSQLDBRestParam;
 
 begin
   Result:=Nil;
@@ -403,16 +405,85 @@ begin
       Result:=TJSONString.Create(S)
     else if (vsContent in Sources) then
       Result:=IO.RESTInput.GetContentField(N)
+    else if vsParam in Sources then
+      begin
+      RP:=FResource.Parameters.Find(N);
+      if Assigned(RP) and (RP.DefaultValue<>'') then
+        Result:=TJSONString.Create(RP.DefaultValue)
+      end;
     end;
+end;
+
+procedure TSQLDBRestDBHandler.SetParamFromStringAndType(P : TParam; S : UTF8String; aDataType: TFieldType);
+
+var
+  F : Double;
+  C : Integer;
+
+begin
+  Case aDataType of
+
+    ftFmtMemo,
+    ftFixedChar,
+    ftFixedWideChar,
+    ftWideMemo,
+    ftMemo,
+    ftString : P.AsString:=S;
+
+    ftSmallint : P.AsSmallInt:=StrToInt(S);
+    ftInteger : P.AsInteger:=StrToInt(S);
+    ftWord : P.AsWord:=StrToInt(S);
+    ftLargeint : P.AsLargeInt:=StrToInt64(S);
+    ftWideString : P.AsUnicodeString:=S;
+    ftBoolean : P.AsBoolean:=StrToBool(S);
+    ftFloat,
+    ftCurrency,
+    ftFMTBcd,
+    ftBCD :
+      begin
+      Val(S,F,C);
+      if C=0 then
+        P.AsFloat:=F
+      else
+        Raise EConvertError.Create('Invalid float value : '+S);
+      end;
+    ftDate : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),S);
+    ftTime : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),S);
+    ftTimeStamp,
+    ftDateTime : P.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),S);
+    ftVariant : P.Value:=S;
+    ftBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftVarBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftBlob : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftGUID : P.AsString:=S;
+  else
+    Raise EConvertError.CreateFmt('Unsupported data type: %s',[GetEnumName(TypeInfo(TFieldType),Ord(aDataType))]);
+  end;
 end;
 
 procedure TSQLDBRestDBHandler.SetParamFromData(P: TParam; F: TSQLDBRestField;
   D: TJSONData);
 
+  Procedure OtherParamValue(const S : String);
+
+  var
+    RP : TSQLDBRestParam;
+  begin
+    RP:=Self.FResource.Parameters.Find(P.Name);
+    if assigned(RP) then
+      SetParamFromStringAndType(P,S,RP.DataType)
+    else
+      P.asString:=S;
+  end;
+
 Var
-  S : String;
+  S : UTF8String;
+  N : String;
 
 begin
+  N:=P.Name;
+  if N='ID' then
+    Writeln('Ah');
   if Assigned(D) then
     S:=D.AsString;
   if not Assigned(D) then
@@ -434,10 +505,10 @@ begin
          P.AsBlob:=DecodeStringBase64(S);
 {$ENDIF}
     else
-      P.AsString:=S;
+      OtherParamValue(S);
     end
   else
-    P.AsString:=S;
+    OtherParamValue(S);
 end;
 
 function TSQLDBRestDBHandler.FindFieldForParam(aOperation: TRestOperation;
@@ -450,14 +521,13 @@ Var
 begin
   Result:=Nil;
   N:=P.Name;
-  if (N='ID_') then
+  Result:=FResource.Fields.FindByFieldName(N);
+  if (Result=Nil) and (N='ID') then
     begin
     A:=FResource.GetFieldArray(flWhereKey);
     if (Length(A)=1) then
       Result:=A[0];
-    end
-  else
-    Result:=FResource.Fields.FindByFieldName(N);
+    end;
 end;
 
 procedure TSQLDBRestDBHandler.FillParams(aOperation : TRestOperation; aParams: TParams;FilteredFields : TRestFilterPairArray);
@@ -498,7 +568,7 @@ begin
     end;
   // Fill in remaining params. Determine source
   case aOperation of
-    roGet : Sources:=[vsQuery,vsRoute];
+    roGet : Sources:=[vsQuery,vsRoute,vsParam];
     roPost,
     roPatch,
     roPut : Sources:=[vsQuery,vsContent,vsRoute];

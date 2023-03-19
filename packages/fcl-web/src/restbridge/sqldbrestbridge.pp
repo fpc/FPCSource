@@ -171,6 +171,7 @@ Type
     FLogOptions: TRestDispatcherLogOptions;
     FMetadataResource : TSQLDBRestResource;
     FMetadataDetailResource : TSQLDBRestResource;
+    FMetadataParametersResource : TSQLDBRestResource;
     FConnectionResource : TSQLDBRestResource;
     FActive: Boolean;
     FAfterDelete: TRestOperationEvent;
@@ -200,10 +201,12 @@ Type
     FSchemas: TSQLDBRestSchemaList;
     FListRoute: THTTPRoute;
     FItemRoute: THTTPRoute;
+    FParamRoute: THTTPRoute;
     FConnectionsRoute: THTTPRoute;
     FConnectionItemRoute: THTTPRoute;
     FMetadataRoute: THTTPRoute;
     FMetadataItemRoute: THTTPRoute;
+    FMetadataParameterRoute : THTTPRoute;
     FStatus: TRestStatusConfig;
     FStrings: TRestStringsConfig;
     FAfterDatabaseRead: TRestDatabaseEvent;
@@ -279,14 +282,18 @@ Type
     // Special resources for Metadata handling
     function CreateMetadataDataset(IO: TRestIO; AOwner: TComponent): TDataset; virtual;
     function CreateMetadataDetailDataset(IO: TRestIO; Const aResourceName : String; AOwner: TComponent): TDataset; virtual;
+    function CreateMetadataParameterDataset(IO: TRestIO; Const aResourceName : String; AOwner: TComponent): TDataset; virtual;
     function CreateConnectionDataset(IO: TRestIO; AOwner: TComponent): TDataset; virtual;
+    // Resource definitions for metadata
     function CreateMetadataDetailResource: TSQLDBRestResource;  virtual;
     function CreateMetadataResource: TSQLDBRestResource; virtual;
+    function CreateMetadataParameterResource: TSQLDBRestResource; virtual;
     Function CreateConnectionResource : TSQLDBRestResource; virtual;
     // Custom view handling
     function CreateCustomViewResource: TSQLDBRestResource; virtual;
     function CreateCustomViewDataset(IO: TRestIO; const aSQL: String; AOwner: TComponent): TDataset;
     procedure ResourceToDataset(R: TSQLDBRestResource; D: TDataset); virtual;
+    procedure ResourceParamsToDataset(R: TSQLDBRestResource; D: TDataset); virtual;
     procedure SchemasToDataset(D: TDataset);virtual;
     // General HTTP handling
     procedure DoRegisterRoutes; virtual;
@@ -302,6 +309,7 @@ Type
     Destructor Destroy; override;
     procedure RegisterRoutes;
     procedure UnRegisterRoutes;
+    procedure HandleMetadataParameterRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleMetadataRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleConnRequest(aRequest : TRequest; aResponse : TResponse);
     procedure HandleRequest(aRequest : TRequest; aResponse : TResponse);
@@ -405,17 +413,9 @@ Const
 
 implementation
 
-uses uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
+uses typinfo,uriparser, fpjsonrtti, DateUtils, bufdataset, sqldbrestjson, sqldbrestconst;
 
 Type
-
-  { TRestBufDataset }
-
-  TRestBufDataset = class (TBufDataset)
-  protected
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
-  end;
-
 
   { TSchemaFreeNotifier }
 
@@ -430,17 +430,6 @@ Type
     FRef : TSQLDBRestConnection;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   end;
-
-{ TRestBufDataset }
-
-procedure TRestBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
-begin
-  If (FieldDef=Nil) or (aBlobBuf=Nil) then
-    exit;
-end;
-
-
-
 
 
 { TConnectionFreeNotifier }
@@ -712,17 +701,18 @@ begin
       LogMsg:='User: '+UN+LogMsg;
     DoLog(rtloHTTP,Nil,LogMsg);
     end;
-  aRequest.RouteParams['resource']:=Strings.MetadataResourceName;
+  aRequest.RouteParams['resource']:='_'+Strings.MetadataResourceName;
   HandleRequest(aRequest,aResponse);
 end;
 
 procedure TSQLDBRestDispatcher.DoRegisterRoutes;
 
 Var
-  Res,C : UTF8String;
+  Res,P,C : UTF8String;
 
 begin
   Res:=IncludeHTTPPathDelimiter(BasePath);
+  P:=Strings.GetRestString(rpParametersRoutePart);
   if (rdoConnectionResource in DispatchOptions) then
     begin
     C:=Strings.GetRestString(rpConnectionResourceName);
@@ -738,12 +728,14 @@ begin
       begin
       C:=Strings.GetRestString(rpMetadataResourceName);
       FMetadataRoute:=HTTPRouter.RegisterRoute(res+C,@HandleMetaDataRequest);
+      FMetadataParameterRoute:=HTTPRouter.RegisterRoute(res+C+'/:ResourceName/'+P,@HandleMetadataParameterRequest);
       FMetadataItemRoute:=HTTPRouter.RegisterRoute(res+C+'/:id',@HandleMetaDataRequest);
       end;
     Res:=Res+':connection/';
     end;
   Res:=Res+':resource';
   FListRoute:=HTTPRouter.RegisterRoute(res,@HandleRequest);
+  FParamRoute:=HTTPRouter.RegisterRoute(Res+'/:ResourceName/'+P,@HandleMetadataParameterRequest);
   FItemRoute:=HTTPRouter.RegisterRoute(Res+'/:id',@HandleRequest);
 end;
 
@@ -930,6 +922,7 @@ begin
   FreeAndNil(FCustomViewResource);
   FreeAndNil(FMetadataResource);
   FreeAndNil(FMetadataDetailResource);
+  FreeAndNil(FMetadataParametersResource);
   FreeAndNil(FConnectionResource);
   FreeAndNil(FSchemas);
   FreeAndNil(FConnections);
@@ -1001,6 +994,23 @@ begin
       end;
 end;
 
+function TSQLDBRestDispatcher.CreateMetadataParameterResource: TSQLDBRestResource;
+Var
+  O : TRestFieldOption;
+  S : String;
+
+begin
+  Result:=TSQLDBRestResource.Create(Nil);
+  Result.ResourceName:='metaDataParameters';
+  if rdoHandleCORS in DispatchOptions then
+    Result.AllowedOperations:=[roGet,roOptions,roHead]
+  else
+    Result.AllowedOperations:=[roGet,roHead];
+  Result.Fields.AddField('name',rftString,[]).MaxLen:=255;
+  Result.Fields.AddField('type',rftString,[]).MaxLen:=20;
+  Result.Fields.AddField('default',rftString,[]).MaxLen:=1025;
+end;
+
 function TSQLDBRestDispatcher.CreateConnectionResource: TSQLDBRestResource;
 Var
   Def : TRestFieldOptions;
@@ -1068,6 +1078,13 @@ function TSQLDBRestDispatcher.FindSpecialResource(IO : TRestIO; aResource: UTF8S
             and SameText(aResource,Strings.GetRestString(rpMetaDataResourceName));
   end;
 
+  Function IsMetadataParams : Boolean; // inline;
+
+  begin
+    Result:=(rdoExposeMetadata in DispatchOptions)
+            and SameText(aResource,Strings.MetadataParametersName);
+  end;
+
   Function IsConnection : Boolean;inline;
 
   begin
@@ -1091,6 +1108,15 @@ begin
     if FConnectionResource=Nil then
       FConnectionResource:=CreateConnectionResource;
     Result:=FConnectionResource;
+    end
+  else If isMetadataParams then
+    begin
+    if (IO.GetVariable('ResourceName',N,[vsRoute,vsQuery])<>vsNone) then
+      begin
+      if FMetadataParametersResource=Nil  then
+        FMetadataParametersResource:=CreateMetadataParameterResource;
+      Result:=FMetadataParametersResource;
+      end
     end
   else If isMetadata then
     if (IO.GetVariable('ID',N,[vsRoute,vsQuery])=vsNone) then
@@ -1334,7 +1360,7 @@ begin
       R:=Nil;
     end;
   If Assigned(Evt) then
-    Evt(Self,IO.Operation,IO.RestContext,IO.Resource);
+    Evt(Self,IO.OPeration,IO.RestContext,IO.Resource);
   If Assigned(ResEvt) then
     ResEvt(Self,IO.Operation,IO.RestContext,IO.Resource);
   If Assigned(R) then
@@ -1409,6 +1435,7 @@ begin
   if not Result then exit;
   Result:=(aResource=FMetadataResource) or
           (aResource=FMetadataDetailResource) or
+          (aResource=FMetadataParametersResource) or
           (aResource=FConnectionResource) or
           (aResource=FCustomViewResource);
 end;
@@ -1529,6 +1556,29 @@ begin
     end;
 end;
 
+procedure TSQLDBRestDispatcher.ResourceParamsToDataset(R: TSQLDBRestResource;
+  D: TDataset);
+Var
+  P : TSQLDBRestParam;
+  O : TRestFieldOption;
+  I : Integer;
+  FName,FType,fDefault : TField;
+  FOptions : Array[TRestFieldOption] of TField;
+
+begin
+  FName:=D.FieldByName('name');
+  FType:=D.FieldByName('type');
+  FDefault:=D.FieldByName('default');
+  For P in R.Parameters do
+    begin
+    D.Append;
+    FName.AsString:=P.Name;
+    FType.AsString:=GetEnumName(TypeInfo(TFieldType),Ord(P.DataType));
+    fDefault.AsString:=P.DefaultValue;
+    D.Post;
+    end;
+end;
+
 function TSQLDBRestDispatcher.CreateMetadataDetailDataset(IO: TRestIO;
   const aResourceName: String; AOwner: TComponent): TDataset;
 
@@ -1555,7 +1605,35 @@ begin
       end;
     BD.CreateDataset;
     R:=FindRestResource(aResourceName);
-    ResourceToDataset(R,BD);
+    if assigned(R) then
+      ResourceToDataset(R,BD);
+    BD.First;
+  except
+    BD.Free;
+    Raise;
+  end;
+end;
+
+function TSQLDBRestDispatcher.CreateMetadataParameterDataset(IO: TRestIO;
+  const aResourceName: String; AOwner: TComponent): TDataset;
+Var
+  BD :  TRestBufDataset;
+  O : TRestFieldOption;
+  SO : String;
+  R : TSQLDBRestResource;
+
+begin
+  if IO=Nil then exit;
+  BD:=TRestBufDataset.Create(aOwner);
+  try
+    Result:=BD;
+    Result.FieldDefs.Add('name',ftString,255,False);
+    Result.FieldDefs.Add('type',ftString,20,False);
+    Result.FieldDefs.Add('default',ftString,1024,false);
+    BD.CreateDataset;
+    R:=FindRestResource(aResourceName);
+    if Assigned(R) then
+      ResourceParamsToDataset(R,BD);
     BD.First;
   except
     BD.Free;
@@ -1776,6 +1854,12 @@ begin
     if IO.GetVariable('ID',RN,[vsRoute,vsQuery])=vsNone then
       raise ESQLDBRest.Create(FStatus.GetStatusCode(rsError), SErrCouldNotFindResourceName); // Should never happen.
     Result:=CreateMetadataDetailDataset(IO,RN,AOwner)
+    end
+  else if (IO.Resource=FMetadataParametersResource) then
+    begin
+    if IO.GetVariable('ResourceName',RN,[vsRoute,vsQuery])=vsNone then
+      raise ESQLDBRest.Create(FStatus.GetStatusCode(rsError), SErrCouldNotFindResourceName); // Should never happen.
+    Result:=CreateMetadataParameterDataset(IO,RN,AOwner)
     end
   else   if (IO.Resource=FCustomViewResource) then
     begin
@@ -2082,7 +2166,35 @@ begin
   Un(FConnectionItemRoute);
   Un(FConnectionsRoute);
   Un(FMetadataItemRoute);
+  Un(FMetadataParameterRoute);
   Un(FMetadataRoute);
+end;
+
+procedure TSQLDBRestDispatcher.HandleMetadataParameterRequest(
+  aRequest: TRequest; aResponse: TResponse);
+Var
+  LogMsg,UN : UTF8String;
+
+begin
+  if MustLog(rtloHTTP) then
+    begin
+    LogMsg:='';
+    With aRequest do
+      begin
+      UN:=RemoteHost;
+      if (UN='') then
+        UN:=RemoteAddr;
+      if (UN<>'') then
+        LogMsg:='From: '+UN+'; ';
+      LogMsg:=LogMsg+'URL: '+URL;
+      end;
+    UN:=TRestBasicAuthenticator.ExtractUserName(aRequest);
+    if (UN<>'?') then
+      LogMsg:='User: '+UN+LogMsg;
+    DoLog(rtloHTTP,Nil,LogMsg);
+    end;
+  aRequest.RouteParams['resource']:=Strings.MetadataParametersName;
+  HandleRequest(aRequest,aResponse);
 end;
 
 
@@ -2596,6 +2708,8 @@ begin
   TSQLDBRestDispatcher.SetDBHandlerClass(TSQLDBRestDBHandler);
   TSQLDBRestResource.DefaultFieldListClass:=TSQLDBRestFieldList;
   TSQLDBRestResource.DefaultFieldClass:=TSQLDBRestField;
+  TSQLDBRestResource.DefaultParameterListClass:=TSQLDBRestParameterList;
+  TSQLDBRestResource.DefaultParamClass:=TSQLDBRestParam;
 end;
 
 Initialization
