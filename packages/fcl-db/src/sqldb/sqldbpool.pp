@@ -344,7 +344,7 @@ end;
 
 function TSQLDBConnectionDef.GetPort: Word;
 begin
-  Result:=StrToIntDef(FParams.Values['Port'],0);
+  Result:=StrToIntDef(FParams.Values['port'],0);
 end;
 
 procedure TSQLDBConnectionDef.SetCharSet(AValue: UTF8String);
@@ -406,9 +406,9 @@ end;
 procedure TSQLDBConnectionDef.SetPort(AValue: Word);
 begin
   if aValue=0 then
-    FParams.Values['Port']:=''
+    FParams.Values['port']:=''
   else
-    FParams.Values['Port']:=IntToStr(aValue)
+    FParams.Values['port']:=IntToStr(aValue)
 end;
 
 procedure TSQLDBConnectionDef.SetRole(AValue: UTF8String);
