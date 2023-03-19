@@ -59,6 +59,7 @@ begin
     T:=P.Targets.AddUnit('serial.pas');
     T:=P.Targets.AddUnit('console.pas');
     T:=P.Targets.AddUnit('conunit.pas');
+    T:=P.Targets.AddUnit('rexx.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
