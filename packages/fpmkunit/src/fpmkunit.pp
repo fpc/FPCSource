@@ -6252,7 +6252,7 @@ begin
       ConsoleOutput := TMemoryStream.Create;
       try
         if Interactive then
-          Log(vlInfo,'Starting "%s" "%s" interactively',[Cmd,Args]);
+          Log(vlInfo,'Starting "%s" "%s" interactively',[Cmd,CmdLine]);
         {$ifdef HAS_UNIT_PROCESS}
         E:=ExecuteFPC(Verbose, Interactive, cmd, args, env, ConsoleOutput);
         {$else}
