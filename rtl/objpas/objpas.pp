@@ -56,8 +56,11 @@ interface
        PPointerArray = ^PointerArray;
 
        // Delphi Berlin compatibility 
-       FixedInt = Int32;
+       FixedInt  = Int32;
        FixedUInt = UInt32;
+       PFixedInt = ^FixedInt;
+       PFixedUInt= ^FixedUInt;
+   
        
 {$if FPC_FULLVERSION >= 20701}
 
