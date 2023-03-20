@@ -1521,6 +1521,40 @@ type
   const
     preproc_operators=[_EQ,_NE,_LT,_GT,_LTE,_GTE,_MINUS,_PLUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR,_OP_IN,_OP_AND,_OP_OR,_OP_XOR];
 
+    function findincludefile(const path,name:TCmdStr;var foundfile:TCmdStr):boolean;
+      var
+        found  : boolean;
+        hpath  : TCmdStr;
+      begin
+        (* look for the include file
+         If path was absolute and specified as part of {$I } then
+          1. specified path
+         else
+          1. path of current inputfile,current dir
+          2. local includepath
+          3. global includepath
+
+          -- Check mantis #13461 before changing this *)
+         found:=false;
+         foundfile:='';
+         hpath:='';
+         if path_absolute(path) then
+           begin
+             found:=FindFile(name,path,true,foundfile);
+           end
+         else
+           begin
+             hpath:=current_scanner.inputfile.path+';'+CurDirRelPath(source_info);
+             found:=FindFile(path+name, hpath,true,foundfile);
+             if not found then
+               found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
+             if not found  then
+               found:=includesearchpath.FindFile(path+name,true,foundfile);
+           end;
+         result:=found;
+      end;
+
+
     function preproc_comp_expr:texprvalue;
 
         function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean):texprvalue; forward;
@@ -1779,11 +1813,50 @@ type
            hasKlammer: Boolean;
            exprvalue:texprvalue;
            ns:tnormalset;
+           fs,path,name: tpathstr;
+           foundfile: TCmdStr;
+           found: boolean;
         begin
           result:=nil;
           hasKlammer:=false;
            if current_scanner.preproc_token=_ID then
              begin
+                if current_scanner.preproc_pattern='FILEEXISTS' then
+                  begin
+                    preproc_consume(_ID);
+                    preproc_consume(_LKLAMMER);
+                    hs:=current_scanner.preproc_pattern;
+                    preproc_consume(_CSTRING);
+                    fs:=GetToken(hs,' ');
+                    fs:=FixFileName(fs);
+                    path:=ExtractFilePath(fs);
+                    name:=ExtractFileName(fs);
+
+                    { this like 'include' }
+                    if (length(name)>=1) and
+                       (name[1]='*') then
+                      name:=ChangeFileExt(current_module.sourcefiles.get_file_name(current_filepos.fileindex),'')+ExtractFileExt(name);
+
+                    { try to find the file, this like 'include' }
+                    found:=findincludefile(path,name,foundfile);
+                    if (not found) and (ExtractFileExt(name)='') then
+                     begin
+                       { try default extensions .inc , .pp and .pas }
+                       if (not found) then
+                        found:=findincludefile(path,ChangeFileExt(name,'.inc'),foundfile);
+                       if (not found) then
+                        found:=findincludefile(path,ChangeFileExt(name,sourceext),foundfile);
+                       if (not found) then
+                        found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
+                     end;
+                    if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
+                      found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
+
+                    result:=texprvalue.create_bool(found);
+                    current_scanner.skipspace;
+                    preproc_consume(_RKLAMMER);
+                  end
+                else
                 if current_scanner.preproc_pattern='DEFINED' then
                   begin
                     preproc_consume(_ID);
@@ -2527,41 +2600,8 @@ type
         mac.is_used:=true;
       end;
 
+
     procedure dir_include;
-
-        function findincludefile(const path,name:TCmdStr;var foundfile:TCmdStr):boolean;
-        var
-          found  : boolean;
-          hpath  : TCmdStr;
-        begin
-          (* look for the include file
-           If path was absolute and specified as part of {$I } then
-            1. specified path
-           else
-            1. path of current inputfile,current dir
-            2. local includepath
-            3. global includepath
-
-            -- Check mantis #13461 before changing this *)
-           found:=false;
-           foundfile:='';
-           hpath:='';
-           if path_absolute(path) then
-             begin
-               found:=FindFile(name,path,true,foundfile);
-             end
-           else
-             begin
-               hpath:=current_scanner.inputfile.path+';'+CurDirRelPath(source_info);
-               found:=FindFile(path+name, hpath,true,foundfile);
-               if not found then
-                 found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
-               if not found  then
-                 found:=includesearchpath.FindFile(path+name,true,foundfile);
-             end;
-           result:=found;
-        end;
-
       var
         foundfile : TCmdStr;
         path,
@@ -5691,8 +5731,7 @@ exit_label:
              end;
            '''' :
              begin
-               readquotedstring;
-               current_scanner.preproc_pattern:=cstringpattern;
+               current_scanner.preproc_pattern:=readquotedstring;
                readpreproc:=_CSTRING;
              end;
            '0'..'9' :
