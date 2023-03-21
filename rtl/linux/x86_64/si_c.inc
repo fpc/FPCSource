@@ -88,8 +88,9 @@ procedure main_stub; assembler; nostackframe;
     movq    %rsp,TEntryInformation.OS.stkptr(%rdi)
 
     { store stack length }
-    movq StackLength@GOTPCREL(%rip),%rax
-    movq %rax,TEntryInformation.OS.stklen(%rdi)
+    movq    StackLength@GOTPCREL(%rip),%rax
+    movq    (%rax),%rax
+    movq    %rax,TEntryInformation.OS.stklen(%rdi)
 
     { store pointer to haltproc }
     movq    _FPC_libc_haltproc@GOTPCREL(%rip),%rax
