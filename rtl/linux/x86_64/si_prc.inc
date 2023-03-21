@@ -66,6 +66,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 
     { store stack length }
     movq    StackLength@GOTPCREL(%rip),%rax
+    movq    (%rax),%rax
     movq    %rax,TEntryInformation.OS.stklen(%r10)
 
     { store pointer to haltproc }

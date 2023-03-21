@@ -85,6 +85,7 @@ procedure main_stub; assembler; nostackframe;
 
     { store stack length }
     movq    StackLength@GOTPCREL(%rip),%rax
+    movq    (%rax),%rax
     movq    %rax,TEntryInformation.OS.stklen(%rdi)
 
     { store pointer to haltproc }
