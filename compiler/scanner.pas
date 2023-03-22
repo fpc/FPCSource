@@ -2564,7 +2564,6 @@ type
         else
           begin
             mac.defined:=true;
-            mac.fileinfo:=current_tokenpos;
             mac.is_compiler_var:=false;
           { delete old definition }
             mac.free_buftext;
@@ -2590,6 +2589,9 @@ type
              { key words are never substituted }
              if is_keyword(hs) then
                Message(scan_e_keyword_cant_be_a_macro);
+
+             current_scanner.gettokenpos;
+             mac.fileinfo:=current_tokenpos;
 
              macropos:=0;
              { parse macro, brackets are counted so it's possible
