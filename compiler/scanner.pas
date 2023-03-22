@@ -2544,8 +2544,8 @@ type
         hs  : string;
         bracketcount : longint;
         mac : tmacro;
-        macropos : longint;
-        macrobuffer : pmacrobuffer;
+        macropos : SizeInt;
+        macrobuffer : array[0..maxmacrolen-1] of char;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -2566,11 +2566,7 @@ type
             mac.defined:=true;
             mac.is_compiler_var:=false;
           { delete old definition }
-            if assigned(mac.buftext) then
-             begin
-               freemem(mac.buftext,mac.buflen);
-               mac.buftext:=nil;
-             end;
+            mac.free_buftext;
           end;
         Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
@@ -2594,7 +2590,6 @@ type
              if is_keyword(hs) then
                Message(scan_e_keyword_cant_be_a_macro);
 
-             new(macrobuffer);
              macropos:=0;
              { parse macro, brackets are counted so it's possible
                to have a $ifdef etc. in the macro }
@@ -2613,22 +2608,15 @@ type
                  #26 :
                    current_scanner.end_of_file;
                end;
-               macrobuffer^[macropos]:=c;
-               inc(macropos);
                if macropos>=maxmacrolen then
                  Message(scan_f_macro_buffer_overflow);
+               macrobuffer[macropos]:=c;
+               inc(macropos);
                current_scanner.readchar;
              until false;
 
-             { free buffer of macro ?}
-             if assigned(mac.buftext) then
-               freemem(mac.buftext,mac.buflen);
-             { get new mem }
-             getmem(mac.buftext,macropos);
-             mac.buflen:=macropos;
              { copy the text }
-             move(macrobuffer^,mac.buftext^,macropos);
-             dispose(macrobuffer);
+             move(pchar(@macrobuffer[0])^,mac.allocate_buftext(macropos)^,macropos);
           end
         else
           begin
@@ -2676,11 +2664,7 @@ type
             mac.defined:=true;
             mac.is_compiler_var:=true;
           { delete old definition }
-            if assigned(mac.buftext) then
-             begin
-               freemem(mac.buftext,mac.buflen);
-               mac.buftext:=nil;
-             end;
+            mac.free_buftext;
           end;
         Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
@@ -2714,14 +2698,8 @@ type
                        hs:='FALSE';
                    end;
                  Message2(parser_c_macro_set_to,mac.name,hs);
-                 { free buffer of macro ?}
-                 if assigned(mac.buftext) then
-                   freemem(mac.buftext,mac.buflen);
-                 { get new mem }
-                 getmem(mac.buftext,length(hs));
-                 mac.buflen:=length(hs);
                  { copy the text }
-                 move(hs[1],mac.buftext^,mac.buflen);
+                 move(hs[1],mac.allocate_buftext(length(hs))^,length(hs));
                end
              else
                Message(scan_e_preproc_syntax_error);
@@ -2752,11 +2730,7 @@ type
              mac.defined:=false;
              mac.is_compiler_var:=false;
              { delete old definition }
-             if assigned(mac.buftext) then
-               begin
-                  freemem(mac.buftext,mac.buflen);
-                  mac.buftext:=nil;
-               end;
+             mac.free_buftext;
           end;
         Message1(parser_c_macro_undefined,mac.name);
         mac.is_used:=true;

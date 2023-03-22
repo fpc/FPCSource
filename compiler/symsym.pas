@@ -469,9 +469,6 @@ interface
        maxmacrolen=16*1024;
 
     type
-       pmacrobuffer = ^tmacrobuffer;
-       tmacrobuffer = array[0..maxmacrolen-1] of char;
-
        tmacro = class(tstoredsym)
           {Normally true, but false when a previously defined macro is undef-ed}
           defined : boolean;
@@ -490,6 +487,8 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           destructor  destroy;override;
+          function allocate_buftext(len:longint) : pchar;
+          procedure free_buftext;
           function GetCopy:tmacro;
        end;
 
@@ -3114,10 +3113,7 @@ implementation
          is_used:=false;
          buflen:= ppufile.getlongint;
          if buflen > 0 then
-           begin
-             getmem(buftext, buflen);
-             ppufile.getdata(buftext^, buflen)
-           end
+           ppufile.getdata(allocate_buftext(buflen)^, buflen)
          else
            buftext:=nil;
       end;
@@ -3141,6 +3137,27 @@ implementation
       end;
 
 
+    function tmacro.allocate_buftext(len:longint) : pchar;
+      begin
+        result:=getmem(len);
+        if assigned(buftext) then
+          freemem(buftext);
+        buftext:=result;
+        buflen:=len;
+      end;
+
+
+    procedure tmacro.free_buftext;
+      begin
+        if assigned(buftext) then
+          begin
+            freemem(buftext);
+            buftext:=nil;
+            buflen:=0;
+          end;
+      end;
+
+
     function tmacro.GetCopy:tmacro;
       var
         p : tmacro;
@@ -3151,10 +3168,7 @@ implementation
         p.is_compiler_var:=is_compiler_var;
         p.buflen:=buflen;
         if assigned(buftext) then
-          begin
-            getmem(p.buftext,buflen);
-            move(buftext^,p.buftext^,buflen);
-          end;
+          move(buftext^,p.allocate_buftext(buflen)^,buflen);
         Result:=p;
       end;
 

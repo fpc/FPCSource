@@ -4919,13 +4919,10 @@ implementation
          else
            begin
              mac.is_compiler_var:=false;
-             if assigned(mac.buftext) then
-               freemem(mac.buftext,mac.buflen);
+             mac.free_buftext;
            end;
          Message2(parser_c_macro_set_to,mac.name,value);
-         mac.buflen:=length(value);
-         getmem(mac.buftext,mac.buflen);
-         move(value[1],mac.buftext^,mac.buflen);
+         move(value[1],mac.allocate_buftext(length(value))^,length(value));
          mac.defined:=true;
       end;
 
@@ -4949,15 +4946,9 @@ implementation
                initialmacrosymtable.insertsym(mac);
            end
          else
-           begin
-             mac.is_compiler_var:=true;
-             if assigned(mac.buftext) then
-               freemem(mac.buftext,mac.buflen);
-           end;
+           mac.is_compiler_var:=true;
          Message2(parser_c_macro_set_to,mac.name,value);
-         mac.buflen:=length(value);
-         getmem(mac.buftext,mac.buflen);
-         move(value[1],mac.buftext^,mac.buflen);
+         move(value[1],mac.allocate_buftext(length(value))^,length(value));
          mac.defined:=true;
       end;
 
@@ -4979,11 +4970,7 @@ implementation
              mac.defined:=false;
              mac.is_compiler_var:=false;
              { delete old definition }
-             if assigned(mac.buftext) then
-               begin
-                  freemem(mac.buftext,mac.buflen);
-                  mac.buftext:=nil;
-               end;
+             mac.free_buftext;
            end;
       end;
 
