@@ -1894,8 +1894,8 @@ implementation
             append_entry(DW_TAG_typedef,false,[
               DW_AT_name,DW_FORM_string,symname(def.typesym, false)+#0
             ]);
-            if def.typesym.Owner.symtabletype=globalsymtable then
-              append_attribute(DW_AT_external,DW_FORM_flag,[true]);
+            { if def.typesym.Owner.symtabletype=globalsymtable then
+              append_attribute(DW_AT_external,DW_FORM_flag,[true]); }
             append_labelentry_ref(DW_AT_type,labsym);
             finish_entry;
             current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
