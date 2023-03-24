@@ -1275,7 +1275,6 @@ implementation
       var
         count, count1, count2: integer;
       begin
-        result := 0;
         Count1 := Length(S1);
         Count2 := Length(S2);
         if Count1>Count2 then
@@ -1316,31 +1315,12 @@ implementation
     { -1 means p1 < p2 }
     function compareansistrings(p1,p2 : pchar;length1,length2 :  longint) : longint;
       var
-         i,j : longint;
+         cmp : SizeInt;
       begin
-         compareansistrings:=0;
-         j:=min(length1,length2);
-         i:=0;
-         while (i<j) do
-          begin
-            if p1[i]>p2[i] then
-             begin
-               compareansistrings:=1;
-               exit;
-             end
-            else
-             if p1[i]<p2[i] then
-              begin
-                compareansistrings:=-1;
-                exit;
-              end;
-            inc(i);
-          end;
-         if length1>length2 then
-          compareansistrings:=1
-         else
-          if length1<length2 then
-           compareansistrings:=-1;
+         cmp:=CompareByte(p1^,p2^,min(length1,length2));
+         if cmp=0 then
+           cmp:=length1-length2;
+         result:=ord(cmp>0)-ord(cmp<0);
       end;
 
 
