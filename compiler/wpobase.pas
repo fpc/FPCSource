@@ -333,6 +333,8 @@ type
     }
     function symbol_live(const name: shortstring): boolean; virtual; abstract;
 
+    function symbol_live_in_currentproc(fordef: tdef): boolean;
+
     constructor create; reintroduce;
     destructor destroy; override;
   end;
@@ -347,7 +349,8 @@ implementation
     globals,
     cutils,
     sysutils,
-    symdef,
+    symconst,symdef,
+    procinfo,
     verbose;
 
 
@@ -722,6 +725,38 @@ implementation
       for i:=0 to fwpocomponents.count-1 do
         if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*init_settings.genwpoptimizerswitches)<>[] then
           twpocomponentbaseclass(fwpocomponents[i]).checkoptions
+    end;
+
+  function twpoinfomanagerbase.symbol_live_in_currentproc(fordef: tdef): boolean;
+
+    function alias_symbol_live: boolean;
+      var
+        item: TCmdStrListItem;
+      begin
+        result:=true;
+        item:=TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+        while assigned(item) do
+          begin
+            if symbol_live(item.Str) then
+              exit;
+            item:=TCmdStrListItem(item.Next);
+          end;
+        result:=false;
+      end;
+
+    begin
+      if assigned(current_procinfo) and
+         not(po_inline in current_procinfo.procdef.procoptions) and
+         not symbol_live(current_procinfo.procdef.mangledname) and
+         not alias_symbol_live then
+        begin
+{$ifdef debug_deadcode}
+          writeln(' NOT adding creation of ',fordef.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
+{$endif debug_deadcode}
+          result:=false;
+        end
+      else
+        result:=true;
     end;
 
   procedure twpoinfomanagerbase.extractwpoinfofromprogram;

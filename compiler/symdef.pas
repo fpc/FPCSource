@@ -728,6 +728,8 @@ interface
           function generate_safecall_wrapper: boolean; virtual;
           { returns true if the def is a generic param of the procdef }
           function is_generic_param(def:tdef): boolean;
+
+          function wpo_may_create_instance(optionalmethodpointer: tnode): boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -6146,6 +6148,19 @@ implementation
           result:=(def.owner=self.parast) and (tstoreddef(def).genconstraintdata<>nil)
         else
           result:=false;
+      end;
+
+    function tabstractprocdef.wpo_may_create_instance(optionalmethodpointer: tnode): boolean;
+      begin
+        result:=
+          (proctypeoption=potype_constructor) or
+          ((typ=procdef) and
+           ((not assigned(optionalmethodpointer) and
+             is_class(tdef(owner.defowner))) or
+            (assigned(optionalmethodpointer) and
+             ((optionalmethodpointer.resultdef.typ=classrefdef) or
+              (optionalmethodpointer.nodetype=typen)))) and
+           (tprocdef(self).procsym.Name='NEWINSTANCE'))
       end;
 
 
