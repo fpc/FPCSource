@@ -2539,21 +2539,6 @@ implementation
 
     procedure tcallnode.register_created_object_types;
 
-      function checklive(def: tdef): boolean;
-        begin
-          if assigned(current_procinfo) and
-             not(po_inline in current_procinfo.procdef.procoptions) and
-             not wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
-            begin
-{$ifdef debug_deadcode}
-              writeln(' NOT adding creadion of ',def.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
-{$endif debug_deadcode}
-              result:=false;
-            end
-          else
-            result:=true;
-        end;
-
       var
         crefdef,
         systobjectdef : tdef;
@@ -2572,16 +2557,12 @@ implementation
               consider self-based newinstance calls, because then everything
               will be assumed to be just a TObject since TObject.Create calls
               NewInstance) }
-            if (procdefinition.proctypeoption=potype_constructor) or
-               ((procdefinition.typ=procdef) and
-                ((methodpointer.resultdef.typ=classrefdef) or
-                 (methodpointer.nodetype=typen)) and
-                (tprocdef(procdefinition).procsym.Name='NEWINSTANCE')) then
+            if procdefinition.wpo_may_create_instance(methodpointer) then
               begin
                 { Only a typenode can be passed when it is called with <class of xx>.create }
                 if (methodpointer.nodetype=typen) then
                   begin
-                    if checklive(methodpointer.resultdef) then
+                    if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                       { we know the exact class type being created }
                       tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
                   end
@@ -2591,12 +2572,12 @@ implementation
                     if (methodpointer.nodetype=loadvmtaddrn) and
                        (tloadvmtaddrnode(methodpointer).left.nodetype=typen) then
                       begin
-                        if checklive(methodpointer.resultdef) then
+                        if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                           tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
                       end
                     else
                       begin
-                        if checklive(methodpointer.resultdef) then
+                        if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                           begin
                             { special case: if the classref comes from x.classtype (with classtype,
                               being tobject.classtype) then the created instance is x or a descendant
@@ -2638,7 +2619,7 @@ implementation
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
               begin
-                if checklive(methodpointer.resultdef) then
+                if wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                   methodpointer.resultdef.register_created_object_type;
               end
             else
@@ -2650,7 +2631,7 @@ implementation
                   if (procdefinition.proctypeoption=potype_constructor) then
                     begin
                       if (methodpointer.nodetype<>typen) and
-                         checklive(methodpointer.resultdef) then
+                         wpoinfomanager.symbol_live_in_currentproc(methodpointer.resultdef) then
                         methodpointer.resultdef.register_created_object_type;
                     end
                 end;

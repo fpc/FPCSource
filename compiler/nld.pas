@@ -198,7 +198,7 @@ implementation
       htypechk,pass_1,procinfo,paramgr,
       nbas,ncon,nflw,ninl,ncnv,nmem,ncal,nutils,
       cgbase,
-      optloadmodifystore
+      optloadmodifystore,wpobase
       ;
 
 
@@ -439,6 +439,20 @@ implementation
                        left:=cloadvmtaddrnode.create(left);
                        typecheckpass(left);
                      end
+                 end;
+
+               { we can't know what will happen with this function pointer, so
+                 we have to assume it will be used to create an instance of this
+                 type }
+               if fprocdef.wpo_may_create_instance(left) then
+                 begin
+                   if wpoinfomanager.symbol_live_in_currentproc(tdef(symtable.defowner)) then
+                     begin
+                       if assigned(left) then
+                         tobjectdef(left.resultdef).register_created_object_type
+                       else
+                         tobjectdef(fprocdef.owner.defowner).register_created_object_type;
+                     end;
                  end;
              end;
            labelsym:

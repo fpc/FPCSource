@@ -208,9 +208,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             loadvmtaddrn:
               begin
                 { update wpo info }
-                if not assigned(current_procinfo) or
-                   (po_inline in current_procinfo.procdef.procoptions) or
-                   wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+                if wpoinfomanager.symbol_live_in_currentproc(n.resultdef) then
                   tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
             else
