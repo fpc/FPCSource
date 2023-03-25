@@ -95,9 +95,9 @@ unit optutils;
         i : longint;
       begin
         for i:=0 to Count-1 do
-          if tnode(List^[i]).isequal(node) then
+          if tnode(List[i]).isequal(node) then
             begin
-              result:=tnode(List^[i]);
+              result:=tnode(List[i]);
               exit;
             end;
         result:=nil;
