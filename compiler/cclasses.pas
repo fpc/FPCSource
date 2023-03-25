@@ -69,8 +69,6 @@ type
 const
   MaxListSize = Maxint div 16;
 type
-  PPointerList = ^TPointerList;
-  TPointerList = array[0..MaxListSize - 1] of Pointer;
   TListSortCompare = function (Item1, Item2: Pointer): Integer;
   TListCallback = procedure(data,arg:pointer) of object;
   TListStaticCallback = procedure(data,arg:pointer);
@@ -78,7 +76,7 @@ type
   TDirection = (FromBeginning,FromEnd);
   TFPList = class(TObject)
   private
-    FList: PPointerList;
+    FList: PPointer;
     FCount: Integer;
     FCapacity: Integer;
   protected
@@ -87,7 +85,7 @@ type
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
-    property List: PPointerList read FList;
+    property List: PPointer read FList;
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
@@ -593,6 +591,7 @@ type
 
 implementation
 
+
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
@@ -721,14 +720,14 @@ function TFPList.Get(Index: Integer): Pointer;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
-  Result:=FList^[Index];
+  Result:=FList[Index];
 end;
 
 procedure TFPList.Put(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
-  Flist^[Index] := Item;
+  Flist[Index] := Item;
 end;
 
 function TFPList.Extract(item: Pointer): Pointer;
@@ -740,7 +739,7 @@ begin
   if i >= 0 then
    begin
      Result := item;
-     FList^[i] := nil;
+     FList[i] := nil;
      Delete(i);
    end;
 end;
@@ -764,7 +763,7 @@ begin
     If NewCount > FCapacity then
       SetCapacity(NewCount);
     If FCount < NewCount then
-      FillChar(Flist^[FCount], (NewCount-FCount) *  sizeof(Pointer), 0);
+      FillChar(Flist[FCount], (NewCount-FCount) *  sizeof(Pointer), 0);
     end;
   FCount := Newcount;
 end;
@@ -779,7 +778,7 @@ function TFPList.Add(Item: Pointer): Integer;
 begin
   if FCount = FCapacity then
     Self.Expand;
-  FList^[FCount] := Item;
+  FList[FCount] := Item;
   Result := FCount;
   inc(FCount);
 end;
@@ -799,7 +798,7 @@ begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
   dec(FCount);
-  System.Move (FList^[Index+1], FList^[Index], (FCount - Index) * SizeOf(Pointer));
+  System.Move (FList[Index+1], FList[Index], (FCount - Index) * SizeOf(Pointer));
   { Shrink the list if appropriate }
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
   begin
@@ -821,9 +820,9 @@ begin
     Error(SListIndexError, Index1);
   If ((Index2 >= FCount) or (Index2 < 0)) then
     Error(SListIndexError, Index2);
-  Temp := FList^[Index1];
-  FList^[Index1] := FList^[Index2];
-  FList^[Index2] := Temp;
+  Temp := FList[Index1];
+  FList[Index1] := FList[Index2];
+  FList[Index2] := Temp;
 end;
 
 function TFPList.Expand: TFPList;
@@ -852,21 +851,16 @@ begin
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
-var
-  psrc  : PPointer;
-  Index : Integer;
 begin
-  Result:=-1;
-  psrc:=@FList^[0];
-  For Index:=0 To FCount-1 Do
-    begin
-      if psrc^=Item then
-        begin
-          Result:=Index;
-          exit;
-        end;
-      inc(psrc);
-    end;
+  Result:=
+{$if sizeof(pointer)=sizeof(dword)}
+    IndexDWord
+{$elseif sizeof(pointer)=sizeof(qword)}
+    IndexQWord
+{$else}
+  {$error unknown pointer size}
+{$endif}
+      (FList^, FCount, PtrUint(Item));
 end;
 
 function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
@@ -881,7 +875,7 @@ begin
       Result:=-1;
       if FCount>0 then
         begin
-          psrc:=@FList^[FCount-1];
+          psrc:=@FList[FCount-1];
           For Index:=FCount-1 downto 0 Do
             begin
               if psrc^=Item then
@@ -901,8 +895,8 @@ begin
     Error(SlistIndexError, Index);
   iF FCount = FCapacity then Self.Expand;
   if Index<FCount then
-    System.Move(Flist^[Index], Flist^[Index+1], (FCount - Index) * SizeOf(Pointer));
-  FList^[Index] := Item;
+    System.Move(Flist[Index], Flist[Index+1], (FCount - Index) * SizeOf(Pointer));
+  FList[Index] := Item;
   FCount := FCount + 1;
 end;
 
@@ -922,11 +916,11 @@ begin
     Error(SListIndexError, CurIndex);
   if (NewINdex < 0) then
     Error(SlistIndexError, NewIndex);
-  Temp := FList^[CurIndex];
-  FList^[CurIndex] := nil;
+  Temp := FList[CurIndex];
+  FList[CurIndex] := nil;
   Self.Delete(CurIndex);
   Self.Insert(NewIndex, nil);
-  FList^[NewIndex] := Temp;
+  FList[NewIndex] := Temp;
 end;
 
 function TFPList.Remove(Item: Pointer): Integer;
@@ -944,7 +938,7 @@ var
   psrc : PPointer;
 begin
   NewCount:=0;
-  psrc:=@FList^[0];
+  psrc:=@FList[0];
   pdest:=psrc;
   For I:=0 To FCount-1 Do
     begin
@@ -960,7 +954,7 @@ begin
 end;
 
 
-Procedure QuickSort(FList: PPointerList; L, R : Longint;Compare: TListSortCompare);
+Procedure QuickSort(FList: PPointer; L, R : Longint;Compare: TListSortCompare);
 var
   I, J, P: Longint;
   PItem, Q : Pointer;
@@ -970,16 +964,16 @@ begin
    J := R;
    P := (L + R) div 2;
    repeat
-     PItem := FList^[P];
-     while Compare(PItem, FList^[i]) > 0 do
+     PItem := FList[P];
+     while Compare(PItem, FList[i]) > 0 do
        I := I + 1;
-     while Compare(PItem, FList^[J]) < 0 do
+     while Compare(PItem, FList[J]) < 0 do
        J := J - 1;
      If I <= J then
      begin
-       Q := FList^[I];
-       Flist^[I] := FList^[J];
-       FList^[J] := Q;
+       Q := FList[I];
+       Flist[I] := FList[J];
+       FList[J] := Q;
        if P = I then
         P := J
        else if P = J then
@@ -1017,7 +1011,7 @@ var
 begin
   For I:=0 To Count-1 Do
     begin
-      p:=FList^[i];
+      p:=FList[i];
       if assigned(p) then
         proc2call(p,arg);
     end;
@@ -1031,7 +1025,7 @@ var
 begin
   For I:=0 To Count-1 Do
     begin
-      p:=FList^[i];
+      p:=FList[i];
       if assigned(p) then
         proc2call(p,arg);
     end;

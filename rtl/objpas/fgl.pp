@@ -1127,12 +1127,15 @@ end;
 
 function TFPGObjectList.IndexOf(const Item: T): Integer;
 begin
-  Result := 0;
-  {$info TODO: fix inlining to work! InternalItems[Result]^}
-  while (Result < FCount) and (PT(FList)[Result] <> Item) do
-    Inc(Result);
-  if Result = FCount then
-    Result := -1;
+  Result :=
+{$if sizeof(pointer) = sizeof(dword)}
+    IndexDWord
+{$elseif sizeof(pointer) = sizeof(qword)}
+    IndexQWord
+{$else}
+  {$error unknown pointer size}
+{$endif}
+      (FList^, FCount, PtrUint(Pointer(Item)));
 end;
 
 procedure TFPGObjectList.Insert(Index: Integer; const Item: T);
@@ -1259,12 +1262,15 @@ end;
 
 function TFPGInterfacedObjectList.IndexOf(const Item: T): Integer;
 begin
-  Result := 0;
-  {$info TODO: fix inlining to work! InternalItems[Result]^}
-  while (Result < FCount) and (PT(FList)[Result] <> Item) do
-    Inc(Result);
-  if Result = FCount then
-    Result := -1;
+  Result :=
+{$if sizeof(pointer) = sizeof(dword)}
+    IndexDWord
+{$elseif sizeof(pointer) = sizeof(qword)}
+    IndexQWord
+{$else}
+  {$error unknown pointer size}
+{$endif}
+      (FList^, FCount, PtrUint(Pointer(Item)));
 end;
 
 procedure TFPGInterfacedObjectList.Insert(Index: Integer; const Item: T);
