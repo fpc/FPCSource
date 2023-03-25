@@ -210,16 +210,16 @@ end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
 
-Var
-  C : Integer;
-
 begin
-  Result:=0;
-  C:=Count;
-  while (Result<C) and (Flist^[Result]<>Item) do
-    Inc(Result);
-  If Result>=C then
-    Result:=-1;
+  Result :=
+{$if sizeof(pointer) = sizeof(dword)}
+    IndexDWord
+{$elseif sizeof(pointer) = sizeof(qword)}
+    IndexQWord
+{$else}
+  {$error unknown pointer size}
+{$endif}
+      (FList^, FCount, PtrUint(Item));
 end;
 
 function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
