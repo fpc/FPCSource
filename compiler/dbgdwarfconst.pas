@@ -34,7 +34,7 @@ type
     DW_TAG_imported_declaration := $08,DW_TAG_label := $0a,
     DW_TAG_lexical_block := $0b,DW_TAG_member := $0d,
     DW_TAG_pointer_type := $0f,DW_TAG_reference_type := $10,
-    DW_TAG_compile_unit := $11,DW_TAG_stringtypee := $12,
+    DW_TAG_compile_unit := $11,DW_TAG_string_type := $12,
     DW_TAG_structure_type := $13,DW_TAG_subroutine_type := $15,
     DW_TAG_typedef := $16,DW_TAG_union_type := $17,
     DW_TAG_unspecified_parameters := $18,
