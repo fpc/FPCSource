@@ -289,7 +289,7 @@ interface
 
        { all darwin systems }
        systems_ios = [system_arm_ios,system_aarch64_ios];
-       systems_iphonesim = [system_i386_iphonesim,system_x86_64_iphonesim];
+       systems_iphonesim = [system_i386_iphonesim,system_x86_64_iphonesim,system_aarch64_iphonesim];
        systems_macosx = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_aarch64_darwin];
@@ -362,7 +362,7 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_aarch64_darwin,system_x86_64_iphonesim];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_aarch64_darwin,system_x86_64_iphonesim,system_aarch64_iphonesim];
 
        { systems supporting "blocks" }
        systems_blocks_supported = systems_darwin;
@@ -446,7 +446,7 @@ interface
 
        { all systems where a value parameter passed by reference must be copied
          on the caller side rather than on the callee side }
-       systems_caller_copy_addr_value_para = [system_aarch64_ios,system_aarch64_darwin,system_aarch64_linux,system_aarch64_win64,system_aarch64_freebsd];
+       systems_caller_copy_addr_value_para = [system_aarch64_ios,system_aarch64_iphonesim,system_aarch64_darwin,system_aarch64_linux,system_aarch64_win64,system_aarch64_freebsd];
 
        { all PPC ABIs that use a TOC register to address globals }
        abis_ppc_toc = [
