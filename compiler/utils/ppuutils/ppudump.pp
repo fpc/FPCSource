@@ -246,7 +246,8 @@ const
   { 117 } 'Linux-MIPS64',
   { 118 } 'Linux-MIPS64el',
   { 119 } 'FreeRTos-RiscV32',
-  { 120 } 'Linux-LoongArch64'
+  { 120 } 'Linux-LoongArch64',
+  { 121 } 'iPhoneSim-AArch64'
   );
 
 const

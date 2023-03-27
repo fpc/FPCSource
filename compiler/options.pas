@@ -1312,7 +1312,7 @@ begin
   if MacVersionSet then
     exit;
   { check for deployment target set via environment variable }
-  if not(target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim]) then
+  if not(target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) then
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
@@ -1366,6 +1366,11 @@ begin
       begin
         if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
           internalerror(2022090914);
+      end;
+    system_aarch64_iphonesim:
+      begin
+        if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','14.0.0',false) then
+          internalerror(2023032201);
       end;
     system_aarch64_darwin:
       begin
@@ -2994,7 +2999,7 @@ begin
                       end;
                     'M':
                       begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim])) and
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim])) and
                            ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
                           begin
                             break;
@@ -3038,7 +3043,7 @@ begin
                       end;
                     'P':
                       begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim]) and
+                        if (target_info.system in [system_i386_iphonesim,system_arm_ios,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) and
                            ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
                           begin
                             break;

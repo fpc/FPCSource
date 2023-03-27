@@ -196,7 +196,8 @@ implementation
                         exit('crt1.3.1.o');
                     end;
                   system_i386_iphonesim,
-                  system_x86_64_iphonesim:
+                  system_x86_64_iphonesim,
+                  system_aarch64_iphonesim:
                     begin
                       { "recent versions" must not use anything (https://github.com/llvm-mirror/clang/commit/e6d04f3d152a22077022cf9287d4c538a0918ab0 )
                         What those recent versions could be, is anyone's guess. It
@@ -248,7 +249,8 @@ implementation
                         exit('');
                     end;
                   system_i386_iphonesim,
-                  system_x86_64_iphonesim:
+                  system_x86_64_iphonesim,
+                  system_aarch64_iphonesim:
                     begin
                       { see rule for crt1.o }
                       if iPhoneOSVersionMin.relationto(8,1,0)>0 then
@@ -287,7 +289,8 @@ implementation
                         exit('');
                     end;
                   system_i386_iphonesim,
-                  system_x86_64_iphonesim:
+                  system_x86_64_iphonesim,
+                  system_aarch64_iphonesim:
                     begin
                       { see rule for crt1.o }
                       if iPhoneOSVersionMin.relationto(8,1,0)>0 then
@@ -338,6 +341,7 @@ implementation
               to be specified }
             result:='-arch '+lower(cputypestr[current_settings.cputype]);
           system_aarch64_ios,
+          system_aarch64_iphonesim,
           system_aarch64_darwin:
             result:='-arch arm64';
           else
@@ -354,7 +358,7 @@ implementation
           end
         else if iPhoneOSVersionMin.isvalid then
           begin
-            if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim] then
+            if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim,system_aarch64_iphonesim] then
               result:='-ios_simulator_version_min '+iPhoneOSVersionMin.str
             else
               result:='-iphoneos_version_min '+iPhoneOSVersionMin.str;
@@ -784,6 +788,9 @@ initialization
   RegisterImport(system_aarch64_darwin,timportlibdarwin);
   RegisterExport(system_aarch64_darwin,texportlibdarwin);
   RegisterTarget(system_aarch64_darwin_info);
+  RegisterImport(system_aarch64_iphonesim,timportlibdarwin);
+  RegisterExport(system_aarch64_iphonesim,texportlibdarwin);
+  RegisterTarget(system_aarch64_iphonesim_info);
 {$endif aarch64}
 
   RegisterRes(res_macho_info,TWinLikeResourceFile);

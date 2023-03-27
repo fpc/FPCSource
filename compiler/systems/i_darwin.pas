@@ -668,6 +668,74 @@ const
         llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
       );
 
+
+   system_aarch64_iphonesim_info  : tsysteminfo =
+      (
+        system       : system_aarch64_iphonesim;
+        name         : 'Darwin/iPhoneSim for AArch64';
+        shortname    : 'iPhoneSim';
+        flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
+                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
+        cpu          : cpu_aarch64;
+        unit_env     : 'BSDUNITS';
+        extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
+        exeext       : '';
+        defext       : '.def';
+        scriptext    : '.sh';
+        smartext     : '.sl';
+        unitext      : '.ppu';
+        unitlibext   : '.ppl';
+        asmext       : '.s';
+        objext       : '.o';
+        resext       : '.res';
+        resobjext    : '.or';
+        sharedlibext : '.dylib';
+        staticlibext : '.a';
+        staticlibprefix : 'libp';
+        sharedlibprefix : 'lib';
+        sharedClibext : '.dylib';
+        staticClibext : '.a';
+        staticClibprefix : 'lib';
+        sharedClibprefix : 'lib';
+        importlibprefix : 'libimp';
+        importlibext : '.a';
+        Cprefix      : '_';
+        newline      : #10;
+        dirsep       : '/';
+        assem        : as_clang_asdarwin;
+        assemextern  : as_clang_asdarwin;
+        link         : ld_none;
+        linkextern   : ld_darwin;
+        ar           : ar_gnu_ar;
+        res          : res_macho;
+        dbg          : dbg_dwarf2;
+        script       : script_unix;
+        endian       : endian_little;
+        alignment    :
+          (
+            procalign       : 16;
+            loopalign       : 4;
+            jumpalign       : 0;
+            jumpalignskipmax    : 0;
+            coalescealign   : 0;
+            coalescealignskipmax: 0;
+            constalignmin   : 0;
+            constalignmax   : 64;
+            varalignmin     : 0;
+            varalignmax     : 16;
+            localalignmin   : 4;
+            localalignmax   : 16;
+            recordalignmin  : 0;
+            recordalignmax  : 16;
+            maxCrecordalign : 16
+          );
+        first_parm_offset : 16;
+        stacksize   : 8*1024*1024;
+        stackalign   : 16;
+        abi : abi_aarch64_darwin;
+        llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
+      );
+
 implementation
 
 initialization
