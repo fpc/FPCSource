@@ -860,7 +860,7 @@ unit agcpugas;
             idtxt  : 'CLANG';
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $MARCHOPT $EXTRAOPT -x assembler $ASM';
-            supported_targets : [system_aarch64_ios,system_aarch64_darwin];
+            supported_targets : [system_aarch64_ios,system_aarch64_darwin,system_aarch64_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : 'L';
             labelmaxlen : -1;

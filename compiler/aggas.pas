@@ -547,6 +547,7 @@ implementation
          system_x86_64_darwin,
          system_arm_ios,
          system_aarch64_ios,
+         system_aarch64_iphonesim,
          system_aarch64_darwin,
          system_x86_64_iphonesim,
          system_powerpc_aix,
