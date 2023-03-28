@@ -860,6 +860,28 @@ type
       const AExtendedHasher: TExtendedHasherFunc<T>); overload;
   end;
 
+  TBinaryComparer<T> = class(TInterfacedObject, IComparer<T>)
+  public
+    function Compare(const ALeft, ARight: T): Integer;
+  end;
+
+  TBinaryEqualityComparer<T> = class(TInterfacedObject, IEqualityComparer<T>)
+  private
+    FHashFactory: THashFactoryClass;
+  public
+    constructor Create(AHashFactoryClass: THashFactoryClass);
+    function Equals(const ALeft, ARight: T): Boolean;
+    function GetHashCode(const AValue: T): UInt32;
+  end;
+
+  TBinaryExtendedEqualityComparer<T> = class(TBinaryEqualityComparer<T>, IExtendedEqualityComparer<T>)
+  private
+    FExtendedHashFactory: TExtendedHashFactoryClass;
+  public
+    constructor Create(AHashFactoryClass: TExtendedHashFactoryClass);
+    procedure GetHashList(const AValue: T; AHashList: PUInt32);
+  end;
+
   { TDelphiHashFactory }
 
   TDelphiHashFactory = class(THashFactory)
@@ -2792,6 +2814,49 @@ class function TExtendedEqualityComparer<T>.Construct(
   const AExtendedHasher: TExtendedHasherFunc<T>): IExtendedEqualityComparer<T>;
 begin
   Result := TDelegatedExtendedEqualityComparerFunc<T>.Create(AEqualityComparison, AExtendedHasher);
+end;
+
+{ TBinaryComparer<T> }
+
+function TBinaryComparer<T>.Compare(const ALeft, ARight: T): Integer;
+begin
+  Result := BinaryCompare(@ALeft, @ARight, SizeOf(T));
+end;
+
+{ TBinaryEqualityComparer<T> }
+
+constructor TBinaryEqualityComparer<T>.Create(AHashFactoryClass: THashFactoryClass);
+begin
+  if not Assigned(AHashFactoryClass) then
+    FHashFactory := TDefaultHashFactory
+  else
+    FHashFactory := AHashFactoryClass;
+end;
+
+function TBinaryEqualityComparer<T>.Equals(const ALeft, ARight: T): Boolean;
+begin
+  Result := CompareMem(@ALeft, @ARight, SizeOf(T));
+end;
+
+function TBinaryEqualityComparer<T>.GetHashCode(const AValue: T): UInt32;
+begin
+  Result := FHashFactory.GetHashCode(@AValue, SizeOf(T), 0);
+end;
+
+{ TBinaryExtendedEqualityComparer<T> }
+
+constructor TBinaryExtendedEqualityComparer<T>.Create(AHashFactoryClass: TExtendedHashFactoryClass);
+begin
+  if not Assigned(AHashFactoryClass) then
+    FExtendedHashFactory := TDelphiDoubleHashFactory
+  else
+    FExtendedHashFactory := AHashFactoryClass;
+  inherited Create(FExtendedHashFactory);
+end;
+
+procedure TBinaryExtendedEqualityComparer<T>.GetHashList(const AValue: T; AHashList: PUInt32);
+begin
+  FExtendedHashFactory.GetHashList(@AValue, SizeOf(T), AHashList, []);
 end;
 
 { TDelphiHashFactory }
