@@ -642,7 +642,7 @@ asm
     jnz      .LUnbounded
     lea      (%rcx,%rdx,4), %r10
     cmp      $3, %rdx
-    jle      .LDWorwise_Test
+    jle      .LDWordwise_Test
     movd     %r8d, %xmm1
     pshufd   $0, %xmm1, %xmm1
     and      $-4, %rdx
@@ -654,23 +654,36 @@ asm
     pcmpeqd  %xmm1, %xmm0
     pmovmskb %xmm0, %edx
     test     %edx, %edx
-    jne      .L4x_Found
+    jnz      .L4x_Found
     add      $16, %rax
     cmp      %r9, %rax
     jne      .L4x_Body
-.LDWorwise_Test:
+
     cmp      %r10, %rax
     je       .LNothing
-.LDWorwise_Body:
-    cmp      %r8d, (%rax)
-    je       .LFound
-    add      $4, %rax
-    cmp      %r10, %rax
-    jne      .LDWorwise_Body
+
+    lea      -16(%r10), %rax
+    movdqu   (%rax), %xmm0
+    pcmpeqd  %xmm1, %xmm0
+    pmovmskb %xmm0, %edx
+    test     %edx, %edx
+    jne      .L4x_Found
 .LNothing:
     mov      $-1, %rax
     ret
 
+.balign 16
+.LDWordwise_Body:
+    cmp      %r8d, (%rax)
+    je       .LFound
+    add      $4, %rax
+.LDWordwise_Test:
+    cmp      %r10, %rax
+    jne      .LDWordwise_Body
+    mov      $-1, %rax
+    ret
+
+.balign 16
 .L4x_Found:
     bsf      %edx, %edx
     add      %rdx, %rax
@@ -681,7 +694,7 @@ asm
 
 .LUnbounded:
     mov      %rcx, %r10
-    jmp      .LDWorwise_Body
+    jmp      .LDWordwise_Body
 end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
@@ -706,7 +719,6 @@ asm
     add      %rcx, %r9 { r9 = end of full XMMs in buf1 }
     cmp      %r9, %rcx
     jne      .L16x_Body
-.L16x_Tail:
     lea      15(%r9), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
     lea      15(%rdx), %ecx
     xor      %r9d, %eax
@@ -719,7 +731,7 @@ asm
     pcmpeqb  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    je       .L16x_Nothing
+    jz       .L16x_Nothing
     bsf      %eax, %ecx
     add      %rcx, %r9
     cmp      %r10, %r9 { ignore over-read garbage bytes }
@@ -736,17 +748,29 @@ asm
     pcmpeqb  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    jne      .L16x_Found
+    jnz      .L16x_Found
     add      $16, %rcx
     add      $16, %rdx
     cmp      %rcx, %r9
     jne      .L16x_Body
+
     cmp      %r9, %r10
-    jne      .L16x_Tail
+    je       .L16x_Nothing
+
+    sub      %rcx, %rdx
+    lea      -16(%r10), %rcx
+    add      %rcx, %rdx
+    movdqu   (%rdx), %xmm0
+    movdqu   (%rcx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jnz      .L16x_Found
 .L16x_Nothing:
     xor      %eax, %eax
     ret
 
+.balign 16
 .L16x_Found:
     bsf      %eax, %eax
     movzbl   (%rdx,%rax), %edx
@@ -755,7 +779,7 @@ asm
     ret
 
 .L4x_Prepare:
-    and      $12, %r8d { count to be handled with uint32s after XMMs: len mod 16 div 4 * 4 = len and %1100 = len and 12 }
+    and      $12, %r8d { count to be handled with uint32s for 1 <= len <= 15: len mod 16 div 4 * 4 = len and %1100 = len and 12 }
     lea      (%r9,%r8), %rcx
     cmp      %rcx, %r9
     je       .LBytewise_Body
@@ -812,20 +836,19 @@ asm
     lea      (%rcx,%r8,2), %r8
     cmp      %r8, %rcx
     jne      .L8x_Body
-.L8x_Tail:
     lea      15(%r8), %eax
     lea      15(%rdx), %ecx
     xor      %r8d, %eax
     xor      %edx, %ecx
     or       %ecx, %eax
     cmp      $4095, %eax
-    ja       .LCantOverReadBothTails
+    ja       .LCantOverReadBoth
     movdqu   (%r8), %xmm0
     movdqu   (%rdx), %xmm2
     pcmpeqw  %xmm2, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    je       .LNothing
+    jz       .LNothing
     bsf      %eax, %eax
     add      %rax, %r8
     cmp      %r9, %r8
@@ -844,17 +867,29 @@ asm
     pcmpeqw  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    jne      .L8x_Found
+    jnz      .L8x_Found
     add      $16, %rcx
     add      $16, %rdx
     cmp      %rcx, %r8
     jne      .L8x_Body
+
     cmp      %r8, %r9
-    jne      .L8x_Tail
+    je       .LNothing
+
+    sub      %rcx, %rdx
+    lea      -16(%r9), %rcx
+    add      %rcx, %rdx
+    movdqu   (%rdx), %xmm0
+    movdqu   (%rcx), %xmm1
+    pcmpeqw  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jnz      .L8x_Found
 .LNothing:
     xor      %eax, %eax
     ret
 
+.balign 16
 .L8x_Found:
     bsf      %eax, %eax
     movzwl   (%rcx,%rax), %ecx
@@ -865,7 +900,7 @@ asm
     sub      $1, %rax
     ret
 
-.LCantOverReadBothTails:
+.LCantOverReadBoth:
     mov      %r8, %rcx
 .LWordwise_Body:
     movzwl   (%rcx), %eax
@@ -911,26 +946,29 @@ asm
     pcmpeqd  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
     xor      $65535, %eax
-    jne      .L4x_Found
+    jnz      .L4x_Found
     add      $16, %rcx
     add      $16, %rdx
     cmp      %rcx, %r8
     jne      .L4x_Body
-.LDwordwise_Test:
+
     cmp      %rcx, %r9
     je       .LNothing
-.LDwordwise_Body:
-    mov      (%rcx), %eax
-    cmp      %eax, (%rdx)
-    jne      .LDoSbb
-    add      $4, %rcx
-    add      $4, %rdx
-    cmp      %rcx, %r9
-    jne      .LDwordwise_Body
+
+    sub      %rcx, %rdx
+    lea      -16(%r9), %rcx
+    add      %rcx, %rdx
+    movdqu   (%rcx), %xmm1
+    movdqu   (%rdx), %xmm0
+    pcmpeqd  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    xor      $65535, %eax
+    jnz      .L4x_Found
 .LNothing:
     xor      %eax, %eax
     ret
 
+.balign 16
 .L4x_Found:
     bsf      %eax, %eax
     mov      (%rcx,%rax), %ecx
@@ -939,6 +977,19 @@ asm
     sbb      %rax, %rax
     and      $2, %eax
     sub      $1, %rax
+    ret
+
+.balign 16
+.LDwordwise_Body:
+    mov      (%rcx), %eax
+    cmp      %eax, (%rdx)
+    jne      .LDoSbb
+    add      $4, %rcx
+    add      $4, %rdx
+.LDwordwise_Test:
+    cmp      %rcx, %r9
+    jne      .LDwordwise_Body
+    xor      %eax, %eax
     ret
 
 .LUnbounded:
