@@ -670,32 +670,36 @@ asm
         movd     %ecx, %xmm2
         add      %eax, %edx
         pshufd   $0, %xmm2, %xmm1
+
+.balign 16
 .L4x_Body:
         movdqu   (%eax), %xmm0
         pcmpeqd  %xmm1, %xmm0
         pmovmskb %xmm0, %edi
         test     %edi, %edi
-        jne      .L4x_Found
+        jnz      .L4x_Found
 .L4x_Next:
         add      $16, %eax
         cmp      %eax, %edx
         jne      .L4x_Body
-        pop      %edi
-.LDWordwise_Test:
+
         cmp      %esi, %eax
         je       .LNothing
-.LDWordwise_Body:
-        cmp      %ecx, (%eax)
-        je       .LDWordwise_Found
-        add      $4, %eax
-        cmp      %esi, %eax
-        jne      .LDWordwise_Body
+
+        lea      -16(%esi), %eax
+        movdqu   (%eax), %xmm0
+        pcmpeqd  %xmm1, %xmm0
+        pmovmskb %xmm0, %edi
+        test     %edi, %edi
+        jnz      .L4x_Found
 .LNothing:
-        mov      $-1, %eax
+        pop      %edi
         pop      %ebx
         pop      %esi
+        mov      $-1, %eax
         ret
 
+.balign 16
 .L4x_Found:
         bsf      %edi, %edi
         add      %edi, %eax
@@ -703,6 +707,19 @@ asm
 .LDWordwise_Found:
         sub      %ebx, %eax
         shr      $2, %eax
+        pop      %ebx
+        pop      %esi
+        ret
+
+.balign 16
+.LDWordwise_Body:
+        cmp      %ecx, (%eax)
+        je       .LDWordwise_Found
+        add      $4, %eax
+.LDWordwise_Test:
+        cmp      %esi, %eax
+        jne      .LDWordwise_Body
+        mov      $-1, %eax
         pop      %ebx
         pop      %esi
         ret
@@ -830,14 +847,13 @@ asm
         lea      (%eax,%ecx), %ebx { ebx = end of full XMMs in buf1 }
         cmp      %ebx, %eax
         jne      .L16x_Body
-.L16x_Tail:
         lea      15(%ebx), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
         lea      15(%edx), %ecx
         xor      %ebx, %eax
         xor      %edx, %ecx
         or       %ecx, %eax
         cmp      $4095, %eax
-        ja       .LCantOverReadBothTails
+        ja       .LCantOverReadBoth
         movdqu   (%ebx), %xmm0
         movdqu   (%edx), %xmm2
         pcmpeqb  %xmm2, %xmm0
@@ -868,14 +884,26 @@ asm
         add      $16, %edx
         cmp      %eax, %ebx
         jne      .L16x_Body
+
         cmp      %ebx, %esi
-        jne      .L16x_Tail
+        je       .L16x_Nothing
+
+        sub      %eax, %edx
+        lea      -16(%esi), %eax
+        add      %eax, %edx
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqb  %xmm1, %xmm0
+        pmovmskb %xmm0, %ecx
+        xor      $65535, %ecx
+        jnz      .L16x_Found
 .L16x_Nothing:
         pop      %ebx
         xor      %eax, %eax
         pop      %esi
         ret
 
+.balign 16
 .L16x_Found:
         bsf      %ecx, %ecx
         pop      %ebx
@@ -885,7 +913,7 @@ asm
         sub      %edx, %eax
         ret
 
-.LCantOverReadBothTails:
+.LCantOverReadBoth:
         mov      %esi, %eax
         sub      %ebx, %eax
         and      $-4, %eax
@@ -1030,14 +1058,13 @@ asm
         lea      (%eax,%ecx,2), %esi { esi = end of full XMMs in buf1 }
         cmp      %esi, %eax
         jne      .L8x_Body
-.L8x_Tail:
         lea      15(%esi), %eax
         lea      15(%edx), %ecx
         xor      %esi, %eax
         xor      %edx, %ecx
         or       %ecx, %eax
         cmp      $4095, %eax
-        ja       .LCantOverReadBothTails
+        ja       .LCantOverReadBoth
         movdqu   (%esi), %xmm0
         movdqu   (%edx), %xmm2
         pcmpeqw  %xmm2, %xmm0
@@ -1071,8 +1098,19 @@ asm
         add      $16, %edx
         cmp      %eax, %esi
         jne      .L8x_Body
+
         cmp      %esi, %ebx
-        jne      .L8x_Tail
+        je       .LNothing
+
+        sub      %eax, %edx
+        lea      -16(%ebx), %eax
+        add      %eax, %edx
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqw  %xmm1, %xmm0
+        pmovmskb %xmm0, %ecx
+        xor      $65535, %ecx
+        jnz      .L8x_Found
 .LNothing:
         xor      %eax, %eax
 .LReturnEAX:
@@ -1086,7 +1124,7 @@ asm
         cmp      %ax, (%edx,%ecx)
         jmp      .L8x_DoSbb
 
-.LCantOverReadBothTails:
+.LCantOverReadBoth:
         mov      %esi, %eax
         pop      %esi
 .LWordwise_Body:
@@ -1189,19 +1227,35 @@ asm
         add      $16, %edx
         cmp      %eax, %ecx
         jne      .L4x_Body
-        pop      %ebx
-.LDWordwise_Test:
-        cmp      %esi, %eax
+
+        cmp      %esi, %ecx
         je       .LNothing
+
+        sub      %eax, %edx
+        lea      -16(%esi), %eax
+        add      %eax, %edx
+        movdqu   (%edx), %xmm0
+        movdqu   (%eax), %xmm1
+        pcmpeqd  %xmm1, %xmm0
+        pmovmskb %xmm0, %ebx
+        xor      $65535, %ebx
+        jnz      .L4x_Found
+.LNothing:
+        pop      %ebx
+        pop      %esi
+        xor      %eax, %eax
+        ret
+
+.balign 16
 .LDWordwise_Body:
         mov      (%eax), %ecx
         cmp      %ecx, (%edx)
         jne      .LDoSbb
         add      $4, %eax
         add      $4, %edx
+.LDWordwise_Test:
         cmp      %esi, %eax
         jne      .LDWordwise_Body
-.LNothing:
         xor      %eax, %eax
         pop      %esi
         ret
