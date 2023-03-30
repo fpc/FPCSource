@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
@@ -2522,7 +2522,7 @@ unit aoptx86;
           end;
 
         { Check index register }
-        if (ref.index = AOldReg) then
+        if (ref.index = AOldReg) and (getsupreg(ANewReg)<>RS_ESP) then
           begin
             ref.index := ANewReg;
             Result := True;
