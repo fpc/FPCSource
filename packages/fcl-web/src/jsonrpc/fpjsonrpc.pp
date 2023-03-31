@@ -759,6 +759,11 @@ begin
 end;
 
 procedure TCustomJSONRPCHandler.DoCheckParams(const Params: TJSONData);
+
+Var
+  I,ReqdCount : Integer;
+  def: TJSONParamDef;
+
 begin
   if (Params is TJSONObject) then
   begin
@@ -773,7 +778,19 @@ begin
       JSONRPCParamError(SErrParamsMustBeArray);
 
     DoCheckParamArray(Params as TJSONArray);
-  end;
+  end
+  else
+    begin
+    if (Params=Nil) then
+      begin
+      ReqdCount:=0;
+      for TCollectionItem(def) in ParamDefs do
+        if Def.Required then
+          Inc(ReqdCount);
+      if ReqdCount>0 then
+        JSONRPCParamError(SErrParamsRequiredParams,[ReqdCount])
+      end;
+    end;
 end;
 
 procedure TCustomJSONRPCHandler.DoCheckParamDefsOnObject(
@@ -1318,21 +1335,27 @@ begin
     end;
   // Get params, if they exist
   I:=O.IndexOfName(ParamsProperty);
-  If (I<>-1) then
-    D:=O.Items[i]
-  else
-    Exit(CreateJSON2Error(SErrNoParams,[ParamsProperty],EJSONRPCInvalidParams,ID,transactionproperty));
-  if OJ2 then
+  If (I=-1) then
     begin
-    // Allow array or object
-    If Not (D.JSONType in [jtArray,jtObject]) then
-      Exit(CreateJSON2Error(SErrParamsMustBeArrayorObject,EJSONRPCInvalidParams,ID,transactionproperty));
+    D:=Nil;
+    if Not OJ2 then
+      Exit(CreateJSON2Error(SErrNoParams,[ParamsProperty],EJSONRPCInvalidParams,ID,transactionproperty));
     end
-  else if not (jdoJSONRPC2 in Options) then
+  else
     begin
-    // Allow only array
-    If Not (D.JSONType in [jtArray]) then
-      Exit(CreateJSON2Error(SErrParamsMustBeArray,EJSONRPCInvalidParams,ID,transactionproperty));
+    D:=O.Items[i];
+    if OJ2 then
+      begin
+      // Allow array or object
+      If Not (D.JSONType in [jtArray,jtObject]) then
+        Exit(CreateJSON2Error(SErrParamsMustBeArrayorObject,EJSONRPCInvalidParams,ID,transactionproperty));
+      end
+    else if not (jdoJSONRPC2 in Options) then
+      begin
+      // Allow only array
+      If Not (D.JSONType in [jtArray]) then
+        Exit(CreateJSON2Error(SErrParamsMustBeArray,EJSONRPCInvalidParams,ID,transactionproperty));
+      end;
     end;
   Params:=D;
 end;
