@@ -63,9 +63,12 @@ Type
   TFPHTTPConnection = Class(TObject)
   private
     Class var _ConnectionCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
+    procedure ParseStartLine(Request: TFPHTTPConnectionRequest;
+      AStartLine: String);
   private
     FBusy: Boolean;
     FConnectionID: String;
+    FEmptyDetected: Boolean;
     FIsUpgraded: Boolean;
     FOnRequestError: TRequestErrorHandler;
     FOnUnexpectedError: TRequestErrorHandler;
@@ -107,6 +110,8 @@ Type
     Function RequestPending : Boolean;
     // True if we're handling a request. Needed to be able to schedule properly.
     Property Busy : Boolean Read FBusy;
+    // If empty detected, we should not proceed
+    Property EmptyDetected : Boolean Read FEmptyDetected;
     // The server supports HTTP 1.1 connection: keep-alive
     Property KeepConnections : Boolean read GetKeepConnections;
     // Idle time-out for keep-alive: after how many ms should the connection fire the OnKeepConnectionIdle event
@@ -296,6 +301,10 @@ Type
   { TConnectionList }
 
 
+  THTTPLogEvent = Procedure (aSender : TObject; aType: TEventType; Const Msg : String) of object;
+  // Events in the lifetime of a request that are logged
+  THTTPLogMoment = (hlmStartSocket,hlmCloseSocket,hlmConnect,hlmNoHTTPProtocol, hlmEmptyRequest, hlmRequestStart,hlmHeaders,hlmRequestDone,hlmUpgrade,hlmDisconnect,hlmError);
+  THTTPLogMoments = set of THTTPLogMoment;
 
   TFPCustomHttpServer = Class(TComponent)
   Private
@@ -307,10 +316,12 @@ Type
     FKeepConnections: Boolean;
     FKeepConnectionIdleTimeout: Integer;
     FKeepConnectionTimeout: Integer;
+    FLogMoments: THTTPLogMoments;
     FOnAcceptIdle: TNotifyEvent;
     FOnKeepConnectionIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
+    FOnLog: THTTPLogEvent;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
     FOnUnexpectedError: TRequestErrorHandler;
@@ -346,6 +357,11 @@ Type
     procedure SetupSocket;
     procedure SetupConnectionHandler;
   Protected
+    // Should given event type be logged ?
+    function CanLog(aMoment: THTTPLogMoment): Boolean; inline;
+    Procedure DoLog(aType : TEventType; const Msg : String); overload;
+    procedure DoLog(aMoment: THTTPLogMoment; const Msg: String); overload;
+    Procedure DoLog(aMoment : THTTPLogMoment; const Fmt : String; Const Args : Array of const); overload;
     Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
     // Override this to create Descendent
     Function CreateUpgradeHandlerList : TUpgradeHandlerList;
@@ -397,7 +413,15 @@ Type
     Property UpdateHandlers : TUpgradeHandlerList Read GetUpdateHandlers;
     // Has update handlers
     Property HasUpdateHandlers : Boolean Read GetHasUpdateHandlers;
+  Public
+    Type
+       TLogMomentEventTypes = Array [THTTPLogMoment] of TEventType;
+    Class var
+      // How to report certain events
+      LogMomentEventTypes : TLogMomentEventTypes;
+
   public
+    class constructor init;
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Function RegisterUpdateHandler(Const aName : string;  OnCheck : THandlesUpgradeEvent; OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
@@ -448,10 +472,14 @@ Type
     Property CertificateData  : TCertificateData Read FCertificateData Write SetCertificateData;
     // Set to true if you want to use SSL
     Property UseSSL : Boolean Read FUseSSL Write FUseSSL;
+    // Set this to filter events
+    Property LogMoments : THTTPLogMoments Read FLogMoments Write FLogMoments;
     // Called to create socket handler. If not set, or Nil is returned, a standard socket handler is created.
     Property OnGetSocketHandler : TGetSocketHandlerEvent Read FOnGetSocketHandler Write FOnGetSocketHandler;
     // Called after create socket handler was created, with the created socket handler.
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
+    // Called to log events
+    Property OnLog : THTTPLogEvent Read FOnLog Write FOnLog;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -472,11 +500,16 @@ Type
     Property KeepConnectionTimeout;
     Property OnKeepConnectionIdle;
     Property OnUnexpectedError;
+    Property LogMoments;
+    Property OnLog;
   end;
 
   EHTTPServer = Class(EHTTP);
 
   Function GetStatusCode (ACode: Integer) : String; deprecated 'Use GetHTTPStatusText from unit httpprotocol';
+
+Const
+  AllLogMoments = [Low(THTTPLogMoment)..High(THTTPLogMoment)];
 
 implementation
 
@@ -484,10 +517,21 @@ implementation
 resourcestring
   SErrSocketActive    =  'Operation not allowed while server is active';
   SErrReadingSocket   = 'Error reading data from the socket';
-  SErrMissingProtocol = 'Missing HTTP protocol version in request';
+  SErrMissingProtocol = 'Missing HTTP protocol version in request "%s"';
   SErrDuplicateUpgradeHandler = 'Duplicate upgrade handler';
+  SUpgradingConnection = 'connection "%s" is upgraded to %s for request: %s';
+  SErrAcceptingNewConnection = 'Accepting new connection (%s) from %s';
+  SErrorDuringRequest = 'Exception %s during request handling: %s';
+  SStartSocket = 'Creating socket on port %d';
+  SClosingConnection = 'Closing connection (%s) to %s';
+  SStopSocket = 'Closing socket on port %d';
+  SRequestDone = 'Finished handling request %s';
+  SRequestStart = 'Start handling request %s';
+  SErrLogMissingProtocol = 'Missing HTTP protocol version in first line "%s" for request';
+  SWarnEmptyRequest = 'Empty request detected.';
 
 { TFPHTTPConnectionRequest }
+
 Function GetStatusCode (ACode: Integer) : String;
 
 begin
@@ -932,13 +976,17 @@ begin
     except
       On E : exception do
         HandleUnexpectedError(E);
-    end;
+    end
+ else if Assigned(Server) and Server.CanLog(hlmError) then
+    Server.DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
 end;
 
 procedure TFPHTTPConnection.HandleUnexpectedError(E: Exception);
 begin
   If Assigned(FOnUnexpectedError) then
-    FOnUnexpectedError(Self,E);
+    FOnUnexpectedError(Self,E)
+  else if Assigned(Server) and Server.CanLog(hlmError) then
+     Server.DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
 end;
 
 procedure TFPHTTPConnection.SetupSocket;
@@ -955,7 +1003,8 @@ begin
   FBusy:=True;
 end;
 
-Procedure TFPHTTPConnection.InterPretHeader(ARequest : TFPHTTPConnectionRequest; Const AHeader : String);
+procedure TFPHTTPConnection.InterPretHeader(ARequest: TFPHTTPConnectionRequest;
+  const AHeader: String);
 
 Var
   P : Integer;
@@ -977,7 +1026,7 @@ begin
   ARequest.SetFieldByName(N,V);
 end;
 
-procedure ParseStartLine(Request : TFPHTTPConnectionRequest; AStartLine : String);
+procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest; AStartLine : String);
 
   Function GetNextWord(Var S : String) : string;
 
@@ -1011,13 +1060,20 @@ begin
     S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
+  If Assigned(Server) and Server.CanLog(hlmRequestStart) then
+    Server.DoLog(hlmRequestStart,SRequestStart,[Request.ToString]);
   If (S<>'') and (Pos('HTTP/',S)<>1) then
-    Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
+    begin
+    If Assigned(Server) and Server.CanLog(hlmNoHTTPProtocol) then
+      Server.DoLog(hlmNoHTTPProtocol,SErrLogMissingProtocol,[aStartLine,Request.ToString]);
+    Raise EHTTPServer.CreateFmtHelp(SErrMissingProtocol,[AStartLine],400);
+    end;
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S);
 end;
 
-Procedure TFPHTTPConnection.ReadRequestContent(ARequest : TFPHTTPConnectionRequest);
+procedure TFPHTTPConnection.ReadRequestContent(
+  ARequest: TFPHTTPConnectionRequest);
 
 Var
   P,L,R : integer;
@@ -1060,11 +1116,14 @@ function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
 Var
   StartLine,S : String;
 begin
+  Result:=Nil;
+  StartLine:=ReadString;
+  if StartLine='' then
+    exit;
   Result:=Server.CreateRequest;
   try
     Server.InitRequest(Result);
     Result.FConnection:=Self;
-    StartLine:=ReadString;
     ParseStartLine(Result,StartLine);
     Repeat
       S:=ReadString;
@@ -1081,7 +1140,7 @@ end;
 
 function TFPHTTPConnection.AllowNewRequest: Boolean;
 begin
-  Result:=not (Busy or IsUpgraded);
+  Result:=not (Busy or IsUpgraded or EmptyDetected);
   Result:=Result and KeepConnections and KeepAlive and (Socket.LastError=0) ;
 end;
 
@@ -1090,7 +1149,8 @@ begin
   Result:=(Not IsUpgraded) and Socket.CanRead(KeepConnectionIdleTimeout);
 end;
 
-constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
+constructor TFPHTTPConnection.Create(AServer: TFPCustomHTTPServer;
+  ASocket: TSocketStream);
 begin
   FIsUpgraded:=False;
   FIsSocketSetup:=False;
@@ -1101,11 +1161,14 @@ end;
 
 destructor TFPHTTPConnection.Destroy;
 begin
+  If Assigned(FServer) and FServer.CanLog(hlmDisConnect) then
+    FServer.DoLog(hlmDisconnect,SClosingConnection,[Self.ConnectionID,HostAddrToStr(FSocket.RemoteAddress.sin_addr)]);
   FreeAndNil(FSocket);
+
   Inherited;
 end;
 
-Function TFPHTTPConnection.GetLookupHostNames : Boolean;
+function TFPHTTPConnection.GetLookupHostNames: Boolean;
 
 begin
   if Assigned(FServer) then
@@ -1139,7 +1202,17 @@ begin
   // Read headers.
   Resp:=Nil;
   Req:=ReadRequestHeaders;
+  If Req=Nil then
+    begin
+    If Assigned(Server) and Server.CanLog(hlmEmptyRequest) then
+      Server.DoLog(hlmEmptyRequest,SWarnEmptyRequest);
+    FKeepAlive:=False;
+    FEmptyDetected:=True;
+    exit;
+    end;
   try
+    If Assigned(Server) and Server.CanLog(hlmHeaders) then
+      Server.DoLog(hlmHeaders,Req.ToString);
     //set port
     Req.ServerPort := Server.Port;
     // Read content, if any
@@ -1173,6 +1246,8 @@ begin
       Server.HandleRequest(Req,Resp);
     if Assigned(Resp) and (not Resp.ContentSent) then
       Resp.SendContent;
+    If Assigned(Server) and Server.CanLog(hlmRequestDone) then
+      Server.DoLog(hlmRequestDone,SRequestDone,[Resp.ToString]);
   Finally
     FreeAndNil(Resp);
     FreeAndNil(Req);
@@ -1277,6 +1352,8 @@ end;
 
 procedure TFPCustomHttpServer.HandleRequestError(Sender: TObject; E: Exception);
 begin
+  if CanLog(hlmError) then
+     DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
   If Assigned(FOnRequestError) then
     try
       FOnRequestError(Sender,E);
@@ -1366,6 +1443,8 @@ end;
 
 procedure TFPCustomHttpServer.StopServerSocket;
 begin
+  if CanLog(hlmCloseSocket) then
+    DoLog(hlmCloseSocket,SStopSocket,[Port]);
   FServer.StopAccepting(False);
 end;
 
@@ -1501,6 +1580,8 @@ begin
   Con.FServer:=Self;
   Con.OnRequestError:=@HandleRequestError;
   Con.OnUnexpectedError:=@HandleUnexpectedError;
+  If CanLog(hlmConnect) then
+    DoLog(hlmConnect,SErrAcceptingNewConnection,[Con.ConnectionID, HostAddrToStr(Data.RemoteAddress.sin_addr)]);
   FConnectionHandler.HandleConnection(Con);
 end;
 
@@ -1517,6 +1598,32 @@ begin
     FreeAndNil(FConnectionHandler);
   FConnectionHandler:=CreateConnectionHandler();
 end;
+
+
+function TFPCustomHttpServer.CanLog(aMoment: THTTPLogMoment): Boolean;
+begin
+  Result:=aMoment in FLogMoments;
+end;
+
+procedure TFPCustomHttpServer.DoLog(aType: TEventType; const Msg: String);
+begin
+  if Assigned(FOnLog) then
+    FOnLog(Self,aType,Msg);
+end;
+
+procedure TFPCustomHttpServer.DoLog(aMoment: THTTPLogMoment; const Msg: String);
+begin
+  If CanLog(aMoment) then
+    DoLog(LogMomentEventTypes[aMoment],Msg)
+end;
+
+procedure TFPCustomHttpServer.DoLog(aMoment: THTTPLogMoment; const Fmt: String;
+  const Args: array of const);
+begin
+  if CanLog(aMoment) then
+    DoLog(aMoment,Format(Fmt,Args));
+end;
+
 
 function TFPCustomHttpServer.CheckUpgrade(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
 
@@ -1542,7 +1649,11 @@ begin
       Inc(I);
       end;
    If Result then
+     begin
+     if CanLog(hlmUpgrade) then
+       DoLog(hlmUpgrade,SUpgradingConnection,[aConnection.ConnectionID,aRequest.GetHeader(hhUpgrade),aRequest.ToString]);
      Handler.OnUpgrade(aConnection,aRequest);
+     end;
    end;
 end;
 
@@ -1553,8 +1664,20 @@ end;
 
 procedure TFPCustomHttpServer.HandleUnexpectedError(Sender: TObject; E: Exception);
 begin
+  if CanLog(hlmError) then
+     DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
   If Assigned(FOnUnexpectedError) then
     FOnUnexpectedError(Sender,E);
+end;
+
+class constructor TFPCustomHttpServer.init;
+
+Const
+  aDefaults : TLogMomentEventTypes =
+     (etInfo,etInfo,etInfo,etDebug,etWarning,etInfo,etInfo,etInfo,etInfo,etInfo,etError) ;
+
+begin
+  LogMomentEventTypes:=aDefaults;
 end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
@@ -1575,6 +1698,8 @@ end;
 
 procedure TFPCustomHttpServer.StartServerSocket;
 begin
+  if CanLog(hlmStartSocket) then
+    DoLog(hlmStartSocket,SStartSocket,[Port]);
   FServer.Bind;
   FServer.Listen;
   FServer.StartAccepting;
