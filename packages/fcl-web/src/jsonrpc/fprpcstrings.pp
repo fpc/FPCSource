@@ -18,6 +18,7 @@ Resourcestring
   SErrParamsMustBeObject = 'Parameters must be passed in an object.';
   SErrParamsMustBeArray  = 'Parameters must be passed in an array.';
   SErrParamsRequiredParamNotFound = 'Required parameter "%s" not found.';
+  SErrParamsRequiredParams = '%d parameter(s) required, but no parameters found in request.';
   SErrParamsDataTypeMismatch = 'Expected parameter "%s" having type "%s", got "%s".';
   SErrParamsNotAllowd = 'Parameter "%s" is not allowed.';
   SErrParamsOnlyObjectsInArray = 'Array elements must be objects, got %s at position %d.';
