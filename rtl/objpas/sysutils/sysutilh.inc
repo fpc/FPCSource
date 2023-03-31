@@ -365,3 +365,9 @@ const
   ufImplicitUnit = $10;
 
   ufWeakPackageUnit = ufPackageUnit or ufWeakUnit;
+
+Type
+  TUTF8StringDynArray = Array of UTF8String;
+
+Function ArrayOfConstToStr(Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
+Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
