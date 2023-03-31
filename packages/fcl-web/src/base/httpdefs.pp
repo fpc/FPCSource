@@ -510,6 +510,7 @@ type
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
+    Function ToString: ansistring; override;
     Property RequestID : String Read FRequestID;
     Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
@@ -565,6 +566,7 @@ type
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
     Procedure SendRedirect(const TargetURL:String);
+    Function ToString: ansistring; override;
     // Set Code and CodeText. Send content if aSend=True
     Procedure SetStatus(aStatus : Cardinal; aSend : Boolean = False);
     Property Request : TRequest Read FRequest;
@@ -1297,12 +1299,12 @@ end;
 
 function THTTPHeader.GetContentLength: Integer;
 begin
-  Result:=StrToIntDef(GetFieldValue(9),0);
+  Result:=StrToIntDef(GetHeader(hhContentLength),0);
 end;
 
 procedure THTTPHeader.SetContentLength(Value: Integer);
 begin
-  SetFieldValue(9,IntToStr(Value));
+  SetHeader(hhContentLength,IntToStr(Value));
 end;
 
 
@@ -1351,7 +1353,7 @@ end;
 
 function THTTPHeader.GetServerPort: Word;
 begin
-  Result:=StrToIntDef(GetFieldValue(30),0);
+  Result:=StrToIntDef(GetHTTPVariable(hvServerPort),0);
 end;
 
 procedure THTTPHeader.SetHTTPVariable(AIndex: Integer; AValue: String);
@@ -1373,7 +1375,7 @@ end;
 procedure THTTPHeader.SetServerPort(AValue: Word);
 
 begin
-  SetFieldValue(30,IntToStr(AValue));
+  SetHTTPVariable(hvServerPort,IntToStr(AValue));
 end;
     
 function THTTPHeader.GetSetFieldValue(Index: Integer): String;
@@ -2156,6 +2158,11 @@ begin
  {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s" : %s',[P,FReturnedPathInfo,Result]));{$ENDIF}
 end;
 
+function TRequest.ToString: ansistring;
+begin
+  Result:='['+RequestID+'] : '+URL;
+end;
+
 procedure TRequest.ParseFirstHeaderLine(const line: String);
 var
   i: Integer;
@@ -2873,6 +2880,15 @@ begin
     Code := 302;// HTTP/1.0 302 HTTP_MOVED_TEMPORARILY -> 'Found'
     CodeText := 'Moved Temporarily';
     end;
+end;
+
+function TResponse.ToString: ansistring;
+begin
+  if assigned(Request) then
+    Result:=Request.ToString
+  else
+    Result:='Unknown request';
+  Result:=Result+': '+IntToStr(Code)+' '+CodeText;
 end;
 
 procedure TResponse.SetStatus(aStatus: Cardinal; aSend: Boolean = False);

@@ -318,7 +318,6 @@ begin
         Result:=D+Copy(AFileName,Length(localBaseURL)+1,MaxInt)
       else
         Result:=D+AFileName;
-      DoDirSeparators(Result);
       Result:=ExpandFileName(Result);
       end;
     end;
