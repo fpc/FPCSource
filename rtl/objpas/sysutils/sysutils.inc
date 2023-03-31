@@ -837,3 +837,91 @@ begin
     Result:=ifFalse;
 end;
 {$ENDIF}
+
+Function ArrayOfConstToStrArray(Args: array of const) : TUTF8StringDynArray;
+
+var
+  i: Integer;
+  O : TObject;
+  C : TClass;
+  S : String;
+
+begin
+  SetLength(Result,Length(Args));
+  for i:=Low(Args) to High(Args) do
+    case Args[i].VType of
+      vtInteger:      Result[i]:=IntToStr(Args[i].VInteger);
+      vtBoolean:      Result[i]:=BoolToStr(Args[i].VBoolean);
+      vtChar:         Result[i] := Args[i].VChar;
+      {$ifndef FPUNONE}
+      vtExtended:     Result[i]:= FloatToStr(Args[i].VExtended^);
+      {$ENDIF}
+      vtString:       Result[i] := Args[i].VString^;
+      vtPointer:      Result[i] := '0x'+HexStr(PtrInt(Args[i].VPointer),SizeOF(PtrInt));
+      vtPChar:        Result[i] := Args[i].VPChar;
+      vtObject:
+        begin
+        O:=Args[i].VObject;
+        if Assigned(O) then
+          begin
+          try
+            S:=O.ClassName;
+          except
+            S:='<Invalid instance>';
+          end;
+          end
+        else
+          S:='';
+        Result[I] := '<Object '+S+' 0x'+HexStr(PtrInt(O),SizeOF(PtrInt))+'>';
+        end;
+      vtClass:
+        begin
+        C:=Args[i].VClass;
+        if Assigned(C) then
+          begin
+          try
+            S:=C.ClassName;
+          except
+            S:='<Invalid Class>';
+          end;
+          end
+        else
+          S:='';
+        Result[I] := '<Class '+S+' 0x'+HexStr(PtrInt(C),SizeOF(PtrInt))+'>';
+        end;
+      vtWideChar:     Result[i] := UTF8Encode(Args[i].VWideChar);
+      vtPWideChar:    Result[i] := UTF8Encode(Args[i].VPWideChar^);
+      vtAnsiString:   Result[i] := AnsiString(Args[i].VAnsiString);
+      vtCurrency:     Result[i] := FLoatToSTr(Args[i].VCurrency^);
+      vtVariant:      Result[i] := Args[i].VVariant^;
+      vtInterface:    Result[I] := '<Interface 0x'+HexStr(PtrInt(Args[i].VInterface),SizeOF(PtrInt))+'>';
+      vtWidestring:   Result[i] := UTF8ENcode(WideString(Args[i].VWideString));
+      vtInt64:        Result[i] := IntToStr(Args[i].VInt64^);
+      vtQWord:        Result[i] := IntToStr(Args[i].VQWord^);
+      vtUnicodeString:Result[i] := UTF8Encode(UnicodeString(Args[i].VUnicodeString));
+    end;
+end;
+
+Function ArrayOfConstToStr(Args: array of const ; aSeparator : Char = ','; aQuoteBegin : Char = '"'; aQuoteEnd : Char = '"') : UTF8String;
+
+  Procedure Add(s: UTF8String);
+
+  begin
+    if aQuoteBegin<>#0 then
+      S:=aQuoteBegin+S;
+    if aQuoteEnd<>#0 then
+      S:=S+aQuoteEnd;
+    if Result<>'' then
+      Result:=Result+aSeparator;
+    Result:=Result+S;
+  end;
+
+
+Var
+  S : UTF8String;
+
+begin
+  Result:='';
+  For S in ArrayOfConstToStrArray(Args) do
+    Add(S);
+end;

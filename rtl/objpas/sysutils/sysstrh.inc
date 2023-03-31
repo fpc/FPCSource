@@ -338,3 +338,5 @@ Type
 Type
   TStringBuilder = TAnsiStringBuilder;
 
+function SafeFormat (const Fmt: AnsiString; Args: array of const; const FormatSettings: TFormatSettings): UTF8String; overload;
+function SafeFormat (const Fmt: AnsiString; Args: array of const): UTF8String; overload;

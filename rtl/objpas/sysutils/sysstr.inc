@@ -1141,6 +1141,23 @@ begin
   Result:=Format(Fmt,Args,DefaultFormatSettings);
 end;
 
+function SafeFormat (const Fmt: AnsiString; Args: array of const): UTF8String;
+
+begin
+  Result:=SafeFormat(Fmt,Args,DefaultFormatSettings);
+end;
+
+function SafeFormat (const Fmt: AnsiString; Args: array of const; const FormatSettings: TFormatSettings): UTF8String;
+
+begin
+  try
+    Result:=Format(Fmt,Args,FormatSettings);
+  except
+    On E : Exception do
+      Result:='Error "'+E.ClassName+'" during format('''+Fmt+''',['+ArrayOfConstToStr(Args,',','{','}')+']) : '+E.Message;
+  end;
+end;
+
 Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 
 Var S,F : String;
