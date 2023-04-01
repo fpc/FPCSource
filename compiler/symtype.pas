@@ -438,7 +438,7 @@ implementation
         if assigned(typesym) then
           result:=result+typesym.prettyname
         else
-          result:=result+'<no type symbol>'
+          result:=result+'<no type symbol>';
       end;
 
 
