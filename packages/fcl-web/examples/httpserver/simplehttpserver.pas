@@ -7,16 +7,19 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, strutils,Classes, fphttpserver, fpmimetypes, testhttpserver;
+  sysutils, strutils,Classes, fphttpserver, fpmimetypes, testhttpserver, custapp;
 
 Type
 
   { TTestHTTPServer }
 
+  { THTTPServer }
+
   THTTPServer = Class(TTestHTTPServer)
   Protected
     Procedure DoIdle(Sender : TObject);
     procedure DoWriteInfo(S: string);
+    Procedure LogEVent(Sender : TObject; aType : TEventType; Const Msg : String);
   end;
 
 Var
@@ -32,6 +35,12 @@ end;
 procedure THTTPServer.DoWriteInfo(S: string);
 begin
   Writeln(S);
+end;
+
+procedure THTTPServer.LogEVent(Sender: TObject; aType: TEventType;
+  const Msg: String);
+begin
+  WriteLn('[',aType,'] ',Msg);
 end;
 
 begin
@@ -59,7 +68,9 @@ begin
     Serv.AcceptIdleTimeout:=10;
     Serv.OnAcceptIdle:=@Serv.DoIdle;
     Serv.WriteInfo:=@Serv.DoWriteInfo;
-    Serv.KeepAliveEnabled:=True;
+    Serv.KeepConnections:=True;
+    Serv.OnLog:=@Serv.LogEVent;
+    Serv.LogMoments:=AllLogMoments;
     Serv.Active:=True;
   finally
     Serv.Free;
