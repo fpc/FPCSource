@@ -212,7 +212,9 @@ function TFPList.IndexOf(Item: Pointer): Integer;
 
 begin
   Result :=
-{$if sizeof(pointer) = sizeof(dword)}
+{$if sizeof(pointer) = sizeof(word)}
+    IndexWord
+{$elseif sizeof(pointer) = sizeof(dword)}
     IndexDWord
 {$elseif sizeof(pointer) = sizeof(qword)}
     IndexQWord
