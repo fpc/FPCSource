@@ -69,6 +69,26 @@ implementation
 
   class procedure twasmnodeutils.InsertObjectInfo;
 
+    var
+      modules: array of tmodule;
+
+    function ModuleExists(m: tmodule): Boolean;
+      var
+        q: tmodule;
+      begin
+        result:=true;
+        for q in modules do
+          if q=m then
+            exit;
+        result:=false;
+      end;
+
+    procedure AddModule(m: tmodule);
+      begin
+        SetLength(modules,Length(modules)+1);
+        modules[High(modules)]:=m;
+      end;
+
       procedure WriteImportDll(list: TAsmList; proc: tprocdef);
         begin
           thlcgwasm(hlcg).g_procdef(list,proc);
@@ -76,22 +96,34 @@ implementation
           list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
         end;
 
-      procedure InsertUnitInfo(list : TAsmList;cur_unit: tused_unit);
+      procedure InsertModuleInfo(list : TAsmList;u: tmodule);
         var
           i: Integer;
           def  : tdef;
           proc : tprocdef;
+          cur_unit : tused_unit;
         begin
-          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
+          if ModuleExists(u) then
+            exit;
+          AddModule(u);
+
+          cur_unit:=tused_unit(u.used_units.First);
+          while assigned(cur_unit) do
             begin
-              if mf_init in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-              if mf_finalize in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
+              InsertModuleInfo(list,cur_unit.u);
+              cur_unit:=tused_unit(cur_unit.Next);
             end;
-          for i:=0 to cur_unit.u.deflist.Count-1 do
+
+          if ((u.moduleflags * [mf_init,mf_finalize])<>[]) and assigned(u.globalsymtable) then
             begin
-              def:=tdef(cur_unit.u.deflist[i]);
+              if mf_init in u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('INIT$',u.globalsymtable,''),TWasmFuncType.Create([],[])));
+              if mf_finalize in u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',u.globalsymtable,''),TWasmFuncType.Create([],[])));
+            end;
+          for i:=0 to u.deflist.Count-1 do
+            begin
+              def:=tdef(u.deflist[i]);
               if assigned(def) and (tdef(def).typ = procdef) then
                 begin
                   proc := tprocdef(def);
@@ -111,6 +143,8 @@ implementation
       cur_unit: tused_unit;
     begin
       inherited;
+
+      FillChar(modules,sizeof(modules),0);
 
       list:=current_asmdata.asmlists[al_start];
 
@@ -143,16 +177,11 @@ implementation
                   thlcgwasm(hlcg).g_procdef(list,proc);
             end;
          end;
+      InsertModuleInfo(list,current_module);
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
         begin
-          InsertUnitInfo(list,cur_unit);
-          cur_unit:=tused_unit(cur_unit.Next);
-        end;
-      cur_unit:=tused_unit(current_module.used_units.First);
-      while assigned(cur_unit) do
-        begin
-          InsertUnitInfo(list,cur_unit);
+          InsertModuleInfo(list,cur_unit.u);
           cur_unit:=tused_unit(cur_unit.Next);
         end;
     end;
