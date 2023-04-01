@@ -42,6 +42,7 @@ interface
 implementation
 
   uses
+    cclasses,
     globtype,globals,
     cpubase,
     aasmbase,aasmdata,aasmtai,aasmcpu,
@@ -70,23 +71,18 @@ implementation
   class procedure twasmnodeutils.InsertObjectInfo;
 
     var
-      modules: array of tmodule;
+      modules: TFPList;
 
     function ModuleExists(m: tmodule): Boolean;
       var
         q: tmodule;
       begin
-        result:=true;
-        for q in modules do
-          if q=m then
-            exit;
-        result:=false;
+        result:=modules.IndexOf(Pointer(m))>=0;
       end;
 
     procedure AddModule(m: tmodule);
       begin
-        SetLength(modules,Length(modules)+1);
-        modules[High(modules)]:=m;
+        modules.Add(Pointer(m));
       end;
 
       procedure WriteImportDll(list: TAsmList; proc: tprocdef);
@@ -144,7 +140,7 @@ implementation
     begin
       inherited;
 
-      FillChar(modules,sizeof(modules),0);
+      modules:=TFPList.Create;
 
       list:=current_asmdata.asmlists[al_start];
 
@@ -184,6 +180,8 @@ implementation
           InsertModuleInfo(list,cur_unit.u);
           cur_unit:=tused_unit(cur_unit.Next);
         end;
+
+      modules.Free;
     end;
 
 begin
