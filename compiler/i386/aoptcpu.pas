@@ -252,7 +252,7 @@ begin
                                     begin
                                       TmpRef.base := taicpu(p).oper[2]^.reg;
                                       TmpRef.ScaleFactor := 4;
-                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
+                                      hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[2]^.reg);
                                     end
                                   else
                                     begin
