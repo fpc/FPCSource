@@ -21,7 +21,7 @@ uses SysUtils,Classes, custhttpapp;
 
 Type
 
-  { TCGIApplication }
+  { THTTPApplication }
 
   THTTPApplication = Class(TCustomHTTPApplication)
   end;
