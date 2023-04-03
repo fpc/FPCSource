@@ -1247,7 +1247,12 @@ begin
     if Assigned(Resp) and (not Resp.ContentSent) then
       Resp.SendContent;
     If Assigned(Server) and Server.CanLog(hlmRequestDone) then
-      Server.DoLog(hlmRequestDone,SRequestDone,[Resp.ToString]);
+      begin
+      if Assigned(Resp) then
+        Server.DoLog(hlmRequestDone,SRequestDone,[Resp.ToString])
+      else
+        Server.DoLog(hlmRequestDone,SRequestDone,['Response was freed']);
+      end;
   Finally
     FreeAndNil(Resp);
     FreeAndNil(Req);
