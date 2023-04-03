@@ -11,8 +11,6 @@ uses
 
 Type
 
-  { TTestHTTPServer }
-
   { THTTPServer }
 
   THTTPServer = Class(TTestHTTPServer)

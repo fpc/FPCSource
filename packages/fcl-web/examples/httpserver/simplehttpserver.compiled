@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="/usr/lib/fpc/3.3.1/ppcx64" Date="1680458816"/>
+  <Params Value=" -MObjFPC -Scghi -Cg -O1 -g -gl -l -vewnhibq -Fu/home/mattias/pascal/fpc_sources/3.3.1/packages/fcl-web/examples/echo/webmodule -Fu/home/mattias/pascal/fpc_sources/3.3.1/packages/fcl-web/examples/httpserver/ -o/home/mattias/pascal/fpc_sources/3.3.1/packages/fcl-web/examples/httpserver/simplehttpserver simplehttpserver.pas"/>
+</CONFIG>
