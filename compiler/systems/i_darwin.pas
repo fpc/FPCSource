@@ -401,8 +401,8 @@ const
         name         : 'Darwin/iPhoneSim for x86_64';
         shortname    : 'iPhoneSim';
         flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,
-                        tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile,tf_supports_hidden_symbols,
-                        tf_requires_proper_alignment];
+                        tf_pic_default,tf_has_winlike_resources,tf_use_hlcfi,tf_supports_symbolorderfile,tf_supports_hidden_symbols
+                        {$ifdef llvm},tf_use_psabieh{$endif},tf_requires_proper_alignment];
         cpu          : cpu_x86_64;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
@@ -539,7 +539,8 @@ const
         name         : 'iOS for AArch64';
         shortname    : 'iOS';
         flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
-                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
+                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols
+                        {$ifdef llvm},tf_use_psabieh{$endif}];
         cpu          : cpu_aarch64;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX;DARWIN';
@@ -675,7 +676,8 @@ const
         name         : 'Darwin/iPhoneSim for AArch64';
         shortname    : 'iPhoneSim';
         flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,
-                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols];
+                        tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources,tf_supports_symbolorderfile,tf_supports_hidden_symbols
+                        {$ifdef llvm},tf_use_psabieh{$endif}];
         cpu          : cpu_aarch64;
         unit_env     : 'BSDUNITS';
         extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
