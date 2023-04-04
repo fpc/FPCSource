@@ -1267,6 +1267,7 @@ implementation
                           begin
                             UTF8Char := UTF8Char or ((CurrentChar and $3F) shl (6 * UTF8Len));
 
+                            dec(X);
                             Inc(UTF8Len);
                             if UTF8Len >= 4 then
                               { Sequence too long }
