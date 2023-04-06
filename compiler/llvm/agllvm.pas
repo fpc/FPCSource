@@ -1803,7 +1803,7 @@ implementation
           idtxt  : 'CLANG-LLVM-DARWIN';
           asmbin : 'clang';
           asmcmd: '-x ir $OPT -target $TRIPLET -c -o $OBJ $ASM $EXTRAOPT';
-          supported_targets : [system_x86_64_darwin,system_aarch64_darwin];
+          supported_targets : systems_darwin;
           flags : [af_smartlink_sections,af_llvm];
           labelprefix : 'L';
           labelmaxlen : -1;
