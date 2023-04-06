@@ -157,6 +157,27 @@ begin
 {$endif}
 end;
 
+procedure set_endianess_macros;
+  begin 
+    { endian define }
+    case target_info.endian of
+      endian_little :
+        begin
+          def_system_macro('ENDIAN_LITTLE');
+          def_system_macro('FPC_LITTLE_ENDIAN');
+          undef_system_macro('ENDIAN_BIG');
+          undef_system_macro('FPC_BIG_ENDIAN');
+        end;
+      endian_big :
+        begin
+          def_system_macro('ENDIAN_BIG');
+          def_system_macro('FPC_BIG_ENDIAN');
+          undef_system_macro('ENDIAN_LITTLE');
+          undef_system_macro('FPC_LITTLE_ENDIAN');
+        end;
+    end;
+  end;
+
 
 {****************************************************************************
                                  Toption
@@ -1043,7 +1064,7 @@ begin
          (
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l','U'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
-          ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
+          ((length(opt)>2) and (opt[2]='C') and (opt[3] in ['b','p'])) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
          )
         ) then
@@ -1178,6 +1199,7 @@ begin
                            target_info.endian:=endian_little
                          else
                            target_info.endian:=endian_big;
+                         set_endianess_macros;
                        end;
 
                     'c' :
@@ -3755,6 +3777,7 @@ begin
 
   { make cpu makros available when reading the config files the second time }
   def_cpu_macros;
+  set_endianess_macros;
 
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
@@ -3834,20 +3857,6 @@ begin
   { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions(1);
-
-  { endian define }
-  case target_info.endian of
-    endian_little :
-      begin
-        def_system_macro('ENDIAN_LITTLE');
-        def_system_macro('FPC_LITTLE_ENDIAN');
-      end;
-    endian_big :
-      begin
-        def_system_macro('ENDIAN_BIG');
-        def_system_macro('FPC_BIG_ENDIAN');
-      end;
-  end;
 
   { Write logo }
   if option.ParaLogo then
@@ -4247,6 +4256,7 @@ begin
 
   { now we can define cpu and fpu type }
   def_cpu_macros;
+  set_endianess_macros;
 
   { Use init_settings cpu type for asm cpu type,
     if asmcputype is cpu_none,
