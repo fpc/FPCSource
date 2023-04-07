@@ -23,7 +23,7 @@ uses
   TypInfo, Classes, SysUtils, fpcsstree, fpcssscanner;
 
 Type
-  ECSSParser = Class(Exception);
+  ECSSParser = Class(ECSSException);
 
   { TCSSParser }
 
