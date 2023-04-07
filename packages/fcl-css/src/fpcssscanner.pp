@@ -20,7 +20,7 @@ unit fpCSSScanner;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, fpCSSTree;
 
 Type
   TCSSToken =  (
@@ -87,7 +87,7 @@ resourcestring
   SErrUnknownCharacter = 'Unknown character: %s';
 
 Type
-  ECSSScanner = Class(Exception);
+  ECSSScanner = Class(ECSSException);
 
   TLineReader = class
   public

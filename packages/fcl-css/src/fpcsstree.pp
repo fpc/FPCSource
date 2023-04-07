@@ -20,10 +20,11 @@ unit fpCSSTree;
 
 interface
 
-uses contnrs, Classes, Math;
-
+uses Contnrs, RtlConsts, SysUtils, Classes, Math;
 
 Type
+  ECSSException = class(Exception);
+
   TCSSString = UTF8String;
   TCSSStringDynArray = array of TCSSString;
   TCSSUnits = (cuNONE, cuPX,cuPERCENT,cuREM,cuEM,cuPT,cuFR,cuVW,cuVH,cuDEG);
@@ -422,8 +423,6 @@ Const
          '*=','~=','^=','|=','$=');
 
 implementation
-
-uses SysUtils, rtlConsts;
 
 Const
   sIndent = '  ';
