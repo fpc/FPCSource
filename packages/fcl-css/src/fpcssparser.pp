@@ -24,6 +24,7 @@ uses
 
 Type
   ECSSParser = Class(Exception);
+
   { TCSSParser }
 
   TCSSParser = class(TObject)
