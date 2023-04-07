@@ -20,7 +20,7 @@ unit fpCSSTree;
 
 interface
 
-uses contnrs, Classes;
+uses contnrs, Classes, Math;
 
 
 Type
@@ -66,10 +66,12 @@ Type
   Protected
     procedure SetParent(const AValue: TCSSElement);
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; virtual;
+    function SubElEquals(ElA, ElB: TCSSElement): boolean;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); virtual;
   Public
     Constructor Create(const aFileName : TCSSString; aRow,aCol : Integer); virtual;
     Class function CSSType : TCSSType; virtual;
+    function Equals(Obj: TObject): boolean; override;
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
     Property CustomData : TObject Read FData Write FData;
     Property SourceRow : Integer Read FRow;
@@ -95,9 +97,10 @@ Type
   Public
     constructor Create(ElParent: TCSSElement);
     destructor Destroy; override;
-    procedure Clear;
     Function Add(El: TCSSElement): Integer;
+    procedure Clear;
     Procedure Delete(Index: Integer);
+    function Equals(Obj: TObject): boolean; override;
     Procedure Exchange(Index1, Index2: Integer);
     Function Extract(Index: Integer): TCSSElement; // remove without free
     Function IndexOf(El: TCSSElement): Integer;
@@ -126,6 +129,7 @@ Type
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Value : Integer Read FValue Write FValue;
     Property IsEscaped : Boolean Read FIsEscaped Write FIsEscaped;
     Property Units : TCSSUnits Read FUnits Write FUnits;
@@ -141,6 +145,7 @@ Type
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
   Public
     Class function CSSType : TCSSType; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Value : Double Read FValue Write FValue;
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
@@ -155,6 +160,7 @@ Type
     Procedure IterateChildren(aVisitor : TCSSTreeVisitor); override;
   Public
     Destructor Destroy; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Right : TCSSElement Read FRight Write SetRight;
   end;
 
@@ -167,6 +173,7 @@ Type
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Operation : TCSSUnaryOperation Read FOperation Write FOperation;
   end;
 
@@ -186,6 +193,7 @@ Type
   Public
     Destructor Destroy; override;
     Class function CSSType : TCSSType; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Left : TCSSElement Read FLeft Write SetLeft;
     Property Operation : TCSSBinaryOperation Read FOperation Write FOperation;
   end;
@@ -198,6 +206,7 @@ Type
   Protected
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
+    function Equals(Obj: TObject): boolean; override;
     Property Value : TCSSString Read FValue Write FValue;
   end;
 
@@ -227,6 +236,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Children : TCSSElementList Read GetChildren;
   end;
 
@@ -281,6 +291,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure AddChild(aChild : TCSSElement); virtual;
+    function Equals(Obj: TObject): boolean; override;
     Property Children[aIndex : Integer] : TCSSElement Read GetChild; default;
     Property ChildCount : Integer Read GetChildCount;
   end;
@@ -296,6 +307,7 @@ Type
   Public
     Destructor Destroy; override;
     Class function CSSType : TCSSType; override;
+    function Equals(Obj: TObject): boolean; override;
     Property Prefix : TCSSElement Read FPrefix Write SetPrefix;
   end;
 
@@ -311,6 +323,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
     Procedure AddArg(aArg : TCSSElement); virtual;
+    function Equals(Obj: TObject): boolean; override;
     Property Args[aIndex : Integer] : TCSSElement Read GetArg; default;
     Property ArgCount : Integer Read GetArgCount;
     Property Name : TCSSString Read FName Write FName;
@@ -332,6 +345,7 @@ Type
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
     Procedure AddKey(aKey : TCSSElement); virtual;
+    function Equals(Obj: TObject): boolean; override;
     Property Keys [aIndex : Integer] : TCSSElement Read GetKeys;
     Property KeyCount : Integer Read GetKeyCount;
     Property IsImportant : Boolean Read FIsImportant Write FIsImportant;
@@ -371,6 +385,7 @@ Type
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
     Procedure AddSelector(aSelector : TCSSElement);
+    function Equals(Obj: TObject): boolean; override;
     Property Selectors [aIndex : Integer] : TCSSElement Read GetSelector;
     Property SelectorCount : Integer Read GetSelectorCount;
   end;
@@ -382,6 +397,7 @@ Type
     FAtKeyWord: TCSSString;
   Public
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
+    function Equals(Obj: TObject): boolean; override;
     Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord;
   end;
 
@@ -393,6 +409,8 @@ Function StringToIdentifier(const S : TCSSString) : TCSSString;
 
 Function GetCSSObj(El: TCSSElement): TCSSString;
 Function GetCSSPath(El: TCSSElement): TCSSString;
+
+Function CSSElementListEquals(ListA, ListB: TCSSElementList): boolean;
 
 Const
   CSSUnitNames : Array[TCSSUnits] of TCSSString =
@@ -410,7 +428,7 @@ uses SysUtils, rtlConsts;
 Const
   sIndent = '  ';
 
-Function  u8length(s : char) : Byte;
+Function u8length(s : char) : Byte;
 
 const u8_length : Array[0..15] of byte = (
 // 0 1 2 3 4 5 6 7 8 9 A B C D E F
@@ -534,6 +552,17 @@ begin
     end;
 end;
 
+function CSSElementListEquals(ListA, ListB: TCSSElementList): boolean;
+begin
+  if (ListA=nil) or (ListA.Count=0) then
+    Result:=(ListB=nil) or (ListB.Count=0)
+  else
+    begin
+    if (ListB=nil) or (ListB.Count=0) then exit(false);
+    Result:=ListA.Equals(ListB);
+    end;
+end;
+
 { TCSSListElement }
 
 function TCSSListElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString
@@ -565,6 +594,17 @@ begin
   Result:=DoGetAsString(AtKeyWord+' ',aFormat, aIndent);
 end;
 
+function TCSSAtRuleElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSAtRuleElement absolute Obj;
+begin
+  if Obj is TCSSAtRuleElement then
+    begin
+    if FAtKeyWord<>Src.FAtKeyWord then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 { TCSSBaseStringElement }
 
 function TCSSBaseStringElement.GetAsString(aFormat: Boolean;
@@ -573,6 +613,17 @@ begin
   Result:=Value;
   if aFormat then
     Result:=aIndent+Result;
+end;
+
+function TCSSBaseStringElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSBaseStringElement absolute Obj;
+begin
+  if Obj is TCSSBaseStringElement then
+    begin
+    if FValue<>Src.FValue then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
 end;
 
 { TUnicodeRangeElement }
@@ -686,11 +737,36 @@ begin
   FKeys.Add(aKey);
 end;
 
+function TCSSDeclarationElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSDeclarationElement absolute Obj;
+begin
+  if Obj is TCSSDeclarationElement then
+    begin
+    if (FIsImportant<>Src.FIsImportant)
+        or (FColon<>Src.FColon)
+        or (not CSSElementListEquals(FKeys,Src.FKeys)) then
+      exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 { TCSSUnaryElement }
 
 class function TCSSUnaryElement.CSSType: TCSSType;
 begin
   Result:=csstUnaryOp;
+end;
+
+function TCSSUnaryElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSUnaryElement absolute Obj;
+begin
+  if Obj is TCSSUnaryElement then
+    begin
+    if FOperation<>Src.FOperation then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
 end;
 
 function TCSSUnaryElement.GetAsString(aFormat: Boolean;
@@ -819,6 +895,17 @@ begin
   FSelectors.Add(aSelector);
 end;
 
+function TCSSRuleElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSRuleElement absolute Obj;
+begin
+  if Obj is TCSSRuleElement then
+    begin
+    if not CSSElementListEquals(FSelectors,Src.FSelectors) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 { TCSSPseudoClassElement }
 
 function TCSSPseudoClassElement.GetAsString(aFormat: Boolean;
@@ -881,6 +968,17 @@ begin
   FChildren.Add(aChild);
 end;
 
+function TCSSChildrenElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSChildrenElement absolute Obj;
+begin
+  if Obj is TCSSChildrenElement then
+    begin
+    if not CSSElementListEquals(FChildren,Src.FChildren) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 
 { TCSSCallElement }
 
@@ -923,6 +1021,17 @@ begin
   AddChild(aArg);
 end;
 
+function TCSSCallElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSCallElement absolute Obj;
+begin
+  if Obj is TCSSCallElement then
+    begin
+    if FName<>Src.FName then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 { TCSSFloatElement }
 
 function TCSSFloatElement.GetAsString(aFormat: Boolean;
@@ -937,6 +1046,18 @@ end;
 class function TCSSFloatElement.CSSType: TCSSType;
 begin
   Result:=csstFloat;
+end;
+
+function TCSSFloatElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSFloatElement absolute Obj;
+begin
+  if Obj is TCSSFloatElement then
+    begin
+    if (FUnits<>Src.FUnits)
+        or (not SameValue(FValue,Src.FValue)) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
 end;
 
 { TCSSStringElement }
@@ -972,6 +1093,17 @@ destructor TCSSStringElement.Destroy;
 begin
   FreeAndNil(FChildren);
   inherited Destroy;
+end;
+
+function TCSSStringElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSStringElement absolute Obj;
+begin
+  if Obj is TCSSStringElement then
+    begin
+    if not CSSElementListEquals(FChildren,Src.FChildren) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
 end;
 
 { TCSSClassNameElement }
@@ -1059,6 +1191,17 @@ begin
   Result:=csstArray;
 end;
 
+function TCSSArrayElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSArrayElement absolute Obj;
+begin
+  if Obj is TCSSArrayElement then
+    begin
+    if not SubElEquals(FPrefix,Src.FPrefix) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 
 { TCSSElementList }
 
@@ -1108,6 +1251,25 @@ end;
 procedure TCSSElementList.Delete(Index: Integer);
 begin
   FList.Delete(Index);
+end;
+
+function TCSSElementList.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSElementList absolute Obj;
+  i: Integer;
+begin
+  if Obj is TCSSElementList then
+    begin
+    Result:=false;
+    if Count<>Src.Count then
+      exit;
+    for i:=0 to Count-1 do
+      if not Elements[i].Equals(Src.Elements[i]) then
+        exit;
+    Result:=true;
+    end
+  else
+    Result:=inherited Equals(Obj);
 end;
 
 procedure TCSSElementList.Exchange(Index1, Index2: Integer);
@@ -1193,6 +1355,20 @@ begin
   Result:=csstInteger;
 end;
 
+function TCSSIntegerElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSIntegerElement absolute Obj;
+begin
+  if Obj is TCSSIntegerElement then
+    begin
+    if (FIsEscaped<>Src.FIsEscaped)
+        or (FUnits<>Src.FUnits)
+        or (FValue<>Src.FValue) then
+      exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 { TCSSBinaryElement }
 
 procedure TCSSBinaryElement.SetLeft(AValue: TCSSElement);
@@ -1231,12 +1407,23 @@ begin
   Result:=csstBinaryOp;
 end;
 
+function TCSSBinaryElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSBinaryElement absolute Obj;
+begin
+  if Obj is TCSSBinaryElement then
+    begin
+    if FOperation<>Src.FOperation then exit(false);
+    if not SubElEquals(FLeft,Src.FLeft) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 procedure TCSSBinaryElement.IterateChildren(aVisitor: TCSSTreeVisitor);
 begin
   inherited IterateChildren(aVisitor);
   if Assigned(FLeft) then
     FLeft.Iterate(aVisitor);
-
 end;
 
 { TCSSUnaryElement }
@@ -1258,11 +1445,22 @@ begin
   inherited Destroy;
 end;
 
+function TCSSBaseUnaryElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSBaseUnaryElement absolute Obj;
+begin
+  if Obj is TCSSBaseUnaryElement then
+    begin
+    if not SubElEquals(FRight,Src.FRight) then exit(false);
+    end;
+  Result:=inherited Equals(Obj);
+end;
+
 procedure TCSSBaseUnaryElement.IterateChildren(aVisitor: TCSSTreeVisitor);
 begin
   inherited IterateChildren(aVisitor);
   If Assigned(FRight) then
-     FRight.Iterate(aVisitor);
+    FRight.Iterate(aVisitor);
 end;
 
 { TCSSElement }
@@ -1291,6 +1489,17 @@ begin
   Result:='';
 end;
 
+function TCSSElement.SubElEquals(ElA, ElB: TCSSElement): boolean;
+begin
+  if ElA=nil then
+    Result:=ElB=nil
+  else
+    begin
+    if ElB=nil then exit(false);
+    Result:=ElA.Equals(ElB);
+    end;
+end;
+
 procedure TCSSElement.IterateChildren(aVisitor: TCSSTreeVisitor);
 begin
   if Assigned(aVisitor) then ;
@@ -1306,6 +1515,21 @@ end;
 class function TCSSElement.CSSType: TCSSType;
 begin
   Result:=csstUnknown;
+end;
+
+function TCSSElement.Equals(Obj: TObject): boolean;
+var
+  Src: TCSSElement absolute Obj;
+begin
+  if Obj is TCSSElement then
+    begin
+    Result:=(FCol=Src.FCol)
+        and (FData=Src.FData)
+        and (FFileName=Src.FFileName)
+        and (FRow=Src.FRow);
+    end
+  else
+    Result:=inherited Equals(Obj);
 end;
 
 procedure TCSSElement.Iterate(aVisitor: TCSSTreeVisitor);
