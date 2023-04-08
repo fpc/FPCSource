@@ -783,69 +783,60 @@ end;
 
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 var
-  Source,Dest: PAnsiChar;
-  DestLen: Integer;
-  I,J,L: Longint;
-
+  Sp,Se,SLiteralStart,SLiteralEnd,Rp: PChar;
 begin
-  Source:=Pointer(S);
-  L:=Length(S);
-  DestLen:=L;
-  I:=1;
-  while (I<=L) do
-    begin
-    case S[i] of
-      #10: if (Style=tlbsCRLF) then
-               Inc(DestLen);
-      #13: if (Style=tlbsCRLF) then
-             if (I<L) and (S[i+1]=#10) then
-               Inc(I)
-             else
-               Inc(DestLen)
-             else if (I<L) and (S[I+1]=#10) then
-               Dec(DestLen);
-    end;
-    Inc(I);
-    end;
-  if (DestLen=L) then
-    Result:=S
-  else
-    begin
-    SetLength(Result, DestLen);
-    FillChar(Result[1],DestLen,0);
-    Dest := Pointer(Result);
-    J:=0;
-    I:=0;
-    While I<L do
-      case Source[I] of
-        #10: begin
-             if Style=tlbsCRLF then
-               begin
-               Dest[j]:=#13;
-               Inc(J);
-              end;
-             Dest[J] := #10;
-             Inc(J);
-             Inc(I);
-             end;
-        #13: begin
-             if Style=tlbsCRLF then
-               begin
-               Dest[j] := #13;
-               Inc(J);
-               end;
-             Dest[j]:=#10;
-             Inc(J);
-             Inc(I);
-             if Source[I]=#10 then
-               Inc(I);
-             end;
-      else
-        Dest[j]:=Source[i];
-        Inc(J);
-        Inc(I);
-      end;
-    end;
+  Result:='';
+  repeat { Does two iterations, first is prepass, second fills the result with data and is distinguished by Assigned(Pointer(Result)). }
+    Rp:=Pointer(Result);
+    Sp:=PChar(S); { Readable #0 for empty string. }
+    Se:=Sp+Length(S);
+    SLiteralStart:=Sp;
+    repeat
+      while (Sp<Se) and not (Sp^ in [#13,#10]) do
+        Inc(Sp);
+      SLiteralEnd:=Sp; { Save position before consuming line ending. }
+      if Sp^=#10 then { These accesses rely on terminating #0. }
+        begin
+          Inc(Sp);
+          if Style=tlbsLF then
+            continue;
+        end
+      else if Sp^=#13 then
+        if Sp[1]=#10 then
+          begin
+            Inc(Sp,2);
+            if Style=tlbsCRLF then
+              continue;
+          end
+        else
+          begin
+            Inc(Sp);
+            if Style=tlbsCR then
+              continue;
+          end;
+      if Assigned(Pointer(Result)) then
+        Move(SLiteralStart^,Rp^,Pointer(SLiteralEnd)-Pointer(SLiteralStart)); { Byte difference to avoid signed div 2 on char = widechar. }
+      Inc(Pointer(Rp),Pointer(SLiteralEnd)-Pointer(SLiteralStart)); { Again, byte difference. }
+      if SLiteralEnd=Sp then
+        break;
+      SLiteralStart:=Sp;
+      Inc(Rp,1+ord(Style=tlbsCRLF));
+      if Assigned(Pointer(Result)) then
+        begin
+          if Style=tlbsCRLF then
+            Rp[-2]:=#13;
+          if Style=tlbsCR then
+            Rp[-1]:=#13
+          else
+            Rp[-1]:=#10;
+        end;
+    until false;
+    if Assigned(Pointer(Result)) then { Second pass finished. }
+      break;
+    if SLiteralStart=PChar(S) then { String is unchanged. }
+      Exit(S);
+    SetLength(Result,SizeUint(Pointer(Rp)-Pointer(Result)) div SizeOf(Char)); { Prepare second pass. }
+  until false;
 end;
 
 
