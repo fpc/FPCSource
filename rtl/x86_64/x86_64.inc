@@ -646,108 +646,198 @@ asm
     mov      %rsi, %rdx
     mov      %rdi, %rcx
 {$endif win64}
-    lea      (%rcx,%r8), %r10 { r10 = buf1 end }
-    cmp      $3, %r8
-    jle      .LBytewise_Test
-    mov      %r8, %r9
-    and      $-16, %r9
-    add      %rcx, %r9 { r9 = end of full XMMs in buf1 }
-    cmp      %r9, %rcx
-    jne      .L16x_Body
-    lea      15(%r9), %eax { check if tails don't cross page boundaries and can be over-read to XMMs }
-    lea      15(%rdx), %ecx
-    xor      %r9d, %eax
-    xor      %edx, %ecx
-    or       %ecx, %eax
-    cmp      $4095, %eax
-    ja       .L4x_Prepare
-    movdqu   (%r9), %xmm0
+    { rcx = buf1, rdx = buf2, r8 = len }
+    cmp      $1, %r8
+    jle      .L1OrLess
+
+    cmp      $16, %r8
+    jae      .LVecOrMore
+
+    { 2 to 15 bytes: check for page cross. Pessimistic variant that has false positives, but is faster. }
+    mov      %ecx, %eax
+    or       %edx, %eax
+    and      $4095, %eax
+    cmp      $4080, %eax
+    ja       .LCantOverReadBoth
+
+    { Over-read both as XMMs. }
+    movdqu   (%rcx), %xmm0
     movdqu   (%rdx), %xmm1
     pcmpeqb  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
-    xor      $65535, %eax
-    jz       .L16x_Nothing
-    bsf      %eax, %ecx
-    add      %rcx, %r9
-    cmp      %r10, %r9 { ignore over-read garbage bytes }
-    jnb      .L16x_Nothing
-    movzbl   (%r9), %eax
-    movzbl   (%rdx,%rcx), %edx
-    sub      %rdx, %rax
-    ret
-
-.balign 16
-.L16x_Body:
-    movdqu   (%rdx), %xmm0
-    movdqu   (%rcx), %xmm1
-    pcmpeqb  %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-    xor      $65535, %eax
-    jnz      .L16x_Found
-    add      $16, %rcx
-    add      $16, %rdx
-    cmp      %rcx, %r9
-    jne      .L16x_Body
-
-    cmp      %r9, %r10
-    je       .L16x_Nothing
-
-    sub      %rcx, %rdx
-    lea      -16(%r10), %rcx
-    add      %rcx, %rdx
-    movdqu   (%rdx), %xmm0
-    movdqu   (%rcx), %xmm1
-    pcmpeqb  %xmm1, %xmm0
-    pmovmskb %xmm0, %eax
-    xor      $65535, %eax
-    jnz      .L16x_Found
-.L16x_Nothing:
-    xor      %eax, %eax
-    ret
-
-.balign 16
-.L16x_Found:
+    inc      %ax
+    jz       .LNothing
     bsf      %eax, %eax
+    cmp      %r8d, %eax { Ignore garbage beyond 'len'. }
+    jae      .LNothing
     movzbl   (%rdx,%rax), %edx
     movzbl   (%rcx,%rax), %eax
     sub      %rdx, %rax
     ret
 
-.L4x_Prepare:
-    and      $12, %r8d { count to be handled with uint32s for 1 <= len <= 15: len mod 16 div 4 * 4 = len and %1100 = len and 12 }
-    lea      (%r9,%r8), %rcx
-    cmp      %rcx, %r9
-    je       .LBytewise_Body
-.L4x_Body:
-    mov      (%r9), %eax
-    mov      (%rdx), %r8d
-    cmp      %r8d, %eax
-    jne      .L4x_Found
-    add      $4, %r9
-    add      $4, %rdx
-    cmp      %r9, %rcx
-    jne      .L4x_Body
-.LBytewise_Test:
-    cmp      %r10, %rcx
-    je       .LNothing
-.LBytewise_Body:
-    movzbl   (%rcx), %eax
-    movzbl   (%rdx), %r8d
-    sub      %r8, %rax
-    jne      .LReturnRAX
-    add      $1, %rcx
-    add      $1, %rdx
-    cmp      %r10, %rcx
-    jne      .LBytewise_Body
+.balign 16
 .LNothing:
     xor      %eax, %eax
-.LReturnRAX:
     ret
 
-.L4x_Found:
-    bswap    %r8d
+.LAligned32xLoop_TwoVectorsDiffer:
+    add      %rcx, %rdx { restore rdx = buf2 }
+    pmovmskb %xmm0, %r8d { Is there a difference in the first vector? }
+    inc      %r8w
+    jz       .LVec1Differs { No difference in the first vector, xmm0 is all ones, eax = pmovmskb(pcmpeqb(buf1 + 16, buf2 + 16)) from the loop body. }
+    mov      %r8d, %eax
+.LVec0Differs:
+    bsf      %eax, %eax
+    movzbl   (%rdx,%rax), %edx
+    movzbl   (%rcx,%rax), %eax
+    sub      %rdx, %rax
+    ret
+    .byte    0x66,0x2e,0x0f,0x1f,0x84,0x00,0x00,0x00,0x00,0x00 { Turn .balign 16 before .LAligned32xLoop_Body into a no-op. }
+
+.LVecOrMore:
+    { Compare first vectors. }
+    movdqu   (%rcx), %xmm0
+    movdqu   (%rdx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    inc      %ax
+    jnz      .LVec0Differs
+
+    sub      $32, %r8
+    jbe      .LLastVec
+
+    { Compare second vectors. }
+    movdqu   16(%rcx), %xmm0
+    movdqu   16(%rdx), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    inc      %ax
+    jnz      .LVec1Differs
+
+    cmp      $32, %r8
+    jbe      .LLastTwoVectors
+
+    { More than four vectors: aligned loop. }
+    lea      -32(%rcx,%r8), %r8 { buffer end - last two vectors handled separately - first two vectors already analyzed (by the fact ecx was still len - 32). }
+    sub      %rcx, %rdx { rdx = buf2 - buf1 }
+    and      $-16, %rcx { Align buf1. First two vectors already analyzed are skipped by +32 on the first loop iteration. }
+    sub      %rcx, %r8 { r8 = count to be handled with loop }
+.balign 16 { no-op }
+.LAligned32xLoop_Body:
+    add      $32, %rcx
+    { Compare two XMMs, reduce the result with 'and'. }
+    movdqu   (%rdx,%rcx), %xmm0
+    pcmpeqb  (%rcx), %xmm0 { xmm0 = pcmpeqb(buf1, buf2) }
+    movdqu   16(%rdx,%rcx), %xmm1
+    pcmpeqb  16(%rcx), %xmm1
+    pand     %xmm0, %xmm1 { xmm1 = xmm0 and pcmpeqb(buf1 + 16, buf2 + 16) }
+    pmovmskb %xmm1, %eax
+    inc      %ax
+    jnz      .LAligned32xLoop_TwoVectorsDiffer
+    sub      $32, %r8
+    ja       .LAligned32xLoop_Body
+    add      %rcx, %rdx { restore rdx = buf2 }
+    add      $32, %r8
+.LLastTwoVectors:
+    movdqu   (%rcx,%r8), %xmm0
+    movdqu   (%rdx,%r8), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    inc      %ax
+    jnz      .LVecEm2Differs
+.LLastVec:
+    movdqu   16(%rcx,%r8), %xmm0
+    movdqu   16(%rdx,%r8), %xmm1
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+    inc      %ax
+    jnz      .LVecEm1Differs
+    xor      %eax, %eax
+    ret
+
+.LVec1Differs:
+    xor      %r8d, %r8d
+.LVecEm1Differs:
+    add      $16, %r8
+.LVecEm2Differs:
+    bsf      %eax, %eax
+    add      %r8, %rax
+    movzbl   (%rdx,%rax), %edx
+    movzbl   (%rcx,%rax), %eax
+    sub      %rdx, %rax
+    ret
+
+.LCantOverReadBoth:
+    cmp      $8, %r8d
+    ja       .L9to15
+    cmp      $3, %r8d
+    jle      .L2to3
+    mov      (%rcx), %eax
+    mov      (%rdx), %r9d
+    cmp      %r9d, %eax
+    jne      .L4xOr8xDiffer
+    mov      -4(%rcx,%r8), %eax
+    mov      -4(%rdx,%r8), %r9d
+    cmp      %r9d, %eax
+    jne      .L4xOr8xDiffer
+    xor      %eax, %eax
+    ret
+
+.L9to15:
+    mov      (%rcx), %rax
+    mov      (%rdx), %r9
+    cmp      %r9, %rax
+    jne      .L4xOr8xDiffer
+    mov      -8(%rcx,%r8), %rax
+    mov      -8(%rdx,%r8), %r9
+    cmp      %r9, %rax
+    jne      .L4xOr8xDiffer
+    xor      %eax, %eax
+    ret
+
+.L4xOr8xDiffer:
+    bswap    %r9
+    bswap    %rax
+    cmp      %r9, %rax
+    sbb      %rax, %rax
+    or       $1, %rax
+    ret
+
+.L2to3:
+    movzwl   (%rcx), %eax
     bswap    %eax
-    sub      %r8, %rax
+    shr      $1, %eax
+    mov      -1(%rcx,%r8), %al
+    movzwl   (%rdx), %ecx
+    bswap    %ecx
+    shr      $1, %ecx
+    mov      -1(%rdx,%r8), %cl
+    sub      %rcx, %rax
+    ret
+
+.L1OrLess:
+    jl       .LUnbounded_Prepare
+    movzbl   (%rcx), %eax
+    movzbl   (%rdx), %edx
+    sub      %rdx, %rax
+    ret
+
+.LUnbounded_Prepare:
+    sub      %rcx, %rdx { rdx = buf2 - buf1 }
+    test     %r8, %r8
+    jnz      .LUnbounded_Body
+    xor      %eax, %eax
+    ret
+
+.balign 16
+.LUnbounded_Next:
+    add      $1, %rcx
+.LUnbounded_Body:
+    movzbl   (%rdx,%rcx), %eax
+    cmp      %al, (%rcx)
+    je       .LUnbounded_Next
+    sbb      %rax, %rax
+    or       $1, %rax
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
