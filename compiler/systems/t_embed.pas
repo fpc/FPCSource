@@ -769,6 +769,14 @@ begin
       { Raspberry Pi 2 }
       ct_raspi2,
 
+      { Raspberry rp2040 }
+      ct_rp2040,
+      ct_rppico,
+      ct_feather_rp2040,
+      ct_itzybitzy_rp2040,
+      ct_tiny_2040,
+      ct_qtpy_rp2040,
+
       ct_thumb2bare:
         begin
          with embedded_controllers[current_settings.controllertype] do
@@ -798,7 +806,6 @@ begin
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
 
               // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary
-              writeln(controllerunitstr);
               if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
                 Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
               if (controllerunitstr = 'LPC13XX') then
@@ -814,6 +821,19 @@ begin
     begin
       Add('SECTIONS');
       Add('{');
+      if (embedded_controllers[current_settings.controllertype].controllerunitstr='RP2040') then
+      begin
+        Add('    .boot2 :');
+        Add('    {');
+        Add('    _boot2_start = .;');
+        Add('    KEEP(*(.boot2))');
+        Add('    ASSERT(!( . == _boot2_start ), "RP2040: Error, a device specific 2nd stage bootloader is required for booting");');
+        Add('    ASSERT(( . == _boot2_start + 256 ), "RP2040: Error, 2nd stage bootloader in section .boot2 is required to be 256 bytes");');
+        if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+          Add('    } >flash')
+        else
+          Add('    } >ram');
+      end;
       Add('     .text :');
       Add('    {');
       Add('    _text_start = .;');
@@ -1890,7 +1910,8 @@ const
     (k:'STM32L4';v:$00ff6919),
     (k:'STM32L5';v:$04240bdf),
     (k:'STM32WB';v:$70d16653),
-    (k:'STM32WL';v:$21460ff0)
+    (k:'STM32WL';v:$21460ff0),
+    (k:'RP2040' ;v:$e48bff56)
   );
 
 var
@@ -1917,36 +1938,33 @@ begin
       familyId := Families[i].v;
   end;
 
-  if (baseAddress and $07ffffff) <> 0 then
-  begin
-    totalRead := 0;
-    numRead := 0;
-    assign(f,binfile);
-    reset(f,1);
-    assign(g,uf2file);
-    rewrite(g,1);
+  totalRead := 0;
+  numRead := 0;
+  assign(f,binfile);
+  reset(f,1);
+  assign(g,uf2file);
+  rewrite(g,1);
 
-    repeat
-      fillchar(uf2block,sizeof(uf2block),0);
-      uf2block.magicStart0 := $0A324655; // "UF2\n"
-      uf2block.magicStart1 := $9E5D5157; // Randomly selected
-      if familyId = 0 then
-        uf2block.flags := 0
-      else
-        uf2block.flags := $2000;
-      uf2block.targetAddr := baseAddress + totalread;
-      uf2block.payloadSize := 256;
-      uf2block.blockNo := (totalRead div sizeOf(uf2block.data));
-      uf2block.numBlocks := (filesize(f) + 255) div 256;
-      uf2block.familyId := familyId;
-      uf2block.magicEnd := $0AB16F30; // Randomly selected
-      blockRead(f,uf2block.data,sizeof(uf2block.data),numRead);
-      blockwrite(g,uf2block,sizeof(uf2block));
-      inc(totalRead,numRead);
-    until (numRead=0) or (NumRead<>sizeOf(uf2block.data));
-    close(f);
-    close(g);
-  end;
+  repeat
+    fillchar(uf2block,sizeof(uf2block),0);
+    uf2block.magicStart0 := $0A324655; // "UF2\n"
+    uf2block.magicStart1 := $9E5D5157; // Randomly selected
+    if familyId = 0 then
+      uf2block.flags := 0
+    else
+      uf2block.flags := $2000;
+    uf2block.targetAddr := baseAddress + totalread;
+    uf2block.payloadSize := 256;
+    uf2block.blockNo := (totalRead div sizeOf(uf2block.data));
+    uf2block.numBlocks := (filesize(f) + 255) div 256;
+    uf2block.familyId := familyId;
+    uf2block.magicEnd := $0AB16F30; // Randomly selected
+    blockRead(f,uf2block.data,sizeof(uf2block.data),numRead);
+    blockwrite(g,uf2block,sizeof(uf2block));
+    inc(totalRead,numRead);
+  until (numRead=0) or (NumRead<>sizeOf(uf2block.data));
+  close(f);
+  close(g);
   Result := true;
 end;
 
