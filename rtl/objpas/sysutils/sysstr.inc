@@ -181,9 +181,8 @@ end;
 {$ENDIF}
 
 function CompareStr(const S1, S2: string): Integer;
-var res,count, count1, count2: SizeInt;
+var count, count1, count2: SizeInt;
 begin
-  result := 0;
   Count1 := Length(S1);
   Count2 := Length(S2);
   if Count1>Count2 then
