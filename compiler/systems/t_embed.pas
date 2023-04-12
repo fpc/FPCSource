@@ -98,10 +98,24 @@ const
 {$else}
   platform_select='';
 {$endif}
+var
+  platformopt : string;
 begin
+  {$ifdef xtensa}
+  if target_info.endian=endian_little then
+    platformopt:=' -b elf32-xtensa-le -m elf32xtensa'
+  else
+    platformopt:=' -b elf32-xtensa-be -m elf32xtensa';
+  if target_info.abi=abi_xtensa_call0 then
+    platformopt:=platformopt+' --abi-call0'
+  else if target_info.abi=abi_xtensa_windowed then
+    platformopt:=platformopt+' --abi-windowed';
+  {$else}
+  platformopt:='';
+  {$endif}
   with Info do
    begin
-     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
+     ExeCmd[1]:='ld -g '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
    end;
 end;
 
