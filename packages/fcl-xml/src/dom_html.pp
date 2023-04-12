@@ -662,6 +662,7 @@ type
     procedure Write(const AText: DOMString);
     procedure WriteLn(const AText: DOMString);
     function GetElementsByName(const ElementName: DOMString): TDOMNodeList;
+    function GetElementsByClassName(const ElementName: DOMString): TDOMNodeList;
     function HashForName(const aName: DOMString): PHashItem;
 
     // Helper functions (not in DOM standard):
@@ -1184,6 +1185,29 @@ begin
     Result := frFalse;
 end;
 
+TByClassNameNodeList = class(TDOMNodeList)
+protected
+  FFilter: DOMString;
+  function NodeFilter(aNode: TDOMNode): TFilterResult; override;
+public
+  constructor Create(aNode: TDOMNode; const aFilter: DOMString);
+end;  
+
+constructor TByClassNameNodeList.Create(aNode: TDOMNode;
+  const aFilter: DOMString);
+begin
+  inherited Create(aNode);
+  FFilter := aFilter;
+end; 
+
+function TByClassNameNodeList.NodeFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (TDOMElement(aNode)['class'] = FFilter) then
+    Result := frTrue
+  else
+    Result := frFalse;
+end; 
+
 function THTMLDocument.GetAnchors: THTMLCollection;
 begin
   Result := THTMLCollection.Create(Self, @DocAnchorFilter);
@@ -1248,6 +1272,11 @@ function THTMLDocument.GetElementsByName(const ElementName: DOMString): TDOMNode
 begin
   Result := TByNameNodeList.Create(Self, ElementName);
 end;
+
+function THTMLDocument.GetElementsByClassName(const ElementName: DOMString): TDOMNodeList;
+begin
+  Result := TByClassNameNodeList.Create(Self, ElementName);
+end; 
 
 function THTMLDocument.CreateElement(const tagName: DOMString; UseSpecificClass : Boolean = True): THTMLElement;
 
