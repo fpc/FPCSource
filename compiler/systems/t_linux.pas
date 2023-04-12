@@ -402,6 +402,16 @@ begin
   else
     platformopt:=' -b elf64-powerpc -m elf64ppc';
 {$endif powerpc64}
+{$ifdef xtensa}
+  if target_info.endian=endian_little then
+    platformopt:=' -b elf32-xtensa-le -m elf32xtensa'
+  else
+    platformopt:=' -b elf32-xtensa-be -m elf32xtensa';
+  if target_info.abi=abi_xtensa_call0 then
+    platformopt:=platformopt+' --abi-call0'
+  else if target_info.abi=abi_xtensa_windowed then
+    platformopt:=platformopt+' --abi-windowed';
+  {$endif}
 {$ifdef arm}
   platformopt:=' -z noexecstack';
 {$endif arm}
