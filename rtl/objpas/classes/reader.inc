@@ -1844,7 +1844,7 @@ begin
     FindInFieldTable(LookupRoot);
 
   if (Result=nil) and assigned(OnFindComponentClassEx) then
-    OnFindComponentClassEx(Self, anUnitName, AClassName, Result);
+    OnFindComponentClassEx(Self, AName, anUnitName, AClassName, Result);
 
   if (Result=nil) then begin
     if anUnitName<>'' then

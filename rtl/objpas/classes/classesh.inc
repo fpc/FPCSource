@@ -1503,8 +1503,8 @@ type
     PropInfo: PPropInfo; const TheMethodName: string;
     var Handled: boolean) of object;
   TSetNameEvent = procedure(Reader: TReader; Component: TComponent;
-    var Name: string) of object;
-  TReferenceNameEvent = procedure(Reader: TReader; var Name: string) of object;
+    var aName: string) of object;
+  TReferenceNameEvent = procedure(Reader: TReader; var aName: string) of object;
   TAncestorNotFoundEvent = procedure(Reader: TReader; const ComponentName: string;
     ComponentClass: TPersistentClass; var Component: TComponent) of object;
   TReadComponentsProc = procedure(Component: TComponent) of object;
@@ -1512,9 +1512,10 @@ type
     var Handled: Boolean) of object;
   TPropertyNotFoundEvent = procedure(Reader: TReader; Instance: TPersistent;
     var PropName: string; IsPath: boolean; var Handled, Skip: Boolean) of object;
-  TFindComponentClassEvent = procedure(Reader: TReader; const ClassName: string;
+  TFindComponentClassEvent = procedure(Reader: TReader; const aClassName: string;
     var ComponentClass: TComponentClass) of object;
-  TFindComponentClassExEvent = procedure(Reader: TReader; const anUnitname, ClassName: string;
+  TFindComponentClassExEvent = procedure(Reader: TReader;
+    const aName, anUnitname, aClassName: string;
     var ComponentClass: TComponentClass) of object;
   TCreateComponentEvent = procedure(Reader: TReader;
     ComponentClass: TComponentClass; var Component: TComponent) of object;
