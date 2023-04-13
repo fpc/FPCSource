@@ -382,6 +382,7 @@ Var
   SLen : Integer;
 
 begin
+  if (NChars=0) then Exit;
   SLen:=Length(S);
   SetLength(S,SLen+NChars);
   Move(P^,S[Slen+1],NChars);
