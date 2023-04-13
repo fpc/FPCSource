@@ -362,107 +362,105 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     mov    %rdi, %rcx
 {$endif win64}
 
-    cmp    $8, %rdx
-    jl     .Ltiny
+    mov    $0x01010101, %r9d
+    movzbl %r8b, %eax
+    imul   %r9d, %eax
 
-// TODO: movz?q and movs?q are not accepted by FPC asmreader, it needs fixing.
-// `movzbl' instead is accepted and generates correct code with internal assembler,
-// but breaks targets using external GAS (Mantis #19188).
-// So use a different instruction for now.
+    cmp    $16, %rdx
+    jge    .LVecOrMore
+    cmp    $3, %rdx
+    jle    .L3OrLess
 
-    { expand byte value  }
-    andq   $0xff, %r8
-{
-    movzbq %r8b, %r8
-}
-    mov    $0x0101010101010101,%r9
-    imul   %r9, %r8
+    mov    %eax, (%rcx)
+    cmp    $8, %edx
+    jle    .LLast4
+    mov    %eax, 4(%rcx)
+    mov    %eax, -8(%rcx,%rdx)
+.LLast4:
+    mov    %eax, -4(%rcx,%rdx)
+    ret
 
-    test   $7, %cl
-    je     .Laligned
-
-    { align dest to 8 bytes }
-    test   $1, %cl
-    je     .L2
-    movb   %r8b, (%rcx)
-    add    $1, %rcx
-    sub    $1, %rdx
-.L2:
-    test   $2, %cl
-    je     .L4
-    movw   %r8w, (%rcx)
-    add    $2, %rcx
-    sub    $2, %rdx
-.L4:
-    test   $4, %cl
-    je     .Laligned
-    movl   %r8d, (%rcx)
-    add    $4, %rcx
-    sub    $4, %rdx
-
-.Laligned:
-    mov    %rdx, %rax
-    and    $0x3f, %rdx
-    shr    $6, %rax
-    jne    .Lmore64
-
-.Lless64:
-    mov    %rdx, %rax
-    and    $7, %rdx
-    shr    $3, %rax
-    je     .Ltiny
-
-    .balign 16
-.Lloop8:                               { max. 8 iterations }
-    mov    %r8, (%rcx)
-    add    $8, %rcx
-    dec    %rax
-    jne    .Lloop8
-.Ltiny:
+.L3OrLess:
     test   %rdx, %rdx
-    jle    .Lquit
-.Lloop1:
-    movb   %r8b, (%rcx)
-    inc    %rcx
-    dec    %rdx
-    jnz    .Lloop1
-.Lquit:
-    retq
+    jle    .LQuit
+    mov    %al, (%rcx)
+    mov    %al, -1(%rcx,%rdx)
+    shr    $1, %edx
+    mov    %al, (%rcx,%rdx)
+.LQuit:
+    ret
 
-.Lmore64:
-    cmp    $0x2000,%rax
-    jae    .Lloop64nti
+.balign 16
+.LVecOrMore:
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0
 
-    .balign 16
-.Lloop64:
+    { x can start and end aligned or misaligned on the vector boundary:
+
+      x = [UH][H1][H2][...][T2][T1]
+      x = UH][H1][H2][...][T2][T1][UT
+
+      UH ("unaligned head") is written, potentially overlapping with H1, with the 'movdqu'. Has 1–16 bytes.
+      H1 and so on are “heads”.
+      T1 and so on are “tails”.
+      UT ("unaligned tail") is written with another 'movdqu' after the loop. Has 0–15 bytes. }
+
+    movdqu %xmm0, (%rcx)
+    lea    -64(%rcx,%rdx), %r8 { r8 = end of x - 64, loop bound }
+
+    cmp    $32, %rdx
+    jle    .LLastVec
+
+    and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
+    movdqa %xmm0, 16(%rcx) { Write H1. }
+    mov    %r8, %rax
+    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8. }
+    cmp    $48, %rdx { 33~48 bytes might contain 1~2 heads+tails; write as H1 and T1. }
+    jle    .LOneAlignedTailWrite
+    movdqa %xmm0, 32(%rcx) { Write H2. }
+    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    jle    .LTwoAlignedTailWrites
+    movdqa %xmm0, 48(%rcx) { Write H3. }
+    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1–3 and T3–1. }
+    jle    .LThreeAlignedTailWrites
+
+    add    $48, %rcx
+    cmp    $0x80000, %rdx
+    jae    .L64xNT_Body
+
+.balign 16
+.L64x_Body:
+    movdqa %xmm0, (%rcx)
+    movdqa %xmm0, 16(%rcx)
+    movdqa %xmm0, 32(%rcx)
+    movdqa %xmm0, 48(%rcx)
     add    $64, %rcx
-    mov    %r8, -64(%rcx)
-    mov    %r8, -56(%rcx)
-    mov    %r8, -48(%rcx)
-    mov    %r8, -40(%rcx)
-    dec    %rax
-    mov    %r8, -32(%rcx)
-    mov    %r8, -24(%rcx)
-    mov    %r8, -16(%rcx)
-    mov    %r8, -8(%rcx)
-    jne    .Lloop64
-    jmp    .Lless64
+    cmp    %r8, %rcx
+    jb     .L64x_Body
 
-    .balign 16
-.Lloop64nti:
+.LLoopEnd:
+    movdqa %xmm0, (%rax)
+.LThreeAlignedTailWrites:
+    movdqa %xmm0, 16(%rax)
+.LTwoAlignedTailWrites:
+    movdqa %xmm0, 32(%rax)
+.LOneAlignedTailWrite:
+    movdqa %xmm0, 48(%rax)
+.LLastVec:
+    movdqu %xmm0, 48(%r8)
+    ret
+
+.balign 16
+.L64xNT_Body:
+    movntdq %xmm0, (%rcx)
+    movntdq %xmm0, 16(%rcx)
+    movntdq %xmm0, 32(%rcx)
+    movntdq %xmm0, 48(%rcx)
     add    $64, %rcx
-    movnti %r8, -64(%rcx)
-    movnti %r8, -56(%rcx)
-    movnti %r8, -48(%rcx)
-    movnti %r8, -40(%rcx)
-    dec    %rax
-    movnti %r8, -32(%rcx)
-    movnti %r8, -24(%rcx)
-    movnti %r8, -16(%rcx)
-    movnti %r8, -8(%rcx)
-    jnz    .Lloop64nti
+    cmp    %r8, %rcx
+    jb     .L64xNT_Body
     mfence
-    jmp    .Lless64
+    jmp    .LLoopEnd
   end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
