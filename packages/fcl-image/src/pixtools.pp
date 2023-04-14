@@ -73,9 +73,9 @@ begin
   SortRect (x1,y1, x2,y2);
   with Canv do
     begin
-    for x := x1 to x2 do
       for y := y1 to y2 do
-        DrawPixel(x,y,color);
+        for x := x1 to x2 do
+          DrawPixel(x,y,color);
     end;
 end;
 
@@ -555,8 +555,8 @@ procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const 
 var x,y : integer;
 begin
   with image do
-    for x := x1 to x2 do
-      for y := y1 to y2 do
+    for y := y1 to y2 do
+      for x := x1 to x2 do
         Canv.DrawPixel(x,y, colors[x mod width, y mod height]);
 end;
 
@@ -564,8 +564,8 @@ procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; con
 var x,y : integer;
 begin
   with image do
-    for x := x1 to x2 do
-      for y := y1 to y2 do
+    for y := y1 to y2 do
+      for x := x1 to x2 do
         Canv.DrawPixel(x,y, colors[(x-x1) mod width, (y-y1) mod height]);
 end;
 
