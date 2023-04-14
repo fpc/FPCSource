@@ -410,7 +410,7 @@ ifeq ($(ARCH),sparc64)
 endif
 ifeq ($(ARCH),xtensa)
 override LOADERS=
-SYSINIT_UNITS=si_prc si_dll si_c
+SYSINIT_UNITS=si_prc si_dll si_c si_uc
 endif
 ifeq ($(ARCH),loongarch64)
 override LOADERS=
