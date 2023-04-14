@@ -287,27 +287,111 @@ asm
 end;
 {$endif FPC_SYSTEM_HAS_MOVE}
 
+{$if not defined(FPC_SYSTEM_HAS_FILLCHAR)
+  or not defined(FPC_SYSTEM_HAS_FILLWORD)
+  or not defined(FPC_SYSTEM_HAS_FILLDWORD)
+  or not defined(FPC_SYSTEM_HAS_FILLQWORD)}
+procedure FillXxxx_MoreThanTwoXmms; assembler; nostackframe;
+{ Input:
+  rcx = 'x'
+  rdx = byte count
+  xmm0 = pattern for unaligned writes
+  xmm1 = pattern for aligned writes }
+asm
+    { x can start and end misaligned on the vector boundary:
+
+      x = ~~][H1][H2][...][T2][T1]~
+          [UH]                 [UT]
+
+      UH (“unaligned head”) potentially overlaps with H1 and is already written with 'movdqu' by the caller.
+      At least 1 of its bytes is exclusive to it, i.e. if x is already aligned, H1 starts at byte 16.
+
+      H1 and so on are called “aligned heads” or just “heads”.
+      T1 and so on are called “aligned tails” or just “tails”.
+
+      UT (“unaligned tail”) is written with another 'movdqu' after the loop.
+      At least 1 of its bytes is exclusive to it as well, that’s why 65 is subtracted below instead of 64. }
+
+    lea    -65(%rcx,%rdx), %r8 { r8 = end of x - 65, to get the loop bound and to write UT later (why not write it right away though...). }
+    and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
+    movdqa %xmm1, 16(%rcx) { Write H1. }
+    mov    %r8, %rax
+    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8 = loop bound. }
+    cmp    $49, %rdx { 33~49 bytes might contain 1~2 heads+tails; write as H1 and T1. }
+    jle    .LOneAlignedTailWrite
+    movdqa %xmm1, 32(%rcx) { Write H2. }
+    cmp    $81, %rdx  { 50~81 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    jle    .LTwoAlignedTailWrites
+    cmp    $113, %rdx  { 82~113 bytes might contain 4~6 heads+tails; write as H1–2 and T4–1. }
+    jle    .LFourAlignedTailWrites
+
+    add    $48, %rcx
+    cmp    $0x80000, %rdx
+    jae    .L64xNT_Body
+
+.balign 16
+.L64x_Body:
+    movdqa %xmm1, (%rcx)
+    movdqa %xmm1, 16(%rcx)
+    movdqa %xmm1, 32(%rcx)
+    movdqa %xmm1, 48(%rcx)
+    add    $64, %rcx
+    cmp    %rax, %rcx
+    jb     .L64x_Body
+
+.LFourAlignedTailWrites:
+    movdqa %xmm1, (%rax) { T4 }
+    movdqa %xmm1, 16(%rax) { T3 }
+.LTwoAlignedTailWrites:
+    movdqa %xmm1, 32(%rax) { T2 }
+.LOneAlignedTailWrite:
+    movdqa %xmm1, 48(%rax) { T1 }
+    movdqu %xmm0, 49(%r8) { UT }
+    ret
+
+.balign 16
+.L64xNT_Body:
+    movntdq %xmm1, (%rcx)
+    movntdq %xmm1, 16(%rcx)
+    movntdq %xmm1, 32(%rcx)
+    movntdq %xmm1, 48(%rcx)
+    add    $64, %rcx
+    cmp    %rax, %rcx
+    jb     .L64xNT_Body
+    sfence
+    jmp    .LFourAlignedTailWrites
+end;
+{$endif FPC_SYSTEM_HAS_FILLxxxx}
+
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
   asm
 { win64: rcx dest, rdx count, r8b value
   linux: rdi dest, rsi count, rdx value }
+    movzbl {$ifdef win64} %r8b {$else} %dl {$endif}, %eax
+    imul   $0x01010101, %eax
 {$ifndef win64}
-    mov    %rdx, %r8
     mov    %rsi, %rdx
     mov    %rdi, %rcx
 {$endif win64}
 
-    mov    $0x01010101, %r9d
-    movzbl %r8b, %eax
-    imul   %r9d, %eax
-
-    cmp    $16, %rdx
-    jge    .LVecOrMore
     cmp    $3, %rdx
     jle    .L3OrLess
+    cmp    $16, %rdx
+    jl     .L4to15
 
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0
+    movdqu %xmm0, (%rcx)
+    movdqa %xmm0, %xmm1
+
+    cmp    $32, %rdx
+    jg     FillXxxx_MoreThanTwoXmms
+    movdqu %xmm0, -16(%rcx,%rdx)
+    ret
+
+.L4to15:
     mov    %eax, (%rcx)
     cmp    $8, %edx
     jle    .LLast4
@@ -325,81 +409,169 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     shr    $1, %edx
     mov    %al, (%rcx,%rdx)
 .LQuit:
-    ret
-
-.balign 16
-.LVecOrMore:
-    movd   %eax, %xmm0
-    pshufd $0, %xmm0, %xmm0
-
-    { x can start and end aligned or misaligned on the vector boundary:
-
-      x = [UH][H1][H2][...][T2][T1]
-      x = UH][H1][H2][...][T2][T1][UT
-
-      UH (“unaligned head”) is written, potentially overlapping with H1, with the 'movdqu'. Has 1–16 bytes.
-      H1 and so on are “heads”.
-      T1 and so on are “tails”.
-      UT (“unaligned tail”) is written with another 'movdqu' after the loop. Has 0–15 bytes. }
-
-    movdqu %xmm0, (%rcx)
-    lea    -64(%rcx,%rdx), %r8 { r8 = end of x - 64, loop bound }
-
-    cmp    $32, %rdx
-    jle    .LLastVec
-
-    and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
-    movdqa %xmm0, 16(%rcx) { Write H1. }
-    mov    %r8, %rax
-    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8. }
-    cmp    $48, %rdx { 33~48 bytes might contain 1~2 heads+tails; write as H1 and T1. }
-    jle    .LOneAlignedTailWrite
-    movdqa %xmm0, 32(%rcx) { Write H2. }
-    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
-    jle    .LTwoAlignedTailWrites
-    movdqa %xmm0, 48(%rcx) { Write H3. }
-    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1–3 and T3–1. }
-    jle    .LThreeAlignedTailWrites
-
-    add    $48, %rcx
-    cmp    $0x80000, %rdx
-    jae    .L64xNT_Body
-
-.balign 16
-.L64x_Body:
-    movdqa %xmm0, (%rcx)
-    movdqa %xmm0, 16(%rcx)
-    movdqa %xmm0, 32(%rcx)
-    movdqa %xmm0, 48(%rcx)
-    add    $64, %rcx
-    cmp    %r8, %rcx
-    jb     .L64x_Body
-
-.LLoopEnd:
-    movdqa %xmm0, (%rax)
-.LThreeAlignedTailWrites:
-    movdqa %xmm0, 16(%rax)
-.LTwoAlignedTailWrites:
-    movdqa %xmm0, 32(%rax)
-.LOneAlignedTailWrite:
-    movdqa %xmm0, 48(%rax)
-.LLastVec:
-    movdqu %xmm0, 48(%r8)
-    ret
-
-.balign 16
-.L64xNT_Body:
-    movntdq %xmm0, (%rcx)
-    movntdq %xmm0, 16(%rcx)
-    movntdq %xmm0, 32(%rcx)
-    movntdq %xmm0, 48(%rcx)
-    add    $64, %rcx
-    cmp    %r8, %rcx
-    jb     .L64xNT_Body
-    mfence
-    jmp    .LLoopEnd
   end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
+
+{$ifndef FPC_SYSTEM_HAS_FILLWORD}
+{$define FPC_SYSTEM_HAS_FILLWORD}
+procedure FillWord(var x;count:SizeInt;value:word);assembler;nostackframe;
+  asm
+{$ifdef win64}
+    movzwl %r8w, %eax
+    shl    $16, %r8d
+    or     %r8d, %eax
+{$else}
+    movzwl %dx, %eax
+    shl    $16, %edx
+    or     %edx, %eax
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif}
+
+    cmp    $3, %rdx
+    jle    .L3OrLess
+    cmp    $8, %rdx
+    jle    .L4to8
+
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+    movdqu %xmm0, (%rcx)
+
+    cmp    $16, %rdx
+    jle    .LTail
+
+    shl    $1, %rdx { rdx = byte count }
+    mov    %rcx, %r8
+    shl    $3, %ecx
+    rol    %cl, %eax { misalign the pattern by the misalignment of x }
+    mov    %r8, %rcx
+    movd   %eax, %xmm1
+    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    jmp    FillXxxx_MoreThanTwoXmms
+
+.LTail:
+    movdqu %xmm0, -16(%rcx,%rdx,2)
+    ret
+
+.L4to8:
+    mov    %eax, %r8d
+    shl    $32, %r8
+    or     %r8, %rax
+    mov    %rax, (%rcx)
+    mov    %rax, -8(%rcx,%rdx,2)
+    ret
+
+.L3OrLess:
+    test   %rdx, %rdx
+    jle    .LQuit
+    mov    %ax, (%rcx)
+    mov    %ax, -2(%rcx,%rdx,2)
+    shr    $1, %edx
+    mov    %ax, (%rcx,%rdx,2)
+.LQuit:
+  end;
+{$endif FPC_SYSTEM_HAS_FILLWORD}
+
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
+{$define FPC_SYSTEM_HAS_FILLDWORD}
+procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
+  asm
+{$ifdef win64}
+    mov    %r8d, %eax
+{$else}
+    mov    %edx, %eax
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif win64}
+
+    cmp    $3, %rdx
+    jle    .L3OrLess
+    cmp    $8, %rdx
+    jle    .L4to8
+
+    movd   %eax, %xmm0
+    pshufd $0, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+    movdqu %xmm0, (%rcx)
+
+    shl    $2, %rdx { rdx = byte count }
+    mov    %rcx, %r8
+    shl    $3, %ecx
+    rol    %cl, %eax { misalign the pattern by the misalignment of x }
+    mov    %r8, %rcx
+    movd   %eax, %xmm1
+    pshufd $0, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    jmp    FillXxxx_MoreThanTwoXmms
+
+.L4to8:
+{$ifndef win64} { on win64, eax = r8d already. }
+    mov    %eax, %r8d
+{$endif}
+    shl    $32, %r8
+    or     %r8, %rax
+    mov    %rax, (%rcx)
+    mov    %rax, 8(%rcx)
+    mov    %rax, -16(%rcx,%rdx,4)
+    mov    %rax, -8(%rcx,%rdx,4)
+    ret
+
+.L3OrLess:
+    test   %rdx, %rdx
+    jle    .LQuit
+    mov    %eax, (%rcx)
+    mov    %eax, -4(%rcx,%rdx,4)
+    shr    $1, %edx
+    mov    %eax, (%rcx,%rdx,4)
+.LQuit:
+  end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
+
+{$ifndef FPC_SYSTEM_HAS_FILLQWORD}
+{$define FPC_SYSTEM_HAS_FILLQWORD}
+procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
+  asm
+{$ifdef win64}
+    mov    %r8, %rax
+{$else}
+    mov    %rdx, %rax
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif win64}
+
+    cmp    $2, %rdx
+    jle    .L2OrLess
+    cmp    $6, %rdx
+    jle    .L3to6
+
+    movq   %rax, %xmm0
+    pshufd $0b01000100, %xmm0, %xmm0 { xmm0 = pattern for unaligned writes }
+    movdqu %xmm0, (%rcx)
+
+    shl    $3, %rdx { rdx = byte count }
+    mov    %rcx, %r8
+    shl    $3, %ecx
+    rol    %cl, %rax { misalign the pattern by the misalignment of x }
+    mov    %r8, %rcx
+    movq   %rax, %xmm1
+    pshufd $0b01000100, %xmm1, %xmm1 { xmm1 = pattern for aligned writes }
+    jmp    FillXxxx_MoreThanTwoXmms
+
+.L3to6:
+    mov    %rax, (%rcx)
+    mov    %rax, 8(%rcx)
+    mov    %rax, 16(%rcx)
+    mov    %rax, -24(%rcx,%rdx,8)
+    mov    %rax, -16(%rcx,%rdx,8)
+    mov    %rax, -8(%rcx,%rdx,8)
+    ret
+
+.L2OrLess:
+    test   %rdx, %rdx
+    jle    .LQuit
+    mov    %rax, (%rcx)
+    mov    %rax, -8(%rcx,%rdx,8)
+.LQuit:
+  end;
+{$endif FPC_SYSTEM_HAS_FILLQWORD}
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
