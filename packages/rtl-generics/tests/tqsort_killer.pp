@@ -1,4 +1,5 @@
 {$mode objfpc} {$h+} {$typedaddress on} {$modeswitch advancedrecords} {$coperators on} {$modeswitch anonymousfunctions}
+{$modeswitch duplicatelocals}
 
 uses
 	SysUtils, Generics.Collections, Generics.Defaults;
@@ -14,16 +15,62 @@ var
 	end;
 
 type
+	generic TTracingComparer<Ty> = class(specialize TComparer<Ty>)
+		orig: specialize IComparer<Ty>;
+		count: uint64;
+		constructor Create(const orig: specialize IComparer<Ty>);
+		function Compare(const a, b: Ty): integer; override;
+	end;
+
+	constructor TTracingComparer.Create(const orig: specialize IComparer<Ty>);
+	begin
+		inherited Create;
+		self.orig := orig;
+	end;
+
+	function TTracingComparer.Compare(const a, b: Ty): integer;
+	begin
+		result := orig.Compare(a, b);
+		count += 1;
+	end;
+
+type
+	// https://igoro.com/archive/quicksort-killer/
+	// Will work against wide range of qsort implementations.
+	TQSortKillerComparer = class(specialize TComparer<SizeInt>)
+		keys: array of int32; { TDictionary is a lot slower... }
+		candidate, nKeys: int32;
+		constructor Create(arrayLen: SizeInt);
+		function Compare(const a, b: SizeInt): integer; override;
+	end;
+
+	constructor TQSortKillerComparer.Create(arrayLen: SizeInt);
+	begin
+		inherited Create;
+		SetLength(keys, arrayLen);
+		FillChar(pInt32(keys)^, length(keys) * sizeof(keys[0]), byte(-1));
+	end;
+
+	function TQSortKillerComparer.Compare(const a, b: SizeInt): integer;
+	begin
+		if keys[a] and keys[b] < 0 then
+		begin
+			if a = candidate then keys[a] := nKeys else keys[b] := nKeys;
+			nKeys += 1;
+		end;
+		if keys[a] < 0 then begin candidate := a; exit(1); end;
+		if keys[b] < 0 then begin candidate := b; exit(-1); end;
+		result := keys[a] - keys[b];
+	end;
+
+type
 	generic SortBenchmark<Ty> = record
 	type
 		CreateProc = function(id: SizeUint): Ty;
 		TyArray = array of Ty;
 
 		class procedure Run(create: CreateProc; const tyPlural: string; lenMul: double); static;
-		class procedure BenchSort(const src, ref: array of Ty; var prevTime: double); static;
-
-		// Built against specific QSort implementation that uses median of 3 elements: L, R, and (L + R + 1) div 2,
-		// and WON'T KILL ANY OTHER.
+		class procedure BenchSort(const src, ref: array of Ty; var prevComparisons: uint64); static;
 		// 'ref' must be sorted and contain no duplicates.
 		class function BuildQSortKiller(const ref: array of Ty): TyArray; static;
 	end;
@@ -39,14 +86,14 @@ type
 		cmp: specialize IComparer<Ty>;
 		srcOrder: OrderEnum;
 		msg: string;
-		prevTime: double;
+		prevComparisons: uint64;
 	begin
 		writeln('--- ', tyPlural, ' ---', LineEnding);
 
 		for srcOrder in OrderEnum do
 		begin
 			writeln('Order: ', OrderNames[srcOrder], '.');
-			prevTime := -1;
+			prevComparisons := uint64(-1);
 			for lenBase in specialize TArray<SizeInt>.Create(10 * 1000, 20 * 1000, 40 * 1000) do
 			begin
 				len := round(lenMul * lenBase);
@@ -79,7 +126,7 @@ type
 
 				WriteStr(msg, 'n = ', len, ': ');
 				write(msg.PadRight(12));
-				BenchSort(src, ref, prevTime);
+				BenchSort(src, ref, prevComparisons);
 			end;
 			writeln;
 		end;
@@ -88,62 +135,50 @@ type
 	class function SortBenchmark.BuildQSortKiller(const ref: array of Ty): TyArray;
 	var
 		ris: array of SizeInt;
-		i, nr: SizeInt;
+		i: SizeInt;
+		cmpRef: specialize IComparer<SizeInt>;
 	begin
-		SetLength((@ris)^, length(ref)); // Swaps that QSort would perform are tracked here, to build the worst case possible. >:3
+		SetLength((@ris)^, length(ref));
 		for i := 0 to High(ris) do ris[i] := i;
-
+		cmpRef := TQSortKillerComparer.Create(length(ref));
+		specialize TArrayHelper<SizeInt>.Sort(ris, cmpRef);
 		SetLength((@result)^, length(ref));
-		i := 0; nr := length(ref);
-		while i < nr do
-		begin
-			result[ris[i]] := ref[i];
-			if i + 1 = nr then break;
-			specialize Swap<SizeInt>(ris[i + 1], ris[i + SizeInt(SizeUint(nr - i) div 2)]);
-			result[ris[i + 1]] := ref[i + 1];
-			i += 2;
-		end;
+		for i := 0 to High(result) do result[ris[i]] := ref[i];
 	end;
 
-	class procedure SortBenchmark.BenchSort(const src, ref: array of Ty; var prevTime: double);
+	class procedure SortBenchmark.BenchSort(const src, ref: array of Ty; var prevComparisons: uint64);
 	var
 		arr: TyArray;
-		startTime: TDateTime;
-		time, timePassed: double;
 		i: SizeInt;
-		reps: cardinal;
+		cmp: specialize TTracingComparer<Ty>;
+		cmpRef: specialize IComparer<Ty>;
+		prevCount: uint64;
 	begin
-		startTime := Now;
-		reps := 0;
-		repeat
-			arr := Copy(src);
-			specialize TArrayHelper<Ty>.Sort(arr);
-			timePassed := (Now - startTime) * SecsPerDay;
-			reps += 1;
-		until not (timePassed < 3);
+		cmp := specialize TTracingComparer<Ty>.Create(specialize TComparer<Ty>.Default);
+		cmpRef := cmp;
 
-		time := timePassed / reps;
-		write(time * 1e3:0:1, ' ms/sort');
-		if prevTime > 0 then write(' (', time / prevTime:0:1, 'x from previous)');
-		if (prevTime > 0) and (time / prevTime > 3) then
-		  begin
-		    writeln;
-		    writeln('Potentially bad sorting algorithm behaviour');
-			{ causes too many false negative
-			halt(1);
-			}
-		  end;
-		prevTime := time;
-		write(', ');
+		arr := Copy(src);
+		specialize TArrayHelper<Ty>.Sort(arr, cmpRef);
+		prevCount := prevComparisons;
+		prevComparisons := cmp.count;
+		write(cmp.count, ' comparisons');
+		if prevCount <> uint64(-1) then write(' (', cmp.count / prevCount:0:1, 'x from previous)');
 
 		for i := 0 to High(ref) do
 			if arr[i] <> ref[i] then
 			begin
-				writeln('FAIL @ ', i, ' / ', length(ref));
+				writeln(', FAIL @ ', i, ' / ', length(ref));
 				anythingWrong := true;
 				exit;
 			end;
-		writeln('OK');
+
+		if (prevCount <> uint64(-1)) and (cmp.count > 2 * prevCount + prevCount div 2 + 5 * length(src) + 1000) then
+		begin
+			writeln(', potentially bad sorting algorithm behaviour');
+			anythingWrong := true;
+			exit;
+		  end;
+		writeln(', OK');
 	end;
 
 begin
@@ -166,7 +201,7 @@ begin
 
 	if anythingWrong then
 	begin
-		writeln(LineEnding, 'Something was wrong, see above.');
+		writeln('Something was wrong, see above.');
 		halt(2);
 	end;
 end.
