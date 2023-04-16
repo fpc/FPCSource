@@ -3561,7 +3561,8 @@ type
                  begin
                    c:=inputpointer^;
                    { eat utf-8 signature? }
-                   if (ord(inputpointer^)=$ef) and
+                   if (bufsize>2) and
+                     (ord(inputpointer^)=$ef) and
                      (ord((inputpointer+1)^)=$bb) and
                      (ord((inputpointer+2)^)=$bf) then
                      begin
