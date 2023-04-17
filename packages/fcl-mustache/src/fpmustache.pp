@@ -1147,7 +1147,7 @@ begin
     begin
     PartialPrefix := '';
     NewPos:=Pos(cStart,aTemplate,Current);
-    IsStandalone := CheckStandalone;
+    IsStandalone := (NewPos>0) and CheckStandalone;
     if NewPos=0 then
       NewPos:=Total+1;
     // Stash what we have till now.
