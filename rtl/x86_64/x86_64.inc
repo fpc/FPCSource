@@ -337,10 +337,10 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
       x = [UH][H1][H2][...][T2][T1]
       x = UH][H1][H2][...][T2][T1][UT
 
-      UH ("unaligned head") is written, potentially overlapping with H1, with the 'movdqu'. Has 1–16 bytes.
-      H1 and so on are “heads”.
-      T1 and so on are “tails”.
-      UT ("unaligned tail") is written with another 'movdqu' after the loop. Has 0–15 bytes. }
+      UH (â€œunaligned headâ€) is written, potentially overlapping with H1, with the 'movdqu'. Has 1â€“16 bytes.
+      H1 and so on are â€œheadsâ€.
+      T1 and so on are â€œtailsâ€.
+      UT (â€œunaligned tailâ€) is written with another 'movdqu' after the loop. Has 0â€“15 bytes. }
 
     movdqu %xmm0, (%rcx)
     lea    -64(%rcx,%rdx), %r8 { r8 = end of x - 64, loop bound }
@@ -351,14 +351,14 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     and    $-16, %rcx { align rcx to the LEFT (so needs to be offset by an additional +16 for a while). }
     movdqa %xmm0, 16(%rcx) { Write H1. }
     mov    %r8, %rax
-    and    $-16, %rax { rax = “T4” (possibly fictive) = aligned r8. }
+    and    $-16, %rax { rax = â€œT4â€ (possibly fictive) = aligned r8. }
     cmp    $48, %rdx { 33~48 bytes might contain 1~2 heads+tails; write as H1 and T1. }
     jle    .LOneAlignedTailWrite
     movdqa %xmm0, 32(%rcx) { Write H2. }
-    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1–2 and T2–1. }
+    cmp    $80, %rdx  { 49~80 bytes might contain 2~4 heads+tails; write as H1â€“2 and T2â€“1. }
     jle    .LTwoAlignedTailWrites
     movdqa %xmm0, 48(%rcx) { Write H3. }
-    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1–3 and T3–1. }
+    cmp    $112, %rdx  { 81~112 bytes might contain 4~6 heads+tails; write as H1â€“3 and T3â€“1. }
     jle    .LThreeAlignedTailWrites
 
     add    $48, %rcx
