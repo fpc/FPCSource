@@ -257,7 +257,6 @@ type
 
     procedure writetree(p: presobject);
     var
-     i : integer;
      localp: presobject;
      localp1: presobject;
      currentlevel : integer;
