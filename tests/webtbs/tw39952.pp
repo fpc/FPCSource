@@ -9,6 +9,12 @@ type
     rec : array[1..REC_SIZE] of int64;
   end;
 
+  tunaligned = packed record
+    x, y : byte;
+    a, b : int64;
+    c,d : qword;
+  end;
+
 const
   x_val = 45634;
   b_val = 56;
@@ -21,11 +27,17 @@ const
     rec : (rec1_val,rec2_val,rec3_val)
   );
 
+const
+  has_errors : boolean = false;
 
 var
   i : longint;
-const
-  has_errors : boolean = false;
+  tu : tunaligned;
+  ia,ib : int64;
+  uc,ud : qword;
+
+{$R-}
+{$Q-}
 
 begin
   writeln('t.x=',t.x);
@@ -59,6 +71,45 @@ begin
   if (t.rec[3] <> rec3_val) then
     begin
       writeln('t.rec[3] field is wrong');
+      has_errors:=true;
+    end;
+
+  with tu do
+    begin
+      a:=$0123456789ABCDEF;
+      ia:=a;
+      b:=swapendian(a);
+      ib:=swapendian(ia);
+      writeln('a=',hexstr(a,2*sizeof(a)));
+      writeln('b=',hexstr(b,2*sizeof(b)));
+      writeln('ib=',hexstr(ib,2*sizeof(ib)));
+      if (b<>ib) then
+        begin
+          writeln('b<>ib!!');
+          has_errors:=true;
+        end;
+      c:=$F123456789ABCDEF;
+      uc:=c;
+      d:=swapendian(c);
+      ud:=swapendian(uc);
+      writeln('c=',hexstr(c,2*sizeof(c)));
+      writeln('d=',hexstr(d,2*sizeof(d)));
+      writeln('ud=',hexstr(ud,2*sizeof(ud)));
+      if (d<>ud) then
+        begin
+          writeln('d<>ud!!');
+          has_errors:=true;
+        end;
+    end;
+  if (tu.a<>ia) then
+    begin
+      writeln('tu.a is different from ia');
+      has_errors:=true;
+    end;
+
+  if (tu.c<>uc) then
+    begin
+      writeln('tu.c is different from uc');
       has_errors:=true;
     end;
 
