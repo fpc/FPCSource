@@ -22,10 +22,21 @@ var
   BSS_START: record end; external name '__bss_start';
   STACK_PTR: record end; external name '__stkptr';
 
-  uclibc_init : TProcedure; external name '_init';
-  uclibc_fini : TProcedure; external name '_fini';
+  //uclibc_init : TProcedure; external name '_init';
+  //uclibc_fini : TProcedure; external name '_fini';
   procedure uclibc_exit(e : longint); weakexternal name 'exit';
   procedure uclibc_main(main : TProcedure; argc : longint; argv : ppchar; init : TProcedure;  fini : TProcedure; sp : pointer); external name '__uClibc_main';
+
+
+procedure uclibc_init; public name '_init'; assembler; nostackframe;
+  asm
+    entry a1, 48
+  end;
+
+procedure uclibc_fini; public name '_fini'; assembler; nostackframe;
+  asm
+    entry a1, 48
+  end;
 
 procedure _FPC_xtensa_enter(at_exit: TProcedure; sp: pptruint);
   var
