@@ -268,6 +268,13 @@ begin
   FPenPos:=AValue;
 end;
 
+procedure TFPCustomCanvas.SetClipRegion(const AValue: TFPCustomRegion);
+begin
+  if AValue = FClipRegion then exit;
+  FClipRegion.Free;
+  FClipRegion := AValue;
+end;
+
 function TFPCustomCanvas.DoAllowPen (APen : TFPCustomPen) : boolean;
 begin
   result := false;
