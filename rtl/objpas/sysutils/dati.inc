@@ -992,6 +992,14 @@ var
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
+  function FullDays(ADateTime: TDateTime): Integer;
+  begin
+    if ADateTime < 0 then ADateTime := -ADateTime;
+    Result := trunc(ADateTime);
+    if (frac(ADateTime) > 0.9) and (Hour = 0) and (Minute = 0) and (Second = 0) and (Millisecond = 0) then
+      inc(Result);
+  end;
+
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
     Token, lastformattoken, prevlasttoken: char;
@@ -1097,7 +1105,7 @@ var
             end;
             'M': begin
               if isInterval and ((prevlasttoken = 'H') or TimeFlag) then
-                StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
+                StoreInt(Minute + (Hour + FullDays(DateTime)*24)*60, 0)
               else
               if (lastformattoken = 'H') or TimeFlag then
               begin
@@ -1130,7 +1138,7 @@ var
             end ;
             'H':
               if isInterval then
-                StoreInt(Hour + trunc(abs(DateTime))*24, Count)
+                StoreInt(Hour + FullDays(DateTime)*24, Count)
               else
               if Clock12 then
               begin
@@ -1148,14 +1156,14 @@ var
                   StoreInt(Hour, 2);
               end;
             'N': if isInterval then
-                   StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, Count)
+                   StoreInt(Minute + (Hour + FullDays(DateTime)*24)*60, Count)
                  else
                  if Count = 1 then
                    StoreInt(Minute, 0)
                  else
                    StoreInt(Minute, 2);
             'S': if isInterval then
-                   StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, Count)
+                   StoreInt(Second + (Minute + (Hour + FullDays(DateTime)*24)*60)*60, Count)
                  else
                  if Count = 1 then
                    StoreInt(Second, 0)
@@ -1237,6 +1245,8 @@ begin
     StoreFormat('C', 0, False);
   ResultBuffer[ResultLen] := #0;
   result := StrPas(@ResultBuffer[0]);
+  if (DateTime < 0) and (fdoInterval in Options) then
+    result := '-' + result;
 end ;
 
 
