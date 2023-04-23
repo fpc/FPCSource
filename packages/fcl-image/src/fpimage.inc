@@ -463,7 +463,7 @@ Procedure TFPCustomImage.Assign(Source: TPersistent);
 
 Var
   Src : TFPCustomImage;
-  X,Y : Integer;
+  x,y : Integer;
 
 begin
   If Source is TFPCustomImage then
@@ -482,13 +482,13 @@ begin
     // Copy image.
     SetSize(Src.Width,Src.height);
     If UsePalette then
-      For x:=0 to Src.Width-1 do
-        For y:=0 to src.Height-1 do
-          pixels[X,Y]:=src.pixels[X,Y]
+      For y:=0 to src.Height-1 do
+        For x:=0 to Src.Width-1 do
+          pixels[x,y]:=src.pixels[x,y]
     else
-      For x:=0 to Src.Width-1 do
-        For y:=0 to src.Height-1 do
-          self[X,Y]:=src[X,Y];
+      For y:=0 to src.Height-1 do
+        For x:=0 to Src.Width-1 do
+          self[x,y]:=src[x,y];
     end
   else
     Inherited Assign(Source);
