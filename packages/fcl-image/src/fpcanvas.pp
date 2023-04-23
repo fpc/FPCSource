@@ -284,6 +284,7 @@ type
     function  GetClipping: boolean; virtual;
     procedure SetClipping(const AValue: boolean); virtual;
     procedure SetPenPos(const AValue: TPoint); virtual;
+    procedure SetClipRegion(const AValue: TFPCustomRegion);
     procedure DoLockCanvas; virtual;
     procedure DoUnlockCanvas; virtual;
     procedure DoTextOut (x,y:integer;text:string); virtual; abstract;
@@ -384,7 +385,7 @@ type
     property Interpolation : TFPCustomInterpolation read FInterpolation write FInterpolation;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
     property ClipRect : TRect read GetClipRect write SetClipRect;
-    property ClipRegion : TFPCustomRegion read FClipRegion write FClipRegion;
+    property ClipRegion : TFPCustomRegion read FClipRegion write SetClipRegion;
     property Clipping : boolean read GetClipping write SetClipping;
     property PenPos : TPoint read FPenPos write SetPenPos;
     property Height : integer read GetHeight write SetHeight;
