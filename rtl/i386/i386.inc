@@ -845,7 +845,6 @@ function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt; forward;
 
 var
   IndexByte_Impl: function(const buf;len:SizeInt;b:byte):SizeInt = @IndexByte_Dispatch;
-{$define has_i386_IndexByte_Impl} { used in assembler to manually inline IndexByte }
 
 function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt;
 begin
@@ -1835,8 +1834,10 @@ end;
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring);assembler;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
-  var
-   saveesi,saveedi : longint;
+{$ifndef FPC_PROFILE}
+  nostackframe;
+{$endif}
+  { eax = res, edx = high(res), ecx = sstr }
   asm
   {$ifdef FPC_PROFILE}
         push  %eax
@@ -1847,40 +1848,26 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
         pop   %edx
         pop   %eax
   {$endif FPC_PROFILE}
-        movl    %edi,saveedi
-        movl    %esi,saveesi
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    res,%edi
-        movl    sstr,%esi
-        movl    %edx,%ecx
-        xorl    %eax,%eax
-        lodsb
-        cmpl    %ecx,%eax
-        jbe     .LStrCopy1
-        movl    %ecx,%eax
-.LStrCopy1:
-        stosb
-        cmpl    $7,%eax
-        jl      .LStrCopy2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        rep
-        movsb
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        rep
-        movsl
-.LStrCopy2:
-        movl    %eax,%ecx
-        rep
-        movsb
-        movl    saveedi,%edi
-        movl    saveesi,%esi
+        cmp     (%ecx), %dl { length(sstr) fits into res? }
+        jbe     .LEdxIsLen { use high(res) if length(sstr) does not fit }
+        movzbl  (%ecx), %edx { use length(sstr) }
+.LEdxIsLen:
+        mov     %dl, (%eax) { store length to res[0] }
+        xchg    %ecx, %edx { ecx = length = Move count, edx = sstr }
+        xchg    %eax, %edx { eax = sstr = Move src, edx = res = Move dest }
+        inc     %eax
+        inc     %edx
+{$ifdef FPC_PROFILE}
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        lea     -8(%esp), %esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
+        call    Move
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        lea     8(%esp), %esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
+{$else FPC_PROFILE}
+        jmp     Move
+{$endif FPC_PROFILE}
   end;
 
 
@@ -1940,8 +1927,7 @@ end;
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 function fpc_shortstr_compare(const left,right:shortstring): longint;assembler; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
-var
-  saveesi,saveedi,saveebx : longint;
+{ eax = left, edx = right }
 asm
 {$ifdef FPC_PROFILE}
         push  %eax
@@ -1952,61 +1938,56 @@ asm
         pop   %edx
         pop   %eax
 {$endif FPC_PROFILE}
-        movl    %edi,saveedi
-        movl    %esi,saveesi
-        movl    %ebx,saveebx
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        movl    right,%esi
-        movl    left,%edi
-        movzbl  (%esi),%eax
-        movzbl  (%edi),%ebx
-        movl    %eax,%edx
-        incl    %esi
-        incl    %edi
-        cmpl    %ebx,%eax
-        jbe     .LStrCmp1
-        movl    %ebx,%eax
-.LStrCmp1:
-        cmpl    $7,%eax
-        jl      .LStrCmp2
-        movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx
-        andl    $3,%ecx
-        subl    %ecx,%eax
-        orl     %ecx,%ecx
-        repe
-        cmpsb
-        jne     .LStrCmp3
-        movl    %eax,%ecx
-        andl    $3,%eax
-        shrl    $2,%ecx
-        orl     %ecx,%ecx
-        repe
-        cmpsl
-        je      .LStrCmp2
-        movl    $4,%eax
-        subl    %eax,%esi
-        subl    %eax,%edi
-.LStrCmp2:
-        movl    %eax,%ecx
-        orl     %eax,%eax
-        repe
-        cmpsb
-        je      .LStrCmp4
-.LStrCmp3:
-        movzbl  -1(%esi),%edx      // Compare failing (or equal) position
-        movzbl  -1(%edi),%ebx
-.LStrCmp4:
-        movl    %ebx,%eax          // Compare length or position
-        subl    %edx,%eax
-        movl    saveedi,%edi
-        movl    saveesi,%esi
-        movl    saveebx,%ebx
+        push    %ebx
+        movzbl  (%eax), %ecx { ecx = len(left) }
+        movzbl  (%edx), %ebx { ebx = len(right) }
+        cmp     %ebx, %ecx
+{$ifdef CPUX86_HAS_CMOV}
+        cmovg   %ebx, %ecx
+{$else}
+        jle     .LEcxIsLen
+        mov     %ebx, %ecx
+.LEcxIsLen:
+{$endif}
+        push    %eax { save left }
+        inc     %eax
+        inc     %edx
+        { stack is already aligned to 16 bytes if required: return address + push ebp + push ebx + push eax. }
+{$if defined(FPC_PIC) or not declared(CompareByte_Impl)}
+        call    CompareByte
+{$else}
+        call    CompareByte_Impl { manually inline CompareByte }
+{$endif}
+        pop     %edx { restore left }
+        test    %eax, %eax
+        jnz     .LReturn
+        movzbl  (%edx), %eax
+        sub     %ebx, %eax
+.LReturn:
+        pop     %ebx
 end;
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
+function fpc_shortstr_compare_equal(const left,right:shortstring) : longint;assembler;nostackframe; [public,alias:'FPC_SHORTSTR_COMPARE_EQUAL']; compilerproc; nostackframe;
+{ eax = left, edx = right }
+asm
+        movzbl  (%eax), %ecx
+        cmp     (%edx), %cl
+        jne     .LNotEqual
+        inc     %eax
+        inc     %edx
+{$if defined(FPC_PIC) or not declared(CompareByte_Impl)}
+        jmp     CompareByte
+{$else}
+        jmp     CompareByte_Impl { manually inline CompareByte }
+{$endif}
+.LNotEqual:
+        or      $-1, %eax
+end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -2041,7 +2022,7 @@ asm
 {$if defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
         leal    -12(%esp), %esp
 {$endif defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
-{$if defined(FPC_PIC) or not defined(has_i386_IndexByte_Impl)}
+{$if defined(FPC_PIC) or not declared(IndexByte_Impl)}
         call    IndexByte
 {$else}
         call    IndexByte_Impl { manually inline IndexByte }
@@ -2082,8 +2063,6 @@ asm
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-
-{$undef has_i386_IndexByte_Impl} { no longer required }
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
