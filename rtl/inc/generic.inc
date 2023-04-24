@@ -951,8 +951,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 var
-   s1,s2,max,i : byte;
-   d : ObjpasInt;
+   s1,s2,max : byte;
 begin
   s1:=length(left);
   s2:=length(right);
@@ -960,20 +959,10 @@ begin
     max:=s1
   else
     max:=s2;
-  for i:=1 to max do
-    begin
-     d:=byte(left[i])-byte(right[i]);
-     if d>0 then
-       exit(1)
-     else if d<0 then
-       exit(-1);
-    end;
-  if s1>s2 then
-    exit(1)
-  else if s1<s2 then
-    exit(-1)
-  else
-    exit(0);
+  result:=CompareByte(left[1],right[1],max);
+  if result=0 then
+    result:=s1-s2;
+  result:=ord(result>0)-ord(result<0);
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 

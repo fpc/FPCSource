@@ -127,25 +127,21 @@ end;
 {$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
 function pos(const substr : shortstring;const s : shortstring; Offset : Sizeint = 1):SizeInt;
 var
-  i,MaxLen : SizeInt;
-  pc : PAnsiChar;
+  i,MaxLen,d : SizeInt;
 begin
   Pos:=0;
   if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(S)) then
    begin
-     MaxLen:=sizeint(Length(s))-Length(SubStr);
-     i:=Offset-1;
-     pc:=@s[Offset];
+     MaxLen:=sizeint(Length(s))-Length(SubStr)+1;
+     i:=Offset;
      while (i<=MaxLen) do
       begin
-        inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareChar(Substr[1],pc^,Length(SubStr))=0) then
-         begin
-           Pos:=i;
-           exit;
-         end;
-        inc(pc);
+        d:=IndexByte(s[i],MaxLen-i+1,byte(substr[1]));
+        if d<0 then
+          exit;
+        if (CompareByte(Substr[1],s[i+d],Length(SubStr))=0) then
+          exit(i+d);
+        i:=i+d+1;
       end;
    end;
 end;
@@ -157,23 +153,14 @@ end;
 {Faster when looking for a single AnsiChar...}
 function pos(c:ansichar;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
 var
-  i : SizeInt;
-  pc : PAnsiChar;
+  idx : SizeInt;
 begin
   Pos:=0;
   if (Offset<1) or (Offset>Length(S)) then
     exit;
-  pc:=@s[Offset];
-  for i:=Offset to length(s) do
-   begin
-     if pc^=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
-  pos:=0;
+  idx:=IndexByte(s[Offset],length(s)-Offset+1,byte(c));
+  if idx>=0 then
+    Pos:=Offset+idx;
 end;
 {$endif FPC_HAS_SHORTSTR_POS_CHAR}
 
