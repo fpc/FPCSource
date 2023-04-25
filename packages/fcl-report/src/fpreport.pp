@@ -9967,8 +9967,8 @@ var
   x, y: Integer;
 begin
   Result := True;
-  for x := 0 to Image.Width-1 do
-    for y := 0 to Image.Height-1 do
+  for y := 0 to Image.Height-1 do
+    for x := 0 to Image.Width-1 do
       if Image.Pixels[x, y] <> AImage.Pixels[x, y] then
       begin
         Result := False;

@@ -172,19 +172,21 @@ type
 
 procedure TFPImageFriend.ReversePixelColorOrder;
 var
-  x, y: UInt32;
+  p, x, y: UInt32;
   v: TFPCompactImgRGBA8BitValue;
   n: TFPCompactImgRGBA8BitValue;
+
 begin
-  for x := 0 to Width-1 do
-    for y := 0 to Height-1 do
+  for y := 0 to Height-1 do
+    for x := 0 to Width-1 do
     begin
-      v := FData[x+y*Width];
+      p:=x+y*Width;
+      v := FData[p];
       n.b := v.r;
       n.g := v.g;
       n.r := v.b;
       n.a := v.a;
-      FData[x+y*Width] := n;
+      FData[p] := n;
     end;
 end;
 

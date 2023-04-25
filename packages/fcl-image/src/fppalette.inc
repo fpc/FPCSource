@@ -38,8 +38,8 @@ begin
   if (Img.Palette <> self) then
     begin
     Count := 0;
-    for x := 0 to img.width-1 do
-      for y := 0 to img.height-1 do
+    for y := 0 to img.height-1 do
+      for x := 0 to img.width-1 do
         IndexOf(img[x,y]);
     end;
 end;

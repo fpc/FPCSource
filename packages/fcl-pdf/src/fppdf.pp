@@ -3154,8 +3154,8 @@ begin
   if not Result then
     Exit;
 
-  for x := 0 to Image.Width-1 do
-    for y := 0 to Image.Height-1 do
+  for y := 0 to Image.Height-1 do
+    for x := 0 to Image.Width-1 do
       if Image.Colors[x, y] <> AImage.Colors[x, y] then
       begin
         Result := False;
