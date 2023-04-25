@@ -108,8 +108,8 @@ begin
          vga_drawline(x, y, x, y + yw - 1);
          end;
 
-       for x := 0 to 63 do
-         for y := 0 to 63 do
+       for y := 0 to 63 do
+         for x := 0 to 63 do
              begin
              vga_setrgbcolor(x * 4 + 3, y * 4 + 3, 0);
              vga_drawpixel(xmax div 2 - 160 + x, y + ymax div 2 - 80);
