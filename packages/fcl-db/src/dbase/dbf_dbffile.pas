@@ -117,16 +117,16 @@ type
 
     // Write out field definitions to header etc.
     procedure FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
-    function GetIndexByName(AIndexName: string): TIndexFile;
+    function GetIndexByName(const AIndexName: string): TIndexFile;
     procedure SetRecordSize(NewSize: Integer); override;
 
     procedure TryExclusive; override;
     procedure EndExclusive; override;
-    procedure OpenIndex(IndexName, IndexField: string; CreateIndex: Boolean; Options: TIndexOptions);
+    procedure OpenIndex(const IndexName, IndexField: string; CreateIndex: Boolean; Options: TIndexOptions);
     function  DeleteIndex(const AIndexName: string): Boolean;
-    procedure CloseIndex(AIndexName: string);
-    procedure RepageIndex(AIndexFile: string);
-    procedure CompactIndex(AIndexFile: string);
+    procedure CloseIndex(const AIndexName: string);
+    procedure RepageIndex(const AIndexFile: string);
+    procedure CompactIndex(const AIndexFile: string);
 
     // Inserts new record
     function  Insert(Buffer: TRecordBuffer): integer;
@@ -136,8 +136,8 @@ type
     procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer); virtual;
     procedure FastPackTable;
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
-    procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
-    function  GetFieldInfo(FieldName: string): TDbfFieldDef;
+    procedure Rename(const DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
+    function  GetFieldInfo(const FieldName: string): TDbfFieldDef;
     // Copies record buffer to field buffer
     // Returns true if not null & data succesfully copied; false if field is null
     function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; 
@@ -150,7 +150,7 @@ type
     procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
     // Fill DestBuf with default field data
     procedure InitRecord(DestBuf: TRecordBuffer);
-    procedure PackIndex(lIndexFile: TIndexFile; AIndexName: string);
+    procedure PackIndex(lIndexFile: TIndexFile; const AIndexName: string);
     procedure RegenerateIndexes;
     procedure LockRecord(RecNo: Integer; Buffer: TRecordBuffer);
     procedure UnlockRecord(RecNo: Integer; Buffer: TRecordBuffer);
@@ -269,7 +269,7 @@ const
 //====================================================================
 // International separator
 // thanks to Bruno Depero from Italy
-// and Andreas Wöllenstein from Denmark
+// and Andreas W\F6llenstein from Denmark
 //====================================================================
 function DbfStrToFloat(const Src: PChar; const Size: Integer): Extended;
 var
@@ -1487,7 +1487,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
+procedure TDbfFile.Rename(const DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
 var
   lIndexFileNames: TStrings;
   lIndexFile: TIndexFile;
@@ -1794,16 +1794,17 @@ begin
   end;
 end;
 
-function TDbfFile.GetFieldInfo(FieldName: string): TDbfFieldDef;
+function TDbfFile.GetFieldInfo(const FieldName: string): TDbfFieldDef;
 var
   I: Integer;
   lfi: TDbfFieldDef;
+  FN : String;
 begin
-  FieldName := AnsiUpperCase(FieldName);
+  FN := AnsiUpperCase(FieldName);
   for I := 0 to FFieldDefs.Count-1 do
   begin
     lfi := TDbfFieldDef(FFieldDefs.Items[I]);
-    if lfi.fieldName = FieldName then
+    if lfi.fieldName = FN then
     begin
       Result := lfi;
       exit;
@@ -2603,7 +2604,7 @@ begin
   inherited;
 end;
 
-procedure TDbfFile.OpenIndex(IndexName, IndexField: string; CreateIndex: Boolean; Options: TIndexOptions);
+procedure TDbfFile.OpenIndex(const IndexName, IndexField: string; CreateIndex: Boolean; Options: TIndexOptions);
   //
   // assumes IndexName is not empty
   //
@@ -2621,6 +2622,8 @@ var
   tempExclusive: boolean;
   addedIndexFile: Integer;
   addedIndexName: Integer;
+  Tmp : String;
+
 begin
   // init
   addedIndexFile := -1;
@@ -2713,11 +2716,11 @@ begin
       tempExclusive := IsSharedAccess;
       if tempExclusive then TryExclusive;
       // always uppercase index expression
-      IndexField := AnsiUpperCase(IndexField);
+      Tmp := AnsiUpperCase(IndexField);
       try
         try
           // create index if asked
-          lIndexFile.CreateIndex(IndexField, IndexName, Options);
+          lIndexFile.CreateIndex(Tmp, IndexName, Options);
           // add all records
           PackIndex(lIndexFile, IndexName);
           // if we wanted to open index readonly, but we created it, then reopen
@@ -2760,7 +2763,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.PackIndex(lIndexFile: TIndexFile; AIndexName: string);
+procedure TDbfFile.PackIndex(lIndexFile: TIndexFile; const AIndexName: string);
 var
   prevMode: TIndexUpdateMode;
   prevIndex: string;
@@ -2825,7 +2828,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.RepageIndex(AIndexFile: string);
+procedure TDbfFile.RepageIndex(const AIndexFile: string);
 var
   lIndexNo: Integer;
 begin
@@ -2846,7 +2849,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.CompactIndex(AIndexFile: string);
+procedure TDbfFile.CompactIndex(const AIndexFile: string);
 var
   lIndexNo: Integer;
 begin
@@ -2867,7 +2870,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.CloseIndex(AIndexName: string);
+procedure TDbfFile.CloseIndex(const AIndexName: string);
 var
   lIndexNo: Integer;
   lIndex: TIndexFile;
@@ -3179,7 +3182,7 @@ begin
   inherited;
 end;
 
-function TDbfFile.GetIndexByName(AIndexName: string): TIndexFile;
+function TDbfFile.GetIndexByName(const AIndexName: string): TIndexFile;
 var
   I: Integer;
 begin

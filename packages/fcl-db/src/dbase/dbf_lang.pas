@@ -524,7 +524,7 @@ function ConstructLangName(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): 
 function ConstructLangId(CodePage: Integer; Locale: LCID; IsFoxPro: Boolean): Byte;
 
 // Visual DBaseVII specific
-function GetLangId_From_LangName(LocaleStr: string): Byte;
+function GetLangId_From_LangName(const LocaleStr: string): Byte;
 
 implementation
 
@@ -644,7 +644,7 @@ begin
     end;
 end;
 
-function GetLangId_From_LangName(LocaleStr: string): Byte;
+function GetLangId_From_LangName(const LocaleStr: string): Byte;
 var
   CodePage, SubType: Integer;
   IsFoxPro: Boolean;

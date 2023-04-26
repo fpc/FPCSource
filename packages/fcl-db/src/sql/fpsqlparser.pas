@@ -72,7 +72,7 @@ Type
     // Expects aTokens tokens and eats the token by calling GetNextToken
     procedure Consume(aTokens: TSQLTokens);
     procedure Error(const Msg : String);
-    procedure Error(const Fmt : String; Args : Array of const);
+    procedure Error(const Fmt : String; const Args : Array of const);
     // Expression support
     function ParseExprLevel1(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
     function ParseExprLevel2(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
@@ -321,7 +321,7 @@ begin
    Raise E;
 end;
 
-procedure TSQLParser.Error(const Fmt: String; Args: array of const);
+procedure TSQLParser.Error(const Fmt: String; const Args: array of const);
 begin
   Error(Format(Fmt,Args));
 end;

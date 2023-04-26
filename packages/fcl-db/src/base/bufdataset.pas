@@ -665,8 +665,8 @@ type
     procedure GetDatasetPacket(AWriter : TDataPacketHandler);
     procedure LoadFromStream(AStream : TStream; Format: TDataPacketFormat = dfDefault);
     procedure SaveToStream(AStream : TStream; Format: TDataPacketFormat = dfBinary);
-    procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfDefault);
-    procedure SaveToFile(AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
+    procedure LoadFromFile(const AFileName: string = ''; Format: TDataPacketFormat = dfDefault);
+    procedure SaveToFile(const AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure CreateDataset;
     Procedure Clear; // Will close and remove all field definitions.
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
@@ -3622,15 +3622,17 @@ begin
   end;
 end;
 
-procedure TCustomBufDataset.LoadFromFile(AFileName: string; Format: TDataPacketFormat);
+procedure TCustomBufDataset.LoadFromFile(const AFileName: string; Format: TDataPacketFormat);
 
 var
+  FN : String;
   AFileStream : TFileStream;
 
 begin
-  if AFileName='' then
-     AFileName := FFileName;
-  AFileStream := TFileStream.Create(AFileName,fmOpenRead);
+  FN:=aFileName;
+  if fn='' then
+     FN:=FFileName;
+  AFileStream := TFileStream.Create(FN,fmOpenRead);
   try
     LoadFromStream(AFileStream, Format);
   finally
@@ -3638,15 +3640,17 @@ begin
   end;
 end;
 
-procedure TCustomBufDataset.SaveToFile(AFileName: string; Format: TDataPacketFormat);
+procedure TCustomBufDataset.SaveToFile(const AFileName: string; Format: TDataPacketFormat);
 
 var
   AFileStream : TFileStream;
+  FN : String;
 
 begin
-  if AFileName='' then
-    AFileName := FFileName;
-  AFileStream := TFileStream.Create(AFileName,fmCreate);
+  FN:=aFileName;
+  if FN='' then
+    FN:=FFileName;
+  AFileStream := TFileStream.Create(FN,fmCreate);
   try
     SaveToStream(AFileStream, Format);
   finally

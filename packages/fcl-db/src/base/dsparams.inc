@@ -331,7 +331,7 @@ begin
   Result:=DoParseSQL(SQL,Options,ParameterStyle,ParamBinding,MacroChar,ReplaceString);
 end;
 
-function TParams.DoParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out
+function TParams.DoParseSQL(const SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding; MacroChar : Char; out ReplaceString: string): String;
 
 type

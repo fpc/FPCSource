@@ -17,7 +17,7 @@ unit DBColl;
 
 interface
 
-uses db, classes, sysutils;
+uses db, classes, sysutils, fieldmap;
 
 { ---------------------------------------------------------------------
   TFieldMap
@@ -25,28 +25,6 @@ uses db, classes, sysutils;
 
 type
 
-  { TFieldMap }
-
-  TFieldMap = Class(TObject)
-  private
-    FDataset: TDataset;
-  Protected
-    Function FindField(const FN : String) : TField;
-    Function FieldByName(const FN : String) : TField;
-  Public
-    Constructor Create(ADataset : TDataset); virtual;
-    Procedure InitFields; virtual; abstract;
-    Procedure LoadObject(AObject: TObject); virtual; abstract;
-    Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
-    Function GetFromField(F : TField; const ADefault : String) : String; overload;
-    Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
-    Function GetFromField(F : TField; ADefault : TDateTime) : TDateTime; overload;
-    Function GetFromField(F : TField; ADefault : Double) : Double; overload;
-    Function GetFromField(F : TField; ADefault : Currency) : Currency; overload;
-    Property Dataset : TDataset Read FDataset;
-  end;
-  TFieldMapClass = Class of TFieldMap;
-  
   EDBCollection = Class(Exception);
 
   { TDBCollectionItem }
@@ -77,86 +55,6 @@ implementation
 
 resourcestring
   SErrNoDatasetForField = '%s: no dataset to search field %s in.';
-
-{ TFieldMap }
-
-constructor TFieldMap.Create(ADataset: TDataset);
-begin
-  FDataset:=ADataset;
-  InitFields;
-end;
-
-function TFieldMap.FieldByName(const FN: String): TField;
-begin
-  If (FDataset=Nil) then
-    begin
-    Raise EDBCollection.CreateFmt(SErrNoDatasetForField,[ClassName,FN]);
-    result := nil;
-    end
-  else
-    Result:=FDataset.FieldByName(FN);
-end;
-
-function TFieldMap.FindField(const FN: String): TField;
-begin
-  If (FDataset=Nil) then
-    Result:=Nil
-  else
-    Result:=FDataset.FindField(FN);
-end;
-
-function TFieldMap.GetFromField(F: TField; ADefault: Integer): Integer;
-begin
-  If Assigned(F) then
-    Result:=F.AsInteger
-  else
-    Result:=ADefault;
-end;
-
-function TFieldMap.GetFromField(F: TField; const ADefault: String): String;
-begin
-  If Assigned(F) then
-    Result:=F.AsString
-  else
-    Result:=ADefault;
-end;
-
-function TFieldMap.GetFromField(F: TField; ADefault: Boolean): Boolean;
-begin
-  If Assigned(F) then
-    begin
-    if (F is TStringField) then
-      Result:=(F.AsString='+')
-    else
-      Result:=F.AsBoolean
-    end
-  else
-    Result:=ADefault;
-end;
-
-function TFieldMap.GetFromField(F: TField; ADefault: TDateTime): TDateTime;
-begin
-  If Assigned(F) then
-    Result:=F.AsDateTime
-  else
-    Result:=ADefault;
-end;
-
-function TFieldMap.GetFromField(F: TField; ADefault: Double): Double;
-begin
-  If Assigned(F) then
-    Result:=F.AsFloat
-  else
-    Result:=ADefault;
-end;
-
-function TFieldMap.GetFromField(F: TField; ADefault: Currency): Currency;
-begin
-  If Assigned(F) then
-    Result:=F.AsCurrency
-  else
-    Result:=ADefault;
-end;
 
 { TDBCollection }
 

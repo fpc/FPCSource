@@ -135,14 +135,14 @@ Type
     procedure SetTableName(const AValue: String); override;
   Public
     Constructor Create(ATableDef : TDDTableDef);
-    Constructor Create(ATableName : string);
+    Constructor Create(const ATableName : string);
     Class Function FieldDefClass : TDDFieldDefClass; virtual;
     Property TableDef : TDDTableDef Read FTableDef;
     Property TableName : String Read GetTableName Write SetTableName;
     Function AddField(AFieldName: String = '') : TDDFieldDef;
-    Function IndexOfField(AFieldName : String) : Integer;
-    Function FindField(AFieldName : String) : TDDFieldDef;
-    Function FieldByName(AFieldName : String) : TDDFieldDef;
+    Function IndexOfField(const AFieldName : String) : Integer;
+    Function FindField(const AFieldName : String) : TDDFieldDef;
+    Function FieldByName(const AFieldName : String) : TDDFieldDef;
     Procedure FillFieldList(Const AFieldNames: String; List : TFPDDFieldList);
     Property Fields[Index : Integer] : TDDFieldDef Read GetField Write SetField; default;
   end;
@@ -183,12 +183,12 @@ Type
     procedure SetTableName(const AValue: String); override;
   Public
     Constructor Create(ATableDef : TDDTableDef);
-    Constructor Create(ATableName : String);
+    Constructor Create(const ATableName : String);
     Function AddDDIndexDef(AName : String) : TDDIndexDef;
-    function AddIndex (AName: String) : TDDIndexDef;
-    function IndexByName(AIndexName: String): TDDIndexDef;
-    function FindIndex(AIndexName: String): TDDIndexDef;
-    function IndexOfIndex(AIndexName: String): Integer;
+    function AddIndex (const AName: String) : TDDIndexDef;
+    function IndexByName(const AIndexName: String): TDDIndexDef;
+    function FindIndex(const AIndexName: String): TDDIndexDef;
+    function IndexOfIndex(const AIndexName: String): Integer;
     Property Indexes[Index : Integer] : TDDIndexDef Read GetIndex Write SetIndex; default;
   end;
   
@@ -224,8 +224,8 @@ Type
     procedure SetKey(AIndex : Integer; const AValue: TDDForeignKeyDef);
     procedure SetTableName(const AValue: String);
   Public
-    Constructor Create(ATableName : String);
-    Function AddForeignKeyDef(AName : String) : TDDForeignKeyDef;
+    Constructor Create(const ATableName : String);
+    Function AddForeignKeyDef(const AName : String) : TDDForeignKeyDef;
     Property TableName : String Read FTableName Write SetTableName;
     Property Indexes[AIndex : Integer] : TDDForeignKeyDef Read GetKey Write SetKey; default;
   end;
@@ -253,7 +253,7 @@ Type
     Function TableDefs : TDDTableDefs;
     Function ImportFromDataset(Dataset : TDataSet; DoClear : Boolean = False; UpdateExisting : Boolean = True) : Integer;
     Procedure ApplyToDataset(Dataset : TDataset);
-    Function AddField(AFieldName : String = '') : TDDFieldDef;
+    Function AddField(const AFieldName : String = '') : TDDFieldDef;
     Procedure SaveToIni(Ini: TCustomInifile; ASection : String); override;
     Procedure LoadFromIni(Ini: TCustomInifile; ASection : String); override;
     procedure PrimaryIndexToFields;
@@ -278,10 +278,10 @@ Type
     procedure SetTable(Index : Integer; const AValue: TDDTableDef);
   Public
     Property DataDictionary: TFPDataDictionary Read FDataDictionary;
-    Function AddTable(ATableName : String = '') : TDDTableDef;
-    Function IndexOfTable(ATableName : String) : Integer;
-    Function FindTable(ATableName : String) : TDDTableDef;
-    Function TableByName(ATableName : String) : TDDTableDef;
+    Function AddTable(aTableName : String = '') : TDDTableDef;
+    Function IndexOfTable(const ATableName : String) : Integer;
+    Function FindTable(const ATableName : String) : TDDTableDef;
+    Function TableByName(const ATableName : String) : TDDTableDef;
     Property Tables[Index : Integer] : TDDTableDef Read GetTable Write SetTable; default;
     Property OnProgress : TDDProgressEvent Read FOnProgress Write FOnProgress;
   end;
@@ -317,10 +317,10 @@ Type
     procedure SetSequence(Index : Integer; const AValue: TDDSequenceDef);
   Public
     Constructor Create;
-    Function AddSequence(ASequenceName : String = '') : TDDSequenceDef;
-    Function IndexOfSequence(ASequenceName : String) : Integer;
-    Function FindSequence(ASequenceName : String) : TDDSequenceDef;
-    Function SequenceByName(ASequenceName : String) : TDDSequenceDef;
+    Function AddSequence(const ASequenceName : String = '') : TDDSequenceDef;
+    Function IndexOfSequence(const ASequenceName : String) : Integer;
+    Function FindSequence(const ASequenceName : String) : TDDSequenceDef;
+    Function SequenceByName(const ASequenceName : String) : TDDSequenceDef;
     Property DataDictionary : TFPDataDictionary Read FDataDictionary;
     Property Sequences[Index : Integer] : TDDSequenceDef Read GetSequence Write SetSequence; default;
     Property OnProgress : TDDProgressEvent Read FOnProgress Write FOnProgress;
@@ -364,10 +364,10 @@ Type
   Public
     Constructor Create;
     Property DataDictionary : TFPDataDictionary Read FDataDictionary;
-    Function AddDomain(ADomainName : String = '') : TDDDomainDef;
-    Function IndexOfDomain(ADomainName : String) : Integer;
-    Function FindDomain(ADomainName : String) : TDDDomainDef;
-    Function DomainByName(ADomainName : String) : TDDDomainDef;
+    Function AddDomain(const ADomainName : String = '') : TDDDomainDef;
+    Function IndexOfDomain(const ADomainName : String) : Integer;
+    Function FindDomain(const ADomainName : String) : TDDDomainDef;
+    Function DomainByName(const ADomainName : String) : TDDDomainDef;
     Property Domains[Index : Integer] : TDDDomainDef Read GetDomain Write SetDomain; default;
     Property OnProgress : TDDProgressEvent Read FOnProgress Write FOnProgress;
   end;
@@ -390,14 +390,14 @@ Type
   Public
     Constructor Create;
     Destructor Destroy; override;
-    Procedure SaveToFile(AFileName : String; KeepBackup: Boolean = True);
+    Procedure SaveToFile(const AFileName : String; KeepBackup: Boolean = True);
     Procedure SaveToIni(Ini : TCustomIniFile; ASection : String); virtual;
-    Procedure LoadFromFile(AFileName : String);
+    Procedure LoadFromFile(const AFileName : String);
     Procedure LoadFromIni(Ini : TCustomIniFile; ASection : String); virtual;
     Procedure ApplyToDataset(ADataset : TDataset);
     Procedure ApplyToDataset(ADataset : TDataset; OnApply : TOnApplyDataDictEvent);
-    Function FindFieldDef(FieldName : String; out TableName : String) : TDDFieldDef;
-    Function FindFieldDef(FieldName : String) : TDDFieldDef;
+    Function FindFieldDef(const FieldName : String; out TableName : String) : TDDFieldDef;
+    Function FindFieldDef(const FieldName : String) : TDDFieldDef;
     function CanonicalizeFieldName(const InFN: String; Out TN, FN: String): Boolean;
     function CanonicalizeFieldName(const InFN: String; Out TableDef : TDDTableDef; Out FN: String): Boolean;
     Property Tables : TDDTableDefs Read FTables;
@@ -480,14 +480,14 @@ Type
     procedure CheckTableDef;
     Procedure NoIndent;
     Procedure ResetLine;
-    Procedure AddToStringLN(Var Res : String; S : String);
+    Procedure AddToStringLN(Var Res : String; const S : String);
     Procedure AddToString(Var Res : String; S : String);
     Procedure FixUpStatement(var Res : String; ForceTerminator : Boolean = False);
     Procedure FixUpStatement(SQL : TStrings; ForceTerminator : Boolean = False);
     Procedure AddWhereClause(Var Res : String; FieldList: TFPDDFieldList; UseOldParam:Boolean);
     Function CreateAndTerm(FD : TDDFieldDef; UseOldParam : Boolean): string;
     // Primitives. Override for engine-specifics
-    Procedure AddFieldString(Var Res: String; S : String);
+    Procedure AddFieldString(Var Res: String;const S : String);
     Function FieldNameString(FD : TDDFieldDef) : string; virtual;
     Function TableNameString(TD : TDDTableDef) : string; virtual;
     Function FieldParamString(FD : TDDFieldDef; UseOldParam : Boolean) : string; virtual;
@@ -615,7 +615,7 @@ Procedure RegisterConnectionStringCallback(Const AName: String; CallBack : TGetC
 Procedure UnRegisterDictionaryEngine(AEngine :TFPDDEngineClass);
 Function  GetDictionaryEngineList(List : TStrings) : Integer;
 Function  GetDictionaryEngineInfo(Const AName : String; out ADescription,ADBType: String; out ACapabilities : TFPDDEngineCapabilities) : boolean;
-Function  CreateDictionaryEngine(AName : String; AOWner : TComponent) : TFPDDEngine;
+Function  CreateDictionaryEngine(const AName : String; AOWner : TComponent) : TFPDDEngine;
 Function IndexOptionsToString (Options : TIndexOptions) : String;
 
 Var
@@ -946,7 +946,7 @@ begin
     end;
 end;
 
-function CreateDictionaryEngine(AName: String; AOWner : TComponent): TFPDDEngine;
+function CreateDictionaryEngine(const AName: String; AOWner : TComponent): TFPDDEngine;
 
 begin
   Result:=GetDictionaryClass(AName).Create(AOwner);
@@ -1251,7 +1251,7 @@ begin
   SetTableDef(ATableDef);
 end;
 
-constructor TDDFieldDefs.Create(ATableName: String);
+constructor TDDFieldDefs.Create(const ATableName: String);
 begin
   Inherited Create(FieldDefClass);
   FPrefix:='Field';
@@ -1296,14 +1296,14 @@ begin
   Result.FieldName:=AFieldName;
 end;
 
-function TDDFieldDefs.IndexOfField(AFieldName: String): Integer;
+function TDDFieldDefs.IndexOfField(const AFieldName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(GetField(Result).FieldName,AFieldName)<>0) do
     Dec(Result)
 end;
 
-function TDDFieldDefs.FindField(AFieldName: String): TDDFieldDef;
+function TDDFieldDefs.FindField(const AFieldName: String): TDDFieldDef;
 
 Var
   I : integer;
@@ -1316,7 +1316,7 @@ begin
     Result:=GetField(I);
 end;
 
-function TDDFieldDefs.FieldByName(AFieldName: String): TDDFieldDef;
+function TDDFieldDefs.FieldByName(const AFieldName: String): TDDFieldDef;
 begin
   Result:=FindField(AFieldName);
   If Result=Nil then
@@ -1482,7 +1482,7 @@ begin
     end;
 end;
 
-function TDDTableDef.AddField(AFieldName: String): TDDFieldDef;
+function TDDTableDef.AddField(const AFieldName: String): TDDFieldDef;
 begin
   Result:=Fields.AddField(AFieldName);
 end;
@@ -1600,14 +1600,14 @@ begin
   Result.TableName:=ATableName;
 end;
 
-function TDDTableDefs.IndexOfTable(ATableName: String): Integer;
+function TDDTableDefs.IndexOfTable(const ATableName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(GetTable(Result).TableName,ATableName)<>0) do
     Dec(Result)
 end;
 
-function TDDTableDefs.FindTable(ATableName: String): TDDTableDef;
+function TDDTableDefs.FindTable(const ATableName: String): TDDTableDef;
 
 Var
   I : integer;
@@ -1620,7 +1620,7 @@ begin
     Result:=GetTable(I);
 end;
 
-function TDDTableDefs.TableByName(ATableName: String): TDDTableDef;
+function TDDTableDefs.TableByName(const ATableName: String): TDDTableDef;
 begin
   Result:=FindTable(ATableName);
   If Result=Nil then
@@ -1655,28 +1655,29 @@ begin
   inherited Destroy;
 end;
 
-procedure TFPDataDictionary.SaveToFile(AFileName: String; KeepBackup: Boolean = True);
+procedure TFPDataDictionary.SaveToFile(const AFileName: String; KeepBackup: Boolean = True);
 
 Var
   Ini : TMemIniFile;
-
+  FN : String;
 begin
-  If (AFileName='') then
-    AFileName:=FFileName;
-  if (AFileName='') and (Name<>'') then
-    AFileName:=Name+DefaultDDExt;
-  if (AFileName='') then
+  FN:=aFileName;
+  If (FN='') then
+    FN:=FFileName;
+  if (FN='') and (Name<>'') then
+    FN:=Name+DefaultDDExt;
+  if (FN='') then
     Raise EDataDict.Create(SErrNoFileName);
-  If FileExists(AFileName) then
+  If FileExists(FN) then
     If KeepBackup then
-      RenameFile(AFileName,AFileName+'.bak')
+      RenameFile(FN,FN+'.bak')
     else
-      DeleteFile(AFileName);
-  Ini:=TMemIniFile.Create(AFileName);
+      DeleteFile(FN);
+  Ini:=TMemIniFile.Create(FN);
   try
     SaveToIni(Ini,SDataDict);
     Ini.UpdateFile;
-    FFileName:=AFileName;
+    FFileName:=FN;
   finally
     FreeAndNil(Ini);
   end;
@@ -1690,7 +1691,7 @@ begin
   FTables.SaveToIni(Ini,SDatadictTables);
 end;
 
-procedure TFPDataDictionary.LoadFromFile(AFileName: String);
+procedure TFPDataDictionary.LoadFromFile(const AFileName: String);
 
 Var
   Ini : TMemInifile;
@@ -1787,7 +1788,7 @@ end;
 
 // To be good, we should make a hashlist with all tables.fields and search that...
 // For now, we cache the last matching table. This should work well for most common cases.
-function TFPDataDictionary.FindFieldDef(FieldName: String; out TableName: String
+function TFPDataDictionary.FindFieldDef(const FieldName: String; out TableName: String
   ): TDDFieldDef;
 
 Var
@@ -1827,7 +1828,7 @@ begin
     TableName:=FLastMatchTableDef.TableName;
 end;
 
-function TFPDataDictionary.FindFieldDef(FieldName: String): TDDFieldDef;
+function TFPDataDictionary.FindFieldDef(const FieldName: String): TDDFieldDef;
 
 Var
   Dummy : String;
@@ -2082,7 +2083,7 @@ begin
     end;
 end;
 
-Procedure TFPDDSQLEngine.AddToStringLN(Var Res : String;S : String);
+Procedure TFPDDSQLEngine.AddToStringLN(Var Res : String;const S : String);
 
 begin
   AddToString(Res,S);
@@ -2112,7 +2113,7 @@ begin
   Res:=Res+S;
 end;
 
-procedure TFPDDSQLEngine.AddFieldString(var Res: String; S: String);
+procedure TFPDDSQLEngine.AddFieldString(var Res: String; const S: String);
 begin
   If eoLineFeedAfterField in FOptions then
     AddToStringLn(Res,S)
@@ -2904,7 +2905,7 @@ begin
     Create('')
 end;
 
-constructor TDDIndexDefs.Create(ATableName: String);
+constructor TDDIndexDefs.Create(const ATableName: String);
 begin
   FPrefix:='Index';
   TableName:=ATableName;
@@ -2916,7 +2917,7 @@ begin
   result := AddIndex (AName);
 end;
 
-function TDDIndexDefs.AddIndex(AName: String): TDDIndexDef;
+function TDDIndexDefs.AddIndex(const AName: String): TDDIndexDef;
 begin
   Result:=Add as TDDIndexDef;
   Result.IndexName:=AName;
@@ -3001,27 +3002,27 @@ begin
   GlobalSection:=AValue+SKeySuffix;
 end;
 
-constructor TDDForeignKeyDefs.Create(ATableName: String);
+constructor TDDForeignKeyDefs.Create(const ATableName: String);
 begin
   Inherited Create(TDDForeignKeyDef);
   FPrefix:='Key';
   SetTableName(ATAbleName);
 end;
 
-function TDDForeignKeyDefs.AddForeignKeyDef(AName: String): TDDForeignKeyDef;
+function TDDForeignKeyDefs.AddForeignKeyDef(const AName: String): TDDForeignKeyDef;
 begin
   Result:=Add as TDDForeignKeyDef;
   Result.KeyName:=AName;
 end;
 
-function TDDIndexDefs.IndexOfIndex(AIndexName: String): Integer;
+function TDDIndexDefs.IndexOfIndex(const AIndexName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(GetIndex(Result).IndexName,AIndexName)<>0) do
     Dec(Result)
 end;
 
-function TDDIndexDefs.FindIndex(AIndexName: String): TDDIndexDef;
+function TDDIndexDefs.FindIndex(const AIndexName: String): TDDIndexDef;
 Var
   I : integer;
 begin
@@ -3032,7 +3033,7 @@ begin
     Result:=GetIndex(I);
 end;
 
-function TDDIndexDefs.IndexByName(AIndexName: String): TDDIndexDef;
+function TDDIndexDefs.IndexByName(const AIndexName: String): TDDIndexDef;
 begin
   Result:=FindIndex(AIndexName);
   If Result=Nil then
@@ -3061,13 +3062,13 @@ begin
 end;
 
 
-function TDDDomainDefs.AddDomain(ADomainName: String): TDDDomainDef;
+function TDDDomainDefs.AddDomain(const ADomainName: String): TDDDomainDef;
 begin
   Result:=Add as TDDDomainDef;
   Result.DomainName:=ADomainName;
 end;
 
-function TDDDomainDefs.IndexOfDomain(ADomainName: String): Integer;
+function TDDDomainDefs.IndexOfDomain(const ADomainName: String): Integer;
 
 begin
   Result := Count;
@@ -3076,7 +3077,7 @@ begin
   until (Result < 0) or (CompareText(GetDomain(Result).DomainName,ADomainName) = 0);
 end;
 
-function TDDDomainDefs.FindDomain(ADomainName: String): TDDDomainDef;
+function TDDDomainDefs.FindDomain(const ADomainName: String): TDDDomainDef;
 
 Var
   I : Integer;
@@ -3089,7 +3090,7 @@ begin
     Result:=GetDomain(I);
 end;
 
-function TDDDomainDefs.DomainByName(ADomainName: String): TDDDomainDef;
+function TDDDomainDefs.DomainByName(const ADomainName: String): TDDDomainDef;
 begin
   Result:=FindDomain(ADomainName);
   If (Result=Nil) then
@@ -3260,13 +3261,13 @@ begin
   Inherited Create(TDDSequenceDef);
 end;
 
-function TDDSequenceDefs.AddSequence(ASequenceName: String): TDDSequenceDef;
+function TDDSequenceDefs.AddSequence(const ASequenceName: String): TDDSequenceDef;
 begin
   Result:=Add as TDDSequenceDef;
   Result.SequenceName:=ASequenceName;
 end;
 
-function TDDSequenceDefs.IndexOfSequence(ASequenceName: String): Integer;
+function TDDSequenceDefs.IndexOfSequence(const ASequenceName: String): Integer;
 begin
   result := count;
   repeat
@@ -3274,7 +3275,7 @@ begin
   until (Result<0) or (CompareText(GetSequence(Result).SequenceName,ASequenceName)=0);
 end;
 
-function TDDSequenceDefs.FindSequence(ASequenceName: String): TDDSequenceDef;
+function TDDSequenceDefs.FindSequence(const ASequenceName: String): TDDSequenceDef;
 
 Var
   I : Integer;
@@ -3287,7 +3288,7 @@ begin
     Result:=GetSequence(I);
 end;
 
-function TDDSequenceDefs.SequenceByName(ASequenceName: String): TDDSequenceDef;
+function TDDSequenceDefs.SequenceByName(const ASequenceName: String): TDDSequenceDef;
 begin
   Result:=FindSequence(ASequenceName);
   If (Result=Nil) then

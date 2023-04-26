@@ -189,7 +189,7 @@ type
     FValues: TVariantArray;
     function GetFieldComparer(Index : Integer): TFieldComparer;
   Protected
-    procedure ConstructItems(aFields: String); virtual;
+    procedure ConstructItems(const aFields: String); virtual;
     function DataTypeToComparerClass(aFieldType: TFieldType): TFieldComparerClass;
     Function Compare(aRowindex : integer) : Integer;
   Public
@@ -267,7 +267,7 @@ type
     // Initialize Date/Time info in all date/time fields. Called during InternalOpen
     procedure InitDateTimeFields; virtual;
     // Convert JSON date S to DateTime for Field F
-    function ConvertDateTimeField(S: String; F: TField): TDateTime; virtual;
+    function ConvertDateTimeField(const S: String; F: TField): TDateTime; virtual;
     // Format JSON date to from DT for Field F
     function FormatDateTimeField(DT : TDateTime; F: TField): String; virtual;
     // Create fieldmapper. A descendent MUST implement this.
@@ -467,7 +467,7 @@ begin
   Result:=Items[Index];
 end;
 
-procedure TRecordComparer.ConstructItems(aFields : String);
+procedure TRecordComparer.ConstructItems(const aFields : String);
 
 Var
   L : Tlist;
@@ -1062,7 +1062,7 @@ begin
   PRecInfo(Buffer)^.RowIndex := PNativeInt(Data)^;
 end;
 
-function TBaseJSONDataSet.ConvertDateTimeField(S : String; F : TField) : TDateTime;
+function TBaseJSONDataSet.ConvertDateTimeField(const S : String; F : TField) : TDateTime;
 
 Var
   Ptrn : string;
