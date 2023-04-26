@@ -126,7 +126,7 @@ type
     function GetShortName: string; virtual;
     procedure SetFixedLen(NewLen: integer); virtual;
   public
-    constructor Create(AName: string; AExprFunc: TExprFunc);
+    constructor Create(const AName: string; AExprFunc: TExprFunc);
 
     function AsPointer: PChar; virtual;
     function LenAsPointer: PInteger; virtual;
@@ -174,7 +174,7 @@ type
   protected
     function GetResultType: TExpressionType; override;
   public
-    constructor Create(AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+    constructor Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
   end;
 
   TFloatConstant = class(TConstant)
@@ -182,8 +182,8 @@ type
     FValue: Double;
   public
     // not overloaded to support older Delphi versions
-    constructor Create(AName: string; AValue: string);
-    constructor CreateAsDouble(AName: string; AValue: Double);
+    constructor Create(const AName: string; const AValue: string);
+    constructor CreateAsDouble(const AName: string; AValue: Double);
 
     function AsPointer: PChar; override;
 
@@ -196,7 +196,7 @@ type
   protected
     function GetDescription: string; override;
   public
-    constructor CreateAsDouble(AName, Descr: string; AValue: Double);
+    constructor CreateAsDouble(Const AName, Descr: string; AValue: Double);
   end;
 
   TStringConstant = class(TConstant)
@@ -205,7 +205,7 @@ type
   public
     // Allow undelimited, delimited by single quotes, delimited by double quotes
     // If delimited, allow escaping inside string with double delimiters
-    constructor Create(AValue: string);
+    constructor Create(const AValue: string);
 
     function AsPointer: PChar; override;
   end;
@@ -235,7 +235,7 @@ type
     FValue: Boolean;
   public
     // not overloaded to support older Delphi versions
-    constructor Create(AName: string; AValue: Boolean);
+    constructor Create(const AName: string; AValue: Boolean);
 
     function AsPointer: PChar; override;
 
@@ -260,7 +260,7 @@ type
     function GetCanVary: Boolean; override;
     function GetResultType: TExpressionType; override;
   public
-    constructor Create(AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+    constructor Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
     function IsNullAsPointer: PBoolean; override;
   end;
 
@@ -268,7 +268,7 @@ type
   private
     FValue: PDouble;
   public
-    constructor Create(AName: string; AValue: PDouble);
+    constructor Create(const AName: string; AValue: PDouble);
 
     function AsPointer: PChar; override;
   end;
@@ -281,7 +281,7 @@ type
     function GetFixedLen: Integer; override;
     procedure SetFixedLen(NewLen: integer); override;
   public
-    constructor Create(AName: string; AValue: PPChar; AIsNull: PBoolean);
+    constructor Create(const AName: string; AValue: PPChar; AIsNull: PBoolean);
 
     function LenAsPointer: PInteger; override;
     function AsPointer: PChar; override;
@@ -293,7 +293,7 @@ type
   private
     FValue: PDateTimeRec;
   public
-    constructor Create(AName: string; AValue: PDateTimeRec);
+    constructor Create(const AName: string; AValue: PDateTimeRec);
 
     function AsPointer: PChar; override;
   end;
@@ -302,7 +302,7 @@ type
   private
     FValue: PInteger;
   public
-    constructor Create(AName: string; AValue: PInteger; AIsNull: PBoolean);
+    constructor Create(const AName: string; AValue: PInteger; AIsNull: PBoolean);
 
     function AsPointer: PChar; override;
   end;
@@ -313,7 +313,7 @@ type
   private
     FValue: PLargeInt;
   public
-    constructor Create(AName: string; AValue: PLargeInt);
+    constructor Create(const AName: string; AValue: PLargeInt);
 
     function AsPointer: PChar; override;
   end;
@@ -324,7 +324,7 @@ type
   private
     FValue: PBoolean;
   public
-    constructor Create(AName: string; AValue: PBoolean);
+    constructor Create(const AName: string; AValue: PBoolean);
 
     function AsPointer: PChar; override;
   end;
@@ -362,12 +362,12 @@ type
     function GetTypeSpec: string; override;
     function GetShortName: string; override;
 
-    procedure InternalCreate(AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
+    procedure InternalCreate(const AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
       AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
   public
-    constructor Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; Descr: string);
+    constructor Create(const AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; const Descr: string);
     // Create operator: name, param types used, result type, func addr, operator precedence
-    constructor CreateOper(AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
+    constructor CreateOper(const AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
 
     function IsFunction: Boolean; override;
 
@@ -479,7 +479,7 @@ end;
 
 { TExpressionWord }
 
-constructor TExprWord.Create(AName: string; AExprFunc: TExprFunc);
+constructor TExprWord.Create(const AName: string; AExprFunc: TExprFunc);
 begin
   FName := AName;
   FExprFunc := AExprFunc;
@@ -591,7 +591,7 @@ end;
 
 { TConstant }
 
-constructor TConstant.Create(AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+constructor TConstant.Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
 begin
   inherited Create(AName, AExprFunc);
 
@@ -605,7 +605,7 @@ end;
 
 { TFloatConstant }
 
-constructor TFloatConstant.Create(AName, AValue: string);
+constructor TFloatConstant.Create(const AName, AValue: string);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
 
@@ -615,7 +615,7 @@ begin
     FValue := 0.0;
 end;
 
-constructor TFloatConstant.CreateAsDouble(AName: string; AValue: Double);
+constructor TFloatConstant.CreateAsDouble(const AName: string; AValue: Double);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
 
@@ -629,10 +629,9 @@ end;
 
 { TUserConstant }
 
-constructor TUserConstant.CreateAsDouble(AName, Descr: string; AValue: Double);
+constructor TUserConstant.CreateAsDouble(const AName, Descr: string; AValue: Double);
 begin
   FDescription := Descr;
-
   inherited CreateAsDouble(AName, AValue);
 end;
 
@@ -643,7 +642,7 @@ end;
 
 { TStringConstant }
 
-constructor TStringConstant.Create(AValue: string);
+constructor TStringConstant.Create(const AValue: string);
 var
   firstChar, lastChar: Char;
 begin
@@ -667,7 +666,7 @@ end;
 
 { TBooleanConstant }
 
-constructor TBooleanConstant.Create(AName: string; AValue: Boolean);
+constructor TBooleanConstant.Create(const AName: string; AValue: Boolean);
 begin
   inherited Create(AName, etBoolean, _BooleanVariable);
 
@@ -718,7 +717,7 @@ end;
 
 { TVariable }
 
-constructor TVariable.Create(AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+constructor TVariable.Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
 begin
   inherited Create(AName, AExprFunc);
 
@@ -742,7 +741,7 @@ end;
 
 { TFloatVariable }
 
-constructor TFloatVariable.Create(AName: string; AValue: PDouble);
+constructor TFloatVariable.Create(const AName: string; AValue: PDouble);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
   FValue := AValue;
@@ -755,7 +754,7 @@ end;
 
 { TStringVariable }
 
-constructor TStringVariable.Create(AName: string; AValue: PPChar; AIsNull: PBoolean);
+constructor TStringVariable.Create(const AName: string; AValue: PPChar; AIsNull: PBoolean);
 begin
   // variable or fixed length?
   inherited Create(AName, etString, _StringVariable);
@@ -788,7 +787,7 @@ end;
 
 { TDateTimeVariable }
 
-constructor TDateTimeVariable.Create(AName: string; AValue: PDateTimeRec);
+constructor TDateTimeVariable.Create(const AName: string; AValue: PDateTimeRec);
 begin
   inherited Create(AName, etDateTime, _DateTimeVariable);
   FValue := AValue;
@@ -801,7 +800,7 @@ end;
 
 { TIntegerVariable }
 
-constructor TIntegerVariable.Create(AName: string; AValue: PInteger; AIsNull: PBoolean);
+constructor TIntegerVariable.Create(const AName: string; AValue: PInteger; AIsNull: PBoolean);
 begin
   inherited Create(AName, etInteger, _IntegerVariable);
   FValue := AValue;
@@ -817,7 +816,7 @@ end;
 
 { TLargeIntVariable }
 
-constructor TLargeIntVariable.Create(AName: string; AValue: PLargeInt);
+constructor TLargeIntVariable.Create(const AName: string; AValue: PLargeInt);
 begin
   inherited Create(AName, etLargeInt, _LargeIntVariable);
   FValue := AValue;
@@ -832,7 +831,7 @@ end;
 
 { TBooleanVariable }
 
-constructor TBooleanVariable.Create(AName: string; AValue: PBoolean);
+constructor TBooleanVariable.Create(const AName: string; AValue: PBoolean);
 begin
   inherited Create(AName, etBoolean, _BooleanVariable);
   FValue := AValue;
@@ -989,8 +988,8 @@ end;
 
 { TFunction }
 
-constructor TFunction.Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
-  AExprFunc: TExprFunc; Descr: string);
+constructor TFunction.Create(const AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
+  AExprFunc: TExprFunc; const Descr: string);
 begin
   //to increase compatibility don't use default parameters
   FDescription := Descr;
@@ -998,13 +997,13 @@ begin
   InternalCreate(AName, ATypeSpec, AMinFuncArg, AResultType, AExprFunc, false, 0);
 end;
 
-constructor TFunction.CreateOper(AName, ATypeSpec: string; AResultType: TExpressionType;
+constructor TFunction.CreateOper(const AName, ATypeSpec: string; AResultType: TExpressionType;
   AExprFunc: TExprFunc; AOperPrec: Integer);
 begin
   InternalCreate(AName, ATypeSpec, -1, AResultType, AExprFunc, true, AOperPrec);
 end;
 
-procedure TFunction.InternalCreate(AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
+procedure TFunction.InternalCreate(const AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
   AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
 begin
   inherited Create(AName, AExprFunc);

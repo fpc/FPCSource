@@ -53,7 +53,7 @@ type
 
     procedure FillExpressList; override;
     procedure HandleUnknownVariable(VarName: string); override;
-    function  GetVariableInfo(VarName: string): TDbfFieldDef;
+    function  GetVariableInfo(const VarName: string): TDbfFieldDef;
     function  CurrentExpression: string; override;
     procedure ValidateExpression(AExpression: string); virtual;
     function  GetResultType: TExpressionType; override;
@@ -476,7 +476,7 @@ begin
     ParseExpression(lExpression);
 end;
 
-function TDbfParser.GetVariableInfo(VarName: string): TDbfFieldDef;
+function TDbfParser.GetVariableInfo(const VarName: string): TDbfFieldDef;
 begin
   Result := TDbfFile(FDbfFile).GetFieldInfo(VarName);
 end;

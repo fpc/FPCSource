@@ -170,7 +170,7 @@ type
    fparambinding: array of Integer;
    procedure checkerror(const aerror: integer);
    procedure bindparams(AParams : TParams);
-   Procedure Prepare(Buf : String; AParams : TParams);
+   Procedure Prepare(const Buf : String; AParams : TParams);
    Procedure UnPrepare;
    Procedure Execute;
    Function Fetch : Boolean;
@@ -257,14 +257,18 @@ begin
     end;   
 end;
 
-Procedure TSQLite3Cursor.Prepare(Buf : String; AParams : TParams);
+Procedure TSQLite3Cursor.Prepare(const Buf : String; AParams : TParams);
+
+var
+  S : string;
 
 begin
+  S:=Buf;
   if assigned(AParams) and (AParams.Count > 0) then
-    Buf := AParams.ParseSQL(Buf,false,false,false,psInterbase,fparambinding);
+    S := AParams.ParseSQL(S,false,false,false,psInterbase,fparambinding);
   if (detActualSQL in fconnection.LogEvents) then
-    fconnection.Log(detActualSQL,Buf);
-  checkerror(sqlite3_prepare(fhandle,pchar(Buf),length(Buf),@fstatement,@ftail));
+    fconnection.Log(detActualSQL,S);
+  checkerror(sqlite3_prepare(fhandle,pchar(S),length(S),@fstatement,@ftail));
   FPrepared:=True;
 end;
 

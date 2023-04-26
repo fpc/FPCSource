@@ -76,7 +76,7 @@ type
     procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean); virtual;
     // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
     procedure InternalCommit(CommitRetaining: boolean=true); virtual;
-    Function ProcessConditional(Directive : String; Param : String) : Boolean; virtual;
+    Function ProcessConditional(const Directive : String; const Param : String) : Boolean; virtual;
     function NextStatement: AnsiString; virtual;
     procedure ProcessStatement; virtual;
     function Available: Boolean; virtual;
@@ -674,7 +674,7 @@ begin
     end;
 end;
 
-function TCustomSQLScript.ProcessConditional(Directive: String; Param: String
+function TCustomSQLScript.ProcessConditional(const Directive: String; const Param: String
   ): Boolean;
 
   Procedure PushSkipMode;

@@ -61,13 +61,13 @@ type
     //Warning: don't use the destination TSQLite3Connection (the handle) for anything else while doing a backup.
     //It can corrupt the database and even cause a mutex deadlock.
     function Backup(Source,Destination:TSQLite3Connection;LockUntilFinished:boolean=true;
-         SourceDBName:string='main';DestinationDBName:string='main'):boolean;
+         const SourceDBName:string='main';const DestinationDBName:string='main'):boolean;
     //Backup a database to file
-    function Backup(Source:TSQLite3Connection;FileName:string;LockUntilFinished:boolean=true;
-         SourceDBName:string='main'):boolean;
+    function Backup(Source:TSQLite3Connection;const FileName:string;LockUntilFinished:boolean=true;
+         const SourceDBName:string='main'):boolean;
     //Restore a database from file
-    function Restore(FileName:string;Destination:TSQLite3Connection;LockUntilFinished:boolean=true;
-         DestinationDBName:string='main'):boolean;
+    function Restore(const FileName:string;Destination:TSQLite3Connection;LockUntilFinished:boolean=true;
+         const DestinationDBName:string='main'):boolean;
   published
     //Delay between backup steps in ms. Default:100ms. Only used when LockUntilFinished=false
     property LockReleaseTime:integer read FLockReleaseTime write FLockReleaseTime;
@@ -91,7 +91,7 @@ begin
 end;
 
 function TSQLite3Backup.Backup(Source, Destination: TSQLite3Connection;
-  LockUntilFinished: boolean; SourceDBName: string; DestinationDBName: string
+  LockUntilFinished: boolean; const SourceDBName: string; const DestinationDBName: string
   ): boolean;
 var
   pBackup:psqlite3backup;
@@ -128,8 +128,8 @@ begin
      FErrorMessage:=strpas(sqlite3_errmsg(Destination.Handle));
 end;
 
-function TSQLite3Backup.Backup(Source: TSQLite3Connection; FileName: string;
-  LockUntilFinished: boolean; SourceDBName: string): boolean;
+function TSQLite3Backup.Backup(Source: TSQLite3Connection; const FileName: string;
+  LockUntilFinished: boolean; const SourceDBName: string): boolean;
 var conn:TSQLite3Connection;
 begin
   conn:=TSQLite3Connection.Create(nil);
@@ -142,9 +142,9 @@ begin
   end;
 end;
 
-function TSQLite3Backup.Restore(FileName: string;
+function TSQLite3Backup.Restore(const FileName: string;
   Destination: TSQLite3Connection; LockUntilFinished: boolean;
-  DestinationDBName: string): boolean;
+  const DestinationDBName: string): boolean;
 var conn:TSQLite3Connection;
 begin
   conn:=TSQLite3Connection.Create(nil);

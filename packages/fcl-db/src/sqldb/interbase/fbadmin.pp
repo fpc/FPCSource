@@ -83,15 +83,15 @@ type
     FUseExceptions: boolean;
     FUser: string;
     FWaitInterval: Integer;
-    function CheckConnected(ProcName: string):boolean;
-    procedure CheckError(ProcName : string; Status : PISC_STATUS);
+    function CheckConnected(const ProcName: string):boolean;
+    procedure CheckError(const ProcName : string; Status : PISC_STATUS);
     function GetDBInfo:boolean;
-    function GetIBLongint(buffer:string; var bufptr:integer):longint;overload;
-    function GetIBString(buffer:string; var bufptr:integer):string;overload;
-    function GetOutput(IBAdminAction:string):boolean;
-    function IBParamSerialize(isccode:byte;value:string):string;
+    function GetIBLongint(const buffer:string; var bufptr:integer):longint;overload;
+    function GetIBString(const buffer:string; var bufptr:integer):string;overload;
+    function GetOutput(const IBAdminAction:string):boolean;
+    function IBParamSerialize(isccode:byte;const value:string):string;
     procedure IBRaiseError(GDSErrorCode:Longint; const msg : string; const args : array of const);
-    function IBSPBParamSerialize(isccode:byte;value:string):string;
+    function IBSPBParamSerialize(isccode:byte;const value:string):string;
     function IBSPBParamSerialize(isccode:byte;value:longint):string;
     function MakeBackupOptions(options:TIBBackupOptions):longint;
     function MakeRestoreOptions(options:TIBRestoreOptions):longint;
@@ -105,36 +105,36 @@ type
     function DisConnect:boolean;
     //Backup database to a single file on the server.
     //Include IBBkpVerbose in Options to get progress feedback through the OnOutput Handler
-    function Backup(Database,Filename:string;Options:TIBBackupOptions;RoleName:string=''):boolean;
+    function Backup(const Database,Filename:string;Options:TIBBackupOptions;const RoleName:string=''):boolean;
     //Backup database to multiple files with length FileSize on the server.
     //Filenames is the list of filenames to use. The last file specified has no size limit.
     //Include IBBkpVerbose in Options to get progress feedback through the OnOutput Handler
-    function BackupMultiFile(Database:string;Filenames:TStrings;FileSize:longint;
-      Options:TIBBackupOptions;RoleName:string=''):boolean;
+    function BackupMultiFile(const Database:string;Filenames:TStrings;FileSize:longint;
+      Options:TIBBackupOptions;const RoleName:string=''):boolean;
     //Restore database from a single file on the server.
     //Include IBResReplace to restore in and existing database or IBResCreate
     //to create a a new one.
     //Include IBResVerbose in Options to get progress feedback through the OnOutput Handler
-    function Restore(Database,Filename:string;Options:TIBRestoreOptions;RoleName:string=''):boolean;
+    function Restore(const Database,Filename:string;Options:TIBRestoreOptions;const RoleName:string=''):boolean;
     //Restore database from multiple files on the server.
     //Filenames is the list of files to use.
     //Include IBResReplace to restore in and existing database or IBResCreate
     //to create a a new one.
     //Include IBResVerbose in Options to get progress feedback through the OnOutput Handler
-    function RestoreMultiFile(Database:string;Filenames:TStrings;
-      Options:TIBRestoreOptions;RoleName:string=''):boolean;
+    function RestoreMultiFile(const Database:string;Filenames:TStrings;
+      Options:TIBRestoreOptions;const RoleName:string=''):boolean;
     //Add a new user.
-    function AddUser(UserName,Password:string;RoleName:string='';
-      GroupName:string='';FirstName:string='';MiddleName:string='';
-      LastName:string='';UserID: longint = 0; GroupID: longint = 0):boolean;
+    function AddUser(const UserName,Password:string;const RoleName:string='';
+      const GroupName:string='';const FirstName:string='';const MiddleName:string='';
+      const LastName:string='';UserID: longint = 0; GroupID: longint = 0):boolean;
     //Modify an existing user.
-    function ModifyUser(UserName,Password:string;RoleName:string='';
-      GroupName:string='';FirstName:string='';MiddleName:string='';
-      LastName:string='';UserID: longint = 0; GroupID: longint = 0):boolean;
+    function ModifyUser(const UserName,Password:string;const RoleName:string='';
+      const GroupName:string=''; const FirstName:string=''; const MiddleName:string='';
+      const LastName:string='';UserID: longint = 0; GroupID: longint = 0):boolean;
     //Delete an existing user.
-    function DeleteUser(UserName:string;RoleName:string=''):boolean;
+    function DeleteUser(const UserName:string;const RoleName:string=''):boolean;
     //Get the details of an existing user.
-    function GetUser(UserName:string;var GroupName,FirstName,MiddleName,
+    function GetUser(const UserName:string;var GroupName,FirstName,MiddleName,
       LastName:string;var UserID, GroupID: longint):boolean;
     //Get the list of all users
     function GetUsers(Users:TStrings):boolean;
@@ -147,7 +147,7 @@ type
     // WaitInterval is the interval (in milliseconds) between ServiceRunning calls.
     function WaitForServiceCompletion(aTimeOut: Integer): Boolean;
     //Get database statistics
-    function GetDatabaseStats(Database:string;Options:TIBStatOptions;TableNames:String = ''): boolean;
+    function GetDatabaseStats(const Database:string;Options:TIBStatOptions; const TableNames:String = ''): boolean;
     //Database server version
     property ServerVersion:string read FServerVersion;
     //Implementation string of the database server
@@ -210,7 +210,7 @@ resourcestring
 
 { TFBAdmin }
 
-function TFBAdmin.IBParamSerialize(isccode: byte; value: string): string;
+function TFBAdmin.IBParamSerialize(isccode: byte; const value: string): string;
 begin
   result:=chr(isccode)+chr(Length(value))+value;
 end;
@@ -224,7 +224,7 @@ begin
     raise EIBDatabaseError.CreateFmt(msg,args,nil,GDSErrorCode,'');
 end;
 
-function TFBAdmin.IBSPBParamSerialize(isccode: byte; value: string): string;
+function TFBAdmin.IBSPBParamSerialize(isccode: byte; const value: string): string;
 begin
   result:=chr(isccode)+chr(Length(value) and $ff)+chr((Length(value)shr 8) and $ff)+value;
 end;
@@ -274,7 +274,7 @@ begin
 end;
 
 
-function TFBAdmin.CheckConnected(ProcName: string): boolean;
+function TFBAdmin.CheckConnected(const ProcName: string): boolean;
 begin
   result:=false;
   if FSvcHandle=FB_API_NULLHANDLE then
@@ -285,7 +285,7 @@ begin
   result:=true;
 end;
 
-procedure TFBAdmin.CheckError(ProcName: string; Status: PISC_STATUS);
+procedure TFBAdmin.CheckError(const ProcName: string; Status: PISC_STATUS);
 var
   buf : array [0..1023] of char;
   Msg : string;
@@ -330,14 +330,14 @@ begin
   FServerVersion:= QueryInfo(isc_info_svc_server_version);
 end;
 
-function TFBAdmin.GetIBLongint(buffer: string; var bufptr: integer): longint;
+function TFBAdmin.GetIBLongint(const buffer: string; var bufptr: integer): longint;
 begin
   bufptr:=bufptr+1;
   result:=isc_vax_integer(@Buffer[bufptr], 4);
   bufptr:=bufptr+4;
 end;
 
-function TFBAdmin.GetIBString(buffer: string; var bufptr: integer): string;
+function TFBAdmin.GetIBString(const buffer: string; var bufptr: integer): string;
 var
   len:integer;
 begin
@@ -348,7 +348,7 @@ begin
   bufptr:=bufptr+len;
 end;
 
-function TFBAdmin.GetOutput(IBAdminAction: string): boolean;
+function TFBAdmin.GetOutput(const IBAdminAction: string): boolean;
 var
   len:integer;
   buffer:string;
@@ -449,8 +449,8 @@ begin
   result:=true;
 end;
 
-function TFBAdmin.Backup(Database, Filename: string; Options: TIBBackupOptions;
-  RoleName: string): boolean;
+function TFBAdmin.Backup(const Database, Filename: string; Options: TIBBackupOptions;
+  const RoleName: string): boolean;
 var
   spb:string;
 begin
@@ -475,8 +475,8 @@ begin
     WaitForServiceCompletion(0);
 end;
 
-function TFBAdmin.BackupMultiFile(Database: string; Filenames: TStrings;
-  FileSize: longint; Options: TIBBackupOptions; RoleName: string): boolean;
+function TFBAdmin.BackupMultiFile(const Database: string; Filenames: TStrings;
+  FileSize: longint; Options: TIBBackupOptions; const RoleName: string): boolean;
 var
   spb:string;
   i:integer;
@@ -547,8 +547,8 @@ begin
 end;
 
 
-function TFBAdmin.Restore(Database, Filename: string;
-  Options: TIBRestoreOptions; RoleName: string): boolean;
+function TFBAdmin.Restore(const Database, Filename: string;
+  Options: TIBRestoreOptions; const RoleName: string): boolean;
 var
   spb:string;
 begin
@@ -591,8 +591,8 @@ begin
 end;
 
 
-function TFBAdmin.RestoreMultiFile(Database: string; Filenames: TStrings;
-  Options: TIBRestoreOptions; RoleName: string): boolean;
+function TFBAdmin.RestoreMultiFile(const Database: string; Filenames: TStrings;
+  Options: TIBRestoreOptions; const RoleName: string): boolean;
 var
   spb:string;
   i:integer;
@@ -630,8 +630,8 @@ begin
     result:=GetOutput('RestoreMultiFile');
 end;
 
-function TFBAdmin.AddUser(UserName, Password: string; RoleName: string;
-  GroupName: string; FirstName: string; MiddleName: string; LastName: string;
+function TFBAdmin.AddUser(const UserName, Password: string; const RoleName: string;
+  const GroupName: string; const FirstName: string; const MiddleName: string; const LastName: string;
   UserID: longint; GroupID: longint): boolean;
 var
   spb:string;
@@ -659,8 +659,8 @@ begin
     CheckError('AddUser',FStatus);
 end;
 
-function TFBAdmin.ModifyUser(UserName, Password: string; RoleName: string;
-  GroupName: string; FirstName: string; MiddleName: string; LastName: string;
+function TFBAdmin.ModifyUser(const UserName, Password: string; const RoleName: string;
+  const GroupName: string; const FirstName: string; const MiddleName: string; const LastName: string;
   UserID: longint; GroupID: longint): boolean;
 var
   spb:string;
@@ -688,7 +688,7 @@ begin
     CheckError('ModifyUser',FStatus);
 end;
 
-function TFBAdmin.DeleteUser(UserName: string; RoleName: string): boolean;
+function TFBAdmin.DeleteUser(const UserName: string; const RoleName: string): boolean;
 var
   spb:string;
 begin
@@ -702,7 +702,7 @@ begin
     CheckError('DeleteUser',FStatus);
 end;
 
-function TFBAdmin.GetUser(UserName: string; var GroupName, FirstName,
+function TFBAdmin.GetUser(const UserName: string; var GroupName, FirstName,
   MiddleName, LastName: string; var UserID, GroupID: longint): boolean;
 var
   spb:string;
@@ -829,8 +829,7 @@ begin
   result:=GetOutput('GetLogFile');
 end;
 
-function TFBAdmin.GetDatabaseStats(Database:string;Options: TIBStatOptions; TableNames: String
-  ): boolean;
+function TFBAdmin.GetDatabaseStats(const Database:string;Options: TIBStatOptions; const TableNames: String): boolean;
 var
   spb:string;
   param: Integer;

@@ -30,11 +30,11 @@ Type
     FFields : TJSONArray;
   Protected
     Function GenerateMetaData : TJSONObject;
-    function ConvertDateFormat(S: String): String; virtual;
+    function ConvertDateFormat(const S: String): String; virtual;
     Procedure MetaDataToFieldDefs; override;
     procedure InitDateTimeFields; override;
-    function StringToFieldType(S: String): TFieldType;virtual;
-    function GetStringFieldLength(F: TJSONObject; AName: String; AIndex: Integer): integer; virtual;
+    function StringToFieldType(const S: String): TFieldType;virtual;
+    function GetStringFieldLength(F: TJSONObject; const AName: String; AIndex: Integer): integer; virtual;
   Public
     // Use this to load MetaData/Rows from stream.
     // If no metadata is present in the stream, FieldDefs must be filled manually.
@@ -74,7 +74,7 @@ implementation
 { TExtJSJSONDataSet }
 
 
-Function  TExtJSJSONDataSet.StringToFieldType(S : String) : TFieldType;
+Function  TExtJSJSONDataSet.StringToFieldType(const S : String) : TFieldType;
 
 begin
   if (s='int') then
@@ -94,7 +94,7 @@ begin
       Raise EJSONDataset.CreateFmt('Unknown JSON data type : %s',[s]);
 end;
 
-Function  TExtJSJSONDataSet.GetStringFieldLength(F : TJSONObject; AName : String; AIndex : Integer) : integer;
+Function  TExtJSJSONDataSet.GetStringFieldLength(F : TJSONObject; const AName : String; AIndex : Integer) : integer;
 
 Var
   I,L : Integer;
@@ -336,7 +336,7 @@ begin
   Result.strings['root']:='rows';
 end;
 
-Function TExtJSJSONDataSet.ConvertDateFormat(S : String) : String;
+Function TExtJSJSONDataSet.ConvertDateFormat(const S : String) : String;
 
 { Not handled: N S w z W t L o O P T Z c U MS }
 

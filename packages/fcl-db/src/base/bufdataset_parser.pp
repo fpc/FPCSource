@@ -57,7 +57,7 @@ type
 
     procedure ClearExpressions; override;
 
-    procedure ParseExpression(AExpression: string); virtual;
+    procedure ParseExpression(const AExpression: string); virtual;
     function ExtractFromBuffer(Buffer: TRecordBuffer): PChar; virtual;
 
     property Dataset: TDataSet read FDataset; // write FDataset;
@@ -483,7 +483,7 @@ begin
   FCurrentExpression := EmptyStr;
 end;
 
-procedure TBufDatasetParser.ParseExpression(AExpression: string);
+procedure TBufDatasetParser.ParseExpression(const AExpression: string);
 var
   TempBuffer: TRecordBuffer;
 begin

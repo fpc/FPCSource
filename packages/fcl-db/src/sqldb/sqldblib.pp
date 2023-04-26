@@ -70,7 +70,7 @@ begin
     SetDefaultLibraryName;
 end;
 
-procedure TSQLDBLibraryLoader.SetEnabled(AValue: Boolean);
+procedure TSQLDBLibraryLoader.SetEnabled(aValue: Boolean);
 begin
   if FEnabled=AValue then Exit;
   if (csLoading in ComponentState) then

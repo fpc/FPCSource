@@ -75,8 +75,8 @@ type
     FOptions: TIndexOptions;
     FTemporary: Boolean;          // added at runtime
 
-    procedure SetIndexName(NewName: string);
-    procedure SetExpression(NewField: string);
+    procedure SetIndexName(const NewName: string);
+    procedure SetExpression(const NewField: string);
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -289,7 +289,7 @@ type
 
     function  GetNewPageNo: Integer;
     procedure TouchHeader(AHeader: Pointer);
-    function  CreateTempFile(BaseName: string): TPagedFile;
+    function  CreateTempFile(const BaseName: string): TPagedFile;
     procedure ConstructInsertErrorMsg;
     procedure WriteIndexHeader(AIndex: Integer);
     procedure SelectIndexVars(AIndex: Integer);
@@ -360,7 +360,7 @@ type
     procedure DeleteIndex(const AIndexName: string);
     procedure RepageFile;
     procedure CompactFile;
-    procedure PrepareRename(NewFileName: string);
+    procedure PrepareRename(const NewFileName: string);
 
     procedure CreateIndex(FieldDesc, TagName: string; Options: TIndexOptions);
     function  ExtractKeyFromBuffer(Buffer: TRecordBuffer): PChar;
@@ -2037,23 +2037,23 @@ begin
   // deselect index
 end;
 
-procedure WriteDBFileName(Header: PMdxHdr; HdrFileName: string);
+procedure WriteDBFileName(Header: PMdxHdr; const HdrFileName: string);
 var
-  HdrFileExt: string;
+  FN,HdrFileExt: string;
   lPos, lenFileName: integer;
 begin
-  HdrFileName := ExtractFileName(HdrFileName);
-  HdrFileExt := ExtractFileExt(HdrFileName);
+  FN := ExtractFileName(HdrFileName);
+  HdrFileExt := ExtractFileExt(FN);
   if Length(HdrFileExt) > 0 then
   begin
-    lPos := System.Pos(HdrFileExt, HdrFileName);
+    lPos := System.Pos(HdrFileExt, FN);
     if lPos > 0 then
-      SetLength(HdrFileName, lPos - 1);
+      SetLength(FN, lPos - 1);
   end;
-  if Length(HdrFileName) > 15 then
-    SetLength(HdrFileName, 15);
-  lenFileName := Length(HdrFileName);
-  Move(PChar(HdrFileName)^, PMdxHdr(Header)^.FileName[0], lenFileName);
+  if Length(FN) > 15 then
+    SetLength(FN, 15);
+  lenFileName := Length(FN);
+  Move(PChar(FN)^, PMdxHdr(Header)^.FileName[0], lenFileName);
   FillChar(PMdxHdr(Header)^.FileName[lenFileName], 15-lenFileName, 0);
 end;
 
@@ -2481,15 +2481,17 @@ begin
   PMdxHdr(AHeader)^.UpdDay := day;
 end;
 
-function TIndexFile.CreateTempFile(BaseName: string): TPagedFile;
+function TIndexFile.CreateTempFile(const BaseName: string): TPagedFile;
 var
   lModifier: Integer;
+  FN : String;
+
 begin
   // create temporary in-memory index file
   lModifier := 0;
-  FindNextName(BaseName, BaseName, lModifier);
+  FindNextName(BaseName, FN, lModifier);
   Result := TPagedFile.Create;
-  Result.FileName := BaseName;
+  Result.FileName := FN;
   Result.Mode := pfExclusiveCreate;
   Result.AutoCreate := true;
   Result.OpenFile;
@@ -2790,7 +2792,7 @@ begin
   SelectIndexVars(prevIndex);
 end;
 
-procedure TIndexFile.PrepareRename(NewFileName: string);
+procedure TIndexFile.PrepareRename(const NewFileName: string);
 begin
   if FIndexVersion >= xBaseIV then
   begin
@@ -4142,12 +4144,12 @@ begin
     inherited;
 end;
 
-procedure TDbfIndexDef.SetIndexName(NewName: string);
+procedure TDbfIndexDef.SetIndexName(const NewName: string);
 begin
   FIndexName := AnsiUpperCase(Trim(NewName));
 end;
 
-procedure TDbfIndexDef.SetExpression(NewField: string);
+procedure TDbfIndexDef.SetExpression(const NewField: string);
 begin
   FExpression := AnsiUpperCase(Trim(NewField));
 end;
