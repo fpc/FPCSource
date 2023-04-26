@@ -135,9 +135,9 @@ Type
     procedure SetSchema(aIndex : Integer; AValue: TSQLDBRestSchemaRef);
   Public
     Function AddSchema (aSchema : TSQLDBRestSchema) : TSQLDBRestSchemaRef;
-    Function IndexOfSchema(aSchemaName : String) : Integer;
-    Function FindSchemaRef(aSchemaName : String) : TSQLDBRestSchemaRef;
-    Function FindSchema(aSchemaName : String) : TSQLDBRestSchema;
+    Function IndexOfSchema(const aSchemaName : String) : Integer;
+    Function FindSchemaRef(const aSchemaName : String) : TSQLDBRestSchemaRef;
+    Function FindSchema(const aSchemaName : String) : TSQLDBRestSchema;
     Property Schemas[aIndex :Integer] : TSQLDBRestSchemaRef Read GetSchema Write SetSchema;default;
   end;
 
@@ -460,14 +460,14 @@ begin
   Result.Enabled:=True;
 end;
 
-function TSQLDBRestSchemaList.IndexOfSchema(aSchemaName: String): Integer;
+function TSQLDBRestSchemaList.IndexOfSchema(const aSchemaName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and Not (Assigned(GetSchema(Result).Schema) and SameText(GetSchema(Result).Schema.Name,aSchemaName)) do
     Dec(Result);
 end;
 
-function TSQLDBRestSchemaList.FindSchemaRef(aSchemaName: String): TSQLDBRestSchemaRef;
+function TSQLDBRestSchemaList.FindSchemaRef(const aSchemaName: String): TSQLDBRestSchemaRef;
 
 Var
   Idx : integer;
@@ -480,7 +480,7 @@ begin
     Result:=Schemas[Idx];
 end;
 
-function TSQLDBRestSchemaList.FindSchema(aSchemaName: String): TSQLDBRestSchema;
+function TSQLDBRestSchemaList.FindSchema(Const aSchemaName: String): TSQLDBRestSchema;
 
 Var
   Ref : TSQLDBRestSchemaRef;

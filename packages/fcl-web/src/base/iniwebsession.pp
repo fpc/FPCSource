@@ -38,19 +38,19 @@ Type
     Procedure FreeIniFile;
     Procedure CheckSession;
     Function GetSessionID : String; override;
-    Function GetSessionVariable(VarName : String) : String; override;
-    procedure SetSessionVariable(VarName : String; const AValue: String); override;
+    Function GetSessionVariable(const VarName : String) : String; override;
+    procedure SetSessionVariable(const VarName : String; const AValue: String); override;
     Property Cached : Boolean Read FCached Write FCached;
     Property SessionDir : String Read FSessionDir Write FSessionDir;
     Property IniFile : TMemIniFile Read FIniFile Write FIniFile;
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
-    function SessionVariableExists(VarName: String): Boolean; override;
+    function SessionVariableExists(const VarName: String): Boolean; override;
     Procedure UpdateResponse(AResponse : TResponse); override;
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
     Procedure InitResponse(AResponse : TResponse); override;
-    Procedure RemoveVariable(VariableName : String); override;
+    Procedure RemoveVariable(const VariableName : String); override;
     Function GetSessionDir : String;
   end;
   TIniWebSessionClass = Class of TIniWebSession;
@@ -324,14 +324,13 @@ begin
       Raise EWebSessionError.Create(SErrNoSession)
 end;
 
-function TIniWebSession.GetSessionVariable(VarName: String): String;
+function TIniWebSession.GetSessionVariable(const VarName: String): String;
 begin
   CheckSession;
   Result:=FIniFile.ReadString(SData,VarName,'');
 end;
 
-procedure TIniWebSession.SetSessionVariable(VarName: String;
-  const AValue: String);
+procedure TIniWebSession.SetSessionVariable(const VarName: String; const AValue: String);
 begin
   CheckSession;
   FIniFile.WriteString(SData,VarName,AValue);
@@ -360,7 +359,7 @@ begin
   RemoveFromSessionState(ssExpired);
 end;
 
-function TIniWebSession.SessionVariableExists(VarName: String): Boolean;
+function TIniWebSession.SessionVariableExists(const VarName: String): Boolean;
 begin
   CheckSession;
   Result:=FIniFile.ValueExists(SData,VarName);
@@ -458,7 +457,7 @@ begin
   AddToSessionState(ssResponseInitialized);
 end;
 
-procedure TIniWebSession.RemoveVariable(VariableName: String);
+procedure TIniWebSession.RemoveVariable(const VariableName: String);
 begin
 {$ifdef cgidebug}SendMethodEnter('TIniWebSession.RemoveVariable');{$endif}
   CheckSession;

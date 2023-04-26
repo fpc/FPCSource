@@ -128,9 +128,9 @@ type
     procedure SetItem(index : integer; const AValue: TFormFieldItem);
   public
     constructor create;
-    function AddField (afieldname, acaption : string) : TFormFieldItem;
-    Function FindItem(AName : String): TFormFieldItem;
-    Function IndexofItem(AName : String) : Integer;
+    function AddField (const afieldname, acaption : string) : TFormFieldItem;
+    Function FindItem(const AName : String): TFormFieldItem;
+    Function IndexofItem(const AName : String) : Integer;
     property Items [index : integer] : TFormFieldItem read GetItem write SetItem;
   end;
 
@@ -549,14 +549,14 @@ begin
   inherited create (TFormFieldItem);
 end;
 
-function TFormFieldCollection.AddField(afieldname, acaption: string): TFormFieldItem;
+function TFormFieldCollection.AddField(const afieldname, acaption: string): TFormFieldItem;
 begin
   result := TFormFieldItem (Add);
   result.fieldname := afieldname;
   result.labelcaption := acaption;
 end;
 
-function TFormFieldCollection.FindItem(AName: String): TFormFieldItem;
+function TFormFieldCollection.FindItem(const AName: String): TFormFieldItem;
 Var
   I : Integer;
 
@@ -568,7 +568,7 @@ begin
     Result:=Items[I];
 end;
 
-function TFormFieldCollection.IndexofItem(AName: String): Integer;
+function TFormFieldCollection.IndexofItem(const AName: String): Integer;
 
 begin
   Result:=Count-1;

@@ -53,9 +53,9 @@ Type
     // Override this to disable writing a property to the JSON.
     function WriteProp(P: PPropInfo; All: Boolean): Boolean; virtual;
     function GetAsEncodedString: String; virtual;
-    procedure SetAsEncodedString(AValue: String); virtual;
+    procedure SetAsEncodedString(const AValue: String); virtual;
     function GetAsString: TJSONStringType; virtual;
-    procedure SetAsString(AValue: TJSONStringType);virtual;
+    procedure SetAsString(const AValue: TJSONStringType);virtual;
     Procedure DoLoadFromJSON(JSON : TJSONObject);virtual;
     Procedure DoSaveToJSON(JSON : TJSONObject; All : Boolean);virtual;
   Public
@@ -63,12 +63,12 @@ Type
     Procedure LoadFromJSON(JSON : TJSONObject);
     Procedure SaveToJSON(JSON : TJSONObject; All : Boolean);
     // Base64url conversion functions (RFC7515)
-    class function Base64ToBase64URL(AValue: string): string; deprecated 'Use basenenc functions instead';
-    class function Base64URLToBase64(AValue: string): string; deprecated 'Use basenenc functions instead';
+    class function Base64ToBase64URL(Const AValue: string): string; deprecated 'Use basenenc functions instead';
+    class function Base64URLToBase64(Const AValue: string): string; deprecated 'Use basenenc functions instead';
     // Decode Base64url string.
-    Class Function DecodeString(S : String) : String;
+    Class Function DecodeString(const S : String) : String;
     // Decode Base64url string and return a JSON Object.
-    Class Function DecodeStringToJSON(S : String) : TJSONObject;
+    Class Function DecodeStringToJSON(const S : String) : TJSONObject;
     // Get/Set as string. This is normally the JSON form.
     Property AsString : TJSONStringType Read GetAsString Write SetAsString;
     // Set as string. This is normally the JSON form, encoded as Base64.
@@ -147,9 +147,9 @@ Type
     Function CreateClaims : TClaims; Virtual;
     // AsString and AsEncodedString are the same in this case.
     function GetAsString: TJSONStringType; override;
-    procedure SetAsString(AValue: TJSONStringType);override;
+    procedure SetAsString(const AValue: TJSONStringType);override;
     function GetAsEncodedString: String;override;
-    Procedure SetAsEncodedString (AValue : String);override;
+    Procedure SetAsEncodedString (const AValue : String);override;
   Public
     Constructor Create; override;
     Destructor Destroy; override;
@@ -176,7 +176,7 @@ Type
     class Destructor done;
     Class function AlgorithmName : String; virtual; abstract;
     Class Function GetParts(const aJWT : String; out aJOSE,aClaims,aSign : String) : Boolean;
-    Class Function CreateSigner(aAlgorithm : String): TJWTSigner;
+    Class Function CreateSigner(const aAlgorithm : String): TJWTSigner;
     Constructor Create; virtual;
     Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; virtual; abstract;
     Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; virtual; abstract;
@@ -351,7 +351,7 @@ begin
   Result:=(aJOSE<>'') and (aClaims<>'');
 end;
 
-class function TJWTSigner.CreateSigner(aAlgorithm: String): TJWTSigner;
+class function TJWTSigner.CreateSigner(const aAlgorithm: String): TJWTSigner;
 
 Var
   Idx : Integer;
@@ -462,7 +462,7 @@ begin
   Result:=GetAsString;
 end;
 
-procedure TJWT.SetAsEncodedString(AValue: String);
+procedure TJWT.SetAsEncodedString(const AValue: String);
 begin
   SetAsString(AValue);
 end;
@@ -504,7 +504,7 @@ begin
   Result:=TJWTSigner.ParseAndVerify(aJWT,aKey,aClass);
 end;
 
-procedure TJWT.SetAsString(AValue: TJSONStringType);
+procedure TJWT.SetAsString(const AValue: TJSONStringType);
 
 Var
   J,C,S : String;
@@ -525,7 +525,7 @@ begin
   Result:=Base64URL.Encode(AsString,False);
 end;
 
-procedure TBaseJWT.SetAsEncodedString(AValue: String);
+procedure TBaseJWT.SetAsEncodedString(const AValue: String);
 begin
   AsString:=DecodeString(AValue);
 end;
@@ -545,7 +545,7 @@ begin
   end;
 end;
 
-procedure TBaseJWT.SetAsString(AValue: TJSONStringType);
+procedure TBaseJWT.SetAsString(const AValue: TJSONStringType);
 Var
   D : TJSONData;
   O : TJSONObject absolute D;
@@ -700,13 +700,13 @@ begin
   DoSaveToJSon(JSON,All);
 end;
 
-class function TBaseJWT.Base64ToBase64URL(AValue: string): string;
+class function TBaseJWT.Base64ToBase64URL(const AValue: string): string;
 begin
   Result := StringsReplace(AValue, ['+', '/'], ['-', '_'], [rfReplaceAll]);
   Result := TrimRightSet(Result, ['=']);
 end;
 
-class function TBaseJWT.Base64URLToBase64(AValue: string): string;
+class function TBaseJWT.Base64URLToBase64(const AValue: string): string;
 var
   l: integer;
 begin
@@ -716,12 +716,12 @@ begin
     Result:=Result+StringOfChar('=',4-l);
 end;
 
-class function TBaseJWT.DecodeString(S: String): String;
+class function TBaseJWT.DecodeString(const S: String): String;
 begin
   Result:=TEncoding.UTF8.GetAnsiString(Base64URL.Decode(S));
 end;
 
-class function TBaseJWT.DecodeStringToJSON(S: String): TJSONObject;
+class function TBaseJWT.DecodeStringToJSON(const S: String): TJSONObject;
 
 Var
   D : TJSONData;

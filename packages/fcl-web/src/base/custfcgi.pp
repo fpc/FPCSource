@@ -67,7 +67,7 @@ Type
     FRequestHeadersInitialized: Boolean;
     FStreamingContentReceived: Boolean;
   Protected
-    function DoGetCGIVar(AVarName: String): String; override;
+    function DoGetCGIVar(const AVarName: String): String; override;
     procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings); virtual;
     Procedure Log(EventType : TEventType; Const Msg : String);
   Public
@@ -312,7 +312,7 @@ begin
   end;
 end;
 
-function TFCGIRequest.DoGetCGIVar(AVarName: String): String;
+function TFCGIRequest.DoGetCGIVar(const AVarName: String): String;
 begin
   Result:=FCGIParams.Values[AVarName];
 end;

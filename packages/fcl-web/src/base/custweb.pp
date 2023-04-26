@@ -56,12 +56,12 @@ Type
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
-    procedure DoCallModule(AModule: TCustomHTTPModule; AModuleName: String; ARequest: TRequest; AResponse: TResponse);
+    procedure DoCallModule(AModule: TCustomHTTPModule; const AModuleName: String; ARequest: TRequest; AResponse: TResponse);
     procedure HandleModuleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
     procedure OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
   protected
-    Class Procedure DoError(Msg : String; AStatusCode : Integer = 0; AStatusText : String = '');
-    Class Procedure DoError(Fmt : String; Const Args : Array of const;AStatusCode : Integer = 0; AStatusText : String = '');
+    Class Procedure DoError(const Msg : String; AStatusCode : Integer = 0; const AStatusText : String = '');
+    Class Procedure DoError(const Fmt : String; Const Args : Array of const; AStatusCode : Integer = 0; Const AStatusText : String = '');
     procedure Terminate; virtual;
     Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
@@ -124,7 +124,7 @@ Type
     procedure SetAdministrator(const AValue: String);
     procedure SetAllowDefaultModule(const AValue: Boolean);
     procedure SetApplicationURL(const AValue: String);
-    procedure SetDefaultModuleName(AValue: String);
+    procedure SetDefaultModuleName(const AValue: String);
     procedure SetEmail(const AValue: String);
     procedure SetHandleGetOnPost(const AValue: Boolean);
     procedure SetLegacyRouting(AValue: Boolean);
@@ -314,7 +314,7 @@ begin
   Result := FAdministrator;
 end;
 
-Procedure TWebHandler.DoCallModule(AModule : TCustomHTTPModule; AModuleName : String ; ARequest: TRequest; AResponse: TResponse);
+Procedure TWebHandler.DoCallModule(AModule : TCustomHTTPModule; const AModuleName : String ; ARequest: TRequest; AResponse: TResponse);
 
 begin
   SetBaseURL(AModule,AModuleName,ARequest);
@@ -406,7 +406,7 @@ begin
     Result:=ARequest.ScriptName;
 end;
 
-Class Procedure TWebHandler.DoError(Msg : String;AStatusCode : Integer = 0; AStatusText : String = '');
+Class Procedure TWebHandler.DoError(Const Msg : String;AStatusCode : Integer = 0; const AStatusText : String = '');
 
 Var
   E : EFPWebError;
@@ -418,8 +418,8 @@ begin
   Raise E;
 end;
 
-Class Procedure TWebHandler.DoError(Fmt: String; Const Args: Array of const;
-  AStatusCode: Integer = 0; AStatusText: String = '');
+Class Procedure TWebHandler.DoError(Const Fmt: String; Const Args: Array of const;
+  AStatusCode: Integer = 0; Const AStatusText: String = '');
 begin
   DoError(Format(Fmt,Args),AStatusCode,AStatusText);
 end;
@@ -653,7 +653,7 @@ begin
   FWebHandler.ApplicationURL := AValue;
 end;
 
-procedure TCustomWebApplication.SetDefaultModuleName(AValue: String);
+procedure TCustomWebApplication.SetDefaultModuleName(const AValue: String);
 begin
   FWebHandler.DefaultModuleName:=AValue;
 end;

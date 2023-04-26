@@ -88,9 +88,9 @@ Type
     function GetVar(I : Integer): TTemplateVar;
     procedure Setvar(I : Integer; const AValue: TTemplateVar);
   Public
-    Function IndexOfVar(AName : String) : Integer;
-    Function VarByName(AName : String) : TTemplateVar;
-    Function FindVar(AName : String) : TTemplateVar;
+    Function IndexOfVar(const AName : String) : Integer;
+    Function VarByName(const AName : String) : TTemplateVar;
+    Function FindVar(const AName : String) : TTemplateVar;
     Property Variables[I : Integer] : TTemplateVar Read GetVar Write Setvar; default;
   end;
 
@@ -558,7 +558,7 @@ begin
   Items[i]:=AValue;
 end;
 
-function TTemplateVars.IndexOfVar(AName: String): Integer;
+function TTemplateVars.IndexOfVar(const AName: String): Integer;
 
 begin
   Result:=Count-1;
@@ -566,14 +566,14 @@ begin
     Dec(Result);
 end;
 
-function TTemplateVars.VarByName(AName: String): TTemplateVar;
+function TTemplateVars.VarByName(Const AName: String): TTemplateVar;
 begin
   Result:=FindVar(AName);
   If (Result=Nil) then
     Raise EFPWebError.CreateFmt(SErrInvalidVar,[AName]);
 end;
 
-function TTemplateVars.FindVar(AName: String): TTemplateVar;
+function TTemplateVars.FindVar(Const AName: String): TTemplateVar;
 
 Var
   I : Integer;

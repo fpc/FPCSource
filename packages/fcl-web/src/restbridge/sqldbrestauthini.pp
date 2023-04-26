@@ -34,13 +34,13 @@ Type
     Procedure ClearValues;
   Public
     Procedure LoadFromIni(Const aIni: TCustomIniFile; aOptions : TBasicAuthIniOptions = []); overload;
-    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TBasicAuthIniOptions); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TBasicAuthIniOptions); overload;
     Procedure LoadFromFile(Const aFileName : String; aOptions : TBasicAuthIniOptions = []); overload;
     Procedure LoadFromFile(Const aFileName : String; Const ASection : String; aOptions : TBasicAuthIniOptions); overload;
     Procedure SaveToFile(Const aFileName : String; aOptions : TBasicAuthIniOptions = []);overload;
     Procedure SaveToFile(Const aFileName : String; Const ASection : String; aOptions : TBasicAuthIniOptions = []);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; aOptions : TBasicAuthIniOptions = []); overload;
-    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TBasicAuthIniOptions); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TBasicAuthIniOptions); overload;
   end;
 
 Var
@@ -48,7 +48,7 @@ Var
   TrivialEncryptKey : String = 'SQLDBAuth';
 
 Function BasicAuthIniOptionsToStr(Options: TBasicAuthIniOptions): String;
-Function StrToBasicAuthIniOptions(S : String) : TBasicAuthIniOptions;
+Function StrToBasicAuthIniOptions(const S : String) : TBasicAuthIniOptions;
 
 implementation
 
@@ -60,7 +60,7 @@ begin
   Result:=SetToString(PTypeInfo(TypeInfo(TBasicAuthIniOptions)),Integer(Options),false);
 end;
 
-Function StrToBasicAuthIniOptions(S : String) : TBasicAuthIniOptions;
+Function StrToBasicAuthIniOptions(const S : String) : TBasicAuthIniOptions;
 
 var
   i : integer;
@@ -90,7 +90,7 @@ begin
   AuthenticationRealm:='';
 end;
 
-procedure TSQLDBRestBasicAuthHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String; aOptions: TBasicAuthIniOptions);
+procedure TSQLDBRestBasicAuthHelper.LoadFromIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TBasicAuthIniOptions);
 
 Var
   M,P : String;
@@ -177,7 +177,7 @@ begin
   SaveToIni(aIni,DefaultBasicAuthSection,aOptions);
 end;
 
-procedure TSQLDBRestBasicAuthHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String; aOptions: TBasicAuthIniOptions);
+procedure TSQLDBRestBasicAuthHelper.SaveToIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TBasicAuthIniOptions);
 
 Var
   M,P : String;

@@ -35,15 +35,14 @@ Type
     Procedure ClearValues;
   Public
     Procedure LoadFromIni(Const aIni: TCustomIniFile; aOptions : TConnectionIniOptions = []); overload;
-    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TConnectionIniOptions); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TConnectionIniOptions); overload;
     Procedure LoadFromIniFile(Const aFileName : String; aOptions : TConnectionIniOptions = []); overload;
     Procedure LoadFromIniFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions); overload;
     Procedure SaveToIniFile(Const aFileName : String; aOptions : TConnectionIniOptions = []);overload;
     Procedure SaveToIniFile(Const aFileName : String; Const ASection : String; aOptions : TConnectionIniOptions = []);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; aOptions : TConnectionIniOptions = []); overload;
-    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TConnectionIniOptions); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TConnectionIniOptions); overload;
   end;
-
   TDispatcherIniOption = (dioSkipReadConnections,   // Do not Read connection definitions
                           dioSkipExposeConnections, // Do not Expose connections defined in .ini file
                           dioSkipReadSchemas,       // Do not Read schema definitions
@@ -60,18 +59,18 @@ Type
   TSQLDBRestDispatcherHelper = class helper for TSQLDBRestDispatcher
   private
   Public
-    procedure ReadSchemas(const aIni: TCustomIniFile; ASection: String; aOptions: TDispatcherIniOptions);
-    procedure ReadConnections(const aIni: TCustomIniFile; ASection: String);
-    procedure WriteConnections(const aIni: TCustomIniFile; ASection: String; aOptions : TConnectionIniOptions);
-    procedure WriteSchemas(const aIni: TCustomIniFile; ASection: String; SchemaFileDir : String);
+    procedure ReadSchemas(const aIni: TCustomIniFile; const ASection: String; aOptions: TDispatcherIniOptions);
+    procedure ReadConnections(const aIni: TCustomIniFile; const ASection: String);
+    procedure WriteConnections(const aIni: TCustomIniFile; const ASection: String; aOptions : TConnectionIniOptions);
+    procedure WriteSchemas(const aIni: TCustomIniFile; const ASection: String; const SchemaFileDir : String);
     Procedure LoadFromIni(Const aIni: TCustomIniFile; aOptions : TDispatcherIniOptions = []); overload;
-    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TDispatcherIniOptions); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TDispatcherIniOptions); overload;
     Procedure LoadFromFile(Const aFileName : String; aOptions : TDispatcherIniOptions = []); overload;
     Procedure LoadFromFile(Const aFileName : String; Const ASection : String; aOptions : TDispatcherIniOptions); overload;
     Procedure SaveToFile(Const aFileName : String; aOptions : TDispatcherIniOptions = []);overload;
     Procedure SaveToFile(Const aFileName : String; Const ASection : String; aOptions : TDispatcherIniOptions = []);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; aOptions : TDispatcherIniOptions = []); overload;
-    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TDispatcherIniOptions); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TDispatcherIniOptions); overload;
   end;
 
   { TRestStringsConfigHelper }
@@ -79,19 +78,19 @@ Type
   TRestStringsConfigHelper = class helper for TRestStringsConfig
   Public
     Procedure LoadFromIni(Const aIni: TCustomIniFile); overload;
-    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; const ASection : String); overload;
     Procedure LoadFromFile(Const aFileName : String); overload;
     Procedure LoadFromFile(Const aFileName : String; Const ASection : String); overload;
     Procedure SaveToFile(Const aFileName : String);overload;
     Procedure SaveToFile(Const aFileName : String; Const ASection : String);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile); overload;
-    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; const ASection : String); overload;
   end;
 
 
-Function StrToOutputOptions(S : String) : TRestOutputOptions;
-Function StrToDispatcherOptions(S : String) : TRestDispatcherOptions;
-Function StrToConnectionIniOptions(S : String) : TConnectionIniOptions;
+Function StrToOutputOptions(const S : String) : TRestOutputOptions;
+Function StrToDispatcherOptions(const S : String) : TRestDispatcherOptions;
+Function StrToConnectionIniOptions(const S : String) : TConnectionIniOptions;
 Function OutputOptionsToStr(Options : TRestOutputOptions): String;
 Function DispatcherOptionsToStr(Options: TRestDispatcherOptions) : String;
 Function ConnectionIniOptionsToStr(Options: TConnectionIniOptions): String;
@@ -130,7 +129,7 @@ Const
   KeyEnabled = 'Enabled';
   KeyBasicAuth = 'BasicAuth';
 
-Function StrToOutputOptions(S : String) : TRestOutputOptions;
+Function StrToOutputOptions(const S : String) : TRestOutputOptions;
 
 var
   i : integer;
@@ -140,7 +139,7 @@ begin
   Result:=TRestOutputOptions(I);
 end;
 
-Function StrToDispatcherOptions(S : String) : TRestDispatcherOptions;
+Function StrToDispatcherOptions(Const S : String) : TRestDispatcherOptions;
 
 var
   i : integer;
@@ -150,7 +149,7 @@ begin
   Result:=TRestDispatcherOptions(I);
 end;
 
-Function StrToConnectionIniOptions(S : String) : TConnectionIniOptions;
+Function StrToConnectionIniOptions(const S : String) : TConnectionIniOptions;
 
 var
   i : integer;
@@ -160,7 +159,7 @@ begin
   Result:=TConnectionIniOptions(I);
 end;
 
-Function StrToRestFieldOptions(S : String) : TRestFieldOptions;
+Function StrToRestFieldOptions(const S : String) : TRestFieldOptions;
 
 var
   i : integer;
@@ -195,7 +194,7 @@ begin
   LoadFromIni(aIni,DefaultStringsConfigSection);
 end;
 
-procedure TRestStringsConfigHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String);
+procedure TRestStringsConfigHelper.LoadFromIni(const aIni: TCustomIniFile; const ASection: String);
 
 Var
   T : TRestStringProperty;
@@ -254,7 +253,7 @@ begin
   SaveToini(aIni,DefaultStringsConfigSection);
 end;
 
-procedure TRestStringsConfigHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String);
+procedure TRestStringsConfigHelper.SaveToIni(const aIni: TCustomIniFile; const ASection: String);
 Var
   T : TRestStringProperty;
   N : String;
@@ -277,7 +276,7 @@ begin
   LoadFromIni(aIni,DefaultDispatcherSection,aOptions);
 end;
 
-procedure TSQLDBRestDispatcherHelper.ReadConnections(const aIni: TCustomIniFile; ASection: String);
+procedure TSQLDBRestDispatcherHelper.ReadConnections(const aIni: TCustomIniFile; const ASection: String);
 
 Var
   S,L : String;
@@ -297,7 +296,7 @@ begin
     end;
 end;
 
-procedure TSQLDBRestDispatcherHelper.WriteConnections(const aIni: TCustomIniFile; ASection: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestDispatcherHelper.WriteConnections(const aIni: TCustomIniFile; const ASection: String; aOptions: TConnectionIniOptions);
 
 Var
   S,L : String;
@@ -321,7 +320,7 @@ begin
     end;
 end;
 
-procedure TSQLDBRestDispatcherHelper.WriteSchemas(const aIni: TCustomIniFile; ASection: String; SchemaFileDir : String);
+procedure TSQLDBRestDispatcherHelper.WriteSchemas(const aIni: TCustomIniFile; Const ASection: String; Const SchemaFileDir : String);
 
 Var
   S,L,FN : String;
@@ -356,7 +355,7 @@ begin
     end;
 end;
 
-procedure TSQLDBRestDispatcherHelper.ReadSchemas(const aIni: TCustomIniFile; ASection: String; aOptions: TDispatcherIniOptions);
+procedure TSQLDBRestDispatcherHelper.ReadSchemas(const aIni: TCustomIniFile; const ASection: String; aOptions: TDispatcherIniOptions);
 
 Var
   S,L,FN : String;
@@ -383,7 +382,7 @@ begin
     end;
 end;
 
-procedure TSQLDBRestDispatcherHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String; aOptions: TDispatcherIniOptions);
+procedure TSQLDBRestDispatcherHelper.LoadFromIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TDispatcherIniOptions);
 
 Var
   I : Integer;
@@ -470,7 +469,7 @@ begin
   SaveToIni(aIni,DefaultDispatcherSection,aOptions);
 end;
 
-procedure TSQLDBRestDispatcherHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String; aOptions: TDispatcherIniOptions);
+procedure TSQLDBRestDispatcherHelper.SaveToIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TDispatcherIniOptions);
 
 Var
   BAN : String;
@@ -519,7 +518,7 @@ Const
                      = (keyHost,KeyDatabaseName,KeyUserName,KeyPassword,KeyPort,keyParams,keyCharSet,keyRole);
   ParamSeps = [',',';',' '];
 
-procedure TSQLDBRestConnectionHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.LoadFromIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TConnectionIniOptions);
 
 Var
   M,N,P : String;
@@ -623,7 +622,7 @@ begin
   SaveToIni(aIni,DefaultConnectionSection,aOptions);
 end;
 
-procedure TSQLDBRestConnectionHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String; aOptions: TConnectionIniOptions);
+procedure TSQLDBRestConnectionHelper.SaveToIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TConnectionIniOptions);
 Var
   M,N,P : String;
   I : integer;

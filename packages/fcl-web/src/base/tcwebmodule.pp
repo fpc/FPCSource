@@ -43,7 +43,7 @@ Type
     function GetSCS: Ansistring;
   protected
     Function GetFieldValue(Index : Integer) : String; override;
-    Procedure SetFieldValue(Index : Integer; Value : String); override;
+    Procedure SetFieldValue(Index : Integer; const Value : String); override;
     Procedure DoSendHeaders(Headers : TStrings); override;
     Procedure DoSendContent; override;
   Public
@@ -64,8 +64,8 @@ Type
     function GetValues: TStrings;
   Protected
     Destructor Destroy; override;
-    Function GetSessionVariable(VarName : String) : String; override;
-    procedure SetSessionVariable(VarName : String; const AValue: String);override;
+    Function GetSessionVariable(const VarName : String) : String; override;
+    procedure SetSessionVariable(const VarName : String; const AValue: String);override;
     Property Values : TStrings Read GetValues;
   end;
 
@@ -198,7 +198,7 @@ begin
   inherited Destroy;
 end;
 
-function TFakeSession.GetSessionVariable(VarName: String): String;
+function TFakeSession.GetSessionVariable(const VarName: String): String;
 begin
   If Assigned(FValues) then
     Result:=FValues.Values[VarName]
@@ -206,7 +206,7 @@ begin
     Result:='';
 end;
 
-procedure TFakeSession.SetSessionVariable(VarName: String; const AValue: String);
+procedure TFakeSession.SetSessionVariable(const VarName: String; const AValue: String);
 begin
   CheckValues;
   FValues.Values[VarName]:=AValue;
@@ -302,7 +302,7 @@ begin
     Result:=FFields.Values[IntToStr(Index)];
 end;
 
-procedure TFakeResponse.SetFieldValue(Index: Integer; Value: String);
+procedure TFakeResponse.SetFieldValue(Index: Integer; const Value: String);
 begin
   inherited SetFieldValue(Index, Value);
   If (Value<>'') and (GetFieldValue(Index)='') then

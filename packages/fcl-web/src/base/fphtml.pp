@@ -56,12 +56,12 @@ type
   public
     constructor Create(const AWebController: TWebController; const AJavaType: TJavaType); virtual;
     destructor Destroy; override;
-    procedure AddScriptLine(ALine: String); virtual;
-    procedure MessageBox(AText: String; Buttons: TWebButtons; Loaded: string = ''); virtual;
+    procedure AddScriptLine(const ALine: String); virtual;
+    procedure MessageBox(const AText: String; Buttons: TWebButtons; const Loaded: string = ''); virtual;
     procedure RedrawContentProducer(AContentProducer: THTMLContentProducer); virtual;
-    procedure CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = ''); virtual;
+    procedure CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; const APostVariable: string = ''); virtual;
     procedure Clear; virtual;
-    procedure Redirect(AUrl: string); virtual;
+    procedure Redirect(const AUrl: string); virtual;
     function ScriptIsEmpty: Boolean; virtual;
     function GetScript: String; virtual;
     property WebController: TWebController read GetWebController;
@@ -145,30 +145,30 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure AddScriptFileReference(AScriptFile: String); virtual; abstract;
-    procedure AddStylesheetReference(Ahref, Amedia: String); virtual; abstract;
+    procedure AddScriptFileReference(const AScriptFile: String); virtual; abstract;
+    procedure AddStylesheetReference(const Ahref, Amedia: String); virtual; abstract;
     function CreateNewJavascriptStack(AJavaType: TJavaType): TJavaScriptStack; virtual; abstract;
     function InitializeJavaScriptStack(AJavaType: TJavaType): TJavaScriptStack;
     procedure FreeJavascriptStack; virtual;
     function HasJavascriptStack: boolean; virtual; abstract;
-    function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; virtual; abstract;
+    function GetUrl(ParamNames, ParamValues, KeepParams: array of string; const Action: string = ''): string; virtual; abstract;
     procedure InitializeAjaxRequest; virtual;
     procedure InitializeShowRequest; virtual;
     procedure CleanupShowRequest; virtual;
     procedure CleanupAfterRequest; virtual;
     procedure BeforeGenerateHead; virtual;
-    function AddJavaVariable(AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
-    procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); virtual; abstract;
-    function MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; virtual;
-    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons;  ALoaded: string = ''): string; virtual; abstract;
+    function AddJavaVariable(const AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
+    procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; const AnEvent: string); virtual; abstract;
+    function MessageBox(Const AText: String; Buttons: TWebButtons; const ALoaded: string = ''): string; virtual;
+    function DefaultMessageBoxHandler(Sender: TObject; const AText: String; Buttons: TWebButtons;  const ALoaded: string = ''): string; virtual; abstract;
     function CreateNewScript: TStringList; virtual; abstract;
-    function AddrelativeLinkPrefix(AnURL: string): string;
+    function AddrelativeLinkPrefix(const AnURL: string): string;
     procedure FreeScript(var AScript: TStringList); virtual; abstract;
     procedure ShowRegisteredScript(ScriptID: integer); virtual; abstract;
 
     function IncrementIterationLevel: integer; virtual;
     function ResetIterationLevel: integer; virtual;
-    procedure SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string); virtual;
+    procedure SetIterationIDSuffix(AIterationLevel: integer; const IDSuffix: string); virtual;
     function GetIterationIDSuffix: string; virtual;
     procedure DecrementIterationLevel; virtual;
 
@@ -198,7 +198,7 @@ type
     constructor Create(AWebController: TWebController; AResponse: TResponse); virtual;
     destructor Destroy; override;
     procedure BindToResponse; virtual;
-    procedure SetError(HelpContext: longint; ErrorMessage: string);
+    procedure SetError(HelpContext: longint; const ErrorMessage: string);
     procedure CancelXMLAnswer;
     property Response: TResponse read FResponse;
     property XMLAnswer: TXMLDocument read GetXMLAnswer;
@@ -261,7 +261,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     procedure DoBeforeGenerateContent(const AContentProducer: THTMLContentProducer);
     function GetEvents: TEventRecords; virtual;
-    procedure AddEvent(var Events: TEventRecords; AServerEventID: integer; AServerEvent: THandleAjaxEvent; AJavaEventName: string; AcsCallBack: TCSAjaxEvent); virtual;
+    procedure AddEvent(var Events: TEventRecords; AServerEventID: integer; AServerEvent: THandleAjaxEvent; const AJavaEventName: string; AcsCallBack: TCSAjaxEvent); virtual;
     procedure DoOnEventCS(AnEvent: TEventRecord; AJavascriptStack: TJavaScriptStack; var Handled: boolean); virtual;
     procedure SetupEvents(AHtmlElement: THtmlCustomElement); virtual;
     function GetWebPage: TDataModule;
@@ -599,12 +599,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TJavaScriptStack.AddScriptLine(ALine: String);
+procedure TJavaScriptStack.AddScriptLine(const ALine: String);
 begin
   FScript.Add(ALine);
 end;
 
-procedure TJavaScriptStack.MessageBox(AText: String; Buttons: TWebButtons; Loaded: string = '');
+procedure TJavaScriptStack.MessageBox(const AText: String; Buttons: TWebButtons; const Loaded: string = '');
 begin
   AddScriptLine(WebController.MessageBox(AText,Buttons,Loaded));
 end;
@@ -614,7 +614,7 @@ begin
   raise EHTMLError.Create('RedrawContentProducer not supported by current WebController');
 end;
 
-procedure TJavaScriptStack.CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = '');
+procedure TJavaScriptStack.CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; const APostVariable: string = '');
 begin
   raise EHTMLError.Create('SendServerEvent not supported by current WebController');
 end;
@@ -624,7 +624,7 @@ begin
   FScript.Clear;
 end;
 
-procedure TJavaScriptStack.Redirect(AUrl: string);
+procedure TJavaScriptStack.Redirect(const AUrl: string);
 begin
   AddScriptLine('window.location = "'+AUrl+'";');
 end;
@@ -744,7 +744,7 @@ begin
 end;
 
 procedure THTMLContentProducer.AddEvent(var Events: TEventRecords;
-  AServerEventID: integer; AServerEvent: THandleAjaxEvent; AJavaEventName: string;
+  AServerEventID: integer; AServerEvent: THandleAjaxEvent; const AJavaEventName: string;
   AcsCallBack: TCSAjaxEvent);
 begin
   SetLength(Events,length(Events)+1);
@@ -1359,7 +1359,7 @@ begin
     end
 end;
 
-procedure TAjaxResponse.SetError(HelpContext: longint; ErrorMessage: string);
+procedure TAjaxResponse.SetError(HelpContext: longint; const ErrorMessage: string);
 var SubNode: TDOMNode;
     ErrNode: TDOMNode;
 begin
@@ -1440,7 +1440,7 @@ begin
   // do nothing
 end;
 
-function TWebController.AddJavaVariable(AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
+function TWebController.AddJavaVariable(const AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
 begin
   result := GetJavaVariables.Add;
   result.BelongsTo := ABelongsTo;
@@ -1450,7 +1450,7 @@ begin
   result.ID := AID;
 end;
 
-function TWebController.MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string;
+function TWebController.MessageBox(const AText: String; Buttons: TWebButtons; const ALoaded: string = ''): string;
 begin
   if assigned(MessageBoxHandler) then
     result := MessageBoxHandler(self,AText,Buttons,ALoaded)
@@ -1458,7 +1458,7 @@ begin
     result := DefaultMessageBoxHandler(self,AText,Buttons,ALoaded);
 end;
 
-function TWebController.AddrelativeLinkPrefix(AnURL: string): string;
+function TWebController.AddrelativeLinkPrefix(const AnURL: string): string;
 var
   i: Integer;
 begin
@@ -1479,7 +1479,7 @@ begin
   SetLength(FIterationIDs,0);
 end;
 
-procedure TWebController.SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string);
+procedure TWebController.SetIterationIDSuffix(AIterationLevel: integer; const IDSuffix: string);
 begin
   FIterationIDs[AIterationLevel-1]:=IDSuffix;
 end;

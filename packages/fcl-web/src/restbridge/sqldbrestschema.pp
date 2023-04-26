@@ -66,7 +66,7 @@ Type
   Protected
     Procedure AddToFreeList(aData : TJSONData);
     // The result of this function will be freed.
-    function DoGetInputData(aName: UTF8string): TJSONData; virtual; abstract;
+    function DoGetInputData(const aName: UTF8string): TJSONData; virtual; abstract;
     Function GetConnection : TSQLConnection; virtual; abstract;
     Function GetTransaction : TSQLTransaction; virtual; abstract;
     Function GetUpdateData : TDataset; virtual; abstract;
@@ -288,10 +288,10 @@ Type
     Function AllowResource(aContext : TBaseRestContext) : Boolean;
     Function GetAllowedOperations(aContext : TBaseRestContext) : TRestOperations;
     Function GetHTTPAllow : String; virtual;
-    function GetFieldList(aListKind: TFieldListKind; ASep : String = ''; OnlyFields : TSQLDBRestFieldArray = Nil): UTF8String;
+    function GetFieldList(aListKind: TFieldListKind; const ASep : String = ''; OnlyFields : TSQLDBRestFieldArray = Nil): UTF8String;
     function GetFieldArray(aListKind: TFieldListKind): TSQLDBRestFieldArray;
-    Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = ''; OnlyFields : TSQLDBRestFieldArray = nil) : UTF8String;
-    Function ProcessSQl(aSQL : String; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; aLimit : UTF8String = '') : UTF8String;
+    Function GetResolvedSQl(aKind : TSQLKind; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; const aLimit : UTF8String = ''; OnlyFields : TSQLDBRestFieldArray = nil) : UTF8String;
+    Function ProcessSQl(const aSQL : String; Const AWhere : UTF8String; Const aOrderBy : UTF8String = ''; const aLimit : UTF8String = '') : UTF8String;
     Procedure PopulateFieldsFromFieldDefs(Defs : TFieldDefs; aIndexFields : TStringArray; aProcessIdentifier : TProcessIdentifier; aMinFieldOpts : TRestFieldOptions);
     Procedure PopulateParametersFromSQL(const SQL : String; DoClear : Boolean = True);
     Property SQL [aKind : TSQLKind] : TStrings Read GetSQLTyped;
@@ -1299,7 +1299,7 @@ end;
 
 function TSQLDBRestResource.GetHTTPAllow: String;
 
-  Procedure AddR(s : String);
+  Procedure AddR(const s : String);
 
   begin
     if (Result<>'') then
@@ -1319,7 +1319,7 @@ begin
 end;
 
 function TSQLDBRestResource.GetFieldList(aListKind: TFieldListKind;
-  ASep: String; OnlyFields: TSQLDBRestFieldArray): UTF8String;
+  const ASep: String; OnlyFields: TSQLDBRestFieldArray): UTF8String;
 
 Const
   SepComma = ', ';
@@ -1421,7 +1421,7 @@ begin
 end;
 
 function TSQLDBRestResource.GetResolvedSQl(aKind: TSQLKind;
-  const AWhere: UTF8String; const aOrderBy: UTF8String; aLimit: UTF8String;
+  const AWhere: UTF8String; const aOrderBy: UTF8String; const aLimit: UTF8String;
   OnlyFields: TSQLDBRestFieldArray): UTF8String;
 
 begin
@@ -1431,8 +1431,8 @@ begin
   Result:=ProcessSQL(Result,aWhere,aOrderBy,aLimit);
 end;
 
-function TSQLDBRestResource.ProcessSQl(aSQL: String; const AWhere: UTF8String;
-  const aOrderBy: UTF8String; aLimit: UTF8String): UTF8String;
+function TSQLDBRestResource.ProcessSQl(const aSQL: String; const AWhere: UTF8String;
+  const aOrderBy: UTF8String; const aLimit: UTF8String): UTF8String;
 
 Var
   S : UTF8String;

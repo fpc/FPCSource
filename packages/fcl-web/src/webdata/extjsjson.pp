@@ -68,7 +68,7 @@ type
     Procedure NextBatchItem(ResponseContent : TStream); override;
     Procedure EndBatch(ResponseContent : TStream); override;
     Function CreateAdaptor(ARequest : TRequest) : TCustomWebdataInputAdaptor; override;
-    Function AddFieldToJSON(O: TJSONObject; AFieldName: String; F: TField): TJSONData;
+    Function AddFieldToJSON(O: TJSONObject; const AFieldName: String; F: TField): TJSONData;
     function GetDataContentType: String; override;
     Function GetJSONMetaData: TJSONObject;
     function RowToJSON: TJSONObject;
@@ -147,7 +147,7 @@ begin
   Result.Request:=ARequest;
 end;
 
-function TExtJSJSONDataFormatter.AddFieldToJSON(O : TJSONObject; AFieldName : String; F : TField): TJSONData;
+function TExtJSJSONDataFormatter.AddFieldToJSON(O : TJSONObject; const AFieldName : String; F : TField): TJSONData;
 
 Var
   S : String;
@@ -245,16 +245,6 @@ begin
 end;
 
 Function TExtJSJSONDataFormatter.GetJSONMetaData: TJSONObject;
-
-  Function DefReplace(S : String) : String;
-
-  begin
-    Result:=StringReplace(Result,'/',DateSeparator,[rfReplaceAll]);
-    Result:=StringReplace(Result,':',TimeSeparator,[rfReplaceAll]);
-    Result:=StringReplace(Result,'hh','H',[rfReplaceAll]);
-    Result:=StringReplace(Result,'nn','i',[rfReplaceAll]);
-    Result:=StringReplace(S,'n','i',[rfReplaceAll]);
-  end;
 
 Var
   F : TJSONArray;

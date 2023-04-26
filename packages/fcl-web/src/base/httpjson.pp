@@ -22,7 +22,7 @@ Type
   Protected
     Procedure ExceptionToJSON(aException: Exception; aJSON : TJSONObject);
   Public
-    procedure SendExceptionJSON(aException: Exception; aElement: String='');
+    procedure SendExceptionJSON(aException: Exception; const aElement: String='');
     procedure SetContentFromJSON(const AValue: TJSONData; Formatted : Boolean = True);
     // These set without formatting
     Property ContentAsJSON : TJSONData Read GetJSONContent Write SetJSONContent;
@@ -78,7 +78,7 @@ begin
     end;
 end;
 
-procedure THTTPJSONResponseHelper.SendExceptionJSON(aException: Exception; aElement : String = '');
+procedure THTTPJSONResponseHelper.SendExceptionJSON(aException: Exception; const aElement : String = '');
 
 Var
   EH : EHTTP absolute aException;

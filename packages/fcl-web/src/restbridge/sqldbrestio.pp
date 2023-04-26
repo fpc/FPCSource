@@ -282,7 +282,7 @@ Type
   Protected
     function GetConnection: TSQLConnection; override;
     function GetTransaction: TSQLTransaction; override;
-    Function DoGetInputData(aName : UTF8string) : TJSONData; override;
+    Function DoGetInputData(const aName : UTF8string) : TJSONData; override;
     Function GetUpdateData : TDataset; override;
     property IO : TRestIO Read FIO;
   Public
@@ -312,7 +312,7 @@ Type
     FUpdatedData: TBufDataset;
     function GetResourceName: UTF8String;
     function GetUserID: String;
-    procedure SetUserID(AValue: String);
+    procedure SetUserID(const AValue: String);
   Protected
   Public
     Constructor Create(aRequest : TRequest; aResponse : TResponse); virtual;
@@ -327,7 +327,7 @@ Type
     Procedure SetRestStrings(aValue : TRestStringsConfig);
     Procedure SetRestStatuses(aValue : TRestStatusConfig);
     // Get things
-    class function StrToNullBoolean(S: String; Strict: Boolean): TNullBoolean;
+    class function StrToNullBoolean(const S: String; Strict: Boolean): TNullBoolean;
     Procedure DoGetVariable(Sender : TObject; Const aName : UTF8String; Out aVal : UTF8String);
     Function GetVariable (Const aName : UTF8String; Out aVal : UTF8String; AllowedSources : TVAriableSources = AllVariableSources) : TVariableSource; virtual;
     function GetFilterVariable(const aName: UTF8String; AFilter: TRestFieldFilter; out aValue: UTF8String): TVariableSource;
@@ -395,8 +395,8 @@ Type
   Private
     FDefs : Array[TRestStreamerType] of TStreamerDefList;
   Protected
-    Function FindDefByName(aType : TRestStreamerType; aName : String) : TStreamerDef;
-    Function FindDefByContentType(aType : TRestStreamerType; aContentType : String) : TStreamerDef;
+    Function FindDefByName(aType : TRestStreamerType; const aName : String) : TStreamerDef;
+    Function FindDefByContentType(aType : TRestStreamerType; const aContentType : String) : TStreamerDef;
     Function IndexOfStreamer(aType : TRestStreamerType; const aName : string) : Integer;
     Function IndexOfStreamerContentType(aType : TRestStreamerType; const aContentType : string) : Integer;
     Procedure RegisterStreamer(aType : TRestStreamerType; Const aName : String; aClass : TRestStreamerClass);
@@ -576,7 +576,7 @@ begin
   Result:=IO.Transaction;
 end;
 
-function TRestContext.DoGetInputData(aName: UTF8string): TJSONData;
+function TRestContext.DoGetInputData(const aName: UTF8string): TJSONData;
 begin
   Result:=IO.RESTInput.GetContentField(aName);
 end;
@@ -610,7 +610,7 @@ end;
 
 { TStreamerFactory }
 
-function TStreamerFactory.FindDefByName(aType : TRestStreamerType; aName: String): TStreamerDef;
+function TStreamerFactory.FindDefByName(aType : TRestStreamerType; const aName: String): TStreamerDef;
 
 Var
   Idx : integer;
@@ -623,7 +623,7 @@ begin
     Result:=FDefs[aType][Idx];
 end;
 
-function TStreamerFactory.FindDefByContentType(aType : TRestStreamerType;  aContentType: String): TStreamerDef;
+function TStreamerFactory.FindDefByContentType(aType : TRestStreamerType; Const aContentType: String): TStreamerDef;
 Var
   Idx : integer;
 
@@ -977,7 +977,7 @@ begin
   GetVariable(aName,aVal);
 end;
 
-procedure TRestIO.SetUserID(AValue: String);
+procedure TRestIO.SetUserID(const AValue: String);
 begin
   if (UserID=AValue) then Exit;
   FRestContext.UserID:=AValue;
@@ -1081,17 +1081,19 @@ begin
   Result:=GetVariable(aName+FRestStrings.GetRestString(FilterStrings[aFilter]),aValue,[vsQuery]);
 end;
 
-class function TRestIO.StrToNullBoolean(S: String; Strict: Boolean
-  ): TNullBoolean;
+class function TRestIO.StrToNullBoolean(const S: String; Strict: Boolean): TNullBoolean;
+
+var
+  ls : string;
 
 begin
   result:=nbNone;
-  s:=lowercase(s);
-  if (s<>'') then
-    if (s='1') or (s='t') or (s='true') or (s='y') then
+  ls:=lowercase(s);
+  if (ls<>'') then
+    if (ls='1') or (ls='t') or (ls='true') or (ls='y') then
       Result:=nbTrue
     else
-      if (s='0') or (s='f') or (s='false') or (s='n') then
+      if (ls='0') or (ls='f') or (ls='false') or (ls='n') then
         Result:=nbFalse
       else if not Strict then
         Result:=nbNone

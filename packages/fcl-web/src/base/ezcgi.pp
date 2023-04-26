@@ -40,13 +40,13 @@ type
       aLenStr : Integer;
       aLenSep : Integer;
 
-      procedure InitToken(aStr, aSep : String);
+      procedure InitToken(const aStr, aSep : String);
       function NextToken(var aToken : String; out aSepChar : Char) : Boolean;
 
       procedure GetQueryItems;
       procedure ProcessRequest;
       procedure LoadEnvVariables;
-      function GetVal(Index : String) : String;
+      function GetVal(const Index : String) : String;
       function GetName(Index : Integer) : String;
       function GetVariable(Index : Integer) : String;
       function GetVarCount : Integer;
@@ -55,15 +55,15 @@ type
    protected
       { Protected declarations }
 
-      procedure OutputError(errorMessage : String);
+      procedure OutputError(const errorMessage : String);
    public
       { Public declarations }
       constructor Create;
       destructor Destroy; override;
       procedure Run;
-      procedure WriteContent(ctype : String);
-      procedure PutLine(sOut : String);
-      function GetValue(Index : String; defaultValue : String) : String;
+      procedure WriteContent(const ctype : String);
+      procedure PutLine(const sOut : String);
+      function GetValue(const Index : String; const defaultValue : String) : String;
 
       procedure DoPost; virtual;
       procedure DoGet; virtual;
@@ -112,18 +112,18 @@ begin
   // Must be overridden by child class
 end;
 
-procedure TEZcgi.WriteContent(ctype : String);
+procedure TEZcgi.WriteContent(const ctype : String);
 begin
    writeln('Content-Type: ',ctype);
    writeln;
 end;
 
-procedure TEZcgi.PutLine(sOut : String);
+procedure TEZcgi.PutLine(const sOut : String);
 begin
    writeln(sOut);
 end;
 
-function TEZcgi.GetValue(Index, defaultValue : String) : String;
+function TEZcgi.GetValue(Const Index, defaultValue : String) : String;
 begin
    result := GetVal(Index);
    if result = '' then
@@ -135,7 +135,7 @@ end;
 
 procedure TEZcgi.LoadEnvVariables;
 
-   procedure GetEData(variable : String);
+   procedure GetEData(const variable : String);
    var
       tempStr : String;
    begin
@@ -199,7 +199,7 @@ begin
       OutputError('Invalid REQUEST_METHOD passed from server!');
 end;
 
-function TEZcgi.GetVal(Index : String) : String;
+function TEZcgi.GetVal(const Index : String) : String;
 begin
    result := FVariables.Values[Index];
 end;
@@ -314,7 +314,7 @@ begin
    end;
 end;
 
-procedure TEZcgi.OutputError(errorMessage : String);
+procedure TEZcgi.OutputError(const errorMessage : String);
 begin
    WriteContent('text/html');
    writeln('<html><head><title>CGI ERROR</title></head>');
@@ -329,7 +329,7 @@ begin
    Raise ECGIException.Create(errorMessage);
 end;
 
-procedure TEZcgi.InitToken(aStr, aSep : String);
+procedure TEZcgi.InitToken(const aStr, aSep : String);
 begin
      aString := aStr;
      aSepStr := aSep;

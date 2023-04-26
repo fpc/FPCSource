@@ -57,7 +57,7 @@ Type
     // Override so we can query for all registered types
     function QueryInterface(constref aIID: TGuid; out aObj): LongInt;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF}; override;
     // Create virtual interface. Override this if you want to return something other than TFPRPCVirtualInterface
-    function CreateVirtualInterface(IntfType: TRttiInterfaceType; aName: string): IInterface; virtual;
+    function CreateVirtualInterface(IntfType: TRttiInterfaceType; const aName: string): IInterface; virtual;
     // Encode parameters to method call.
     function EncodeParams(aMethod: TRttiMethod; const aArgs: TValueArray; out VarParamCount: Integer): TJSONData;
     // Decode JSON-RPC result to method call result and var/out params.
@@ -66,7 +66,7 @@ Type
     function DoCreateProxy(constref aIID: TGuid; out aObj): Boolean;
     function DoCreateProxy(const aName: String; out aObj): Boolean;
     // Called from TFPRPCVirtualInterface to actuall handle call.
-    procedure HandleInvoke(aClassName : String; aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue); virtual;
+    procedure HandleInvoke(const aClassName : String; aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue); virtual;
     // Do actual HTTP request.
     function DoRequest(aRequest : TJSONObject) : TJSONObject; virtual;
     // Create JSON-RPC request object.
@@ -75,9 +75,9 @@ Type
     property Client : TAbstractWebClient Read GetClient;
   Public
     // Create a service by name. Use QueryInterface on the result to get your actual interface
-    Function CreateService(aName : string) : IInterface;
+    Function CreateService(const aName : string) : IInterface;
     // Create a service by name, directly return the interface.
-    generic Function CreateService<T : IInterface>(aName : string) : T;
+    generic Function CreateService<T : IInterface>(const aName : string) : T;
     // Set this to use another webclient other than the default one.
     Property WebClient : TAbstractWebClient Read FClient Write FClient;
     // base URL for JSON-RPC requests
@@ -256,7 +256,7 @@ end;
 
 { TFPRPCClient }
 
-function TFPRPCClient.CreateVirtualInterface(IntfType : TRttiInterfaceType; aName: string) : IInterface;
+function TFPRPCClient.CreateVirtualInterface(IntfType : TRttiInterfaceType; const aName: string) : IInterface;
 
 begin
   Result:=TFPRPCVirtualInterface.Create(IntfType.Handle,aName,Self) as IInterface
@@ -336,13 +336,13 @@ begin
   end;
 end;
 
-function TFPRPCClient.CreateService(aName: string): IInterface;
+function TFPRPCClient.CreateService(const aName: string): IInterface;
 begin
   if not DoCreateProxy(aName,Result) then
     Raise ERPCClient.CreateFmt(SErrUnknownServiceName,[aName]);
 end;
 
-generic function TFPRPCClient.CreateService<T>(aName: string): T;
+generic function TFPRPCClient.CreateService<T>(const aName: string): T;
 
 Var
   II : IInterface;
@@ -437,7 +437,7 @@ begin
     end;
 end;
 
-procedure TFPRPCClient.HandleInvoke(aClassName : String; aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue);
+procedure TFPRPCClient.HandleInvoke(const aClassName : String; aMethod: TRttiMethod; const aArgs: TValueArray; out aResult: TValue);
 
 var
   request, response: TJSONObject;
