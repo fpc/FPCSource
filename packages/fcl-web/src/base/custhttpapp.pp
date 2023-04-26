@@ -67,7 +67,7 @@ Type
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
     function GetUseSSL: Boolean;
-    procedure SetHostName(AValue: String);
+    procedure SetHostName(const AValue: String);
     procedure SetIdle(AValue: TNotifyEvent);
     procedure SetIDleTimeOut(AValue: Cardinal);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
@@ -127,7 +127,7 @@ Type
     function GetIDleTimeOut: Cardinal;
     function GetLookupHostNames : Boolean;
     function GetUseSSL: Boolean;
-    procedure SetHostName(AValue: String);
+    procedure SetHostName(const AValue: String);
     procedure SetIdle(AValue: TNotifyEvent);
     procedure SetIDleTimeOut(AValue: Cardinal);
     Procedure SetLookupHostnames(Avalue : Boolean);
@@ -214,7 +214,7 @@ begin
   Result:=HTTPHandler.UseSSL;
 end;
 
-procedure TCustomHTTPApplication.SetHostName(AValue: String);
+procedure TCustomHTTPApplication.SetHostName(const AValue: String);
 begin
   HTTPHandler.HostName:=aValue;
 end;
@@ -421,7 +421,7 @@ begin
   Result:=FServer.UseSSL;
 end;
 
-procedure TFPHTTPServerHandler.SetHostName(AValue: String);
+procedure TFPHTTPServerHandler.SetHostName(const AValue: String);
 begin
   FServer.CertificateData.HostName:=aValue;
 end;

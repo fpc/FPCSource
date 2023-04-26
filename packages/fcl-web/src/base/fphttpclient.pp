@@ -150,7 +150,7 @@ Type
     // Read 1 line of response. Fills FBuffer
     function ReadString(out S: String): Boolean;
     // Write string
-    function WriteString(S: String): Boolean;
+    function WriteString(const S: String): Boolean;
     // Write the request body
     function WriteRequestBody: Boolean;
     // Check if response code is in AllowedResponseCodes. if not, an exception is raised.
@@ -273,7 +273,7 @@ Type
     Class Procedure SimpleOptions(const URL: string; const LocalFileName: String);
     Class function SimpleOptions(const URL: string) : RawByteString;
     // Get HEAD
-    Class Procedure Head(AURL : String; Headers: TStrings);
+    Class Procedure Head(const AURL : String; Headers: TStrings);
     // Post Form data (www-urlencoded).
     // Formdata in string (urlencoded) or TStrings (plain text) format.
     // Form data will be inserted in the requestbody.
@@ -411,7 +411,7 @@ Type
   // writing to socket
   EHTTPClientSocketWrite = Class(EHTTPClientSocket);
 
-Function EncodeURLElement(S : String) : String;
+Function EncodeURLElement(const S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
@@ -431,7 +431,7 @@ resourcestring
 Const
   CRLF = #13#10;
 
-function EncodeURLElement(S: String): String;
+function EncodeURLElement(const S: String): String;
 
 Const
   NotAllowed = [ ';', '/', '?', ':', '@', '=', '&', '#', '+', '_', '<', '>',
@@ -889,7 +889,7 @@ begin
   until Result or Terminated;
 end;
 
-function TFPCustomHTTPClient.WriteString(S: String): Boolean;
+function TFPCustomHTTPClient.WriteString(const S: String): Boolean;
 var
   r,t : Longint;
 
@@ -2204,7 +2204,7 @@ begin
     end;
 end;
 
-class procedure TFPCustomHTTPClient.Head(AURL: String; Headers: TStrings);
+class procedure TFPCustomHTTPClient.Head(const AURL: String; Headers: TStrings);
 begin
   With Self.Create(nil) do
     try

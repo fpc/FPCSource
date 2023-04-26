@@ -42,7 +42,7 @@ Type
   Private
     FTypes : TFPHashList;
     FExtensions : TFPHashList;
-    procedure ParseLine(ALine: String; out Mime, Extensions: String);
+    procedure ParseLine(const ALine: String; out Mime, Extensions: String);
   Protected
     Function FindMimeByType(Const AMime : String) : TMimeType;
     Function FindMimeByExt(Const AExt : String) : TMimeType;
@@ -108,7 +108,7 @@ begin
   Result:=FTypes;
 end;
 
-Procedure TFPMimeTypes.ParseLine(ALine : String; Out Mime,Extensions : String);
+Procedure TFPMimeTypes.ParseLine(const ALine : String; Out Mime,Extensions : String);
 
 COnst
   WhiteSpace = [' ',#9];

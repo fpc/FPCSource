@@ -189,9 +189,9 @@ type
     procedure SetCookie(Index: Integer; Value: TCookie);
   public
     function  Add: TCookie;
-    Function CookieByName(AName : String) : TCookie;
-    Function FindCookie(AName : String): TCookie;
-    Function IndexOfCookie(AName : String) : Integer;
+    Function CookieByName(const AName : String) : TCookie;
+    Function FindCookie(const AName : String): TCookie;
+    Function IndexOfCookie(const AName : String) : Integer;
     property Items[Index: Integer]: TCookie read GetCookie write SetCookie; default;
   end;
 
@@ -238,9 +238,9 @@ type
   public
     Function First : TUploadedFile;
     Function Last : TUploadedFile;
-    Function IndexOfFile(AName : String) : Integer;
-    Function FileByName(AName : String) : TUploadedFile;
-    Function FindFile(AName : String) : TUploadedFile;
+    Function IndexOfFile(const AName : String) : Integer;
+    Function FileByName(const AName : String) : TUploadedFile;
+    Function FindFile(const AName : String) : TUploadedFile;
     Property Files[Index : Integer] : TUploadedFile read GetFile Write SetFile; default;
   end;
   TUploadedFilesClass = Class of TUploadedFiles;
@@ -286,13 +286,13 @@ type
     function GetP(AIndex : Integer): TMimeItem;
   Protected
     Procedure CreateUploadFiles(Files : TUploadedFiles; Vars : TStrings); virtual;
-    procedure FormSplit(var Cnt: String; boundary: String); virtual;
+    procedure FormSplit(var Cnt: String; const boundary: String); virtual;
     procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     // With streaming is meant that the incoming data is processed in smaller
     // chunks. To support streaming descendents have to implement
     // ProcessStreamingMultiPart
     class function SupportsStreamingProcessing: Boolean; virtual;
-    procedure SetBoundary(AValue: string); virtual;
+    procedure SetBoundary(const AValue: string); virtual;
   Public
     Function First : TMimeItem;
     Function Last : TMimeItem;
@@ -313,7 +313,7 @@ type
     FMimeEndFound: Boolean;
     FAtStart: Boolean;
   protected
-    procedure SetBoundary(AValue: string); override;
+    procedure SetBoundary(const AValue: string); override;
     procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); override;
     class function SupportsStreamingProcessing: Boolean; override;
   end;
@@ -342,16 +342,16 @@ type
     Function GetSetFieldValue(Index : Integer) : String; virtual;
     // These are private, because we need to know for sure the index is in the correct enumerated.
     Function GetHeaderValue(AIndex : Integer) : String;
-    Procedure SetHeaderValue(AIndex : Integer; AValue : String);
-    procedure SetHTTPVariable(AIndex: Integer; AValue: String);
+    Procedure SetHeaderValue(AIndex : Integer; const AValue : String);
+    procedure SetHTTPVariable(AIndex: Integer; const AValue : String);
     Function  GetHTTPVariable(AIndex : Integer) : String;
   Protected
     // Kept for backwards compatibility
     Class Function IndexToHTTPHeader (AIndex : Integer) : THeader;
     Class Function IndexToHTTPVariable (AIndex : Integer) : THTTPVariableType;
-    procedure SetHTTPVariable(AVariable : THTTPVariableType; AValue: String);
+    procedure SetHTTPVariable(AVariable : THTTPVariableType; const AValue: String);
     Function  GetFieldValue(Index : Integer) : String; virtual; deprecated;
-    Procedure SetFieldValue(Index : Integer; Value : String); virtual; deprecated;
+    Procedure SetFieldValue(Index : Integer; const Value : String); virtual; deprecated;
     procedure ParseFirstHeaderLine(const line: String);virtual;
     Procedure ParseCookies; virtual;
   public
@@ -466,8 +466,8 @@ type
     FOnStreamEncodingEvent: TOnStreamEncodingEvent;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
-    function GetRP(AParam : String): String;
-    procedure SetRP(AParam : String; AValue: String);
+    function GetRP(const AParam : String): String;
+    procedure SetRP(const AParam : String; const AValue: String);
   Protected
     procedure AllocateRequestID; virtual;
     Function AllowReadContent : Boolean; virtual;
@@ -615,8 +615,8 @@ type
     // When called, generates a new GUID. Override to retrieve GUID from cookie/URL/...
     Function GetSessionID : String; virtual;
     // These must be overridden to actually store/retrieve variables.
-    Function GetSessionVariable(VarName : String) : String; Virtual; abstract;
-    procedure SetSessionVariable(VarName : String; const AValue: String);Virtual;abstract;
+    Function GetSessionVariable(const VarName : String) : String; Virtual; abstract;
+    procedure SetSessionVariable(const VarName : String; const AValue: String);Virtual;abstract;
   Public
     Constructor Create(AOwner : TComponent); override;
     // Init session from request.
@@ -626,11 +626,11 @@ type
     // Update response from session (typically, change cookie to response and write session data).
     Procedure UpdateResponse(AResponse : TResponse); virtual; Abstract;
     // Remove variable from list of variables.
-    Procedure RemoveVariable(VariableName : String); virtual; abstract;
+    Procedure RemoveVariable(const VariableName : String); virtual; abstract;
     // Terminate session
     Procedure Terminate; virtual; abstract;
     // checks if session variable exists
-    Function SessionVariableExists(VarName : String) : Boolean; Virtual; abstract;
+    Function SessionVariableExists(const VarName : String) : Boolean; Virtual; abstract;
     // Session timeout in minutes
     Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
     // ID of this session.
@@ -688,7 +688,7 @@ type
     FMaxAge: Integer;
     FEnabled: Boolean;
     FOptions: TCORSOptions;
-    procedure SetAllowedMethods(AValue: String);
+    procedure SetAllowedMethods(const AValue: String);
   Public
     Constructor Create; virtual;
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
@@ -757,7 +757,7 @@ begin
 //  FileClose(FileCreate('/tmp/touch-'+StringReplace(AName,'/','_',[rfReplaceAll])));
 end;
 
-Function GetFieldNameIndex(AName : String) : Integer;
+Function GetFieldNameIndex(const AName : String) : Integer;
 
 var
   Name: String;
@@ -926,7 +926,7 @@ begin
   Result := True;
 end;
 
-procedure TStreamingMimeItems.SetBoundary(AValue: string);
+procedure TStreamingMimeItems.SetBoundary(const AValue: string);
 begin
   if Length(FBuffer) > 0 then
     Raise Exception.Create('It is not possible to adapt the binary when the evaluation of streaming data has already been started.');
@@ -935,11 +935,15 @@ end;
 
 { TCORSSupport }
 
-procedure TCORSSupport.SetAllowedMethods(AValue: String);
+procedure TCORSSupport.SetAllowedMethods(const AValue: String);
+
+var
+  V : String;
+
 begin
-  aValue:=UpperCase(aValue);
-  if FAllowedMethods=AValue then Exit;
-  FAllowedMethods:=AValue;
+  V:=UpperCase(aValue);
+  if FAllowedMethods=V then Exit;
+  FAllowedMethods:=V;
 end;
 
 constructor TCORSSupport.Create;
@@ -1356,13 +1360,13 @@ begin
   Result:=StrToIntDef(GetHTTPVariable(hvServerPort),0);
 end;
 
-procedure THTTPHeader.SetHTTPVariable(AIndex: Integer; AValue: String);
+procedure THTTPHeader.SetHTTPVariable(AIndex: Integer; const AValue: String);
 begin
   if (AIndex>=0) and (Aindex<=Ord(High(THTTPVariableType))) then
     SetHTTPVariable(THTTPVariableType(AIndex),AValue);
 end;
 
-procedure THTTPHeader.SetHTTPVariable(AVariable: THTTPVariableType; AValue: String);
+procedure THTTPHeader.SetHTTPVariable(AVariable: THTTPVariableType; const AValue: String);
 begin
 //  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
   if FVariables[AVariable]=AValue then
@@ -1402,7 +1406,7 @@ begin
     Result:='';
 end;
 
-procedure THTTPHeader.SetHeaderValue(AIndex: Integer; AValue: String);
+procedure THTTPHeader.SetHeaderValue(AIndex: Integer; const AValue: String);
 begin
   if (AIndex>=0) and (AIndex<=Ord(High(THeader))) then
     SetHeader(THeader(AIndex),AValue);
@@ -1641,7 +1645,7 @@ begin
 end;
 
 
-procedure THTTPHeader.SetFieldValue(Index: Integer; Value: String);
+procedure THTTPHeader.SetFieldValue(Index: Integer; const Value: String);
 
 
 Var
@@ -2010,7 +2014,7 @@ end;
   certain size is reached.)
 }
 
-procedure TMimeItems.FormSplit(var Cnt : String; boundary: String);
+procedure TMimeItems.FormSplit(var Cnt : String; const boundary: String);
 
 // Splits the form into items
 var
@@ -2070,7 +2074,7 @@ begin
   Result := False;
 end;
 
-procedure TMimeItems.SetBoundary(AValue: string);
+procedure TMimeItems.SetBoundary(const AValue: string);
 begin
   FBoundary := AValue;
 end;
@@ -2218,7 +2222,7 @@ begin
     Result := Result + ' HTTP/' + HttpVersion;
 end;
 
-function TRequest.GetRP(AParam : String): String;
+function TRequest.GetRP(const AParam : String): String;
 begin
   if Assigned(FRouteParams) then
     Result:=FRouteParams.Values[AParam]
@@ -2226,7 +2230,7 @@ begin
     Result:='';
 end;
 
-procedure TRequest.SetRP(AParam : String; AValue: String);
+procedure TRequest.SetRP(const AParam : String; const AValue: String);
 begin
   if (AValue<>GetRP(AParam)) And ((AValue<>'')<>Assigned(FRouteParams)) then
     FRouteParams:=TStringList.Create;
@@ -2708,7 +2712,7 @@ begin
     Result:=GetTempFileName;
 end;
 
-function TUploadedFiles.IndexOfFile(AName: String): Integer;
+function TUploadedFiles.IndexOfFile(const AName: String): Integer;
 
 begin
   Result:=Count-1;
@@ -2716,7 +2720,7 @@ begin
     Dec(Result);
 end;
 
-function TUploadedFiles.FileByName(AName: String): TUploadedFile;
+function TUploadedFiles.FileByName(const AName: String): TUploadedFile;
 
 
 begin
@@ -2725,7 +2729,7 @@ begin
     Raise HTTPError.CreateFmt(SErrNoSuchUploadedFile,[AName]);
 end;
 
-Function TUploadedFiles.FindFile(AName: String): TUploadedFile;
+Function TUploadedFiles.FindFile(const AName: String): TUploadedFile;
 
 Var
   I : Integer;
@@ -3009,7 +3013,7 @@ end;
 
 function TCookie.GetAsString: string;
 
-  Procedure AddToResult(S : String);
+  Procedure AddToResult(const S : String);
   
   begin
     Result:=Result+';'+S;
@@ -3100,14 +3104,14 @@ begin
   Result:=TCookie(Inherited Add);
 end;
 
-function TCookies.CookieByName(AName: String): TCookie;
+function TCookies.CookieByName(const AName: String): TCookie;
 begin
   Result:=FindCookie(AName);
   If (Result=Nil) then
     Raise HTTPError.CreateFmt(SErrUnknownCookie,[AName]);
 end;
 
-function TCookies.FindCookie(AName: String): TCookie;
+function TCookies.FindCookie(const AName: String): TCookie;
 Var
   I : Integer;
 
@@ -3119,7 +3123,7 @@ begin
     Result:=GetCookie(I);
 end;
 
-function TCookies.IndexOfCookie(AName: String): Integer;
+function TCookies.IndexOfCookie(const AName: String): Integer;
 
 begin
   Result:=Count-1;

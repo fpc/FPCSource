@@ -183,7 +183,7 @@ Type
     procedure SetSession(AValue: TOAuth2Session);
     procedure SetStore(AValue: TAbstracTOAuth2ConfigStore);
   Protected
-    function CheckHostedDomain(URL: String): String; virtual;
+    function CheckHostedDomain(const URL: String): String; virtual;
     Function RefreshToken: Boolean; virtual;
     Function CreateOauth2Config : TOAuth2Config; virtual;
     Function CreateOauth2Session : TOAuth2Session; virtual;
@@ -357,7 +357,7 @@ begin
     end;
 end;
 
-function TOAuth2Handler.CheckHostedDomain(URL : String): String;
+function TOAuth2Handler.CheckHostedDomain(const URL : String): String;
 
 Var
   HD : String;

@@ -397,7 +397,7 @@ end;
 
 Procedure TFastCGIGatewayHandler.SendRequestData(Const ARequest : Trequest);
 
-  Procedure SendString(S : String; RecType : Byte);
+  Procedure SendString(const S : String; RecType : Byte);
 
   Var
     L : Integer;

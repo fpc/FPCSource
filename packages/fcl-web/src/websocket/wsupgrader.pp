@@ -22,8 +22,8 @@ Type
     FHost: String;
     function GetHandshakeRequest(aRequest: TFPHTTPConnectionRequest): TWSHandShakeRequest;
     function GetUpgradeName: String;
-    procedure SetHost(AValue: String);
-    procedure SetUpgradeName(AValue: String);
+    procedure SetHost(const AValue: String);
+    procedure SetUpgradeName(const AValue: String);
     procedure SetWebServer(AValue: TFPCustomHttpServer);
   Protected
     // Override from custom server
@@ -117,7 +117,7 @@ begin
   FreeConnectionHandler;
 end;
 
-procedure TCustomWebsocketUpgrader.SetHost(AValue: String);
+procedure TCustomWebsocketUpgrader.SetHost(const AValue: String);
 begin
   if Host=AValue then Exit;
   CheckInactive;
@@ -216,7 +216,7 @@ begin
 end;
 
 
-procedure TCustomWebsocketUpgrader.SetUpgradeName(AValue: String);
+procedure TCustomWebsocketUpgrader.SetUpgradeName(const AValue: String);
 begin
   if aValue=GetUpgradeName then
     exit;

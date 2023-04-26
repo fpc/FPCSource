@@ -90,7 +90,7 @@ Type
     Procedure Run; override;
     Procedure SetModuleRecord(Var ModuleRecord : Module);
     Procedure Initialize;
-    Procedure LogErrorMessage(Msg : String; LogLevel : integer = APLOG_INFO); virtual;
+    Procedure LogErrorMessage(const Msg : String; LogLevel : integer = APLOG_INFO); virtual;
     Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property HandlerPriority : THandlerPriority Read FPriority Write FPriority default hpMiddle;
     Property BeforeModules : TStrings Index 0 Read GetModules Write SetModules;
@@ -317,7 +317,7 @@ begin
   FModuleRecord^.register_hooks:=@RegisterApacheHooks;
 end;
 
-procedure TApacheHandler.LogErrorMessage(Msg: String; LogLevel: integer);
+procedure TApacheHandler.LogErrorMessage(const Msg: String; LogLevel: integer);
 begin
   ap_log_error(pchar(FModuleName),0,LogLevel,0,Nil,'module: %s',[pchar(Msg)]);
 end;

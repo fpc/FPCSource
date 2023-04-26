@@ -67,11 +67,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function CreateNewJavascriptStack(AJavaType: TJavaType): TJavaScriptStack; override;
-    function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; override;
-    procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); override;
-    procedure AddScriptFileReference(AScriptFile: String); override;
-    procedure AddStylesheetReference(Ahref, Amedia: String); override;
-    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; override;
+    function GetUrl(ParamNames, ParamValues, KeepParams: array of string; const Action: string = ''): string; override;
+    procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; const AnEvent: string); override;
+    procedure AddScriptFileReference(const AScriptFile: String); override;
+    procedure AddStylesheetReference(const Ahref, Amedia: String); override;
+    function DefaultMessageBoxHandler(Sender: TObject; const AText: String; Buttons: TWebButtons; const ALoaded: string = ''): string; override;
     function CreateNewScript: TStringList; override;
     procedure ShowRegisteredScript(ScriptID: integer); override;
     procedure FreeScript(var AScript: TStringList); override;
@@ -138,7 +138,7 @@ type
     property BaseURL: string read FBaseURL write FBaseURL;
   end;
 
-  function RegisterScript(AScript: string) : integer;
+  function RegisterScript(const AScript: string) : integer;
 
 implementation
 
@@ -146,7 +146,7 @@ uses typinfo, strutils;
 
 var RegisteredScriptList : TStrings;
 
-function RegisterScript(AScript: string) : integer;
+function RegisterScript(const AScript: string) : integer;
 begin
   if not Assigned(RegisteredScriptList) then
     begin
@@ -498,7 +498,7 @@ begin
 end;
 
 function TStandardWebController.DefaultMessageBoxHandler(Sender: TObject;
-  AText: String; Buttons: TWebButtons; ALoaded: string = ''): string;
+  const AText: String; Buttons: TWebButtons; const ALoaded: string = ''): string;
 var i : integer;
     HasCancel: boolean;
     OnOk: string;
@@ -549,7 +549,7 @@ begin
 end;
 
 function TStandardWebController.GetUrl(ParamNames, ParamValues,
-  KeepParams: array of string; Action: string): string;
+  KeepParams: array of string; const Action: string): string;
 
 var qs,p : String;
     i,j  : integer;
@@ -633,7 +633,7 @@ begin
     OnGetURL(ParamNames, ParamValues, KeepParams, Action, Result);
 end;
 
-procedure TStandardWebController.BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string);
+procedure TStandardWebController.BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; const AnEvent: string);
 begin
   if AnEvent='onclick' then
     (AnElement as THTMLAttrsElement).onclick:=CurrentJavaScriptStack.GetScript
@@ -641,13 +641,13 @@ begin
     if AnElement is THTML_input then (AnElement as THTML_input).onchange:=CurrentJavaScriptStack.GetScript;
 end;
 
-procedure TStandardWebController.AddScriptFileReference(AScriptFile: String);
+procedure TStandardWebController.AddScriptFileReference(const AScriptFile: String);
 begin
   if FScriptFileReferences.IndexOf(AScriptFile)=-1 then
     FScriptFileReferences.Add(AScriptFile);
 end;
 
-procedure TStandardWebController.AddStylesheetReference(Ahref, Amedia: String);
+procedure TStandardWebController.AddStylesheetReference(Const Ahref, Amedia: String);
 begin
   with FStyleSheetReferences.Add do
     begin

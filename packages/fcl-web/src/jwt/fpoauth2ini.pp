@@ -93,7 +93,7 @@ Const
 
 { TFPOAuth2IniStore }
 
-Procedure Touch(FN : String);
+Procedure Touch(const FN : String);
 
 begin
 //  FileClose(FileCreate('/tmp/logs/'+fn));
@@ -261,6 +261,7 @@ procedure TFPOAuth2IniStore.SetSessionSectionUser(AUser : String);
 begin
   If (UserSessionSection='') then
     begin
+    
     if (AUser='') then
        AUser:='anonymous';
     UserSessionSection:='session_'+AUser;

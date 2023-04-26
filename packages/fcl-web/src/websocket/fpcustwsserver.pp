@@ -44,7 +44,7 @@ Type
 
   TWSConnectionList = Class(TThreadList)
     Function ForEach(aIterator : TConnectionIterator) : Boolean;
-    Function FindConnectionById(aID : String) : TWSConnection;
+    Function FindConnectionById(const aID : String) : TWSConnection;
   end;
 
 
@@ -171,7 +171,7 @@ Type
     FOnConnectionHandshake: TWSConnectionHandshakeEvent;
     function GetActiveConnectionCount: Integer;
     procedure SetOptions(const Value: TWSOptions);
-    procedure SetResource(AValue: string);
+    procedure SetResource(const AValue: string);
   protected
     // Virtual so it can be overriden;
     procedure SetThreadMode(AValue: TWSThreadMode); virtual;
@@ -216,13 +216,13 @@ Type
     // Broadcast text data to all connections
     procedure BroadcastFrame(aFrame : TWSFrame); virtual;
     // Broadcast text data to all connections
-    procedure BroadcastMessage(AMessage: string); virtual;
+    procedure BroadcastMessage(const AMessage: string); virtual;
     // Broadcast binary data to all connections
     procedure BroadcastData(AData: TBytes); virtual;
     // Send frame to connections, calling aSelector to see whether frame must be sent to a particular connection
     procedure SendFrameTo(aFrame : TWSFrame; aSelector : TWSSendToFilter); virtual;
     // Send message to connections, calling aSelector to see whether data must be sent to a particular connection
-    procedure SendMessageTo(AMessage: string; aSelector : TWSSendToFilter); virtual;
+    procedure SendMessageTo(const AMessage: string; aSelector : TWSSendToFilter); virtual;
     // Send binary data to connections, calling aSelector to see whether data must be sent to a particular connection
     procedure SendDataTo(AData: TBytes; aSelector : TWSSendToFilter); virtual;
     // Do something for all connections. Stop when iterator indicates to stop
@@ -284,7 +284,7 @@ begin
   end;
 end;
 
-function TWSConnectionList.FindConnectionById(aID: String): TWSConnection;
+function TWSConnectionList.FindConnectionById(const aID: String): TWSConnection;
 Var
   L : TList;
   I : Integer;
@@ -364,7 +364,7 @@ begin
   Result:=TWSConnectionList.Create;
 end;
 
-procedure TCustomWSServer.BroadcastMessage(AMessage: string);
+procedure TCustomWSServer.BroadcastMessage(const AMessage: string);
 
 begin
   SendMessageTo(aMessage,@DoAllowAll);
@@ -475,7 +475,7 @@ begin
   end;
 end;
 
-procedure TCustomWSServer.SendMessageTo(AMessage: string; aSelector: TWSSendToFilter);
+procedure TCustomWSServer.SendMessageTo(const AMessage: string; aSelector: TWSSendToFilter);
 
   Function DoAllow(Conn : TWSServerConnection) : Boolean;
   begin
@@ -530,7 +530,7 @@ begin
   FOptions := Value;
 end;
 
-procedure TCustomWSServer.SetResource(AValue: string);
+procedure TCustomWSServer.SetResource(const AValue: string);
 begin
   if FResource=AValue then Exit;
   CheckInactive;

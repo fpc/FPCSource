@@ -153,10 +153,10 @@ Type
     FList : TStringList;
     function GetN(Aindex : Integer): String;
     function GetO(Aindex : Integer): TBaseObject;
-    function GetON(AName : String): TBaseObject;
-    procedure SetN(Aindex : Integer; AValue: String);
+    function GetON(const AName : String): TBaseObject;
+    procedure SetN(Aindex : Integer; const AValue: String);
     procedure SetO(Aindex : Integer; AValue: TBaseObject);
-    procedure SetON(AName : String; AValue: TBaseObject);
+    procedure SetON(const AName : String; AValue: TBaseObject);
   Protected
     Class Function ObjectClass : TBaseObjectClass; virtual;
   Public
@@ -371,7 +371,7 @@ begin
   Result:=TBaseObject(Flist.Objects[AIndex]);
 end;
 
-function TBaseNamedObjectList.GetON(AName : String): TBaseObject;
+function TBaseNamedObjectList.GetON(const AName : String): TBaseObject;
 
 Var
   I : Integer;
@@ -384,7 +384,7 @@ begin
     Result:=Nil;
 end;
 
-procedure TBaseNamedObjectList.SetN(Aindex : Integer; AValue: String);
+procedure TBaseNamedObjectList.SetN(Aindex : Integer; const AValue: String);
 begin
   Flist[AIndex]:=Avalue
 end;
@@ -394,7 +394,7 @@ begin
   Flist.Objects[AIndex]:=Avalue
 end;
 
-procedure TBaseNamedObjectList.SetON(AName : String; AValue: TBaseObject);
+procedure TBaseNamedObjectList.SetON(const AName : String; AValue: TBaseObject);
 Var
   I : Integer;
 

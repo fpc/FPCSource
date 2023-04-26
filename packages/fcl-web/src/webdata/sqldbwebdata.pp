@@ -50,7 +50,7 @@ Type
     function CreateQuery(AOwner: TComponent; ATransaction: TSQLTransaction; ASQL: Tstrings): TSQLQuery;
     function GetParamType(P: TParam; const AValue: String): TFieldType; virtual;
     procedure SetTypedParam(P: TParam; Const AValue: String); virtual;
-    procedure ExecuteSQL(ASQL: TStrings; Msg: String=''; DoNewID : Boolean = False); virtual;
+    procedure ExecuteSQL(ASQL: TStrings; const Msg: String=''; DoNewID : Boolean = False); virtual;
     procedure ApplySQLParams(AQuery: TSQLQuery; DoNewID : Boolean = False); virtual;
     Procedure SQLChanged(Sender : TObject); virtual;
     Procedure DoUpdate; override;
@@ -167,7 +167,7 @@ begin
   Params.ParseSQL(S,True);
 end;
 
-procedure TCustomSQLDBWebDataProvider.ExecuteSQL(ASQL : TStrings; Msg : String = ''; DoNewID : Boolean = False);
+procedure TCustomSQLDBWebDataProvider.ExecuteSQL(ASQL : TStrings; const Msg : String = ''; DoNewID : Boolean = False);
 
 Var
   Q : TSQLQuery;
