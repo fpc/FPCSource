@@ -31,14 +31,14 @@ type
   private
     FDataset: TDataset;
   Protected
-    Function FindField(FN : String) : TField;
-    Function FieldByName(FN : String) : TField;
+    Function FindField(const FN : String) : TField;
+    Function FieldByName(const FN : String) : TField;
   Public
     Constructor Create(ADataset : TDataset); virtual;
     Procedure InitFields; virtual; abstract;
     Procedure LoadObject(AObject: TObject); virtual; abstract;
     Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
-    Function GetFromField(F : TField; ADefault : String) : String; overload;
+    Function GetFromField(F : TField; const ADefault : String) : String; overload;
     Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
     Function GetFromField(F : TField; ADefault : TDateTime) : TDateTime; overload;
     Function GetFromField(F : TField; ADefault : Double) : Double; overload;
@@ -82,7 +82,7 @@ begin
   InitFields;
 end;
 
-function TFieldMap.FieldByName(FN: String): TField;
+function TFieldMap.FieldByName(const FN: String): TField;
 begin
   If (FDataset=Nil) then
     begin
@@ -93,7 +93,7 @@ begin
     Result:=FDataset.FieldByName(FN);
 end;
 
-function TFieldMap.FindField(FN: String): TField;
+function TFieldMap.FindField(const FN: String): TField;
 begin
   If (FDataset=Nil) then
     Result:=Nil
@@ -109,7 +109,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; ADefault: String): String;
+function TFieldMap.GetFromField(F: TField; const ADefault: String): String;
 begin
   If Assigned(F) then
     Result:=F.AsString

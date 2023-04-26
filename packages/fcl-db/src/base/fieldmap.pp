@@ -37,8 +37,8 @@ type
     FOldOnOpen : TDataSetNotifyEvent;
   Protected
     Procedure DoOnOpen(Sender : TDataset);
-    Function FindField(FN : String) : TField;
-    Function FieldByName(FN : String) : TField;
+    Function FindField(const FN : String) : TField;
+    Function FieldByName(const FN : String) : TField;
   Public
     Constructor Create(ADataset : TDataset; HookOnOpen : Boolean = False);
     Destructor Destroy; override;
@@ -46,7 +46,7 @@ type
     Procedure LoadObject(AObject : TObject); virtual;
     Function GetFromField(F : TField; ADefault : TBCD) : TBCD; overload;
     Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
-    Function GetFromField(F : TField; ADefault : String) : String; overload;
+    Function GetFromField(F : TField; const ADefault : String) : String; overload;
     Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
     Function GetFromDateTimeField(F : TField; ADefault : TDateTime) : TDateTime; overload;
     Function GetFromField(F : TField; ADefault : Double) : Double; overload;
@@ -54,8 +54,8 @@ type
     Function GetFromField(F : TField; ADefault : Int64) : Int64; overload;
     Function GetFromField(F : TField; ADefault : LongWord) : LongWord; overload;
     Function GetFromField(F : TField; ADefault : Currency) : Currency; overload;
-    Function GetFromField(F : TField; ADefault : UnicodeString) : UnicodeString; overload;
-    Function GetFromField(F : TField; ADefault : WideString) : WideString; overload;
+    Function GetFromField(F : TField; const ADefault : UnicodeString) : UnicodeString; overload;
+    Function GetFromField(F : TField; const ADefault : WideString) : WideString; overload;
     Function GetFromField(F : TField; ADefault : TBytes) : TBytes; overload;
     Property Dataset : TDataset Read FDataset;
     Property FreeDataset : Boolean Read FFreeDataset Write FFreeDataset;
@@ -68,8 +68,8 @@ type
   private
     FParams: TParams;
   Protected
-    Function FindParam(FN : String) : TParam;
-    Function ParamByName(FN : String) : TParam;
+    Function FindParam(const FN : String) : TParam;
+    Function ParamByName(const FN : String) : TParam;
   Public
     Constructor Create(AParams : TParams);
     Procedure InitParams; virtual; abstract;
@@ -468,14 +468,14 @@ end;
 
 { TParamMap }
 
-function TParamMap.FindParam(FN: String): TParam;
+function TParamMap.FindParam(const FN: String): TParam;
 begin
   Result:=FParams.FindParam(FN);
   {if (Result=Nil) then
     Writeln(ClassName,' param ',FN,' not found');}
 end;
 
-function TParamMap.ParamByName(FN: String): TParam;
+function TParamMap.ParamByName(const FN: String): TParam;
 begin
   If (FParams=Nil) then
     Raise Exception.CreateFmt(SErrNoParamsForParam,[ClassName,FN]);
@@ -525,7 +525,7 @@ begin
       Result:=ADefault;
 end;
 
-function TFieldMap.FieldByName(FN: String): TField;
+function TFieldMap.FieldByName(const FN: String): TField;
 begin
   Result:=FDataset.FieldByName(FN)
 end;
@@ -537,7 +537,7 @@ begin
     FOldOnOpen(Sender);
 end;
 
-function TFieldMap.FindField(FN: String): TField;
+function TFieldMap.FindField(const FN: String): TField;
 begin
   If (FDataset=Nil) then
     Result:=Nil
@@ -553,7 +553,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; ADefault: String): String;
+function TFieldMap.GetFromField(F: TField; const ADefault: String): String;
 begin
   If Assigned(F) then
     Result:=F.AsString
@@ -625,7 +625,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; ADefault: UnicodeString): UnicodeString;
+function TFieldMap.GetFromField(F: TField; const ADefault: UnicodeString): UnicodeString;
 begin
   If Assigned(F) then
     Result:=F.AsUnicodeString
@@ -633,7 +633,7 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; ADefault: WideString): WideString;
+function TFieldMap.GetFromField(F: TField; const ADefault: WideString): WideString;
 begin
   If Assigned(F) then
     Result:=F.AsWideString

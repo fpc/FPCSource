@@ -189,7 +189,7 @@ begin
     end;
 end;
 
-Function ConvertWhiteSpace(S : String) : String;
+Function ConvertWhiteSpace(const S : String) : String;
 
 begin
   Result:=StringReplace(S,#13,' ',[rfReplaceAll]);
@@ -645,7 +645,7 @@ end;
 
 procedure TCustomSQLScript.DefaultDirectives;
 
-  Procedure Add(S : String);
+  Procedure Add(const S : String);
   
   begin
     if FDirectives.IndexOf(S)=-1 then

@@ -1534,11 +1534,11 @@ type
     Function  IsEqual(Value: TParams): Boolean;
     Function GetEnumerator: TParamsEnumerator;
     Function  ParamByName(const Value: string): TParam;
-    Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
-    function  ParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String;
+    Function  ParseSQL(const SQL: String; DoCreate: Boolean): String; overload;
+    Function  ParseSQL(const SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
+    Function  ParseSQL(const SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(const SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String; overload;
+    function  ParseSQL(const SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
