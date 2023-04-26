@@ -119,7 +119,7 @@ Type
       ErrorCode: integer;
       SQLState : string;
       constructor CreateFmt(const Fmt: string; const Args: array of const;
-                            Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
+                            Comp : TComponent; AErrorCode: integer; const ASQLState: string); overload;
   end;
 
   { TSQLDBFieldDef }
@@ -375,7 +375,7 @@ type
     FDoUnPrepare : Boolean;
     FDataLink : TDataLink;
     FRowsAffected : TRowsCount;
-    function ExpandMacros( OrigSQL: String): String;
+    function ExpandMacros(const OrigSQL: String): String;
     procedure SetDatabase(AValue: TSQLConnection);
     procedure SetMacroChar(AValue: Char);
     procedure SetMacroCheck(AValue: Boolean);
@@ -540,7 +540,7 @@ type
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
     procedure ApplyFilter;
-    Function AddFilter(SQLstr : string) : string;
+    Function AddFilter(const SQLstr : string) : string;
   protected
     procedure OpenCursor(InfoQuery: Boolean); override;
     function CreateSQLStatement(aOwner: TComponent): TCustomSQLStatement; virtual;
@@ -831,8 +831,8 @@ Var
 
 Procedure RegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(Def : TConnectionDefClass);
-Procedure UnRegisterConnection(ConnectionName : String);
-Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
+Procedure UnRegisterConnection(const ConnectionName : String);
+Function GetConnectionDef(const ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
 
 const DefaultSQLFormatSettings : TFormatSettings = (
@@ -899,7 +899,7 @@ end;
 { ESQLDatabaseError }
 
 constructor ESQLDatabaseError.CreateFmt(const Fmt: string; const Args: array of const;
-  Comp: TComponent; AErrorCode: integer; ASQLState: string);
+  Comp: TComponent; AErrorCode: integer; const ASQLState: string);
 const CompNameFmt='%s : %s';
 var Msg: string;
 begin
@@ -1220,7 +1220,7 @@ begin
      end;
 end;
 
-function TCustomSQLStatement.ExpandMacros( OrigSQL : String ) : String;
+function TCustomSQLStatement.ExpandMacros(const OrigSQL : String ) : String;
 
 Const
   Terminators = SQLDelimiterCharacters+
@@ -1402,11 +1402,13 @@ begin
 end;
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
-var T : TStatementType;
+var 
+  T : TStatementType;
+  LS : String;
 begin
-  S:=Lowercase(s);
+  LS:=Lowercase(s);
   for T:=stSelect to stRollback do
-    if (S=StatementTokens[T]) then
+    if (LS=StatementTokens[T]) then
       Exit(T);
   Result:=stUnknown;
 end;
@@ -2813,22 +2815,26 @@ begin
     Result := False;
 end;
 
-function TCustomSQLQuery.AddFilter(SQLstr: string): string;
+function TCustomSQLQuery.AddFilter(const SQLstr: string): string;
+
+Var
+  Res : String;
 
 begin
+  Res:=SQLStr;
   if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
     begin
-    system.insert('(',SQLstr,FWhereStartPos+1);
-    system.insert(')',SQLstr,FWhereStopPos+1);
+    system.insert('(',Res,FWhereStartPos+1);
+    system.insert(')',Res,FWhereStopPos+1);
     end;
 
   if FWhereStartPos = 0 then
-    SQLstr := SQLstr + ' where (' + ServerFilter + ')'
+    Res := Res + ' where (' + ServerFilter + ')'
   else if FWhereStopPos > 0 then
-    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+2)
+    system.insert(' and ('+ServerFilter+') ',res,FWhereStopPos+2)
   else
-    system.insert(' where ('+ServerFilter+') ',SQLstr,FWhereStartPos);
-  Result := SQLstr;
+    system.insert(' where ('+ServerFilter+') ',res,FWhereStartPos);
+  Result := res;
 end;
 
 procedure TCustomSQLQuery.OpenCursor(InfoQuery: Boolean);
@@ -3703,7 +3709,7 @@ begin
 end;
 
 
-Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
+Function GetConnectionDef(const ConnectorName : String) : TConnectionDef;
 
 Var
   I : Integer;
@@ -3739,7 +3745,7 @@ begin
   UnRegisterConnection(Def.TypeName);
 end;
 
-procedure UnRegisterConnection(ConnectionName: String);
+procedure UnRegisterConnection(const ConnectionName: String);
 
 Var
   I : Integer;

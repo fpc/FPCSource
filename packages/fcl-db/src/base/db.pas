@@ -1517,7 +1517,7 @@ type
     Procedure SetParamValue(const ParamName: string; const Value: Variant);
   protected
     Function CreateParseOpts(DoCreate, EscapeSlash, EscapeRepeat : Boolean) : TSQLParseOptions;
-    function DoParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out  ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String; virtual;
+    function DoParseSQL(const SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out  ParamBinding: TParambinding; MacroChar: Char; out ReplaceString: string): String; virtual;
     Procedure AssignTo(Dest: TPersistent); override;
     Function  GetDataSet: TDataSet;
     Function  GetOwner: TPersistent; override;

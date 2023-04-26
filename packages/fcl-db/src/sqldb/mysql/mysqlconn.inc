@@ -388,7 +388,7 @@ Resourcestring
   SErrVersionMismatch = '%s can not work with the installed MySQL client version: Expected (%s), got (%s).';
   SErrSettingParameter = 'Error setting parameter "%s"';
 
-Procedure MySQLError(R : PMySQL; Msg: String; Comp : TComponent);
+Procedure MySQLError(R : PMySQL; const Msg: String; Comp : TComponent);
 
 Var
   MySQLError, MySQLState : String;

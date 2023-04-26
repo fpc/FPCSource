@@ -46,15 +46,15 @@ type
     procedure IndexDifference (DiffType: TDifferenceType; SourceIndex, TargetIndex: TDDIndexDef); virtual;
     procedure FieldDifference (DiffType: TDifferenceType; SourceField, TargetField: TDDFieldDef); virtual;
     procedure CompareTables (Kind: TDiffKindSet);
-    procedure CompareTable (TableName: string; Kind: TDiffKindSet);
+    procedure CompareTable (const TableName: string; Kind: TDiffKindSet);
     procedure CompareFields (Source, Target: TDDFieldDefs; Kind: TDiffKindSet);
-    procedure CompareField (Source, Target: TDDFieldDefs; Fieldname: string; Kind: TDiffKindSet);
+    procedure CompareField (Source, Target: TDDFieldDefs; const Fieldname: string; Kind: TDiffKindSet);
     procedure CompareIndexes (Source, Target: TDDIndexDefs; Kind: TDiffKindSet);
-    procedure CompareIndex (Source, Target: TDDIndexDefs; Indexname: string; Kind: TDiffKindSet);
+    procedure CompareIndex (Source, Target: TDDIndexDefs; const Indexname: string; Kind: TDiffKindSet);
     procedure CompareDomains (Kind: TDiffKindSet);
-    procedure CompareDomain (Source, Target: TDDDomainDefs; DomainName: string; Kind: TDiffKindSet);
+    procedure CompareDomain (Source, Target: TDDDomainDefs; const DomainName: string; Kind: TDiffKindSet);
     procedure CompareSequences (Kind: TDiffKindSet);
-    procedure CompareSequence (Source, Target: TDDSequenceDefs; SequenceName: string; Kind: TDiffKindSet);
+    procedure CompareSequence (Source, Target: TDDSequenceDefs; const SequenceName: string; Kind: TDiffKindSet);
   public
     procedure Compare (Kind: TDiffKindSet);
     property SourceDD : TFPdatadictionary read FSourceDD write FSourceDD;
@@ -121,7 +121,7 @@ begin
   end;
 end;
 
-procedure TCustomDDDiffer.CompareTable(TableName: string; Kind: TDiffKindSet);
+procedure TCustomDDDiffer.CompareTable(const TableName: string; Kind: TDiffKindSet);
 
 var
   Src, Targ : TDDTableDef;
@@ -169,7 +169,7 @@ begin
 end;
 
 procedure TCustomDDDiffer.CompareField(Source, Target: TDDFieldDefs;
-  Fieldname: string; Kind: TDiffKindSet);
+  const Fieldname: string; Kind: TDiffKindSet);
 
   Function FieldTypesEqual(F1,F2 : TDDFieldDef) : boolean;
 
@@ -217,7 +217,7 @@ begin
 end;
 
 procedure TCustomDDDiffer.CompareIndex(Source, Target: TDDIndexDefs;
-  Indexname: string; Kind: TDiffKindSet);
+  const Indexname: string; Kind: TDiffKindSet);
 var
   Src, Targ : TDDIndexDef;
 begin
@@ -258,7 +258,7 @@ begin
 end;
 
 procedure TCustomDDDiffer.CompareDomain(Source, Target: TDDDomainDefs;
-  DomainName: string; Kind: TDiffKindSet);
+  const DomainName: string; Kind: TDiffKindSet);
 
 var
   Src,Targ : TDDDomainDef;
@@ -300,7 +300,7 @@ begin
 end;
 
 procedure TCustomDDDiffer.CompareSequence(Source, Target: TDDSequenceDefs;
-  SequenceName: string; Kind: TDiffKindSet);
+  const SequenceName: string; Kind: TDiffKindSet);
 
 var
   Src,Targ : TDDSequenceDef;

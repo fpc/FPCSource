@@ -184,7 +184,7 @@ type
   protected
     FRowsAffected: integer;
     function ReplaceParams(AParams: TParams): string; // replaces parameters placeholders $1,$2,..$n in FQuery with supplied values in AParams
-    procedure Prepare(Buf: string; AParams: TParams);
+    procedure Prepare(const Buf: string; AParams: TParams);
     procedure Execute(AParams: TParams);
     function Fetch: boolean;
     procedure Put(column: integer; out s: string); overload;
@@ -222,7 +222,7 @@ end;
 
 { TDBLibCursor }
 
-procedure TDBLibCursor.Prepare(Buf: string; AParams: TParams);
+procedure TDBLibCursor.Prepare(const Buf: string; AParams: TParams);
 var
   ParamBinding : TParamBinding;
 begin

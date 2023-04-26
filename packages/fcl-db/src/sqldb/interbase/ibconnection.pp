@@ -92,7 +92,7 @@ type
 
     // Metadata:
     procedure GetDatabaseInfo; //Queries for various information from server once connected
-    function InterpretTransactionParam(S: String; var TPB: AnsiChar; out AValue: String): Boolean;
+    function InterpretTransactionParam(const S: String; var TPB: AnsiChar; out AValue: String): Boolean;
     procedure ResetDatabaseInfo; //Useful when disconnecting
     function GetDialect: integer;
     function GetODSMajorVersion: integer;
@@ -106,8 +106,8 @@ type
     procedure GetFloat(CurrBuff, Buffer : pointer; Size : Byte);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
 
-    procedure CheckError(ProcName : string; Status : PISC_STATUS;IgnoreErrors : Array of Longint); overload;
-    procedure CheckError(ProcName : string; Status : PISC_STATUS); overload;
+    procedure CheckError(const ProcName : string; Status : PISC_STATUS;IgnoreErrors : Array of Longint); overload;
+    procedure CheckError(const ProcName : string; Status : PISC_STATUS); overload;
     procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
@@ -184,13 +184,13 @@ const
   SQL_NULL = 32767;
   INVALID_DATA = -1;
 
-procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
+procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS);
 
 begin
   CheckError(ProcName,Status,[]);
 end;
 
-procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS; IgnoreErrors : Array of Longint);
+procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS; IgnoreErrors : Array of Longint);
 var
   i,ErrorCode : longint;
   Msg, SQLState : string;
@@ -263,7 +263,7 @@ begin
   else result := true;
 end;
 
-function TIBConnection.InterpretTransactionParam(S: String; var TPB: AnsiChar;
+function TIBConnection.InterpretTransactionParam(const S: String; var TPB: AnsiChar;
   out AValue: String): Boolean;
 
 Const
@@ -280,27 +280,28 @@ Const
 
 Var
   P : Integer;
-
+  LS : String;
 begin
   TPB:=#0;
   Result:=False;
-  P:=Pos('=',S);
+  LS:=S;
+  P:=Pos('=',LS);
   If P<>0 then
     begin
-    AValue:=Copy(S,P+1,Length(S)-P);
-    S:=Copy(S,1,P-1);
+    AValue:=Copy(LS,P+1,Length(LS)-P);
+    LS:=Copy(LS,1,P-1);
     end;
-  S:=LowerCase(S);
-  P:=Pos(Prefix,S);
+  LS:=LowerCase(LS);
+  P:=Pos(Prefix,LS);
   if P<>0 then
-    Delete(S,1,P+PrefixLen-1);
-  Result:=(Copy(S,1,7)='version') and (Length(S)=8);
+    Delete(LS,1,P+PrefixLen-1);
+  Result:=(Copy(LS,1,7)='version') and (Length(LS)=8);
   if Result then
-    TPB:=S[8]
+    TPB:=LS[8]
   else
     begin
     P:=MaxParam;
-    While (P>0) and (S<>TPBNames[P]) do
+    While (P>0) and (LS<>TPBNames[P]) do
       Dec(P);
     Result:=P>0;
     if Result then

@@ -86,7 +86,7 @@ function GetCompleteFileName(const Base, FileName: string): string;
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 function BDETimeStampToDateTime(aBT: double): TDateTime;
-procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Integer);
+procedure FindNextName(const BaseName: string; var OutName: string; var Modifier: Integer);
 {$ifdef USE_CACHE}
 function GetFreeMemory: Integer;
 {$endif}
@@ -398,15 +398,15 @@ begin
   end;
 end;
 
-procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Integer);
+procedure FindNextName(const BaseName: string; var OutName: string; var Modifier: Integer);
 var
-  Extension: string;
+  BN,Extension: string;
 begin
   Extension := ExtractFileExt(BaseName);
-  BaseName := Copy(BaseName, 1, Length(BaseName)-Length(Extension));
+  BN := Copy(BaseName, 1, Length(BaseName)-Length(Extension));
   repeat
     Inc(Modifier);
-    OutName := ChangeFileExt(BaseName+'_'+IntToStr(Modifier), Extension);
+    OutName := ChangeFileExt(BN+'_'+IntToStr(Modifier), Extension);
   until not FileExists(OutName);
 end;
 
