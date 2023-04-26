@@ -82,8 +82,8 @@ Type
     function GetColumn(Index : Integer): TTableColumn;
     procedure SetColumn(Index : Integer; const AValue: TTableColumn);
   Public
-    Function FindColumn(ColumnName : String) : TTableColumn;
-    Function ColumnByName(ColumnName : String) : TTableColumn;
+    Function FindColumn(const ColumnName : String) : TTableColumn;
+    Function ColumnByName(const ColumnName : String) : TTableColumn;
     Property Items[Index : Integer] : TTableColumn Read GetColumn Write SetColumn;
   end;
 
@@ -130,10 +130,10 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; virtual;
-    Function CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; CustomAttr : String) : String;
+    Function CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; const CustomAttr : String) : String;
     Procedure Clear;
     Procedure CreateColumns(FieldList : TStrings);
-    Procedure CreateColumns(FieldList : String);
+    Procedure CreateColumns(const FieldList : String);
     Procedure CreateTable(Stream : TStream);
     Procedure CreateTable;
     Procedure CreateContent; override;
@@ -201,7 +201,7 @@ begin
   Inherited Items[Index]:=AValue;
 end;
 
-function TTableColumns.FindColumn(ColumnName: String): TTableColumn;
+function TTableColumns.FindColumn(const ColumnName: String): TTableColumn;
 
 Var
   I : Integer;
@@ -215,7 +215,7 @@ begin
     Result:=Items[I];
 end;
 
-function TTableColumns.ColumnByName(ColumnName: String): TTableColumn;
+function TTableColumns.ColumnByName(const ColumnName: String): TTableColumn;
 
 begin
   Result:=FindColumn(ColumnName);
@@ -343,7 +343,7 @@ begin
   WriteString(Stream,'</TABLE>'#10);
 end;
 
-Function TTableProducer.CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; CustomAttr : String) : String;
+Function TTableProducer.CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; const CustomAttr : String) : String;
 
 Const
   HAligns : Array[THTMLAlign] of string = ('','"left"','"right"','"center"');
@@ -447,7 +447,7 @@ begin
     end
 end;
 
-procedure TTableProducer.CreateColumns(FieldList: String);
+procedure TTableProducer.CreateColumns(const FieldList: String);
 
 Var
   L : TStringList;

@@ -175,8 +175,8 @@ Type
     // Format field as UTF8 string, according to settings
     Function FormatField(F : TField) : UTF8String; virtual;
     // Raise EDataExporter error
-    Procedure ExportError(Msg : String); overload;
-    Procedure ExportError(Fmt : String; Args: Array of const); overload;
+    Procedure ExportError(const Msg : String); overload;
+    Procedure ExportError(const Fmt : String; Args: Array of const); overload;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -674,12 +674,12 @@ begin
     Result:=F.AsUTF8String;
 end;
 
-procedure TCustomDatasetExporter.ExportError(Msg: String);
+procedure TCustomDatasetExporter.ExportError(const Msg: String);
 begin
   Raise EDataExporter.Create(Msg);
 end;
 
-procedure TCustomDatasetExporter.ExportError(Fmt: String;
+procedure TCustomDatasetExporter.ExportError(const Fmt: String;
   Args: array of const);
 begin
   Raise EDataExporter.CreateFmt(Fmt,Args);
@@ -992,7 +992,7 @@ end;
 function TExportFormats.ConstructFilter(AnExport: TCustomDatasetExporter
   ): String;
   
-  Procedure AddToResult(S : String);
+  Procedure AddToResult(const S : String);
   
   begin
     If (Result<>'') and (S<>'') then

@@ -56,7 +56,7 @@ type
     procedure PXAppendRecord(Buffer: Pointer);
     function PXFilterRecord(Buffer: TRecordBuffer): Boolean;
     function PXGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
-    procedure RaiseError(Fmt: String; Args: array of const);
+    procedure RaiseError(const Fmt: String; Args: array of const);
     procedure SetBlobFileName(const AValue: String);
     procedure SetFileName(const AValue: String);
     procedure SetInputEncoding(const AValue: String);
@@ -225,7 +225,7 @@ begin
     end;
 end;
 
-Procedure InitPXLib(LibName : String);
+Procedure InitPXLib(const LibName : String);
 
 begin
   If (PXLibRefCount=0) then
@@ -256,7 +256,7 @@ begin
 end;
 
 
-Procedure TParadox.RaiseError(Fmt : String; Args : Array of const);
+Procedure TParadox.RaiseError(const Fmt : String; Args : Array of const);
 
 begin
   Raise EParadox.CreateFmt(Fmt,Args);

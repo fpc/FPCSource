@@ -133,7 +133,7 @@ Const
   
 implementation
 
-Function StripType(S : String) : string;
+Function StripType(const S : String) : string;
 
 begin
   Result:=S;

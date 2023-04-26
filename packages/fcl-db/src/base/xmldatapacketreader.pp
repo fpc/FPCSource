@@ -132,7 +132,7 @@ end;
 
 procedure TXMLDatapacketReader.LoadFieldDefs(var AnAutoIncValue: integer);
 
-  function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
+  function GetNodeAttribute(const aNode : TDOMNode; const AttName : String) : string;
   var AnAttr : TDomNode;
   begin
     AnAttr := ANode.Attributes.GetNamedItem(AttName);

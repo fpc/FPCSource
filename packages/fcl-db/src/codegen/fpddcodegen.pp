@@ -95,13 +95,13 @@ Type
     function GetPropDef(Index : integer): TFieldPropDef;
     procedure SetPropDef(Index : integer; const AValue: TFieldPropDef);
   Public
-    Function AddDef(AName : String) : TFieldPropDef;
+    Function AddDef(const AName : String) : TFieldPropDef;
     Procedure FromDataset(Dataset : TDataset; DoClear : Boolean = True);
     Procedure FromDDFieldDefs(Defs : TDDFieldDefs; DoClear : Boolean = True);
-    Function IndexOfPropName(AName : String) : Integer;
-    Function IndexOfFieldName(AName : String) : Integer;
-    Function FindPropName(AName : String) : TFieldPropDef;
-    Function FindFieldName(AName : String) : TFieldPropDef;
+    Function IndexOfPropName(const AName : String) : Integer;
+    Function IndexOfFieldName(const AName : String) : Integer;
+    Function FindPropName(const AName : String) : TFieldPropDef;
+    Function FindFieldName(const AName : String) : TFieldPropDef;
     Property PropDefs[Index : integer] : TFieldPropDef Read GetPropDef write SetPropDef; Default;
   end;
 
@@ -152,10 +152,10 @@ Type
   Protected
     // Utility routines to add lines to the code. Will prepend indent.
     procedure AddLn(Strings: TStrings); overload;
-    procedure AddLn(Strings: TStrings; Line: String); overload;
-    procedure AddLn(Strings: TStrings; Fmt: String; Args: array of const); overload;
+    procedure AddLn(Strings: TStrings; const Line: String); overload;
+    procedure AddLn(Strings: TStrings; const Fmt: String; Args: array of const); overload;
     // Create a pascal code string. Surround by quotes or not
-    Function CreatePascalString(S : String; Quote : Boolean = True) : String;
+    Function CreatePascalString(const S : String; Quote : Boolean = True) : String;
     // Increase indent by defined amount
     procedure IncIndent;
     // Decrease indent by defined amount
@@ -442,20 +442,20 @@ Resourcestring
   SErrGeneratorExists   = 'A code generator with name "%s" already exists';
   SUnknownGenerator     = 'Unknown code generator name : "%s"';
 
-Function MakeIdentifier (S : String) : String;
-Function CreateString(S : String) : String;
-Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True);
+Function MakeIdentifier (const S : String) : String;
+Function CreateString(const S : String) : String;
+Procedure CheckIdentifier(const AValue : String; AllowEmpty : Boolean = True);
 
 implementation
 
-Function CreateString(S : String) : String;
+Function CreateString(const S : String) : String;
 
 begin
   Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
   Result:=''''+Result+'''';
 end;
 
-Procedure CheckIdentifier(AValue : String; AllowEmpty : Boolean = True);
+Procedure CheckIdentifier(const AValue : String; AllowEmpty : Boolean = True);
 
 begin
   If ((AValue='') and Not AllowEmpty) or Not IsValidIdent(AValue) then
@@ -494,7 +494,7 @@ begin
   CodeGenerators.UnRegisterCodeGenerator(AName);
 end;
 
-Function MakeIdentifier (S : String) : String;
+Function MakeIdentifier (const S : String) : String;
 
 Var
   I : Integer;
@@ -642,7 +642,7 @@ begin
   Items[Index]:=AValue;
 end;
 
-function TFieldPropDefs.AddDef(AName: String): TFieldPropDef;
+function TFieldPropDefs.AddDef(const AName: String): TFieldPropDef;
 begin
   Result:=Add As TFieldPropDef;
   Result.FieldName:=AName;
@@ -686,21 +686,21 @@ begin
     end;
 end;
 
-function TFieldPropDefs.IndexOfPropName(AName: String): Integer;
+function TFieldPropDefs.IndexOfPropName(const AName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(GetPropDef(Result).PropertyName,AName)<>0) do
     Dec(Result);
 end;
 
-function TFieldPropDefs.IndexOfFieldName(AName: String): Integer;
+function TFieldPropDefs.IndexOfFieldName(const AName: String): Integer;
 begin
   Result:=Count-1;
   While (Result>=0) and (CompareText(GetPropDef(Result).FieldName,AName)<>0) do
     Dec(Result);
 end;
 
-function TFieldPropDefs.FindPropName(AName: String): TFieldPropDef;
+function TFieldPropDefs.FindPropName(const AName: String): TFieldPropDef;
 
 Var
   I : Integer;
@@ -713,7 +713,7 @@ begin
     Result:=Nil;
 end;
 
-function TFieldPropDefs.FindFieldName(AName: String): TFieldPropDef;
+function TFieldPropDefs.FindFieldName(const AName: String): TFieldPropDef;
 
 Var
   I : Integer;
@@ -1389,20 +1389,20 @@ begin
   Strings.Add('');
 end;
 
-procedure TDDCustomCodeGenerator.AddLn(Strings : TStrings; Line : String);
+procedure TDDCustomCodeGenerator.AddLn(Strings : TStrings; const Line : String);
 
 begin
   Strings.Add(FCurrentIndent+Line);
 end;
 
-procedure TDDCustomCodeGenerator.AddLn(Strings: TStrings; Fmt: String;
+procedure TDDCustomCodeGenerator.AddLn(Strings: TStrings; const Fmt: String;
   Args: array of const);
 
 begin
   Strings.Add(FCurrentIndent+Format(Fmt,Args));
 end;
 
-function TDDCustomCodeGenerator.CreatePascalString(S: String; Quote: Boolean): String;
+function TDDCustomCodeGenerator.CreatePascalString(const S: String; Quote: Boolean): String;
 
 Var
   SW : String;

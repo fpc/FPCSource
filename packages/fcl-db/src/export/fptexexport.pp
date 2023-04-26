@@ -72,7 +72,7 @@ Type
     function GetTeXFormatsettings: TTexExportFormatSettings;
     procedure SetTeXFormatSettings(const AValue: TTexExportFormatSettings);
   Protected
-    function EscapeLaTeX(S: String): String;
+    function EscapeLaTeX(const S: String): String;
     procedure OutputRow(const ARow: String); virtual;
     procedure OutputTableEnd; virtual;
     procedure OutputTableStart; virtual;
@@ -132,7 +132,7 @@ begin
 end;
 
 { TCustomTeXExporter }
-function TCustomTexExporter.EscapeLaTeX(S: String): String;
+function TCustomTexExporter.EscapeLaTeX(const S: String): String;
 
 Var
   I,J,L : Integer;

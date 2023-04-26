@@ -229,7 +229,7 @@ begin
     DatabaseErrorFmt(SParameterNotFound,[Value],Dataset);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
+function TParams.ParseSQL(const SQL: String; DoCreate: Boolean): String;
 
 var
   pb : TParamBinding;
@@ -241,7 +241,7 @@ begin
   Result := DoParseSQL(SQL,PO,psInterbase, pb, ' ',rs);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+function TParams.ParseSQL(const SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle): String;
 
 var pb : TParamBinding;
@@ -253,7 +253,7 @@ begin
   Result := DoParseSQL(SQL,PO,ParameterStyle,pb,' ',rs);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+function TParams.ParseSQL(const SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding): String;
 
@@ -313,7 +313,7 @@ begin
 end;
 
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+function TParams.ParseSQL(const SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding; out ReplaceString: string): String;
 
@@ -325,7 +325,7 @@ begin
   Result:=DoParseSQL(SQL,PO,ParameterStyle,ParamBinding,' ',ReplaceString);
 end;
 
-function TParams.ParseSQL(SQL: String; Options: TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding;
+function TParams.ParseSQL(const SQL: String; Options: TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding;
   MacroChar: Char; out ReplaceString: string): String;
 begin
   Result:=DoParseSQL(SQL,Options,ParameterStyle,ParamBinding,MacroChar,ReplaceString);
