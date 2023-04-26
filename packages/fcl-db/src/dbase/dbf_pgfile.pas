@@ -88,7 +88,7 @@ type
     procedure SetPageOffsetByHeader(NewValue: Boolean); virtual;
     procedure SetRecordCount(NewValue: Integer);
     procedure SetBufferAhead(NewValue: Boolean);
-    procedure SetFileName(NewName: string);
+    procedure SetFileName(const NewName: string);
     procedure SetStream(NewStream: TStream);
     function  LockSection(const Offset, Length: Cardinal; const Wait: Boolean): Boolean; virtual;
     function  UnlockSection(const Offset, Length: Cardinal): Boolean; virtual;
@@ -515,7 +515,7 @@ begin
     FStream := NewStream;
 end;
 
-procedure TPagedFile.SetFileName(NewName: string);
+procedure TPagedFile.SetFileName(const NewName: string);
 begin
   if not FActive then
     FFileName := NewName;

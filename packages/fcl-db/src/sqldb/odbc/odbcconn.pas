@@ -104,8 +104,8 @@ type
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
-    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string; const FmtArgs:array of const);
-    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
+    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: string; const FmtArgs:array of const);
+    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: string);
     // - UpdateIndexDefs
     procedure UpdateIndexDefs(IndexDefs:TIndexDefs; TableName:string); override;
     // - Schema info
@@ -179,7 +179,7 @@ begin
   end;
 end;
 
-procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ConnectionCodePage: TSystemCodePage; ErrorMsg: string; const FmtArgs:array of const);
+procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ConnectionCodePage: TSystemCodePage; const ErrorMsg: string; const FmtArgs:array of const);
 
   // check return value from SQLGetDiagField/Rec function itself
   procedure CheckSQLGetDiagResult(const Res:SQLRETURN);
@@ -258,12 +258,12 @@ end;
 
 { TODBCConnection }
 
-procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string; const FmtArgs:array of const);
+procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: string; const FmtArgs:array of const);
 begin
   ODBCCheckResult(LastReturnCode,HandleType,AHandle,CodePage,ErrorMsg,FmtArgs);
 end;
 
-procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
+procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: string);
 begin
   CheckResult(LastReturnCode, HandleType, AHandle, ErrorMsg, []);
 end;

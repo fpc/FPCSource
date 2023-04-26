@@ -38,13 +38,13 @@ Type
     Procedure ClearValues;
   Public
     Procedure LoadFromIni(Const aIni: TCustomIniFile; aOptions : TSQLDBIniOptions = []); overload;
-    Procedure LoadFromIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TSQLDBIniOptions); overload;
+    Procedure LoadFromIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TSQLDBIniOptions); overload;
     Procedure LoadFromFile(Const aFileName : String; aOptions : TSQLDBIniOptions = []); overload;
     Procedure LoadFromFile(Const aFileName : String; Const ASection : String; aOptions : TSQLDBIniOptions); overload;
     Procedure SaveToFile(Const aFileName : String; aOptions : TSQLDBIniOptions = []);overload;
     Procedure SaveToFile(Const aFileName : String; Const ASection : String; aOptions : TSQLDBIniOptions = []);overload;
     Procedure SaveToIni(Const aIni: TCustomIniFile; aOptions : TSQLDBIniOptions = []); overload;
-    Procedure SaveToIni(Const aIni: TCustomIniFile; ASection : String; aOptions : TSQLDBIniOptions); overload;
+    Procedure SaveToIni(Const aIni: TCustomIniFile; const ASection : String; aOptions : TSQLDBIniOptions); overload;
   end;
 
 Var
@@ -82,7 +82,7 @@ Const
                      = (keyHost,KeyDatabaseName,KeyUserName,KeyPassword,KeyPort,keyParams,keyCharSet,keyRole);
   ParamSeps = [',',';',' '];
 
-procedure TSQLDBIniHelper.LoadFromIni(const aIni: TCustomIniFile; ASection: String; aOptions: TSQLDBIniOptions);
+procedure TSQLDBIniHelper.LoadFromIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TSQLDBIniOptions);
 
 Var
   M,N,P : String;
@@ -183,7 +183,7 @@ begin
   SaveToIni(aIni,DefaultSection,aOptions);
 end;
 
-procedure TSQLDBIniHelper.SaveToIni(const aIni: TCustomIniFile; ASection: String; aOptions: TSQLDBIniOptions);
+procedure TSQLDBIniHelper.SaveToIni(const aIni: TCustomIniFile; const ASection: String; aOptions: TSQLDBIniOptions);
 Var
   M,N,P : String;
   I : integer;

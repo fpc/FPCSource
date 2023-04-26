@@ -43,7 +43,7 @@ var
  FPdevBirthDates : Array[1..8] of TDateTime;
 
 
-procedure ExitWithError(s : string);
+procedure ExitWithError(const s : string);
 procedure ReadIniFile;
 
 procedure CreateFConnection;
@@ -55,7 +55,7 @@ implementation
 uses
   inifiles;
 
-procedure ExitWithError(s : string);
+procedure ExitWithError(const s : string);
 
 begin
   writeln(s);
