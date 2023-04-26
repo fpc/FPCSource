@@ -88,7 +88,7 @@ Type
     Procedure DoWarning(Const Fmt : string; Const args : Array of const);
     Procedure DoError(const Nr : Integer; Const Msg : string);
     Procedure DoError(const Nr : Integer; Const Fmt : string; Const Args : Array of const);
-    Procedure DoUnknownStruct(aID : String);
+    Procedure DoUnknownStruct(const aID : String);
   Protected
     // Factory methods
     Function CreateScanner(aFile : TStream; aBufferSize : Cardinal) : TPDFScanner; virtual;
@@ -103,7 +103,7 @@ Type
     function VerifyDocument: Int64;
     // Stream Filters
     function FindStreamLength(aReposition : Int64): Integer;
-    function FilterStream(aStream: TStream; aFilterName: String;  aParams: TPDFDictionary): TStream;
+    function FilterStream(aStream: TStream; const aFilterName: String;  aParams: TPDFDictionary): TStream;
     function GetUnfilteredStream(aObj: TPDFIndirect): TStream;
     function ResolveFilters(aStream: TStream; aDict: TPDFDictionary): TStream;
     // XRef handling
@@ -380,7 +380,7 @@ end;
 Var
   aFileCount : Integer = 0;
 
-procedure SaveStreamToFile(aContext : String; aStream : TStream; const aFileName : String = '');
+procedure SaveStreamToFile(const aContext : String; aStream : TStream; const aFileName : String = '');
 
 Var
   FN : String;
@@ -1647,7 +1647,7 @@ Var
   aPredictor,aColors,aColumns,aBitsPerComponent : Integer;
   aStream : TPDFPredictStream;
 
-  Function MaybeInt(aKey : string; aDefault : integer) : Integer;
+  Function MaybeInt(aKey : string; const aDefault : integer) : Integer;
 
   begin
   if Data.ParamDict.ContainsKey(aKey) then
@@ -1697,7 +1697,7 @@ begin
 end;
 
 
-function TPDFParser.FilterStream(aStream : TStream; aFilterName : String; aParams : TPDFDictionary) : TStream;
+function TPDFParser.FilterStream(aStream : TStream; const aFilterName : String; aParams : TPDFDictionary) : TStream;
 
 Var
   Data : TPDFFilterData;
@@ -2110,7 +2110,7 @@ begin
   DoError(Nr,Format(Fmt,Args))
 end;
 
-procedure TPDFParser.DoUnknownStruct(aID: String);
+procedure TPDFParser.DoUnknownStruct(const aID: String);
 begin
   DoError(penUnknownConstruct,SErrUnknownConstruct,[aID]);
 end;
