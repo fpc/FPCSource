@@ -558,7 +558,7 @@ type
     function GetIndexFieldNames: String;
     function GetIndexName: String;
     procedure SetIndexFieldNames(const AValue: String);
-    procedure SetIndexName(AValue: String);
+    procedure SetIndexName(const AValue: String);
     procedure SetMaxIndexesCount(const AValue: Integer);
     procedure SetBufUniDirectional(const AValue: boolean);
     Function DefaultIndex : TBufDatasetIndex;
@@ -2399,7 +2399,7 @@ begin
   FPacketRecords:=-1;
 end;
 
-procedure TCustomBufDataset.SetIndexName(AValue: String);
+procedure TCustomBufDataset.SetIndexName(const AValue: String);
 
 var
   F : TBufDatasetIndex;

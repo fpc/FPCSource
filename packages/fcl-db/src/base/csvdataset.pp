@@ -111,7 +111,7 @@ Type
     procedure LoadFromCSVStream(AStream : TStream);
     procedure LoadFromCSVFile(Const AFileName: string);
     procedure SaveToCSVStream(AStream : TStream);
-    procedure SaveToCSVFile(AFileName: string = '');
+    procedure SaveToCSVFile(const AFileName: string = '');
   Protected
     Property CSVOptions : TCSVOptions Read FCSVOptions Write SetCSVOptions;
   end;
@@ -411,7 +411,7 @@ begin
   end;
 end;
 
-procedure TCustomCSVDataset.SaveToCSVFile(AFileName: string);
+procedure TCustomCSVDataset.SaveToCSVFile(const AFileName: string);
 Var
   F : TFileStream;
 

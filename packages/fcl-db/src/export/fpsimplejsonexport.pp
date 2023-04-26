@@ -58,7 +58,7 @@ Type
     procedure IncIndent;
     procedure OutputRow(const ARow: String);
     procedure SetJSONFormatSettings(const AValue: TSimpleJSONFormatSettings);
-    function TextString(S: String): String;
+    function TextString(const S: String): String;
   Protected
     Function  CreateFormatSettings : TCustomExportFormatSettings; override;
     Procedure DoBeforeExecute; override;
@@ -145,7 +145,7 @@ begin
   Inherited FormatSettings.Assign(AValue);
 end;
 
-function TCustomSimpleJSONExporter.TextString(S: String): String;
+function TCustomSimpleJSONExporter.TextString(const S: String): String;
 
 Var
   I,J,L : Integer;
