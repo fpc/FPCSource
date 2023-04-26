@@ -71,8 +71,8 @@ Type
     procedure Consume(aToken: TSQLToken);
     // Expects aTokens tokens and eats the token by calling GetNextToken
     procedure Consume(aTokens: TSQLTokens);
-    procedure Error(Msg : String);
-    procedure Error(Fmt : String; Args : Array of const);
+    procedure Error(const Msg : String);
+    procedure Error(const Fmt : String; Args : Array of const);
     // Expression support
     function ParseExprLevel1(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
     function ParseExprLevel2(AParent: TSQLElement; EO : TExpressionOptions): TSQLExpression;
@@ -299,7 +299,7 @@ begin
   Result:=FScanner.CurColumn;
 end;
 
-procedure TSQLParser.Error(Msg: String);
+procedure TSQLParser.Error(const Msg: String);
 
 Var
   ErrAt : String;
@@ -321,7 +321,7 @@ begin
    Raise E;
 end;
 
-procedure TSQLParser.Error(Fmt: String; Args: array of const);
+procedure TSQLParser.Error(const Fmt: String; Args: array of const);
 begin
   Error(Format(Fmt,Args));
 end;

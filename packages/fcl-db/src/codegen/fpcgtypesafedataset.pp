@@ -56,8 +56,8 @@ Type
     function GetInterfaceName: String;
     function GetQueryClass: String;
     function GetTransactionClass: String;
-    procedure SetInterfaceGUID(AValue: String);
-    procedure SetInterfaceName(AValue: String);
+    procedure SetInterfaceGUID(const AValue: String);
+    procedure SetInterfaceName(const AValue: String);
     procedure SetTypeSafeAccesOptions(AValue: TTypeSafeDatasetOptions);
   Protected
     function GetMapAncestorName: String; override;
@@ -891,7 +891,7 @@ begin
     Result:='TSQLConnection';
 end;
 
-procedure TGenTypeSafeDatasetOptions.SetInterfaceGUID(AValue: String);
+procedure TGenTypeSafeDatasetOptions.SetInterfaceGUID(const AValue: String);
 
 Var
   G : TGUID;
@@ -901,7 +901,7 @@ begin
   FInterfaceGUID:=GUIDToString(G);
 end;
 
-procedure TGenTypeSafeDatasetOptions.SetInterfaceName(AValue: String);
+procedure TGenTypeSafeDatasetOptions.SetInterfaceName(const AValue: String);
 begin
   CheckIdentifier(AValue,True);
   FInterfaceName:=AValue;

@@ -193,7 +193,7 @@ type
     function DataTypeToComparerClass(aFieldType: TFieldType): TFieldComparerClass;
     Function Compare(aRowindex : integer) : Integer;
   Public
-    Constructor Create(aDataset : TBaseJSONDataset; aFields : String; aValues : Variant; aOptions : TLocateOptions);
+    Constructor Create(aDataset : TBaseJSONDataset; const aFields : String; aValues : Variant; aOptions : TLocateOptions);
     Destructor Destroy; override;
     Property Dataset : TBaseJSONDataset Read FDataset;
     property Items [Index : Integer] : TFieldComparer Read GetFieldComparer;
@@ -533,7 +533,7 @@ begin
     end;
 end;
 
-constructor TRecordComparer.Create(aDataset: TBaseJSONDataset; aFields: String; aValues: Variant; aOptions: TLocateOptions);
+constructor TRecordComparer.Create(aDataset: TBaseJSONDataset; const aFields: String; aValues: Variant; aOptions: TLocateOptions);
 
 Var
   L,H,I : Integer;

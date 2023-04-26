@@ -4049,7 +4049,7 @@ begin
 end;
 
 
-Function SQLIndentStatement(S : String; Options: TSQLFormatOptions) : String;
+Function SQLIndentStatement(const S : String; Options: TSQLFormatOptions) : String;
 
 Var
   L : TStringList;

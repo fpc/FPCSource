@@ -167,9 +167,9 @@ type
     FLoadFromStream     :Boolean;
     FTrimSpace          :Boolean;
     FEncoding : TEncoding;
-    procedure SetCodePage(AValue: String);
+    procedure SetCodePage(const AValue: String);
     procedure SetSchema(const Value: TStringList);
-    procedure SetFileName(Value : TFileName);
+    procedure SetFileName(const Value : TFileName);
     procedure SetFileMustExist(Value : Boolean);
     procedure SetTrimSpace(Value : Boolean);
     procedure SetReadOnly(Value : Boolean);
@@ -229,7 +229,7 @@ type
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     procedure RemoveBlankRecords; dynamic;
     procedure RemoveExtraColumns; dynamic;
-    procedure SaveFileAs(strFileName : String); dynamic;
+    procedure SaveFileAs(const strFileName : String); dynamic;
     property  CanModify;
     procedure LoadFromStream(Stream :TStream);
     procedure SaveToStream(Stream :TStream);
@@ -338,7 +338,7 @@ begin
   FSchema.Assign(Value);
 end;
 
-procedure TFixedFormatDataSet.SetCodePage(AValue: String);
+procedure TFixedFormatDataSet.SetCodePage(const AValue: String);
 
 Var
   F : TSystemCodePage;
@@ -372,7 +372,7 @@ begin
   FReadOnly := Value;
 end;
 
-procedure TFixedFormatDataSet.SetFileName(Value : TFileName);
+procedure TFixedFormatDataSet.SetFileName(const Value : TFileName);
 begin
   CheckInactive;
   FFileName := Value;
@@ -899,7 +899,7 @@ begin
   FData.SaveToFile(FileName);
 end;
 
-procedure TFixedFormatDataSet.SaveFileAs(strFileName : String);
+procedure TFixedFormatDataSet.SaveFileAs(const strFileName : String);
 begin
   FData.SaveToFile(strFileName);
   FFileName := strFileName;
