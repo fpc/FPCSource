@@ -34,11 +34,11 @@ Type
   PTTFEncodingValues = ^TTTFEncodingValues;
 
 Procedure GetEncodingTables(E : TTTFEncoding; Out ANames: PTTFEncodingNames; Out AValues: PTTFEncodingValues);
-Function GetEncoding(AName : String) : TTTFEncoding;
+Function GetEncoding(const AName : String) : TTTFEncoding;
 
 Implementation
 
-Function GetEncoding(AName : String) : TTTFEncoding;
+Function GetEncoding(const AName : String) : TTTFEncoding;
 
 Var
   Names : Array[TTTFEncoding] of string =

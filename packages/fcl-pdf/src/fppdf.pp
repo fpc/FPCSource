@@ -343,7 +343,7 @@ type
     procedure AddItem(const AValue: TPDFObject);
     // Add integers in S as TPDFInteger elements to the array
     Procedure AddIntArray(S : String);
-    procedure AddFreeFormArrayValues(S: string);
+    procedure AddFreeFormArrayValues(Const S: string);
   public
     constructor Create(Const ADocument : TPDFDocument); override;
     destructor Destroy; override;
@@ -842,7 +842,7 @@ type
     FTextMappingList: TTextMappingList;
     FSubsetFont: TStream;
     procedure   PrepareTextMapping;
-    procedure   SetFontFilename(AValue: string);
+    procedure   SetFontFilename(const AValue: string);
     procedure   GenerateSubsetFont;
   public
     constructor Create(ACollection: TCollection); override;
@@ -1104,9 +1104,9 @@ type
     function CreatePagesEntry(Parent: integer): integer;virtual;
     function CreatePageEntry(Parent, PageNum: integer): integer;virtual;
     function CreateOutlines: integer;virtual;
-    function CreateOutlineEntry(Parent, SectNo, PageNo: integer; ATitle: string): integer;virtual;
+    function CreateOutlineEntry(Parent, SectNo, PageNo: integer; const ATitle: string): integer;virtual;
     function LoadFont(AFont: TPDFFont): boolean;
-    procedure CreateStdFont(EmbeddedFontName: string; EmbeddedFontNum: integer);virtual;
+    procedure CreateStdFont(const EmbeddedFontName: string; EmbeddedFontNum: integer);virtual;
     procedure CreateTTFFont(const EmbeddedFontNum: integer);virtual;
     procedure CreateTTFDescendantFont(const EmbeddedFontNum: integer);virtual;
     procedure CreateTTFCIDSystemInfo;virtual;
@@ -1660,7 +1660,7 @@ begin
   end;
 end;
 
-procedure TPDFFont.SetFontFilename(AValue: string);
+procedure TPDFFont.SetFontFilename(const AValue: string);
 begin
   if FFontFilename = AValue then
     Exit;
@@ -3246,7 +3246,7 @@ end;
 function TPDFImages.AddFromFile(const AFileName: String; KeepImage: Boolean): Integer;
 
   {$IF NOT (FPC_FULLVERSION >= 30101)}
-  function FindReaderFromExtension(extension: String): TFPCustomImageReaderClass;
+  function FindReaderFromExtension(const extension: String): TFPCustomImageReaderClass;
   var
     s: string;
     r: integer;
@@ -3635,7 +3635,7 @@ begin
     AddItem(Document.CreateInteger(StrToInt(S)));
 end;
 
-procedure TPDFArray.AddFreeFormArrayValues(S: string);
+procedure TPDFArray.AddFreeFormArrayValues(const S: string);
 begin
   AddItem(TPDFFreeFormString.Create(nil, S));
 end;
@@ -5286,7 +5286,7 @@ begin
   Result:=GLobalXRefCount-1;
 end;
 
-function TPDFDocument.CreateOutlineEntry(Parent, SectNo, PageNo: integer; ATitle: string): integer;
+function TPDFDocument.CreateOutlineEntry(Parent, SectNo, PageNo: integer; const ATitle: string): integer;
 var
   ODict: TPDFDictionary;
   S: String;
@@ -5325,7 +5325,7 @@ begin
     end;
 end;
 
-procedure TPDFDocument.CreateStdFont(EmbeddedFontName: string; EmbeddedFontNum: integer);
+procedure TPDFDocument.CreateStdFont(const EmbeddedFontName: string; EmbeddedFontNum: integer);
 var
   FDict: TPDFDictionary;
   N: TPDFName;
