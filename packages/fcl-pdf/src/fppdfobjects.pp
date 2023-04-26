@@ -166,7 +166,7 @@ Type
     class function ElementType : TPDFElementType; override;
 
     function GetDescription : String; override;
-    Function IsKeyword (aKeyWord : string) : Boolean;
+    Function IsKeyword (const aKeyWord : string) : Boolean;
     Function IsInteger : Boolean;
     Function IsInt64 : Boolean;
     Property TokenType : TPDFTokentype Read FTokenType;
@@ -328,7 +328,7 @@ Type
   Public
     class function ElementType : TPDFElementType; override;
     function GetDescription: String; override;
-    Function AddEntry(aKey : String; aValue : TPDFObject) : TPDFDictEntry;
+    Function AddEntry(const aKey : String; aValue : TPDFObject) : TPDFDictEntry;
     Function AddEntry(aEntry : TPDFDictEntry) : Integer;
     function ContainsKey(const aKeyword : RawByteString) : boolean;
     function IndexofKey(const aKeyword : RawByteString) : Integer;
@@ -395,9 +395,9 @@ Type
     Constructor Create(aSource : TPDFIndirect); overload; virtual;
     Destructor Destroy; override;
     Function ResolveObjectType : TPDFIndirect;
-    Class function FindClassForType(aType : String) : TPDFIndirectClass;
-    Class Procedure RegisterType(aType : String; aClass : TPDFIndirectClass);
-    Class Procedure UnRegisterType(aType : String);
+    Class function FindClassForType(const aType : String) : TPDFIndirectClass;
+    Class Procedure RegisterType(const aType : String; aClass : TPDFIndirectClass);
+    Class Procedure UnRegisterType(const aType : String);
     Class Procedure Register;
     Class Procedure UnRegister;
     class function ElementType : TPDFElementType; override;
@@ -463,8 +463,8 @@ Type
     Constructor Create; override; overload;
     Destructor Destroy; override;
     function FindResources: TPDFDictionary;
-    Function FindFontRefObj(aFontName : String) : TPDFRef;
-    Function FindFontRef(aFontName : String) : TPDFRefData;
+    Function FindFontRefObj(const aFontName : String) : TPDFRef;
+    Function FindFontRef(const aFontName : String) : TPDFRefData;
     Property ParentRef : TPDFRef Read GetParentRef;
     Property Parent : TPDFIndirect Read GetParent;
     Property Contents[aIndex : integer] : TPDFIndirect Read GetContent;
@@ -1785,7 +1785,7 @@ begin
   Result:=Fresources;
 end;
 
-function TPDFPageObject.FindFontRefObj(aFontName: String): TPDFRef;
+function TPDFPageObject.FindFontRefObj(const aFontName: String): TPDFRef;
 
 var
   aDict  : TPDFDictionary;
@@ -1802,7 +1802,7 @@ begin
     end;
 end;
 
-function TPDFPageObject.FindFontRef(aFontName: String): TPDFRefData;
+function TPDFPageObject.FindFontRef(const aFontName: String): TPDFRefData;
 
 var
   aRef : TPDFRef;
@@ -2604,7 +2604,7 @@ begin
   Result:='Value ('+Value+')';
 end;
 
-function TPDFValue.IsKeyword(aKeyWord: string): Boolean;
+function TPDFValue.IsKeyword(const aKeyWord: string): Boolean;
 begin
   Result:=(Value=aKeyWord)
 end;
@@ -2649,7 +2649,7 @@ begin
   Result:=Result+sLineBreak+'>>';
 end;
 
-function TPDFDictionary.AddEntry(aKey: String; aValue: TPDFObject): TPDFDictEntry;
+function TPDFDictionary.AddEntry(const aKey: String; aValue: TPDFObject): TPDFDictEntry;
 begin
   Result:=TPDFDictEntry.Create();
   if (aKey<>'') and (aKey[1]='/') then
@@ -3015,18 +3015,18 @@ begin
     end;
 end;
 
-class function TPDFIndirect.FindClassForType(aType: String): TPDFIndirectClass;
+class function TPDFIndirect.FindClassForType(const aType: String): TPDFIndirectClass;
 begin
   Result:=TPDFIndirectClass(_ClassList.Items[LowerCase(aType)]);
 end;
 
-class procedure TPDFIndirect.RegisterType(aType: String;
+class procedure TPDFIndirect.RegisterType(const aType: String;
   aClass: TPDFIndirectClass);
 begin
   _ClassList.Add(LowerCase(aType),aClass);
 end;
 
-class procedure TPDFIndirect.UnRegisterType(aType: String);
+class procedure TPDFIndirect.UnRegisterType(const aType: String);
 begin
   _ClassList.Delete(LowerCase(aType));
 end;
