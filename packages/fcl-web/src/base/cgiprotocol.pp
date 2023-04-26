@@ -75,13 +75,13 @@ Const
     { 45 } 'REQUEST_SCHEME'
     );
 
-Function IndexOfCGIVar(AVarName: String): Integer;
+Function IndexOfCGIVar(const AVarName: String): Integer;
 
 implementation
 
 uses sysutils;
 
-Function IndexOfCGIVar(AVarName: String): Integer;
+Function IndexOfCGIVar(const AVarName: String): Integer;
 
 begin
   Result:=CGIVarCount;

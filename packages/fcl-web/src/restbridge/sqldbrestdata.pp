@@ -76,7 +76,7 @@ Type
     function GetSpecialDatasetForResource(aFieldList: TRestFieldPairArray): TDataset; virtual;
     function FindFieldForParam(aOperation: TRestOperation; P: TParam): TSQLDBRestField; virtual;
     function BuildFieldList(ForceAll : Boolean): TRestFieldPairArray; virtual;
-    function CreateQuery(aSQL: String): TSQLQuery; virtual;
+    function CreateQuery(const aSQL: String): TSQLQuery; virtual;
     function GetDatasetForResource(aFieldList: TRestFieldPairArray; Singleton : Boolean): TDataset; virtual;
     function GetOrderByFieldArray: TRestFieldOrderPairArray;
     function GetOrderBy: UTF8String;virtual;
@@ -308,7 +308,7 @@ begin
     end;
 end;
 
-function TSQLDBRestDBHandler.CreateQuery(aSQL: String): TSQLQuery;
+function TSQLDBRestDBHandler.CreateQuery(const aSQL: String): TSQLQuery;
 
 begin
   Result:=FQueryClass.Create(Self);
@@ -325,7 +325,7 @@ Var
   aCount : Integer;
   Fi,Fe : TStrings;
 
-  Function ML(N : String) : TStrings;
+  Function ML(const N : String) : TStrings;
   Var
     V : UTF8String;
   begin

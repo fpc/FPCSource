@@ -47,12 +47,12 @@ Type
     FDefault: Boolean;
     FMethod: TRouteMethod;
     FURLPattern: String;
-    procedure SetURLPattern(AValue: String);
+    procedure SetURLPattern(const AValue: String);
   Protected
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
   Public
     Destructor Destroy; override;
-    class function NormalizeRoute(AValue: String): String;
+    class function NormalizeRoute(const AValue: String): String;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse);
     Function Matches(Const APattern : String; AMethod : TRouteMethod; Options : TRouteOptions) : Boolean;
     Function MatchPattern(Const Path : String; L : TStrings; Options : TRouteOptions) : Boolean;
@@ -214,7 +214,7 @@ Type
     // Override this if you want to use another collection class.
     Function CreateRouteList : THTTPRouteList; virtual;
     Function CreateInterceptorList : TRequestInterceptorList; virtual;
-    Procedure CheckDuplicate(APattern : String; AMethod : TRouteMethod; isDefault : Boolean);
+    Procedure CheckDuplicate(const APattern : String; AMethod : TRouteMethod; isDefault : Boolean);
     // Actually route request. Override this for customized behaviour.
     Procedure DoRouteRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     // Extract route from request. This is PathInfo by default (sanitized);
@@ -453,7 +453,7 @@ begin
   Result:=TRequestInterceptorList.Create(TRequestInterceptorItem);
 end;
 
-procedure THTTPRouter.CheckDuplicate(APattern: String; AMethod: TRouteMethod;
+procedure THTTPRouter.CheckDuplicate(const APattern: String; AMethod: TRouteMethod;
   isDefault: Boolean);
 Var
   I,DI : Integer;
@@ -869,7 +869,7 @@ end;
 
 { THTTPRoute }
 
-Class Function THTTPRoute.NormalizeRoute(AValue: String) : String;
+Class Function THTTPRoute.NormalizeRoute(const AValue: String) : String;
 
 begin
   Result:=IncludeHTTPPathDelimiter(AValue);
@@ -877,7 +877,7 @@ begin
     Delete(Result,1,1);
 end;
 
-procedure THTTPRoute.SetURLPattern(AValue: String);
+procedure THTTPRoute.SetURLPattern(const AValue: String);
 
 Var
   V : String;
@@ -914,14 +914,14 @@ end;
 Function THTTPRoute.MatchPattern(Const Path : String; L : TStrings; Options: TRouteOptions) : Boolean;
 
   // This is used only with special chars, so we do not check case sensitivity
-  Function StartsWith(C : Char; S : String): Boolean; 
+  Function StartsWith(C : Char; const S : String): Boolean; 
   
   begin
     Result:=(Length(S)>0) and (S[1]=C);
   end;
   
   // This is used only with special chars, so we do not check case sensitivity
-  Function EndsWith(C : Char; S : String): Boolean;
+  Function EndsWith(C : Char; const S : String): Boolean;
   
   Var
   L : Integer;
@@ -931,7 +931,7 @@ Function THTTPRoute.MatchPattern(Const Path : String; L : TStrings; Options: TRo
     Result:=(L>0) and (S[L]=C);
   end;
 
-  Function SameString(A,B : String) : Boolean;
+  Function SameString(const A,B : String) : Boolean;
 
   begin
     if roCaseSensitive in Options then

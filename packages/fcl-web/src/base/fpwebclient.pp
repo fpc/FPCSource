@@ -116,14 +116,14 @@ Type
     FMaxSSLVersion: TSSLVersion;
     Procedure LogRequest(AMethod, AURL: String; ARequest: TWebClientRequest);
     Procedure LogResponse(AResponse: TWebClientResponse);
-    procedure SetLogFile(AValue: String);
+    procedure SetLogFile(const AValue: String);
     procedure SetSSLVersion(AValue : TSSLVersion);
     Function GetSSLVersion : TSSLVersion;
   protected
     // Determine min/max version to try
     procedure GetVersionLimits(out PMin, PMax: TSSLVersion);
     // Write a string to the log file
-    procedure StringToStream(str: string);
+    procedure StringToStream(const str: string);
     // Must execute the requested method using request/response. Must take ResponseContent stream into account
     Function DoHTTPMethod(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse; virtual; abstract;
     // Must create a request.
@@ -241,7 +241,7 @@ begin
   Result:=MinSSLVersion;
 end;
 
-procedure TAbstractWebClient.SetLogFile(AValue: String);
+procedure TAbstractWebClient.SetLogFile(const AValue: String);
 begin
   if FLogFile=AValue then Exit;
   if Assigned(FlogStream) then
@@ -258,12 +258,16 @@ begin
 end;
 
 
-procedure TAbstractWebClient.StringToStream(str: string);
+procedure TAbstractWebClient.StringToStream(const str: string);
+
+var
+  S : String;
+
 begin
   if Assigned(FLogStream) then
     begin
-    Str:=Str+sLineBreak;
-    FlogStream.Write(str[1],length(str));
+    S:=Str+sLineBreak;
+    FlogStream.Write(S[1],length(str));
     end;
 end;
 

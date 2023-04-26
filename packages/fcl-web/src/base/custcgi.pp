@@ -37,7 +37,7 @@ Type
     function GetCGIVar(Index: integer): String;
   Protected
     Function DoMapCgiToHTTP(Const AVariableName : String; Out AHeaderType : THeader; Out AVariableType : THTTPVariableType) : Boolean;
-    function DoGetCGIVar(AVarName: String): String; virtual;
+    function DoGetCGIVar(const AVarName: String): String; virtual;
     Procedure InitFromEnvironment; virtual;
     // Read content from stdin. Calls DoContentRead to see if reading must be aborted.
     procedure ReadContent; override;
@@ -113,7 +113,7 @@ Type
   TCustomCGIApplication = Class(TCustomWebApplication)
   private
     function GetRequest: TCGIRequest;
-    function GetRequestVariable(VarName : String): String;
+    function GetRequestVariable(const VarName : String): String;
     function GetRequestVariableCount: Integer;
     function GetResponse: TCGIResponse;
   protected
@@ -315,7 +315,7 @@ begin
 end;
 
 { TCGIHTTPRequest }
-function TCGIRequest.DoGetCGIVar(AVarName : String) : String;
+function TCGIRequest.DoGetCGIVar(const AVarName : String) : String;
 
 begin
   Result := GetEnvironmentVariable(AVarName);
@@ -487,7 +487,7 @@ begin
   result := TCgiHandler(WebHandler).Request;
 end;
 
-function TCustomCGIApplication.GetRequestVariable(VarName : String): String;
+function TCustomCGIApplication.GetRequestVariable(const VarName : String): String;
 begin
   If Assigned(Request) then
     Result:=Request.QueryFields.Values[VarName]

@@ -71,7 +71,7 @@ Type
     Procedure InitPostVars;
     Procedure InitGetVars;
     Procedure SetContentLength (Value : Integer);
-    Procedure SetCGIVar(Index : Integer; Value : String);
+    Procedure SetCGIVar(Index : Integer; const Value : String);
     Function GetContentLength : Integer;
     Function GetServerPort : Word;
     Function GetEmail : String;
@@ -165,13 +165,13 @@ end;
 Var
   flog : Text;
 
-Procedure Log(Msg : String);
+Procedure Log(const Msg : String);
 
 begin
   Writeln(flog,Msg);
 end;
 
-Procedure Log(Msg : String;Args : Array of const);
+Procedure Log(Const Msg : String;Args : Array of const);
 
 begin
   Writeln(flog,Format(Msg,Args));
@@ -328,7 +328,7 @@ begin
   SetCGIVar(2,IntToStr(Value));
 end;
 
-Procedure TCgiApplication.SetCGIVar(Index : Integer; Value : String);
+Procedure TCgiApplication.SetCGIVar(Index : Integer; const Value : String);
 
 begin
   If Index in [1..cgiVarCount] then
@@ -553,7 +553,7 @@ begin
     Move(PStart^,Result[1],Length(Result));
 end;
 
-procedure FormSplit(var Cnt : String; boundary: String; List : TList);
+procedure FormSplit(var Cnt : String; const boundary: String; List : TList);
 
 // Splits the form into items
 var

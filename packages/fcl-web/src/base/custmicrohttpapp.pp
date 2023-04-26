@@ -115,7 +115,7 @@ Type
     procedure RequestCompleted(aRequest: TRequestHandler);
     function DoRequest(connection: PMHD_Connection; const aUrl, aMethod, aVersion: String; Data: PAnsiChar; var DataSize: Size_t): TRequestHandler;
     procedure SetExtraHeaders(AValue: TStrings);
-    procedure SetHostName(AValue: String);
+    procedure SetHostName(const AValue: String);
     procedure SetOptions(AValue: TMicroServerOptions);
     procedure SetPort(const AValue: Word);
   protected
@@ -156,7 +156,7 @@ Type
     function GetPort: Word;
     function GetUseSSL: Boolean;
     procedure SetExtraHeaders(AValue: TStrings);
-    procedure SetHostName(AValue: String);
+    procedure SetHostName(const AValue: String);
     procedure SetOptions(AValue: TMicroServerOptions);
     procedure SetPort(AValue: Word);
     procedure SetUseSSL(AValue: Boolean);
@@ -571,7 +571,7 @@ begin
     Raise EHTTP.Create(SErrServerActive);
 end;
 
-procedure TMicroHTTPHandler.SetHostName(AValue: String);
+procedure TMicroHTTPHandler.SetHostName(const AValue: String);
 begin
   CheckInactive;
   FHostName:=aValue;
@@ -687,7 +687,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-procedure TCustomMicroHTTPApplication.SetHostName(AValue: String);
+procedure TCustomMicroHTTPApplication.SetHostName(const AValue: String);
 begin
   HTTPHandler.HostName:=aValue;
 end;

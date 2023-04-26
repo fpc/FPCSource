@@ -113,7 +113,7 @@ type
   protected
     // Overrides
     Function BaseUnits : String; override;
-    function StringToJSType(S: String): TJSONtype;
+    function StringToJSType(const S: String): TJSONtype;
     // High-level decl
     procedure GenerateServiceClassDeclarations(aServices: TAPIServices); virtual;
     procedure GenerateServiceDeclaration(aService: TAPIService); virtual;
@@ -465,11 +465,14 @@ begin
     end;
 end;
 
-function TAPIClientCodeGen.StringToJSType(S : String) : TJSONtype;
+function TAPIClientCodeGen.StringToJSType(const S : String) : TJSONtype;
+
+var
+  LS : String;
 
 begin
-  S:=LowerCase(S);
-  Case S of
+  LS:=LowerCase(S);
+  Case LS of
     'jtunknown' : Result:=jtUnknown;
     'jtnumber'  : Result:=jtNumber;
     'jtstring'  : Result:=jtString;
