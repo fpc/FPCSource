@@ -46,6 +46,7 @@ type
       function DropWhiteSpaces(Stream: TStream): Char;
       function ReadChar(Stream: TStream): Char;
       function ReadInteger(Stream: TStream): Integer;
+      procedure ReadScanlineBuffer(Stream: TStream;p:Pbyte;Len:Integer);
     protected
       FMaxVal     : Cardinal;
       FBitPP        : Byte;
@@ -123,7 +124,28 @@ begin
   Result:=StrToInt(s);
 end;
 
-Function TFPReaderPNM.ReadChar(Stream : TStream) : Char;
+procedure TFPReaderPNM.ReadScanlineBuffer(Stream: TStream;p:Pbyte;Len:Integer);
+// after the header read, there are still bytes in the buffer.
+// drain the buffer before going for direct stream reads.
+var BytesLeft : integer;
+begin
+  BytesLeft:=FBufLen-FBufPos;
+  if BytesLeft>0 then
+    begin
+      if BytesLeft>Len then
+        BytesLeft:=Len;
+      Move (FBuffer[FBufPos],p^,BytesLeft);
+      Dec(Len,BytesLeft);
+      Inc(FBufPos,BytesLeft);
+      Inc(p,BytesLeft);
+      if Len>0 then
+         Stream.ReadBuffer(p^,len);
+    end
+  else
+    Stream.ReadBuffer(p^,len);
+end;
+
+function TFPReaderPNM.ReadChar(Stream: TStream): Char;
 
 begin
   If (FBufPos>=FBufLen) then
@@ -245,8 +267,10 @@ begin
           Inc(P)
           end;
         end;
-    4,5,6 :
-       Stream.ReadBuffer(FScanLine^,FScanLineSize);
+    4,5,6 : if FBufPos>=FBufLen then // still bytes in buffer?
+              Stream.ReadBuffer(FScanLine^,FScanLineSize)
+            else
+              ReadScanLineBuffer(Stream,FScanLine,FScanLineSize);
     end;
 end;
 
