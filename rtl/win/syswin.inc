@@ -223,7 +223,7 @@ var
   buf: array[0..MaxPathLen] of WideChar;
   i, len, argvw_size: longint;
   s: RawByteString;
-  quote: boolean;
+  quote: char;
 begin
   // Get the unicode command line
   CmdLineW:=GetCommandLineW;
@@ -248,14 +248,14 @@ begin
   Inc(pw, len);
   // Parse the command line
   argc:=0;
-  quote:=False;
+  quote:=' ';
   while True do
     begin
       c:=CmdLineW^;
       Inc(CmdLineW);
       case c of
         #0..#32:
-          if not quote or (c = #0) then
+          if (quote = ' ') or (c = #0) then
             begin
               // Are there any chars of an argument?
               if argvw[argc] <> pw then
@@ -283,8 +283,35 @@ begin
             end;
         '"':
           begin
-            quote:=not quote;
-            continue;
+            if quote<>'''' then
+              begin
+                if CmdLineW^<>'"' then
+                  begin
+                    if quote='"' then
+                       quote:=' '
+                     else
+                       quote:='"';
+                     continue;
+                  end
+                else
+                  Inc(CmdLineW);
+              end;
+          end;
+        '''':
+          begin
+            if quote<>'"' then
+              begin
+                if CmdLineW^<>'''' then
+                  begin
+                    if quote='''' then
+                       quote:=' '
+                     else
+                       quote:='''';
+                    continue;
+                  end
+                else
+                  Inc(CmdLineW);
+              end;
           end;
       end;
       // Ignore the first argument, it is already copied
