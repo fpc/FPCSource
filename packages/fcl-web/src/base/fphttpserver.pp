@@ -1464,8 +1464,11 @@ begin
         SetupConnectionHandler;
       CreateServerSocket;
       SetupSocket;
-      StartServerSocket;
-      FreeServerSocket;
+      try
+        StartServerSocket;
+      finally
+        FreeServerSocket;
+      end
       end
     else
       StopServerSocket;
