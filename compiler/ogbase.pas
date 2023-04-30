@@ -757,6 +757,7 @@ interface
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
     function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
+    procedure MaybeSwapStab(var v:TObjStabEntry);
 
 implementation
 
