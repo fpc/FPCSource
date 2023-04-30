@@ -128,7 +128,7 @@ unit aoptx86;
 
 
         { Returns true if the given MOV instruction can be safely converted to CMOV }
-        class function CanBeCMOV(p, cond_p: tai) : boolean; static;
+        class function CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean; static;
 
         { Like UpdateUsedRegs, but ignores deallocations }
         class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
@@ -11613,7 +11613,7 @@ unit aoptx86;
       end;
 
 
-    class function TX86AsmOptimizer.CanBeCMOV(p, cond_p: tai) : boolean;
+    class function TX86AsmOptimizer.CanBeCMOV(p, cond_p: tai; var RefModified: Boolean) : boolean;
       begin
         Result := assigned(p) and
           MatchInstruction(p,A_MOV,[S_W,S_L,S_Q]) and
@@ -11630,6 +11630,8 @@ unit aoptx86;
               (
                 IsRefSafe(taicpu(p).oper[0]^.ref) or
                 (
+                  { Don't use the reference in the condition if one of its registers got modified by a previous MOV }
+                  not RefModified and
                   { If the reference also appears in the condition, then we know it's safe, otherwise
                     any kind of access violation would have occurred already }
                   Assigned(cond_p) and
@@ -11699,6 +11701,7 @@ unit aoptx86;
         carryadd_opcode : TAsmOp;
         symbol: TAsmSymbol;
         increg, tmpreg: TRegister;
+        RefModified: Boolean;
 {$ifndef i8086}
         { Code and variables specific to CMOV optimisations }
         hp3,hp4,hp5,
@@ -12241,6 +12244,7 @@ unit aoptx86;
                      FillChar(ConstRegs[0], MAX_CMOV_REGISTERS * SizeOf(TRegister), 0);
                      FillChar(ConstVals[0], MAX_CMOV_REGISTERS * SizeOf(TCGInt), 0);
 
+                     RefModified := False;
                      while assigned(hp1) and
                        { Stop on the label we found }
                        (hp1 <> hp_lblxxx) do
@@ -12249,8 +12253,38 @@ unit aoptx86;
                            ait_instruction:
                              if MatchInstruction(hp1, A_MOV, [S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
                                begin
-                                 if CanBeCMOV(hp1, hp_prev) then
-                                   Inc(l)
+                                 if CanBeCMOV(hp1, hp_prev, RefModified) then
+                                   begin
+                                     Inc(l);
+
+                                     { MOV instruction will be writing to a register }
+                                     if Assigned(hp_prev) and
+                                       { Make sure the sizes match too so we're reading and writing the same number of bytes }
+                                       (hp_prev.typ = ait_instruction) and
+                                       (taicpu(hp_prev).ops = 2) and
+                                       (
+                                         (
+                                           (taicpu(hp_prev).oper[0]^.typ = top_ref) and
+                                           RegInRef(taicpu(hp1).oper[1]^.reg, taicpu(hp_prev).oper[0]^.ref^)
+                                         ) or
+                                         (
+                                           (taicpu(hp_prev).oper[1]^.typ = top_ref) and
+                                           RegInRef(taicpu(hp1).oper[1]^.reg, taicpu(hp_prev).oper[1]^.ref^)
+                                         )
+                                       ) then
+                                       { It is no longer safe to use the reference in the condition.
+                                         this prevents problems such as:
+                                           mov (%reg),%reg
+                                           mov (%reg),...
+
+                                         When the comparison is cmp (%reg),0 and guarding against a null pointer deallocation
+                                         (fixes #40165)
+
+                                         Note: "mov (%reg1),%reg2; mov (%reg2),..." won't be optimised this way since
+                                         at least one of (%reg1) and (%reg2) won't be in the condition and is hence unsafe.
+                                       }
+                                       RefModified := True;
+                                   end
                                  else if not (cs_opt_size in current_settings.optimizerswitches) and
                                    { CMOV with constants grows the code size }
                                    TryCMOVConst(hp1, hp_prev, hp_stop, c, l) then
@@ -12445,6 +12479,7 @@ unit aoptx86;
                             end;
 
                           { Analyse the second batch of MOVs to see if the setup is valid }
+                          RefModified := False;
                           hp1 := hpmov2;
                           while assigned(hp1) and
                             (hp1 <> hp_lblyyy) do
@@ -12453,8 +12488,38 @@ unit aoptx86;
                                 ait_instruction:
                                   if MatchInstruction(hp1, A_MOV, [S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
                                     begin
-                                      if CanBeCMOV(hp1, hp_prev) then
-                                        Inc(l)
+                                      if CanBeCMOV(hp1, hp_prev, RefModified) then
+                                        begin
+                                          Inc(l);
+
+                                          { MOV instruction will be writing to a register }
+                                          if Assigned(hp_prev) and
+                                            { Make sure the sizes match too so we're reading and writing the same number of bytes }
+                                            (hp_prev.typ = ait_instruction) and
+                                            (taicpu(hp_prev).ops = 2) and
+                                            (
+                                              (
+                                                (taicpu(hp_prev).oper[0]^.typ = top_ref) and
+                                                RegInRef(taicpu(hp1).oper[1]^.reg, taicpu(hp_prev).oper[0]^.ref^)
+                                              ) or
+                                              (
+                                                (taicpu(hp_prev).oper[1]^.typ = top_ref) and
+                                                RegInRef(taicpu(hp1).oper[1]^.reg, taicpu(hp_prev).oper[1]^.ref^)
+                                              )
+                                            ) then
+                                              { It is no longer safe to use the reference in the condition.
+                                                this prevents problems such as:
+                                                  mov (%reg),%reg
+                                                  mov (%reg),...
+
+                                                When the comparison is cmp (%reg),0 and guarding against a null pointer deallocation
+                                                (fixes #40165)
+
+                                                Note: "mov (%reg1),%reg2; mov (%reg2),..." won't be optimised this way since
+                                                at least one of (%reg1) and (%reg2) won't be in the condition and is hence unsafe.
+                                              }
+                                            RefModified := True;
+                                        end
                                       else if not (cs_opt_size in current_settings.optimizerswitches)
                                         { CMOV with constants grows the code size }
                                         and TryCMOVConst(hp1, hpmov2, hp_lblyyy, c, l) then
