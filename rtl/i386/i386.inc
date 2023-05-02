@@ -751,6 +751,38 @@ end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXQWORD}
+{$define FPC_SYSTEM_HAS_INDEXQWORD}
+function IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt; assembler; nostackframe;
+{ eax = buf, edx = len, [esp+4] = b }
+asm
+        push    %ebx
+        mov     8(%esp), %ecx { ecx = b[0:31] }
+        mov     12(%esp), %ebx { ebx = b[32:63] }
+        mov     %eax, 8(%esp) { remember original buf }
+        sub     $8, %eax
+
+.balign 16 { no-op }
+.LQWordwise_Next:
+        add     $8, %eax
+        sub     $1, %edx
+        jb      .LNotFound
+        cmp     %ecx, (%eax)
+        jne     .LQWordwise_Next
+        cmp     %ebx, 4(%eax)
+        jne     .LQWordwise_Next
+        sub     8(%esp), %eax
+        pop     %ebx
+        shr     $3, %eax
+        ret     $8
+
+.LNotFound:
+        pop     %ebx
+        mov     $-1, %eax
+end;
+{$endif FPC_SYSTEM_HAS_INDEXQWORD}
+
+
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte_Plain(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
