@@ -1259,67 +1259,70 @@ begin
       begin
       l:=AParams.Count;
       setlength(ar,l);
+      for i := 0 to l-1 do
+        ar[i]:=nil;
       setlength(lengths,l);
       setlength(formats,l);
-      for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
-        begin
-        handled:=False;
-        case AParams[i].DataType of
-          ftDateTime:
-            s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', AParams[i].AsDateTime);
-          ftDate:
-            s := FormatDateTime('yyyy"-"mm"-"dd', AParams[i].AsDateTime);
-          ftTime:
-            s := FormatTimeInterval(AParams[i].AsDateTime);
-          ftFloat:
-            Str(AParams[i].AsFloat, s);
-          ftBCD:
-            Str(AParams[i].AsCurrency, s);
-          ftCurrency:
-            begin
-              cash:=NtoBE(round(AParams[i].AsCurrency*100));
-              setlength(s, sizeof(cash));
-              Move(cash, s[1], sizeof(cash));
-            end;
-          ftFmtBCD:
-            s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
-          ftBlob, ftGraphic, ftVarBytes:
-            begin
-            Handled:=true;
-            bd:= AParams[i].AsBlob;
-            l:=length(BD);
-            if l>0 then
-              begin
-              GetMem(ar[i],l+1);
-              ar[i][l]:=#0;
-              Move(BD[0],ar[i]^, L);
-              lengths[i]:=l;
-              end;
-            end
-          else
-            s := GetAsString(AParams[i]);
-        end; {case}
-        {$IFDEF PQDEBUG}
-        WriteLn('Setting param ',aParams[i].Name,'(',aParams[i].DataType,') to ',S);
-        {$ENDIF}
-        if not handled then
+      try
+        for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
           begin
-          l:=length(s);
-          GetMem(ar[i],l+1);
-          StrMove(PAnsiChar(ar[i]), PAnsiChar(s), L+1);
-          lengths[i]:=L;
+          handled:=False;
+          case AParams[i].DataType of
+            ftDateTime:
+              s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', AParams[i].AsDateTime);
+            ftDate:
+              s := FormatDateTime('yyyy"-"mm"-"dd', AParams[i].AsDateTime);
+            ftTime:
+              s := FormatTimeInterval(AParams[i].AsDateTime);
+            ftFloat:
+              Str(AParams[i].AsFloat, s);
+            ftBCD:
+              Str(AParams[i].AsCurrency, s);
+            ftCurrency:
+              begin
+                cash:=NtoBE(round(AParams[i].AsCurrency*100));
+                setlength(s, sizeof(cash));
+                Move(cash, s[1], sizeof(cash));
+              end;
+            ftFmtBCD:
+              s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
+            ftBlob, ftGraphic, ftVarBytes:
+              begin
+              Handled:=true;
+              bd:= AParams[i].AsBlob;
+              l:=length(BD);
+              if l>0 then
+                begin
+                GetMem(ar[i],l+1);
+                ar[i][l]:=#0;
+                Move(BD[0],ar[i]^, L);
+                lengths[i]:=l;
+                end;
+              end
+            else
+              s := GetAsString(AParams[i]);
+          end; {case}
+          {$IFDEF PQDEBUG}
+          WriteLn('Setting param ',aParams[i].Name,'(',aParams[i].DataType,') to ',S);
+          {$ENDIF}
+          if not handled then
+            begin
+            l:=length(s);
+            GetMem(ar[i],l+1);
+            StrMove(PAnsiChar(ar[i]), PAnsiChar(s), L+1);
+            lengths[i]:=L;
+            end;
+          if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency,ftVarBytes]) then
+            Formats[i]:=1
+          else
+            Formats[i]:=0;
           end;
-        if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency,ftVarBytes]) then
-          Formats[i]:=1
-        else
-          Formats[i]:=0;
-        end
-      else
-        FreeAndNil(ar[i]);
-      PQCurs.res := PQCurs.Handle.ExecPrepared(PQCurs.StmtName,AParams.Count,@Ar[0],@Lengths[0],@Formats[0],False);
-//      PQCurs.res := PQexecPrepared(PQCurs.Handle.NativeConn,pchar(PQCurs.StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
-      for i := 0 to AParams.Count -1 do
-        FreeMem(ar[i]);
+        PQCurs.res := PQCurs.Handle.ExecPrepared(PQCurs.StmtName,AParams.Count,@Ar[0],@Lengths[0],@Formats[0],False);
+//        PQCurs.res := PQexecPrepared(PQCurs.Handle.NativeConn,pchar(PQCurs.StmtName),AParams.Count,@Ar[0],@Lengths[0],@Formats[0],1);
+      finally
+        for i := 0 to AParams.Count -1 do
+          FreeMem(ar[i]);
+      end;
       end
     else
       PQCurs.res := PQCurs.Handle.ExecPrepared(PQCurs.StmtName,0,nil,nil,nil,False);
