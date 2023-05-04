@@ -342,9 +342,11 @@ type
 implementation
 
   uses
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
     sfpux80,
 {$endif FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
     cutils;
 
 
@@ -1208,6 +1210,7 @@ begin
 {$endif}
 end;
 
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
 { i8086,i386 and x86_64 normally have 80bit float type for 
   entryreal, but this is not supported 
@@ -1227,7 +1230,8 @@ begin
     result[i]:=d[high(floatx80_byte_array)-i];
 end;
 
-{$endif}
+{$endif FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
 
 function tentryfile.getrealsize(sizeofreal : longint):entryreal;
 var
@@ -1236,6 +1240,7 @@ var
   di : qword;{ integer of same size as double }
   s : single;
   si : dword; { integer of same size as single }
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   floatx80_ba : floatx80_byte_array;
   floatx80_e: floatx80;
@@ -1244,7 +1249,9 @@ var
   f64 : float64;
   i:byte;
 {$endif}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
 begin
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   if sizeofreal=sizeof(floatx80_byte_array) then
     begin
@@ -1281,7 +1288,8 @@ begin
 {$endif}
       exit;
     end;
-{$endif}
+{$endif FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
   if sizeofreal=sizeof(e) then
     begin
 {$ifdef DEBUG_PPU}
@@ -1387,6 +1395,7 @@ begin
       hd:=getrealsize(sizeof(hd));
       getreal:=hd;
     end
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   else
     if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
@@ -1395,6 +1404,7 @@ begin
 	getreal:=d;
       end
 {$endif def FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
   else
     begin
       d:=getrealsize(sizeof(d));
@@ -1878,12 +1888,14 @@ end;
 procedure tentryfile.putreal(d:entryreal);
 var
   hd : double;
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   floatx80_ba : floatx80_byte_array;
   floatx80_e : floatx80;
   f64 : float64;
   i:byte;
-{$endif}
+{$endif FPC_SOFT_FFPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
 begin
   if target_info.system=system_x86_64_win64 then
     begin
@@ -1895,6 +1907,7 @@ begin
       hd:=d;
       putdata(hd,sizeof(hd));
     end
+{$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   else if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
     begin
@@ -1913,7 +1926,8 @@ begin
 {$endif}
       putdata(floatx80_ba,sizeof(floatx80_ba));
     end
-{$endif}
+{$endif FPC_SOFT_FPUX80}
+{$endif ndef FPC_HAS_TYPE_EXTENDED}
   else
     begin
 {$ifdef DEBUG_PPU}
