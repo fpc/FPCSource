@@ -38,6 +38,17 @@ implementation
   {$endif}
 {$endif}
 
+{ Modern FreeBSD releases also claim to have iconv
+  function inside libc, at least
+  this is stated explicitly in iconv(3) man
+  of FreeBSD from 10.0 release
+  PM 2023-05-05 }
+{$ifdef freebsd}
+  {$ifndef DISABLE_ICONV_LIBC}
+    {$define iconv_is_in_libc}
+  {$endif}
+{$endif}
+
 {$ifndef iconv_is_in_libc}
  {$if defined(haiku)}
    {$linklib textencoding}
