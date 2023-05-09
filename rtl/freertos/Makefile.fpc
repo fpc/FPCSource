@@ -166,9 +166,9 @@ CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 \
           attiny816 attiny817 attiny1604 attiny1606 attiny1607 attiny1614 \
           attiny1616 attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 attiny3216 attiny3217
 CPU_UNITS_DEFINED=1
-endif
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
+endif
 endif
 endif
 
