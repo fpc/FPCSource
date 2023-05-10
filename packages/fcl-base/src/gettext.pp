@@ -295,14 +295,20 @@ begin
   Lang := '';
   FallbackLang:='';
   UserLCID := GetUserDefaultLCID;
-  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer[1], 4)<>0 then
+  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer[1], 4)<>0 then begin
     FallbackLang := lowercase(copy(Buffer,1,2));
+
+    // Chinese abbreviation should be zh instead of ch
+    if (Copy(Buffer,1,3)='CHS') or (Copy(Buffer,1,3)='CHT') then FallbackLang:='zh';
+  end;
   if GetLocaleInfo(UserLCID, LOCALE_SABBREVCTRYNAME, @Buffer[1], 4)<>0 then begin
     Country := copy(Buffer,1,2);
 
     // some 2 letter codes are not the first two letters of the 3 letter code
     // there are probably more, but first let us see if there are translations
     if (Buffer='PRT') then Country:='PT';
+    
+    if (Copy(Buffer,1,3)='CHN') then Country:='CN';  
 
     Lang := FallbackLang+'_'+Country;
   end;
