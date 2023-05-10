@@ -1260,7 +1260,7 @@ begin
       ppu_log('getrealsize(sizeofreal='+tostr(sizeofreal)+')='));
       inc_log_level;
 {$endif}
-      if entryidx+sizeof(floatx80_e)>entry.size then
+      if entryidx+sizeof(floatx80_ba)>entry.size then
        begin
          error:=true;
          result:=0;
