@@ -1244,7 +1244,7 @@ var
 {$ifdef FPC_SOFT_FPUX80}
   floatx80_ba : floatx80_byte_array;
   floatx80_e: floatx80;
-  ExMask : TFPUExceptionMask;
+local_softfloat_exception_mask : TFPUExceptionMask;
   high : word;
   qlow : qword;
   f64 : float64;
@@ -1280,11 +1280,11 @@ begin
       floatx80_e.high:=pword(@floatx80_ba[8])^;
       floatx80_e.low:=pqword(@floatx80_ba[0])^;
 {$endif}
-      ExMask:=GetExceptionMask;
-      SetExceptionMask([exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision]);
+      local_softfloat_exception_mask:=softfloat_exception_mask;
+      softfloat_exception_mask:=[float_flag_invalid,float_flag_denormal,float_flag_divbyzero,float_flag_overflow,float_flag_underflow,float_flag_inexact];
       f64:=floatx80_to_float64(floatx80_e);
       result:=pentryreal(@f64)^;
-      SetExceptionMask(ExMask);
+      softfloat_exception_mask:=local_softfloat_exception_mask;
       inc(entryidx,sizeof(floatx80_ba));
 {$ifdef DEBUG_PPU}
       ppu_log_val(realtostr(result));
@@ -1897,7 +1897,7 @@ var
   floatx80_ba : floatx80_byte_array;
   floatx80_e : floatx80;
   f64 : float64;
-  ExMask : TFPUExceptionMask;
+  local_softfloat_exception_mask : TFPUExceptionMask;
   i:byte;
 {$endif FPC_SOFT_FFPUX80}
 {$endif ndef FPC_HAS_TYPE_EXTENDED}
@@ -1920,11 +1920,11 @@ begin
       ppu_log('putreal,size='+tostr(sizeof(floatx80_e)));
       inc_log_level;
 {$endif}
-      ExMask:=GetExceptionMask;
-      SetExceptionMask([exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision]);
+      local_softfloat_exception_mask:=softfloat_exception_mask;
+      softfloat_exception_mask:=[float_flag_invalid,float_flag_denormal,float_flag_divbyzero,float_flag_overflow,float_flag_underflow,float_flag_inexact];
       f64:=float64(d);
       floatx80_e:=float64_to_floatx80(f64);
-      SetExceptionMask(ExMask);
+      softfloat_exception_mask:=local_softfloat_exception_mask;
 {$ifdef FPC_BIG_ENDIAN}
       pword(@floatx80_ba[0])^:=floatx80_e.high;
       pqword(@floatx80_ba[8])^:=floatx80_e.low;
