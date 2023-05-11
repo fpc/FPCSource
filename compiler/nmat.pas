@@ -178,32 +178,33 @@ implementation
                 Result:=ctypeconvnode.create_internal(Result,resultdef);
                 exit;
               end;
-          end;
-        if is_constintnode(right) and is_constintnode(left) then
-          begin
-            rv:=tordconstnode(right).value;
-            lv:=tordconstnode(left).value;
 
-            case nodetype of
-              modn:
-                if nf_isomod in flags then
-                  begin
-                    if lv>=0 then
-                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
+            if is_constintnode(left) then
+              begin
+                rv:=tordconstnode(right).value;
+                lv:=tordconstnode(left).value;
+
+                case nodetype of
+                  modn:
+                    if nf_isomod in flags then
+                      begin
+                        if lv>=0 then
+                          result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false)
+                        else
+                          if ((-lv) mod rv)=0 then
+                            result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline,false)
+                          else
+                            result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline,false);
+                      end
                     else
-                      if ((-lv) mod rv)=0 then
-                        result:=create_simplified_ord_const((-lv) mod rv,resultdef,forinline,false)
-                      else
-                        result:=create_simplified_ord_const(rv-((-lv) mod rv),resultdef,forinline,false);
-                  end
-                else
-                  result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false);
-              divn:
-                result:=create_simplified_ord_const(lv div rv,resultdef,forinline,cs_check_overflow in localswitches);
-              else
-                internalerror(2019050519);
-            end;
-         end;
+                      result:=create_simplified_ord_const(lv mod rv,resultdef,forinline,false);
+                  divn:
+                    result:=create_simplified_ord_const(lv div rv,resultdef,forinline,cs_check_overflow in localswitches);
+                  else
+                    internalerror(2019050519);
+                end;
+             end;
+          end;
       end;
 
 
