@@ -4503,6 +4503,7 @@ end;
 
 procedure TPas2jsCompiler.Reset;
 begin
+  ExitCode:=0;
   FResolverHub.Reset;
   FreeAndNil(FWPOAnalyzer);
   FPrecompileGUID:=default(TGUID);
