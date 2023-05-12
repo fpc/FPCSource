@@ -82,6 +82,7 @@ type
     procedure TestGenMethod_ImplicitSpec_ObjFPC;
     procedure TestGenMethod_Delphi;
     procedure TestGenMethod_Overload_Delphi;
+    procedure TestGenMethod_ParamProcVar_Forward_Issue39216;
 
     // generic array
     procedure TestGen_Array_OtherUnit;
@@ -2578,6 +2579,44 @@ begin
     '$with.Run$G1();',
     '$with.Run$G1();',
     '$with.Run$1G1(13);',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenMethod_ParamProcVar_Forward_Issue39216;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TMyProc<T> = reference to procedure(Arg: T);',
+  '  TMyClass = class;',
+  '  TMyClassArray = array of TMyClass;',
+  '  TMyClass = class external name ''MyClass''',
+  '  public',
+  '    procedure MyProc<T>(MyProcVar: TMyProc<T>);',
+  '  end;',
+  'procedure Fly(w: word);',
+  'begin',
+  'end;',
+  'var',
+  '  p: TMyProc<word>;',
+  '  e: TMyClass;',
+  'begin',
+  '  e.MyProc<word>(p);',
+  '  e.MyProc<word>(@Fly);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenMethod_ParamProcVar_Forward_Issue39216',
+    LinesToStr([ // statements
+    'this.Fly = function (w) {',
+    '};',
+    'this.p = null;',
+    'this.e = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.e.MyProc($mod.p);',
+    '$mod.e.MyProc($mod.Fly);',
     '']));
 end;
 
