@@ -165,6 +165,7 @@ type
     Procedure TestExternalClassNoNameSpace;
     Procedure TestExternalClassNoNameKeyWord;
     Procedure TestExternalClassNoName;
+    procedure TestExternalClassFinalVar;
     Procedure TestLocalSimpleType;
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
@@ -197,7 +198,6 @@ type
     procedure TestRecordHelperEmpty;
     procedure TestRecordHelperParentedEmpty;
     procedure TestRecordHelperOneMethod;
-    procedure TestExternalClassFinalVar;
     procedure TestEscapedVisibilityVar;
     procedure TestEscapedAbsoluteVar;
   end;
@@ -2299,27 +2299,20 @@ begin
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
 
-
-procedure TestExternalClassFinalVar;
-
+procedure TTestClassType.TestExternalClassFinalVar;
 begin
   // final var Xyz : Integer;
   Fail('To be implemented');
 end;
 
-
-procedure TestEscapedVisibilityVar;
-
+procedure TTestClassType.TestEscapedVisibilityVar;
 begin
   //  &Public : Integer;
   Fail('To be implemented');
 end;
 
-
-procedure TestEscapedAbsoluteVar;
-
+procedure TTestClassType.TestEscapedAbsoluteVar;
 begin
- 
   // var absolute  : integer;
   Fail('To be implemented.');
 end;
