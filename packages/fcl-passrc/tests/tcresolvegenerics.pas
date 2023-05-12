@@ -190,6 +190,7 @@ type
     procedure TestGenMethod_OverloadArgs;
     procedure TestGenMethod_TypeCastParam;
     procedure TestGenMethod_TypeCastIdentDot;
+    procedure TestGenMethod_ParamProcVar_Forward_Issue39216;
   end;
 
 implementation
@@ -3114,6 +3115,26 @@ begin
   'begin',
   '  TEagle(Bird).Run<word>(3);',
   'end;',
+  '']);
+  ParseUnit;
+end;
+
+procedure TTestResolveGenerics.TestGenMethod_ParamProcVar_Forward_Issue39216;
+begin
+  StartUnit(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'interface',
+  'type',
+  '  TMyProc<T> = reference to procedure(Arg: T);',
+  '  TMyClass = class;',
+  '  TMyClassArray = array of TMyClass;',
+  '  TMyClass = class external name ''MyClass''',
+  '  public',
+  '    procedure MyProc<T>(MyProcVar: TMyProc<T>);',
+  '  end;',
+  'implementation',
   '']);
   ParseUnit;
 end;
