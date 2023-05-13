@@ -811,6 +811,7 @@ type
     Procedure TestProcType_PassProcToArray;
     Procedure TestProcType_SafeCallObjFPC;
     Procedure TestProcType_SafeCallDelphi;
+    Procedure TestProcType_SafeCall_Arg;
 
     // pointer
     Procedure TestPointer;
@@ -29318,6 +29319,38 @@ begin
     '$with.SetOnClick(rtl.createSafeCallback($with, "DoSome"));',
     '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
     '$with.SetOnShow(rtl.createSafeCallback($mod, "Run"));',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_SafeCall_Arg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSafecallProc = reference to procedure; safecall;',
+  'procedure Fly(const aHandler: TSafecallProc);',
+  'var',
+  '  P: TSafecallProc;',
+  'begin',
+  '  P := aHandler;',
+  '  Fly(P);',
+  '  Fly(aHandler);',
+  'end;',
+  'begin',
+  '  Fly(nil);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_SafeCall_Arg',
+    LinesToStr([ // statements
+    'this.Fly = function (aHandler) {',
+    '  var P = null;',
+    '  P = aHandler;',
+    '  $mod.Fly(P);',
+    '  $mod.Fly(aHandler);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Fly(null);',
     '']));
 end;
 
