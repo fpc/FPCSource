@@ -83,6 +83,7 @@ Type
     Procedure TestRangeConst;
     Procedure TestRangeConstUnTyped;
     Procedure TestArrayOfRangeConst;
+    Procedure TestConstErrorRecovery;
   end;
 
   { TTestResourcestringParser }
@@ -633,6 +634,26 @@ begin
   AssertEquals('elements',8,Length(R.Values));
 //  AssertEquals('Range type',TPasRangeType,TheConst.VarType.ClassType);
 //  AssertExpression('Float const', TheExpr,pekNumber,'1');
+end;
+
+procedure TTestConstParser.TestConstErrorRecovery;
+Var
+  D : String;
+begin
+  Add('Const');
+  Add(' A : 1;');
+  Add(' B : 2;');
+  try
+    Parser.MaxErrorCount:=3;
+    Parser.OnLog:=@DoParserLog;
+    ParseDeclarations;
+  except
+    On E : Exception do
+      begin
+      AssertEquals('Correct class',E.ClassType,EParserError);
+      end;
+  end;
+  AssertErrorCount(2);
 end;
 
 { TTestResourcestringParser }

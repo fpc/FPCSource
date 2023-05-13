@@ -17,7 +17,7 @@
 unit PParser;
 
 {$i fcl-passrc.inc}
-
+{$modeswitch advancedrecords}
 {
   define this for additional debug messages on stdout.
   the define name contains Writeln so when you do a grep, you can nicely spot the locations where it is OK to write.
@@ -99,6 +99,7 @@ const
   nParserXNotAllowedInY = 2056;
   nFileSystemsNotSupported = 2057;
   nInvalidMessageType = 2058;
+  nErrCompilationAborted = 2059; // FPC = 1018;
 
 // resourcestring patterns of messages
 resourcestring
@@ -160,6 +161,7 @@ resourcestring
   SParserXNotAllowedInY = '%s is not allowed in %s';
   SErrFileSystemNotSupported = 'No support for filesystems enabled';
   SErrInvalidMessageType = 'Invalid message type: string or integer expression expected';
+  SErrCompilationAborted = 'Compilation aborted';
 
 type
   TPasScopeType = (
@@ -182,6 +184,7 @@ type
   TPasScopeTypes = set of TPasScopeType;
 
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
+
   TPParserLogEvent = (pleInterface,pleImplementation);
   TPParserLogEvents = set of TPParserLogEvent;
   TPasParser = Class;
@@ -203,6 +206,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    // On true, element can be freed when an error occurs.
+    function HandleResultOnError(aElement : TPasElement) : Boolean; virtual;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; const ASourceFilename: String;
       ASourceLinenumber: Integer): TPasElement;overload;
@@ -238,17 +243,37 @@ type
     property NeedComments : Boolean Read FNeedComments Write FNeedComments;
   end;
 
+  { EParserError }
+
   EParserError = class(Exception)
   private
+    FErrNo: Integer;
     FFilename: String;
     FRow, FColumn: Integer;
   public
     constructor Create(const AReason, AFilename: String;
-      ARow, AColumn: Integer); reintroduce;
+      ARow, AColumn: Integer; aErrorNr : Integer = 0); reintroduce;
     property Filename: String read FFilename;
     property Row: Integer read FRow;
     property Column: Integer read FColumn;
+    Property ErrNo : Integer Read FErrNo;
   end;
+
+
+  { TRecoveryContext }
+
+  TRecoveryContext = record
+    Element : TPasElement;
+    Error : Exception;
+    RestartTokens : TTokens;
+    UngetRestartToken : Boolean;
+    HaveScope : Boolean;
+    Scope : TPasScopeType;
+    class Function Create(aResult : TPasElement; aError : Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean = true) : TRecoveryContext; static;
+    class Function Create(aResult : TPasElement; aError : Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean; aScope : TPasScopeType ) : TRecoveryContext; static;
+  end;
+
+  TPasParserErrorHandler = Procedure (Sender : TObject; const aContext : TRecoveryContext; var aAllowRecovery : Boolean) of object;
 
   TExprKind = (ek_Normal, ek_PropertyIndex);
   TIndentAction = (iaNone,iaIndent,iaUndent);
@@ -271,6 +296,7 @@ type
   private
     FCurModule: TPasModule;
     FCurTokenEscaped: Boolean;
+    FFailOnModuleErors: Boolean;
     FFileResolver: TBaseFileResolver;
     FIdentifierPos: TPasSourcePos;
     FImplicitUses: TStrings;
@@ -280,6 +306,7 @@ type
     FLastMsgPattern: string;
     FLastMsgType: TMessageType;
     FLogEvents: TPParserLogEvents;
+    FOnError: TPasParserErrorHandler;
     FOnLog: TPasParserLogHandler;
     FOptions: TPOptions;
     FScanner: TPascalScanner;
@@ -287,6 +314,8 @@ type
     FCurToken: TToken;
     FCurTokenString: String;
     FSavedComments : String;
+    FErrorCount : Integer;
+    FMaxErrorCount : integer;
     // UngetToken support:
     FTokenRing: array[0..FTokenRingSize-1] of TTokenRec;
     FTokenRingCur: Integer; // index of current token in FTokenBuffer
@@ -337,13 +366,6 @@ type
       Args: TFPList; // list of TPasArgument
       ProcType: TProcType): boolean;
     function CheckVisibility(S: String; var AVisibility: TPasMemberVisibility; IsObjCProtocol : Boolean = False): Boolean;
-    procedure ParseExc(MsgNumber: integer; const Msg: String);
-    procedure ParseExc(MsgNumber: integer; const Fmt: String; Args : Array of const);
-    procedure ParseExcExpectedIdentifier;
-    procedure ParseExcSyntaxError;
-    procedure ParseExcTokenError(const Arg: string);
-    procedure ParseExcTypeParamsNotAllowed;
-    procedure ParseExcExpectedAorB(const A, B: string);
     function OpLevel(t: TToken): Integer;
     Function TokenToExprOp (AToken : TToken) : TExprOpCode;
     function CreateElement(AClass: TPTreeElement; const AName: String; AParent: TPasElement): TPasElement;overload;
@@ -390,9 +412,25 @@ type
       AUnitName : string; NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasUsesUnit;
     procedure CheckImplicitUsedUnits(ASection: TPasSection);
     procedure FinishedModule; virtual;
+    // Errors & recovery
+    procedure ParseExcExpectedIdentifier; inline;
+    procedure ParseExcSyntaxError; inline;
+    procedure ParseExcTypeParamsNotAllowed; inline;
+    procedure ParseExc(MsgNumber: integer; const Msg: String);
+    procedure ParseExc(MsgNumber: integer; const Fmt: String; Args : Array of const);
+    procedure ParseExcTokenError(const Arg: string);
+    procedure ParseExcExpectedAorB(const A, B: string);
+    procedure LogLastMessage;
+    Function CreateRecovery(aError : Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean = true) : TRecoveryContext;
+    Function CreateRecovery(aResult : TPasElement; aError : Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean = true) : TRecoveryContext;
+    Function CreateRecovery(aResult : TPasElement; aError : Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean; aScope : TPasScopeType) : TRecoveryContext;
+    // On True, continue parsing. aContext.Element will be freed if Engine allows it.
+    function TryErrorRecovery(const aContext : TRecoveryContext) : boolean; virtual;
     // Overload handling
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
     function  CheckIfOverloaded(AParent: TPasElement; const AName: String): TPasElement;
+    // Set this to false to NOT raise an error when errors were ignored during parsing.
+    Property FailOnModuleErors : Boolean Read FFailOnModuleErors Write FFailOnModuleErors;
   public
     constructor Create(AScanner: TPascalScanner; AFileResolver: TBaseFileResolver;  AEngine: TPasTreeContainer);
     Destructor Destroy; override;
@@ -494,6 +532,7 @@ type
     property CurModule : TPasModule Read FCurModule;
     property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
     property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
+    Property OnError : TPasParserErrorHandler Read FOnError Write FOnError;
     property ImplicitUses: TStrings read FImplicitUses;
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -501,6 +540,8 @@ type
     property LastMsgPattern: string read FLastMsgPattern write FLastMsgPattern;
     property LastMsgArgs: TMessageArgs read FLastMsgArgs write FLastMsgArgs;
     Property IdentifierPosition : TPasSourcePos Read FIdentifierPos;
+    Property MaxErrorCount : integer Read FMaxErrorCount Write FMaxErrorCount;
+    Property ErrorCount : Integer Read FErrorCount;
   end;
 
 Type
@@ -905,6 +946,11 @@ begin
   inherited Destroy;
 end;
 
+function TPasTreeContainer.HandleResultOnError(aElement: TPasElement): Boolean;
+begin
+  Result:=True;
+end;
+
 function TPasTreeContainer.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; const ASourceFilename: String;
   ASourceLinenumber: Integer): TPasElement;
@@ -1022,12 +1068,33 @@ end;
   ---------------------------------------------------------------------}
 
 constructor EParserError.Create(const AReason, AFilename: String;
-  ARow, AColumn: Integer);
+  ARow, AColumn: Integer; aErrorNr : Integer = 0);
 begin
   inherited Create(AReason);
   FFilename := AFilename;
   FRow := ARow;
   FColumn := AColumn;
+  FErrNo:=aErrorNr;
+end;
+
+{ TRecoveryContext }
+
+class function TRecoveryContext.Create(aResult: TPasElement; aError: Exception;
+  aRestartTokens: TTokens; aUngetRestartToken: boolean): TRecoveryContext;
+begin
+  Result:=Default(TRecoveryContext);
+  Result.Element:=aResult;
+  Result.Error:=aError;
+  Result.RestartTokens:=aRestartTokens;
+  Result.UngetRestartToken:=aUngetRestartToken;
+end;
+
+class function TRecoveryContext.Create(aResult: TPasElement; aError: Exception;
+  aRestartTokens: TTokens; aUngetRestartToken: boolean; aScope: TPasScopeType): TRecoveryContext;
+begin
+  Result:=Create(aResult,aError,aRestartTokens,aUngetRestartToken);
+  Result.Scope:=aScope;
+  Result.HaveScope:=True;
 end;
 
 { ---------------------------------------------------------------------
@@ -1062,7 +1129,7 @@ begin
   {$ifdef addlocation}
   Msg:=Msg+' ('+IntToStr(p.Row)+' '+IntToStr(p.Column)+')';
   {$endif}
-  raise EParserError.Create(Msg,p.FileName, p.Row, p.Column);
+  raise EParserError.Create(Msg,p.FileName, p.Row, p.Column,MsgNumber);
 end;
 
 procedure TPasParser.ParseExcExpectedIdentifier;
@@ -1090,6 +1157,27 @@ begin
   ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,[A,B]);
 end;
 
+procedure TPasParser.LogLastMessage;
+begin
+  DoLog(FLastMsgType,FLastMsgNumber,FLastMsg)
+end;
+
+function TPasParser.CreateRecovery(aError: Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean): TRecoveryContext;
+begin
+  Result:=TRecoveryContext.Create(Nil,aError,aRestartTokens,aUngetRestartToken);
+end;
+
+function TPasParser.CreateRecovery(aResult : TPasElement; aError: Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean): TRecoveryContext;
+begin
+  Result:=TRecoveryContext.Create(aResult,aError,aRestartTokens,aUngetRestartToken);
+end;
+
+function TPasParser.CreateRecovery(aResult : TPasElement; aError: Exception; aRestartTokens: TTokens; aUngetRestartToken: boolean; aScope: TPasScopeType
+  ): TRecoveryContext;
+begin
+  Result:=TRecoveryContext.Create(aResult,aError,aRestartTokens,aUngetRestartToken,aScope);
+end;
+
 constructor TPasParser.Create(AScanner: TPascalScanner;
   AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer);
 begin
@@ -1106,6 +1194,9 @@ begin
     If FEngine.NeedComments then
       FScanner.SkipComments:=Not FEngine.NeedComments;
     end;
+  FErrorCount:=0;
+  FMaxErrorCount:=1;
+  FFailOnModuleErors:=True;
   FImplicitUses := TStringList.Create;
   FImplicitUses.Add('System'); // system always implicitely first.
 end;
@@ -1231,7 +1322,7 @@ begin
           FLastMsg := Scanner.LastMsg;
           FLastMsgArgs := Scanner.LastMsgArgs;
           raise EParserError.Create(e.Message,
-            Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
+            Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn,FLastMsgNumber);
           end;
         end;
     end;
@@ -1390,6 +1481,47 @@ end;
 function TPasParser.CurTokenIsIdentifier(const S: String): Boolean;
 begin
   Result:=(Curtoken=tkIdentifier) and (CompareText(S,CurtokenText)=0);
+end;
+
+function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
+
+var
+  StopAt : TTokens;
+  tk : TToken;
+
+begin
+  Inc(FErrorCount);
+  Result:=FErrorCount<FMaxErrorCount;
+  if not Result then
+    exit;
+  if assigned(FOnError) then
+    begin
+    FOnError(Self,aContext,Result);
+    if Not Result then
+      Exit;
+    end;
+  // Handle scope. We must do this before the element is destroyed.
+  if aContext.HaveScope then
+    Engine.FinishScope(aContext.Scope,aContext.Element);
+  // Destroy element if engine allows it.
+  if Assigned(aContext.Element) then
+    if Engine.HandleResultOnError(aContext.Element) then
+      aContext.Element.Free;
+  // ParseExc recorded the error message, force display
+  LogLastMessage;
+  StopAt:=aContext.RestartTokens;
+  if StopAt<>[] then
+    begin
+    if not (CurToken in StopAt) then
+      begin
+      Include(StopAt,tkEOF);
+      Repeat
+        tk:=Scanner.FetchToken;
+      Until tk in StopAt;
+      end;
+    if aContext.UngetRestartToken then
+      UngetToken;
+    end;
 end;
 
 function TPasParser.IsCurTokenHint(out AHint: TPasMemberHint): Boolean;
@@ -3075,6 +3207,14 @@ begin
     UngetToken;
     ParseProgram(Module,True);
   end;
+  if (ErrorCount>0) and FailOnModuleErors then
+    begin
+    if Engine.HandleResultOnError(Module) then
+      FreeAndNil(Module)
+    else
+      Module:=Nil;
+    ParseExc(nErrCompilationAborted,sErrCompilationAborted);
+    end;
 end;
 
 // Starts after the "unit" token
@@ -3654,9 +3794,12 @@ begin
         declConst:
           begin
             ConstEl := ParseConstDecl(Declarations);
-            Declarations.Declarations.Add(ConstEl);
-            Declarations.Consts.Add(ConstEl);
-            Engine.FinishScope(stDeclaration,ConstEl);
+            if Assigned(ConstEl) then
+              begin
+              Declarations.Declarations.Add(ConstEl);
+              Declarations.Consts.Add(ConstEl);
+              Engine.FinishScope(stDeclaration,ConstEl);
+              end;
           end;
         declResourcestring:
           begin
@@ -3984,85 +4127,95 @@ var
 begin
   SaveComments;
   Result := TPasConst(CreateElement(TPasConst, CurTokenString, Parent, IdentifierPosition));
-  if Parent is TPasMembersType then
-    Include(Result.VarModifiers,vmClass);
+  try
+    if Parent is TPasMembersType then
+      Include(Result.VarModifiers,vmClass);
 
-  NextToken;
-  if CurToken = tkColon then
-    begin
-    if not (bsWriteableConst in Scanner.CurrentBoolSwitches) then
-      Result.IsConst:=true;
-    OldForceCaret:=Scanner.SetForceCaret(True);
-    try
-      Result.VarType := ParseType(Result,CurSourcePos);
-      {$IFDEF CheckPasTreeRefCount}if Result.VarType.RefIds.IndexOf('CreateElement')>=0 then Result.VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
-    finally
-      Scanner.SetForceCaret(OldForceCaret);
-    end;
-    end
-  else
-    begin
-    UngetToken;
-    Result.IsConst:=true;
-    end;
-  NextToken;
-  if CurToken=tkEqual then
-    begin
     NextToken;
-    Result.Expr:=DoParseConstValueExpression(Result);
-    if (Result.VarType=Nil) and (Result.Expr.Kind=pekRange) then
-      ParseExc(nParserNoConstRangeAllowed,SParserNoConstRangeAllowed);
-    end
-  else if (Result.VarType<>nil)
-      and (po_ExtConstWithoutExpr in Options) then
-    begin
-    if (Parent is TPasClassType)
-        and TPasClassType(Parent).IsExternal
-        and (TPasClassType(Parent).ObjKind=okClass) then
-      // typed const without expression is allowed in external class
-      Result.IsConst:=true
-    else if CurToken=tkSemicolon then
+    if CurToken = tkColon then
+      begin
+      if not (bsWriteableConst in Scanner.CurrentBoolSwitches) then
+        Result.IsConst:=true;
+      OldForceCaret:=Scanner.SetForceCaret(True);
+      try
+        Result.VarType := ParseType(Result,CurSourcePos);
+        {$IFDEF CheckPasTreeRefCount}if Result.VarType.RefIds.IndexOf('CreateElement')>=0 then Result.VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
+      finally
+        Scanner.SetForceCaret(OldForceCaret);
+      end;
+      end
+    else
+      begin
+      UngetToken;
+      Result.IsConst:=true;
+      end;
+    NextToken;
+    if CurToken=tkEqual then
       begin
       NextToken;
-      if CurTokenIsIdentifier('external') then
+      Result.Expr:=DoParseConstValueExpression(Result);
+      if (Result.VarType=Nil) and (Result.Expr.Kind=pekRange) then
+        ParseExc(nParserNoConstRangeAllowed,SParserNoConstRangeAllowed);
+      end
+    else if (Result.VarType<>nil)
+        and (po_ExtConstWithoutExpr in Options) then
+      begin
+      if (Parent is TPasClassType)
+          and TPasClassType(Parent).IsExternal
+          and (TPasClassType(Parent).ObjKind=okClass) then
+        // typed const without expression is allowed in external class
+        Result.IsConst:=true
+      else if CurToken=tkSemicolon then
         begin
-        // typed external const without expression is allowed
-        Result.IsConst:=true;
-        Include(Result.VarModifiers,vmExternal);
         NextToken;
-        if CurToken in [tkString,tkIdentifier] then
+        if CurTokenIsIdentifier('external') then
           begin
-          // external LibraryName;
-          // external LibraryName name ExportName;
-          // external name ExportName;
-          if not CurTokenIsIdentifier('name') then
-            Result.LibraryName:=DoParseExpression(Result);
-          if not CurTokenIsIdentifier('name') then
-            ParseExcSyntaxError;
+          // typed external const without expression is allowed
+          Result.IsConst:=true;
+          Include(Result.VarModifiers,vmExternal);
           NextToken;
-          if not (CurToken in [tkChar,tkString,tkIdentifier]) then
-            ParseExcTokenError(TokenInfos[tkString]);
-          Result.ExportName:=DoParseExpression(Result);
-          Result.IsConst:=true; // external const is readonly
+          if CurToken in [tkString,tkIdentifier] then
+            begin
+            // external LibraryName;
+            // external LibraryName name ExportName;
+            // external name ExportName;
+            if not CurTokenIsIdentifier('name') then
+              Result.LibraryName:=DoParseExpression(Result);
+            if not CurTokenIsIdentifier('name') then
+              ParseExcSyntaxError;
+            NextToken;
+            if not (CurToken in [tkChar,tkString,tkIdentifier]) then
+              ParseExcTokenError(TokenInfos[tkString]);
+            Result.ExportName:=DoParseExpression(Result);
+            Result.IsConst:=true; // external const is readonly
+            end
+          else if CurToken=tkSemicolon then
+            // external;
+          else
+            ParseExcSyntaxError;
           end
-        else if CurToken=tkSemicolon then
-          // external;
         else
-          ParseExcSyntaxError;
+          begin
+          UngetToken;
+          CheckToken(tkEqual);
+          end;
         end
       else
-        begin
-        UngetToken;
         CheckToken(tkEqual);
-        end;
       end
     else
       CheckToken(tkEqual);
-    end
-  else
-    CheckToken(tkEqual);
-  UngetToken;
-  CheckHint(Result,not (Parent is TPasMembersType));
+    UngetToken;
+    CheckHint(Result,not (Parent is TPasMembersType));
+  except
+    on E : Exception do
+      begin
+      if not TryErrorRecovery(CreateRecovery(Result,E,[tkSemicolon],False,stDeclaration)) then
+        Raise
+      else
+        Result:=Nil;
+      end;
+  end;
 end;
 
 // Starts after the variable name
@@ -7302,9 +7455,12 @@ begin
   Repeat
     SaveIdentifierPosition;
     C:=ParseConstDecl(AType);
-    C.Visibility:=AVisibility;
-    AType.Members.Add(C);
-    Engine.FinishScope(stDeclaration,C);
+    if assigned(C) then
+      begin
+      C.Visibility:=AVisibility;
+      AType.Members.Add(C);
+      Engine.FinishScope(stDeclaration,C);
+      end;
     //Writeln('TPasParser.ParseMembersLocalConsts ',CurtokenString,' ',TokenInfos[CurToken]);
     NextToken;
     if CurToken<>tkSemicolon then

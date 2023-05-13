@@ -17,6 +17,7 @@ Type
     FList : TFPList;
   public
     Destructor Destroy; override;
+    Function HandleResultOnError(aElement: TPasElement): Boolean; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
@@ -32,7 +33,11 @@ Type
     FDeclarations: TPasDeclarations;
     FDefinition: TPasElement;
     FEngine : TPasTreeContainer;
+    FErrorCount: integer;
+    FLastErrorNumber: Integer;
+    FLastMessage: String;
     FMainFilename: string;
+    FMessagecount: Integer;
     FModule: TPasModule;
     FParseResult: TPasElement;
     FScanner : TPascalScanner;
@@ -51,6 +56,8 @@ Type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    procedure DoParserError(Sender: TObject; const aContext: TRecoveryContext; var Allow: Boolean); virtual;
+    procedure DoParserLog(Sender: TObject; const Msg: String); // Virtual;
     procedure CreateEngine(var TheEngine: TPasTreeContainer); virtual;
     Procedure StartUnit(AUnitName : String);
     Procedure StartProgram(AFileName : String; AIn : String = ''; AOut : String = '');
@@ -69,6 +76,8 @@ Type
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AValue : String) : TPrimitiveExpr;
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; OpCode : TExprOpCode) : TBinaryExpr;
     Procedure AssertExportSymbol(Const Msg: String; AIndex : Integer; AName,AExportName : String; AExportIndex : Integer = -1);
+    Procedure AssertErrorCount(Const aMsg : String; const aExpected : Integer); overload;
+    Procedure AssertErrorCount(Const aExpected : Integer); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasExprKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TLoopType); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasObjKind); overload;
@@ -101,6 +110,10 @@ Type
     Property ParseResult : TPasElement Read FParseResult Write FParseResult;
     Property UseImplementation : Boolean Read FUseImplementation Write FUseImplementation;
     Property MainFilename: string read FMainFilename write FMainFilename;
+    Property LastMessage : String Read FLastMessage;
+    Property MessageCount : Integer Read FMessagecount;
+    Property ErrorCount : integer Read FErrorCount;
+    Property LastErrorNumber : Integer Read FLastErrorNumber;
   end;
 
 implementation
@@ -113,6 +126,11 @@ destructor TTestEngine.Destroy;
 begin
   FreeAndNil(FList);
   inherited Destroy;
+end;
+
+function TTestEngine.HandleResultOnError(aElement: TPasElement): Boolean;
+begin
+  Result:=False;
 end;
 
 function TTestEngine.CreateElement(AClass: TPTreeElement; const AName: String;
@@ -168,6 +186,19 @@ begin
   Result:=Module as TPasLibrary;
 end;
 
+procedure TTestParser.DoParserLog(Sender: TObject; const Msg: String);
+begin
+  Inc(FMessageCount);
+  FLastMessage:=Msg;
+end;
+
+procedure TTestParser.DoParserError(Sender: TObject; const aContext: TRecoveryContext; var Allow : Boolean);
+begin
+  Inc(FErrorCount);
+  if aContext.Error is EParserError then
+    FLastErrorNumber:=EParserError(aContext.Error).ErrNo;
+end;
+
 procedure TTestParser.SetupParser;
 
 begin
@@ -183,6 +214,12 @@ begin
   FEndSource:=False;
   FImplementation:=False;
   FIsUnit:=False;
+  FMessageCount:=0;
+  FLastMessage:='';
+  FLastErrorNumber:=0;
+  FErrorCount:=0;
+  FParser.OnLog:=@DoParserLog;
+  FParser.OnError:=@DoParserError;
 end;
 
 procedure TTestParser.CleanupParser;
@@ -236,6 +273,7 @@ procedure TTestParser.ResetParser;
 begin
   CleanupParser;
   SetupParser;
+
 end;
 
 procedure TTestParser.SetUp;
@@ -467,6 +505,16 @@ begin
     AssertEquals(Msg+'TPrimitiveExpr',TPrimitiveExpr,E.ExportIndex.CLassType);
     AssertEquals(Msg+'Correct export symbol export index',IntToStr(AExportindex),TPrimitiveExpr(E.ExportIndex).Value);
     end;
+end;
+
+procedure TTestParser.AssertErrorCount(const aMsg: String; const aExpected: Integer);
+begin
+  AssertEquals(aMsg,aExpected,ErrorCount);
+end;
+
+procedure TTestParser.AssertErrorCount(const aExpected: Integer);
+begin
+  AssertEquals('Error count after parse',aExpected,ErrorCount);
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
