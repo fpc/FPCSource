@@ -460,6 +460,9 @@ unit FPPas2Js;
 {$ifdef fpc}
   {$define UsePChar}
   {$define HasInt64}
+  {$IF FPC_FULLVERSION>30300}
+    {$WARN 6018 off : Unreachable code}
+  {$ENDIF}
 {$endif}
 
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
@@ -19709,7 +19712,7 @@ end;
 function TPasToJSConverter.CreateCallback(Expr: TPasExpr;
   ResolvedEl: TPasResolverResult; aSafeCall: boolean; AContext: TConvertContext
   ): TJSElement;
-// El is a reference to a proc
+// Expr is a reference to a proc
 // if aSafeCall then create  "rtl.createSafeCallback(Target,func)"
 // for a proc or nested proc simply use the function
 // for a method create  "rtl.createCallback(Target,func)"
@@ -26716,9 +26719,10 @@ begin
         end
       else if (ExprResolved.LoTypeEl is TPasProcedureType)
           and (ArgResolved.LoTypeEl is TPasProcedureType)
-          and (TPasProcedureType(ArgResolved.LoTypeEl).CallingConvention=ccSafeCall) then
+          and (TPasProcedureType(ArgResolved.LoTypeEl).CallingConvention=ccSafeCall)
+          and (TPasProcedureType(ExprResolved.LoTypeEl).CallingConvention<>ccSafeCall) then
         begin
-        // pass proc to SafeCall proc type
+        // pass non safecall proc to SafeCall proc type -> make safecall
         Result:=CreateSafeCallback(El,Result,AContext);
         end;
       end;
