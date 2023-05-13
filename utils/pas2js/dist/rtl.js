@@ -248,6 +248,7 @@ var rtl = {
   createSafeCallback: function(scope, fn){
     var cb;
     if (typeof(fn)==='string'){
+      if (!scope[fn]) return null;
       if (!scope.hasOwnProperty('$events')) scope.$events = {};
       cb = scope.$events[fn];
       if (cb) return cb;
@@ -258,6 +259,8 @@ var rtl = {
           if (!rtl.handleUncaughtException(err)) throw err;
         }
       };
+    } else if(!fn) {
+      return null;
     } else {
       cb = function(){
         try{
