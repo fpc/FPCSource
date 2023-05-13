@@ -24,13 +24,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
+        <CommandLineParams Value="--suite=TTestVarParser.TestErrorRecovery"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
+            <CommandLineParams Value="--suite=TTestVarParser.TestErrorRecovery"/>
           </local>
         </Mode0>
       </Modes>
@@ -126,6 +126,11 @@
       </Checks>
       <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
