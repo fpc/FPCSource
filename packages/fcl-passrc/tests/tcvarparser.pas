@@ -5,7 +5,7 @@ unit tcvarparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pastree, pscanner,
+  Classes, SysUtils, fpcunit, pastree, pscanner, pparser,
   tcbaseparser, testregistry;
 
 Type
@@ -64,6 +64,7 @@ Type
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
     Procedure TestVarHintPriorToInit;
+    Procedure TestErrorRecovery;
   end;
 
 implementation
@@ -449,6 +450,27 @@ begin
   AssertEquals('Correctly initialized',TBoolConstExpr,Thevar.Expr.ClassType);
   E:=Thevar.Expr as TBoolConstExpr;
   AssertEquals('Correct initialization value',False, E.Value);
+end;
+
+procedure TTestVarParser.TestErrorRecovery;
+
+begin
+  Add('Var');
+  Add('  a : integer;');
+  Add('  a = integer;');
+  Add('  a : abc integer;');
+//  Writeln(source.text);
+  try
+    Parser.MaxErrorCount:=3;
+    Parser.OnLog:=@DoParserLog;
+    ParseDeclarations;
+  except
+    On E : Exception do
+      begin
+      AssertEquals('Correct class',E.ClassType,EParserError);
+      end;
+  end;
+  AssertErrorCount(2);
 end;
 
 initialization

@@ -1516,8 +1516,8 @@ begin
       begin
       Include(StopAt,tkEOF);
       Repeat
-        tk:=Scanner.FetchToken;
-      Until tk in StopAt;
+        NextToken;
+      Until CurToken in StopAt;
       end;
     if aContext.UngetRestartToken then
       UngetToken;
@@ -3873,7 +3873,13 @@ begin
                   Declarations.Variables.Add(TPasVariable(CurEl));
                 Engine.FinishScope(stDeclaration,CurEl);
               end;
-              CheckToken(tkSemicolon);
+              try
+                CheckToken(tkSemicolon);
+              except
+                on E : Exception do
+                  if not TryErrorRecovery(CreateRecovery(E,[tkSemicolon],False)) then
+                    Raise;
+              end;
             finally
               List.Free;
             end;
@@ -4978,10 +4984,16 @@ procedure TPasParser.ParseInlineVarDecl(Parent: TPasElement; List: TFPList;
 Var
   tt : TTokens;
 begin
-  ParseVarList(Parent,List,AVisibility,False);
   tt:=[tkEnd,tkSemicolon];
   if ClosingBrace then
     Include(tt,tkBraceClose);
+  try
+    ParseVarList(Parent,List,AVisibility,False);
+  except
+    on E : Exception do
+      if not TryErrorRecovery(CreateRecovery(E,tt,False)) then
+        Raise;
+  end;
   if not (CurToken in tt) then
     ParseExc(nParserExpectedSemiColonEnd,SParserExpectedSemiColonEnd);
 end;
@@ -4990,7 +5002,13 @@ end;
 procedure TPasParser.ParseVarDecl(Parent: TPasElement; List: TFPList);
 
 begin
-  ParseVarList(Parent,List,visDefault,True);
+  try
+    ParseVarList(Parent,List,visDefault,True);
+  except
+    on E : Exception do
+      if not TryErrorRecovery(CreateRecovery(E,[tkSemicolon],False)) then
+        Raise;
+  end;
 end;
 
 // Starts after the opening bracket token
