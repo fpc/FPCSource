@@ -2300,18 +2300,21 @@ begin
 end;
 
 procedure TTestClassType.TestExternalClassFinalVar;
+
 begin
   // final var Xyz : Integer;
-  Fail('To be implemented');
+ Fail  ('To be implemented');
 end;
 
 procedure TTestClassType.TestEscapedVisibilityVar;
+
 begin
   //  &Public : Integer;
   Fail('To be implemented');
 end;
 
 procedure TTestClassType.TestEscapedAbsoluteVar;
+
 begin
   // var absolute  : integer;
   Fail('To be implemented.');
