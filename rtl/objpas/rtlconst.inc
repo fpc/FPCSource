@@ -200,7 +200,7 @@ ResourceString
   SMenuReinserted               = 'Menu reinserted';
   SMissingDateTimeField         = '?';
   SMPOpenFilter                 = 'All files (*.*)|*.*|Wave-files (*.WAV)|*.WAV|Midi-files (*.MID)|*.MID|Video for Windows (*.avi)|*.avi';
-  SNetworkCap                   = 'Ne&twork..';
+  SNetworkCap                   = 'Ne&twork...';
   sNoAddress                    = 'No address specified';
   SNoButton                     = '&No';
   SNoCanvasHandle               = 'Canvas handle does not allow drawing';
