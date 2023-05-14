@@ -6098,13 +6098,14 @@ procedure TPasParser.ParseStatement(Parent: TPasImplBlock;
   out NewImplElement: TPasImplElement);
 var
   CurBlock: TPasImplBlock;
+  PrevToken: TToken;
 
   {$IFDEF VerbosePasParserWriteln}
   function i: string;
   var
     c: TPasElement;
   begin
-    Result:='ParseImplCompoundStatement ';
+    Result:='ParseStatement ';
     c:=CurBlock;
     while c<>nil do begin
       Result:=Result+'  ';
@@ -6155,16 +6156,13 @@ var
   end;
 
   procedure CheckStatementCanStart;
-  var
-    t: TToken;
   begin
     if (CurBlock.Elements.Count=0) then
       exit; // at start of block
-    t:=GetPrevToken;
-    if t in [tkSemicolon,tkColon,tkElse,tkotherwise] then
+    if PrevToken in [tkSemicolon,tkColon,tkElse,tkotherwise] then
       exit;
     {$IFDEF VerbosePasParserWriteln}
-    writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
+    writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',PrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
     {$ENDIF VerbosePasParserWriteln}
     // last statement not complete -> semicolon is missing
     ParseExcTokenError('Semicolon');
@@ -6201,6 +6199,7 @@ begin
   CurBlock := Parent;
   while True do
   begin
+    PrevToken:=CurToken;
     NextToken;
     {$IFDEF VerbosePasParserWriteln}
     WriteLn(' Token=',CurTokenText,' CurBlock=',CurBlock.ClassName);
@@ -6212,7 +6211,6 @@ begin
       El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock,CurTokenPos));
       ParseAsmBlock(TPasImplAsmStatement(El));
       CurBlock.AddElement(El);
-      El:=nil;
       if NewImplElement=nil then NewImplElement:=CurBlock;
       if CloseStatement(False) then
         break;
@@ -6222,14 +6220,12 @@ begin
       CheckStatementCanStart;
       El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplBeginBlock(El));
-      El:=nil;
       end;
     tkrepeat:
       begin
       CheckStatementCanStart;
       El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplRepeatUntil(El));
-      El:=nil;
       end;
     tkIf:
       begin
@@ -6241,10 +6237,8 @@ begin
       El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock,SrcPos));
       TPasImplIfElse(El).ConditionExpr:=Left;
       Left.Parent:=El;
-      Left:=nil;
       //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
       CreateBlock(TPasImplIfElse(El));
-      El:=nil;
       ExpectToken(tkthen);
       end;
     tkelse,tkotherwise:
@@ -6260,7 +6254,6 @@ begin
             // empty THEN statement  e.g. if condition then else
             El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
             CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
-            El:=nil;
           end;
           if (CurToken=tkelse) and (TPasImplIfElse(CurBlock).ElseBranch=nil) then
             begin
@@ -6271,7 +6264,6 @@ begin
                   // empty ELSE statement without semicolon e.g. if condition then [...] else else
                   El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
                   CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
-                  El:=nil;
                   CloseBlock;
                 end;
               UngetToken;
@@ -6285,7 +6277,6 @@ begin
           El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock,CurTokenPos));
           TPasImplTry(CurBlock).ElseBranch:=TPasImplTryExceptElse(El);
           CurBlock:=TPasImplTryExceptElse(El);
-          El:=nil;
           break;
           end
         else if (CurBlock is TPasImplCaseStatement) then
@@ -6320,9 +6311,7 @@ begin
         El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock,SrcPos));
         TPasImplWhileDo(El).ConditionExpr:=Left;
         Left.Parent:=El;
-        Left:=nil;
         CreateBlock(TPasImplWhileDo(El));
-        El:=nil;
         ExpectToken(tkdo);
       end;
     tkgoto:
@@ -6384,7 +6373,6 @@ begin
           ParseExcTokenError(TokenInfos[tkDo]);
         Engine.FinishScope(stForLoopHeader,El);
         CreateBlock(TPasImplForLoop(El));
-        El:=nil;
         //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
       end;
     tkwith:
@@ -6401,7 +6389,6 @@ begin
         Expr.Parent:=El;
         Engine.BeginScope(stWithExpr,Expr);
         CreateBlock(TPasImplWithDo(El));
-        El:=nil;
         repeat
           if CurToken=tkdo then break;
           if CurToken<>tkComma then
@@ -6425,9 +6412,7 @@ begin
         El:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock,SrcPos));
         TPasImplCaseOf(El).CaseExpr:=Left;
         Left.Parent:=El;
-        Left:=nil;
         CreateBlock(TPasImplCaseOf(El));
-        El:=nil;
         repeat
           NextToken;
           //writeln(i,'CASE OF Token=',CurTokenText);
@@ -6497,7 +6482,6 @@ begin
       CheckStatementCanStart;
       El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplTry(El));
-      El:=nil;
       end;
     tkfinally:
       begin
@@ -6528,7 +6512,6 @@ begin
           El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock,CurTokenPos));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(El);
           CurBlock:=TPasImplTryExcept(El);
-          El:=nil;
         end else
           ParseExcSyntaxError;
       end;
@@ -6604,7 +6587,6 @@ begin
           Left:=DoParseExpression(CurBlock);
           UngetToken;
           TPasImplRepeatUntil(CurBlock).ConditionExpr:=Left;
-          Left:=nil;
           //WriteLn(i,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
           if CloseBlock then break;
         end else
@@ -6661,7 +6643,6 @@ begin
               end;
             Engine.FinishScope(stExceptOnExpr,ImplExceptOn);
             CreateBlock(ImplExceptOn);
-            El:=nil;
             ExpectToken(tkDo);
           end else
             ParseExcSyntaxError;
@@ -6681,7 +6662,6 @@ begin
             El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
             TPasImplAssign(El).Left:=Left;
             Left.Parent:=El;
-            Left:=nil;
             TPasImplAssign(El).Kind:=TokenToAssignKind(CurToken);
             NextToken;
             Right:=DoParseExpression(CurBlock);
@@ -6689,7 +6669,6 @@ begin
             Right.Parent:=El;
             Right:=nil;
             AddStatement(El);
-            El:=nil;
             end;
           tkColon:
             begin
@@ -6700,23 +6679,19 @@ begin
             // label mark. todo: check mark identifier in the list of labels
             El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock,SrcPos));
             TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(Left).Value;
-            Left:=nil;
             CurBlock.AddElement(El);
             CmdElem:=TPasImplLabelMark(El);
-            El:=nil;
             end;
         else
           // simple statement (function call)
           El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
           TPasImplSimple(El).Expr:=Left;
           Left.Parent:=El;
-          Left:=nil;
           AddStatement(El);
-          El:=nil;
         end;
 
-        if not (CmdElem is TPasImplLabelMark) then
-          if NewImplElement=nil then NewImplElement:=CmdElem;
+        if (NewImplElement=nil) and not (CmdElem is TPasImplLabelMark) then
+          NewImplElement:=CmdElem;
         end;
       end;
     else
