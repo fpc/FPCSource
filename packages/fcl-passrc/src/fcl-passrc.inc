@@ -18,6 +18,7 @@
 {$ENDIF}
 
 {$IF FPC_FULLVERSION>30100}
-  {$warn 6058 off} // cannot inline
+  {$warn 6058 off : cannot inline}
+  {$WARN 6018 off : Unreachable code}
 {$ENDIF}
 
