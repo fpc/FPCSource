@@ -312,6 +312,7 @@ type
         procedure CreateBlock(NewBlock: TPasImplBlock);
         function CreateElement(AClass: TPTreeElement): TPasElement; overload;
         function CreateElement(AClass: TPTreeElement; const ASrcPos: TPasSourcePos): TPasElement; overload;
+        procedure ParseFor;
         function ParseElse: boolean; // true if it was a case-else
       end;
       //PParseStatementParams = ^TParseStatementParams;
@@ -6147,7 +6148,6 @@ var
   SubBlock: TPasImplElement;
   Left, Right, Expr: TPasExpr;
   El : TPasImplElement;
-  lt : TLoopType;
   SrcPos: TPasSourcePos;
   Name: String;
   TypeEl: TPasType;
@@ -6210,21 +6210,21 @@ begin
     tkelse,tkotherwise:
       // ELSE can close multiple blocks, similar to semicolon
       if Params.ParseElse then
-        exit;
+        exit; // case-else TPasImplCaseStatement
     tkwhile:
       begin
-        // while Condition do
-        CheckStatementCanStart;
-        SrcPos:=CurTokenPos;
-        NextToken;
-        Left:=DoParseExpression(Params.CurBlock);
-        UngetToken;
-        //WriteLn(GetPrefix,'WHILE Condition="',Condition,'" Token=',CurTokenText);
-        El:=TPasImplWhileDo(Params.CreateElement(TPasImplWhileDo,SrcPos));
-        TPasImplWhileDo(El).ConditionExpr:=Left;
-        Left.Parent:=El;
-        Params.CreateBlock(TPasImplWhileDo(El));
-        ExpectToken(tkdo);
+      // while Condition do
+      CheckStatementCanStart;
+      SrcPos:=CurTokenPos;
+      NextToken;
+      Left:=DoParseExpression(Params.CurBlock);
+      UngetToken;
+      //WriteLn(GetPrefix,'WHILE Condition="',Condition,'" Token=',CurTokenText);
+      El:=TPasImplWhileDo(Params.CreateElement(TPasImplWhileDo,SrcPos));
+      TPasImplWhileDo(El).ConditionExpr:=Left;
+      Left.Parent:=El;
+      Params.CreateBlock(TPasImplWhileDo(El));
+      ExpectToken(tkdo);
       end;
     tkgoto:
       begin
@@ -6237,55 +6237,8 @@ begin
       end;
     tkfor:
       begin
-        // for VarName := StartValue to EndValue do
-        // for VarName in Expression do
-        CheckStatementCanStart;
-        El:=TPasImplForLoop(Params.CreateElement(TPasImplForLoop));
-        ExpectIdentifier;
-        Expr:=CreatePrimitiveExpr(El,pekIdent,CurTokenString);
-        TPasImplForLoop(El).VariableName:=Expr;
-        repeat
-          NextToken;
-          case CurToken of
-            tkAssign:
-              begin
-              lt:=ltNormal;
-              break;
-              end;
-            tkin:
-              begin
-              lt:=ltIn;
-              break;
-              end;
-            tkDot:
-              begin
-              SrcPos:=CurTokenPos;
-              ExpectIdentifier;
-              AddToBinaryExprChain(Expr,
-                CreatePrimitiveExpr(El,pekIdent,CurTokenString), eopSubIdent,SrcPos);
-              TPasImplForLoop(El).VariableName:=Expr;
-              end;
-          else
-            ParseExc(nParserExpectedAssignIn,SParserExpectedAssignIn);
-          end;
-        until false;
-        NextToken;
-        TPasImplForLoop(El).StartExpr:=DoParseExpression(El);
-        if (Lt=ltNormal) then
-          begin
-          if Not (CurToken in [tkTo,tkDownTo]) then
-            ParseExcTokenError(TokenInfos[tkTo]);
-          if CurToken=tkdownto then
-            Lt:=ltDown;
-          NextToken;
-          TPasImplForLoop(El).EndExpr:=DoParseExpression(El);
-          end;
-        TPasImplForLoop(El).LoopType:=lt;
-        if (CurToken<>tkDo) then
-          ParseExcTokenError(TokenInfos[tkDo]);
-        Engine.FinishScope(stForLoopHeader,El);
-        Params.CreateBlock(TPasImplForLoop(El));
-        //WriteLn(GetPrefix,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
+      CheckStatementCanStart;
+      Params.ParseFor;
       end;
     tkwith:
       begin
@@ -8148,6 +8101,64 @@ function TPasParser.TParseStatementParams.CreateElement(AClass: TPTreeElement;
   const ASrcPos: TPasSourcePos): TPasElement;
 begin
   Result:=Parser.CreateElement(AClass,'',CurBlock,ASrcPos);
+end;
+
+procedure TPasParser.TParseStatementParams.ParseFor;
+// for VarName := StartValue to EndValue do
+// for VarName in Expression do
+var
+  ForLoop: TPasImplForLoop;
+  Expr: TPasExpr;
+  lt: TLoopType;
+  SrcPos: TPasSourcePos;
+begin
+  ForLoop:=TPasImplForLoop(CreateElement(TPasImplForLoop));
+  Parser.ExpectIdentifier;
+  Expr:=Parser.CreatePrimitiveExpr(ForLoop,pekIdent,Parser.CurTokenString);
+  ForLoop.VariableName:=Expr;
+  repeat
+    Parser.NextToken;
+    case Parser.CurToken of
+      tkAssign:
+        begin
+        lt:=ltNormal;
+        break;
+        end;
+      tkin:
+        begin
+        lt:=ltIn;
+        break;
+        end;
+      tkDot:
+        begin
+        SrcPos:=Parser.CurTokenPos;
+        Parser.ExpectIdentifier;
+        Parser.AddToBinaryExprChain(Expr,
+          Parser.CreatePrimitiveExpr(ForLoop,pekIdent,Parser.CurTokenString),
+          eopSubIdent,SrcPos);
+        ForLoop.VariableName:=Expr;
+        end;
+    else
+      Parser.ParseExc(nParserExpectedAssignIn,SParserExpectedAssignIn);
+    end;
+  until false;
+  Parser.NextToken;
+  ForLoop.StartExpr:=Parser.DoParseExpression(ForLoop);
+  if (Lt=ltNormal) then
+    begin
+    if Not (Parser.CurToken in [tkTo,tkDownTo]) then
+      Parser.ParseExcTokenError(TokenInfos[tkTo]);
+    if Parser.CurToken=tkdownto then
+      Lt:=ltDown;
+    Parser.NextToken;
+    ForLoop.EndExpr:=Parser.DoParseExpression(ForLoop);
+    end;
+  ForLoop.LoopType:=lt;
+  if (Parser.CurToken<>tkDo) then
+    Parser.ParseExcTokenError(TokenInfos[tkDo]);
+  Parser.Engine.FinishScope(stForLoopHeader,ForLoop);
+  CreateBlock(ForLoop);
+  //WriteLn(GetPrefix,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
 end;
 
 function TPasParser.TParseStatementParams.ParseElse: boolean;
