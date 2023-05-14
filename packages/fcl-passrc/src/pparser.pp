@@ -304,9 +304,9 @@ type
         Parent: TPasImplBlock;
         NewImplElement: TPasImplElement;
         CurBlock: TPasImplBlock;
-        { $IFDEF VerbosePasParserWriteln}
+        {$IFDEF VerbosePasParserWriteln}
         function GetPrefix: string;
-        { $ENDIF VerbosePasParserWriteln}
+        {$ENDIF VerbosePasParserWriteln}
         function CloseBlock: boolean; // true if parent reached
         function CloseStatement(CloseIfs: boolean): boolean; // true if parent reached
         procedure CreateBlock(NewBlock: TPasImplBlock);
@@ -889,7 +889,7 @@ begin
     {$endif}
     Scanner := TPascalScanner.Create(FileResolver);
     Scanner.LogEvents:=AEngine.ScannerLogEvents;
-    Scanner.OnLog:=AEngine.Onlog;
+    Scanner.OnLog:=AEngine.OnLog;
     if not (poSkipDefaultDefs in Options) then
       begin
       Scanner.AddDefine('FPK');
@@ -934,7 +934,7 @@ begin
       Parser.ImplicitUses.Clear;
     Filename := '';
     Parser.LogEvents:=AEngine.ParserLogEvents;
-    Parser.OnLog:=AEngine.Onlog;
+    Parser.OnLog:=AEngine.OnLog;
 
     For S in FPCCommandLine do
       ProcessCmdLinePart(S);
@@ -3907,13 +3907,14 @@ begin
                   Declarations.Variables.Add(TPasVariable(CurEl));
                 Engine.FinishScope(stDeclaration,CurEl);
               end;
-              try
-                CheckToken(tkSemicolon);
-              except
-                on E : Exception do
-                  if not TryErrorRecovery(CreateRecovery(E,[tkSemicolon],False)) then
-                    Raise;
-              end;
+              if (CurToken<>tkSemicolon) then
+                try
+                  CheckToken(tkSemicolon);
+                except
+                  on E : Exception do
+                    if not TryErrorRecovery(CreateRecovery(E,[tkSemicolon],False)) then
+                      Raise;
+                end;
             finally
               List.Free;
             end;
@@ -6148,6 +6149,26 @@ var
     ParseExcTokenError('Semicolon');
   end;
 
+  function Recover(E: Exception): boolean;
+  var
+    RestartTokens: TTokens;
+  begin
+    RestartTokens:=[
+       // token that can end a statement
+       tkSemicolon,tkend,tkfinalization,
+       // tokens that can start a statement
+       tkasm,tkbegin,
+       tkrepeat,tkwhile,tkif,tkgoto,tkfor,tkwith,tkcase,tktry,
+       tkraise,
+       tkAt,tkAtAt,
+       tkIdentifier,tkspecialize,
+       tkNumber,tkString,tkfalse,tktrue,tkChar,
+       tkBraceOpen,tkSquaredBraceOpen,
+       tkMinus,tkPlus,tkinherited
+       ];
+    Result:=TryErrorRecovery(CreateRecovery(E,RestartTokens));
+  end;
+
 var
   El : TPasImplElement;
 begin
@@ -6160,146 +6181,152 @@ begin
   while True do
   begin
     PrevToken:=CurToken;
-    NextToken;
-    {$IFDEF VerbosePasParserWriteln}
-    WriteLn(' Token=',CurTokenText,' CurBlock=',CurBlock.ClassName);
-    {$ENDIF VerbosePasParserWriteln}
-    case CurToken of
-    tkasm:
-      begin
-      CheckStatementCanStart;
-      if Params.ParseAsm then
-        break;
-      end;
-    tkbegin:
-      begin
-      CheckStatementCanStart;
-      El:=TPasImplElement(Params.CreateElement(TPasImplBeginBlock));
-      Params.CreateBlock(TPasImplBeginBlock(El));
-      end;
-    tkrepeat:
-      begin
-      CheckStatementCanStart;
-      El:=TPasImplRepeatUntil(Params.CreateElement(TPasImplRepeatUntil));
-      Params.CreateBlock(TPasImplRepeatUntil(El));
-      end;
-    tkIf:
-      begin
-      CheckStatementCanStart;
-      Params.ParseIf;
-      end;
-    tkelse,tkotherwise:
-      // ELSE can close multiple blocks, similar to semicolon
-      if Params.ParseElse then
-        exit; // case-else TPasImplCaseStatement
-    tkwhile:
-      begin
-      // while Condition do
-      CheckStatementCanStart;
-      Params.ParseWhile;
-      end;
-    tkgoto:
-      begin
-      CheckStatementCanStart;
-      Params.ParseGoto;
-      end;
-    tkfor:
-      begin
-      CheckStatementCanStart;
-      Params.ParseFor;
-      end;
-    tkwith:
-      begin
-      CheckStatementCanStart;
-      Params.ParseWith;
-      end;
-    tkcase:
-      begin
-      CheckStatementCanStart;
-      Params.ParseCase;
-      end;
-    tktry:
-      begin
-      CheckStatementCanStart;
-      El:=TPasImplTry(Params.CreateElement(TPasImplTry));
-      Params.CreateBlock(TPasImplTry(El));
-      end;
-    tkfinally:
-      if Params.ParseFinally then
-        break;
-    tkexcept:
-      if Params.ParseExcept then
-        break;
-    tkraise:
-      begin
-      CheckStatementCanStart;
-      Params.ParseRaise;
-      end;
-    tkend:
-      begin
-        // Note: ParseStatement should return with CurToken at last token of the statement
-        if Params.CloseStatement(true) then
+    try
+      NextToken;
+      {$IFDEF VerbosePasParserWriteln}
+      WriteLn(' Token=',CurTokenText,' CurBlock=',CurBlock.ClassName);
+      {$ENDIF VerbosePasParserWriteln}
+      case CurToken of
+      tkasm:
         begin
-          // there was none requiring an END
-          UngetToken;
+        CheckStatementCanStart;
+        if Params.ParseAsm then
           break;
         end;
-        // still a block left
-        if Params.CurBlock is TPasImplBeginBlock then
+      tkbegin:
         begin
-          // close at END
-          if Params.CloseBlock then break; // close end
-          if Params.CloseStatement(false) then break;
-        end else if Params.CurBlock is TPasImplCaseElse then
-        begin
-          if Params.CloseBlock then break; // close else
-          if Params.CloseBlock then break; // close caseof
-          if Params.CloseStatement(false) then break;
-        end else if Params.CurBlock is TPasImplTryHandler then
-        begin
-          if Params.CloseBlock then break; // close finally/except
-          if Params.CloseBlock then break; // close try
-          if Params.CloseStatement(false) then break;
-        end else
-          ParseExcSyntaxError;
-      end;
-    tkSemiColon:
-      if Params.CloseStatement(true) then break;
-    tkFinalization:
-      if Params.CloseStatement(true) then
-        begin
-        UngetToken;
-        break;
+        CheckStatementCanStart;
+        El:=TPasImplElement(Params.CreateElement(TPasImplBeginBlock));
+        Params.CreateBlock(TPasImplBeginBlock(El));
         end;
-    tkuntil:
-      if Params.ParseUntil then
-        break;
-    tkEOF:
-      CheckToken(tkend);
-    tkAt,tkAtAt,
-    tkIdentifier,tkspecialize,
-    tkNumber,tkString,tkfalse,tktrue,tkChar,
-    tkBraceOpen,tkSquaredBraceOpen,
-    tkMinus,tkPlus,tkinherited:
-      begin
-      // Do not check this here:
-      //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
-      //        ParseExc;
-      CheckStatementCanStart;
-
-      //writeln('TPasParser.ParseStatement ',CurToken,' ',CurTokenString);
-
-      // On is usable as an identifier
-      if CompareText(CurTokenText,'on')=0 then
+      tkrepeat:
         begin
-          if Params.ParseOn then
+        CheckStatementCanStart;
+        El:=TPasImplRepeatUntil(Params.CreateElement(TPasImplRepeatUntil));
+        Params.CreateBlock(TPasImplRepeatUntil(El));
+        end;
+      tkIf:
+        begin
+        CheckStatementCanStart;
+        Params.ParseIf;
+        end;
+      tkelse,tkotherwise:
+        // ELSE can close multiple blocks, similar to semicolon
+        if Params.ParseElse then
+          exit; // case-else TPasImplCaseStatement
+      tkwhile:
+        begin
+        // while Condition do
+        CheckStatementCanStart;
+        Params.ParseWhile;
+        end;
+      tkgoto:
+        begin
+        CheckStatementCanStart;
+        Params.ParseGoto;
+        end;
+      tkfor:
+        begin
+        CheckStatementCanStart;
+        Params.ParseFor;
+        end;
+      tkwith:
+        begin
+        CheckStatementCanStart;
+        Params.ParseWith;
+        end;
+      tkcase:
+        begin
+        CheckStatementCanStart;
+        Params.ParseCase;
+        end;
+      tktry:
+        begin
+        CheckStatementCanStart;
+        El:=TPasImplTry(Params.CreateElement(TPasImplTry));
+        Params.CreateBlock(TPasImplTry(El));
+        end;
+      tkfinally:
+        if Params.ParseFinally then
+          break;
+      tkexcept:
+        if Params.ParseExcept then
+          break;
+      tkraise:
+        begin
+        CheckStatementCanStart;
+        Params.ParseRaise;
+        end;
+      tkend:
+        begin
+          // Note: ParseStatement should return with CurToken at last token of the statement
+          if Params.CloseStatement(true) then
+          begin
+            // there was none requiring an END
+            UngetToken;
             break;
-        end
+          end;
+          // still a block left
+          if Params.CurBlock is TPasImplBeginBlock then
+          begin
+            // close at END
+            if Params.CloseBlock then break; // close end
+            if Params.CloseStatement(false) then break;
+          end else if Params.CurBlock is TPasImplCaseElse then
+          begin
+            if Params.CloseBlock then break; // close else
+            if Params.CloseBlock then break; // close caseof
+            if Params.CloseStatement(false) then break;
+          end else if Params.CurBlock is TPasImplTryHandler then
+          begin
+            if Params.CloseBlock then break; // close finally/except
+            if Params.CloseBlock then break; // close try
+            if Params.CloseStatement(false) then break;
+          end else
+            ParseExcSyntaxError;
+        end;
+      tkSemiColon:
+        if Params.CloseStatement(true) then break;
+      tkFinalization:
+        if Params.CloseStatement(true) then
+          begin
+          UngetToken;
+          break;
+          end;
+      tkuntil:
+        if Params.ParseUntil then
+          break;
+      tkEOF:
+        CheckToken(tkend);
+      tkAt,tkAtAt,
+      tkIdentifier,tkspecialize,
+      tkNumber,tkString,tkfalse,tktrue,tkChar,
+      tkBraceOpen,tkSquaredBraceOpen,
+      tkMinus,tkPlus,tkinherited:
+        begin
+        // Do not check this here:
+        //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
+        //        ParseExc;
+        CheckStatementCanStart;
+
+        //writeln('TPasParser.ParseStatement ',CurToken,' ',CurTokenString);
+
+        // On is usable as an identifier
+        if CompareText(CurTokenText,'on')=0 then
+          begin
+            if Params.ParseOn then
+              break;
+          end
+        else
+          Params.ParseExpr;
+        end;
       else
-        Params.ParseExpr;
+        ParseExcSyntaxError;
       end;
-    else
-      ParseExcSyntaxError;
+    except
+      on E : Exception do
+        if not Recover(E) then
+          raise;
     end;
   end;
 
@@ -7772,7 +7799,7 @@ end;
 
 { TPasParser.TParseStatementParams }
 
-{ $IFDEF VerbosePasParserWriteln}
+{$IFDEF VerbosePasParserWriteln}
 function TPasParser.TParseStatementParams.GetPrefix: string;
 var
   c: TPasElement;
@@ -7784,7 +7811,7 @@ begin
     c:=c.Parent;
   end;
 end;
-{ $ENDIF VerbosePasParserWriteln}
+{$ENDIF VerbosePasParserWriteln}
 
 function TPasParser.TParseStatementParams.CloseBlock: boolean;
 var C: TPasImplBlockClass;
