@@ -284,6 +284,9 @@ type
   private
     const FTokenRingSize = 32;
     type
+
+      { TTokenRec }
+
       TTokenRec = record
         Token: TToken;
         AsString: String;
@@ -293,6 +296,25 @@ type
         IsEscaped : Boolean;
       end;
       PTokenRec = ^TTokenRec;
+
+      { TParseStatementParams }
+
+      TParseStatementParams = record
+        Parser: TPasParser;
+        Parent: TPasImplBlock;
+        NewImplElement: TPasImplElement;
+        CurBlock: TPasImplBlock;
+        { $IFDEF VerbosePasParserWriteln}
+        function GetPrefix: string;
+        { $ENDIF VerbosePasParserWriteln}
+        function CloseBlock: boolean; // true if parent reached
+        function CloseStatement(CloseIfs: boolean): boolean; // true if parent reached
+        procedure CreateBlock(NewBlock: TPasImplBlock);
+        function CreateElement(AClass: TPTreeElement): TPasElement; overload;
+        function CreateElement(AClass: TPTreeElement; const ASrcPos: TPasSourcePos): TPasElement; overload;
+        function ParseElse: boolean; // true if it was a case-else
+      end;
+      //PParseStatementParams = ^TParseStatementParams;
   private
     FCurModule: TPasModule;
     FCurTokenEscaped: Boolean;
@@ -6097,83 +6119,26 @@ end;
 procedure TPasParser.ParseStatement(Parent: TPasImplBlock;
   out NewImplElement: TPasImplElement);
 var
-  CurBlock: TPasImplBlock;
+  Params: TParseStatementParams;
   PrevToken: TToken;
-
-  {$IFDEF VerbosePasParserWriteln}
-  function i: string;
-  var
-    c: TPasElement;
-  begin
-    Result:='ParseStatement ';
-    c:=CurBlock;
-    while c<>nil do begin
-      Result:=Result+'  ';
-      c:=c.Parent;
-    end;
-  end;
-  {$ENDIF VerbosePasParserWriteln}
-
-  function CloseBlock: boolean; // true if parent reached
-  var C: TPasImplBlockClass;
-    NeedUnget: Boolean;
-  begin
-    C:=TPasImplBlockClass(CurBlock.ClassType);
-    if C=TPasImplExceptOn then
-      begin
-      Engine.FinishScope(stExceptOnStatement,CurBlock);
-      NeedUnget:=CurToken=tkSemicolon;
-      if NeedUnget then
-        NextToken;
-      if (CurToken in [tkend,tkelse])
-          or ((CurToken=tkIdentifier) and (lowercase(CurTokenString)='on')) then
-        // ok
-      else
-        ParseExcExpectedAorB('end','on');
-      if NeedUnget then
-        UngetToken;
-      end
-    else if C=TPasImplWithDo then
-      Engine.FinishScope(stWithExpr,CurBlock);
-    CurBlock:=CurBlock.Parent as TPasImplBlock;
-    Result:=CurBlock=Parent;
-  end;
-
-  function CloseStatement(CloseIfs: boolean): boolean; // true if parent reached
-  begin
-    if CurBlock=Parent then exit(true);
-    while CurBlock.CloseOnSemicolon
-        or (CloseIfs and (CurBlock is TPasImplIfElse)) do
-      if CloseBlock then exit(true);
-    Result:=false;
-  end;
-
-  procedure CreateBlock(NewBlock: TPasImplBlock);
-  begin
-    CurBlock.AddElement(NewBlock);
-    CurBlock:=NewBlock;
-    if NewImplElement=nil then NewImplElement:=CurBlock;
-  end;
+  CmdElem: TPasImplElement;
 
   procedure CheckStatementCanStart;
   begin
-    if (CurBlock.Elements.Count=0) then
+    if (Params.CurBlock.Elements.Count=0) then
       exit; // at start of block
     if PrevToken in [tkSemicolon,tkColon,tkElse,tkotherwise] then
       exit;
     {$IFDEF VerbosePasParserWriteln}
-    writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',PrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
+    writeln('TPasParser.ParseStatement.CheckStatementCanStart Prev=',PrevToken,' Cur=',CurToken,' ',Params.CurBlock.ClassName,' ',Params.CurBlock.Elements.Count,' ',TObject(Params.CurBlock.Elements[0]).ClassName);
     {$ENDIF VerbosePasParserWriteln}
     // last statement not complete -> semicolon is missing
     ParseExcTokenError('Semicolon');
   end;
 
-var
-  CmdElem: TPasImplElement;
-
   procedure AddStatement(El: TPasImplElement);
   begin
-    CurBlock.AddElement(El);
+    Params.CurBlock.AddElement(El);
     CmdElem:=El;
     UngetToken;
   end;
@@ -6193,10 +6158,11 @@ var
 
 begin
   NewImplElement:=nil;
-  El:=nil;
-  Left:=nil;
+  Params.Parser:=Self;
+  Params.NewImplElement:=nil;
+  Params.CurBlock:=Parent;
+  Params.Parent:=Parent;
 
-  CurBlock := Parent;
   while True do
   begin
     PrevToken:=CurToken;
@@ -6208,110 +6174,56 @@ begin
     tkasm:
       begin
       CheckStatementCanStart;
-      El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock,CurTokenPos));
+      El:=TPasImplElement(Params.CreateElement(TPasImplAsmStatement));
       ParseAsmBlock(TPasImplAsmStatement(El));
-      CurBlock.AddElement(El);
-      if NewImplElement=nil then NewImplElement:=CurBlock;
-      if CloseStatement(False) then
+      Params.CurBlock.AddElement(El);
+      if Params.NewImplElement=nil then Params.NewImplElement:=Params.CurBlock;
+      if Params.CloseStatement(False) then
         break;
       end;
     tkbegin:
       begin
       CheckStatementCanStart;
-      El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock,CurTokenPos));
-      CreateBlock(TPasImplBeginBlock(El));
+      El:=TPasImplElement(Params.CreateElement(TPasImplBeginBlock));
+      Params.CreateBlock(TPasImplBeginBlock(El));
       end;
     tkrepeat:
       begin
       CheckStatementCanStart;
-      El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock,CurTokenPos));
-      CreateBlock(TPasImplRepeatUntil(El));
+      El:=TPasImplRepeatUntil(Params.CreateElement(TPasImplRepeatUntil));
+      Params.CreateBlock(TPasImplRepeatUntil(El));
       end;
     tkIf:
       begin
       CheckStatementCanStart;
       SrcPos:=CurTokenPos;
       NextToken;
-      Left:=DoParseExpression(CurBlock);
+      Left:=DoParseExpression(Params.CurBlock);
       UngetToken;
-      El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock,SrcPos));
+      El:=TPasImplIfElse(Params.CreateElement(TPasImplIfElse,SrcPos));
       TPasImplIfElse(El).ConditionExpr:=Left;
       Left.Parent:=El;
-      //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
-      CreateBlock(TPasImplIfElse(El));
+      //WriteLn(GetPrefix,'IF Condition="',Condition,'" Token=',CurTokenText);
+      Params.CreateBlock(TPasImplIfElse(El));
       ExpectToken(tkthen);
       end;
     tkelse,tkotherwise:
       // ELSE can close multiple blocks, similar to semicolon
-      repeat
-        {$IFDEF VerbosePasParserWriteln}
-        writeln('TPasParser.ParseStatement ELSE CurBlock=',CurBlock.ClassName);
-        {$ENDIF}
-        if CurBlock is TPasImplIfElse then
-          begin
-          if TPasImplIfElse(CurBlock).IfBranch=nil then
-          begin
-            // empty THEN statement  e.g. if condition then else
-            El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
-            CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
-          end;
-          if (CurToken=tkelse) and (TPasImplIfElse(CurBlock).ElseBranch=nil) then
-            begin
-              // Check if next token is an else too
-              NextToken;
-              if CurToken = tkElse then
-                begin
-                  // empty ELSE statement without semicolon e.g. if condition then [...] else else
-                  El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
-                  CurBlock.AddElement(El); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
-                  CloseBlock;
-                end;
-              UngetToken;
-              break; // add next statement as ElseBranch
-            end;
-          end
-        else if (CurBlock is TPasImplTryExcept) and (CurToken=tkelse) then
-          begin
-          // close TryExcept handler and open an TryExceptElse handler
-          CloseBlock;
-          El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock,CurTokenPos));
-          TPasImplTry(CurBlock).ElseBranch:=TPasImplTryExceptElse(El);
-          CurBlock:=TPasImplTryExceptElse(El);
-          break;
-          end
-        else if (CurBlock is TPasImplCaseStatement) then
-          begin
-          UngetToken;
-          // Note: a TPasImplCaseStatement is parsed by a call of ParseStatement,
-          //       so it must be the top level block
-          if CurBlock<>Parent then
-            CheckToken(tkSemicolon);
-          exit;
-          end
-        else if (CurBlock is TPasImplWhileDo)
-            or (CurBlock is TPasImplForLoop)
-            or (CurBlock is TPasImplWithDo)
-            or (CurBlock is TPasImplRaise)
-            or (CurBlock is TPasImplGoto)
-            or (CurBlock is TPasImplExceptOn) then
-          // simply close block
-        else
-          ParseExcSyntaxError;
-        CloseBlock;
-      until false;
+      if Params.ParseElse then
+        exit;
     tkwhile:
       begin
         // while Condition do
         CheckStatementCanStart;
         SrcPos:=CurTokenPos;
         NextToken;
-        Left:=DoParseExpression(CurBlock);
+        Left:=DoParseExpression(Params.CurBlock);
         UngetToken;
-        //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
-        El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock,SrcPos));
+        //WriteLn(GetPrefix,'WHILE Condition="',Condition,'" Token=',CurTokenText);
+        El:=TPasImplWhileDo(Params.CreateElement(TPasImplWhileDo,SrcPos));
         TPasImplWhileDo(El).ConditionExpr:=Left;
         Left.Parent:=El;
-        CreateBlock(TPasImplWhileDo(El));
+        Params.CreateBlock(TPasImplWhileDo(El));
         ExpectToken(tkdo);
       end;
     tkgoto:
@@ -6319,8 +6231,8 @@ begin
       CheckStatementCanStart;
       SrcPos:=CurTokenPos;
       ExpectTokens([tkIdentifier,tkNumber]);
-      ImplGoto:=TPasImplGoto(CreateElement(TPasImplGoto,'',CurBlock,SrcPos));
-      CreateBlock(ImplGoto);
+      ImplGoto:=TPasImplGoto(Params.CreateElement(TPasImplGoto,SrcPos));
+      Params.CreateBlock(ImplGoto);
       ImplGoto.LabelName:=CurTokenString;
       end;
     tkfor:
@@ -6328,7 +6240,7 @@ begin
         // for VarName := StartValue to EndValue do
         // for VarName in Expression do
         CheckStatementCanStart;
-        El:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock,CurTokenPos));
+        El:=TPasImplForLoop(Params.CreateElement(TPasImplForLoop));
         ExpectIdentifier;
         Expr:=CreatePrimitiveExpr(El,pekIdent,CurTokenString);
         TPasImplForLoop(El).VariableName:=Expr;
@@ -6372,8 +6284,8 @@ begin
         if (CurToken<>tkDo) then
           ParseExcTokenError(TokenInfos[tkDo]);
         Engine.FinishScope(stForLoopHeader,El);
-        CreateBlock(TPasImplForLoop(El));
-        //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
+        Params.CreateBlock(TPasImplForLoop(El));
+        //WriteLn(GetPrefix,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
       end;
     tkwith:
       begin
@@ -6382,21 +6294,21 @@ begin
         CheckStatementCanStart;
         SrcPos:=CurTokenPos;
         NextToken;
-        El:=TPasImplWithDo(CreateElement(TPasImplWithDo,'',CurBlock,SrcPos));
-        Expr:=DoParseExpression(CurBlock);
-        //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
+        El:=TPasImplWithDo(Params.CreateElement(TPasImplWithDo,SrcPos));
+        Expr:=DoParseExpression(Params.CurBlock);
+        //writeln(GetPrefix,'WITH Expr="',Expr,'" Token=',CurTokenText);
         TPasImplWithDo(El).AddExpression(Expr);
         Expr.Parent:=El;
         Engine.BeginScope(stWithExpr,Expr);
-        CreateBlock(TPasImplWithDo(El));
+        Params.CreateBlock(TPasImplWithDo(El));
         repeat
           if CurToken=tkdo then break;
           if CurToken<>tkComma then
             ParseExcTokenError(TokenInfos[tkdo]);
           NextToken;
-          Expr:=DoParseExpression(CurBlock);
-          //writeln(i,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
-          TPasImplWithDo(CurBlock).AddExpression(Expr);
+          Expr:=DoParseExpression(Params.CurBlock);
+          //writeln(GetPrefix,'WITH ...,Expr="',Expr,'" Token=',CurTokenText);
+          TPasImplWithDo(Params.CurBlock).AddExpression(Expr);
           Engine.BeginScope(stWithExpr,Expr);
         until false;
       end;
@@ -6405,30 +6317,30 @@ begin
         CheckStatementCanStart;
         SrcPos:=CurTokenPos;
         NextToken;
-        Left:=DoParseExpression(CurBlock);
+        Left:=DoParseExpression(Params.CurBlock);
         UngetToken;
-        //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
+        //writeln(GetPrefix,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
-        El:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock,SrcPos));
+        El:=TPasImplCaseOf(Params.CreateElement(TPasImplCaseOf,SrcPos));
         TPasImplCaseOf(El).CaseExpr:=Left;
         Left.Parent:=El;
-        CreateBlock(TPasImplCaseOf(El));
+        Params.CreateBlock(TPasImplCaseOf(El));
         repeat
           NextToken;
-          //writeln(i,'CASE OF Token=',CurTokenText);
+          //writeln(GetPrefix,'CASE OF Token=',CurTokenText);
           case CurToken of
           tkend:
             begin
-            if CurBlock.Elements.Count=0 then
+            if Params.CurBlock.Elements.Count=0 then
               ParseExc(nParserExpectCase,SParserExpectCase);
             break; // end without else
             end;
           tkelse,tkotherwise:
             begin
               // create case-else block
-              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,CurTokenPos));
-              TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
-              CreateBlock(TPasImplCaseElse(El));
+              El:=TPasImplCaseElse(Params.CreateElement(TPasImplCaseElse));
+              TPasImplCaseOf(Params.CurBlock).ElseBranch:=TPasImplCaseElse(El);
+              Params.CreateBlock(TPasImplCaseElse(El));
               El:=nil;
               break;
             end
@@ -6436,31 +6348,31 @@ begin
             // read case values
             repeat
               SrcPos:=CurTokenPos;
-              Left:=DoParseExpression(CurBlock);
-              //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
-              if CurBlock is TPasImplCaseStatement then
+              Left:=DoParseExpression(Params.CurBlock);
+              //writeln(GetPrefix,'CASE value="',Expr,'" Token=',CurTokenText);
+              if Params.CurBlock is TPasImplCaseStatement then
                 begin
-                TPasImplCaseStatement(CurBlock).AddExpression(Left);
+                TPasImplCaseStatement(Params.CurBlock).AddExpression(Left);
                 Left:=nil;
                 end
               else
                 begin
-                El:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock,SrcPos));
+                El:=TPasImplCaseStatement(Params.CreateElement(TPasImplCaseStatement,SrcPos));
                 TPasImplCaseStatement(El).AddExpression(Left);
                 Left:=nil;
-                CreateBlock(TPasImplCaseStatement(El));
+                Params.CreateBlock(TPasImplCaseStatement(El));
                 El:=nil;
                 end;
-              //writeln(i,'CASE after value Token=',CurTokenText);
+              //writeln(GetPrefix,'CASE after value Token=',CurTokenText);
               if (CurToken=tkComma) then
                 NextToken
               else if (CurToken<>tkColon) then
                 ParseExcTokenError(TokenInfos[tkComma]);
             until Curtoken=tkColon;
             // read statement
-            ParseStatement(CurBlock,SubBlock);
+            ParseStatement(Params.CurBlock,SubBlock);
             // CurToken is now at last token of case-statement
-            CloseBlock;
+            Params.CloseBlock;
             if CurToken<>tkSemicolon then
               NextToken;
             if (CurToken in [tkSemicolon,tkelse,tkend,tkotherwise]) then
@@ -6473,53 +6385,53 @@ begin
         until false;
         if CurToken=tkend then
         begin
-          if CloseBlock then break;
-          if CloseStatement(false) then break;
+          if Params.CloseBlock then break;
+          if Params.CloseStatement(false) then break;
         end;
       end;
     tktry:
       begin
       CheckStatementCanStart;
-      El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock,CurTokenPos));
-      CreateBlock(TPasImplTry(El));
+      El:=TPasImplTry(Params.CreateElement(TPasImplTry));
+      Params.CreateBlock(TPasImplTry(El));
       end;
     tkfinally:
       begin
-        if CloseStatement(true) then
+        if Params.CloseStatement(true) then
         begin
           UngetToken;
           break;
         end;
-        if CurBlock is TPasImplTry then
+        if Params.CurBlock is TPasImplTry then
         begin
-          El:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',CurBlock,CurTokenPos));
-          TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryFinally(El);
-          CurBlock:=TPasImplTryFinally(El);
+          El:=TPasImplTryFinally(Params.CreateElement(TPasImplTryFinally));
+          TPasImplTry(Params.CurBlock).FinallyExcept:=TPasImplTryFinally(El);
+          Params.CurBlock:=TPasImplTryFinally(El);
           El:=nil;
         end else
           ParseExcSyntaxError;
       end;
     tkexcept:
       begin
-        if CloseStatement(true) then
+        if Params.CloseStatement(true) then
         begin
           UngetToken;
           break;
         end;
-        if CurBlock is TPasImplTry then
+        if Params.CurBlock is TPasImplTry then
         begin
-          //writeln(i,'EXCEPT');
-          El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock,CurTokenPos));
-          TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(El);
-          CurBlock:=TPasImplTryExcept(El);
+          //writeln(GetPrefix,'EXCEPT');
+          El:=TPasImplTryExcept(Params.CreateElement(TPasImplTryExcept));
+          TPasImplTry(Params.CurBlock).FinallyExcept:=TPasImplTryExcept(El);
+          Params.CurBlock:=TPasImplTryExcept(El);
         end else
           ParseExcSyntaxError;
       end;
     tkraise:
       begin
       CheckStatementCanStart;
-      ImplRaise:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock,CurTokenPos));
-      CreateBlock(ImplRaise);
+      ImplRaise:=TPasImplRaise(Params.CreateElement(TPasImplRaise));
+      Params.CreateBlock(ImplRaise);
       NextToken;
       If Curtoken in [tkElse,tkEnd,tkSemicolon,tkotherwise] then
         // raise without object
@@ -6541,54 +6453,54 @@ begin
     tkend:
       begin
         // Note: ParseStatement should return with CurToken at last token of the statement
-        if CloseStatement(true) then
+        if Params.CloseStatement(true) then
         begin
           // there was none requiring an END
           UngetToken;
           break;
         end;
         // still a block left
-        if CurBlock is TPasImplBeginBlock then
+        if Params.CurBlock is TPasImplBeginBlock then
         begin
           // close at END
-          if CloseBlock then break; // close end
-          if CloseStatement(false) then break;
-        end else if CurBlock is TPasImplCaseElse then
+          if Params.CloseBlock then break; // close end
+          if Params.CloseStatement(false) then break;
+        end else if Params.CurBlock is TPasImplCaseElse then
         begin
-          if CloseBlock then break; // close else
-          if CloseBlock then break; // close caseof
-          if CloseStatement(false) then break;
-        end else if CurBlock is TPasImplTryHandler then
+          if Params.CloseBlock then break; // close else
+          if Params.CloseBlock then break; // close caseof
+          if Params.CloseStatement(false) then break;
+        end else if Params.CurBlock is TPasImplTryHandler then
         begin
-          if CloseBlock then break; // close finally/except
-          if CloseBlock then break; // close try
-          if CloseStatement(false) then break;
+          if Params.CloseBlock then break; // close finally/except
+          if Params.CloseBlock then break; // close try
+          if Params.CloseStatement(false) then break;
         end else
           ParseExcSyntaxError;
       end;
     tkSemiColon:
-      if CloseStatement(true) then break;
+      if Params.CloseStatement(true) then break;
     tkFinalization:
-      if CloseStatement(true) then
+      if Params.CloseStatement(true) then
         begin
         UngetToken;
         break;
         end;
     tkuntil:
       begin
-        if CloseStatement(true) then
+        if Params.CloseStatement(true) then
         begin
           UngetToken;
           break;
         end;
-        if CurBlock is TPasImplRepeatUntil then
+        if Params.CurBlock is TPasImplRepeatUntil then
         begin
           NextToken;
-          Left:=DoParseExpression(CurBlock);
+          Left:=DoParseExpression(Params.CurBlock);
           UngetToken;
-          TPasImplRepeatUntil(CurBlock).ConditionExpr:=Left;
-          //WriteLn(i,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
-          if CloseBlock then break;
+          TPasImplRepeatUntil(Params.CurBlock).ConditionExpr:=Left;
+          //WriteLn(GetPrefix,'UNTIL Condition="',Condition,'" Token=',CurTokenString);
+          if Params.CloseBlock then break;
         end else
           ParseExcSyntaxError;
       end;
@@ -6613,11 +6525,11 @@ begin
           // in try except:
           // on E: Exception do
           // on Exception do
-          if CurBlock is TPasImplTryExcept then
+          if Params.CurBlock is TPasImplTryExcept then
           begin
             SrcPos:=CurTokenPos;
             ExpectIdentifier;
-            ImplExceptOn:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock,SrcPos));
+            ImplExceptOn:=TPasImplExceptOn(Params.CreateElement(TPasImplExceptOn,SrcPos));
             El:=ImplExceptOn;
             SrcPos:=CurSourcePos;
             Name:=CurTokenString;
@@ -6642,7 +6554,7 @@ begin
               ImplExceptOn.TypeEl:=ParseSimpleType(ImplExceptOn,SrcPos,'');
               end;
             Engine.FinishScope(stExceptOnExpr,ImplExceptOn);
-            CreateBlock(ImplExceptOn);
+            Params.CreateBlock(ImplExceptOn);
             ExpectToken(tkDo);
           end else
             ParseExcSyntaxError;
@@ -6650,7 +6562,7 @@ begin
       else
         begin
         SrcPos:=CurTokenPos;
-        Left:=DoParseExpression(CurBlock);
+        Left:=DoParseExpression(Params.CurBlock);
         case CurToken of
           tkAssign,
           tkAssignPlus,
@@ -6659,12 +6571,12 @@ begin
           tkAssignDivision:
             begin
             // assign statement
-            El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
+            El:=TPasImplAssign(Params.CreateElement(TPasImplAssign,SrcPos));
             TPasImplAssign(El).Left:=Left;
             Left.Parent:=El;
             TPasImplAssign(El).Kind:=TokenToAssignKind(CurToken);
             NextToken;
-            Right:=DoParseExpression(CurBlock);
+            Right:=DoParseExpression(Params.CurBlock);
             TPasImplAssign(El).Right:=Right;
             Right.Parent:=El;
             Right:=nil;
@@ -6677,27 +6589,29 @@ begin
             else if not (Left is TPrimitiveExpr) then
               ParseExcTokenError(TokenInfos[tkSemicolon]);
             // label mark. todo: check mark identifier in the list of labels
-            El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock,SrcPos));
+            El:=TPasImplLabelMark(Params.CreateElement(TPasImplLabelMark,SrcPos));
             TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(Left).Value;
-            CurBlock.AddElement(El);
+            Params.CurBlock.AddElement(El);
             CmdElem:=TPasImplLabelMark(El);
             end;
         else
           // simple statement (function call)
-          El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
+          El:=TPasImplSimple(Params.CreateElement(TPasImplSimple,SrcPos));
           TPasImplSimple(El).Expr:=Left;
           Left.Parent:=El;
           AddStatement(El);
         end;
 
-        if (NewImplElement=nil) and not (CmdElem is TPasImplLabelMark) then
-          NewImplElement:=CmdElem;
+        if (Params.NewImplElement=nil) and not (CmdElem is TPasImplLabelMark) then
+          Params.NewImplElement:=CmdElem;
         end;
       end;
     else
       ParseExcSyntaxError;
     end;
   end;
+
+  NewImplElement:=Params.NewImplElement;
 end;
 
 procedure TPasParser.ParseLabels(AParent: TPasElement);
@@ -8162,6 +8076,142 @@ end;
 procedure TPasParser.ParseAdhocExpression(out NewExprElement: TPasExpr);
 begin
   NewExprElement := DoParseExpression(nil);
+end;
+
+{ TPasParser.TParseStatementParams }
+
+{ $IFDEF VerbosePasParserWriteln}
+function TPasParser.TParseStatementParams.GetPrefix: string;
+var
+  c: TPasElement;
+begin
+  Result:='ParseStatement ';
+  c:=CurBlock;
+  while c<>nil do begin
+    Result:=Result+'  ';
+    c:=c.Parent;
+  end;
+end;
+{ $ENDIF VerbosePasParserWriteln}
+
+function TPasParser.TParseStatementParams.CloseBlock: boolean;
+var C: TPasImplBlockClass;
+  NeedUnget: Boolean;
+  tk: TToken;
+begin
+  C:=TPasImplBlockClass(CurBlock.ClassType);
+  if C=TPasImplExceptOn then
+    begin
+    Parser.Engine.FinishScope(stExceptOnStatement,CurBlock);
+    NeedUnget:=Parser.CurToken=tkSemicolon;
+    if NeedUnget then
+      Parser.NextToken;
+    tk:=Parser.CurToken;
+    if (tk in [tkend,tkelse])
+        or ((tk=tkIdentifier) and (lowercase(Parser.CurTokenString)='on')) then
+      // ok
+    else
+      Parser.ParseExcExpectedAorB('end','on');
+    if NeedUnget then
+      Parser.UngetToken;
+    end
+  else if C=TPasImplWithDo then
+    Parser.Engine.FinishScope(stWithExpr,CurBlock);
+  CurBlock:=CurBlock.Parent as TPasImplBlock;
+  Result:=CurBlock=Parent;
+end;
+
+function TPasParser.TParseStatementParams.CloseStatement(CloseIfs: boolean
+  ): boolean;
+begin
+  if CurBlock=Parent then exit(true);
+  while CurBlock.CloseOnSemicolon
+      or (CloseIfs and (CurBlock is TPasImplIfElse)) do
+    if CloseBlock then exit(true);
+  Result:=false;
+end;
+
+procedure TPasParser.TParseStatementParams.CreateBlock(NewBlock: TPasImplBlock);
+begin
+  CurBlock.AddElement(NewBlock);
+  CurBlock:=NewBlock;
+  if NewImplElement=nil then NewImplElement:=CurBlock;
+end;
+
+function TPasParser.TParseStatementParams.CreateElement(AClass: TPTreeElement
+  ): TPasElement;
+begin
+  Result:=Parser.CreateElement(AClass,'',CurBlock,Parser.CurTokenPos);
+end;
+
+function TPasParser.TParseStatementParams.CreateElement(AClass: TPTreeElement;
+  const ASrcPos: TPasSourcePos): TPasElement;
+begin
+  Result:=Parser.CreateElement(AClass,'',CurBlock,ASrcPos);
+end;
+
+function TPasParser.TParseStatementParams.ParseElse: boolean;
+var
+  ImplCmd: TPasImplCommand;
+  TryElse: TPasImplTryExceptElse;
+begin
+  Result:=false;
+  repeat
+    {$IFDEF VerbosePasParserWriteln}
+    writeln('TPasParser.TParseStatementParams.ParseElse CurBlock=',CurBlock.ClassName);
+    {$ENDIF}
+    if CurBlock is TPasImplIfElse then
+      begin
+      if TPasImplIfElse(CurBlock).IfBranch=nil then
+      begin
+        // empty THEN statement  e.g. if condition then else
+        ImplCmd:=TPasImplCommand(CreateElement(TPasImplCommand));
+        CurBlock.AddElement(ImplCmd); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
+      end;
+      if (Parser.CurToken=tkelse) and (TPasImplIfElse(CurBlock).ElseBranch=nil) then
+        begin
+          // Check if next token is an else too
+          Parser.NextToken;
+          if Parser.CurToken = tkElse then
+            begin
+              // empty ELSE statement without semicolon e.g. if condition then [...] else else
+              ImplCmd:=TPasImplCommand(CreateElement(TPasImplCommand));
+              CurBlock.AddElement(ImplCmd); // this sets TPasImplIfElse(CurBlock).IfBranch:=El
+              CloseBlock;
+            end;
+          Parser.UngetToken;
+          break; // add next statement as ElseBranch
+        end;
+      end
+    else if (CurBlock is TPasImplTryExcept) and (Parser.CurToken=tkelse) then
+      begin
+      // close TryExcept handler and open an TryExceptElse handler
+      CloseBlock;
+      TryElse:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse));
+      TPasImplTry(CurBlock).ElseBranch:=TryElse;
+      CurBlock:=TryElse;
+      break;
+      end
+    else if (CurBlock is TPasImplCaseStatement) then
+      begin
+      Parser.UngetToken;
+      // Note: a TPasImplCaseStatement is parsed by a call of ParseStatement,
+      //       so it must be the top level block
+      if CurBlock<>Parent then
+        Parser.CheckToken(tkSemicolon);
+      exit(true);
+      end
+    else if (CurBlock is TPasImplWhileDo)
+        or (CurBlock is TPasImplForLoop)
+        or (CurBlock is TPasImplWithDo)
+        or (CurBlock is TPasImplRaise)
+        or (CurBlock is TPasImplGoto)
+        or (CurBlock is TPasImplExceptOn) then
+      // simply close block
+    else
+      Parser.ParseExcSyntaxError;
+    CloseBlock;
+  until false;
 end;
 
 initialization
