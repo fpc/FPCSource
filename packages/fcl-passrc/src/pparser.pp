@@ -948,6 +948,7 @@ end;
 
 function TPasTreeContainer.HandleResultOnError(aElement: TPasElement): Boolean;
 begin
+  if aElement=nil then ;
   Result:=True;
 end;
 
@@ -1487,8 +1488,6 @@ function TPasParser.TryErrorRecovery(const aContext: TRecoveryContext): boolean;
 
 var
   StopAt : TTokens;
-  tk : TToken;
-
 begin
   Inc(FErrorCount);
   Result:=FErrorCount<FMaxErrorCount;
@@ -5978,23 +5977,26 @@ begin
   Scanner.SetNonToken(tkobjccategory);
   Scanner.SetNonToken(tkobjcprotocol);
   Scanner.SetNonToken(tkobjcclass);
-  repeat
-    NextToken;
-//    writeln('TPasParser.ParseProcBeginBlock ',curtokenstring);
-    if CurToken=tkend then
-      break
-    else if CurToken<>tkSemiColon then
-    begin
-      UngetToken;
-      ParseStatement(BeginBlock,SubBlock);
-      if SubBlock=nil then
-        ExpectToken(tkend);
-    end;
-  until false;
+  try
+    repeat
+      NextToken;
+  //    writeln('TPasParser.ParseProcBeginBlock ',curtokenstring);
+      if CurToken=tkend then
+        break
+      else if CurToken<>tkSemiColon then
+      begin
+        UngetToken;
+        ParseStatement(BeginBlock,SubBlock);
+        if SubBlock=nil then
+          ExpectToken(tkend);
+      end;
+    until false;
+  finally
+    Scanner.UnSetNonToken(tkobjccategory);
+    Scanner.UnSetNonToken(tkobjcprotocol);
+    Scanner.UnSetNonToken(tkobjcclass);
+  end;
   // A declaration can follow...
-  Scanner.UnSetNonToken(tkobjccategory);
-  Scanner.UnSetNonToken(tkobjcprotocol);
-  Scanner.UnSetNonToken(tkobjcclass);
   Proc:=Parent.Parent as TPasProcedure;
   if Proc.GetProcTypeEnum in [ptAnonymousProcedure,ptAnonymousFunction] then
     NextToken
