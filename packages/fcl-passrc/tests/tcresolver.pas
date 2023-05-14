@@ -11,7 +11,7 @@
     {=a} is "a", search at next token for a TPasAliasType t with t.DestType
            points to an element labeled "a"
 *)
-unit tcresolver;
+unit TCResolver;
 
 {$mode objfpc}{$H+}
 

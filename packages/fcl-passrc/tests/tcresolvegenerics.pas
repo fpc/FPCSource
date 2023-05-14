@@ -1,4 +1,4 @@
-unit tcresolvegenerics;
+unit TCResolveGenerics;
 
 {$mode objfpc}{$H+}
 

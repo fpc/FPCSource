@@ -130,6 +130,7 @@ end;
 
 function TTestEngine.HandleResultOnError(aElement: TPasElement): Boolean;
 begin
+  if aElement=nil then ;
   Result:=False;
 end;
 

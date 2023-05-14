@@ -1,4 +1,4 @@
-unit tcgenerics;
+unit TCGenerics;
 
 {$mode objfpc}{$H+}
 

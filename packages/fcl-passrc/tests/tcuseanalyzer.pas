@@ -2,7 +2,7 @@
   Examples:
     ./testpassrc --suite=TTestResolver.TestEmpty
 }
-unit tcuseanalyzer;
+unit TCUseAnalyzer;
 
 {$mode objfpc}{$H+}
 
