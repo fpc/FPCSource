@@ -3387,11 +3387,22 @@ implementation
 
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(level : dword;var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
+
+      function SmallerOrSigned(def: tdef): Boolean;
+        begin
+          Result := (def.size < signedtype.size) or
+            (
+              (def.size = signedtype.size) and
+              is_signed(def)
+            )
+        end;
+
       var
         newblock: tblocknode;
         newstatements: tstatementnode;
         originaldivtree: tnode;
         tempnode: ttempcreatenode;
+        NeedMinus1Check: Boolean;
       begin
         { we may not recurse into shr nodes:
 
@@ -3416,12 +3427,40 @@ implementation
                  is_signed(n.resultdef) then
                 begin
                   originaldivtree:=nil;
+                  NeedMinus1Check:=False;
+
                   if n.nodetype in [divn,modn] then
+                    begin
+                      { If the DIV operation is being downsized, we must explicitly check for a divisor of -1 }
+                      NeedMinus1Check := True;
+
+                      { If the operand size is equal or smaller, the -1 check isn't necessary }
+                      if (
+                          SmallerOrSigned(tbinarynode(n).left.resultdef) or
+                          (
+                            (tbinarynode(n).left.nodetype = typeconvn) and
+                            SmallerOrSigned(ttypeconvnode(tbinarynode(n).left).left.resultdef)
+                          )
+                        ) and
+                        (
+                          SmallerOrSigned(tbinarynode(n).right.resultdef) or
+                          (
+                            (tbinarynode(n).right.nodetype = typeconvn) and
+                            SmallerOrSigned(ttypeconvnode(tbinarynode(n).right).left.resultdef)
+                          )
+                        ) then
+                        NeedMinus1Check := False;
+                    end;
+
+
+                  if NeedMinus1Check then
                     originaldivtree:=n.getcopy;
+
                   doremoveinttypeconvs(level+1,tbinarynode(n).left,signedtype,false,signedtype,unsignedtype);
                   doremoveinttypeconvs(level+1,tbinarynode(n).right,signedtype,false,signedtype,unsignedtype);
                   n.resultdef:=signedtype;
-                  if n.nodetype in [divn,modn] then
+
+                  if NeedMinus1Check then
                     begin
                       newblock:=internalstatements(newstatements);
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true);
