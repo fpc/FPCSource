@@ -2360,6 +2360,7 @@ Unit raz80asm;
         hl: tasmlabel;
         sectionname: String;
         section: tai_section;
+        lastsectype : TAsmSectiontype;
       begin
         Message1(asmr_d_start_reading,'Z80');
         firsttoken:=TRUE;
@@ -2377,6 +2378,7 @@ Unit raz80asm;
 
         { start tokenizer }
         gettoken;
+        lastsectype:=sec_code;
         { main loop }
         repeat
           case actasmtoken of
@@ -2484,6 +2486,7 @@ Unit raz80asm;
 
                 //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
                 section:=new_section(curlist, sec_user, sectionname, 0);
+                lastsectype:=sec_user;
                 //section.secflags:=secflags;
                 //section.secprogbits:=secprogbits;
               end;
@@ -2500,6 +2503,12 @@ Unit raz80asm;
               end;
           end;
         until false;
+        { are we back in the code section? }
+        if lastsectype<>sec_code then
+          begin
+            //Message(asmr_w_assembler_code_not_returned_to_text);
+            new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
+          end;
         { check that all referenced local labels are defined }
         checklocallabels;
         { Return the list in an asmnode }
