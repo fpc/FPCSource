@@ -1104,10 +1104,6 @@ begin
 end;
 
 function TFPGObjectList.GetFirst: T;
-
-Var
-  P: Pointer;
-
 begin
   if FCount<>0 then
     Result := T(inherited GetFirst^)
