@@ -46,10 +46,39 @@ program fpc;
 
 
   procedure error(const s : string);
-    begin
-       writeln('Error: ',s);
-       halt(1);
+
+  begin
+     writeln('Error: ',s);
+     halt(1);
+  end;
+
+  function processortosuffix(processorstr : string ) : String;
+
+  begin
+    case processorstr of
+      'aarch64': Result:='a64';
+      'arm' : Result:='arm';
+      'avr' : Result:='avr';
+      'i386' : Result:='386';
+      'i8086' : Result:='8086';
+      'jvm' : Result:='jvm';
+      'm68k' : Result:='68k';
+      'mips' : Result:='mips';
+      'mipsel' : Result:='mipsel';
+      'powerpc' : Result:='ppc';
+      'powerpc64' : Result:='ppc64';
+      'riscv32' : Result:='rv32';
+      'riscv64' : Result:='rv64';
+      'sparc' : Result:='sparc';
+      'sparc64' : Result:='sparc64';
+      'x86_64' : Result:='x64';
+      'xtensa' : Result:='xtensa';
+      'z80' : Result:='z80';
+      'wasm32' : Result:='wasm32'
+    else
+      error('Illegal processor type "'+processorstr+'"');
     end;
+  end;
 
 
   function SplitPath(Const HStr:String):String;
@@ -108,6 +137,25 @@ program fpc;
             findexe:=true;
           end
        end;
+    end;
+
+    function findcompiler(basecompiler,cpusuffix,exesuffix : string) : string;
+
+    begin
+      Result:=basecompiler;
+      if exesuffix<>'' then
+        Result:=Result+'-'+exesuffix;
+      if not findexe(Result) then
+        begin
+          if cpusuffix<>'' Then
+            begin
+              Result:='ppc'+cpusuffix;
+              if exesuffix<>'' then
+                result:=result+'-'+exesuffix;
+              if not findexe(result) then
+                result:='';
+            end;
+        end;
     end;
 
   var
@@ -216,19 +264,7 @@ program fpc;
                    if processorstr='B' then
                      begin
                        { report the full name of the ppcbin }
-                       if versionstr<>'' then
-                         ppcbin:=ppcbin+'-'+versionstr;
-                       if not findexe(ppcbin) then
-                         begin
-                           if cpusuffix<>'' Then
-                             begin
-                               ppcbin:='ppc'+cpusuffix;
-                               if versionstr<>'' then
-                                 ppcbin:=ppcbin+'-'+versionstr;
-                               findexe(ppcbin);
-                             end;
-                         end;
-                       writeln(ppcbin);
+                       writeln(findcompiler(ppcbin,cpusuffix,versionstr));
                        halt(0);
                      end
                      { -PP is a special code that will show the
@@ -243,48 +279,7 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='aarch64' then
-                             cpusuffix:='a64'
-                           else if processorstr='arm' then
-                             cpusuffix:='arm'
-                           else if processorstr='avr' then
-                             cpusuffix:='avr'
-                           else if processorstr='i386' then
-                             cpusuffix:='386'
-                           else if processorstr='i8086' then
-                             cpusuffix:='8086'
-                           else if processorstr='jvm' then
-                             cpusuffix:='jvm'
-                           else if processorstr='loongarch64' then
-                             cpusuffix:='loongarch64'
-                           else if processorstr='m68k' then
-                             cpusuffix:='68k'
-                           else if processorstr='mips' then
-                             cpusuffix:='mips'
-                           else if processorstr='mipsel' then
-                             cpusuffix:='mipsel'
-                           else if processorstr='powerpc' then
-                             cpusuffix:='ppc'
-                           else if processorstr='powerpc64' then
-                             cpusuffix:='ppc64'
-                           else if processorstr='riscv32' then
-                             cpusuffix:='rv32'
-                           else if processorstr='riscv64' then
-                             cpusuffix:='rv64'
-                           else if processorstr='sparc' then
-                             cpusuffix:='sparc'
-                           else if processorstr='sparc64' then
-                             cpusuffix:='sparc64'
-                           else if processorstr='x86_64' then
-                             cpusuffix:='x64'
-                           else if processorstr='xtensa' then
-                             cpusuffix:='xtensa'
-                           else if processorstr='z80' then
-                             cpusuffix:='z80'
-                           else if processorstr='wasm32' then
-                             cpusuffix:='wasm32'
-                           else
-                             error('Illegal processor type "'+processorstr+'"');
+                           cpusuffix:=processortosuffix(processorstr);
 
 {$ifndef darwin}
                            ppcbin:='ppcross'+cpusuffix;
@@ -314,19 +309,7 @@ program fpc;
        end;
      SetLength(ppccommandline,ppccommandlinelen);
 
-     if versionstr<>'' then
-       ppcbin:=ppcbin+'-'+versionstr;
-     { find the full path to the specified exe }
-     if not findexe(ppcbin) then
-        begin
-          if cpusuffix<>'' Then
-            begin
-              ppcbin:='ppc'+cpusuffix;
-              if versionstr<>'' then
-                ppcbin:=ppcbin+'-'+versionstr;
-              findexe(ppcbin);
-            end;
-        end;
+     ppcbin:=findcompiler(ppcbin,cpusuffix,versionstr);
 
      { call ppcXXX }
      try
