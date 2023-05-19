@@ -80,6 +80,71 @@ program fpc;
     end;
   end;
 
+  procedure InitPlatform(var ppcbin,processorname : string);
+
+  begin
+    {$ifdef i386}
+         ppcbin:='ppc386';
+         processorname:='i386';
+    {$endif i386}
+    {$ifdef m68k}
+         ppcbin:='ppc68k';
+         processorname:='m68k';
+    {$endif m68k}
+    {$ifdef powerpc}
+         ppcbin:='ppcppc';
+         processorname:='powerpc';
+    {$endif powerpc}
+    {$ifdef powerpc64}
+         ppcbin:='ppcppc64';
+         processorname:='powerpc64';
+    {$endif powerpc64}
+    {$ifdef arm}
+         ppcbin:='ppcarm';
+         processorname:='arm';
+    {$endif arm}
+    {$ifdef aarch64}
+         ppcbin:='ppca64';
+         processorname:='aarch64';
+    {$endif aarch64}
+    {$ifdef sparc}
+         ppcbin:='ppcsparc';
+         processorname:='sparc';
+    {$endif sparc}
+    {$ifdef sparc64}
+         ppcbin:='ppcsparc64';
+         processorname:='sparc64';
+    {$endif sparc64}
+    {$ifdef x86_64}
+         ppcbin:='ppcx64';
+         processorname:='x86_64';
+    {$endif x86_64}
+    {$ifdef mipsel}
+         ppcbin:='ppcmipsel';
+         processorname:='mipsel';
+    {$else : not mipsel}
+      {$ifdef mips}
+         ppcbin:='ppcmips';
+         processorname:='mips';
+      {$endif mips}
+    {$endif not mipsel}
+    {$ifdef riscv32}
+         ppcbin:='ppcrv32';
+         processorname:='riscv32';
+    {$endif riscv32}
+    {$ifdef riscv64}
+         ppcbin:='ppcrv64';
+         processorname:='riscv64';
+    {$endif riscv64}
+    {$ifdef xtensa}
+         ppcbin:='ppcxtensa';
+         processorname:='xtensa';
+    {$endif xtensa}
+    {$ifdef wasm32}
+         ppcbin:='ppcwasm32';
+         processorname:='wasm32';
+    {$endif wasm32}
+  end;
 
   function SplitPath(Const HStr:String):String;
     var
@@ -175,72 +240,8 @@ program fpc;
      cpusuffix     :='';        // if not empty, signals attempt at cross
                                 // compiler.
      extrapath     :='';
-{$ifdef i386}
-     ppcbin:='ppc386';
-     processorname:='i386';
-{$endif i386}
-{$ifdef m68k}
-     ppcbin:='ppc68k';
-     processorname:='m68k';
-{$endif m68k}
-{$ifdef powerpc}
-     ppcbin:='ppcppc';
-     processorname:='powerpc';
-{$endif powerpc}
-{$ifdef powerpc64}
-     ppcbin:='ppcppc64';
-     processorname:='powerpc64';
-{$endif powerpc64}
-{$ifdef arm}
-     ppcbin:='ppcarm';
-     processorname:='arm';
-{$endif arm}
-{$ifdef aarch64}
-     ppcbin:='ppca64';
-     processorname:='aarch64';
-{$endif aarch64}
-{$ifdef sparc}
-     ppcbin:='ppcsparc';
-     processorname:='sparc';
-{$endif sparc}
-{$ifdef sparc64}
-     ppcbin:='ppcsparc64';
-     processorname:='sparc64';
-{$endif sparc64}
-{$ifdef x86_64}
-     ppcbin:='ppcx64';
-     processorname:='x86_64';
-{$endif x86_64}
-{$ifdef mipsel}
-     ppcbin:='ppcmipsel';
-     processorname:='mipsel';
-{$else : not mipsel}
-  {$ifdef mips}
-     ppcbin:='ppcmips';
-     processorname:='mips';
-  {$endif mips}
-{$endif not mipsel}
-{$ifdef riscv32}
-     ppcbin:='ppcrv32';
-     processorname:='riscv32';
-{$endif riscv32}
-{$ifdef riscv64}
-     ppcbin:='ppcrv64';
-     processorname:='riscv64';
-{$endif riscv64}
-{$ifdef xtensa}
-     ppcbin:='ppcxtensa';
-     processorname:='xtensa';
-{$endif xtensa}
-{$ifdef wasm32}
-     ppcbin:='ppcwasm32';
-     processorname:='wasm32';
-{$endif wasm32}
-{$ifdef loongarch64}
-     ppcbin:='ppcloongarch64';
-     processorname:='loongarch64';
-{$endif loongarch64}
      versionstr:='';                      { Default is just the name }
+     initplatform(ppcbin,processorname);
      if ParamCount = 0 then
        begin
          SetLength (PPCCommandLine, 1);
