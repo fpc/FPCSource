@@ -33,7 +33,11 @@ const
   maxentrysize = 1024;
   // Unused, and wrong as there are entries that are larger then 1024 bytes
 
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+  default_entryfilebufsize   = 16384;
+{$else not CHECK_INPUTPOINTER_LIMITS}
   entryfilebufsize   = 16384;
+{$endif CHECK_INPUTPOINTER_LIMITS}
 
 {ppu entries}
   mainentryid         = 1;
@@ -243,6 +247,9 @@ type
     ppu_log_level : longint;
     ppu_log_idx : integer;
 {$endif}
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+    entryfilebufsize :longint;
+{$endif CHECK_INPUTPOINTER_LIMITS}
     mode     : byte; {0 - Closed, 1 - Reading, 2 - Writing}
     fisfile  : boolean;
     fname    : string;
@@ -262,7 +269,11 @@ type
     has_more,
 {$endif not generic_cpu}
     error         : boolean;
-    constructor create(const fn:string);
+    constructor create(const fn:string
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        ;aentryfilebufsize : longint = default_entryfilebufsize
+{$endif CHECK_INPUTPOINTER_LIMITS}
+	);
     destructor  destroy;override;
     function getversion:integer;
     procedure flush; {$ifdef USEINLINE}inline;{$endif}
@@ -370,7 +381,11 @@ begin
 end;
 
 
-constructor tentryfile.create(const fn:string);
+constructor tentryfile.create(const fn:string
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        ;aentryfilebufsize : longint = default_entryfilebufsize
+{$endif CHECK_INPUTPOINTER_LIMITS}
+	);
 begin
   fname:=fn;
   fisfile:=false;
@@ -380,6 +395,9 @@ begin
   error:=false;
   closed:=true;
   tempclosed:=false;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+  entryfilebufsize:=aentryfilebufsize;
+{$endif CHECK_INPUTPOINTER_LIMITS}
   getmem(buf,entryfilebufsize);
 {$ifdef DEBUG_PPU}
   assign(flog,fn+'.debug-log');
