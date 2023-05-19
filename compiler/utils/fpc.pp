@@ -68,27 +68,28 @@ Const
 
   begin
     case processorstr of
-      'aarch64': Result:='a64';
-      'arm' : Result:='arm';
-      'avr' : Result:='avr';
-      'i386' : Result:='386';
-      'i8086' : Result:='8086';
-      'jvm' : Result:='jvm';
-      'm68k' : Result:='68k';
-      'mips' : Result:='mips';
-      'mipsel' : Result:='mipsel';
-      'powerpc' : Result:='ppc';
-      'powerpc64' : Result:='ppc64';
-      'riscv32' : Result:='rv32';
-      'riscv64' : Result:='rv64';
-      'sparc' : Result:='sparc';
-      'sparc64' : Result:='sparc64';
-      'x86_64' : Result:='x64';
-      'xtensa' : Result:='xtensa';
-      'z80' : Result:='z80';
-      'wasm32' : Result:='wasm32'
-    else
-      error('Illegal processor type "'+processorstr+'"');
+      'aarch64': Result := 'a64';
+      'arm': Result := 'arm';
+      'avr': Result := 'avr';
+      'i386': Result := '386';
+      'i8086': Result := '8086';
+      'jvm': Result := 'jvm';  
+      'loongarch64': Result:='loongarch64';
+      'm68k': Result := '68k';
+      'mips': Result := 'mips';
+      'mipsel': Result := 'mipsel';
+      'powerpc': Result := 'ppc';
+      'powerpc64': Result := 'ppc64';
+      'riscv32': Result := 'rv32';
+      'riscv64': Result := 'rv64';
+      'sparc': Result := 'sparc';
+      'sparc64': Result := 'sparc64';
+      'x86_64': Result := 'x64';
+      'xtensa': Result := 'xtensa';
+      'z80': Result := 'z80';
+      'wasm32': Result := 'wasm32'
+      else
+        error('Illegal processor type "'+processorstr+'"');
     end;
   end;
 
@@ -125,7 +126,7 @@ Const
     {$endif sparc}
     {$ifdef sparc64}
          ppcbin:='ppcsparc64';
-         processorname:='sparc64';
+          processorname:='sparc64';
     {$endif sparc64}
     {$ifdef x86_64}
          ppcbin:='ppcx64';
@@ -156,6 +157,10 @@ Const
          ppcbin:='ppcwasm32';
          processorname:='wasm32';
     {$endif wasm32}
+    {$ifdef loongarch64}
+         ppcbin:='ppcloongarch64';
+         processorname:='loongarch64';
+    {$endif loongarch64}
   end;
 
   function SplitPath(Const HStr:String):String;
