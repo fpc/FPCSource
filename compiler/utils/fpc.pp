@@ -223,6 +223,30 @@ program fpc;
         end;
     end;
 
+    procedure CheckSpecialProcessors(processorstr,processorname,ppcbin,cpusuffix,exesuffix : string);
+
+    begin
+      { -PB is a special code that will show the
+        default compiler and exit immediately. It's
+        main usage is for Makefile }
+      if processorstr='B' then
+        begin
+          { report the full name of the ppcbin }
+          writeln(findcompiler(ppcbin,cpusuffix,exesuffix));
+          halt(0);
+        end;
+      { -PP is a special code that will show the
+         processor and exit immediately. It's
+         main usage is for Makefile }
+      if processorstr='P' then
+        begin
+          { report the processor }
+          writeln(processorname);
+          halt(0);
+        end;
+   end;
+
+
   var
      s              : ansistring;
      cpusuffix,
@@ -259,40 +283,22 @@ program fpc;
               if pos('-P',s)=1 then
                  begin
                    processorstr:=copy(s,3,length(s)-2);
-                  { -PB is a special code that will show the
-                    default compiler and exit immediately. It's
-                     main usage is for Makefile }
-                   if processorstr='B' then
+                   CheckSpecialProcessors(processorstr,processorname,ppcbin,cpusuffix,versionstr);
+                   if processorstr <> processorname then
                      begin
-                       { report the full name of the ppcbin }
-                       writeln(findcompiler(ppcbin,cpusuffix,versionstr));
-                       halt(0);
-                     end
-                     { -PP is a special code that will show the
-                       processor and exit immediately. It's
-                       main usage is for Makefile }
-                     else if processorstr='P' then
-                      begin
-                        { report the processor }
-                        writeln(processorname);
-                        halt(0);
-                      end
-                     else
-                       if processorstr <> processorname then
-                         begin
-                           cpusuffix:=processortosuffix(processorstr);
+                       cpusuffix:=processortosuffix(processorstr);
 
 {$ifndef darwin}
-                           ppcbin:='ppcross'+cpusuffix;
+                       ppcbin:='ppcross'+cpusuffix;
 {$else not darwin}
-                           { the mach-o format supports "fat" binaries whereby }
-                           { a single executable contains machine code for     }
-                           { several architectures -> it is counter-intuitive  }
-                           { and non-standard to use different binary names    }
-                           { for cross-compilers vs. native compilers          }
-                           ppcbin:='ppc'+cpusuffix;
+                     { the mach-o format supports "fat" binaries whereby }
+                     { a single executable contains machine code for     }
+                     { several architectures -> it is counter-intuitive  }
+                     { and non-standard to use different binary names    }
+                     { for cross-compilers vs. native compilers          }
+                     ppcbin:='ppc'+cpusuffix;
 {$endif not darwin}
-                         end;
+                     end;
                  end
               else if pos('-Xp',s)=1 then
                 extrapath:=copy(s,4,length(s)-3)
