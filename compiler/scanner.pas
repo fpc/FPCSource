@@ -118,9 +118,20 @@ interface
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
-
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+       private
+          hidden_inputbuffer,                { input buffer }
+          hidden_inputpointer : pchar;
+          { Gets char at inputpointer with offset,
+            after checking that it doesn't overflow inputfile.bufsize }
+          function get_inputpointer_char(offset : longint = 0) : char;
+          procedure inc_inputpointer(amount : longint = 1);
+          procedure dec_inputpointer;
+       public
+{$else not CHECK_INPUTPOINTER_LIMITS}
           inputbuffer,                { input buffer }
           inputpointer : pchar;
+{$endif}
           inputstart   : longint;
 
           line_no,                    { line }
@@ -2732,7 +2743,11 @@ type
              begin
                inc(current_scanner.inputfilecount);
                { we need to reread the current char }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+               current_scanner.dec_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                dec(current_scanner.inputpointer);
+{$endif  CHECK_INPUTPOINTER_LIMITS}
                { reset c }
                c:=#0;
                { shutdown current file }
@@ -2882,8 +2897,13 @@ type
           current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
         c:=#0;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        hidden_inputbuffer:=nil;
+        hidden_inputpointer:=nil;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputbuffer:=nil;
         inputpointer:=nil;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=0;
       { reset scanner }
         preprocstack:=nil;
@@ -2936,8 +2956,13 @@ type
       begin
         openinputfile:=inputfile.open;
       { load buffer }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        hidden_inputbuffer:=inputfile.buf;
+        hidden_inputpointer:=inputfile.buf;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputbuffer:=inputfile.buf;
         inputpointer:=inputfile.buf;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=inputfile.bufstart;
       { line }
         line_no:=0;
@@ -2951,8 +2976,13 @@ type
       begin
         inputfile.close;
       { reset buffer }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        hidden_inputbuffer:=nil;
+        hidden_inputpointer:=nil;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputbuffer:=nil;
         inputpointer:=nil;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=0;
       { reset line }
         line_no:=0;
@@ -2969,8 +2999,13 @@ type
           exit;
         tempopeninputfile:=inputfile.tempopen;
       { reload buffer }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        hidden_inputbuffer:=inputfile.buf;
+        hidden_inputpointer:=inputfile.buf;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputbuffer:=inputfile.buf;
         inputpointer:=inputfile.buf;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=inputfile.bufstart;
       end;
 
@@ -2979,18 +3014,31 @@ type
       begin
         if inputfile.closed or inputfile.is_macro then
          exit;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        inputfile.setpos(inputstart+(hidden_inputpointer-hidden_inputbuffer));
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputfile.setpos(inputstart+(inputpointer-inputbuffer));
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputfile.tempclose;
       { reset buffer }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        hidden_inputbuffer:=nil;
+        hidden_inputpointer:=nil;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputbuffer:=nil;
         inputpointer:=nil;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=0;
       end;
 
 
     procedure tscannerfile.saveinputfile;
       begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        inputfile.saveinputpointer:=hidden_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         inputfile.saveinputpointer:=inputpointer;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         inputfile.savelastlinepos:=lastlinepos;
         inputfile.saveline_no:=line_no;
       end;
@@ -2998,8 +3046,13 @@ type
 
     procedure tscannerfile.restoreinputfile;
       begin
+{$ifdef check_inputpointer_limits}
+        hidden_inputbuffer:=inputfile.buf;
+        hidden_inputpointer:=inputfile.saveinputpointer;
+{$else not check_inputpointer_limits}
         inputbuffer:=inputfile.buf;
         inputpointer:=inputfile.saveinputpointer;
+{$endif check_inputpointer_limits}
         lastlinepos:=inputfile.savelastlinepos;
         line_no:=inputfile.saveline_no;
         if not inputfile.is_macro then
@@ -3032,6 +3085,26 @@ type
          end;
       end;
 
+
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+    function tscannerfile.get_inputpointer_char(offset : longint = 0) : char;
+      begin
+	assert(hidden_inputpointer-hidden_inputbuffer+offset<=inputfile.bufsize);
+	get_inputpointer_char:=(hidden_inputpointer+offset)^;
+      end;
+
+    procedure tscannerfile.inc_inputpointer(amount : longint = 1);
+      begin
+        assert(hidden_inputpointer-hidden_inputbuffer+amount<=inputfile.bufsize);
+        inc(hidden_inputpointer,amount);
+      end;
+
+    procedure tscannerfile.dec_inputpointer;
+      begin
+        assert(hidden_inputpointer>hidden_inputbuffer);
+        dec(hidden_inputpointer);
+      end;
+{$endif}
 
     procedure tscannerfile.startrecordtokens(buf:tdynamicarray);
       begin
@@ -3504,8 +3577,13 @@ type
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
           cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,replaystack);
+{$ifdef check_inputpointer_limits}
+        if assigned(hidden_inputpointer) then
+          dec_inputpointer;
+{$else not check_inputpointer_limits}
         if assigned(inputpointer) then
           dec(inputpointer);
+{$endif check_inputpointer_limits}
         { install buffer }
         replaytokenbuf:=buf;
 
@@ -3557,11 +3635,19 @@ type
             { restore compiler settings }
             current_settings:=replaystack.settings;
             popreplaystack;
+{$ifdef check_inputpointer_limits}
+            if assigned(hidden_inputpointer) then
+              begin
+                c:=get_inputpointer_char;
+                inc_inputpointer;
+              end;
+{$else not check_inputpointer_limits}
             if assigned(inputpointer) then
               begin
                 c:=inputpointer^;
                 inc(inputpointer);
               end;
+{$endif check_inputpointer_limits}
             exit;
           end;
         repeat
@@ -3703,22 +3789,44 @@ type
              the place of the #0 in the buffer with tempopen }
              if (c=#0) and (bufsize>0) and
                 not(inputfile.is_macro) and
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                (hidden_inputpointer-hidden_inputbuffer<bufsize) then
+{$else not CHECK_INPUTPOINTER_LIMITS}
                 (inputpointer-inputbuffer<bufsize) then
+{$endif CHECK_INPUTPOINTER_LIMITS}
               begin
                 c:=' ';
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                 inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
                 exit;
               end;
            { can we read more from this file ? }
              if (c<>#26) and (not endoffile) then
               begin
                 readbuf;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                hidden_inputpointer:=buf;
+                hidden_inputbuffer:=buf;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                 inputpointer:=buf;
                 inputbuffer:=buf;
+{$endif CHECK_INPUTPOINTER_LIMITS}
                 inputstart:=bufstart;
               { first line? }
                 if line_no=0 then
                  begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                   c:=get_inputpointer_char;
+                   { eat utf-8 signature? }
+                   if (bufsize>2) and
+                     (ord(get_inputpointer_char)=$ef) and
+                     (ord(get_inputpointer_char(1))=$bb) and
+                     (ord(get_inputpointer_char(2))=$bf) then
+                     begin
+{$else not CHECK_INPUTPOINTER_LIMITS}
                    c:=inputpointer^;
                    { eat utf-8 signature? }
                    if (bufsize>2) and
@@ -3726,6 +3834,7 @@ type
                      (ord((inputpointer+1)^)=$bb) and
                      (ord((inputpointer+2)^)=$bf) then
                      begin
+{$endif CHECK_INPUTPOINTER_LIMITS}
                        (* we don't support including files with an UTF-8 bom
                           inside another file that wasn't encoded as UTF-8
                           already (we don't support {$codepage xxx} switches in
@@ -3733,7 +3842,11 @@ type
                        if (current_settings.sourcecodepage<>CP_UTF8) and
                           not current_module.in_global then
                          Message(scanner_f_illegal_utf8_bom);
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                       inc_inputpointer(3);
+{$else not CHECK_INPUTPOINTER_LIMITS}
                        inc(inputpointer,3);
+{$endif CHECK_INPUTPOINTER_LIMITS}
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
                        exclude(current_settings.moduleswitches,cs_system_codepage);
@@ -3742,7 +3855,11 @@ type
 
                    line_no:=1;
                    if cs_asm_source in current_settings.globalswitches then
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                     inputfile.setline(line_no,inputstart+hidden_inputpointer-hidden_inputbuffer);
+{$else not CHECK_INPUTPOINTER_LIMITS}
                      inputfile.setline(line_no,inputstart+inputpointer-inputbuffer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
                  end;
               end
              else
@@ -3774,8 +3891,13 @@ type
                   end;
               end;
            { load next char }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+             c:=get_inputpointer_char;
+             inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
              c:=inputpointer^;
              inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
            until c<>#0; { if also end, then reload again }
          end;
       end;
@@ -3786,7 +3908,11 @@ type
         hp : tinputfile;
       begin
         { save old postion }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        dec_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         dec(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
         tempcloseinputfile;
       { create macro 'file' }
         { use special name to dispose after !! }
@@ -3797,8 +3923,13 @@ type
            inc(macro_nesting_depth);
            setmacro(p,len);
          { local buffer }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+           hidden_inputbuffer:=buf;
+           hidden_inputpointer:=buf;
+{$else not CHECK_INPUTPOINTER_LIMITS}
            inputbuffer:=buf;
            inputpointer:=buf;
+{$endif CHECK_INPUTPOINTER_LIMITS}
            inputstart:=bufstart;
            ref_index:=fileindex;
            internally_generated_macro:=internally_generated;
@@ -3809,14 +3940,23 @@ type
         lasttokenpos:=0;
         nexttokenpos:=0;
       { load new c }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        c:=get_inputpointer_char;
+        inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         c:=inputpointer^;
         inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
       end;
 
 
     procedure tscannerfile.do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
       begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        tokenpos:=inputstart+(hidden_inputpointer-hidden_inputbuffer);
+{$else not CHECK_INPUTPOINTER_LIMITS}
         tokenpos:=inputstart+(inputpointer-inputbuffer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
         filepos.line:=line_no;
         filepos.column:=tokenpos-lastlinepos;
         filepos.fileindex:=inputfile.ref_index;
@@ -3896,23 +4036,40 @@ type
       begin
         with inputfile do
          begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+           if (byte(get_inputpointer_char)=0) and not(endoffile) then
+{$else not CHECK_INPUTPOINTER_LIMITS}
            if (byte(inputpointer^)=0) and not(endoffile) then
+{$endif CHECK_INPUTPOINTER_LIMITS}
              begin
                cur:=c;
                reload;
                if byte(cur)+byte(c)<>23 then
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                 dec_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                  dec(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
              end
            else
              begin
                { Support all combination of #10 and #13 as line break }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+               if (byte(get_inputpointer_char)+byte(c)=23) then
+                 inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                if (byte(inputpointer^)+byte(c)=23) then
                  inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
              end;
            { Always return #10 as line break }
            c:=#10;
            { increase line counters }
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+           lastlinepos:=inputstart+(hidden_inputpointer-hidden_inputbuffer);
+{$else not CHECK_INPUTPOINTER_LIMITS}
            lastlinepos:=inputstart+(inputpointer-inputbuffer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
            inc(line_no);
            { update linebuffer }
            if cs_asm_source in current_settings.globalswitches then
@@ -4212,11 +4369,19 @@ type
 
     procedure tscannerfile.readchar;
       begin
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+        c:=get_inputpointer_char;
+{$else not CHECK_INPUTPOINTER_LIMITS}
         c:=inputpointer^;
+{$endif CHECK_INPUTPOINTER_LIMITS}
         if c=#0 then
           reload
         else
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+          inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
           inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
       end;
 
 
@@ -4251,8 +4416,13 @@ type
                        err:=true;
                      end;
                  end;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                c:=get_inputpointer_char;
+                inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                 c:=inputpointer^;
                 inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
               end;
             #0 :
               reload;
@@ -4273,8 +4443,13 @@ type
                        err:=true;
                      end;
                  end;
+{$ifdef CHECK_INPUTPOINTER_LIMITS}
+                c:=get_inputpointer_char;
+                inc_inputpointer;
+{$else not CHECK_INPUTPOINTER_LIMITS}
                 c:=inputpointer^;
                 inc(inputpointer);
+{$endif CHECK_INPUTPOINTER_LIMITS}
               end
             else
               break;
