@@ -83,7 +83,9 @@
     {$define SignalIsCdecl}
   {$endif}
   {$ifdef win64}
-    {$define HasSignal}
+    {$ifdef cpux86_64}
+      {$define HasSignal}
+    {$endif cpux86_64}
     {$define SignalIsFunction}
     {$define SignalIsCdecl}
   {$endif}
