@@ -162,7 +162,7 @@ begin
   {todo:implement}
 end;
 
-function WasiBasicEventWaitFor(timeout:cardinal;state:peventstate):longint;
+function WasiBasicEventWaitFor(timeout:cardinal;state:peventstate;FUseComWait : Boolean=False):longint;
 begin
   {todo:implement}
 end;

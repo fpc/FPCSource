@@ -809,7 +809,7 @@ begin
   pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
 end;
 
-function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 var
   timespec: ttimespec;
   errres: cint;

@@ -305,10 +305,10 @@ begin
   currenttm.BasicEventSetEvent(state);
 end;
 
-function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 
 begin
- result:=currenttm.BasicEventWaitFor(Timeout,state);
+ result:=currenttm.BasicEventWaitFor(Timeout,state,FUseComWait);
 end;
 
 function  RTLEventCreate :PRTLEvent;
@@ -542,7 +542,7 @@ begin
     ThreadingAlreadyUsed:=true;
 end;
 
-function  NoBasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function  NoBasicEventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 
 begin
   if IsMultiThread then
