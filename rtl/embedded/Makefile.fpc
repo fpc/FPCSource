@@ -192,7 +192,7 @@ CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlcons
 endif
 
 ifeq ($(ARCH),m68k)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 # CPU_UNITS=multiboot
 endif
 
