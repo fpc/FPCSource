@@ -1107,7 +1107,7 @@ end;
 // End timer stuff
 
 // the mighty Waitfor routine
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 var
   AmiEvent: PAmiEvent absolute State;
   Tr: PTimeRequest = nil;

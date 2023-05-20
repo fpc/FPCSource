@@ -833,7 +833,7 @@ begin
 end;
 
 
-function SysBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
+function SysBasicEventWaitFor (Timeout: Cardinal; State: PEventState;FUseComWait : Boolean=False): longint;
 var
   RC: cardinal;
 begin

@@ -51,17 +51,26 @@ type
       constructor Create;
       destructor Destroy;override;
    end;
-
+   THandleObject= class;
+   THandleObjectArray = array of THandleObject;
    THandleObject = class abstract  (TSynchroObject)
    protected
       FHandle : TEventHandle;
       FLastError : Integer;
+      {$IFDEF MSWINDOWS}
+       // Windows specific, use COWait* functions for com compatibility.
+        FUseCOMWait: Boolean;
+      {$ENDIF MSWINDOWS}
    public
+      constructor Create(UseComWait : Boolean=false);
       destructor Destroy; override;
+      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;
+      {$IFDEF MSWINDOWS}
+        class function WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
+      {$ENDIF MSWINDOWS}
       property Handle : TEventHandle read FHandle;
       property LastError : Integer read FLastError;
    end;
-   THandleObjectArray = array of THandleObject;
 
    TEventObject = class(THandleObject)
    private
@@ -69,12 +78,10 @@ type
    public
       constructor Create(EventAttributes : PSecurityAttributes;
         AManualReset,InitialState : Boolean;const Name : string;
-        UseComWait:boolean=false);
-      constructor Create(UseComWait : Boolean=false);
-      destructor Destroy; override;
+        UseComWait:boolean=false); overload;
       procedure ResetEvent;
       procedure SetEvent;
-      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;
+
       Property ManualReset : Boolean read FManualReset;
    end;
 
@@ -86,8 +93,18 @@ type
 
 implementation
 
+{$ifdef MSWindows}
+uses Windows;
+
+function CoWaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external 'kernel32' name 'CoWaitForMultipleObjects';
+{$endif}
+
+
 Resourcestring
-  SErrEventCreateFailed = 'Failed to create OS basic event with name "%s"'; 
+  SErrEventCreateFailed   = 'Failed to create OS basic event with name "%s"';
+  SErrEventZeroNotAllowed = 'Handle count of zero is not allowed.';
+  SErrEventMaxObjects     = 'The maximal amount of objects is %d.';
+  SErrEventTooManyHandles = 'Length of object handles smaller than Len.';
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -122,7 +139,7 @@ end;
 
 function  TCriticalSection.TryEnter:boolean;
 begin
-  result:=TryEnterCriticalSection(CriticalSection)<>0;
+  result:=System.TryEnterCriticalSection(CriticalSection)<>0;
 end;
 
 procedure TCriticalSection.Acquire;
@@ -150,32 +167,102 @@ begin
   DoneCriticalSection(CriticalSection);
 end;
 
-destructor THandleObject.destroy;
+{ THandleObject }
+
+constructor THandleObject.Create(UseComWait : Boolean=false);
+// cmompatibility shortcut constructor, Com waiting not implemented yet
+begin
+  FHandle := BasicEventCreate(nil, True,False,'');
+  if (FHandle=Nil) then
+    Raise ESyncObjectException.CreateFmt(SErrEventCreateFailed,['']);
+end;
+
+function THandleObject.WaitFor(Timeout : Cardinal) : TWaitResult;
 
 begin
+  Result := TWaitResult(basiceventWaitFor(Timeout, Handle));
+  if Result = wrError then
+{$IFDEF OS2}
+    FLastError := PLocalEventRec (Handle)^.FLastError;
+{$ELSE OS2}
+  {$if declared(getlastoserror)}
+    FLastError := GetLastOSError;
+  {$else}
+    FLastError:=-1;
+  {$endif}
+{$ENDIF OS2}
+end;
+
+{$IFDEF MSWINDOWS}
+class function THandleObject.WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
+var
+  ret: Integer;
+  AmountHandles: Integer;
+begin
+  AmountHandles := Length(HandleObjs);
+  if AmountHandles = 0 then
+    raise ESyncObjectException.Create(SErrEventZeroNotAllowed);
+
+  if AmountHandles > MAXIMUM_WAIT_OBJECTS then
+    raise ESyncObjectException.CreateFmt(SErrEventMaxObjects, [MAXIMUM_WAIT_OBJECTS]);
+
+  if Len > AmountHandles then
+    raise ESyncObjectException.Create(SErrEventTooManyHandles);
+
+  // what about UseCOMWait?
+  {$IFDEF MSWINDOWS}
+  if UseCOMWait Then
+    begin
+      SetLastError(ERROR_SUCCESS); // only for "alertable" objects
+      ret := CoWaitForMultipleObjects(Len, @HandleObjs, AAll, Timeout);
+    end
+  else
+  {$ENDIF}
+    ret := WaitForMultipleObjects(Len, @HandleObjs, AAll, Timeout);
+
+  if (ret >= WAIT_OBJECT_0) and (ret < (WAIT_OBJECT_0 + Len)) then
+    begin
+      if not AAll then
+        SignaledObj := HandleObjs[ret];
+      Exit(wrSignaled);
+    end;
+
+  if (ret >= WAIT_ABANDONED_0) and (ret < (WAIT_ABANDONED_0 + Len)) then
+    begin
+      if not AAll then
+        SignaledObj := HandleObjs[ret];
+      Exit(wrAbandoned);
+    end;
+
+  case ret of
+    WAIT_TIMEOUT:
+      begin
+        Result := wrTimeout;
+      end;
+    Integer(WAIT_FAILED): // w/o: Warning: Range check error while evaluating constants (4294967295 must be between -2147483648 and 2147483647)
+      begin
+        Result := wrError;
+      end;
+  end;
+end;
+{$endif}
+
+destructor THandleObject.Destroy;
+begin
+  BasicEventDestroy(Handle);
 end;
 
 constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
   AManualReset,InitialState : Boolean;const Name : string;UseComWait:boolean=false);
 
 begin
+  {$IFDEF MSWINDOWS}
+    FUseCOMWait:=UseComWait;
+  {$endif}
   FHandle := BasicEventCreate(EventAttributes, AManualReset, InitialState, Name);
   if (FHandle=Nil) then
     Raise ESyncObjectException.CreateFmt(SErrEventCreateFailed,[Name]);
   FManualReset:=AManualReset;
-end;
-
-
-constructor TEventObject.Create(UseComWait : Boolean=false);
-// cmompatibility shortcut constructor, Com waiting not implemented yet
-begin
- Create(nil,True,false,'',UseComWait);
-end;
-
-destructor TEventObject.destroy;
-
-begin
-  BasicEventDestroy(Handle);
 end;
 
 procedure TEventObject.ResetEvent;
@@ -188,23 +275,6 @@ procedure TEventObject.SetEvent;
 
 begin
   BasicEventSetEvent(Handle);
-end;
-
-
-function TEventObject.WaitFor(Timeout : Cardinal) : TWaitResult;
-
-begin
-  Result := TWaitResult(basiceventWaitFor(Timeout, Handle));
-  if Result = wrError then
-{$IFDEF OS2}
-    FLastError := PLocalEventRec (Handle)^.FLastError;
-{$ELSE OS2}
-  {$if defined(getlastoserror)}
-    FLastError := GetLastOSError;
-  {$else}
-    FLastError:=-1;
-  {$endif}
-{$ENDIF OS2}
 end;
 
 constructor TSimpleEvent.Create;
