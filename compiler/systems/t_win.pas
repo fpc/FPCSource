@@ -1405,7 +1405,7 @@ implementation
         cmdstr  : TCmdStr;
         success : boolean;
         cmds,i       : longint;
-        AsBinStr     : string[80];
+        AsBinStr     : string;
         GCSectionsStr,
         StripStr,
         RelocStr,
@@ -1424,7 +1424,11 @@ implementation
         StripStr:='';
         MapStr:='';
         GCSectionsStr:='';
+{$ifdef AARCH64}
+        AsBinStr:=FindUtil(utilsprefix+'clang');
+{$else not AARCH64}
         AsBinStr:=FindUtil(utilsprefix+'as');
+{$endif AARCH64}
         if RelocSection then
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
@@ -1510,7 +1514,7 @@ implementation
         success : boolean;
         cmds,
         i       : longint;
-        AsBinStr     : string[80];
+        AsBinStr     : string;
         StripStr,
         GCSectionsStr,
         RelocStr,
@@ -1530,7 +1534,11 @@ implementation
         StripStr:='';
         MapStr:='';
         GCSectionsStr:='';
+{$ifdef AARCH64}
+        AsBinStr:=FindUtil(utilsprefix+'clang');
+{$else not AARCH64}
         AsBinStr:=FindUtil(utilsprefix+'as');
+{$endif AARCH64}
         if RelocSection then
          RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
