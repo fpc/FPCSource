@@ -329,7 +329,9 @@ var
 
     function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
     begin
+      // shouldn't this be a msgwait in case the thread creates "Windows"  See comment in waitforsingle?
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
+      // does waiting on thread require cowait too ?
       SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
     end;
 
@@ -539,10 +541,22 @@ begin
   SetEvent(THandle(state));
 end;
 
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
+type 
+      PWOHandleArray = ^THandle;
+
+function CoWaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:LONGBOOL; dwMilliseconds:DWORD):DWORD; external 'ole32.dll' name 'CoWaitForMultipleObjects';
+
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;UseCOMWait: Boolean = False) : longint;
+
+var ret : Integer;
 begin
-  case WaitForSingleObject(THandle(state), Timeout) of
+   if UseComWait Then
+     ret:=CoWaitForMultipleObjects(1,PWOHandleArray(@state), True, Timeout)
+   else 
+     ret:=WaitForSingleObject(THandle(state), Timeout);
+
+   case ret of
     WAIT_ABANDONED: Result := wrAbandoned;
     WAIT_OBJECT_0: Result := wrSignaled;
     WAIT_TIMEOUT: Result := wrTimeout;

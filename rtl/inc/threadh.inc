@@ -56,7 +56,7 @@ type
   TAllocateThreadVarsHandler = Procedure;
   TReleaseThreadVarsHandler = Procedure;
   TBasicEventHandler        = procedure(state:peventstate);
-  TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
+  TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate;FUseComWait : Boolean=False):longint;
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
   TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
@@ -174,7 +174,7 @@ function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState 
 procedure BasicEventDestroy(state:peventstate);
 procedure BasicEventResetEvent(state:peventstate);
 procedure BasicEventSetEvent(state:peventstate);
-function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 
 function  RTLEventCreate :PRTLEvent;
 procedure RTLEventDestroy(state:pRTLEvent);

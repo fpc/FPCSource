@@ -188,7 +188,7 @@ procedure intbasiceventSetEvent(state:peventstate);
 begin
 end;
 
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 begin
   Result := STATUS_NOT_IMPLEMENTED;
 end;

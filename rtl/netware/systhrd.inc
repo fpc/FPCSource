@@ -420,7 +420,7 @@ begin
   {$WARNING TODO! intbasiceventSetEvent}
 end;
 
-function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;FUseComWait : Boolean=False) : longint;
 begin
   {$WARNING TODO! intbasiceventWaitFor}
 end;
