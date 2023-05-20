@@ -18,7 +18,7 @@ unit syncobjs;
 interface
 
 uses
-  sysutils;
+  sysutils,system.timespan;
 
 type
   PSecurityAttributes = Pointer;
@@ -53,6 +53,9 @@ type
    end;
    THandleObject= class;
    THandleObjectArray = array of THandleObject;
+
+   { THandleObject }
+
    THandleObject = class abstract  (TSynchroObject)
    protected
       FHandle : TEventHandle;
@@ -64,7 +67,8 @@ type
    public
       constructor Create(UseComWait : Boolean=false);
       destructor Destroy; override;
-      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;
+      function WaitFor(Timeout : Cardinal=INFINITE) : TWaitResult;overload;
+      function WaitFor(const Timeout : TTimespan) : TWaitResult;overload;
       {$IFDEF MSWINDOWS}
         class function WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
       {$ENDIF MSWINDOWS}
@@ -191,6 +195,11 @@ begin
     FLastError:=-1;
   {$endif}
 {$ENDIF OS2}
+end;
+
+function THandleObject.WaitFor(const Timeout: TTimespan): TWaitResult;
+begin
+  result:=waitfor(round(timeout.TotalMilliseconds));
 end;
 
 {$IFDEF MSWINDOWS}
