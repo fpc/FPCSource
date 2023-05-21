@@ -6166,7 +6166,9 @@ var
        tkBraceOpen,tkSquaredBraceOpen,
        tkMinus,tkPlus,tkinherited
        ];
-    Result:=TryErrorRecovery(CreateRecovery(E,RestartTokens));
+    Result:=(Curtoken<>tkEOF);
+    if Result then
+      Result:=TryErrorRecovery(CreateRecovery(E,RestartTokens,false));
   end;
 
 var
