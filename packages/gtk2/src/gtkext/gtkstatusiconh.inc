@@ -26,7 +26,7 @@ type
   PGtkStatusIcon = Pointer;
   PGtkStatusIconClass = Pointer;
 
-  PPGdkScreen = PGdkScreen;
+  PPGdkScreen = ^PGdkScreen;
 
 
 var
