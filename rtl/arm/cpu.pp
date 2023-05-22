@@ -16,6 +16,10 @@
 {$mode objfpc}
 unit cpu;
 
+{$ifdef symbian}
+  {$define NO_ELF_SUPPORT}
+{$endif}
+
   interface
 
     function VFPv4Support : Boolean;
@@ -57,6 +61,7 @@ unit cpu;
         auxv: PElf32AuxiliaryVector;
       begin
         psysinfo := 0;
+{$ifndef NO_ELF_SUPPORT} 
         ep := envp;
         while ep^ <> nil do
           Inc(ep);
@@ -75,6 +80,7 @@ unit cpu;
             end;
             Inc(auxv);
           end;
+{$endif ndef NO_ELF_SUPPORT} 
       end;
 
 
