@@ -489,7 +489,36 @@ begin
 end;
 
 procedure FillEllipsePattern (Canv:TFPCustomCanvas; const Bounds:TRect; Pattern:TBrushPattern; const c:TFPColor);
+var info : TEllipseInfo;
+    r, y : integer;
+    pixNo: Byte;
+    pixVal: TPenPattern;
+    patt: TPenPattern;
+    pattHeight: Integer;
+    infoData: PEllipseInfoData;
 begin
+  info := TEllipseInfo.Create;
+  try
+    info.GatherEllipseInfo(bounds);
+    pattHeight := Length(Pattern);
+    for r := 0 to info.infolist.count-1 do
+      begin
+      infoData := PEllipseInfoData(info.infolist[r]);
+      with infoData^ do
+        begin
+        pixNo := x mod PatternBitCount;
+        pixVal := 1 shl pixNo;
+        for y := ytopmin to ybotmax do
+          begin
+          patt := Pattern[y mod pattHeight];
+          if patt and pixVal <> 0 then
+            canv.DrawPixel(x, y, c);
+          end;
+        end;
+      end;
+  finally
+    info.Free;
+  end;
 end;
 
 procedure FillEllipseHashHorizontal (Canv:TFPCustomCanvas; const Bounds:TRect; width:integer; const c:TFPColor);
