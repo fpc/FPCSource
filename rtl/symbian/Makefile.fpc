@@ -9,7 +9,7 @@ main=rtl
 # macpas and iso7185 units rely on sysutils unit, not yet handled here
 # extpas unit relies on dos unit, not yet handled
 units=system uuchar objpas sysconst sysutils math rtlconsts \
-      character fpwidestring unicodedata unicodenumtable fgl \
+      character fpwidestring unicodedata unicodenumtable fgl $(CPU_UNITS) \
       dos iso7185 extpas typinfo types classes macpas buildrtl
 implicitunits=ctypes strings symbian
 
@@ -41,6 +41,15 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 
 OBJPASDIR=$(RTL)/objpas
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=cpu mmx
+endif
+
+ifeq ($(ARCH),arm)
+CPU_UNITS=cpu
+endif
+
 
 [rules]
 .NOTPARALLEL:
@@ -132,4 +141,15 @@ unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
+
+ifneq ($(findstring $(ARCH),i386),)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
+else
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $(PROCINC)/cpu.pp
+endif
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(PROCINC)/mmx.pp
 
