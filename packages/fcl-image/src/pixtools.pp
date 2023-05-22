@@ -23,10 +23,10 @@ procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer; const col
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern; const color:TFPColor);
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const color:TFPColor);
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern; const color:TFPColor);
-procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
-procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
-procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
-procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
 procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
 procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern; const color:TFPColor);
 procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
@@ -40,10 +40,10 @@ procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer);
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern);
 procedure FillRectanglePattern (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const pattern:TBrushPattern);
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
-procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
-procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
-procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
-procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
 procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer);
 procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern);
 procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
@@ -354,50 +354,50 @@ begin
     SlopedLine;
 end;
 
-procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
 begin
-  FillRectangleHashHorizontal (Canv, rect, width, Canv.Brush.FPColor);
+  FillRectangleHashHorizontal (Canv, rect, AWidth, Canv.Brush.FPColor);
 end;
 
-procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
 var y : integer;
 begin
   with rect do
     begin
-    y := Width + top;
+    y := AWidth + top;
     while y <= bottom do
       begin
       DrawSolidLine (Canv, left,y, right,y, c);
-      inc (y,Width);
+      inc (y,AWidth);
       end
     end;
 end;
 
-procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
 begin
-  FillRectangleHashVertical (Canv, rect, width, Canv.Brush.FPColor);
+  FillRectangleHashVertical (Canv, rect, AWidth, Canv.Brush.FPColor);
 end;
 
-procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
 var x : integer;
 begin
   with rect do
     begin
-    x := Width + left;
+    x := AWidth + left;
     while x <= right do
       begin
       DrawSolidLine (Canv, x,top, x,bottom, c);
-      inc (x, Width);
+      inc (x, AWidth);
       end;
     end;
 end;
 
-procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
 begin
-  FillRectangleHashDiagonal (Canv, rect, width, Canv.Brush.FPColor);
+  FillRectangleHashDiagonal (Canv, rect, AWidth, Canv.Brush.FPColor);
 end;
 
-procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
 function CheckCorner (Current, max, start : integer) : integer;
   begin
     if Current > max then
@@ -410,13 +410,13 @@ begin
   with rect do
     begin
     // draw from bottom-left corner away
-    ry := top + Width;
-    rx := left + Width;
+    ry := top + AWidth;
+    rx := left + AWidth;
     while (rx < right) and (ry < bottom) do
       begin
       DrawSolidLine (Canv, left,ry, rx,top, c);
-      inc (rx, Width);
-      inc (ry, Width);
+      inc (rx, AWidth);
+      inc (ry, AWidth);
       end;
     // check which turn need to be taken: left-bottom, right-top, or both
     if (rx >= right) then
@@ -433,8 +433,8 @@ begin
         while (ry < bottom) do
           begin
           DrawSolidLine (Canv, left,ry, right,r, c);
-          inc (r, Width);
-          inc (ry, Width);
+          inc (r, AWidth);
+          inc (ry, AWidth);
           end;
         rx := CheckCorner (ry, bottom, left);
         ry := r;
@@ -447,8 +447,8 @@ begin
         while (rx <= right) do
           begin
           DrawSolidLine (Canv, r,bottom, rx,top, c);
-          inc (r, Width);
-          inc (rx, Width);
+          inc (r, AWidth);
+          inc (rx, AWidth);
           end;
         ry := CheckCorner (rx, right, top);
         rx := r;
@@ -456,18 +456,18 @@ begin
     while (rx < right) do  // fill lower right corner
       begin
       DrawSolidLine (Canv, rx,bottom, right,ry, c);
-      inc (rx, Width);
-      inc (ry, Width);
+      inc (rx, AWidth);
+      inc (ry, AWidth);
       end;
     end;
 end;
 
-procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer);
 begin
-  FillRectangleHashBackDiagonal (Canv, rect, width, Canv.Brush.FPColor);
+  FillRectangleHashBackDiagonal (Canv, rect, AWidth, Canv.Brush.FPColor);
 end;
 
-procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; AWidth:integer; const c:TFPColor);
   function CheckInversCorner (Current, min, start : integer) : integer;
   begin
     if Current < min then
@@ -487,13 +487,13 @@ begin
   with rect do
     begin
     // draw from bottom-left corner away
-    ry := bottom - Width;
-    rx := left + Width;
+    ry := bottom - AWidth;
+    rx := left + AWidth;
     while (rx < right) and (ry > top) do
       begin
       DrawSolidLine (Canv, left,ry, rx,bottom, c);
-      inc (rx, Width);
-      dec (ry, Width);
+      inc (rx, AWidth);
+      dec (ry, AWidth);
       end;
     // check which turn need to be taken: left-top, right-bottom, or both
     if (rx >= right) then
@@ -510,8 +510,8 @@ begin
         while (ry > top) do
           begin
           DrawSolidLine (Canv, left,ry, right,r, c);
-          dec (r, Width);
-          dec (ry, Width);
+          dec (r, AWidth);
+          dec (ry, AWidth);
           end;
         rx := CheckInversCorner (ry, top, left);
         ry := r;
@@ -524,8 +524,8 @@ begin
         while (rx < right) do
           begin
           DrawSolidLine (Canv, r,top, rx,bottom, c);
-          inc (r, Width);
-          inc (rx, Width);
+          inc (r, AWidth);
+          inc (rx, AWidth);
           end;
         ry := CheckCorner (rx, right, bottom);
         rx := r;
@@ -533,8 +533,8 @@ begin
     while (rx < right) do  // fill upper right corner
       begin
       DrawSolidLine (Canv, rx,top, right,ry, c);
-      inc (rx, Width);
-      dec (ry, Width);
+      inc (rx, AWidth);
+      dec (ry, AWidth);
       end;
     end;
 end;
