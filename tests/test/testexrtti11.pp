@@ -3,7 +3,7 @@
 
 { Test partial generation of RTTI: private/public properties/methods only }
 
-program testextrtti2;
+program testextrtti11;
 
 uses typinfo, sysutils, uexrttiutil;
 
@@ -131,7 +131,7 @@ begin
   try
     AssertEquals('Legacy Count',2,aCount);
   finally
-    Freemem(A);
+    Freemem(AL);
   end;
 end;
 
