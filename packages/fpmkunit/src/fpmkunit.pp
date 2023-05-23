@@ -110,6 +110,10 @@ uses
 {$endif HAS_UNIT_ZIPPER}
   ;
 
+{$IF DECLARED(VOLATILE)}
+{$DEFINE HAVE_VOLATILE}
+{$ENDIF}
+
 Type
   TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
                ftSharedLibrary);
@@ -7429,7 +7433,7 @@ begin
               { prevent FCachedlibcPath getting freed by thread 2 while thread 1 is
                 concatenating it to -Fl below }
               try
-                if volatile(FCachedlibcPath)='' then
+                if {$IFDEF HAVE_VOLATILE}volatile{$ENDIF}(FCachedlibcPath)='' then
                   begin
 {$endif NO_THREADING}
                     FCachedlibcPath:=s;
@@ -7449,7 +7453,7 @@ begin
 {$ifdef NO_THREADING}
       Args.Add('-Fl'+FCachedlibcPath);
 {$ELSE}
-      Args.Add('-Fl'+volatile(FCachedlibcPath));
+      Args.Add('-Fl'+{$IFDEF HAVE_VOLATILE}volatile{$ENDIF}(FCachedlibcPath));
 {$ENDIF}
     end;
 
