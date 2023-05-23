@@ -17,7 +17,7 @@ unit FPPixlCanv;
 
 interface
 
-uses Sysutils, classes, FPImage, FPCanvas, PixTools, ellipses;
+uses Sysutils, classes, FPImage, FPCanvas, PixTools, ellipses, PolygonFillTools;
 
 type
 
@@ -33,6 +33,7 @@ type
   TFPPixelCanvas = class (TFPCustomCanvas)
   private
     FHashWidth : word;
+    FNonZeroWindingRule : Boolean;
     FRelativeBI : boolean;
   protected
     procedure DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect); override;
@@ -56,6 +57,7 @@ type
   public
     constructor create;
     property HashWidth : word read FHashWidth write FHashWidth;
+    property PolygonNonZeroWindingRule : Boolean read FNonZeroWindingRule write FNonZeroWindingRule;
     property RelativeBrushImage : boolean read FRelativeBI write FRelativeBI;
   end;
 
@@ -286,7 +288,33 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
-begin  //TODO: how to find a point inside the polygon ?
+begin
+  case Brush.Style of
+    bsSolid:
+      FillPolygonSolid(self, points, FNonZeroWindingRule, Brush.FPColor);
+    bsHorizontal:
+      FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+    bsVertical:
+      FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+    bsCross:
+      begin
+        FillPolygonHorizontal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonVertical(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      end;
+    bsFDiagonal:
+      FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+    bsBDiagonal:
+      FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+    bsDiagCross:
+      begin
+        FillPolygonDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+        FillPolygonBackDiagonal(self, points, FNonZeroWindingRule, Brush.FPColor, HashWidth);
+      end;
+    bsPattern:
+      FillPolygonPattern(self, points, FNonZeroWindingRule, Brush.FPColor, Brush.Pattern);
+    bsImage:
+      FillPolygonImage(self, points, FNonZeroWindingRule, Brush.Image, FRelativeBI);
+  end;
 end;
 
 procedure TFPPixelCanvas.DoFloodFill (x,y:integer);

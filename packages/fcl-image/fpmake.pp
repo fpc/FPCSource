@@ -57,6 +57,13 @@ begin
           AddUnit('fpimage');
           AddUnit('fpcanvas');
         end;
+    T:=P.Targets.AddUnit('polygonfilltools.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpcanvas');
+          AddUnit('pixtools');
+        end; 
     T:=P.Targets.AddUnit('fpcanvas.pp');
       with T.Dependencies do
         begin
@@ -107,6 +114,7 @@ begin
           AddUnit('pixtools');
           AddUnit('ellipses');
           AddUnit('clipping');
+          AddUnit('polygonfilltools');
         end;
     T:=P.Targets.AddUnit('fpquantizer.pas');
       with T.Dependencies do
