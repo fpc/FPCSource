@@ -1010,12 +1010,12 @@ function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName
 // windows because of Delphi compat.
 
 {$calling default}
-function InterLockedIncrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDINCREMENT';
-function InterLockedDecrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDDECREMENT';
-function InterLockedExchange (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGE';
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD';
-function InterLockedExchangeAdd (Target: plongint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD';
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; register; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
+function InterLockedIncrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDINCREMENT'; overload;
+function InterLockedDecrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDDECREMENT'; overload;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGE'; overload;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD'; overload;
+function InterLockedExchangeAdd (Target: plongint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD'; overload;
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; register; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE'; overload;
 {$calling stdcall}
 
 {$endif read_interface}
