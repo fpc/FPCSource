@@ -5,4 +5,4 @@ else
   SRC=$1
   shift
 fi     
-exec /home/michael/fpc/compiler/ppcx64 -vwhn -Fu../units/x86_64-linux -gl $SRC $*
+exec /home/tixeo/fpc/compiler/ppcx64 -vwhn -Fu../units/x86_64-linux -gl $SRC $*
