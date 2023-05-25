@@ -560,8 +560,9 @@ unit TypInfo;
       public
         // LegacyCount,Count1: Word;
         Count: Word;
-        { Entry: array[0..Count - 1] of TVmtMethodExEntry }
         property Method[Index: Word]: PVmtMethodExEntry read GetMethod;
+      private
+        Entry: array[0..Count - 1] of TVmtMethodExEntry
       end;
 
       PExtendedMethodInfoTable = ^TExtendedMethodInfoTable;
@@ -1861,7 +1862,7 @@ Generic Function ConstParamIsRef<T>(aCallConv: TCallConv): Boolean;
     Result := @aArg1 = @aArg2;
   end;
 
-  Function SameAddrCppDecl(const aArg1: T; constref aArg2: T): Boolean; cppdecl;
+  Function SameAddrCppDecl(const aArg1: T; constref aArg2: T): Boolean; //cppdecl;
   begin
     Result := @aArg1 = @aArg2;
   end;
@@ -2269,17 +2270,32 @@ begin
 end;
 
 
+procedure HexDump(const Msg : string; P : Pointer; aSize : Integer);
+
+var
+  PB : PByte absolute P;
+  I : Integer;
+
+begin
+  Write(msg,':');
+  for I:=0 to aSize-1 do
+    Write(' [',PB[i],']');
+  Writeln;
+end;
+
 Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
 var
   vmt: PVmt;
   FieldTable: PVmtExtendedFieldTable;
   FieldEntry: PExtendedVmtFieldEntry;
+  FieldEntryD: TExtendedVmtFieldEntry;
   i: longint;
 
 begin
   Result:=0;
   vmt := PVmt(AClass);
+  Writeln('FieldEntryD size',SizeOf(FieldEntryD));
   while vmt <> nil do
     begin
     // a class can not have any fields...
@@ -2289,10 +2305,23 @@ begin
       For I:=0 to FieldTable^.FieldCount-1 do
         begin
         FieldEntry:=FieldTable^.Field[i];
+        HexDump('Mem',FieldEntry,SizeOf(FieldEntryD));
+        FieldEntryD:=FieldEntry^;
+        Write('Entry ',I,' (',HexStr(FieldEntry),') :');
+        Write('  Offset : ',FieldEntryD.FieldOffset, ', Flags: ', FieldEntryD.Flags);
+        Write(', has name : ',Assigned(FieldEntryD.Name),' (',hexstr(FieldEntryD.Name),')');
+        if Assigned(FieldEntryD.Name) then
+          writeln('  value: ',FieldEntryD.Name^)
+        else
+          Writeln;
         if ([]=Visibilities) or (FieldEntry^.FieldVisibility in Visibilities) then
           begin
           if Assigned(FieldList) then
+            begin
+            Write('  Adding ',HexStr(FieldEntry));
             FieldList^[Result]:=FieldEntry;
+            Writeln('  Added ',HexStr(FieldList^[Result]));
+            end;
           Inc(Result);
           end;
         end;
@@ -4812,7 +4841,7 @@ begin
   oVmt:=PVmt(ClassType);
   methodtable:=pmethodnametable(ovmt^.vMethodTable);
   // Shift till after
-  PByte(Result):=PByte(methodtable)+ SizeOf(dword)+SizeOf(tmethodnamerec) * methodtable^.count;
+  PByte(Result):=PByte(@methodtable^.Entries)+ SizeOf(tmethodnamerec) * methodtable^.count;
 end;
 
 Function TClassData.GetExPropertyTable: PPropDataEx;
