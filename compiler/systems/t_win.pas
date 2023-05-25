@@ -1145,14 +1145,18 @@ implementation
       begin
         with Info do
          begin
+{$ifdef aarch64}
+           targetopts:='-b pei-aarch64-little';
+{$endif aarch64}
 {$ifdef x86_64}
            targetopts:='-b pei-x86-64';
-{$else x86_64}
-           if target_info.system=system_arm_wince then
-             targetopts:='-m arm_wince_pe'
-           else
-             targetopts:='-b pei-i386 -m i386pe';
-{$endif not x86_64}
+{$endif x86_64}
+{$ifdef i386}
+           targetopts:='-b pei-i386 -m i386pe';
+{$endif i386}
+{$ifdef arm}
+           targetopts:='-m arm_wince_pe';
+{$endif arm}
            ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
            DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
            { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
