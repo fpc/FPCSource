@@ -789,7 +789,7 @@ implementation
                   inc(methodcount);
             end;
 
-        tcb.begin_anonymous_record('',packrecords,1,
+        tcb.begin_anonymous_record('',packrecords,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin);
         { emit method count }
         tcb.emit_ord_const(methodcount,u16inttype);
@@ -822,7 +822,7 @@ implementation
             Fields: array[0..0] of TExtendedFieldInfo;
           end;
         }
-        tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_table]+tostr(list.count),packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+        tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_table]+tostr(list.count),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[target_info.system]^.alignment.recordalignmin);
         tcb.emit_ord_const(list.count,u16inttype);
         for i := 0 to list.count-1 do
           begin
@@ -835,7 +835,7 @@ implementation
                 Name: PShortString;
               end;
             }
-            tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_field]+tostr(tfieldvarsym(sym).fieldoffset),packrecords,1,targetinfos[target_info.system]^.alignment.recordalignmin);
+            tcb.begin_anonymous_record(internaltypeprefixName[itp_extended_rtti_field]+tostr(tfieldvarsym(sym).fieldoffset),packrecords,min(reqalign,SizeOf(PInt)),targetinfos[target_info.system]^.alignment.recordalignmin);
             { FieldOffset }
             tcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
