@@ -883,8 +883,24 @@ unit agcpugas;
           );
 
 
+       as_aarch64_win64_gas_info : tasminfo =
+          (
+            id     : as_win64_gas;
+            idtxt  : 'WIN64-AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $MARCHOPT $EXTRAOPT $ASM';
+            supported_targets : [system_aarch64_win64];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
+            labelprefix : '.L';
+            labelmaxlen : -1;
+            comment : '// ';
+            dollarsign: '$';
+          );
+
+
 begin
   RegisterAssembler(as_aarch64_gas_info,TAArch64Assembler);
   RegisterAssembler(as_aarch64_clang_darwin_info,TAArch64AppleAssembler);
   RegisterAssembler(as_aarch64_clang_gas_info,TAArch64ClangGASAssembler);
+  RegisterAssembler(as_aarch64_win64_gas_info,TAArch64ClangGASAssembler);
 end.
