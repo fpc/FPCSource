@@ -34,6 +34,9 @@ unexport FPC_VERSION FPC_COMPILERINFO
 # Which platforms are ready for inclusion in the cycle
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32 loongarch64
 
+# Platforms not yet ready
+BETATARGETS=mips64 mips64el
+
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
 
@@ -759,7 +762,7 @@ cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
 
-distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
+distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS) $(BETATARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
 
 
 #####################################################################
