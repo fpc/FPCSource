@@ -995,25 +995,25 @@ implementation
             Concat('  SYMBOL ___CTOR_LIST__');
             Concat('  SYMBOL __CTOR_LIST__');
             Concat('  LONG -1');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Concat('  LONG -1');
-{$endif x86_64}
+{$endif cpu64}
             Concat('  OBJSECTION .ctor*');
             Concat('  LONG 0');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Concat('  LONG 0');
-{$endif x86_64}
+{$endif cpu64}
             Concat('  SYMBOL ___DTOR_LIST__');
             Concat('  SYMBOL __DTOR_LIST__');
             Concat('  LONG -1');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Concat('  LONG -1');
-{$endif x86_64}
+{$endif cpu64}
             Concat('  OBJSECTION .dtor*');
             Concat('  LONG 0');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Concat('  LONG 0');
-{$endif x86_64}
+{$endif cpu64}
             Concat('  SYMBOL etext');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .data');
@@ -1061,9 +1061,9 @@ implementation
             Concat('  PROVIDE ___crt_xl_end__');
             { Add a nil pointer as last element }
             Concat('  LONG 0');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Concat('  LONG 0');
-{$endif x86_64}
+{$endif cpu64}
             Concat('  SYMBOL ___crt_xp_start__');
             Concat('  OBJSECTION .CRT$XP*'); {  /* Pre-termination */');}
             Concat('  SYMBOL ___crt_xp_end__');
@@ -1255,7 +1255,9 @@ implementation
              end;
 
             Add('SEARCH_DIR("/usr/i686-pc-cygwin/lib"); SEARCH_DIR("/usr/lib"); SEARCH_DIR("/usr/lib/w32api");');
-{$ifdef x86_64}
+{$if defined(aarch64)}
+            Add('OUTPUT_FORMAT(pei-aarch64-little)');
+{$elseif defined(x86_64)}
             Add('OUTPUT_FORMAT(pei-x86-64)');
 {$else not 86_64}
             Add('OUTPUT_FORMAT(pei-i386)');
@@ -1276,22 +1278,22 @@ implementation
             Add('    . = ALIGN(8);');
             Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
             Add('    LONG (-1);');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Add('    LONG (-1);');
-{$endif x86_64}
+{$endif cpu64}
             Add('    *(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Add('    LONG (0);');
-{$endif x86_64}
+{$endif cpu64}
             Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
             Add('    LONG (-1);');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Add('    LONG (-1);');
-{$endif x86_64}
+{$endif cpu64}
             Add('    *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
-{$ifdef x86_64}
+{$ifdef cpu64}
             Add('    LONG (0);');
-{$endif x86_64}
+{$endif cpu64}
             Add('     *(.fini)');
             Add('    PROVIDE (etext = .);');
             Add('    *(.gcc_except_table)');
