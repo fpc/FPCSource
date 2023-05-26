@@ -38,6 +38,14 @@ implementation
   {$endif}
 {$endif}
 
+{$ifdef dragonfly}
+  { iconv function are included inside libc for DragonFly version 6.3 }
+  { See https://man.dragonflybsd.org/?command=iconv&section=3 }
+  {$ifndef DISABLE_ICONV_LIBC}
+    {$define iconv_is_in_libc}
+  {$endif}
+{$endif}
+
 { Modern FreeBSD releases also claim to have iconv
   function inside libc, at least
   this is stated explicitly in iconv(3) man
