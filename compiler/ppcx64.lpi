@@ -8,6 +8,7 @@
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
         <CompatibilityMode Value="True"/>
       </Flags>
@@ -48,19 +49,19 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="x86_64\pp"/>
+      <Filename Value="ppcx64"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="x86_64"/>
-      <OtherUnitFiles Value="x86_64;x86;systems"/>
+      <OtherUnitFiles Value="x86_64;x86;systems;..\rtl\units\x86_64-linux"/>
       <UnitOutputDirectory Value="x86_64\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
-        <CPPInline Value="False"/>
         <UseAnsiStrings Value="False"/>
+        <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
     <Other>
