@@ -407,6 +407,9 @@ type
        useful in case you have table preceded by the number of elements, and
        you count the elements while building the table }
      function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+     { Add a comment line
+     }
+     procedure emit_comment(const comment : string);
     protected
      { common code to check whether a placeholder can be added at the current
        position }
@@ -2028,6 +2031,16 @@ implementation
           (curagginfo.def.typ=recorddef) then
          insert_marked_aggregate_alignment(result);
      end;
+
+   procedure ttai_typedconstbuilder.emit_comment(const comment: string);
+   var
+     comm: tai_comment;
+   begin
+     if (length(comment)=0) then
+       exit;
+     comm:=tai_comment.Create(strpnew(comment));
+     fasmlist.concat(comm);
+   end;
 
 
    procedure ttai_typedconstbuilder.check_add_placeholder(def: tdef);

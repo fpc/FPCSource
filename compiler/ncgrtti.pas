@@ -42,7 +42,8 @@ interface
         { required packing of all structures except for ttypeinfo and tpropinfo,
           which always use packrecords 1 }
         defaultpacking: shortint;
-
+        { write comments ? }
+        addcomments : boolean;
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
         procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
@@ -68,6 +69,7 @@ interface
         procedure write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
         procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
         procedure write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
+        procedure maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string); inline;
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -103,6 +105,10 @@ implementation
          { Objective-C related, does not pass here }
          symconst.ds_none,symconst.ds_none,
          symconst.ds_none,symconst.ds_none);
+       rttitypenames : array[trttitype] of string =
+         ('full','init',
+          'objcmeta','objcmetaro',
+          'objcclass','objcclassro');
 
     type
        TPropNameListItem = class(TFPHashObject)
@@ -210,6 +216,7 @@ implementation
         def : tprocdef;
         para : tparavarsym;
       begin
+        maybe_add_comment(tcb,'RTTI: begin methods');
         tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin);
 
@@ -225,7 +232,9 @@ implementation
                   inc(rtticount);
             end;
 
+        maybe_add_comment(tcb,#9'count');
         tcb.emit_ord_const(totalcount,u16inttype);
+        maybe_add_comment(tcb,#9'RTTI count');
         if rtticount = 0 then
           tcb.emit_ord_const($FFFF,u16inttype)
         else
@@ -245,40 +254,55 @@ implementation
 
                       def.init_paraloc_info(callerside);
 
+                      maybe_add_comment(tcb,'RTTI: begin method '+def.fullprocname(false));
                       tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                         targetinfos[target_info.system]^.alignment.recordalignmin);
 
+                      maybe_add_comment(tcb,#9'return type');
                       write_rtti_reference(tcb,def.returndef,fullrtti);
+                      maybe_add_comment(tcb,#9'calling convention');
                       write_callconv(tcb,def);
+                      maybe_add_comment(tcb,#9'method kind');
                       write_methodkind(tcb,def);
+                      maybe_add_comment(tcb,#9'param count');
                       tcb.emit_ord_const(def.paras.count,u16inttype);
+                      maybe_add_comment(tcb,#9'caller args size');
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
+                      maybe_add_comment(tcb,#9'name');
                       tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
                       for k:=0 to def.paras.count-1 do
                         begin
                           para:=tparavarsym(def.paras[k]);
-
+                          maybe_add_comment(tcb,'RTTI: begin param '+para.prettyname);
                           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                             targetinfos[target_info.system]^.alignment.recordalignmin);
 
+                          maybe_add_comment(tcb,#9'type');
                           if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
                             write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
                           else if para.vardef=cformaltype then
                             write_rtti_reference(tcb,nil,fullrtti)
                           else
                             write_rtti_reference(tcb,para.vardef,fullrtti);
+                          maybe_add_comment(tcb,#9'flags');
                           write_param_flag(tcb,para);
 
+                          maybe_add_comment(tcb,#9'name');
                           tcb.emit_pooled_shortstring_const_ref(para.realname);
 
+                          maybe_add_comment(tcb,#9'locs');
                           write_paralocs(tcb,@para.paraloc[callerside]);
 
                           tcb.end_anonymous_record;
+                          maybe_add_comment(tcb,'RTTI: end param '+para.prettyname);
                         end;
 
                       if not is_void(def.returndef) then
+                        begin
+                        maybe_add_comment(tcb,#9'return loc');
                         write_paralocs(tcb,@def.funcretloc[callerside]);
+                        end;
 
                       tcb.end_anonymous_record;
                     end;
@@ -286,6 +310,7 @@ implementation
           end;
 
         tcb.end_anonymous_record;
+        maybe_add_comment(tcb,'RTTI: end methods');
       end;
 
 
@@ -628,8 +653,10 @@ implementation
         for i:=0 to fields.count-1 do
           begin
             sym:=tsym(fields[i]);
+            maybe_add_comment(tcb,'RTTI begin field '+tostr(i)+': '+sym.prettyname);
             write_rtti_reference(tcb,tfieldvarsym(sym).vardef,rt);
             tcb.emit_ord_const(tfieldvarsym(sym).fieldoffset,sizeuinttype);
+            maybe_add_comment(tcb,'RTTI end field '+tostr(i)+': '+sym.prettyname);
           end;
         fields.free;
       end;
@@ -880,6 +907,7 @@ implementation
                   propdefname:='';
                 { TPropInfo is a packed record (even on targets that require
                   alignment), but it starts aligned }
+                maybe_add_comment(tcb,'RTTI: begin property '+sym.prettyname);
                 tcb.begin_anonymous_record(
                   propdefname,
                   1,min(reqalign,SizeOf(PInt)),
@@ -888,10 +916,14 @@ implementation
                   proctypesinfo:=$40
                 else
                   proctypesinfo:=0;
+                maybe_add_comment(tcb,#9'type info');
                 write_rtti_reference(tcb,tpropertysym(sym).propdef,fullrtti);
+                maybe_add_comment(tcb,#9'read access');
                 writeaccessproc(palt_read,0,0);
+                maybe_add_comment(tcb,#9'write access');
                 writeaccessproc(palt_write,2,0);
                 { is it stored ? }
+                maybe_add_comment(tcb,#9'stored ?');
                 if not(ppo_stored in tpropertysym(sym).propoptions) then
                   begin
                     { no, so put a constant zero }
@@ -900,21 +932,28 @@ implementation
                   end
                 else
                   writeaccessproc(palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
+                maybe_add_comment(tcb,#9'index');
                 tcb.emit_ord_const(tpropertysym(sym).index,u32inttype);
+                maybe_add_comment(tcb,#9'default');
                 tcb.emit_ord_const(tpropertysym(sym).default,u32inttype);
+                maybe_add_comment(tcb,#9'property index');
                 propnameitem:=TPropNameListItem(propnamelist.Find(tpropertysym(sym).name));
                 if not assigned(propnameitem) then
                   internalerror(200512201);
                 tcb.emit_ord_const(propnameitem.propindex,u16inttype);
+                maybe_add_comment(tcb,#9'proc types');
                 tcb.emit_ord_const(proctypesinfo,u8inttype);
 
                 { write reference to attribute table }
+                maybe_add_comment(tcb,#9'attributes');
                 write_attribute_data(tcb,tpropertysym(sym).rtti_attribute_list);
 
                 { Write property name }
+                maybe_add_comment(tcb,#9'name');
                 tcb.emit_shortstring_const(tpropertysym(sym).realname);
 
                 tcb.end_anonymous_record;
+                maybe_add_comment(tcb,'RTTI: end property '+sym.prettyname);
              end;
           end;
         tcb.end_anonymous_record;
@@ -1571,6 +1610,7 @@ implementation
 
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
+            maybe_add_comment(tcb,'RTTI begin fields '+def.objname^);
             tcb.begin_anonymous_record('',defaultpacking,reqalign,
               targetinfos[target_info.system]^.alignment.recordalignmin);
 
@@ -1605,6 +1645,7 @@ implementation
             fields_write_rtti_data(tcb,def,rt);
 
             tcb.end_anonymous_record;
+            maybe_add_comment(tcb,'RTTI end fields '+def.objname^);
           end;
 
           procedure objectdef_rtti_interface_init(def:tobjectdef);
@@ -1624,27 +1665,37 @@ implementation
               targetinfos[target_info.system]^.alignment.recordalignmin);
 
             if not is_objectpascal_helper(def) then
+              begin
+              maybe_add_comment(tcb,#9'Parent type info');
               if (oo_has_vmt in def.objectoptions) then
                 tcb.emit_tai(
                   Tai_const.Createname(def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
                   cpointerdef.getreusable(def.vmt_def))
               else
                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
-
+              end;
             { write parent typeinfo }
+            maybe_add_comment(tcb,#9'Parent type info');
             write_rtti_reference(tcb,def.childof,fullrtti);
 
             { write typeinfo of extended type }
             if is_objectpascal_helper(def) then
               if assigned(def.extendeddef) then
+                begin
+                maybe_add_comment(tcb,#9'helper for type info');
                 write_rtti_reference(tcb,def.extendeddef,fullrtti)
+                end
               else
                 InternalError(2011033001);
 
             { total number of unique properties }
+
+            maybe_add_comment(tcb,#9'Number of properties');
             tcb.emit_ord_const(propnamelist.count,u16inttype);
 
             { write unit name }
+
+            maybe_add_comment(tcb, #9'Unit name');
             tcb.emit_shortstring_const(current_module.realmodulename^);
 
             { write published properties for this object }
@@ -2256,8 +2307,10 @@ implementation
       end;
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
+
       var
         tcb: ttai_typedconstbuilder;
+        opts : ttcasmlistoptions;
         rttilab: tasmsymbol;
         rttidef: tdef;
         s: TIDString;
@@ -2272,11 +2325,14 @@ implementation
         if rttidefstate[rt] in def.defstates then
           exit;
         include(def.defstates,rttidefstate[rt]);
+
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
         s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
+
+        maybe_add_comment(tcb,'RTTI: begin '+def.GetTypeName+' ('+rttitypenames[rt]+')');
         tcb.begin_anonymous_record(
           s,
           defaultpacking,reqalign,
@@ -2284,6 +2340,7 @@ implementation
         );
         write_rtti_data(tcb,def,rt);
         rttidef:=tcb.end_anonymous_record;
+        maybe_add_comment(tcb,'RTTI: end '+def.GetTypeName+' ('+rttitypenames[rt]+')');
         rttilab:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_GLOBAL,AT_DATA_NOINDIRECT,rttidef);
         current_asmdata.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,min(target_info.alignment.maxCrecordalign,SizeOf(QWord))));
@@ -2295,9 +2352,16 @@ implementation
         write_rtti_extrasyms(def,rt,rttilab);
       end;
 
+    procedure TRTTIWriter.maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string);
+
+      begin
+        if addcomments then
+          tcb.emit_comment(comment);
+      end;
 
     constructor TRTTIWriter.create;
       begin
+        addcomments:=cs_asm_rtti_source in current_settings.globalswitches;
         if tf_requires_proper_alignment in target_info.flags then
           begin
             reqalign:=min(sizeof(QWord),target_info.alignment.maxCrecordalign);
