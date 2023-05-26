@@ -3915,6 +3915,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 **2ao_Add an extra option to external assembler call (ignored for internal)
 *L2ap_Use pipes instead of creating temporary assembler files
 **2ar_List register allocation/release info in assembler file
+**2aR_List RTTI info in assembler file
 **2at_List temp allocation/release info in assembler file
 # Choice of assembler used
 **1A<x>_Output format:
