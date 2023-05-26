@@ -210,6 +210,9 @@ type
 
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
+
+   { ttai_typedconstbuilder }
+
    ttai_typedconstbuilder = class abstract
     { class type to use when creating new aggregate information instances }
     protected class var
@@ -407,6 +410,9 @@ type
        useful in case you have table preceded by the number of elements, and
        you count the elements while building the table }
      function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+     { Add a comment line
+     }
+     procedure emit_comment(const comment : string; before : tai = nil);
     protected
      { common code to check whether a placeholder can be added at the current
        position }
@@ -446,6 +452,7 @@ type
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
      { ... an ordinal constant }
      procedure queue_emit_ordconst(value: int64; def: tdef); virtual;
+     //
     protected
      { returns whether queue_init has been called without a corresponding
        queue_emit_* to finish it }
@@ -2028,6 +2035,19 @@ implementation
           (curagginfo.def.typ=recorddef) then
          insert_marked_aggregate_alignment(result);
      end;
+
+   procedure ttai_typedconstbuilder.emit_comment(const comment: string; before : tai = nil);
+   var
+     comm: tai_comment;
+   begin
+     if (length(comment)=0) then
+       exit;
+     comm:=tai_comment.Create(strpnew(comment));
+     if before<>Nil then
+       fasmlist.InsertBefore(comm,before)
+     else
+       fasmlist.concat(comm);
+   end;
 
 
    procedure ttai_typedconstbuilder.check_add_placeholder(def: tdef);
