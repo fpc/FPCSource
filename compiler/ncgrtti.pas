@@ -1040,6 +1040,8 @@ implementation
               propdefname:='';
             { TPropInfo is a packed record (even on targets that require
               alignment), but it starts aligned }
+            if addcomments then
+              tcb.emit_comment(#9'Propinfo record');
             tcb.begin_anonymous_record(
               propdefname,
               1,min(reqalign,SizeOf(PInt)),
@@ -1048,10 +1050,18 @@ implementation
               proctypesinfo:=$40
             else
               proctypesinfo:=0;
+            if addcomments then
+              tcb.emit_comment(#9'type info');
             write_rtti_reference(tcb,sym.propdef,fullrtti);
+            if addcomments then
+              tcb.emit_comment(#9'read access');
             writeaccessproc(tcb,palt_read,0,0);
+            if addcomments then
+              tcb.emit_comment(#9'write access');
             writeaccessproc(tcb,palt_write,2,0);
             { is it stored ? }
+            if addcomments then
+              tcb.emit_comment(#9'stored ?');
             if not(ppo_stored in sym.propoptions) then
               begin
                 { no, so put a constant zero }
@@ -1060,18 +1070,32 @@ implementation
               end
             else
               writeaccessproc(tcb,palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
+            if addcomments then
+              tcb.emit_comment(#9'Index');
             tcb.emit_ord_const(sym.index,u32inttype);
+            if addcomments then
+              tcb.emit_comment(#9'default');
             tcb.emit_ord_const(sym.default,u32inttype);
             propnameitem:=TPropNameListItem(propnamelist.Find(sym.name));
             if not assigned(propnameitem) then
               internalerror(200512201);
+            if addcomments then
+              tcb.emit_comment(#9'property index');
             tcb.emit_ord_const(propnameitem.propindex,u16inttype);
+            if addcomments then
+              tcb.emit_comment(#9'proc types');
             tcb.emit_ord_const(proctypesinfo,u8inttype);
             { write reference to attribute table }
+            if addcomments then
+              tcb.emit_comment(#9'attributes');
             write_attribute_data(tcb,sym.rtti_attribute_list);
             { write property name }
+            if addcomments then
+              tcb.emit_comment(#9'name');
             tcb.emit_shortstring_const(sym.realname);
             result:=tcb.end_anonymous_record;
+            if addcomments then
+              tcb.emit_comment(#9'Propinfo record');
           end;
 
       begin
