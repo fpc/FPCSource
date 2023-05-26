@@ -353,6 +353,7 @@ override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.3.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32 loongarch64
+BETATARGETS=mips64 mips64el
 ALLTARGETS=$(CYCLETARGETS)
 NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos sinclairql symbian watcom wii win16 zxspectrum
 NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80 wasm32
@@ -5091,7 +5092,7 @@ $(CLEAN_TARGETS):
 cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 	-$(DEL) $(EXENAME)
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
-distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
+distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS) $(BETATARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
 $(MSG2INC): $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(COMPILERUTILSDIR)/msg2inc.pp
 	$(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 msgtxt.inc: $(MSGFILE)
