@@ -2315,6 +2315,7 @@ const
         'Use external assembler', {cs_asm_extern}
         'Use pipes to call assembler', {cs_asm_pipe}
         'Add source infos into assembler files', {cs_asm_source}
+        'Add RTTI infos into assembler files', {cs_asm_rtti_source}
         'Add register allocation into assembler files', {cs_asm_regalloc}
         'Add temporary  allocation into assmebler files', {cs_asm_tempalloc}
         'Add node information into assembler files', {cs_asm_nodes}
