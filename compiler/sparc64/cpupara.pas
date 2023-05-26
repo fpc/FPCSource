@@ -67,8 +67,9 @@ implementation
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
+	  { Fix codegen problem for empty record by always passing by address a zero-sized record }
           recorddef:
-            result:=def.size>recsizelimit;
+            result:=(def.size>recsizelimit) or (def.size=0);
           variantdef:
             result:=false;
           formaldef :
