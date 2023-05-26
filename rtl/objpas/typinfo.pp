@@ -3368,7 +3368,7 @@ Var
 Function IndexOfEnumeratedAliases(aTypeInfo : PTypeInfo) : integer;
 
 begin
-  Result:=Length(EnumeratedAliases)-1;
+  Result:=High(EnumeratedAliases);
   while (Result>=0) and (EnumeratedAliases[Result].TypeInfo<>aTypeInfo) do
     Dec(Result);
 end;
@@ -3411,7 +3411,7 @@ begin
   A:=EnumeratedAliases[i];
   A.Aliases:=Nil;
   A.TypeInfo:=Nil;
-  L:=Length(EnumeratedAliases)-1;
+  L:=High(EnumeratedAliases);
   EnumeratedAliases[i]:=EnumeratedAliases[L];
   EnumeratedAliases[L]:=A;
   SetLength(EnumeratedAliases,L);
@@ -3477,7 +3477,7 @@ begin
   Aliases:=GetEnumeratedAliases(aTypeInfo);
   if (Aliases=Nil) then
     Exit;
-  I:=Length(Aliases^)-1;
+  I:=High(Aliases^);
   While (Result=-1) and (I>=0) do
     begin
     if SameText(Aliases^[I].Alias, aName) then
