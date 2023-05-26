@@ -210,6 +210,9 @@ type
 
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
+
+   { ttai_typedconstbuilder }
+
    ttai_typedconstbuilder = class abstract
     { class type to use when creating new aggregate information instances }
     protected class var
@@ -449,6 +452,7 @@ type
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
      { ... an ordinal constant }
      procedure queue_emit_ordconst(value: int64; def: tdef); virtual;
+     //
     protected
      { returns whether queue_init has been called without a corresponding
        queue_emit_* to finish it }

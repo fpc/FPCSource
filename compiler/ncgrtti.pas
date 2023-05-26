@@ -355,7 +355,11 @@ implementation
                       end;
 
                     if not is_void(def.returndef) then
+                      begin
+                      if addcomments then
+                      tcb.emit_comment(#9'return loc');
                       write_paralocs(tcb,@def.funcretloc[callerside]);
+                      end;
 
                     tcb.end_anonymous_record;
                     maybe_add_comment(tcb,'RTTI: end method '+def.fullprocname(false));
