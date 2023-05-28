@@ -476,6 +476,7 @@ function FindFirstFileTransacted(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_L
 function GetComputerNameEx(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPWSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExW';
 function QueryFullProcessImageName(hProcess:THandle;dwFlags:DWord; lpexename :lpwstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameW';
 function RealGetWindowClass(Wnd : HWND;ClassnameBuffer : pwidechar;ClassnameBufferSize : DWORD): DWORD; stdcall; external 'user32.dll' name 'RealGetWindowClassW';
+function RegisterDeviceNotification(hRecipient:THandle;NotificationFilter:pointer;Flags:DWORD ):HDEVNOTIFY; stdcall; external 'user32.dll' name 'RegisterDeviceNotificationW';
 {$endif read_interface}
 
 
