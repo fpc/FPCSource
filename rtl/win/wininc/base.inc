@@ -74,16 +74,16 @@
      ULONG32 = cardinal;
      DWORD = cardinal;
 
-     PINTEGER = ^longint;
+     PINTEGER = plongint;
      PBOOL    = ^BOOL;
 
      LONGLONG  = int64;
-     PLONGLONG = ^LONGLONG;
-     LPLONGLONG = ^LONGLONG;
+     PLONGLONG = pint64;
+     LPLONGLONG = pint64;
      ULONGLONG  = qword;      // used in AMD64 CONTEXT
-     PULONGLONG = ^ULONGLONG; //
+     PULONGLONG = pqword; //
      DWORD64 = qword;         //
-     PDWORD64 = ^DWORD64;     //
+     PDWORD64 = pqword;     //
 
 
      INT_PTR = PtrInt;
