@@ -499,6 +499,7 @@ function GetConsoleAliasExesW(ExeNameBuffer:LPWSTR; ExeNameBufferLength:DWORD):D
 function GetComputerNameExW(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPWSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExW';
 function QueryFullProcessImageNameW(hProcess:THandle;dwFlags:DWord; lpexename :lpwstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameW';
 function RealGetWindowClassW(Wnd : HWND;ClassnameBuffer : pwidechar;ClassnameBufferSize : DWORD): DWORD; stdcall; external 'user32.dll' name 'RealGetWindowClassW';
+function RegisterDeviceNotificationW(hRecipient:THandle;NotificationFilter:pointer;Flags:DWORD ):HDEVNOTIFY; stdcall; external 'user32.dll' name 'RegisterDeviceNotificationW';
 {$endif read_interface}
 
 
