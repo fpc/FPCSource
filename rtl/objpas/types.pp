@@ -121,10 +121,10 @@ type
           function Subtract(const apt : TPoint): TPointF;
           procedure SetLocation(const apt :TPointF);
           procedure SetLocation(const apt :TPoint);
-          procedure SetLocation(ax,ay : Longint);
+          procedure SetLocation(ax,ay : Single);
           procedure Offset(const apt :TPointF);
           procedure Offset(const apt :TPoint);
-          procedure Offset(dx,dy : Longint);
+          procedure Offset(dx,dy : Single);
 
           function  Scale (afactor:Single)  : TPointF;
           function  Ceiling : TPoint;
@@ -702,7 +702,7 @@ begin
   y:=y+apt.y;
 end;
 
-procedure TPointF.Offset(dx,dy : Longint);
+procedure TPointF.Offset(dx,dy : Single);
 begin
   x:=x+dx;
   y:=y+dy;
@@ -853,7 +853,7 @@ begin
   x:=apt.x; y:=apt.y;
 end;
 
-procedure TPointF.SetLocation(ax,ay : Longint);
+procedure TPointF.SetLocation(ax,ay : Single);
 begin
   x:=ax; y:=ay;
 end;
