@@ -11,6 +11,13 @@
 
  **********************************************************************}
 
+{$IF DEFINED(CPU8) OR DEFINED(CPU16)}
+{ disable the extended RTTI for the RTL/FCL on these targets; the user can of
+  course still enable it for their own classes if needed (and published
+  properties and methods are accessible using the legacy RTTI as well) }
+{$DEFINE SMALLRTTI}
+{$ENDIF}
+
 {$PUSH}
 {$MINENUMSIZE 1   this saves a lot of memory }
 
@@ -25,6 +32,23 @@ type
               tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
               tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
               tkHelper,tkFile,tkClassRef,tkPointer);
+
+  TVisibilityClass = (vcPrivate, vcProtected, vcPublic, vcPublished);
+  TVisibilityClasses = set of TVisibilityClass;
+ 
+ {$MINENUMSIZE DEFAULT}
+ 
+const
+{$IFNDEF SMALLRTTI}
+  DefaultFieldRttiVisibility = [vcPrivate..vcPublished];
+  DefaultMethodRttiVisibility = [vcPublic..vcPublished];
+  DefaultPropertyRttiVisibility = [vcPublic..vcPublished];
+{$ELSE SMALLRTTI}
+  DefaultFieldRttiVisibility = [];
+  DefaultMethodRttiVisibility = [];
+  DefaultPropertyRttiVisibility = [];
+{$ENDIF SMALLRTTI}
+ 
 
 {$POP}
 
