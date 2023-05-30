@@ -527,10 +527,18 @@ implementation
          count : longint;
          lists : tvmtasmoutput;
          pubmethodsarraydef: tarraydef;
+         datatcb: ttai_typedconstbuilder;
+         packrecords: longint;
       begin
+        // TODO(ryan): is extended method table packed?
+        if (tf_requires_proper_alignment in target_info.flags) then
+          packrecords:=0
+        else
+          packrecords:=1;
+
          count:=0;
          _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
-         if count>0 then
+         if (count>0) or (_class.rtti.options[ro_methods]<>[]) then
            begin
               { in the list of the published methods (from objpas.inc):
                   tmethodnamerec = packed record
@@ -551,14 +559,19 @@ implementation
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
               lists.pubmethodstcb.emit_tai(Tai_const.Create_32bit(count),u32inttype);
-              { begin entries field (array) }
-              lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsarraydef);
-              { add all entries elements }
-              _class.symtable.SymList.ForEachCall(@do_gen_published_methods,@lists);
-              { end entries field (array) }
-              lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
+              if count>0 then
+                begin
+                  { begin entries field (array) }
+                  lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsarraydef);
+                  { add all entries elements }
+                  _class.symtable.SymList.ForEachCall(@do_gen_published_methods,@lists);
+                  { end entries field (array) }
+                  lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
+                end;
               { end methodnametable }
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
+              { write extended method rtti }
+              RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class);
               tcb.finish_internal_data_builder(lists.pubmethodstcb,lab,pubmethodsdef,sizeof(pint));
            end
          else
@@ -582,7 +595,9 @@ implementation
         classdef: tobjectdef;
         classtabledef: trecorddef;
       begin
+        classtable:=nil;
         classtablelist:=TFPList.Create;
+        classtabledef:=nil;
         { retrieve field info fields }
         fieldcount:=0;
         for i:=0 to _class.symtable.SymList.Count-1 do
@@ -601,7 +616,7 @@ implementation
              end;
           end;
 
-        if fieldcount>0 then
+        if (fieldcount>0) or (_class.rtti.options[ro_fields]<>[]) then
           begin
             if (tf_requires_proper_alignment in target_info.flags) then
               packrecords:=0
@@ -609,23 +624,26 @@ implementation
               packrecords:=1;
 
             { generate the class table }
-            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classtable);
-            datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
-              packrecords,1,
-              targetinfos[target_info.system]^.alignment.recordalignmin);
-            datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
-            for i:=0 to classtablelist.Count-1 do
+            if classtablelist.count>0 then
               begin
-                classdef:=tobjectdef(classtablelist[i]);
-                { type of the field }
-                datatcb.queue_init(voidpointertype);
-                { reference to the vmt }
-                datatcb.queue_emit_asmsym(
-                  current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA,true),
-                  tfieldvarsym(classdef.vmt_field).vardef);
+                tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classtable);
+                datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
+                  packrecords,1,
+                  targetinfos[target_info.system]^.alignment.recordalignmin);
+                datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
+                for i:=0 to classtablelist.Count-1 do
+                  begin
+                    classdef:=tobjectdef(classtablelist[i]);
+                    { type of the field }
+                    datatcb.queue_init(voidpointertype);
+                    { reference to the vmt }
+                    datatcb.queue_emit_asmsym(
+                      current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA,true),
+                      tfieldvarsym(classdef.vmt_field).vardef);
+                  end;
+                classtabledef:=datatcb.end_anonymous_record;
+                tcb.finish_internal_data_builder(datatcb,classtable,classtabledef,sizeof(pint));
               end;
-            classtabledef:=datatcb.end_anonymous_record;
-            tcb.finish_internal_data_builder(datatcb,classtable,classtabledef,sizeof(pint));
 
             { write fields }
             {
@@ -648,36 +666,47 @@ implementation
             datatcb.begin_anonymous_record('',packrecords,1,
               targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
-            datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef));
-            for i:=0 to _class.symtable.SymList.Count-1 do
+            if classtable<>nil then
+              datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef))
+            else
+              datatcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
+            if fieldcount>0 then
               begin
-                sym:=tsym(_class.symtable.SymList[i]);
-                if (sym.typ=fieldvarsym) and
-                   not(sp_static in sym.symoptions) and
-                  (sym.visibility=vis_published) then
+                for i:=0 to _class.symtable.SymList.Count-1 do
                   begin
-                    {
-                      TFieldInfo =
-                     $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
-                      packed
-                     $endif FPC_REQUIRES_PROPER_ALIGNMENT
-                      record
-                        FieldOffset: SizeUInt;
-                        ClassTypeIndex: Word;
-                        Name: ShortString;
+                    sym:=tsym(_class.symtable.SymList[i]);
+                    if (sym.typ=fieldvarsym) and
+                       not(sp_static in sym.symoptions) and
+                      (sym.visibility=vis_published) then
+                      begin
+                        { skip non-object defs for legacy rtti }
+                        if tfieldvarsym(sym).vardef.typ<>objectdef then
+                          continue;
+                        {
+                          TFieldInfo =
+                         $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
+                          packed
+                         $endif FPC_REQUIRES_PROPER_ALIGNMENT
+                          record
+                            FieldOffset: SizeUInt;
+                            ClassTypeIndex: Word;
+                            Name: ShortString;
+                          end;
+                        }
+                        datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
+                          targetinfos[target_info.system]^.alignment.recordalignmin);
+                        datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
+                        classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
+                        if classindex=-1 then
+                          internalerror(200611033);
+                        datatcb.emit_tai(Tai_const.Create_16bit(classindex+1),u16inttype);
+                        datatcb.emit_shortstring_const(tfieldvarsym(sym).realname);
+                        datatcb.end_anonymous_record;
                       end;
-                    }
-                    datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
-                      targetinfos[target_info.system]^.alignment.recordalignmin);
-                    datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
-                    classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
-                    if classindex=-1 then
-                      internalerror(200611033);
-                    datatcb.emit_tai(Tai_const.Create_16bit(classindex+1),u16inttype);
-                    datatcb.emit_shortstring_const(tfieldvarsym(sym).realname);
-                    datatcb.end_anonymous_record;
                   end;
               end;
+            { append the extended rtti table }
+            RTTIWriter.write_extended_field_table(datatcb,_class);
             fieldtabledef:=datatcb.end_anonymous_record;
             tcb.finish_internal_data_builder(datatcb,lab,fieldtabledef,sizeof(pint));
           end
