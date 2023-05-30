@@ -1041,7 +1041,7 @@ implementation
             { TPropInfo is a packed record (even on targets that require
               alignment), but it starts aligned }
             if addcomments then
-              tcb.emit_comment(#9'Propinfo record');
+              tcb.emit_comment('RTTI: begin propinfo record '+sym.realname);
             tcb.begin_anonymous_record(
               propdefname,
               1,min(reqalign,SizeOf(PInt)),
@@ -1095,7 +1095,7 @@ implementation
             tcb.emit_shortstring_const(sym.realname);
             result:=tcb.end_anonymous_record;
             if addcomments then
-              tcb.emit_comment(#9'Propinfo record');
+              tcb.emit_comment('RTTI: End propinfo record '+sym.realname);
           end;
 
       begin
@@ -1137,7 +1137,7 @@ implementation
                     tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
                     { end record }
                     tcb.end_anonymous_record;
-                    maybe_add_comment(tcb,'RTTI: "end property '+sym.prettyname);
+                    maybe_add_comment(tcb,'RTTI: end property '+sym.prettyname);
                   end
                 else
                   write_propinfo_data(tcb,tpropertysym(sym));
