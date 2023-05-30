@@ -548,7 +548,7 @@ end;
 
         var
            methodtable : pmethodnametable;
-           i : dword;
+           i : longint; // in case count=0
            ovmt : PVmt;
 
         begin
@@ -574,7 +574,7 @@ end;
       class function TObject.MethodName(address : codepointer) : shortstring;
         var
            methodtable : pmethodnametable;
-           i : dword;
+           i : longint; // in case count=0
            ovmt : PVmt;
         begin
            ovmt:=PVmt(self);
