@@ -235,6 +235,9 @@ interface
            -- actual type: tnode (but fmodule should not depend on node) }
          tcinitcode     : tobject;
 
+        { the current extended rtti directive }
+        rtti_directive : trtti_directive;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention

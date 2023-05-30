@@ -57,14 +57,14 @@ unit scandir;
     uses
       SysUtils,
       cutils,cfileutl,
-      globals,widestr,cpuinfo,
+      globals,widestr,cpuinfo,tokens,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
       defutil,
       dirparse,link,
       syscinfo,
-      symconst,symtable,symbase,symtype,symsym,
+      symconst,symtable,symbase,symtype,symsym,symdef,
       rabase;
 
 {*****************************************************************************
@@ -1373,6 +1373,93 @@ unit scandir;
           Message(scan_e_resourcefiles_not_supported);
       end;
 
+    procedure dir_rtti;
+
+      function read_rtti_options: trtti_visibilities;
+        var
+          sym: ttypesym;
+          value: tnormalset;
+        begin
+          result:=[];
+          sym:=search_system_type('TVISIBILITYCLASSES');
+          if current_scanner.readpreprocset(tsetdef(sym.typedef),value,'RTTI') then
+            begin
+              result:=prtti_visibilities(@value)^;
+              // if the set was empty we need to read the next id
+              if result=[] then
+                begin
+                  current_scanner.skipspace;
+                  current_scanner.readid
+                end;
+            end;
+        end;
+
+      var
+        dir: trtti_directive;
+        option: trtti_option;
+        options: array[trtti_option] of boolean;
+      begin
+        { the system unit has not yet loaded which means the directive is misplaced}
+        if systemunit=nil then
+          begin
+            Message(scan_e_misplaced_rtti_directive);
+            exit;
+          end;
+
+        dir:=default(trtti_directive);
+
+        options[ro_fields]:=false;
+        options[ro_methods]:=false;
+        options[ro_properties]:=false;
+
+        { read the clause }
+        current_scanner.skipspace;
+        current_scanner.readid;
+        case pattern of
+          'INHERIT':
+            dir.clause:=rtc_inherit;
+          'EXPLICIT':
+            dir.clause:=rtc_explicit;
+          otherwise
+            Message(scan_e_invalid_rtti_clause);
+        end;
+
+        { read the visibility options}
+        current_scanner.skipspace;
+        current_scanner.readid;
+        { the inherit clause doesn't require any options but explicit does }
+        if (pattern='') and (dir.clause=rtc_explicit) then
+          Message(scan_e_incomplete_rtti_clause);
+        while pattern<>'' do
+          begin
+            case pattern of
+              'METHODS':
+                option:=ro_methods;
+              'PROPERTIES':
+                option:=ro_properties;
+              'FIELDS':
+                option:=ro_fields;
+              otherwise
+                begin
+                  if current_scanner.preproc_token=_ID then
+                    Message1(scan_e_invalid_rtti_option,pattern);
+                  break;
+                end;
+            end;
+            { the option has already been used }
+            if options[option] then
+              begin
+                Message1(scan_e_duplicate_rtti_option,pattern);
+                break;
+              end;
+            dir.options[option]:=read_rtti_options;
+            options[option]:=true;
+          end;
+
+        { set the directive in the module }
+        current_module.rtti_directive:=dir;
+      end;
+
     procedure dir_saturation;
       begin
         do_localswitch(cs_mmx_saturation);
@@ -2082,6 +2169,7 @@ unit scandir;
         AddDirective('PROFILE',directive_all, @dir_profile);
         AddDirective('PUSH',directive_all, @dir_push);
         AddDirective('R',directive_all, @dir_resource);
+        AddDirective('RTTI',directive_all, @dir_rtti);
         AddDirective('RANGECHECKS',directive_all, @dir_rangechecks);
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
         AddDirective('REGION',directive_all, @dir_region);

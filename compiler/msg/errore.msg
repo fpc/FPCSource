@@ -150,7 +150,7 @@ general_i_reduced_filesearch=01028_I_Reduced file search: Not searching for uppe
 #
 # Scanner
 #
-# 02107 is the last used one
+# 02112 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -445,6 +445,20 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 % When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
 % \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
 % \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+scan_e_invalid_rtti_clause=02109_E_A Invalid RTTI clause (expected Explicit or Inherit)
+% The \var{\$RTTI} directive needs to be followed either by \var{EXPLICIT} or \var{INHERIT}
+% and entries for \var{FIELDS}, \var{PROPERTIES} or \var{METHODS}.
+scan_e_incomplete_rtti_clause=02110_E_A Explicit clause requires at least one option (Methods, Properties or Fields)
+% An \var{\$RTTI EXPLICIT} directive requires at least one of the \var{FIELDS}, \var{PROPERTIES}
+% or \var{METHODS} entries.
+scan_e_invalid_rtti_option=02111_E_A Invalid RTTI option "$1" (expected Methods, Properties or Fields)
+% The \var{\$RTTI EXPLICIT} can only contain \var{FIELDS}, \var{PROPERTIES} and \var{METHODS}
+% entries.
+scan_e_duplicate_rtti_option=02112_E_A Duplicate RTTI option "$1"
+% An option in a \var{$RTTI EXPLICIT} directive can only appear once.
+scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive cannot be used here
+% The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
+% or \var{UNIT} headers).
 % \end{description}
 #
 # Parser
