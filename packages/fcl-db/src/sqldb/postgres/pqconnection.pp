@@ -501,6 +501,7 @@ s:='';
       end;
   if (S='') then
     exit;
+  S:='select oid,typname,typtype,typcategory from pg_type where oid in ('+S+') order by oid';
   Res:=Cursor.Handle.Exec(S,False,'Error getting typeinfo');
   try
     For I:=0 to PQntuples(Res)-1 do
