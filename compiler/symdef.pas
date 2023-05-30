@@ -339,6 +339,7 @@ interface
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
           objectoptions  : tobjectoptions;
+          rtti           : trtti_directive;
           { for targets that initialise typed constants via explicit assignments
             instead of by generating an initialised data sectino }
           tcinitcode     : tnode;
@@ -363,6 +364,11 @@ interface
           function contains_float_field : boolean;
           { check if the symtable contains a field that spans an aword boundary }
           function contains_cross_aword_field: boolean;
+          { extended RTTI }
+          procedure apply_rtti_directive(dir: trtti_directive); virtual;
+          function is_visible_for_rtti(option: trtti_option; vis: tvisibility): boolean; inline;
+          function rtti_visibilities_for_option(option: trtti_option): tvisibilities; inline;
+          function has_extended_rtti: boolean; inline;
        end;
 
        pvariantrecdesc = ^tvariantrecdesc;
@@ -562,6 +568,7 @@ interface
           function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
+          procedure apply_rtti_directive(dir: trtti_directive); override;
        end;
        tobjectdefclass = class of tobjectdef;
 
@@ -1590,6 +1597,7 @@ implementation
         fields: tfplist;
         name: TIDString;
         srsym: tsym;
+        fieldvarsym: tfieldvarsym;
         srsymtable: tsymtable;
       begin
         { already created a message string table with this number of elements
@@ -1598,7 +1606,11 @@ implementation
         if searchsym_type(copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
-            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);
+            if fieldvarsym<>nil then
+              arrdef:=tarraydef(fieldvarsym.vardef)
+            else
+              arrdef:=nil;
             exit
           end;
         { also always search in the current module (symtables are popped for
@@ -1606,7 +1618,11 @@ implementation
         if searchsym_in_module(pointer(current_module),copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
-            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);
+            if fieldvarsym<>nil then
+              arrdef:=tarraydef(fieldvarsym.vardef)
+            else
+              arrdef:=nil;
             exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
@@ -4707,6 +4723,8 @@ implementation
       end;
 
     constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+      var
+        ro: trtti_option;
       begin
         inherited ppuload(dt,ppufile);
         objrealname:=ppufile.getpshortstring;
@@ -4716,9 +4734,14 @@ implementation
         if (import_lib^='') then
           stringdispose(import_lib);
         ppufile.getset(tppuset4(objectoptions));
+        rtti.clause:=trtti_clause(ppufile.getbyte);
+        for ro in trtti_option do
+          ppufile.getset(tppuset1(rtti.options[ro]));
       end;
 
     procedure tabstractrecorddef.ppuwrite(ppufile: tcompilerppufile);
+      var
+        ro: trtti_option;
       begin
         inherited ppuwrite(ppufile);
         ppufile.putstring(objrealname^);
@@ -4727,6 +4750,9 @@ implementation
         else
           ppufile.putstring('');
         ppufile.putset(tppuset4(objectoptions));
+        ppufile.putbyte(byte(rtti.clause));
+        for ro in trtti_option do
+          ppufile.putset(tppuset1(rtti.options[ro]));
       end;
 
     destructor tabstractrecorddef.destroy;
@@ -5096,6 +5122,59 @@ implementation
               end;
           end;
         result:=false;
+      end;
+
+
+    procedure tabstractrecorddef.apply_rtti_directive(dir: trtti_directive);
+      begin
+        { records don't support the inherit clause but shouldn't
+          give an error either if used (for Delphi compatibility), 
+          so we silently enforce the clause as explicit. }
+        rtti.clause:=rtc_explicit;
+        rtti.options:=dir.options;
+      end;
+
+
+    function tabstractrecorddef.is_visible_for_rtti(option: trtti_option; vis: tvisibility): boolean;
+      begin
+        case vis of
+          vis_private,
+          vis_strictprivate:   result:=rv_private in rtti.options[option];
+          vis_protected,
+          vis_strictprotected: result:=rv_protected in rtti.options[option];
+          vis_public:          result:=rv_public in rtti.options[option];
+          vis_published:       result:=rv_published in rtti.options[option];
+          otherwise
+            result:=false;
+        end;
+      end;
+
+
+    function tabstractrecorddef.rtti_visibilities_for_option(option: trtti_option): tvisibilities;
+      begin
+        result:=[];
+        if rv_private in rtti.options[option] then
+          begin
+            include(result,vis_private);
+            include(result,vis_strictprivate);
+          end;
+        if rv_protected in rtti.options[option] then
+          begin
+            include(result,vis_protected);
+            include(result,vis_strictprotected);
+          end;
+        if rv_public in rtti.options[option] then
+          include(result,vis_public);
+        if rv_published in rtti.options[option] then
+          include(result,vis_published);
+      end;
+
+
+    function tabstractrecorddef.has_extended_rtti: boolean;
+      begin
+        result := (rtti.options[ro_fields]<>[]) or
+                  (rtti.options[ro_methods]<>[]) or
+                  (rtti.options[ro_properties]<>[]);
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -8800,6 +8879,19 @@ implementation
     procedure tobjectdef.finish_cpp_data;
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
+      end;
+
+
+    procedure tobjectdef.apply_rtti_directive(dir: trtti_directive);
+      begin
+        rtti.clause:=dir.clause;
+        rtti.options:=dir.options;
+        if (dir.clause=rtc_inherit) and assigned(childof) and (childof.rtti.clause<>rtc_none) then
+          begin
+            rtti.options[ro_methods]:=rtti.options[ro_methods]+childof.rtti.options[ro_methods];
+            rtti.options[ro_fields]:=rtti.options[ro_fields]+childof.rtti.options[ro_fields];
+            rtti.options[ro_properties]:=rtti.options[ro_properties]+childof.rtti.options[ro_properties];
+          end;
       end;
 
 {$ifdef DEBUG_NODE_XML}
