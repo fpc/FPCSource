@@ -823,7 +823,9 @@ type
     itb_objc_fr_category,
     itb_objc_fr_meta_class,
     itb_objc_fr_class,
-    itp_vardisp_calldesc
+    itp_vardisp_calldesc,
+    itp_extended_rtti_table,
+    itp_extended_rtti_field
   );
 
   { The order is from low priority to high priority,
@@ -976,7 +978,9 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$objc_fr_category$',
        '$objc_fr_meta_class$',
        '$objc_fr_class$',
-       '$itp_vardisp_calldesc$'
+       '$itp_vardisp_calldesc$',
+       '$extended_rtti_table$',
+       '$extended_rtti_field$'
      );
 
 
