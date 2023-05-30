@@ -1390,8 +1390,22 @@ type
   Auxiliary methods
   ---------------------------------------------------------------------}
 
-Function aligntoptr(p : pointer) : pointer;inline;
-   begin
+procedure HexDump(const Msg : string; P : Pointer; aSize : Integer);
+
+var
+  PB : PByte absolute P;
+  I : Integer;
+
+begin
+  Write(msg,':');
+  for I:=0 to aSize-1 do
+    Write(' [',PB[i],']');
+  Writeln;
+end;
+
+
+Function aligntoptr(p : pointer) : pointer; //inline;
+begin
 {$ifdef CPUM68K}
      result:=AlignTypeData(p);
 {$else CPUM68K}
@@ -1401,7 +1415,7 @@ Function aligntoptr(p : pointer) : pointer;inline;
      result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 {$endif CPUM68K}
-   end;
+end; 
 
 
 Function DerefTypeInfoPtr(Info: TypeInfoPtr): PTypeInfo; inline;
@@ -2281,18 +2295,6 @@ begin
 end;
 
 
-procedure HexDump(const Msg : string; P : Pointer; aSize : Integer);
-
-var
-  PB : PByte absolute P;
-  I : Integer;
-
-begin
-  Write(msg,':');
-  for I:=0 to aSize-1 do
-    Write(' [',PB[i],']');
-  Writeln;
-end;
 
 Function GetFieldInfos(aClass: TClass; FieldList: PExtendedFieldInfoTable; Visibilities: TVisibilityClasses): Integer;
 
@@ -2306,33 +2308,20 @@ var
 begin
   Result:=0;
   vmt := PVmt(AClass);
-  // Writeln('FieldEntryD size',SizeOf(FieldEntryD));
   while vmt <> nil do
     begin
-    // a class can not have any fields...
+    // a class can have 0 fields...
     if vmt^.vFieldTable<>Nil then
       begin
       FieldTable := PVmtExtendedFieldTable(PVmtFieldTable(vmt^.vFieldTable)^.Next);
       For I:=0 to FieldTable^.FieldCount-1 do
         begin
         FieldEntry:=FieldTable^.Field[i];
-        HexDump('Mem',FieldEntry,SizeOf(FieldEntryD));
         FieldEntryD:=FieldEntry^;
-        // Write('Entry ',I,' (',HexStr(FieldEntry),') :');
-        // Write('  Offset : ',FieldEntryD.FieldOffset, ', Flags: ', FieldEntryD.Flags);
-        // Write(', has name : ',Assigned(FieldEntryD.Name),' (',hexstr(FieldEntryD.Name),')');
-        // if Assigned(FieldEntryD.Name) then
-        //   writeln('  value: ',FieldEntryD.Name^)
-        // else
-        //   Writeln;
         if ([]=Visibilities) or (FieldEntry^.FieldVisibility in Visibilities) then
           begin
           if Assigned(FieldList) then
-            begin
-            //  Write('  Adding ',HexStr(FieldEntry));
             FieldList^[Result]:=FieldEntry;
-            //  Writeln('  Added ',HexStr(FieldList^[Result]));
-            end;
           Inc(Result);
           end;
         end;
@@ -4646,7 +4635,7 @@ begin
   if Index >= ParamCount then
     Result := Nil
   else
-    Result := PVmtMethodParam(GetParamsStart + Index * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+    Result := PVmtMethodParamArray(@params)[Index];
 end;
 
 Function TVMTMethodExEntry.GetResultLocs: PParameterLocations;
@@ -4654,7 +4643,7 @@ begin
   if not Assigned(ResultType) then
     Result := Nil
   else
-    Result := PParameterLocations(GetParamsStart + ParamCount * PtrUInt(aligntoptr(Pointer(SizeOf(TVmtMethodParam)))));
+    Result := PParameterLocations(AlignToPtr(Param[ParamCount-1]^.Tail))
 end;
 
 Function TVmtMethodExEntry.GetStrictVisibility: Boolean;
@@ -4678,7 +4667,7 @@ end;
 
 Function TVmtMethodExEntry.GetNext: PVmtMethodExEntry;
 begin
-  Result := PVmtMethodExEntry(aligntoptr(Tail));
+  Result := PVmtMethodExEntry(Tail);
 end;
 
 Function TVMTMethodExEntry.GetName: ShortString;
