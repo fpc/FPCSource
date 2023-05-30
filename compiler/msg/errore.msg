@@ -146,7 +146,7 @@ general_t_unitscope=01027_T_Using unit scope: $1
 #
 # Scanner
 #
-# 02107 is the last used one
+# 02112 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -441,6 +441,11 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 % When legacy ifend is turned on by the directive \var{\$LEGACYIFEND}, then the
 % \var{\$IF} directive must be closed by the \var{\$IFEND} directive and the
 % \var{\$IFDEF} directive must be closed by the \var{\$ENDIF} directive.
+scan_e_invalid_rtti_clause=02109_E_A Invalid RTTI clause (expected Explicit or Inherit)
+scan_e_incomplete_rtti_clause=02110_E_A Explicit clause requires at least one option (Methods, Properties or Fields)
+scan_e_invalid_rtti_option=02111_E_A Invalid RTTI option "$1" (expected Methods, Properties or Fields)
+scan_e_duplicate_rtti_option=02112_E_A Duplicate RTTI option "$1"
+scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive cannot be used here 
 % \end{description}
 #
 # Parser
