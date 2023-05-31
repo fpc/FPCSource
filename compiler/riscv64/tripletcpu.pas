@@ -37,10 +37,7 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    if tripletstyle=triplet_llvm then
-      result:='sparcv9'
-    else
-      result:='sparc64'
+    result:='riscv64'
   end;
 
 
