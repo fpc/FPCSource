@@ -9,6 +9,8 @@ interface
 uses
   TypInfo, Rtti;
 
+
+
 {$ifndef fpc}
 type
   CodePointer = Pointer;
@@ -55,6 +57,8 @@ function GetCurrencyValue(aValue: Currency): TValue;
 {$ifdef fpc}
 function GetArray(const aArg: array of SizeInt): TValue;
 {$endif}
+
+
 
 implementation
 
