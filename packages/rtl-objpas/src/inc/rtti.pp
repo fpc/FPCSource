@@ -125,6 +125,8 @@ type
 {$endif}
     class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
     class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
+    class function FromVarRec(const aValue: TVarRec): TValue; static;
+    class function FromVariant(const aValue : Variant) : TValue; static;
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -139,13 +141,19 @@ type
     function AsOrdinal: Int64;
     function AsBoolean: boolean;
     function AsCurrency: Currency;
+    function AsSingle : Single;
+    function AsDateTime : TDateTime;
+    function AsDouble : Double;
     function AsInteger: Integer;
+    function AsError: HRESULT;
     function AsChar: Char; inline;
     function AsAnsiChar: AnsiChar;
     function AsWideChar: WideChar;
     function AsInt64: Int64;
     function AsUInt64: QWord;
     function AsInterface: IInterface;
+    function AsPointer : Pointer;
+    function AsVariant : Variant;
     function ToString: String;
     function GetArrayLength: SizeInt;
     function GetArrayElement(AIndex: SizeInt): TValue;
@@ -163,6 +171,11 @@ type
     class operator := (const AValue: UnicodeString): TValue; inline;
     class operator := (const AValue: WideString): TValue; inline;
     class operator := (AValue: LongInt): TValue; inline;
+    class operator := (AValue: SmallInt): TValue; inline;
+    class operator := (AValue: ShortInt): TValue; inline;
+    class operator := (AValue: Byte): TValue; inline;
+    class operator := (AValue: Word): TValue; inline;
+    class operator := (AValue: Cardinal): TValue; inline;
     class operator := (AValue: Single): TValue; inline;
     class operator := (AValue: Double): TValue; inline;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -176,13 +189,14 @@ type
     class operator := (AValue: TClass): TValue; inline;
     class operator := (AValue: Boolean): TValue; inline;
     class operator := (AValue: IUnknown): TValue; inline;
+    class operator := (AValue: TVarRec): TValue; inline;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
     property TypeInfo: PTypeInfo read GetTypeInfo;
     property IsEmpty: boolean read GetIsEmpty;
   end;
-
+  PValue = ^TValue;
   TValueArray = specialize TArray<TValue>;
 
   { TRttiContext }
@@ -630,7 +644,9 @@ function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; a
 function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of TFunctionCallParameterInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
+function IsBoolType(ATypeInfo: PTypeInfo): Boolean;
 
+function ArrayOfConstToTValueArray(const aValues: array of const): TValueArray;
 {$ifndef InLazIDE}
 generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
 {$endif}
@@ -656,6 +672,7 @@ uses
 {$ifdef unix}
   BaseUnix,
 {$endif}
+  variants,
   fgl;
 
 function AlignToPtr(aPtr: Pointer): Pointer; inline;
@@ -1685,6 +1702,7 @@ begin
     tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, False);
     tkObject,
     tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, False);
+    tkVariant  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, SizeOf(Variant), ATypeInfo, False);
     tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
   end;
   if not Assigned(ABuffer) then
@@ -1699,6 +1717,7 @@ begin
     tkArray,
     tkObject,
     tkRecord,
+    tkVariant,
     tkInterface:
       { ignore }
       ;
@@ -1893,6 +1912,69 @@ begin
     Result.SetArrayElement(i, aValues[i]);
 end;
 
+class function TValue.FromVarRec(const aValue: TVarRec): TValue;
+
+begin
+  Result:=Default(TValue);
+  case aValue.VType of
+    vtInteger: Result:=aValue.VInteger;
+    vtBoolean: Result:=aValue.VBoolean;
+    vtWideChar: TValue.Make(@aValue.VChar,System.TypeInfo(WideChar),Result);
+    vtInt64: Result:=aValue.VInt64^;
+    vtQWord: Result:=aValue.VQWord^;
+    vtChar: TValue.Make(@aValue.VChar,System.TypeInfo(AnsiChar),Result);
+    vtPChar: Result:=string(aValue.VPChar);
+    vtPWideChar: Result:=widestring(aValue.VPWideChar);
+    vtString: Result:=aValue.VString^;
+    vtWideString: Result:=WideString(aValue.VWideString);
+    vtAnsiString: Result:=AnsiString(aValue.VAnsiString);
+    vtUnicodeString: Result:=UnicodeString(aValue.VUnicodeString);
+    vtObject: Result:=TObject(aValue.VObject);
+    vtPointer: TValue.Make(@aValue.VPointer,System.TypeInfo(Pointer),Result);
+    vtInterface: Result:=IInterface(aValue.VInterface);
+    vtClass: Result:=aValue.VClass;
+    vtVariant: TValue.Make(@aValue.VVariant^,System.TypeInfo(Variant),result);
+    vtExtended: Result := aValue.VExtended^;
+    vtCurrency: Result := aValue.VCurrency^;
+  end;
+end;
+
+class function TValue.FromVariant(const aValue : Variant) : TValue;
+
+var
+  aType : TVarType;
+
+begin
+  Result:=Default(TValue);
+  aType:=VarType(aValue);
+  case aType of
+    varEmpty,
+    VarNull : TValue.Make(@aValue,System.TypeInfo(Variant),Result);
+    varInteger : Result:=Integer(aValue);
+    varSmallInt : Result:=SmallInt(aValue);
+    varBoolean : Result:=Boolean(aValue);
+    varOleStr: Result:=WideString(aValue);
+    varInt64: Result:=Int64(aValue);
+    varQWord: Result:=QWord(aValue);
+    varShortInt: Result:=ShortInt(aValue);
+    varByte : Result:=Byte(aValue);
+    varWord : Result:=Word(aValue);
+    varLongWord : Result:=Cardinal(aValue);
+    varSingle : Result:=Single(aValue);
+    varDouble : Result:=Double(aValue);
+    varDate : TValue.Make(@TVarData(aValue).vDate,System.TypeInfo(TDateTime),Result);
+    varDispatch : TValue.Make(@TVarData(aValue).VDispatch,System.TypeInfo(IDispatch),Result);
+    varError : TValue.Make(@TVarData(aValue).vDate,System.TypeInfo(HRESULT),Result);
+    varUnknown : TValue.Make(@TVarData(aValue).vunknown,System.TypeInfo(IUnknown),Result);
+    varCurrency : Result:=Currency(aValue);
+    varString : Result:=AnsiString(aValue);
+    varUString : Result:=UnicodeString(TVarData(aValue).vustring);
+  else
+    raise EVariantTypeCastError.CreateFmt('Invalid variant cast from type %d',[aType]);
+  end;
+end;
+
+
 function TValue.GetIsEmpty: boolean;
 begin
   result := (FData.FTypeInfo=nil) or
@@ -2001,7 +2083,7 @@ begin
 end;
 
 {$ifndef NoGenericMethods}
-generic function TValue.IsType<T>: Boolean;
+generic function TValue.IsType<T>:Boolean;
 begin
   Result := IsType(PTypeInfo(System.TypeInfo(T)));
 end;
@@ -2060,10 +2142,71 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
+
 function TValue.AsCurrency: Currency;
 begin
   if (Kind = tkFloat) and (TypeData^.FloatType=ftCurr) then
     result := FData.FAsCurr
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsSingle: Single;
+
+begin
+  if Kind = tkFloat then
+    begin
+    case TypeData^.FloatType of
+      ftSingle   : result := FData.FAsSingle;
+      ftDouble   : result := FData.FAsDouble;
+      ftExtended : result := FData.FAsExtended;
+      ftCurr     : result := FData.FAsCurr;
+      ftComp     : result := FData.FAsComp;
+    else
+      raise EInvalidCast.Create(SErrInvalidTypecast);
+    end;
+    end
+  else if Kind in [tkInteger, tkInt64, tkQWord] then
+    Result := AsInt64
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsDateTime: TDateTime;
+
+begin
+  if (Kind = tkFloat) and (TypeData^.FloatType=ftDouble) and (TypeInfo=System.TypeInfo(TDateTime)) then
+    result := FData.FAsDouble
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsDouble: Double;
+begin
+  if Kind = tkFloat then
+    begin
+    case TypeData^.FloatType of
+      ftSingle   : result := FData.FAsSingle;
+      ftDouble   : result := FData.FAsDouble;
+      ftExtended : result := FData.FAsExtended;
+      ftCurr     : result := FData.FAsCurr;
+      ftComp     : result := FData.FAsComp;
+    else
+      raise EInvalidCast.Create(SErrInvalidTypecast);
+    end;
+    end
+  else if Kind in [tkInteger, tkInt64, tkQWord] then
+    Result := AsInt64
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+
+function TValue.AsError: HRESULT;
+
+begin
+  if (Kind = tkInteger) and (TypeInfo=System.TypeInfo(HRESULT)) then
+    result := HResult(AsInteger)
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
@@ -2108,6 +2251,24 @@ begin
 {$else}
   Result := AsWideChar;
 {$endif}
+end;
+
+function TValue.AsPointer : Pointer;
+
+begin
+  if Kind in [tkPointer, tkInterface, tkInterfaceRaw, tkClass,tkClassRef,tkAString,tkWideString,tkUnicodeString] then
+    Result:=FData.FAsPointer
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsVariant : Variant;
+
+begin
+  if (Kind=tkVariant) then
+    Result:= PVariant(FData.FValueData.GetReferenceToRawData)^
+  else
+    raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
 function TValue.AsInt64: Int64;
@@ -2409,10 +2570,40 @@ begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
 
+
 class operator TValue.:=(const AValue: WideString): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
+
+class operator TValue.:= (AValue: SmallInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: ShortInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Byte): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Word): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: Cardinal): TValue; inline;
+
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
 
 class operator TValue.:=(AValue: LongInt): TValue;
 begin
@@ -2458,7 +2649,7 @@ end;
 
 class operator TValue.:=(AValue: TObject): TValue;
 begin
-  Make(@AValue, System.TypeInfo(AValue), Result);
+  Make(@AValue, PTypeInfo(AValue.ClassInfo), Result);
 end;
 
 class operator TValue.:=(AValue: TClass): TValue;
@@ -2474,6 +2665,12 @@ end;
 class operator TValue.:=(AValue: IUnknown): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:= (AValue: TVarRec): TValue;
+
+begin
+  Result:=TValue.FromVarRec(aValue);
 end;
 
 function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray;
@@ -2665,6 +2862,16 @@ begin
     Result := false;
 end;
 
+function IsBoolType(ATypeInfo: PTypeInfo): Boolean;
+
+begin
+  Result:=(ATypeInfo=TypeInfo(Boolean)) or
+          (ATypeInfo=TypeInfo(ByteBool)) or
+          (ATypeInfo=TypeInfo(WordBool)) or
+          (ATypeInfo=TypeInfo(LongBool));
+end;
+
+
 {$ifndef InLazIDE}
 generic function OpenArrayToDynArrayValue<T>(constref aArray: array of T): TValue;
 var
@@ -2677,6 +2884,18 @@ begin
   Result := TValue.specialize From<specialize TArray<T>>(arr);
 end;
 {$endif}
+
+function ArrayOfConstToTValueArray(const aValues: array of const): TValueArray;
+
+var
+  I,Len: Integer;
+
+begin
+  Len:=Length(aValues);
+  SetLength(Result,Len);
+  for I:=0 to Len-1 do
+    Result[I]:=aValues[I];
+end;
 
 { TRttiPointerType }
 
