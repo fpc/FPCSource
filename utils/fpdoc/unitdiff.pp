@@ -85,7 +85,7 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 
   begin
     Result:=Assigned(AParent) and (Length(AName) > 0) and
-            (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
+            (not DisableArguments or ((APasElement.ClassType <> TPasArgument) and (not (aParent is TPasArgument)))) and
             (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement)) and
             (not DisablePrivate or (AVisibility<>visPrivate)) and
             (not DisableProtected or (AVisibility<>visProtected));
@@ -109,12 +109,24 @@ begin
   Writeln(' --disable-arguments Do not check function arguments.');
   Writeln(' --disable-private   Do not check class private fields.');
   Writeln(' --disable-protected Do not check class protected fields.');
-  Writeln(' --input=cmdline     Input file to create skeleton for.');
-  Writeln('                     Use options are as for compiler.');
+  Writeln(' --input=cmdline     Input file to create skeleton for. Specify twice, once for each file.');
+  Writeln('                     Use options as for compiler.');
   Writeln(' --lang=language     Use selected language.');
   Writeln(' --list              List identifiers instead of making a diff');
   Writeln(' --output=filename   Send output to file.');
   Writeln(' --sparse            Sparse list/diff (skip type identification)');
+end;
+
+function setinput(const cmd : string) : Boolean;
+
+begin
+  Result:=True;
+  if (InputFile1='') then
+    InputFile1:=Cmd
+  else if (InputFile2='') then
+    InputFile2:=Cmd
+  else
+    Result:=false;
 end;
 
 procedure ParseOption(const s: String);
@@ -153,14 +165,15 @@ begin
       DocLang := Arg
     else if (Cmd = '-o') or (Cmd = '--output') then
       OutputName := Arg
+    else if (Cmd = '-i') or (Cmd = '--input') then
+      begin
+      if not SetInput(Arg) then
+        WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]));
+      end
     else
       if (length(cmd)>0) and (cmd[1]='-') then
          WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]))
-      else if (InputFile1='') then
-        InputFile1:=Cmd
-      else if (InputFile2='') then
-        InputFile2:=Cmd
-      else
+      else if not SetInput(cmd) then
         WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]));
   end;
 end;
