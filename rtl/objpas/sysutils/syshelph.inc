@@ -1,7 +1,6 @@
 {%mainunit syshelpers.pp}
 
 Type
-  generic TArray<T> = array of T;
   TStringArray = Array of string;
   TCharArray = Array of AnsiChar;
   TEndian = ObjPas.TEndian;
