@@ -446,7 +446,13 @@ type
     { implicitly return same type as the class instance to which the message is sent }
     po_objc_related_result_type,
     { Delphi-style anonymous function }
-    po_anonymous
+    po_anonymous,
+    { WebAssembly funcref reference type (an opaque reference to a function, that
+      is managed by the host. It doesn't have an in-memory representation, which
+      means it cannot be stored in linear memory or have its address taken. It can
+      however be stored in WebAssembly globals, locals, used in function parameters
+      and returns and it can be called.) }
+    po_wasm_funcref
   );
   tprocoptions=set of tprocoption;
 
@@ -1113,7 +1119,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'po_noinline',{po_noinline}
       'C-style array-of-const', {po_variadic}
       'objc-related-result-type', {po_objc_related_result_type}
-      'po_anonymous' {po_anonymous}
+      'po_anonymous', {po_anonymous}
+      '"WASMFUNCREF"' {po_wasm_funcref}
     );
 
 implementation
