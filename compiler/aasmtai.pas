@@ -656,6 +656,9 @@ interface
             pc relative offsets are allowed }
           inserted  : boolean;
 {$endif arm}
+{$ifdef wasm32}
+          is_pascal_goto_target: boolean;
+{$endif wasm32}
           constructor Create(_labsym : tasmlabel);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
