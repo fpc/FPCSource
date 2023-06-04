@@ -126,6 +126,8 @@ unit hlcgobj;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
+          {# Emit a label that can be a target of a Pascal goto statement to the instruction stream. }
+          procedure a_label_pascal_goto_target(list : TAsmList;l : tasmlabel); inline;
 
           {# Allocates register r by inserting a pai_realloc record }
           procedure a_reg_alloc(list : TAsmList;r : tregister); inline;
@@ -899,6 +901,11 @@ implementation
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
     begin
       cg.a_label(list,l);
+    end;
+
+  procedure thlcgobj.a_label_pascal_goto_target(list : TAsmList;l : tasmlabel); inline;
+    begin
+      cg.a_label_pascal_goto_target(list,l);
     end;
 
   procedure thlcgobj.a_reg_alloc(list: TAsmList; r: tregister);

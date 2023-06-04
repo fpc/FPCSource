@@ -502,7 +502,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
          if not (nf_internal in flags) then
            include(flowcontrol,fc_gotolabel);
-         hlcg.a_label(current_asmdata.CurrAsmList,getasmlabel);
+         hlcg.a_label_pascal_goto_target(current_asmdata.CurrAsmList,getasmlabel);
 
          { Write also extra label if this label was referenced from
            assembler block }
