@@ -1009,20 +1009,10 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Ldeclockednolock
-     lock
-     decl       (%rcx)
-     setzb      %al
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Ldeclockednolock:
-     decl       (%rcx)
+     jz         .Ldeclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Ldeclockedskiplock:
+     decl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1038,20 +1028,10 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Ldeclockednolock
-     lock
-     decq       (%rcx)
-     setzb      %al
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Ldeclockednolock:
-     decq       (%rcx)
+     jz         .Ldeclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Ldeclockedskiplock:
+     decq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1068,19 +1048,10 @@ procedure inclocked(var l : longint);assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Linclockednolock
-     lock
-     incl       (%rcx)
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Linclockednolock:
-     incl       (%rcx)
+     jz         .Linclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Linclockedskiplock:
+     incl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 
@@ -1096,19 +1067,10 @@ procedure inclocked(var l : int64);assembler; nostackframe;
 {$else FPC_PIC}
      cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
-{$ifndef win64}
-     mov        %rdi, %rcx
-{$endif win64}
-     jz         .Linclockednolock
-     lock
-     incq       (%rcx)
-     ret
-{$ifndef VER3_2}
-    .p2align 4,,10
-{$endif VER3_2}
-    .p2align 3
-.Linclockednolock:
-     incq       (%rcx)
+     jz         .Linclockedskiplock
+     .byte      0xF0 // LOCK prefix.
+.Linclockedskiplock:
+     incq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 
