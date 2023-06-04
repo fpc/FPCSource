@@ -239,7 +239,9 @@ implementation
           for i:=0 to pd.paras.Count-1 do
             begin
               prm := tcpuparavarsym(pd.paras[i]);
-              case prm.paraloc[callerside].Size of
+              if (prm.vardef.typ=procvardef) and (po_wasm_funcref in tprocvardef(prm.vardef).procoptions) then
+                result.add_param(wbt_funcref)
+              else case prm.paraloc[callerside].Size of
                 OS_8..OS_32, OS_S8..OS_S32:
                   result.add_param(wbt_i32);
                 OS_64, OS_S64:
