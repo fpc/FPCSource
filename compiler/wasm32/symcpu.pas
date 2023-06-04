@@ -264,16 +264,7 @@ implementation
         begin
           if not defToWasmBasic(pd.returndef,bt) then
             bt:=wbt_i32;
-          case bt of
-            wbt_i64:
-              result.add_result(wbt_i64);
-            wbt_f32:
-              result.add_result(wbt_f32);
-            wbt_f64:
-              result.add_result(wbt_f64);
-          else
-            result.add_result(wbt_i32);
-          end;
+          result.add_result(bt);
         end;
     end;
 
