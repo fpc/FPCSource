@@ -42,6 +42,7 @@ interface
         function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function  getaddressregister(list:TAsmList):Tregister;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
+        procedure a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);override;
       end;
 
     procedure create_codegen;
@@ -118,6 +119,16 @@ implementation
           which will perform the register->temp mapping for all register types.
           This allows us to easily reuse temps. }
         trgcpu(rg[R_INTREGISTER]).do_all_register_allocation(list,headertai);
+      end;
+
+
+    procedure tcgwasm.a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);
+      var
+        lbl: tai_label;
+      begin
+        lbl:=tai_label.create(l);
+        lbl.is_pascal_goto_target:=true;
+        list.concat(lbl);
       end;
 
 
