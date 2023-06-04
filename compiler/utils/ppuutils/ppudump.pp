@@ -3041,7 +3041,8 @@ const
      (mask:po_noinline;        str: 'Never inline'),
      (mask:po_variadic;        str: 'C VarArgs with array-of-const para'),
      (mask:po_objc_related_result_type; str: 'Objective-C related result type'),
-     (mask:po_anonymous;       str: 'Anonymous')
+     (mask:po_anonymous;       str: 'Anonymous'),
+     (mask:po_wasm_funcref;    str: 'WebAssembly funcref')
   );
 var
   proctypeoption  : tproctypeoption;
