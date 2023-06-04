@@ -2031,48 +2031,38 @@ procedure fpc_cpucodeinit;
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
-        cmpl    $0,(%eax)
-        je      .Lquit
-        pushl   %esi
-        movl    (%eax),%esi
-        subl    $12,%esi           // points to start of allocation
+        movl    (%eax),%edx
+        testl   %edx,%edx
+        jz      .Lquit
         movl    $0,(%eax)          // s:=nil
-        cmpl    $0,4(%esi)         // exit if refcount<0
-        jl      .Lj3596
+        cmpl    $0,-8(%edx)        // exit if refcount<0
+        jl      .Lquit
   {$ifdef FPC_PIC}
-	pushl	%ebx
-        call	fpc_geteipasebx
-        addl	$_GLOBAL_OFFSET_TABLE_,%ebx
-        movl	ismultithread@GOT(%ebx),%ebx
-        movl	(%ebx),%ebx
-        cmp	$0, %ebx
-	popl    %ebx
+        call	fpc_geteipasecx
+        addl	$_GLOBAL_OFFSET_TABLE_,%ecx
+        movl	ismultithread@GOT(%ecx),%ecx
+        cmpl	$0,(%ecx)
   {$else FPC_PIC}
         cmpl    $0,ismultithread
   {$endif FPC_PIC}
-        jne     .Lj3610
-        decl    4(%esi)
-        je      .Lj3620
-        jmp     .Lj3596
-.Lj3610:
-        leal    4(%esi),%eax
-        call    cpudeclocked
-        testb   %al,%al
-        je      .Lj3596
-.Lj3620:
-        movl    %esi,%eax
-        { freemem is not an assembler leaf function like fpc_geteipasebx and cpudeclocked, so it
+        je      .Lskiplock
+        .byte   0xF0               // LOCK prefix, jumped over if IsMultiThread = false. FPC assembler does not accept disjoint LOCK mnemonic.
+.Lskiplock:
+        decl    -8(%edx)
+        jz      .Lfree
+.Lquit:
+        ret
+.Lfree:
+        leal    -12(%edx),%eax     // points to start of allocation
+        { freemem is not an assembler leaf function like fpc_geteipasecx, so it
           needs to be called with proper stack alignment }
 {$ifdef FPC_SYSTEM_STACKALIGNMENT16}
-        leal    -8(%esp),%esp
-{$endif FPC_SYSTEM_STACKALIGNMENT16}
+        leal    -12(%esp),%esp
         call    FPC_FREEMEM
-{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
-        leal    8(%esp),%esp
+        leal    12(%esp),%esp
+{$else  FPC_SYSTEM_STACKALIGNMENT16}
+        jmp     FPC_FREEMEM        // can perform a tail call
 {$endif FPC_SYSTEM_STACKALIGNMENT16}
-.Lj3596:
-        popl    %esi
-.Lquit:
 end;
 
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;
