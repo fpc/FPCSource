@@ -105,7 +105,9 @@ unit tgcpu;
       if not Result then
         Exit;
 
-      if is_pointer(def) then
+      if (def.typ=procvardef) and (po_wasm_funcref in tprocvardef(def).procoptions) then
+        wbt := wbt_funcref
+      else if is_pointer(def) then
         wbt := wbt_i32 // wasm32
       else if is_currency(def) then
         wbt := wbt_i64
