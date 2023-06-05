@@ -403,12 +403,12 @@ begin
   ts := TTestSuite.Create(TTestIgnore);
   try
     AssertTrue('EnableIgnores must be True at creation', ts.EnableIgnores);
-    for i := 0 to ts.Tests.Count - 1 do
-      AssertTrue('EnableIgnores of Test ' + IntToStr(i) + ' must be True at creation', TTest(ts.Tests[i]).EnableIgnores);
+    for i := 0 to ts.ChildTestCount - 1 do
+      AssertTrue('EnableIgnores of Test ' + IntToStr(i) + ' must be True at creation', ts.Test[i].EnableIgnores);
     ts.EnableIgnores := False; 
     AssertFalse('EnableIgnores was not set to false', ts.EnableIgnores);
-    for i := 0 to ts.Tests.Count - 1 do
-      AssertFalse('EnableIgnores of Test ' + IntToStr(i) + ' was not set to False', TTest(ts.Tests[i]).EnableIgnores);
+    for i := 0 to ts.ChildTestCount - 1 do
+      AssertFalse('EnableIgnores of Test ' + IntToStr(i) + ' was not set to False', ts.Test[i].EnableIgnores);
   finally
     ts.Free;
   end;
