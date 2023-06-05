@@ -85,6 +85,9 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 
   begin
     Result:=Assigned(AParent) and (Length(AName) > 0) and
+            (not aPasElement.InheritsFrom(TPasUnresolvedTypeRef)) and
+            (not aPasElement.InheritsFrom(TPasUnresolvedUnitRef)) and
+            (not aPasElement.InheritsFrom(TPasUsesUnit)) and
             (not DisableArguments or ((APasElement.ClassType <> TPasArgument) and (not (aParent is TPasArgument)))) and
             (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement)) and
             (not DisablePrivate or (AVisibility<>visPrivate)) and
@@ -109,6 +112,7 @@ begin
   Writeln(' --disable-arguments Do not check function arguments.');
   Writeln(' --disable-private   Do not check class private fields.');
   Writeln(' --disable-protected Do not check class protected fields.');
+  Writeln(' --disable-result    Do not check Function results.');
   Writeln(' --input=cmdline     Input file to create skeleton for. Specify twice, once for each file.');
   Writeln('                     Use options as for compiler.');
   Writeln(' --lang=language     Use selected language.');
@@ -139,10 +143,14 @@ begin
     CmdLineAction := actionHelp
   else if s = '--disable-arguments' then
     DisableArguments := True
+  else if s = '--disable-result' then
+    DisableFunctionResults:=True
   else if s = '--disable-private' then
     DisablePrivate := True
   else if s = '--sparse' then
     SparseList := True
+  else if s = '--list' then
+    cmdLineAction := ActionList
   else if s = '--disable-protected' then
     begin
     DisableProtected := True;
@@ -240,8 +248,8 @@ begin
   For I:=0 to List.Count-1 do
     begin
     If Not SparseList then
-      Write(GetTypeDescription(TPasElement(List.Objects[i])),' : ');
-    Writeln(List[i]);
+      Write(F,GetTypeDescription(TPasElement(List.Objects[i])),' : ');
+    Writeln(F,List[i]);
     end;
 end;
 
