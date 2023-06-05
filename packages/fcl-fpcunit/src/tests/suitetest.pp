@@ -224,7 +224,7 @@ procedure TSuiteTest.testTestCaseAsSuite;
 var
   ts: TTestSuite;
 begin
-  ts := TOneTestCase.AsSuite;
+  ts := TOneTestCase.Suite;
   try
     AssertEquals(1, ts.CountTestCases);
     AssertEquals(1, ts.Tests.Count);

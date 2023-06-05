@@ -229,7 +229,7 @@ type
     function CreateResultAndRun: TTestResult; virtual;
     procedure Run(AResult: TTestResult); override;
     function AsString: string;
-    class function AsSuite : TTestSuite;
+    class function Suite : TTestSuite;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     Property ExpectedExceptionFailMessage  : String Read FExpectedExceptionFailMessage;
     Property ExpectedException : TClass Read FExpectedException;
@@ -1013,7 +1013,7 @@ begin
   Result := TestName + '(' + ClassName + ')';
 end;
 
-class function TTestCase.AsSuite: TTestSuite;
+class function TTestCase.Suite: TTestSuite;
 begin
   Result:=TTestSuite.Create(Self.ClassType);
 end;
