@@ -224,9 +224,9 @@ implementation
     ;
 
   function is_wasm_funcref(p: tdef): boolean;
-  begin
-    result:=(p.typ=procvardef) and (po_wasm_funcref in tprocvardef(p).procoptions);
-  end;
+    begin
+      result:=(p.typ=procvardef) and (po_wasm_funcref in tprocvardef(p).procoptions);
+    end;
 
   function is_wasm_externref(p: tdef): boolean;
     begin
