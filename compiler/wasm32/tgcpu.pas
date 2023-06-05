@@ -105,7 +105,7 @@ unit tgcpu;
       if not Result then
         Exit;
 
-      if (def.typ=procvardef) and (po_wasm_funcref in tprocvardef(def).procoptions) then
+      if is_wasm_funcref(def) then
         wbt := wbt_funcref
       else if (def.typ=pointerdef) and (tcpupointerdef(def).is_wasm_externref) then
         wbt := wbt_externref

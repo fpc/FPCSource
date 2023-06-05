@@ -205,6 +205,8 @@ type
 const
   pbestrealtype : ^tdef = @s64floattype;
 
+  {# Returns true if p is a WebAssembly funcref reference type }
+  function is_wasm_funcref(p : tdef): boolean;
 
 implementation
 
@@ -217,6 +219,11 @@ implementation
     hlcgobj,hlcgcpu,
     tgcpu
     ;
+
+  function is_wasm_funcref(p: tdef): boolean;
+  begin
+    result:=(p.typ=procvardef) and (po_wasm_funcref in tprocvardef(p).procoptions);
+  end;
 
 
   {****************************************************************************
@@ -289,7 +296,7 @@ implementation
           for i:=0 to pd.paras.Count-1 do
             begin
               prm := tcpuparavarsym(pd.paras[i]);
-              if (prm.vardef.typ=procvardef) and (po_wasm_funcref in tprocvardef(prm.vardef).procoptions) then
+              if is_wasm_funcref(prm.vardef) then
                 result.add_param(wbt_funcref)
               else if (prm.vardef.typ=pointerdef) and (tcpupointerdef(prm.vardef).is_wasm_externref) then
                 result.add_param(wbt_externref)
