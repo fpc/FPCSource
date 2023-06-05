@@ -622,7 +622,7 @@ implementation
       { Create status info }
         UpdateStatus;
       { Fix replacements }
-        DefaultReplacements(s);
+        DefaultReplacements(s,false);
       { show comment }
         if do_comment(l,s) or dostop then
           raise ECompilerAbort.Create;
@@ -754,7 +754,7 @@ implementation
       { fix status }
         UpdateStatus;
       { Fix replacements }
-        DefaultReplacements(s);
+        DefaultReplacements(s,false);
         if status.showmsgnrs and ((v and V_Normal)=0) then
           s:='('+tostr(w)+') '+s;
         if doqueue then
