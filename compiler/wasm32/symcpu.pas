@@ -211,6 +211,9 @@ const
   {# Returns true if p is a WebAssembly externref reference type }
   function is_wasm_externref(p : tdef): boolean;
 
+  {# Returns true if p is a WebAssembly reference type (funcref or externref) }
+  function is_wasm_reference_type(p : tdef): boolean;
+
 implementation
 
   uses
@@ -231,6 +234,11 @@ implementation
   function is_wasm_externref(p: tdef): boolean;
     begin
       result:=(p.typ=pointerdef) and (tcpupointerdef(p).is_wasm_externref);
+    end;
+
+  function is_wasm_reference_type(p: tdef): boolean;
+    begin
+      result:=is_wasm_funcref(p) or is_wasm_externref(p);
     end;
 
 
