@@ -107,6 +107,8 @@ unit tgcpu;
 
       if (def.typ=procvardef) and (po_wasm_funcref in tprocvardef(def).procoptions) then
         wbt := wbt_funcref
+      else if (def.typ=pointerdef) and (tcpupointerdef(def).is_wasm_externref) then
+        wbt := wbt_externref
       else if is_pointer(def) then
         wbt := wbt_i32 // wasm32
       else if is_currency(def) then
