@@ -60,6 +60,14 @@ type
   tcpuerrordefclass = class of tcpuerrordef;
 
   tcpupointerdef = class(tpointerdef)
+  protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+  public
+    { flag, indicating whether the pointer is a WebAssembly externref reference type }
+    is_wasm_externref: boolean;
+    function getcopy: tstoreddef; override;
+    function GetTypeName: string; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -219,6 +227,40 @@ implementation
 {****************************************************************************
                              tcpuenumdef
 ****************************************************************************}
+
+
+{****************************************************************************
+                             tcpupointerdef
+****************************************************************************}
+
+
+  procedure tcpupointerdef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      is_wasm_externref:=ppufile.getboolean;
+    end;
+
+
+  procedure tcpupointerdef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putboolean(is_wasm_externref);
+    end;
+
+
+  function tcpupointerdef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpupointerdef(result).is_wasm_externref:=is_wasm_externref;
+    end;
+
+
+  function tcpupointerdef.GetTypeName: string;
+    begin
+      result:=inherited;
+      if is_wasm_externref then
+        result:=result+';wasmexternref';;
+    end;
 
 
 {****************************************************************************
