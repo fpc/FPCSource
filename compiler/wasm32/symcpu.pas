@@ -66,6 +66,7 @@ type
   public
     { flag, indicating whether the pointer is a WebAssembly externref reference type }
     is_wasm_externref: boolean;
+    constructor create_externref(def: tdef);
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
   end;
@@ -245,6 +246,13 @@ implementation
     begin
       inherited;
       ppufile.putboolean(is_wasm_externref);
+    end;
+
+
+  constructor tcpupointerdef.create_externref(def: tdef);
+    begin
+      inherited create(def);
+      is_wasm_externref:=true;
     end;
 
 
