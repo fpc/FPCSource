@@ -291,6 +291,8 @@ implementation
               prm := tcpuparavarsym(pd.paras[i]);
               if (prm.vardef.typ=procvardef) and (po_wasm_funcref in tprocvardef(prm.vardef).procoptions) then
                 result.add_param(wbt_funcref)
+              else if (prm.vardef.typ=pointerdef) and (tcpupointerdef(prm.vardef).is_wasm_externref) then
+                result.add_param(wbt_externref)
               else case prm.paraloc[callerside].Size of
                 OS_8..OS_32, OS_S8..OS_S32:
                   result.add_param(wbt_i32);
