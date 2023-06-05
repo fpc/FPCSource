@@ -34,6 +34,10 @@ procedure RegisterTest(const ASuitePath: String; ATest: TTest); overload;
 procedure RegisterTests(ATests: Array of TTestCaseClass);
 procedure RegisterTests(const ASuitePath: String; ATests: Array of TTestCaseClass);
 
+procedure RegisterTest(aSuite: TTestSuite);
+procedure RegisterTest(const aSuitePath : String; aSuite: TTestSuite);
+
+
 procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);
 
 function NumberOfRegisteredTests: longint;
@@ -149,6 +153,16 @@ begin
     begin
       RegisterTest(ASuitePath,ATests[i]);
     end;
+end;
+
+procedure RegisterTest(aSuite: TTestSuite);
+begin
+  GetTestRegistry.AddTest(aSuite);
+end;
+
+procedure RegisterTest(const aSuitePath: String; aSuite: TTestSuite);
+begin
+  RegisterTestInSuite(GetTestRegistry, aSuitePath, aSuite);
 end;
 
 
