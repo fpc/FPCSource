@@ -303,6 +303,7 @@ unit TypInfo;
         Name: ShortString;
       end;
 
+      PProcedureSignature = ^TProcedureSignature;
       TProcedureSignature =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
