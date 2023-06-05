@@ -208,6 +208,9 @@ const
   {# Returns true if p is a WebAssembly funcref reference type }
   function is_wasm_funcref(p : tdef): boolean;
 
+  {# Returns true if p is a WebAssembly externref reference type }
+  function is_wasm_externref(p : tdef): boolean;
+
 implementation
 
   uses
@@ -224,6 +227,11 @@ implementation
   begin
     result:=(p.typ=procvardef) and (po_wasm_funcref in tprocvardef(p).procoptions);
   end;
+
+  function is_wasm_externref(p: tdef): boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).is_wasm_externref);
+    end;
 
 
   {****************************************************************************
@@ -298,7 +306,7 @@ implementation
               prm := tcpuparavarsym(pd.paras[i]);
               if is_wasm_funcref(prm.vardef) then
                 result.add_param(wbt_funcref)
-              else if (prm.vardef.typ=pointerdef) and (tcpupointerdef(prm.vardef).is_wasm_externref) then
+              else if is_wasm_externref(prm.vardef) then
                 result.add_param(wbt_externref)
               else case prm.paraloc[callerside].Size of
                 OS_8..OS_32, OS_S8..OS_S32:
