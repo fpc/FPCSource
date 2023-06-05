@@ -1166,6 +1166,33 @@
     end;
 
 {****************************************************************************
+                               TNoRefCountObject
+****************************************************************************}
+
+    function TNoRefCountObject.QueryInterface( {$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         if getinterface(iid,obj) then
+           result:=S_OK
+         else
+           result:=longint(E_NOINTERFACE);
+      end;
+
+    function TNoRefCountObject._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         Result:=-1;
+      end;
+
+    function TNoRefCountObject._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+      begin
+         Result:=-1;
+      end;
+
+
+
+{****************************************************************************
                                TCustomAttribute
 ****************************************************************************}
 
