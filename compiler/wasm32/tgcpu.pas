@@ -107,7 +107,7 @@ unit tgcpu;
 
       if is_wasm_funcref(def) then
         wbt := wbt_funcref
-      else if (def.typ=pointerdef) and (tcpupointerdef(def).is_wasm_externref) then
+      else if is_wasm_externref(def) then
         wbt := wbt_externref
       else if is_pointer(def) then
         wbt := wbt_i32 // wasm32
