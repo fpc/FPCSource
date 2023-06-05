@@ -3,6 +3,7 @@ unit tests.rtti.types;
 {$ifdef fpc}
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
+{$modeswitch prefixedattributes}
 {$endif}
 
 interface
@@ -152,6 +153,27 @@ Type
   {$POP}
   {$endif}
 
+  { TMyAttribute }
+
+  TMyAttribute = class(TCustomAttribute)
+  private
+    FValue: string;
+  public
+    constructor create(const avalue : string);
+    property value : string read FValue;
+  end;
+
+
+  { TMyAnnotatedClass }
+
+  [TMyAttribute('something')]
+  TMyAnnotatedClass = class
+  private
+    FSomething: String;
+  Published
+    Property Something : String Read FSomething Write FSomeThing;
+  end;
+
 implementation
 
 { TTestValueClass }
@@ -179,6 +201,13 @@ end;
 procedure TTestValueClass.SetWriteOnly(AValue: integer);
 begin
   // Do nothing
+end;
+
+{ TMyAttribute }
+
+constructor TMyAttribute.create(const avalue: string);
+begin
+  FValue:=aValue;
 end;
 
 {$ifdef fpc}
