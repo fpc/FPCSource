@@ -49,6 +49,11 @@ type
   TRttiProperty = class;
   TRttiInstanceType = class;
 
+  TCustomAttributeClass = class of TCustomAttribute;
+  TRttiClass = class of TRttiObject;
+
+  TCustomAttributeArray = specialize TArray<TCustomAttribute>;
+
   TFunctionCallCallback = class
   protected
     function GetCodeAddress: CodePointer; virtual; abstract;
@@ -220,7 +225,11 @@ type
   protected
     function GetHandle: Pointer; virtual; abstract;
   public
-    function GetAttributes: specialize TArray<TCustomAttribute>; virtual; abstract;
+    function HasAttribute(aClass: TCustomAttributeClass): Boolean;
+    function GetAttribute(aClass: TCustomAttributeClass): TCustomAttribute;
+    generic function GetAttribute<T>: T;
+    generic function HasAttribute<T>: Boolean;
+    function GetAttributes: TCustomAttributeArray; virtual; abstract;
     property Handle: Pointer read GetHandle;
   end;
 
@@ -230,6 +239,7 @@ type
   protected
     function GetName: string; virtual;
   public
+    function HasName(const aName: string): Boolean;
     property Name: string read GetName;
   end;
 
@@ -239,7 +249,7 @@ type
   private
     FTypeInfo: PTypeInfo;
     FAttributesResolved: boolean;
-    FAttributes: specialize TArray<TCustomAttribute>;
+    FAttributes: TCustomAttributeArray;
     FMethods: specialize TArray<TRttiMethod>;
     function GetAsInstance: TRttiInstanceType;
   protected
@@ -257,7 +267,7 @@ type
   public
     constructor Create(ATypeInfo : PTypeInfo);
     destructor Destroy; override;
-    function GetAttributes: specialize TArray<TCustomAttribute>; override;
+    function GetAttributes: TCustomAttributeArray; override;
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
     function GetMethods: specialize TArray<TRttiMethod>; virtual;
@@ -323,6 +333,13 @@ type
     property StringKind: TRttiStringKind read GetStringKind;
   end;
 
+  TRttiAnsiStringType = class(TRttiStringType)
+  private
+    function GetCodePage: Word;
+  public
+    property CodePage: Word read GetCodePage;
+  end;
+
   TRttiPointerType = class(TRttiType)
   private
     function GetReferredType: TRttiType;
@@ -377,7 +394,7 @@ type
   private
     FPropInfo: PPropInfo;
     FAttributesResolved: boolean;
-    FAttributes: specialize TArray<TCustomAttribute>;
+    FAttributes: TCustomAttributeArray;
     function GetPropertyType: TRttiType;
     function GetIsWritable: boolean;
     function GetIsReadable: boolean;
@@ -388,7 +405,7 @@ type
   public
     constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
     destructor Destroy; override;
-    function GetAttributes: specialize TArray<TCustomAttribute>; override;
+    function GetAttributes: TCustomAttributeArray; override;
     function GetValue(Instance: pointer): TValue;
     procedure SetValue(Instance: pointer; const AValue: TValue);
     property PropertyType: TRttiType read GetPropertyType;
@@ -396,6 +413,7 @@ type
     property IsWritable: boolean read GetIsWritable;
     property Visibility: TMemberVisibility read GetVisibility;
   end;
+  TRttiPropertyArray = specialize TArray<TRttiProperty>;
 
   TRttiParameter = class(TRttiNamedObject)
   private
@@ -408,6 +426,7 @@ type
     property Flags: TParamFlags read GetFlags;
     function ToString: String; override;
   end;
+  TRttiParameterArray = specialize TArray<TRttiParameter>;
 
   TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object;
   TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
@@ -423,11 +442,12 @@ type
     fFlags: TFunctionCallFlags;
     fResult: PTypeInfo;
     fCC: TCallConv;
-    function GetCodeAddress: CodePointer;
     procedure InitArgs;
     procedure HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
     constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
     constructor Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
+  Protected
+    function GetCodeAddress: CodePointer; inline;
   public
     constructor Create;
     destructor Destroy; override;
@@ -436,7 +456,7 @@ type
 
   TRttiInvokableType = class(TRttiType)
   protected
-    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; virtual; abstract;
     function GetCallingConvention: TCallConv; virtual; abstract;
     function GetReturnType: TRttiType; virtual; abstract;
     function GetFlags: TFunctionCallFlags; virtual; abstract;
@@ -444,34 +464,36 @@ type
     TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object;
     TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
   public
-    function GetParameters: specialize TArray<TRttiParameter>; inline;
+    function GetParameters: TRttiParameterArray; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
     property ReturnType: TRttiType read GetReturnType;
     function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
     { Note: once "reference to" is supported these will be replaced by a single method }
     function CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
     function CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
+    function ToString : string; override;
   end;
 
   TRttiMethodType = class(TRttiInvokableType)
   private
     FCallConv: TCallConv;
     FReturnType: TRttiType;
-    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+    FParams, FParamsAll: TRttiParameterArray;
   protected
-    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
     function GetFlags: TFunctionCallFlags; override;
   public
     function Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue; override;
+    function ToString: string; override;
   end;
 
   TRttiProcedureType = class(TRttiInvokableType)
   private
-    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+    FParams, FParamsAll: TRttiParameterArray;
   protected
-    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
     function GetCallingConvention: TCallConv; override;
     function GetReturnType: TRttiType; override;
     function GetFlags: TFunctionCallFlags; override;
@@ -505,7 +527,7 @@ type
     function GetMethodKind: TMethodKind; virtual; abstract;
     function GetReturnType: TRttiType; virtual; abstract;
     function GetVirtualIndex: SmallInt; virtual; abstract;
-    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; virtual; abstract;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; virtual; abstract;
   public
     property CallingConvention: TCallConv read GetCallingConvention;
     property CodeAddress: CodePointer read GetCodeAddress;
@@ -519,7 +541,7 @@ type
     property ReturnType: TRttiType read GetReturnType;
     property VirtualIndex: SmallInt read GetVirtualIndex;
     function ToString: String; override;
-    function GetParameters: specialize TArray<TRttiParameter>; inline;
+    function GetParameters: TRttiParameterArray; inline;
     function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue;
@@ -798,7 +820,7 @@ type
   private
     FIntfMethodEntry: PIntfMethodEntry;
     FIndex: SmallInt;
-    FParams, FParamsAll: specialize TArray<TRttiParameter>;
+    FParams, FParamsAll: TRttiParameterArray;
   protected
     function GetHandle: Pointer; override;
     function GetName: String; override;
@@ -813,7 +835,7 @@ type
     function GetMethodKind: TMethodKind; override;
     function GetReturnType: TRttiType; override;
     function GetVirtualIndex: SmallInt; override;
-    function GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>; override;
+    function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
   public
     constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
   end;
@@ -2712,7 +2734,7 @@ begin
   FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result.GetReferenceToRawData, flags);
 end;
 
-function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: specialize TArray<TRttiParameter>; aReturnType: TRttiType): TValue;
+function Invoke(const aName: String; aCodeAddress: CodePointer; aCallConv: TCallConv; aStatic: Boolean; aInstance: TValue; constref aArgs: array of TValue; const aParams: TRttiParameterArray; aReturnType: TRttiType): TValue;
 var
   param: TRttiParameter;
   unhidden, highs, i: SizeInt;
@@ -3209,7 +3231,7 @@ begin
   FIndex := AIndex;
 end;
 
-function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+function TRttiIntfMethod.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
 var
   param: PVmtMethodParam;
   total, visible: SizeInt;
@@ -3513,7 +3535,7 @@ begin
     Include(Result, fcfStatic);
 end;
 
-function TRttiMethod.GetParameters: specialize TArray<TRttiParameter>;
+function TRttiMethod.GetParameters: TRttiParameterArray;
 begin
   Result := GetParameters(False);
 end;
@@ -3522,7 +3544,7 @@ function TRttiMethod.ToString: String;
 var
   ret: TRttiType;
   n: String;
-  params: specialize TArray<TRttiParameter>;
+  params: TRttiParameterArray;
   i: LongInt;
 begin
   if FString = '' then begin
@@ -3619,7 +3641,7 @@ end;
 
 function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
 var
-  params: specialize TArray<TRttiParameter>;
+  params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
   res: PTypeInfo;
   restype: TRttiType;
@@ -3654,7 +3676,7 @@ end;
 
 function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
 var
-  params: specialize TArray<TRttiParameter>;
+  params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
   res: PTypeInfo;
   restype: TRttiType;
@@ -3689,14 +3711,14 @@ end;
 
 { TRttiInvokableType }
 
-function TRttiInvokableType.GetParameters: specialize TArray<TRttiParameter>;
+function TRttiInvokableType.GetParameters: TRttiParameterArray;
 begin
   Result := GetParameters(False);
 end;
 
 function TRttiInvokableType.CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
 var
-  params: specialize TArray<TRttiParameter>;
+  params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
   res: PTypeInfo;
   restype: TRttiType;
@@ -3731,7 +3753,7 @@ end;
 
 function TRttiInvokableType.CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
 var
-  params: specialize TArray<TRttiParameter>;
+  params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
   res: PTypeInfo;
   restype: TRttiType;
@@ -3764,9 +3786,40 @@ begin
   Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallbackProc(aCallback));
 end;
 
+function TRttiInvokableType.ToString: string;
+
+var
+  P : TRTTIParameter;
+  A : TRTTIParameterArray;
+  I : integer;
+  RT : TRttiType;
+
+begin
+  RT:=GetReturnType;
+  if RT=nil then
+    Result:=name+' = procedure ('
+  else
+    Result:=name+' = function (';
+  A:=GetParameters(False);
+  for I:=0 to Length(a)-1 do
+    begin
+      P:=A[I];
+      if I>0 then
+        Result:=Result+'; ';
+      Result:=Result+P.Name;
+      if Assigned(P.ParamType) then
+        Result:=Result+' : '+P.ParamType.Name;
+    end;
+  result:=Result+')';
+  if Assigned(RT) then
+    Result:=Result+' : '+RT.Name;
+end;
+
+
+
 { TRttiMethodType }
 
-function TRttiMethodType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+function TRttiMethodType.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
 type
   TParamInfo = record
     Handle: Pointer;
@@ -3891,6 +3944,13 @@ begin
   Result := [];
 end;
 
+function TRttiMethodType.ToString: string;
+
+begin
+  Result:=Inherited ToString;
+  Result:=Result+' of object';
+end;
+
 function TRttiMethodType.Invoke(const aCallable: TValue; const aArgs: array of TValue): TValue;
 var
   method: PMethod;
@@ -3909,7 +3969,7 @@ end;
 
 { TRttiProcedureType }
 
-function TRttiProcedureType.GetParameters(aWithHidden: Boolean): specialize TArray<TRttiParameter>;
+function TRttiProcedureType.GetParameters(aWithHidden: Boolean): TRttiParameterArray;
 var
   visible, i: SizeInt;
   param: PProcedureParam;
@@ -4003,6 +4063,12 @@ begin
     tkUString : result := skUnicodeString;
     tkWString : result := skWideString;
   end;
+end;
+
+function TRttiAnsiStringType.GetCodePage: Word;
+
+begin
+  Result:=FTypeData^.CodePage;
 end;
 
 { TRttiInterfaceType }
@@ -4232,7 +4298,7 @@ begin
   inherited Destroy;
 end;
 
-function TRttiProperty.GetAttributes: specialize TArray<TCustomAttribute>;
+function TRttiProperty.GetAttributes: TCustomAttributeArray;
 var
   i: SizeInt;
   at: PAttributeTable;
@@ -4244,7 +4310,7 @@ begin
         begin
           SetLength(FAttributes, at^.AttributeCount);
           for i := 0 to High(FAttributes) do
-            FAttributes[i] := TCustomAttribute(GetAttribute(at, i));
+            FAttributes[i] := TCustomAttribute(typinfo.GetAttribute(at, i));
         end;
       FAttributesResolved:=true;
     end;
@@ -4545,7 +4611,7 @@ begin
   inherited;
 end;
 
-function TRttiType.GetAttributes: specialize TArray<TCustomAttribute>;
+function TRttiType.GetAttributes: TCustomAttributeArray;
 var
   i: Integer;
   at: PAttributeTable;
@@ -4557,7 +4623,7 @@ begin
       begin
       setlength(FAttributes,at^.AttributeCount);
       for i := 0 to at^.AttributeCount-1 do
-        FAttributes[i]:=GetAttribute(at,i);
+        FAttributes[i]:=TypInfo.GetAttribute(at,i);
       end;
     FAttributesResolved:=true;
     end;
@@ -4626,6 +4692,11 @@ end;
 function TRttiNamedObject.GetName: string;
 begin
   result := '';
+end;
+
+function TRttiNamedObject.HasName(const aName: string): Boolean;
+begin
+  Result:=SameText(Name,AName);
 end;
 
 { TRttiContext }
@@ -4827,6 +4898,36 @@ begin
   if Assigned(fOnInvoke) then
     fOnInvoke(TRttiMethod(aUserData), aArgs, aResult);
 end;
+
+function TRttiObject.GetAttribute(aClass: TCustomAttributeClass): TCustomAttribute;
+
+var
+  attrarray : TCustomAttributeArray;
+  a: TCustomAttribute;
+
+begin
+  Result:=nil;
+  attrarray:=GetAttributes;
+  for a in attrarray do
+    if a.InheritsFrom(aClass) then
+      Exit(a);
+end;
+
+function TRttiObject.HasAttribute(aClass: TCustomAttributeClass): Boolean;
+begin
+  Result:=Assigned(GetAttribute(aClass));
+end;
+
+generic function TRttiObject.GetAttribute<T>: T;
+begin
+  Result:=T(GetAttribute(T));
+end;
+
+generic function TRttiObject.HasAttribute<T>: Boolean;
+begin
+  Result:=HasAttribute(T);
+end;
+
 
 {$ifndef InLazIDE}
 {$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}

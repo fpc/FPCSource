@@ -60,7 +60,7 @@ type
     procedure TestGetIsReadable;
     procedure TestIsWritable;
 
-
+    procedure TestGetAttribute;
 
     procedure TestInterface;
 {$ifdef fpc}
@@ -74,6 +74,7 @@ type
     procedure TestMethod;
 
     procedure TestRawThunk;
+
   private
 {$ifndef fpc}
     procedure Ignore(const aMsg: String);
@@ -186,6 +187,34 @@ begin
     CheckEquals(AProperty.IsWritable, True);
   finally
     c.Free;
+  end;
+end;
+
+procedure TTestRTTI.TestGetAttribute;
+// TMyAnnotatedClass
+// TMyAttribute
+
+var
+  c: TRttiContext;
+  aType: TRttiType;
+  aClass : TMyAnnotatedClass;
+  custAttr : TCustomAttribute;
+  myAttr : TMyAttribute absolute custattr;
+
+begin
+  aType:=nil;
+  custAttr:=Nil;
+  c := TRttiContext.Create;
+  try
+    aClass:=TMyAnnotatedClass.Create;
+    aType := c.GetType(aClass.ClassInfo);
+    custAttr:=aType.GetAttribute(TMyAttribute);
+    CheckEquals(custAttr.ClassType,TMyAttribute,'Correct class');
+    CheckEquals('something',MyAttr.value,'Correct value');
+  finally
+    aClass.Free;
+//    custAttr.Free;
+    C.Free;
   end;
 end;
 
