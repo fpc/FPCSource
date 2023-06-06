@@ -579,7 +579,7 @@ begin
 end;
 
 function TUpgradeHandlerList.AddHandler(const aName: String;
-  const aOnCheck: THandlesUpgradeEvent; const aOnUpgrade: TUpgradeConnectionEvent
+  aOnCheck: THandlesUpgradeEvent; aOnUpgrade: TUpgradeConnectionEvent
   ): TUpgradeHandlerItem;
 begin
   if IndexOfName(aName)<>-1 then
