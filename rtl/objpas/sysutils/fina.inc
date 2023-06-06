@@ -124,10 +124,10 @@ begin
     Dec(I);
   if (I > 0) and (FileName[I] = ExtensionSeparator) then
     begin
-	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
-	if (Not SOF) or FirstDotAtFileNameStartIsExtension then
-	  Result := Copy(FileName, I, MaxInt);
-	end  
+	  SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+	  if (Not SOF) or FirstDotAtFileNameStartIsExtension then
+	    Result := Copy(FileName, I, MaxInt);
+	  end
   else
     Result := '';
 end;
