@@ -48,27 +48,46 @@ begin
   Dispose(t);
 end;
 
+
 function TypeInfoToFFIType(aTypeInfo: PTypeInfo; aFlags: TParamFlags): pffi_type; forward;
+function ArgIsIndirect(aKind: TTypeKind; aFlags: TParamFlags; aIsResult: Boolean): Boolean; forward;
 
 function RecordOrObjectToFFIType(aTypeInfo: PTypeInfo): pffi_type;
 var
   curindex: SizeInt;
   elements: Tpffi_typeArray;
 
-  procedure AddElement(t: pffi_type);
+  function AddElement(t: pffi_type) : Integer;
+  var
+    aCif : ffi_cif;
+    t2 : ffi_type;
+
   begin
-    if curindex = Length(elements) then begin
+    Result:=0;
+    if assigned(t) then
+      begin
+      aCIF:=Default(ffi_cif);
+      FillChar(aCIF,SizeOf(aCIF),0);
+      t2:=t^;
+      if ffi_prep_cif(@aCIF, FFI_DEFAULT_ABI, 0, @t2, Nil) = FFI_OK then
+        Result:=t2.size;
+      end;
+    if curindex = Length(elements) then
       SetLength(elements, Length(elements) * 2);
-    end;
     elements[curindex] := t;
     Inc(curindex);
   end;
 
 var
   td, fieldtd: PTypeData;
-  i, j, curoffset, remoffset: SizeInt;
+  i, j, asize,lastoffset, curoffset, remoffset: SizeInt;
   field: PManagedField;
   ffitype: pffi_type;
+  {$IFDEF TESTCIFSIZE}
+  aCif : ffi_cif;
+  r2 : ffi_type;
+  {$ENDIF}
+
 begin
   td := GetTypeData(aTypeInfo);
   if td^.TotalFieldCount = 0 then
@@ -78,18 +97,21 @@ begin
   FillChar(Result^, SizeOf(Result), 0);
   Result^._type := _FFI_TYPE_STRUCT;
   Result^.elements := Nil;
+  lastoffset := -1;
   curoffset := 0;
   curindex := 0;
+  asize := 0;
   field := PManagedField(PByte(@td^.TotalFieldCount) + SizeOf(td^.TotalFieldCount));
   { assume first that there are no paddings }
   SetLength(elements, td^.TotalFieldCount);
   for i := 0 to td^.TotalFieldCount - 1 do begin
-    { ToDo: what about fields that are larger that what we have currently? }
-    if field^.FldOffset < curoffset then begin
+    curoffset := field^.FldOffset;
+    if (curoffset <= lastoffset) then begin
       Inc(field);
       Continue;
     end;
-    remoffset := field^.FldOffset - curoffset;
+    lastoffset:=field^.FldOffset;
+    remoffset := curoffset-(lastoffset-aSize);
     { insert padding elements }
     while remoffset >= SizeOf(QWord) do begin
       AddElement(@ffi_type_uint64);
@@ -109,21 +131,22 @@ begin
     end;
     { now add the real field type (Note: some are handled differently from
       being passed as arguments, so we handle those here) }
+    aSize:=0;
     if field^.TypeRef^.Kind = tkObject then
-      AddElement(RecordOrObjectToFFIType(field^.TypeRef))
+      aSize:=AddElement(RecordOrObjectToFFIType(field^.TypeRef))
     else if field^.TypeRef^.Kind = tkSString then begin
       fieldtd := GetTypeData(field^.TypeRef);
       for j := 0 to fieldtd^.MaxLength + 1 do
-        AddElement(@ffi_type_uint8);
+        aSize:=aSize+AddElement(@ffi_type_uint8);
     end else if field^.TypeRef^.Kind = tkArray then begin
       fieldtd := GetTypeData(field^.TypeRef);
       ffitype := TypeInfoToFFIType(fieldtd^.ArrayData.ElType, []);
       for j := 0 to fieldtd^.ArrayData.ElCount - 1 do
-        AddElement(ffitype);
+        aSize:=aSize+AddElement(ffitype);
     end else
-      AddElement(TypeInfoToFFIType(field^.TypeRef, []));
+      aSize:=AddElement(TypeInfoToFFIType(field^.TypeRef, []));
+    lastoffset:=lastOffset+aSize;
     Inc(field);
-    curoffset := field^.FldOffset;
   end;
   { add a final Nil element }
   AddElement(Nil);
@@ -131,6 +154,14 @@ begin
   SetLength(elements, curindex);
   { this is a bit cheeky, but it works }
   Tpffi_typeArray(Result^.elements) := elements;
+{$IFDEF TESTCIFSIZE}
+  aCIF:=Default(ffi_cif);
+  r2:=Result^;
+  if ffi_prep_cif(@aCIF, FFI_DEFAULT_ABI, 0, @R2, Nil) = FFI_OK then
+    Writeln('Rec size ',R2.size,' (expected: ',td^.RecSize,')')
+  else
+    Writeln('Fail');
+{$ENDIF}
 end;
 
 function SetToFFIType(aSize: SizeInt): pffi_type;
@@ -190,7 +221,7 @@ begin
   Result := @ffi_type_void;
   if Assigned(aTypeInfo) then begin
     td := GetTypeData(aTypeInfo);
-    if aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> [] then
+    if ArgIsIndirect(aTypeInfo^.Kind,aFlags,False)  then
       Result := @ffi_type_pointer
     else
       case aTypeInfo^.Kind of
@@ -301,7 +332,13 @@ begin
   if (aKind = tkSString) or
       (aIsResult and (aKind in ResultTypeNeedsIndirection)) or
       (aFlags * [pfArray, pfOut, pfVar, pfConstRef] <> []) or
-      ((aKind = tkUnknown) and (pfConst in aFlags)) then
+      ((aKind = tkUnknown) and (pfConst in aFlags))
+      // This is true for all CPUs except sparc64/xtensa and i386/X86_64 on windows.
+      // The latter 2 are handled by the i386-specific invoke, so need not concern us here.
+{$IF NOT (DEFINED(CPUSPARC64) or DEFINED(CPUXTENSA))}
+      or (aKind=tkVariant)
+{$ENDIF}
+      then
     Result := True;
 end;
 
@@ -433,6 +470,7 @@ var
   usevalues, retparam: Boolean;
   kind: TTypeKind;
   types: ppffi_type;
+
 begin
   if not (fcfStatic in aFlags) and (Length(aArgInfos) = 0) then
     raise EInvocationError.Create(SErrMissingSelfParam);
