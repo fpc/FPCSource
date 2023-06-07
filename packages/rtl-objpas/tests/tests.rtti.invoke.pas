@@ -34,6 +34,7 @@ type
     procedure DoMethodInvoke(aInst: TObject; aMethod: TMethod; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoProcVarInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
     procedure DoProcInvoke(aInst: TObject; aProc: CodePointer; aTypeInfo: PTypeInfo; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
+    procedure DoStaticInvokeTestVariant(const aTestName: String;  aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; aResult: String);
     procedure DoUntypedInvoke(aInst: TObject; aProc: CodePointer; aMethod: TMethod; aTypeInfo: PTypeInfo; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
 {$ifndef InLazIDE}
     {$ifdef fpc}generic{$endif} procedure GenDoMethodInvoke<T>(aInst: TObject; aMethod: T; aIndex: SizeInt; aInputArgs, aOutputArgs: TValueArray; aResult: TValue);
@@ -49,14 +50,17 @@ type
     procedure TestAnsiString;
     procedure TestWideString;
     procedure TestUnicodeString;
+    procedure TestVariant;
 
     procedure TestLongInt;
     procedure TestInt64;
+    procedure TestIntfVariant;
 
     procedure TestTObject;
 
     procedure TestIntfMethods;
     procedure TestIntfMethodsRecs;
+    procedure TestIntfMethodsVariant;
 
     procedure TestMethodVars;
     procedure TestMethodVarsRecs;
@@ -97,6 +101,18 @@ begin
     Fail('Result of test "%s" is unexpected; expected: %s, got: %s', [aTestName, IntToStr(aResult), IntToStr(resval.AsOrdinal)]);
   end;
 end;
+
+procedure TTestInvoke.DoStaticInvokeTestVariant(const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; aResult: String);
+var
+  resval: TValue;
+  valid: Boolean;
+begin
+  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic], valid);
+  if valid and (resval.AsAnsiString <> aResult) then begin
+    Fail('Result of test "%s" is unexpected; expected: %s, got: %s', [aTestName, aResult, String(resval.AsAnsiString)]);
+  end;
+end;
+
 
 procedure TTestInvoke.DoStaticInvokeTestAnsiStringCompare(
   const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv;
@@ -381,6 +397,26 @@ begin
   DoStaticInvokeTestOrdinalCompare('LongInt Pascal', @TestLongIntPascal, ccPascal, values, TypeInfo(LongInt), resval);
 end;
 
+function TestVariantRegister(aArg1 : variant): string; register;
+
+begin
+  Result:=aArg1;
+end;
+
+function TestVariantCdecl(aArg1 : variant): string; cdecl;
+
+begin
+  Result:=aArg1;
+end;
+
+function TestVariantPascal(aArg1 : variant): string; pascal;
+
+begin
+  Result:=aArg1;
+end;
+
+
+
 function TestInt64Register(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6: Int64): Int64; register;
 begin
   Result := aArg1 + aArg2 * 100 + aArg3 * 10000 + aArg4 * 1000000 + aArg5 * 100000000 + aArg6 * 10000000000;
@@ -431,6 +467,42 @@ begin
   DoStaticInvokeTestOrdinalCompare('Int64 StdCall', @TestInt64StdCall, ccStdCall, values, TypeInfo(Int64), resval);
   DoStaticInvokeTestOrdinalCompare('Int64 Pascal', @TestInt64Pascal, ccPascal, values, TypeInfo(Int64), resval);
 end;
+
+
+procedure TTestInvoke.TestVariant;
+
+var
+  values: TValueArray;
+  aValue : variant;
+  S : AnsiString;
+begin
+  SetLength(Values,1);
+  S:='A nice string';
+  aValue:=S;
+  TValue.Make(@aValue, TypeInfo(Variant), Values[0]);
+  DoStaticInvokeTestVariant('Test register',@TestVariantRegister,ccReg,values,TypeInfo(AnsiString),S);
+  DoStaticInvokeTestVariant('Test cdecl',@TestVariantCdecl,ccCdecl,values,TypeInfo(AnsiString),S);
+  DoStaticInvokeTestVariant('Test pascal',@TestVariantPascal,ccCdecl,values,TypeInfo(AnsiString),S);
+end;
+
+procedure TTestInvoke.TestIntfVariant;
+
+var
+  values,aOutput: TValueArray;
+  aValue : variant;
+  aResult : TValue;
+  S : AnsiString;
+begin
+  SetLength(Values,1);
+  S:='A nice string';
+  UniqueString(S);
+  aValue:=S;
+  aResult:=Default(TValue);
+  TValue.Make(@S, TypeInfo(AnsiString), aResult);
+  TValue.Make(@aValue, TypeInfo(Variant), Values[0]);
+  DoIntfInvoke(23,Values,aOutput,aResult);
+end;
+
 
 type
   TTestClass = class
@@ -689,6 +761,7 @@ type
     function Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
     function Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
     function Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
+    function Test23(aArg1 : Variant) : AnsiString;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -729,6 +802,7 @@ type
     function Test20(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Extended): Extended;
     function Test21(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Comp): Comp;
     function Test22(aArg1, aArg2, aArg3, aArg4, aArg5, aArg6, aArg7, aArg8, aArg9, aArg10: Currency): Currency;
+    function Test23(aArg1 : Variant) : AnsiString;
 
     function TestRecSize1(aArg1: TTestRecord1): TTestRecord1;
     function TestRecSize2(aArg1: TTestRecord2): TTestRecord2;
@@ -1331,6 +1405,18 @@ begin
   CalledMethod := 10 or RecSizeMarker;
 end;
 
+function TTestInterfaceClass.Test23(aArg1: Variant): AnsiString;
+
+begin
+  SetLength(OutputArgs, 0);
+  SetLength(InOutMapping, 0);
+  SetLength(InputArgs, 1);
+  TValue.Make(@aArg1, TypeInfo(aArg1), InputArgs[0]);
+  Result:=AnsiString(aArg1);
+  TValue.Make(@Result ,TypeInfo(Result), ResultValue);
+  CalledMethod:=23;
+end;
+
 procedure TTestInterfaceClass.TestUntyped(var aArg1; out aArg2; const aArg3; {$ifdef fpc}constref{$else}const [ref]{$endif} aArg4);
 begin
   if Length(ExpectedArgs) <> 4 then
@@ -1545,6 +1631,7 @@ var
   method: TRttiMethod;
   i: SizeInt;
   input: array of TValue;
+  S : String;
 begin
   cls := TTestInterfaceClass.Create;
   intf := cls;
@@ -1982,6 +2069,14 @@ begin
     GetCurrencyValue(CurrencyAddArg1), GetCurrencyValue(CurrencyAddArg2), GetCurrencyValue(CurrencyAddArg3), GetCurrencyValue(CurrencyAddArg4), GetCurrencyValue(CurrencyAddArg5),
     GetCurrencyValue(CurrencyAddArg6), GetCurrencyValue(CurrencyAddArg7), GetCurrencyValue(CurrencyAddArg8), GetCurrencyValue(CurrencyAddArg9), GetCurrencyValue(CurrencyAddArg10)
     ], [], GetCurrencyValue(CurrencyAddRes));
+end;
+
+procedure TTestInvoke.TestIntfMethodsVariant;
+begin
+  DoIntfInvoke(1 or TTestInterfaceClass.RecSizeMarker,
+    [{$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord1>(False)], [],
+    {$ifdef fpc}specialize{$endif} GetRecValue<TTestRecord1>(True));
+
 end;
 
 procedure TTestInvoke.TestIntfMethodsRecs;
