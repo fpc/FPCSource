@@ -570,7 +570,8 @@ uses
           a_end_if,
           a_end_loop,
           a_end_try,
-          a_catch_all:
+          a_catch_all,
+          a_ref_is_null:
             result:=1;
           a_i32_trunc_sat_f32_s,
           a_i32_trunc_sat_f32_u,
@@ -2003,6 +2004,8 @@ uses
               WriteByte($D0);
               WriteByte($6F);
             end;
+          a_ref_is_null:
+            WriteByte($D1);
           else
             internalerror(2021092624);
         end;
