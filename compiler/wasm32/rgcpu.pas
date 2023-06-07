@@ -54,7 +54,7 @@ implementation
       globtype,globals,
       cgobj,
       tgobj,
-      symtype,symdef,symcpu;
+      symtype,symdef,symconst,symcpu;
 
     { trgcpu }
 
@@ -326,7 +326,9 @@ implementation
         spill_temps : tspilltemps;
         templist : TAsmList;
         intrg,
-        fprg     : trgcpu;
+        fprg,
+        frrg,
+        errg     : trgcpu;
         p,q      : tai;
         size     : longint;
 
@@ -340,6 +342,7 @@ implementation
         pidx    : integer;
         t: treftemppos;
         def: tdef;
+        wasmfuncreftype: tprocvardef;
 
       begin
         { Since there are no actual registers, we simply spill everything. We
@@ -350,9 +353,13 @@ implementation
         { get references to all register allocators }
         intrg:=trgcpu(cg.rg[R_INTREGISTER]);
         fprg:=trgcpu(cg.rg[R_FPUREGISTER]);
+        frrg:=trgcpu(cg.rg[R_FUNCREFREGISTER]);
+        errg:=trgcpu(cg.rg[R_EXTERNREFREGISTER]);
         { determine the live ranges of all registers }
         intrg.insert_regalloc_info_all(list);
         fprg.insert_regalloc_info_all(list);
+        frrg.insert_regalloc_info_all(list);
+        errg.insert_regalloc_info_all(list);
         { Don't do the actual allocation when -sr is passed }
         if (cs_no_regalloc in current_settings.globalswitches) then
           exit;
@@ -361,8 +368,13 @@ implementation
         { allocate room to store the virtual register -> temp mapping }
         spill_temps[R_INTREGISTER]:=allocmem(sizeof(treference)*intrg.maxreg);
         spill_temps[R_FPUREGISTER]:=allocmem(sizeof(treference)*fprg.maxreg);
+        spill_temps[R_FUNCREFREGISTER]:=allocmem(sizeof(treference)*frrg.maxreg);
+        spill_temps[R_EXTERNREFREGISTER]:=allocmem(sizeof(treference)*errg.maxreg);
         { List to insert temp allocations into }
         templist:=TAsmList.create;
+        {  }
+        wasmfuncreftype:=cprocvardef.create(normal_function_level,true);
+        include(wasmfuncreftype.procoptions,po_wasm_funcref);
         { allocate/replace all registers }
         p:=headertai;
         insbefore := nil;
@@ -408,6 +420,16 @@ implementation
                           else
                             internalerror(2020120804);
                         end;
+                      R_FUNCREFREGISTER:
+                        begin
+                          size:=0;
+                          def:=wasmfuncreftype;
+                        end;
+                      R_EXTERNREFREGISTER:
+                        begin
+                          size:=0;
+                          def:=wasmvoidexternreftype;
+                        end;
                       else
                         internalerror(2010122912);
                     end;
@@ -445,7 +467,11 @@ implementation
           list.insertListBefore(nil, templist);
         freemem(spill_temps[R_INTREGISTER]);
         freemem(spill_temps[R_FPUREGISTER]);
+        freemem(spill_temps[R_FUNCREFREGISTER]);
+        freemem(spill_temps[R_EXTERNREFREGISTER]);
         templist.free;
+        { Not needed anymore }
+        wasmfuncreftype.owner.deletedef(wasmfuncreftype);
       end;
 
 end.
