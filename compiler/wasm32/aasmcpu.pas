@@ -581,7 +581,9 @@ uses
           a_i64_trunc_sat_f64_s,
           a_i64_trunc_sat_f64_u,
           a_memory_size,
-          a_memory_grow:
+          a_memory_grow,
+          a_ref_null_funcref,
+          a_ref_null_externref:
             result:=2;
           a_memory_copy:
             result:=4;
@@ -1990,6 +1992,16 @@ uses
             begin
               WriteByte($FC);
               WriteByte($07);
+            end;
+          a_ref_null_funcref:
+            begin
+              WriteByte($D0);
+              WriteByte($70);
+            end;
+          a_ref_null_externref:
+            begin
+              WriteByte($D0);
+              WriteByte($6F);
             end;
           else
             internalerror(2021092624);
