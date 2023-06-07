@@ -30,7 +30,7 @@ uses
 {$ifdef testimpl}
   tests.rtti.impl,
 {$endif}
-  tests.rtti, tests.value, tests.rtti.types;
+  tests.rtti, tests.value, tests.rtti.types, Tests.Rtti.Util;
 
 var
   Application: TTestRunner;
