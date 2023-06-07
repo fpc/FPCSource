@@ -241,15 +241,15 @@ begin
     {$ifdef fpc}
       tkObject,
     {$endif}
-      tkMethod,
-      tkVariant: begin
+      tkMethod:
+      begin
         if aValue1.DataSize = aValue2.DataSize then
           Result := CompareMem(aValue1.GetReferenceToRawData, aValue2.GetReferenceToRawData, aValue1.DataSize)
         else
           Result := False;
-      end
-      else
-        Result := False;
+      end;
+      tkVariant:
+        Result := aValue1.AsVariant = aValue2.AsVariant;
     end;
   end else
     Result := False;
