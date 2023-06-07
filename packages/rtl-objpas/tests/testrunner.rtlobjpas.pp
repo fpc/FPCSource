@@ -27,6 +27,7 @@ uses
   ffi.manager,
 {$endif}
   consoletestrunner,
+  tests.rtti.util,
 {$ifdef testinvoke}
   tests.rtti.invoke,
 {$endif}
