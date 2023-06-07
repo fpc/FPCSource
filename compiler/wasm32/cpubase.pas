@@ -230,6 +230,12 @@ uses
       { MM Super register first and last }
       first_mm_imreg     = 4;
 
+      { funcref Super register first and last }
+      first_funcref_imreg     = 4;
+
+      { externref Super register first and last }
+      first_externref_imreg     = 4;
+
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rwasmnum.inc}
       );

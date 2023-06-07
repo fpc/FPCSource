@@ -65,6 +65,8 @@ uses
       procedure decstack(list : TAsmList;slots: longint);
 
       class function def2regtyp(def: tdef): tregistertype; override;
+      function getintregister(list:TAsmList;size:tdef):Tregister;override;
+      function getregisterfordef(list: TAsmList;size:tdef):Tregister;override;
 
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
@@ -256,7 +258,7 @@ implementation
     defutil,cpupi,
     aasmtai,aasmcpu,
     symtable,symcpu,
-    procinfo,cpuinfo,cgcpu,tgobj,tgcpu,paramgr;
+    procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
@@ -364,10 +366,36 @@ implementation
 
   class function thlcgwasm.def2regtyp(def: tdef): tregistertype;
     begin
-      if (def.typ=recorddef) and (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
+      if is_wasm_externref(def) then
+        result:=R_EXTERNREFREGISTER
+      else if is_wasm_funcref(def) then
+        result:=R_FUNCREFREGISTER
+      else if (def.typ=recorddef) and (def.size in [4,8]) and (trecorddef(def).contains_float_field) then
         result:=R_FPUREGISTER
       else
         result:=inherited;
+    end;
+
+
+  function thlcgwasm.getintregister(list:TAsmList;size:tdef):Tregister;
+    begin
+      if is_wasm_reference_type(size) then
+        internalerror(2023060702)
+      else
+        result:=inherited;
+    end;
+
+
+  function thlcgwasm.getregisterfordef(list: TAsmList;size:tdef):Tregister;
+    begin
+      case def2regtyp(size) of
+        R_EXTERNREFREGISTER:
+          result:=TCgWasm(cg).getexternrefregister(list);
+        R_FUNCREFREGISTER:
+          result:=TCgWasm(cg).getfuncrefregister(list);
+        else
+          result:=inherited;
+      end;
     end;
 
 
@@ -1024,7 +1052,17 @@ implementation
               end;
             else
               internalerror(2011010302);
-          end
+          end;
+        R_FUNCREFREGISTER:
+          begin
+            list.concat(taicpu.op_none(a_ref_null_funcref));
+            incstack(list,1);
+          end;
+        R_EXTERNREFREGISTER:
+          begin
+            list.concat(taicpu.op_none(a_ref_null_externref));
+            incstack(list,1);
+          end;
         else
           internalerror(2011010301);
       end;

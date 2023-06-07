@@ -83,6 +83,7 @@ unit tgcpu;
          procedure ungettemp(list: TAsmList; const ref : treference); override;
          procedure allocframepointer(list: TAsmList; out ref: treference);
          procedure allocbasepointer(list: TAsmList; out ref: treference);
+         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference); override;
        end;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
@@ -239,6 +240,13 @@ unit tgcpu;
             else
               internalerror(2020121801);
           end
+        else if Assigned(def) and is_wasm_reference_type(def) then
+          begin
+            if defToWasmBasic(def, wbt) then
+              allocLocalVarToRef(wbt, ref)
+            else
+              internalerror(2023060701);
+          end
         else
           inherited;
       end;
@@ -286,6 +294,21 @@ unit tgcpu;
       begin
         reference_reset_base(ref,NR_LOCAL_STACK_POINTER_REG,idx,ctempposinvalid,size,[]);
         updateFirstTemp;
+      end;
+
+    procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference);
+      var
+        wbt: TWasmBasicType;
+      begin
+        if is_wasm_reference_type(def) then
+          begin
+            if defToWasmBasic(def, wbt) then
+              allocLocalVarToRef(wbt, ref)
+            else
+              internalerror(2023060703);
+          end
+        else
+          inherited;
       end;
 
     function TWasmLocalVars.alloc(bt: TWasmBasicType): integer;
