@@ -40,6 +40,7 @@ Type
     procedure TestMakeWideChar;
 
     procedure TestMakeNativeInt;
+    procedure TestMakeVariant;
 
 
     procedure TestMakeGenericNil;
@@ -1249,6 +1250,28 @@ begin
   Check(PPointer(v.GetReferenceToRawData)^ = Pointer(o));
   Check(v.AsObject = o);
   o.Free;
+end;
+
+procedure TTestValueSimple.TestMakeVariant;
+var
+  vv : Variant;
+  vd : TVarData;
+  v: TValue;
+begin
+  vv := 'Some String';
+
+  TValue.Make(@vv, TypeInfo(Variant), v);
+  Check(not v.IsClass);
+  Check(not v.IsArray);
+  Check(not v.IsEmpty);
+{$ifdef fpc}
+  Check(not v.IsOpenArray);
+{$endif}
+  Check(not v.IsObject);
+  Check(not v.IsOrdinal);
+
+  Check(v.GetReferenceToRawData <> @vv);
+  Check(String(v.AsVariant) = 'Some String');
 end;
 
 procedure TTestValueArray.TestMakeFromArray;
