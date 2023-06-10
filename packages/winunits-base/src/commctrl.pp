@@ -5905,14 +5905,6 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
-{$ifdef ie6plus}
-                                 uStateEx     : cUINT;
-                                 hwnd         : HWND;
-                                 iExpandedImage  : cint;
-{$endif}
-{$ifdef NTDDI_WIN7}
-				 iPadding        : cint;
-{$endif}
                                  END;
          TVITEMA              = tagTVITEMA;
          LPTVITEMA            = ^tagTVITEMA;
@@ -5931,14 +5923,6 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
-{$ifdef ie6plus}
-                                 uStateEx     : cUINT;
-                                 hwnd         : HWND;
-                                 iExpandedImage  : cint;
-{$endif}
-{$ifdef NTDDI_WIN7}
-				 iPadding        : cint;
-{$endif}
                                  END;
          TVITEMW              = tagTVITEMW;
          LPTVITEMW            = ^tagTVITEMW;
@@ -5960,6 +5944,14 @@ Type
                                  cChildren    : cint;
                                  lParam       : LPARAM;
                                  iIntegral    : cint;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+                                 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMEXA            = tagTVITEMEXA;
          LPTVITEMEXA          = ^tagTVITEMEXA;
@@ -5979,6 +5971,14 @@ Type
                                  cChildren    : cint;
                                  lParam       : LPARAM;
                                  iIntegral    : cint;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+                                 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMEXW            = tagTVITEMEXW;
          LPTVITEMEXW          = ^tagTVITEMEXW;
