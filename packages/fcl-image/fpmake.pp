@@ -299,19 +299,19 @@ begin
       AddUnit('fpqrcodegen');
       end;
     // qoi  
-    T:=P.Targets.AddUnit('qoicomn.pp');
+    T:=P.Targets.AddUnit('qoicomn.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
           AddUnit('fpimgcmn');
         end;
-    T:=P.Targets.AddUnit('fpreadqoi.pp');
+    T:=P.Targets.AddUnit('fpreadqoi.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
           AddUnit('qoicomn');
         end;
-    T:=P.Targets.AddUnit('fpwriteqoi.pp');
+    T:=P.Targets.AddUnit('fpwriteqoi.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
