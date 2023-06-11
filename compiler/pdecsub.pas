@@ -2401,6 +2401,11 @@ begin
              else
                import_nr:=longint(v.svalue);
            end;
+          if (target_info.system in systems_wasm) and (idtoken=_SUSPENDING) then
+           begin
+             consume(_SUSPENDING);
+             include(procoptions,po_wasm_suspending);
+           end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
             begin

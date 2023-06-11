@@ -452,7 +452,8 @@ type
       means it cannot be stored in linear memory or have its address taken. It can
       however be stored in WebAssembly globals, locals, used in function parameters
       and returns and it can be called.) }
-    po_wasm_funcref
+    po_wasm_funcref,
+    po_wasm_suspending
   );
   tprocoptions=set of tprocoption;
 
@@ -1120,7 +1121,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       'C-style array-of-const', {po_variadic}
       'objc-related-result-type', {po_objc_related_result_type}
       'po_anonymous', {po_anonymous}
-      '"WASMFUNCREF"' {po_wasm_funcref}
+      '"WASMFUNCREF"', {po_wasm_funcref}
+      '"SUSPENDING"' {po_wasm_suspending}
     );
 
 implementation

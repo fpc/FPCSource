@@ -291,6 +291,7 @@ type
     _OPENSTRING,
     _RIGHTSHIFT,
     _SPECIALIZE,
+    _SUSPENDING,
     _VECTORCALL,
     _CONSTRUCTOR,
     _GREATERTHAN,
@@ -634,6 +635,7 @@ const
       (str:'OPENSTRING'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'RIGHTSHIFT'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'SPECIALIZE'    ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'SUSPENDING'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'VECTORCALL'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'CONSTRUCTOR'   ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'GREATERTHAN'   ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
