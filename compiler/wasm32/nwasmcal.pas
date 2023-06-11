@@ -69,7 +69,7 @@ implementation
         while assigned(p) do
           begin
             pvs:=tparavarsym(procdefinition.paras[paranr]);
-            if is_wasm_reference_type(p.left.resultdef) and
+            if assigned(p.left) and is_wasm_reference_type(p.left.resultdef) and
               ((pvs.varspez in [vs_var,vs_constref,vs_out]) or
                ((pvs.varspez=vs_const) and (pvs.vardef.typ=formaldef))) then
               CGMessage(parser_e_wasm_ref_types_can_only_be_passed_by_value);
