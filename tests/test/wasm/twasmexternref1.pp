@@ -49,4 +49,5 @@ end;
 
 begin
   testproc5(nil);
+  testproc7(nil);
 end.
