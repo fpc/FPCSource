@@ -38,6 +38,16 @@ begin
   testproc5 := nil;
 end;
 
+function testproc6: Boolean;
+var
+  q: TWasmFuncRef;
+begin
+  testproc6 := q = nil;
+  testproc6 := nil = q;
+  testproc6 := q <> nil;
+  testproc6 := nil <> q;
+end;
+
 begin
   testproc5(nil);
 end.
