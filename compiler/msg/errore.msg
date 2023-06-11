@@ -1649,7 +1649,7 @@ parser_w_ignoring_published_property=03365_W_This property will not be published
 %
 # Type Checking
 #
-# 04131 is the last used one
+# 04132 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2105,6 +2105,8 @@ type_e_nested_procvar_to_funcref=04131_E_A nested function variable can not be a
 % Function references can live beyond the scope of the function they're contained in while
 % nested functions assigned to nested function variables can't. Due to this discrepancy
 % in design assigning a nested function variable to a function reference is forbidden.
+type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of a WebAssembly externref
+% WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
 %
 % \end{description}
 #
