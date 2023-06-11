@@ -50,7 +50,7 @@ implementation
       if codegenerror then
        exit;
 
-      if is_wasm_externref(left.resultdef) then
+      if assigned(left) and is_wasm_externref(left.resultdef) then
         begin
           CGMessagePos(left.fileinfo,type_e_cannot_take_address_of_wasm_externref);
           result:=nil;
