@@ -1,7 +1,7 @@
 { %cpu=wasm32 }
 { %norun }
 
-program twasmfuncref1;
+program twasmfuncref1a;
 
 {$MODE tp}
 
