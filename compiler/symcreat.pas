@@ -137,7 +137,7 @@ implementation
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
-    symcpu,
+    aasmcpu,symcpu,
     nbas,nld,nmem,ncon,
     defcmp,
     paramgr;
@@ -230,7 +230,7 @@ implementation
     end;
 
 
-  function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean):boolean;
+  function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean; out result_procdef: tprocdef):boolean;
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -261,7 +261,7 @@ implementation
       flags:=[];
       if is_classdef then
         include(flags,rpf_classmethod);
-      read_proc(flags,usefwpd);
+      result_procdef:=read_proc(flags,usefwpd);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -272,8 +272,16 @@ implementation
 
 
   function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
+    var
+      tmpproc: tprocdef;
     begin
-      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef);
+      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef, tmpproc);
+    end;
+
+
+  function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean; out result_procdef: tprocdef):boolean;
+    begin
+      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef, result_procdef);
     end;
 
 
@@ -942,6 +950,37 @@ implementation
       str_parse_method_impl(str,pd,false);
       exclude(pd.procoptions,po_external);
     end;
+
+  procedure implement_wasm_promising(pd: tcpuprocdef);
+    var
+      str: ansistring;
+      wrapper_name: ansistring;
+      new_wrapper_pd: tprocdef;
+    begin
+      wrapper_name:=pd.promising_wrapper_name;
+
+      if is_void(pd.returndef) then
+        str:='procedure '
+      else
+        str:='function ';
+      str:=str+wrapper_name+'(__fpc_wasm_susp: WasmExternRef;';
+      addvisibleparameterdeclarations(str,pd);
+      if str[Length(str)]=';' then
+        delete(str,Length(str),1);
+      str:=str+')';
+      if not is_void(pd.returndef) then
+        str:=str+': '+pd.returndef.fulltypename;
+      str:=str+'; begin __fpc_wasm_suspender:=__fpc_wasm_susp;';
+      if not is_void(pd.returndef) then
+        str:=str+' result:=';
+      str:=str+pd.procsym.RealName+'(';
+      addvisibleparameters(str,pd);
+      if str[Length(str)]=',' then
+        delete(str,Length(str),1);
+      str:=str+'); end;';
+      str_parse_method_impl(str,nil,false,new_wrapper_pd);
+      current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_export_name,new_wrapper_pd.mangledname,ie_Func));
+    end;
 {$endif wasm}
 
 
@@ -1050,7 +1089,7 @@ implementation
   procedure implement_interface_wrapper(pd: tprocdef);
     var
       wrapperinfo: pskpara_interface_wrapper;
-      callthroughpd: tprocdef;
+      callthroughpd, tmpproc: tprocdef;
       str: ansistring;
       fileinfo: tfileposinfo;
     begin
@@ -1078,7 +1117,7 @@ implementation
           fileinfo.line:=1;
           fileinfo.column:=1;
         end;
-      str_parse_method_impl_with_fileinfo(str,pd,fileinfo.fileindex,fileinfo.line,false);
+      str_parse_method_impl_with_fileinfo(str,pd,fileinfo.fileindex,fileinfo.line,false,tmpproc);
       dispose(wrapperinfo);
       pd.skpara:=nil;
     end;
@@ -1188,8 +1227,11 @@ implementation
 {$ifdef wasm}
             tsk_wasm_suspending:
               implement_wasm_suspending(tcpuprocdef(pd));
+            tsk_wasm_promising:
+              implement_wasm_promising(tcpuprocdef(pd));
 {$else wasm}
-            tsk_wasm_suspending:
+            tsk_wasm_suspending,
+            tsk_wasm_promising:
               internalerror(2023061107);
 {$endif wasm}
             tsk_field_getter:

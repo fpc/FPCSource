@@ -176,6 +176,11 @@ implementation
                        include(options,eo_resident);
                        DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                      end;
+                    if try_to_consume(_PROMISING) then
+                     begin
+                       if target_info.system in systems_wasm then
+                         include(options,eo_promising);
+                     end;
                     if (DefString<>'') and UseDeffileForExports then
                      DefFile.AddExport(DefString);
                   end;
