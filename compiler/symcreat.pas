@@ -898,6 +898,8 @@ implementation
                   str:=str+'const ';
                 vs_value:
                   ;
+                else
+                  internalerror(2023061108);
               end;
 
               str:=str+currpara.realname;
