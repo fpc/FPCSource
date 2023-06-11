@@ -445,7 +445,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03365 is the last used one
+# 03366 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1644,6 +1644,7 @@ parser_w_ignoring_published_property=03365_W_This property will not be published
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
+parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly reference types can only be passed by value
 %
 % \end{description}
 %
