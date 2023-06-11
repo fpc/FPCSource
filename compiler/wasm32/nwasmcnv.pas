@@ -38,6 +38,8 @@ interface
          procedure second_int_to_bool;override;
          procedure second_ansistring_to_pchar;override;
          procedure second_class_to_intf;override;
+       public
+         function target_specific_explicit_typeconv: boolean;override;
        end;
 
 implementation
@@ -251,6 +253,16 @@ implementation
           end;
         if hd=nil then
           internalerror(2002081301);
+      end;
+
+
+    function twasmtypeconvnode.target_specific_explicit_typeconv: boolean;
+      begin
+        result:=false;
+        if is_pointer(left.resultdef) and
+           is_pointer(resultdef) and
+           not tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(resultdef)) then
+          CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
 begin
