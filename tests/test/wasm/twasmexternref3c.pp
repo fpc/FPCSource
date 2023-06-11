@@ -1,15 +1,15 @@
 { %cpu=wasm32 }
 { %fail }
 
-program twasmexternref3;
+program twasmexternref3c;
 
 procedure testproc;
 var
   p: WasmExternRef;
   q: Pointer;
 begin
-  { WasmExternRef cannot be explicitly converted to pointer }
-  q := Pointer(p);
+  { A pointer cannot be implicitly converted to WasmExternRef }
+  p := q;
 end;
 
 begin

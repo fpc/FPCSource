@@ -8,7 +8,7 @@ var
   p: WasmExternRef;
   q: Pointer;
 begin
-  { A pointer cannot be converted to WasmExternRef }
+  { A pointer cannot be explicitly converted to WasmExternRef }
   p := WasmExternRef(q);
 end;
 
