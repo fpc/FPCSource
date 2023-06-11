@@ -69,6 +69,7 @@ type
     constructor create_externref(def: tdef);
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -291,6 +292,12 @@ implementation
       result:=inherited;
       if is_wasm_externref then
         result:=result+';wasmexternref';;
+    end;
+
+
+  function tcpupointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=tcpupointerdef(ptr).is_wasm_externref=is_wasm_externref;
     end;
 
 
