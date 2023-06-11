@@ -53,6 +53,8 @@ type
     procedure Test2;
   end;
 
+  { TSuiteTest }
+
   TSuiteTest = class(TTestCase)
   private
     FResult: TTestResult;
@@ -70,6 +72,7 @@ type
     procedure testShadowedTests;
     procedure testAddTestSuiteFromClass;
     procedure testCreateTestSuiteFromArray;
+    procedure testTestCaseAsSuite;
   end;
 
 
@@ -212,6 +215,20 @@ begin
     AssertEquals(2, ts.Tests.Count);
     AssertEquals('TOneTestCase', ts[0].TestName);
     AssertEquals('TInheritedTestCase', ts[1].TestName);
+  finally
+    ts.Free;
+  end;
+end;
+
+procedure TSuiteTest.testTestCaseAsSuite;
+var
+  ts: TTestSuite;
+begin
+  ts := TOneTestCase.Suite;
+  try
+    AssertEquals(1, ts.CountTestCases);
+    AssertEquals(1, ts.Tests.Count);
+    AssertEquals('OnlyOneTestCase', ts[0].TestName);
   finally
     ts.Free;
   end;

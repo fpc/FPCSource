@@ -653,7 +653,7 @@ interface
     function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
-    procedure DefaultReplacements(var s:ansistring);
+    procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 
     function  GetEnvPChar(const envname:ansistring):pchar;
     procedure FreeEnvPChar(p:pchar);
@@ -952,7 +952,7 @@ implementation
 ****************************************************************************}
 
 
-     procedure DefaultReplacements(var s:ansistring);
+     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
 {$ifdef mswindows}
        procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
          begin
@@ -1024,6 +1024,8 @@ implementation
          Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
          Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
 {$endif openbsd}
+         if not substitute_env_variables then
+           exit;
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do

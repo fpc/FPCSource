@@ -89,7 +89,7 @@ Type
     // Read the request content
     procedure ReadRequestContent(ARequest: TFPHTTPConnectionRequest); virtual;
     // Allow descendents to handle unknown headers
-    procedure UnknownHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String); virtual;
+    procedure UnknownHeader({%H-}ARequest: TFPHTTPConnectionRequest; const {%H-}AHeader: String); virtual;
     // Handle request error, calls OnRequestError
     procedure HandleRequestError(E : Exception); virtual;
     // Handle unexpected error, calls OnUnexpectedError
@@ -190,13 +190,12 @@ Type
 
   TFPHTTPServerConnectionListHandler = Class(TFPHTTPServerConnectionHandler)
   Private
-
     FList: TConnectionList;
   Protected
     Type
       TConnectionIterator = Procedure (aConnection :TFPHTTPConnection; var aContinue : boolean) of object;
     Function CreateList : TConnectionList;
-    Procedure CloseConnectionSocket(aConnection :TFPHTTPConnection; var aContinue : boolean);
+    Procedure CloseConnectionSocket(aConnection :TFPHTTPConnection; var {%H-}aContinue : boolean);
     Procedure Foreach(aIterator : TConnectionIterator);
     Procedure RemoveConnection(aConnection :TFPHTTPConnection); override;
   Public
@@ -255,8 +254,8 @@ Type
          Property OnDone : TNotifyEvent Read FOnDone;
        end;
     procedure ConnectionDone(Sender: TObject); virtual;
-    procedure ScheduleRequest(aConnection: TFPHTTPConnection);virtual;
-    procedure CheckRequest(aConnection: TFPHTTPConnection; var aContinue : Boolean);virtual;
+    procedure ScheduleRequest(aConnection: TFPHTTPConnection); virtual;
+    procedure CheckRequest(aConnection: TFPHTTPConnection; var {%H-}aContinue: Boolean); virtual;
   Public
     Procedure CloseSockets; override;
     procedure CheckRequests; override;
@@ -299,7 +298,6 @@ Type
   end;
 
   { TConnectionList }
-
 
   THTTPLogEvent = Procedure (aSender : TObject; aType: TEventType; Const Msg : String) of object;
   // Events in the lifetime of a request that are logged
@@ -347,7 +345,7 @@ Type
     procedure SetActive(const AValue: Boolean);
     procedure SetCertificateData(AValue: TCertificateData);
     procedure SetHostName(const AValue: string);
-    procedure SetIdle(AValue: TNotifyEvent);
+    procedure SetIdle(const AValue: TNotifyEvent);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
     procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
@@ -364,9 +362,9 @@ Type
     Procedure DoLog(aMoment : THTTPLogMoment; const Fmt : String; Const Args : Array of const); overload;
     Function CheckUpgrade(aConnection : TFPHTTPConnection; aRequest : TFPHTTPConnectionRequest) : Boolean;
     // Override this to create Descendent
-    Function CreateUpgradeHandlerList : TUpgradeHandlerList;
+    Function CreateUpgradeHandlerList : TUpgradeHandlerList; virtual;
     // Override this to create descendent
-    function CreateSSLSocketHandler: TSocketHandler;
+    function CreateSSLSocketHandler: TSocketHandler; virtual;
     // Override this to create descendent
     Function CreateCertificateData : TCertificateData; virtual;
     // Override this to create descendent
@@ -374,20 +372,20 @@ Type
     // Override these to create descendents of the request/response instead.
     Function CreateRequest : TFPHTTPConnectionRequest; virtual;
     Function CreateResponse(ARequest : TFPHTTPConnectionRequest) : TFPHTTPConnectionResponse; virtual;
-    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
-    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
+    Procedure InitRequest({%H-}ARequest : TFPHTTPConnectionRequest); virtual;
+    Procedure InitResponse({%H-}AResponse : TFPHTTPConnectionResponse); virtual;
     // Called on accept errors
-    procedure DoAcceptError(Sender: TObject; ASocket: Longint; E: Exception;  var ErrorAction: TAcceptErrorAction);
+    procedure DoAcceptError(Sender: TObject; {%H-}ASocket: Longint; {%H-}E: Exception;  var ErrorAction: TAcceptErrorAction); virtual;
     // Called when accept is idle. Will check for new requests.
-    procedure DoAcceptIdle(Sender: TObject);
+    procedure DoAcceptIdle(Sender: TObject); virtual;
     // Called when KeepConnection is idle.
-    procedure DoKeepConnectionIdle(Sender: TObject);
+    procedure DoKeepConnectionIdle(Sender: TObject); virtual;
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
     // Create a connection handler object depending on threadmode
     Function CreateConnectionHandler : TFPHTTPServerConnectionHandler; virtual;
     // Check if server is inactive
-    Procedure CheckInactive;
+    Procedure CheckInactive; virtual;
     // Called by TInetServer when a new connection is accepted.
     Procedure DoConnect(Sender : TObject; Data : TSocketStream); virtual;
     // Create and configure TInetServer
@@ -424,7 +422,7 @@ Type
     class constructor init;
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-    Function RegisterUpdateHandler(Const aName : string;  OnCheck : THandlesUpgradeEvent; OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
+    Function RegisterUpdateHandler(Const aName : string; const OnCheck : THandlesUpgradeEvent; const OnUpgrade : TUpgradeConnectionEvent) : TUpgradeHandlerItem;
     Procedure UnRegisterUpdateHandler(Const aName : string);
   protected
     // Set to true to start listening.
@@ -580,12 +578,13 @@ begin
     Result:=GetHandlerItem(Idx);
 end;
 
-function TUpgradeHandlerList.AddHandler(const aName: String; aOnCheck: THandlesUpgradeEvent; aOnUpgrade: TUpgradeConnectionEvent
+function TUpgradeHandlerList.AddHandler(const aName: String;
+  aOnCheck: THandlesUpgradeEvent; aOnUpgrade: TUpgradeConnectionEvent
   ): TUpgradeHandlerItem;
 begin
   if IndexOfName(aName)<>-1 then
     Raise EHTTPServer.CreateFmt(SErrDuplicateUpgradeHandler,[aName]);
-  Result:=add as TUpgradeHandlerItem;
+  Result:=Add as TUpgradeHandlerItem;
   Result.Name:=aName;
   Result.OnHandleUpgrade:=aOnCheck;
   Result.OnUpgrade:=aOnUpgrade;
@@ -977,7 +976,7 @@ begin
       On E : exception do
         HandleUnexpectedError(E);
     end
- else if Assigned(Server) and Server.CanLog(hlmError) then
+  else if Assigned(Server) and Server.CanLog(hlmError) then
     Server.DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
 end;
 
@@ -1026,7 +1025,8 @@ begin
   ARequest.SetFieldByName(N,V);
 end;
 
-procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest; AStartLine : String);
+procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest;
+  AStartLine : String);
 
   Function GetNextWord(Var S : String) : string;
 
@@ -1468,7 +1468,7 @@ begin
         StartServerSocket;
       finally
         FreeServerSocket;
-      end
+      end;
       end
     else
       StopServerSocket;
@@ -1485,7 +1485,7 @@ begin
   FCertificateData.HostName:=aValue;
 end;
 
-procedure TFPCustomHttpServer.SetIdle(AValue: TNotifyEvent);
+procedure TFPCustomHttpServer.SetIdle(const AValue: TNotifyEvent);
 begin
   FOnAcceptIdle:=AValue;
   if Assigned(FServer) then
@@ -1607,7 +1607,6 @@ begin
   FConnectionHandler:=CreateConnectionHandler();
 end;
 
-
 function TFPCustomHttpServer.CanLog(aMoment: THTTPLogMoment): Boolean;
 begin
   Result:=aMoment in FLogMoments;
@@ -1632,13 +1631,11 @@ begin
     DoLog(aMoment,Format(Fmt,Args));
 end;
 
-
 function TFPCustomHttpServer.CheckUpgrade(aConnection: TFPHTTPConnection; aRequest: TFPHTTPConnectionRequest): Boolean;
 
 Var
   I : Integer;
   Handler : TUpgradeHandlerItem;
-  S : String;
 
 begin
   Result:=HasUpdateHandlers;
@@ -1673,7 +1670,7 @@ end;
 procedure TFPCustomHttpServer.HandleUnexpectedError(Sender: TObject; E: Exception);
 begin
   if CanLog(hlmError) then
-     DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
+    DoLog(hlmError,SErrorDuringRequest,[E.ClassName,E.Message]);
   If Assigned(FOnUnexpectedError) then
     FOnUnexpectedError(Sender,E);
 end;
@@ -1800,8 +1797,9 @@ begin
   inherited Destroy;
 end;
 
-function TFPCustomHttpServer.RegisterUpdateHandler(const aName: string; OnCheck: THandlesUpgradeEvent;
-  OnUpgrade: TUpgradeConnectionEvent): TUpgradeHandlerItem;
+function TFPCustomHttpServer.RegisterUpdateHandler(const aName: string;
+  const OnCheck: THandlesUpgradeEvent; const OnUpgrade: TUpgradeConnectionEvent
+  ): TUpgradeHandlerItem;
 begin
   With UpdateHandlers do
     Result:=AddHandler(aName,OnCheck,OnUpgrade)
