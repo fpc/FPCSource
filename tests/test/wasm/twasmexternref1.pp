@@ -43,6 +43,10 @@ begin
   testproc6 := nil <> q;
 end;
 
+procedure testproc7(const q: WasmExternRef);
+begin
+end;
+
 begin
   testproc5(nil);
 end.

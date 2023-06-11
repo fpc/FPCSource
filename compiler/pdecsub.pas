@@ -510,6 +510,10 @@ implementation
                     if explicit_paraloc then
                       Message(parser_e_paraloc_all_paras);
                 end;
+{$ifdef wasm}
+              if (vs.varspez in [vs_var,vs_constref,vs_out]) and is_wasm_reference_type(vs.vardef) then
+                Message(parser_e_wasm_ref_types_can_only_be_passed_by_value);
+{$endif wasm}
             end;
         until not try_to_consume(_SEMICOLON);
 
