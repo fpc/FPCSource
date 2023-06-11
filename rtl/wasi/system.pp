@@ -57,7 +57,12 @@ var
   argc: longint;
   argv: PPChar;
   envp: PPChar;
-  __fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
+  ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
+
+function __fpc_get_wasm_suspender: WasmExternRef;
+procedure __fpc_set_wasm_suspender(v: WasmExternRef);
+
+property __fpc_wasm_suspender: WasmExternRef read __fpc_get_wasm_suspender write __fpc_set_wasm_suspender;
 
 implementation
 
@@ -78,6 +83,16 @@ end;
 
 exports 
   WasiAlloc,WasiFree;
+
+function __fpc_get_wasm_suspender: WasmExternRef;
+begin
+  result:=___fpc_wasm_suspender;
+end;
+
+procedure __fpc_set_wasm_suspender(v: WasmExternRef);
+begin
+  ___fpc_wasm_suspender:=v;
+end;
 
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; forward;
 
