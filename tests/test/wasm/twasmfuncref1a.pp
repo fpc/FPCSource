@@ -30,5 +30,14 @@ begin
   testproc4 := q;
 end;
 
+function testproc5(q: TWasmFuncRef): TWasmFuncRef;
+var
+  w: TWasmFuncRef;
 begin
+  w := nil;
+  testproc5 := nil;
+end;
+
+begin
+  testproc5(nil);
 end.

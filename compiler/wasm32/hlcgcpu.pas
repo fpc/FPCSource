@@ -449,6 +449,18 @@ implementation
                 internalerror(2010110702);
             end;
           end;
+        R_EXTERNREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061101);
+            list.Concat(taicpu.op_none(a_ref_null_externref));
+          end;
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061102);
+            list.Concat(taicpu.op_none(a_ref_null_funcref));
+          end;
         else
           internalerror(2010110703);
       end;
