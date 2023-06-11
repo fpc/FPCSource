@@ -922,6 +922,8 @@ implementation
         str:='function ';
       str:=str+wrapper_name+'(__fpc_wasm_susp: WasmExternRef;';
       addvisibleparameterdeclarations(str,pd);
+      if str[Length(str)]=';' then
+        delete(str,Length(str),1);
       str:=str+'): double; external '''+pd.import_dll^+ ''' name '''+pd.import_name^+''';';
       str_parse_method_impl(str,nil,false);
 
