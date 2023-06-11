@@ -403,7 +403,11 @@ implementation
     function tcpustaticvarsym.try_get_wasm_global_vardef_type(out res: TWasmBasicType): Boolean;
       begin
         Result:=True;
-        if is_64bitint(vardef) then
+        if is_wasm_externref(vardef) then
+          res:=wbt_externref
+        else if is_wasm_funcref(vardef) then
+          res:=wbt_funcref
+        else if is_64bitint(vardef) then
           res:=wbt_i64
         else if is_pointer(vardef) then
           res:=wbt_i32

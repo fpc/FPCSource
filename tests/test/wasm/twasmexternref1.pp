@@ -3,6 +3,9 @@
 
 program twasmexternref1;
 
+var
+  global_externref: WasmExternRef; section 'WebAssembly.Global';
+
 procedure testproc;
 var
   p: WasmExternRef;
@@ -23,6 +26,8 @@ var
 begin
   q := d;
   testproc4 := q;
+  global_externref := d;
+  q := global_externref;
 end;
 
 function testproc5(q: WasmExternRef): WasmExternRef;
@@ -31,6 +36,7 @@ var
 begin
   w := nil;
   testproc5 := nil;
+  global_externref := nil;
 end;
 
 function testproc6: Boolean;
@@ -39,8 +45,12 @@ var
 begin
   testproc6 := q = nil;
   testproc6 := nil = q;
+  testproc6 := global_externref = nil;
+  testproc6 := nil = global_externref;
   testproc6 := q <> nil;
   testproc6 := nil <> q;
+  testproc6 := global_externref <> nil;
+  testproc6 := nil <> global_externref;
 end;
 
 procedure testproc7(const q: WasmExternRef);
@@ -49,5 +59,6 @@ end;
 
 begin
   testproc5(nil);
+  testproc5(global_externref);
   testproc7(nil);
 end.
