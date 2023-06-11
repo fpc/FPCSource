@@ -291,7 +291,7 @@ implementation
     begin
       result:=inherited;
       if is_wasm_externref then
-        result:=result+';wasmexternref';;
+        result:=result+';wasmexternref';
     end;
 
 
