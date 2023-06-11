@@ -50,7 +50,7 @@ type
   end;
   { TITSFReader }
 
-  TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, Section: Integer) of object;
+  TFileEntryForEach = procedure(Name: String; Offset, UncompressedSize, _Section: Integer) of object;
 
   TITSFReader = class(TObject)
   protected
