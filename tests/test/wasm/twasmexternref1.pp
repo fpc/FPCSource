@@ -57,6 +57,10 @@ procedure testproc7(const q: WasmExternRef);
 begin
 end;
 
+procedure testproc7(const q: WasmExternRef);
+begin
+end;
+
 begin
   testproc5(nil);
   testproc5(global_externref);
