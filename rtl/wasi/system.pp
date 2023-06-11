@@ -57,6 +57,7 @@ var
   argc: longint;
   argv: PPChar;
   envp: PPChar;
+  __fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
 
 implementation
 

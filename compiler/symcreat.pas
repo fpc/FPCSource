@@ -137,6 +137,7 @@ implementation
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
+    symcpu,
     nbas,nld,nmem,ncon,
     defcmp,
     paramgr;
@@ -869,6 +870,77 @@ implementation
     end;
 {$endif jvm}
 
+
+{$ifdef wasm}
+  procedure addvisibleparameterdeclarations(var str: ansistring; pd: tprocdef);
+    var
+      currpara: tparavarsym;
+      i: longint;
+      firstpara: boolean;
+    begin
+      firstpara:=true;
+      for i:=0 to pd.paras.count-1 do
+        begin
+          currpara:=tparavarsym(pd.paras[i]);
+          if not(vo_is_hidden_para in currpara.varoptions) then
+            begin
+              if not firstpara then
+                str:=str+';';
+              firstpara:=false;
+              case currpara.varspez of
+                vs_constref:
+                  str:=str+'constref ';
+                vs_out:
+                  str:=str+'out ';
+                vs_var:
+                  str:=str+'var ';
+                vs_const:
+                  str:=str+'const ';
+                vs_value:
+                  ;
+              end;
+
+              str:=str+currpara.realname;
+              if currpara.vardef.typ<>formaldef then
+                str:=str+':'+currpara.vardef.fulltypename;
+            end;
+        end;
+    end;
+
+  procedure implement_wasm_suspending(pd: tcpuprocdef);
+    var
+      str: ansistring;
+      wrapper_name: ansistring;
+    begin
+      wrapper_name:=pd.suspending_wrapper_name;
+
+      if is_void(pd.returndef) then
+        str:='procedure '
+      else
+        str:='function ';
+      str:=str+wrapper_name+'(__fpc_wasm_susp: WasmExternRef;';
+      addvisibleparameterdeclarations(str,pd);
+      str:=str+'): double; external '''+pd.import_dll^+ ''' name '''+pd.import_name^+''';';
+      str_parse_method_impl(str,nil,false);
+
+      str:='var __fpc_wasm_suspender_copy:WasmExternRef; begin __fpc_wasm_suspender_copy:=__fpc_wasm_suspender; ';
+
+      if not is_void(pd.returndef) then
+        str:=str+' result:=';
+
+      str:=str+wrapper_name+'(__fpc_wasm_suspender_copy,';
+      addvisibleparameters(str,pd);
+      if str[Length(str)]=',' then
+        delete(str,Length(str),1);
+      str:=str+');';
+      str:=str+' __fpc_wasm_suspender:=__fpc_wasm_suspender_copy;';
+      str:=str+' end;';
+      str_parse_method_impl(str,pd,false);
+      exclude(pd.procoptions,po_external);
+    end;
+{$endif wasm}
+
+
   procedure implement_field_getter(pd: tprocdef);
     var
       i: longint;
@@ -1109,6 +1181,13 @@ implementation
             tsk_jvm_virtual_clmethod:
               internalerror(2011032801);
 {$endif jvm}
+{$ifdef wasm}
+            tsk_wasm_suspending:
+              implement_wasm_suspending(tcpuprocdef(pd));
+{$else wasm}
+            tsk_wasm_suspending:
+              internalerror(2023061107);
+{$endif wasm}
             tsk_field_getter:
               implement_field_getter(pd);
             tsk_field_setter:
