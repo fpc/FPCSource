@@ -2405,6 +2405,7 @@ begin
            begin
              consume(_SUSPENDING);
              include(procoptions,po_wasm_suspending);
+             synthetickind:=tsk_wasm_suspending;
            end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
@@ -3301,7 +3302,7 @@ const
           it because it can already be used somewhere (PFV) }
         if not(po_has_mangledname in pd.procoptions) then
           begin
-            if (po_external in pd.procoptions) then
+            if (po_external in pd.procoptions) and not (po_wasm_suspending in pd.procoptions) then
               begin
                 { External Procedures are only allowed to change the mangledname
                   in their first declaration }

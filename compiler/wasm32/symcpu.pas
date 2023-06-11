@@ -120,6 +120,7 @@ type
     destructor destroy; override;
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
+    function suspending_wrapper_name: ansistring;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -369,6 +370,12 @@ implementation
   function tcpuprocdef.is_pushleftright: boolean;
     begin
       Result:=true;
+    end;
+
+
+  function tcpuprocdef.suspending_wrapper_name: ansistring;
+    begin
+      Result:='__fpc_wasm_suspending_'+procsym.realname;
     end;
 
 
