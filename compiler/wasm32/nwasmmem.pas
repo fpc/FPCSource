@@ -38,6 +38,7 @@ interface
 implementation
 
     uses
+      globals,
       verbose,
       symcpu;
 
@@ -46,6 +47,9 @@ implementation
     function twasmaddrnode.pass_typecheck: tnode;
     begin
       Result:=inherited;
+      if codegenerror then
+       exit;
+
       if is_wasm_externref(left.resultdef) then
         begin
           CGMessagePos(left.fileinfo,type_e_cannot_take_address_of_wasm_externref);
