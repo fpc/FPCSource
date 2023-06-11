@@ -1669,6 +1669,18 @@ implementation
                           WriteByte(FWasmSections[wsiGlobal],$00);
                           WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
                         end;
+                      wbt_externref:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$D0); { ref.null extern }
+                          WriteByte(FWasmSections[wsiGlobal],$6F);
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
+                      wbt_funcref:
+                        begin
+                          WriteByte(FWasmSections[wsiGlobal],$D0); { ref.null func }
+                          WriteByte(FWasmSections[wsiGlobal],$70);
+                          WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
+                        end;
                       else
                         internalerror(2022052801);
                     end;
