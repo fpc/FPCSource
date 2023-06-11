@@ -57,7 +57,6 @@ implementation
     function twasmcallnode.pass_typecheck:tnode;
       var
         p: tcallparanode;
-        paranr: Integer;
         pvs: tparavarsym;
       begin
         result:=inherited;
@@ -67,15 +66,14 @@ implementation
         if assigned(procdefinition) then
           begin
             p:=tcallparanode(left);
-            paranr:=0;
             while assigned(p) do
               begin
-                pvs:=tparavarsym(procdefinition.paras[paranr]);
+                pvs:=p.parasym;
                 if assigned(p.left) and is_wasm_reference_type(p.left.resultdef) and
+                   assigned(pvs) and
                   ((pvs.varspez in [vs_var,vs_constref,vs_out]) or
                    ((pvs.varspez=vs_const) and (pvs.vardef.typ=formaldef))) then
                   CGMessage(parser_e_wasm_ref_types_can_only_be_passed_by_value);
-                Inc(paranr);
                 p:=tcallparanode(tcallparanode(p).right);
               end;
           end;
