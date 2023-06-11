@@ -117,10 +117,12 @@ type
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
+    promising_export_name: string;
     destructor destroy; override;
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
     function suspending_wrapper_name: ansistring;
+    function promising_wrapper_name: ansistring;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -376,6 +378,12 @@ implementation
   function tcpuprocdef.suspending_wrapper_name: ansistring;
     begin
       Result:='__fpc_wasm_suspending_'+procsym.realname;
+    end;
+
+
+  function tcpuprocdef.promising_wrapper_name: ansistring;
+    begin
+      Result:='__fpc_wasm_promising_'+procsym.realname;
     end;
 
 

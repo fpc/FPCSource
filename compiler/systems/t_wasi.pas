@@ -37,7 +37,7 @@ uses
   import, export, aasmdata, aasmcpu,
   fmodule, ogbase,
 
-  symsym, symdef,
+  symconst, symsym, symdef, symcpu,
 
   link,
 
@@ -247,9 +247,19 @@ end;
 procedure texportlibwasi.exportprocedure(hp: texported_item);
 var
   nm : TSymStr;
+  pd: tcpuprocdef;
 begin
-  nm := tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
-  current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(hp.name^, nm, ie_Func));
+  pd:=tcpuprocdef(tprocsym(hp.sym).ProcdefList[0]);
+  if eo_promising in hp.options then
+    begin
+      pd.synthetickind:=tsk_wasm_promising;
+      pd.promising_export_name:=hp.name^;
+    end
+  else
+    begin
+      nm := pd.mangledname;
+      current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(hp.name^, nm, ie_Func));
+    end;
 end;
 
 procedure texportlibwasi.exportvar(hp: texported_item);
