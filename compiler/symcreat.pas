@@ -932,7 +932,10 @@ implementation
       addvisibleparameterdeclarations(str,pd);
       if str[Length(str)]=';' then
         delete(str,Length(str),1);
-      str:=str+'): double; external '''+pd.import_dll^+ ''' name '''+pd.import_name^+''';';
+      str:=str+')';
+      if not is_void(pd.returndef) then
+        str:=str+': '+pd.returndef.fulltypename;
+      str:=str+'; external '''+pd.import_dll^+ ''' name '''+pd.import_name^+''';';
       str_parse_method_impl(str,nil,false);
 
       str:='var __fpc_wasm_suspender_copy:WasmExternRef; begin __fpc_wasm_suspender_copy:=__fpc_wasm_suspender; ';
