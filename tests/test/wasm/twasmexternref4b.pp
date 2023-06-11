@@ -1,7 +1,7 @@
 { %cpu=wasm32 }
 { %fail }
 
-program twasmexternref4a;
+program twasmexternref4b;
 
 {$MODE objfpc}
 
