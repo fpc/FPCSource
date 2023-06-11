@@ -2675,9 +2675,9 @@ implementation
             case nodetype of
                equaln,unequaln :
                  begin
-                    if is_voidpointer(right.resultdef) then
+                    if is_voidpointer(right.resultdef) and (left.nodetype<>niln) then
                       inserttypeconv(right,left.resultdef)
-                    else if is_voidpointer(left.resultdef) then
+                    else if is_voidpointer(left.resultdef) and (right.nodetype<>niln) then
                       inserttypeconv(left,right.resultdef)
                     else if not(equal_defs(ld,rd)) then
                       IncompatibleTypes(ld,rd);
@@ -2704,6 +2704,16 @@ implementation
                       inserttypeconv_internal(right,charfarpointertype)
                     else
                       inserttypeconv_internal(right,charnearpointertype);
+{$elseif defined(wasm)}
+                    if is_wasm_reference_type(left.resultdef) then
+                      inserttypeconv(right,left.resultdef)
+                    else if is_wasm_reference_type(right.resultdef) then
+                      inserttypeconv(left,right.resultdef)
+                    else
+                      begin
+                        inserttypeconv_internal(left,charpointertype);
+                        inserttypeconv_internal(right,charpointertype);
+                      end;
 {$else}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);

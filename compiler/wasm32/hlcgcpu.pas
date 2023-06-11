@@ -754,19 +754,62 @@ implementation
   procedure thlcgwasm.a_cmp_const_ref_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference);
     var
       tmpref: treference;
+      regtyp: TRegisterType;
     begin
       tmpref:=ref;
       if tmpref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
-      a_load_const_stack(list,size,a,def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op);
+      regtyp:=def2regtyp(size);
+      case regtyp of
+        R_EXTERNREFREGISTER,
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061103);
+            if not (cmp_op in [OC_EQ,OC_NE]) then
+              internalerror(2023061104);
+            list.Concat(taicpu.op_none(a_ref_is_null));
+            if cmp_op=OC_NE then
+              begin
+                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+              end;
+          end;
+        else
+          begin
+            a_load_const_stack(list,size,a,regtyp);
+            a_cmp_stack_stack(list,size,cmp_op);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister);
+    var
+      regtyp: TRegisterType;
     begin
       a_load_reg_stack(list,size,reg);
-      a_load_const_stack(list,size,a,def2regtyp(size));
-      a_cmp_stack_stack(list,size,cmp_op);
+      regtyp:=def2regtyp(size);
+      case regtyp of
+        R_EXTERNREFREGISTER,
+        R_FUNCREFREGISTER:
+          begin
+            if a<>0 then
+              internalerror(2023061105);
+            if not (cmp_op in [OC_EQ,OC_NE]) then
+              internalerror(2023061106);
+            list.Concat(taicpu.op_none(a_ref_is_null));
+            if cmp_op=OC_NE then
+              begin
+                a_load_const_stack(list,s32inttype,0,R_INTREGISTER);
+                a_cmp_stack_stack(list,s32inttype,OC_EQ);
+              end;
+          end;
+        else
+          begin
+            a_load_const_stack(list,size,a,regtyp);
+            a_cmp_stack_stack(list,size,cmp_op);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_stack(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister);
