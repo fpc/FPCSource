@@ -917,7 +917,7 @@ implementation
         end;
     end;
 
-  procedure implement_wasm_suspending(pd: tcpuprocdef);
+  procedure implement_wasm_suspending(pd: tcpuprocdef; last: Boolean);
     var
       str: ansistring;
       wrapper_name: ansistring;
@@ -928,10 +928,21 @@ implementation
         str:='procedure '
       else
         str:='function ';
-      str:=str+wrapper_name+'(__fpc_wasm_susp: WasmExternRef;';
-      addvisibleparameterdeclarations(str,pd);
-      if str[Length(str)]=';' then
-        delete(str,Length(str),1);
+      str:=str+wrapper_name+'(';
+      if last then
+        begin
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]<>'(' then
+            str:=str+';';
+          str:=str+'__fpc_wasm_susp: WasmExternRef';
+        end
+      else
+        begin
+          str:=str+'__fpc_wasm_susp: WasmExternRef;';
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]=';' then
+            delete(str,Length(str),1);
+        end;
       str:=str+')';
       if not is_void(pd.returndef) then
         str:=str+': '+pd.returndef.fulltypename;
@@ -1229,11 +1240,14 @@ implementation
 {$endif jvm}
 {$ifdef wasm}
             tsk_wasm_suspending:
-              implement_wasm_suspending(tcpuprocdef(pd));
+              implement_wasm_suspending(tcpuprocdef(pd),false);
+            tsk_wasm_suspending_last:
+              implement_wasm_suspending(tcpuprocdef(pd),true);
             tsk_wasm_promising:
               implement_wasm_promising(tcpuprocdef(pd));
 {$else wasm}
             tsk_wasm_suspending,
+            tsk_wasm_suspending_last,
             tsk_wasm_promising:
               internalerror(2023061107);
 {$endif wasm}

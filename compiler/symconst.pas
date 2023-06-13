@@ -506,7 +506,8 @@ type
     tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
     tsk_interface_wrapper,     // Call through to a method from an interface wrapper
     tsk_call_no_parameters,    // Call skpara procedure without passing any parameters nor returning a result
-    tsk_wasm_suspending,       // WebAssembly suspending external wrapper
+    tsk_wasm_suspending,       // WebAssembly suspending external wrapper, suspender object is first argument
+    tsk_wasm_suspending_last,  // WebAssembly suspending external wrapper, suspender object is last argument
     tsk_wasm_promising         // WebAssembly promising export wrapper
   );
 
