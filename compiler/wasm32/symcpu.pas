@@ -123,6 +123,7 @@ type
     function is_pushleftright: boolean; override;
     function suspending_wrapper_name: ansistring;
     function promising_wrapper_name: ansistring;
+    procedure add_promising_export(aextname: ansistring;last:boolean);
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -384,6 +385,15 @@ implementation
   function tcpuprocdef.promising_wrapper_name: ansistring;
     begin
       Result:='__fpc_wasm_promising_'+procsym.realname;
+    end;
+
+
+  procedure tcpuprocdef.add_promising_export(aextname: ansistring; last: boolean);
+    begin
+      if (synthetickind<>tsk_none) and (synthetickind<>tsk_wasm_promising) then
+        internalerror(2023061301);
+      synthetickind:=tsk_wasm_promising;
+      promising_export_name:=aextname;
     end;
 
 
