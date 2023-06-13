@@ -163,6 +163,7 @@ type
     _EQUAL,
     _FAR16,
     _FINAL,
+    _FIRST,
     _INDEX,
     _LABEL,
     _LOCAL,
@@ -509,6 +510,7 @@ const
       (str:'EQUAL'         ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'FAR16'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'FINAL'         ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'FIRST'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'INDEX'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'LABEL'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'LOCAL'         ;special:false;keyword:[m_none];op:NOTOKEN),
