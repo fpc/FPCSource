@@ -2406,6 +2406,11 @@ begin
              consume(_SUSPENDING);
              include(procoptions,po_wasm_suspending);
              synthetickind:=tsk_wasm_suspending;
+             if idtoken=_LAST then
+               begin
+                 consume(_LAST);
+                 synthetickind:=tsk_wasm_suspending_last;
+               end;
            end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
