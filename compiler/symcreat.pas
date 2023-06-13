@@ -965,11 +965,10 @@ implementation
       exclude(pd.procoptions,po_external);
     end;
 
-  procedure implement_wasm_promising(pd: tcpuprocdef);
+  function implement_wasm_promising_wrapper(pd: tcpuprocdef):tprocdef;
     var
       str: ansistring;
       wrapper_name: ansistring;
-      new_wrapper_pd: tprocdef;
     begin
       wrapper_name:=pd.promising_wrapper_name;
 
@@ -992,7 +991,14 @@ implementation
       if str[Length(str)]=',' then
         delete(str,Length(str),1);
       str:=str+'); end;';
-      str_parse_method_impl(str,nil,false,new_wrapper_pd);
+      str_parse_method_impl(str,nil,false,result);
+    end;
+
+  procedure implement_wasm_promising(pd: tcpuprocdef);
+    var
+      new_wrapper_pd: tprocdef;
+    begin
+      new_wrapper_pd:=implement_wasm_promising_wrapper(pd);
       current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_export_name,new_wrapper_pd.mangledname,ie_Func));
     end;
 {$endif wasm}
