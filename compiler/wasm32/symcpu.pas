@@ -122,7 +122,7 @@ type
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
     function suspending_wrapper_name: ansistring;
-    function promising_wrapper_name: ansistring;
+    function promising_wrapper_name(last:boolean): ansistring;
     procedure add_promising_export(aextname: ansistring;last:boolean);
   end;
   tcpuprocdefclass = class of tcpuprocdef;
@@ -382,9 +382,12 @@ implementation
     end;
 
 
-  function tcpuprocdef.promising_wrapper_name: ansistring;
+  function tcpuprocdef.promising_wrapper_name(last: boolean): ansistring;
     begin
-      Result:='__fpc_wasm_promising_'+procsym.realname;
+      if last then
+        Result:='__fpc_wasm_promising_last_'+procsym.realname
+      else
+        Result:='__fpc_wasm_promising_first_'+procsym.realname;
     end;
 
 
