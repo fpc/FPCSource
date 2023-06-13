@@ -250,7 +250,7 @@ var
   pd: tcpuprocdef;
 begin
   pd:=tcpuprocdef(tprocsym(hp.sym).ProcdefList[0]);
-  if eo_promising in hp.options then
+  if eo_promising_first in hp.options then
     begin
       pd.synthetickind:=tsk_wasm_promising;
       pd.promising_export_name:=hp.name^;
