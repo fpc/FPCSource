@@ -970,7 +970,7 @@ implementation
       str: ansistring;
       wrapper_name: ansistring;
     begin
-      wrapper_name:=pd.promising_wrapper_name;
+      wrapper_name:=pd.promising_wrapper_name(last);
 
       if is_void(pd.returndef) then
         str:='procedure '
