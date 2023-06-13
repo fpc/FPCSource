@@ -965,7 +965,7 @@ implementation
       exclude(pd.procoptions,po_external);
     end;
 
-  function implement_wasm_promising_wrapper(pd: tcpuprocdef):tprocdef;
+  function implement_wasm_promising_wrapper(pd: tcpuprocdef;last:boolean):tprocdef;
     var
       str: ansistring;
       wrapper_name: ansistring;
@@ -976,10 +976,21 @@ implementation
         str:='procedure '
       else
         str:='function ';
-      str:=str+wrapper_name+'(__fpc_wasm_susp: WasmExternRef;';
-      addvisibleparameterdeclarations(str,pd);
-      if str[Length(str)]=';' then
-        delete(str,Length(str),1);
+      str:=str+wrapper_name+'(';
+      if last then
+        begin
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]<>'(' then
+            str:=str+';';
+          str:=str+'__fpc_wasm_susp: WasmExternRef';
+        end
+      else
+        begin
+          str:=str+'__fpc_wasm_susp: WasmExternRef;';
+          addvisibleparameterdeclarations(str,pd);
+          if str[Length(str)]=';' then
+            delete(str,Length(str),1);
+        end;
       str:=str+')';
       if not is_void(pd.returndef) then
         str:=str+': '+pd.returndef.fulltypename;
@@ -998,7 +1009,7 @@ implementation
     var
       new_wrapper_pd: tprocdef;
     begin
-      new_wrapper_pd:=implement_wasm_promising_wrapper(pd);
+      new_wrapper_pd:=implement_wasm_promising_wrapper(pd,false);
       current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_export_name,new_wrapper_pd.mangledname,ie_Func));
     end;
 {$endif wasm}
