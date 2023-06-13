@@ -245,7 +245,15 @@ unit agrvgas;
         result := inherited MakeCmdLine;
         Replace(result,'$ARCH',arch_str[current_settings.fputype=fpu_fd,current_settings.cputype]);
 {$ifdef RISCV32}
-        Replace(result,'$ABI','ilp32');
+      case target_info.abi of
+        abi_riscv_ilp32:
+           Replace(result,'$ABI','ilp32');
+        abi_riscv_ilp32f:
+           Replace(result,'$ABI','ilp32f');
+        abi_riscv_hf,
+        abi_riscv_ilp32d:
+           Replace(result,'$ABI','ilp32d');
+      end;
 {$endif RISCV32}
 {$ifdef RISCV64}
         if target_info.abi=abi_riscv_hf then
