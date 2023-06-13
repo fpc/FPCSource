@@ -453,6 +453,7 @@ type
       however be stored in WebAssembly globals, locals, used in function parameters
       and returns and it can be called.) }
     po_wasm_funcref,
+    { WebAssembly suspending external }
     po_wasm_suspending
   );
   tprocoptions=set of tprocoption;
