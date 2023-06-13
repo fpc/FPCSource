@@ -252,6 +252,8 @@ begin
   pd:=tcpuprocdef(tprocsym(hp.sym).ProcdefList[0]);
   if eo_promising_first in hp.options then
     begin
+      if (pd.synthetickind<>tsk_none) and (pd.synthetickind<>tsk_wasm_promising) then
+        internalerror(2023061301);
       pd.synthetickind:=tsk_wasm_promising;
       pd.promising_export_name:=hp.name^;
     end
