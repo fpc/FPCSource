@@ -545,25 +545,25 @@ end;
 type 
       PWOHandleArray = ^THandle;
 
-function CoWaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:LONGBOOL; dwMilliseconds:DWORD):DWORD; external 'ole32.dll' name 'CoWaitForMultipleObjects';
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; external 'ole32.dll' name 'CoWaitForMultipleHandles';
 
 function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;UseCOMWait: Boolean = False) : longint;
-
-var ret : Integer;
+const COWAIT_DEFAULT = 0;
+      RPC_S_CALLPENDING = HRESULT($80010115);
+var SignaledIndex : DWORD;
 begin
    if UseComWait Then
-     ret:=CoWaitForMultipleObjects(1,PWOHandleArray(@state), True, Timeout)
+     case CoWaitForMultipleHandles(COWAIT_DEFAULT, Timeout, 1, PWOHandleArray(@state), SignaledIndex) of
+       S_OK: Result := wrSignaled;
+       RPC_S_CALLPENDING: Result := wrTimeout;
+       else Result := wrError;
+     end
    else 
-     ret:=WaitForSingleObject(THandle(state), Timeout);
-
-   case ret of
-    WAIT_ABANDONED: Result := wrAbandoned;
-    WAIT_OBJECT_0: Result := wrSignaled;
-    WAIT_TIMEOUT: Result := wrTimeout;
-    WAIT_FAILED: Result := wrError;
-  else
-    Result := wrError;
-  end;
+     case WaitForSingleObject(THandle(state), Timeout) of
+       WAIT_OBJECT_0: Result := wrSignaled;
+       WAIT_TIMEOUT: Result := wrTimeout;
+       else result := wrError; { WAIT_FAILED or any other value. Note that only mutex waits can return WAIT_ABANDONED. }
+     end;
 end;
 
 function intRTLEventCreate: PRTLEvent;
