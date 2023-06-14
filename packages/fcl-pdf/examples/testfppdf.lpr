@@ -27,6 +27,8 @@ uses
 
 type
 
+  { TPDFTestApp }
+
   TPDFTestApp = class(TCustomApplication)
   private
     FPage: integer;
@@ -42,6 +44,7 @@ type
     function    SetUpDocument: TPDFDocument;
     procedure   SaveDocument(D: TPDFDocument);
     procedure   EmptyPage;
+    procedure   TableOfContents(D: TPDFDocument; APage: integer);
     procedure   SimpleText(D: TPDFDocument; APage: integer);
     procedure   SimpleLinesRaw(D: TPDFDocument; APage: integer);
     procedure   SimpleLines(D: TPDFDocument; APage: integer);
@@ -62,7 +65,7 @@ var
   Application: TPDFTestApp;
 
 const
-  cPageCount: integer = 8;
+  cPageCount: integer = 9;
 
 function TPDFTestApp.SetUpDocument: TPDFDocument;
 var
@@ -138,6 +141,37 @@ begin
     SaveDocument(D);
   finally
     D.Free;
+  end;
+end;
+
+procedure TPDFTestApp.TableOfContents(D: TPDFDocument; APage: integer);
+const
+  pagesarr: array [1..8] of String = ('Sample Text', 'Basic Shapes', 'Advanced Drawing',
+    'Sample Line Drawing (DrawLineStyle)', 'Sample Line Drawing (DrawLine)', 'Sample Image Support',
+    'Matrix transform', 'Landscape Page');
+var
+  P : TPDFPage;
+  FtTitle, FtText, i: integer;
+begin
+  P := D.Pages[APage];
+
+  // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
+  FtTitle := D.AddFont('Helvetica');
+  FtText := D.AddFont('Courier');
+
+  { Page title }
+  P.SetFont(FtTitle, 23);
+  P.SetColor(clBlack, false);
+  P.WriteText(25, 20, 'Table of contents');
+
+  // -----------------------------------
+  { references to document pages }
+  P.SetFont(FtText, 12);
+  P.SetColor(clBlack, false);
+  for i := Low(pagesarr) to High(pagesarr) do
+  begin
+    P.WriteText(25, 40 + 10 * i, pagesarr[i] + StringOfChar('.', 60 - Length(pagesarr[i])) + IntToStr(i));
+    P.AddInternalLink(25, 40 + 10 * i, 160, 5, i, false);
   end;
 end;
 
@@ -837,14 +871,15 @@ begin
 
     if FPage = -1 then
     begin
-      SimpleText(FDoc, 0);
-      SimpleShapes(FDoc, 1);
-      AdvancedShapes(FDoc, 2);
-      SimpleLines(FDoc, 3);
-      SimpleLinesRaw(FDoc, 4);
-      SimpleImage(FDoc, 5);
-      SampleMatrixTransform(FDoc, 6);
-      SampleLandscape(FDoc, 7);
+      TableOfContents(FDoc, 0);
+      SimpleText(FDoc, 1);
+      SimpleShapes(FDoc, 2);
+      AdvancedShapes(FDoc, 3);
+      SimpleLines(FDoc, 4);
+      SimpleLinesRaw(FDoc, 5);
+      SimpleImage(FDoc, 6);
+      SampleMatrixTransform(FDoc, 7);
+      SampleLandscape(FDoc, 8);
     end
     else
     begin
