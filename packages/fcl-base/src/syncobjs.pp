@@ -100,7 +100,7 @@ implementation
 {$ifdef MSWindows}
 uses Windows;
 
-function CoWaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external 'kernel32' name 'CoWaitForMultipleObjects';
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: ULONG; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; external 'ole32.dll' name 'CoWaitForMultipleHandles';
 {$endif}
 
 
@@ -204,30 +204,51 @@ end;
 
 {$IFDEF MSWINDOWS}
 class function THandleObject.WaitForMultiple(const HandleObjs: THandleObjectArray; Timeout: Cardinal; AAll: Boolean; out SignaledObj: THandleObject; UseCOMWait: Boolean = False; Len: Integer = 0): TWaitResult;
+const COWAIT_DEFAULT = 0;
+      COWAIT_WAITALL = 1;
+      RPC_S_CALLPENDING = HRESULT($80010115);
 var
-  ret: Integer;
-  AmountHandles: Integer;
+  HandleIndex: SizeInt;
+  ret, CoWaitFlags, SignaledIndex: DWord;
+  WOHandles: TWOHandleArray;
 begin
-  AmountHandles := Length(HandleObjs);
-  if AmountHandles = 0 then
+  if Len = 0 then
+    Len := Length(HandleObjs);
+
+  if Len = 0 then
     raise ESyncObjectException.Create(SErrEventZeroNotAllowed);
 
-  if AmountHandles > MAXIMUM_WAIT_OBJECTS then
-    raise ESyncObjectException.CreateFmt(SErrEventMaxObjects, [MAXIMUM_WAIT_OBJECTS]);
-
-  if Len > AmountHandles then
+  if Len > Length(HandleObjs) then
     raise ESyncObjectException.Create(SErrEventTooManyHandles);
 
+  if Len > MAXIMUM_WAIT_OBJECTS then
+    raise ESyncObjectException.CreateFmt(SErrEventMaxObjects, [MAXIMUM_WAIT_OBJECTS]);
+
+  for HandleIndex := 0 to Len - 1 do
+    WOHandles[HandleIndex] := Windows.HANDLE(HandleObjs[HandleIndex].Handle);
+
   // what about UseCOMWait?
-  {$IFDEF MSWINDOWS}
   if UseCOMWait Then
     begin
-      SetLastError(ERROR_SUCCESS); // only for "alertable" objects
-      ret := CoWaitForMultipleObjects(Len, @HandleObjs, AAll, Timeout);
-    end
-  else
-  {$ENDIF}
-    ret := WaitForMultipleObjects(Len, @HandleObjs, AAll, Timeout);
+      SetLastError(ERROR_SUCCESS); // workaround for mutexes, see docs on CoWaitForMultipleHandles.
+      CoWaitFlags := COWAIT_DEFAULT;
+      if AAll then
+        CoWaitFlags := CoWaitFlags or COWAIT_WAITALL;
+      case CoWaitForMultipleHandles(CoWaitFlags, Timeout, Len, @WOHandles, SignaledIndex) of
+        S_OK:
+          begin
+            if not AAll then
+              SignaledObj := HandleObjs[SignaledIndex];
+            Exit(wrSignaled);
+          end;
+        RPC_S_CALLPENDING:
+          Exit(wrTimeout);
+        else
+          Exit(wrError);
+      end;
+    end;
+
+  ret := WaitForMultipleObjects(Len, @WOHandles, AAll, Timeout);
 
   if (ret >= WAIT_OBJECT_0) and (ret < (WAIT_OBJECT_0 + Len)) then
     begin
@@ -245,13 +266,9 @@ begin
 
   case ret of
     WAIT_TIMEOUT:
-      begin
-        Result := wrTimeout;
-      end;
-    Integer(WAIT_FAILED): // w/o: Warning: Range check error while evaluating constants (4294967295 must be between -2147483648 and 2147483647)
-      begin
-        Result := wrError;
-      end;
+      Result := wrTimeout;
+    else
+      Result := wrError;
   end;
 end;
 {$endif}
