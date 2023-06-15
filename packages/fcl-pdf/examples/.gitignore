@@ -3,3 +3,5 @@ testfppdf
 *.exe
 *.pdf
 fonts
+lib
+pdfdump
