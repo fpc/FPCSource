@@ -382,7 +382,7 @@ begin
     // P.ResolveObjects:=False;
     P.ParseDocument(Doc);
     if isPageText in FSections then
-      P.ResolveToUnicodeCMaps(Doc);
+      P.DoResolveToUnicodeCMaps(Doc);
     For S in FSections do
       begin
       Case s of
