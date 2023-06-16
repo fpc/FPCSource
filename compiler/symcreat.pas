@@ -1010,7 +1010,7 @@ implementation
       new_wrapper_pd: tprocdef;
     begin
       new_wrapper_pd:=implement_wasm_promising_wrapper(pd,false);
-      current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_export_name,new_wrapper_pd.mangledname,ie_Func));
+      current_asmdata.asmlists[al_exports].Concat(tai_export_name.create(pd.promising_first_export_name,new_wrapper_pd.mangledname,ie_Func));
     end;
 {$endif wasm}
 
