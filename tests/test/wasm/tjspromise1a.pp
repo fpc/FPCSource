@@ -1,7 +1,7 @@
 { %cpu=wasm32 }
 { %norun }
 
-library tjspromise1;
+library tjspromise1a;
 
 var
   state: double;
@@ -27,7 +27,7 @@ end;
 
 exports
   get_state,
-  update_state promising;
+  update_state promising first;
 
 begin
   init;
