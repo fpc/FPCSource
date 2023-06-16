@@ -76,6 +76,8 @@ implementation
 
 
     procedure insert_funcret_para(pd:tabstractprocdef);
+      const
+        name_result='result';
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
@@ -87,7 +89,8 @@ implementation
            { if this was originally an anonymous function then this was already
              done earlier }
            not ((pd.typ=procdef) and tprocdef(pd).was_anonymous) and
-           paramanager.ret_in_param(pd.returndef,pd) then
+           paramanager.ret_in_param(pd.returndef,pd) and
+           not assigned(pd.parast.find(name_result)) then
          begin
            storepos:=current_tokenpos;
            if pd.typ=procdef then
@@ -113,7 +116,7 @@ implementation
            else
              paranr:=paranr_result;
            { Generate result variable accessing function result }
-           vs:=cparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
+           vs:=cparavarsym.create('$'+name_result,paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
            pd.parast.insertsym(vs);
            { Store this symbol as funcretsym for procedures }
            if pd.typ=procdef then
@@ -125,12 +128,15 @@ implementation
 
 
     procedure insert_parentfp_para(pd:tabstractprocdef);
+      const
+        name_parentfp='parentfp';
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
         paranr   : longint;
       begin
-        if pd.parast.symtablelevel>normal_function_level then
+        if (pd.parast.symtablelevel>normal_function_level) and
+           not assigned(pd.parast.find(name_parentfp)) then
           begin
             storepos:=current_tokenpos;
             if pd.typ=procdef then
@@ -157,14 +163,14 @@ implementation
                not assigned(pd.owner.defowner) or
                (pd.owner.defowner.typ<>procdef) then
               begin
-                vs:=cparavarsym.create('$parentfp',paranr,vs_value
+                vs:=cparavarsym.create('$'+name_parentfp,paranr,vs_value
                       ,parentfpvoidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
               end
             else
               begin
                 if not assigned(tprocdef(pd.owner.defowner).parentfpstruct) then
                   build_parentfpstruct(tprocdef(pd.owner.defowner));
-                vs:=cparavarsym.create('$parentfp',paranr,vs_value,
+                vs:=cparavarsym.create('$'+name_parentfp,paranr,vs_value,
                       tprocdef(pd.owner.defowner).parentfpstructptrtype,[vo_is_parentfp,vo_is_hidden_para]);
               end;
             pd.parast.insertsym(vs);
@@ -175,6 +181,11 @@ implementation
 
 
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
+      const
+        name_cmd='_cmd';
+        name_self='self';
+        name_block_literal='_block_literal';
+        name_vmt='vmt';
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
@@ -188,55 +199,65 @@ implementation
            is_objc_class_or_protocol(tprocdef(pd).struct) and
            (pd.parast.symtablelevel=normal_function_level) then
           begin
-            { insert Objective-C self and selector parameters }
-            vs:=cparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
-            pd.parast.insertsym(vs);
-            { make accessible to code }
-            sl:=tpropaccesslist.create;
-            sl.addsym(sl_load,vs);
-            aliasvs:=cabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
-            include(aliasvs.varoptions,vo_is_msgsel);
-            tlocalsymtable(tprocdef(pd).localst).insertsym(aliasvs);
+            if not assigned(pd.parast.find(name_cmd)) or
+                not assigned(pd.parast.find(name_self)) then
+              begin
+                { insert Objective-C self and selector parameters }
+                vs:=cparavarsym.create('$'+name_cmd,paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+                pd.parast.insertsym(vs);
+                { make accessible to code }
+                sl:=tpropaccesslist.create;
+                sl.addsym(sl_load,vs);
+                aliasvs:=cabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
+                include(aliasvs.varoptions,vo_is_msgsel);
+                tlocalsymtable(tprocdef(pd).localst).insertsym(aliasvs);
 
-            if (po_classmethod in pd.procoptions) then
-              { compatible with what gcc does }
-              hdef:=objc_idtype
-            else
-              hdef:=tprocdef(pd).struct;
+                if (po_classmethod in pd.procoptions) then
+                  { compatible with what gcc does }
+                  hdef:=objc_idtype
+                else
+                  hdef:=tprocdef(pd).struct;
 
-            vs:=cparavarsym.create('$self',paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
-            pd.parast.insertsym(vs);
+                vs:=cparavarsym.create('$'+name_self,paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
+                pd.parast.insertsym(vs);
+              end;
           end
         else if (pd.typ=procvardef) and
            pd.is_methodpointer then
           begin
-            { Generate self variable }
-            vs:=cparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
-            pd.parast.insertsym(vs);
+            if not assigned(pd.parast.find(name_self)) then
+              begin
+                { Generate self variable }
+                vs:=cparavarsym.create('$'+name_self,paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
+                pd.parast.insertsym(vs);
+              end;
           end
         { while only procvardefs of this type can be declared in Pascal code,
           internally we also generate procdefs of this type when creating
           block wrappers }
         else if (po_is_block in pd.procoptions) then
           begin
-            { generate the first hidden parameter, which is a so-called "block
-              literal" describing the block and containing its invocation
-              procedure  }
-            hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
-            { mark as vo_is_parentfp so that proc2procvar comparisons will
-              succeed when assigning arbitrary routines to the block }
-            vs:=cparavarsym.create('$_block_literal',paranr_blockselfpara,vs_value,
-              hdef,[vo_is_hidden_para,vo_is_parentfp]
-            );
-            pd.parast.insertsym(vs);
-            if pd.typ=procdef then
+            if not assigned(pd.parast.find('$'+name_block_literal)) then
               begin
-                { make accessible to code }
-                sl:=tpropaccesslist.create;
-                sl.addsym(sl_load,vs);
-                aliasvs:=cabsolutevarsym.create_ref('FPC_BLOCK_SELF',hdef,sl);
-                include(aliasvs.varoptions,vo_is_parentfp);
-                tlocalsymtable(tprocdef(pd).localst).insertsym(aliasvs);
+                { generate the first hidden parameter, which is a so-called "block
+                  literal" describing the block and containing its invocation
+                  procedure  }
+                hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
+                { mark as vo_is_parentfp so that proc2procvar comparisons will
+                  succeed when assigning arbitrary routines to the block }
+                vs:=cparavarsym.create('$'+name_block_literal,paranr_blockselfpara,vs_value,
+                  hdef,[vo_is_hidden_para,vo_is_parentfp]
+                );
+                pd.parast.insertsym(vs);
+                if pd.typ=procdef then
+                  begin
+                    { make accessible to code }
+                    sl:=tpropaccesslist.create;
+                    sl.addsym(sl_load,vs);
+                    aliasvs:=cabsolutevarsym.create_ref('FPC_BLOCK_SELF',hdef,sl);
+                    include(aliasvs.varoptions,vo_is_parentfp);
+                    tlocalsymtable(tprocdef(pd).localst).insertsym(aliasvs);
+                  end;
               end;
           end
         else
@@ -264,9 +285,10 @@ implementation
                          { no vmt for record/type helper constructors }
                          is_objectpascal_helper(tprocdef(pd).struct) and
                          (tobjectdef(tprocdef(pd).struct).extendeddef.typ<>objectdef)
-                       )) then
+                       )) and
+                   not assigned(pd.parast.find(name_vmt)) then
                  begin
-                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=cparavarsym.create('$'+name_vmt,paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insertsym(vs);
                  end;
 
@@ -291,10 +313,10 @@ implementation
                       vsp:=vs_var;
                     hdef:=selfdef;
                   end;
-                vs:=tparavarsym(pd.parast.find('self'));
+                vs:=tparavarsym(pd.parast.find(name_self));
                 if not assigned(vs) or (vs.typ<>paravarsym) or (vs.vardef<>hdef) then
                   begin
-                    vs:=cparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
+                    vs:=cparavarsym.create('$'+name_self,paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                     pd.parast.insertsym(vs);
                   end;
 
@@ -384,7 +406,11 @@ implementation
 
 
     procedure insert_hidden_para(p:TObject;arg:pointer);
+      const
+        name_high = 'high';
+        name_typinfo = 'typinfo';
       var
+        n   : tsymstr;
         hvs : tparavarsym;
         pd  : tabstractprocdef absolute arg;
       begin
@@ -415,19 +441,23 @@ implementation
            { needs high parameter ? }
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
+               n:=name_high+name;
+               if not assigned(owner.find(n)) then
+                 begin
 {$ifdef cpu8bitalu}
-               if is_shortstring(vardef) then
-                 hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,aluuinttype,[vo_is_high_para,vo_is_hidden_para])
-               else
+                   if is_shortstring(vardef) then
+                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,aluuinttype,[vo_is_high_para,vo_is_hidden_para])
+                   else
 {$endif cpu8bitalu}
-                 hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
-               hvs.symoptions:=[];
-               owner.insertsym(hvs);
-               { don't place to register if it will be accessed from implicit finally block }
-               if (varspez=vs_value) and
-                  is_open_array(vardef) and
-                  is_managed_type(vardef) then
-                 hvs.varregable:=vr_none;
+                     hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
+                   hvs.symoptions:=[];
+                   owner.insertsym(hvs);
+                   { don't place to register if it will be accessed from implicit finally block }
+                   if (varspez=vs_value) and
+                      is_open_array(vardef) and
+                      is_managed_type(vardef) then
+                     hvs.varregable:=vr_none;
+                 end;
              end
            else
             begin
@@ -448,9 +478,13 @@ implementation
                end;
               if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
                 begin
-                  hvs:=cparavarsym.create('$typinfo'+name,paranr+1,vs_const,voidpointertype,
-                                          [vo_is_typinfo_para,vo_is_hidden_para]);
-                  owner.insertsym(hvs);
+                  n:=name_typinfo+name;
+                  if not assigned(owner.find(n)) then
+                    begin
+                      hvs:=cparavarsym.create('$'+n,paranr+1,vs_const,voidpointertype,
+                                              [vo_is_typinfo_para,vo_is_hidden_para]);
+                      owner.insertsym(hvs);
+                    end;
                 end;
             end;
          end;
