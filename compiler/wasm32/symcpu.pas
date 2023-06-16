@@ -117,7 +117,7 @@ type
     { generated assembler code; used by WebAssembly backend so it can afterwards
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
-    promising_export_name: string;
+    promising_first_export_name: string;
     destructor destroy; override;
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
@@ -396,7 +396,7 @@ implementation
       if (synthetickind<>tsk_none) and (synthetickind<>tsk_wasm_promising) then
         internalerror(2023061301);
       synthetickind:=tsk_wasm_promising;
-      promising_export_name:=aextname;
+      promising_first_export_name:=aextname;
     end;
 
 
