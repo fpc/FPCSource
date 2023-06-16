@@ -118,6 +118,7 @@ type
       easily write out all methods grouped per class }
     exprasmlist  : TAsmList;
     promising_first_export_name: string;
+    promising_last_export_name: string;
     destructor destroy; override;
     function create_functype: TWasmFuncType;
     function is_pushleftright: boolean; override;
@@ -396,7 +397,18 @@ implementation
       if (synthetickind<>tsk_none) and (synthetickind<>tsk_wasm_promising) then
         internalerror(2023061301);
       synthetickind:=tsk_wasm_promising;
-      promising_first_export_name:=aextname;
+      if last then
+        begin
+          if promising_last_export_name<>'' then
+            internalerror(2023061601);
+          promising_last_export_name:=aextname;
+        end
+      else
+        begin
+          if promising_first_export_name<>'' then
+            internalerror(2023061602);
+          promising_first_export_name:=aextname;
+        end;
     end;
 
 

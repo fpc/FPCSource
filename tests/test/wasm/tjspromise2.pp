@@ -27,7 +27,7 @@ end;
 
 exports
   get_state,
-  update_state promising;
+  update_state promising last;
 
 begin
   init;

@@ -252,6 +252,8 @@ begin
   pd:=tcpuprocdef(tprocsym(hp.sym).ProcdefList[0]);
   if eo_promising_first in hp.options then
     pd.add_promising_export(hp.name^,false)
+  else if eo_promising_last in hp.options then
+    pd.add_promising_export(hp.name^,true)
   else
     begin
       nm := pd.mangledname;

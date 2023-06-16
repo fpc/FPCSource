@@ -179,7 +179,14 @@ implementation
                     if try_to_consume(_PROMISING) then
                      begin
                        if target_info.system in systems_wasm then
-                         include(options,eo_promising_first);
+                         begin
+                           if try_to_consume(_FIRST) then
+                             include(options,eo_promising_first)
+                           else if try_to_consume(_LAST) then
+                             include(options,eo_promising_last)
+                           else
+                             include(options,eo_promising_first);
+                         end;
                      end;
                     if (DefString<>'') and UseDeffileForExports then
                      DefFile.AddExport(DefString);
