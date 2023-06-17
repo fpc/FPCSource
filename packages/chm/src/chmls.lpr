@@ -40,7 +40,7 @@ type
   { TListObject }
 
   TListObject = class
-    Section  : Integer;
+    _Section : Integer;
     count    : integer;
     donotpage: boolean;
     nameonly : boolean;
@@ -196,7 +196,7 @@ procedure TListObject.OnFileEntry(Name: String; Offset, UncompressedSize,
   ASection: Integer);
 begin
   Inc(Count);
-  if (Section > -1) and (ASection <> Section) then Exit;
+  if (_Section > -1) and (ASection <> _Section) then Exit;
   if (Count = 1) or ((Count mod 40 = 0) and not donotpage) then
     begin
       Write(StdErr, '<Section> ');
@@ -274,7 +274,7 @@ end;
 var donotpage:boolean=false;
     name_only :boolean=false;
 
-procedure ListChm(Const Name:string;Section:Integer);
+procedure ListChm(Const Name:string;_Section:Integer);
 var
   ITS: TITSFReader;
   Stream: TFileStream;
@@ -289,7 +289,7 @@ begin
 
   Stream := TFileStream.Create(name, fmOpenRead);
   JunkObject := TListObject.Create;
-  JunkObject.Section:=Section;
+  JunkObject._Section:=_Section;
   JunkObject.Count:=0;
   JunkObject.DoNotPage:=DoNotPage;
   JunkObject.NameOnly:=Name_Only;
@@ -1002,7 +1002,7 @@ Var
   Params,
   OptionIndex : Longint;
   cmd         : TCmdEnum;
-  section     : Integer = -1;
+  _section    : Integer = -1;
 
 // Start of program
 begin
@@ -1043,15 +1043,15 @@ begin
     case cmd of
       cmdlist : begin
                   case length(localparams) of
-                    1 : ListChm(localparams[0],Section);
+                    1 : ListChm(localparams[0],_Section);
                     2 : begin
-                          if not TryStrToInt(localparams[1],section) then
+                          if not TryStrToInt(localparams[1],_section) then
                             begin
                               writeln(stderr,' Invalid value for section ',localparams[2]);
                               usage;
                               halt(1);
                             end;
-                          ListChm(localparams[0],Section);
+                          ListChm(localparams[0],_Section);
                         end;
                   else
                     WrongNrParam(cmdnames[cmd],length(localparams));

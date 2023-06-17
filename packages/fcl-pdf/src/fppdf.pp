@@ -785,6 +785,8 @@ type
     procedure CubicCurveToY(ACtrl1, ATo: TPDFCoord; const ALineWidth: TPDFFloat; AStroke: Boolean = True); overload;
     { Define a rectangle that becomes a clickable hotspot, referencing the URI argument. }
     Procedure AddExternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const AURI: string; ABorder: boolean = false);
+    { Define a rectangle that becomes a clickable hotspot, referencing the document page. }
+    Procedure AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat; const APageIndex: Integer; ABorder: boolean = false);
     { This returns the paper height, converted to whatever UnitOfMeasure is set too }
     function GetPaperHeight: TPDFFloat;
     Function HasImages : Boolean;
@@ -908,9 +910,11 @@ type
     FHeight: TPDFFloat;
     FURI: string;
     FBorder: boolean;
+    FExternalLink: Boolean;
   public
     constructor Create(const ADocument: TPDFDocument); override; overload;
-    constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false); overload;
+    constructor Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat; const AURI: String; const ABorder: Boolean = false;
+      const AExternalLink: Boolean = true); overload;
   end;
 
 
@@ -2146,7 +2150,7 @@ begin
 end;
 
 constructor TPDFAnnot.Create(const ADocument: TPDFDocument; const ALeft, ABottom, AWidth, AHeight: TPDFFloat;
-  const AURI: String; const ABorder: Boolean);
+  const AURI: String; const ABorder: Boolean; const AExternalLink: Boolean);
 begin
   Create(ADocument);
   FLeft := ALeft;
@@ -2155,6 +2159,7 @@ begin
   FHeight := AHeight;
   FURI := AURI;
   FBorder := ABorder;
+  FExternalLink := AExternalLink;
 end;
 
 { TPDFAnnotList }
@@ -2803,6 +2808,21 @@ begin
   p2.Y := AHeight;
   DoUnitConversion(p2);
   an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, AURI, ABorder);
+  Annots.Add(an);
+end;
+
+procedure TPDFPage.AddInternalLink(const APosX, APosY, AWidth, AHeight: TPDFFloat;
+    const APageIndex: Integer; ABorder: boolean);
+var
+  an: TPDFAnnot;
+  p1, p2: TPDFCoord;
+begin
+  p1 := Matrix.Transform(APosX, APosY);
+  DoUnitConversion(p1);
+  p2.X := AWidth;
+  p2.Y := AHeight;
+  DoUnitConversion(p2);
+  an := TPDFAnnot.Create(Document, p1.X, p1.Y, p2.X, p2.Y, Format('[%d]', [APageIndex]), ABorder, False);
   Annots.Add(an);
 end;
 
@@ -5635,9 +5655,17 @@ begin
 
   ADict := CreateDictionary;
   lDict.AddElement('A', ADict);
-  ADict.AddName('Type', 'Action');
-  ADict.AddName('S', 'URI');
-  ADict.AddString('URI', an.FURI);
+  if an.FExternalLink then
+  begin
+    ADict.AddName('Type', 'Action');
+    ADict.AddName('S', 'URI');
+    ADict.AddString('URI', an.FURI);
+  end
+  else
+  begin
+    ADict.AddName('S', 'GoTo');
+    ADict.AddName('D' + an.FURI, '');
+  end;
 
   result := GlobalXRefCount-1;
 end;

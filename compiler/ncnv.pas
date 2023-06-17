@@ -2508,7 +2508,10 @@ implementation
                             not is_self_sym(tsym(pcapturedsyminfo(tprocdef(pd).capturedsyms[0])^.sym))
                           )
                         ) then
-                      internalerror(2021060801);
+                      begin
+                        result:=cerrornode.create;
+                        exit;
+                      end;
 
                     { so that insert_self_and_vmt_para correctly inserts the
                       Self, cause it otherwise skips that for anonymous functions }
@@ -2619,7 +2622,10 @@ implementation
                 else if tprocvardef(totypedef).is_addressonly then
                   begin
                     if assigned(tprocdef(pd).capturedsyms) and (tprocdef(pd).capturedsyms.count>0) then
-                      internalerror(2021060802);
+                      begin
+                        result:=cerrornode.create;
+                        exit;
+                      end;
 
                     { remove framepointer and Self parameters }
                     for i:=tprocdef(pd).parast.symlist.count-1 downto 0 do
@@ -3172,6 +3178,14 @@ implementation
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
+                                 { if the from type is an anonymous function then
+                                   don't blindly convert it if the size is the same
+                                   as compare_defs_ext already determined that the
+                                   anonymous function is not compatible }
+                                 not(
+                                   (left.resultdef.typ=procdef) and
+                                   (po_anonymous in tprocdef(left.resultdef).procoptions)
+                                 ) and
                                  (left.resultdef.size=resultdef.size) and
                                  { disallow casts of const nodes }
                                  (not is_constnode(left) or

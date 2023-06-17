@@ -574,7 +574,7 @@ var
   Fini      : TMemIniFile;  // TMemInifile is more compatible with Delphi. Delphi's API based TIniFile fails on .hhp files.
   secs,strs : TStringList;
   i,j       : Integer;
-  section   : TSectionEnum;
+  _section  : TSectionEnum;
   nd        : TChmContextNode;
 
 begin
@@ -615,10 +615,10 @@ begin
 
   for i:=0 to secs.count-1 do
     begin
-      section:=FindSectionName(Uppercase(Secs[i]));
-      if section<>secunknown then
+      _section:=FindSectionName(Uppercase(Secs[i]));
+      if _section<>secunknown then
         fini.readsectionvalues(secs[i] ,strs);
-      case section of
+      case _section of
       secOptions   : readinioptions(strs);
       secWindows   : for j:=0 to strs.count-1 do
                        FWindows.add(TCHMWindow.Create(strs[j]));

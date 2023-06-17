@@ -241,7 +241,14 @@ implementation
             else
               begin
                 result:=result+'nan';
+{$ifndef CPUMIPS}
                 if fraction<>(int64(1) shl (fraction_bits-1)) then
+{$else CPUMIPS}
+                { Legacy mips fpu has a different representation of 'standard' nan }
+                { Signalling bit is clear to signify non-signalling }
+                { Standard non-signalling NaN thus has all other bits set }
+                if fraction<>((int64(1) shl (fraction_bits-1))-1) then
+{$endif CPUMIPS}
                   result:=result+'(0x'+HexStr(fraction,fraction_hexdigits)+')';
               end;
           end
