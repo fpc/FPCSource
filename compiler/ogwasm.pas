@@ -1852,9 +1852,11 @@ implementation
           end
         else
           begin
-            WriteUleb(FWasmCustomSections[wcstTargetFeatures],2);
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],3);
             WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
             WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
             WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
             WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
           end;
