@@ -2405,7 +2405,7 @@ begin
            begin
              consume(_SUSPENDING);
              include(procoptions,po_wasm_suspending);
-             synthetickind:=tsk_wasm_suspending;
+             synthetickind:=tsk_wasm_suspending_first;
              if idtoken=_FIRST then
                consume(_FIRST)
              else if idtoken=_LAST then

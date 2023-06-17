@@ -1264,14 +1264,14 @@ implementation
               internalerror(2011032801);
 {$endif jvm}
 {$ifdef wasm}
-            tsk_wasm_suspending:
+            tsk_wasm_suspending_first:
               implement_wasm_suspending(tcpuprocdef(pd),false);
             tsk_wasm_suspending_last:
               implement_wasm_suspending(tcpuprocdef(pd),true);
             tsk_wasm_promising:
               implement_wasm_promising(tcpuprocdef(pd));
 {$else wasm}
-            tsk_wasm_suspending,
+            tsk_wasm_suspending_first,
             tsk_wasm_suspending_last,
             tsk_wasm_promising:
               internalerror(2023061107);
