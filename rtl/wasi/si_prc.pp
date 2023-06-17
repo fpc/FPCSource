@@ -48,6 +48,7 @@ end;
 {$endif}
 
 exports
-  _start;
+  _start,
+  _start name '_start_promising' promising;
 
 end.

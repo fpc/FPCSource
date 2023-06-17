@@ -48,6 +48,7 @@ end;
 {$endif}
 
 exports
-  _initialize;
+  _initialize,
+  _initialize name '_initialize_promising' promising;
 
 end.
