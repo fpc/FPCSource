@@ -252,7 +252,7 @@ var
   SPI2          : TSPI_Registers absolute SPI2_BASE;
   UART0         : TUART_Registers absolute UART0_BASE;
   UART1         : TUART_Registers absolute UART1_BASE;
-
+   procedure InitMemAndStart; noreturn;
 implementation
 
 procedure NonMaskableInt_interrupt; external name 'NonMaskableInt_interrupt';
@@ -345,6 +345,11 @@ procedure DCMI_interrupt; external name 'DCMI_interrupt';
 procedure HASH_RNG_interrupt; external name 'HASH_RNG_interrupt';
 procedure FPU_interrupt; external name 'FPU_interrupt';
 
+procedure ResetISR; external name 'ResetISR';
+procedure HandleArchSpecificReset; noreturn;
+begin
+ InitMemAndStart
+end;
 {$i riscv32_start.inc}
 
 procedure Vectors; assembler; nostackframe;
@@ -353,7 +358,7 @@ asm
   .section ".init.interrupt_vectors"
   interrupt_vectors:
   jal _stack_top
-  jal Startup
+  jal HandleArchSpecificReset
   jal NonMaskableInt_interrupt
   .long 0
   .long MemoryManagement_interrupt

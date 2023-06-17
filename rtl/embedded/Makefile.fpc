@@ -223,6 +223,17 @@ endif
 endif
 
 ifeq ($(ARCH),riscv32)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+ifeq ($(SUBARCH),rv32ec)
+override FPCOPT+=-Cprv32ec
+CPU_UNITS=CH32VxBootstrap
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),rv32e)
+override FPCOPT+=-Cprv32e
+CPU_UNITS=CH32VxBootstrap
+CPU_UNITS_DEFINED=1
+endif
 ifeq ($(SUBARCH),rv32imac)
 override FPCOPT+=-Cprv32imac
 CPU_UNITS=$(FE310G000UNIT) $(FE310G002UNIT) $(GD32VF103XXUNIT)
@@ -230,7 +241,7 @@ CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),rv32i)
 override FPCOPT+=-Cprv32i
-CPU_UNITS=
+CPU_UNITS=CH32VxBootstrap
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
