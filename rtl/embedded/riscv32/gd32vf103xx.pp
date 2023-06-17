@@ -499,7 +499,7 @@ var
   UART3       : TUSART_Registers absolute UART3_BASE;
   UART4       : TUSART_Registers absolute UART4_BASE;
   WWDGT       : TWWDGT_Registers absolute WWDGT_BASE;
-
+  procedure InitMemAndStart; noreturn;
 implementation
   procedure CLIC_RESERVED_ISR; external name 'CLIC_RESERVED_ISR';
   procedure CLIC_SFT_ISR;      external name 'CLIC_SFT_ISR';
@@ -566,7 +566,12 @@ implementation
   procedure CAN1_RX1_ISR;      external name 'CAN1_RX1_ISR';
   procedure CAN1_EWMC_ISR;     external name 'CAN1_EWMC_ISR';
   procedure USBFS_ISR;         external name 'USBFS_ISR';
-  
+
+procedure ResetISR; external name 'ResetISR';
+procedure HandleArchSpecificReset; noreturn;
+begin
+ InitMemAndStart
+end;
   {$i riscv32_start.inc}
 
   procedure Vectors; assembler; nostackframe;
