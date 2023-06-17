@@ -2401,6 +2401,31 @@ begin
              else
                import_nr:=longint(v.svalue);
            end;
+          if (idtoken=_SUSPENDING) then
+           begin
+             if (target_info.system in systems_wasm) then
+              begin
+                consume(_SUSPENDING);
+                include(procoptions,po_wasm_suspending);
+                synthetickind:=tsk_wasm_suspending_first;
+                if idtoken=_FIRST then
+                  consume(_FIRST)
+                else if idtoken=_LAST then
+                  begin
+                    consume(_LAST);
+                    synthetickind:=tsk_wasm_suspending_last;
+                  end;
+              end
+             else
+              begin
+                message(parser_e_suspending_externals_not_supported_on_current_platform);
+                consume(_SUSPENDING);
+                if idtoken=_FIRST then
+                  consume(_FIRST)
+                else if idtoken=_LAST then
+                  consume(_LAST);
+              end;
+           end;
           if (target_info.system in systems_wasm) and (idtoken=_SUSPENDING) then
            begin
              consume(_SUSPENDING);
