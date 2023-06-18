@@ -19,6 +19,8 @@ function fpc_setjmp(var S : jmp_buf) : longint;[Public, alias : 'FPC_SETJMP'];co
     sw ra,   jmp_buf.ra(a0)
     sw s0,   jmp_buf.s0(a0)
     sw s1,   jmp_buf.s1(a0)
+
+    {$ifndef CPURV_HAS_16REGISTERS}
     sw s2,   jmp_buf.s2(a0)
     sw s3,   jmp_buf.s3(a0)
     sw s4,   jmp_buf.s4(a0)
@@ -29,6 +31,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;[Public, alias : 'FPC_SETJMP'];co
     sw s9,   jmp_buf.s9(a0)
     sw s10,  jmp_buf.s10(a0)
     sw s11,  jmp_buf.s11(a0)
+    {$endif  CPURV_HAS_16REGISTERS}
     sw sp,   jmp_buf.sp(a0)
 
 {$if defined(FPUFD) or defined(FPUD)}
@@ -77,6 +80,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);[Public, alias : 'FPC_LON
     lw ra,  jmp_buf.ra(a0)
     lw s0,  jmp_buf.s0(a0)
     lw s1,  jmp_buf.s1(a0)
+    {$ifndef CPURV_HAS_16REGISTERS}
     lw s2,  jmp_buf.s2(a0)
     lw s3,  jmp_buf.s3(a0)
     lw s4,  jmp_buf.s4(a0)
@@ -87,6 +91,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);[Public, alias : 'FPC_LON
     lw s9,  jmp_buf.s9(a0)
     lw s10, jmp_buf.s10(a0)
     lw s11, jmp_buf.s11(a0)
+    {$endif  CPURV_HAS_16REGISTERS}
 
 {$if defined(FPUFD) or defined(FPUD)}
     lw sp,   jmp_buf.fcsr(a0)
