@@ -211,7 +211,6 @@ Const
        { cpu_rv32e     } [CPURV_HAS_16REGISTERS],
        { cpu_rv32imc   } [CPURV_HAS_MUL,CPURV_HAS_COMPACT],
        { cpu_rv32ec    } [CPURV_HAS_16REGISTERS,CPURV_HAS_COMPACT]
-
      );
 
 Implementation

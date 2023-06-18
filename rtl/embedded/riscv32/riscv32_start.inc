@@ -19,7 +19,6 @@ procedure InitMemAndStart; noreturn;
 var
   pdest, psrc, pend: PLongWord;
 begin
-
   pdest:=@_data;
   psrc:=@_etext;
   pend:=@_bss_start;
