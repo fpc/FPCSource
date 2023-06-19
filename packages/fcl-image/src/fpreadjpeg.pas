@@ -65,6 +65,7 @@ type
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
     function  InternalCheck(Str: TStream): boolean; override;
     class function InternalSize(Str:TStream): TPoint; override;
+    property CompressInfo : jpeg_decompress_struct Read Finfo Write FInfo;
   public
     constructor Create; override;
     destructor Destroy; override;
