@@ -2526,7 +2526,7 @@ begin
 {$ifdef arm}
        'I' :
          begin
-           if (upper(copy(more,j+1)='THUMB') and
+           if (upper(copy(more,j+1))='THUMB') and
              { does selected CPU really understand thumb? }
              (init_settings.cputype in cpu_has_thumb) then
              init_settings.instructionset:=is_thumb
