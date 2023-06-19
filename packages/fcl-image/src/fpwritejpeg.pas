@@ -38,7 +38,9 @@ type
     FQuality: TFPJPEGCompressionQuality;
     FProgressMgr: TFPJPEGProgressManager;
   protected
+    procedure InitWriting; virtual;
     procedure InternalWrite(Str: TStream; Img: TFPCustomImage); override;
+    property CompressInfo : jpeg_compress_struct Read FInfo Write FInfo;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -95,22 +97,23 @@ end;
 
 { TFPWriterJPEG }
 
+
+procedure TFPWriterJPEG.InitWriting;
+begin
+  FError := jpeg_std_error;
+  FInfo := Default(jpeg_compress_struct);
+  jpeg_create_compress(@FInfo);
+  FInfo.err := jerror.jpeg_std_error(FError);
+  FInfo.progress := @FProgressMgr.pub;
+  FProgressMgr.pub.progress_monitor := @ProgressCallback;
+  FProgressMgr.instance := Self;
+
+end;
+
 procedure TFPWriterJPEG.InternalWrite(Str: TStream; Img: TFPCustomImage);
 var
   MemStream: TMemoryStream;
   Continue: Boolean;
-
-  procedure InitWriting;
-  begin
-    FillChar(FInfo, sizeof(FInfo), 0);
-    FError := jpeg_std_error;
-    FInfo.err := jerror.jpeg_std_error(FError);
-
-    jpeg_create_compress(@FInfo);
-    FProgressMgr.pub.progress_monitor := @ProgressCallback;
-    FProgressMgr.instance := Self;
-    FInfo.progress := @FProgressMgr.pub;
-  end;
 
   procedure SetDestination;
   begin
