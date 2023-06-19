@@ -1645,8 +1645,11 @@ parser_w_ignoring_published_property=03365_W_This property will not be published
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
 parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly reference types can only be passed by value
+% WebAssembly reference types don't have an in-memory representation and can only be passed by value.
 parser_e_promising_exports_not_supported_on_current_platform=03367_E_Declaring exports as 'promising' is WebAssembly-specific and is not supported on the current platform
+% Promising exports are WebAssembly-specific. They are not allowed on other platforms.
 parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declaring externals as 'suspending' is WebAssembly-specific and is not supported on the current platform
+% Suspending externals are WebAssembly-specific. They are not allowed on other platforms.
 %
 % \end{description}
 %
