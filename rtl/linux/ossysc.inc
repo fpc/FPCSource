@@ -110,6 +110,28 @@ begin
 {$endif}
 end;
 
+{$if defined(use_statx_syscall)}
+function makedev(major,minor: cuint32): cuint32;
+
+begin
+  makedev:=(minor and $ff) or (major shl 8) or ((minor and $fffffff00) shl 12);
+end;
+
+{$i cp_new_stat.inc}
+
+function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+
+var
+  nbuf:tstatx;
+
+begin
+  Fpstat:=do_syscall(syscall_nr_statx,AT_FDCWD,TSysParam(path),AT_NO_AUTOMOUNT,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpstat=0 then
+    cp_new_stat(@nbuf,@buf);
+end;
+
+{$else defined(use_statx_syscall)}
+
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
@@ -124,6 +146,7 @@ begin
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
@@ -403,6 +426,20 @@ end;
 
 {$undef FPC_ALIGN_DUMMY}
 
+{$if defined(use_statx_syscall)}
+function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
+
+var
+  nbuf:tstatx;
+  nonestr:char=#0;
+
+begin
+  Fpfstat:=do_syscall(syscall_nr_statx,fd,TSysParam(@nonestr),AT_EMPTY_PATH,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpfstat=0 then
+    cp_new_stat(@nbuf,@sb);
+end;
+
+{$else defined(use_statx_syscall)}
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
@@ -416,6 +453,7 @@ begin
   FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPFORK}
