@@ -577,13 +577,16 @@ type
 						situations.)
 }
 
+{$push}
+{$packrecords 4}
 	MIDIPacket = record
 		timeStamp: MIDITimeStamp;
 		length: UInt16;
 		data: packed array [0..255] of Byte;
 	end;
 	MIDIPacketPtr = ^MIDIPacket;
-	
+{$pop}
+
 {!
 	@struct			MIDIPacketList
 	@abstract		A list of MIDI events being received from, or being sent to,
@@ -614,10 +617,14 @@ type
 						An open-ended array of variable-length MIDIPackets.
 }
 
+{$push}
+{$packrecords 4}
 	MIDIPacketList = record
 		numPackets: UInt32;	
 		packet: array [0..0] of MIDIPacket;
 	end;
+{$pop}
+
 {$ALIGN POWER}
 
 {!
