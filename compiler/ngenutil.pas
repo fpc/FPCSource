@@ -134,6 +134,9 @@ interface
 
       class procedure InsertMemorySizes; virtual;
 
+      { Call this to check if init code is required }
+      class function has_init_list: boolean;
+
       { called right before an object is assembled, can be used to insert
         global information into the assembler list (used by LLVM to insert type
         info) }
@@ -1226,6 +1229,24 @@ implementation
       );
 
       unitinits.free;
+    end;
+
+  class function tnodeutils.has_init_list: boolean;
+    var
+      hp : tused_unit;
+    begin
+      Result:=false;
+      { Check used units }
+      hp:=tused_unit(usedunits.first);
+      while assigned(hp) and (Result=false) do
+        begin
+          if mf_init in hp.u.moduleflags then
+            Result:=true;
+          hp:=tused_unit(hp.next);
+        end;
+
+      { Check current module }
+      Result:=Result or (mf_init in current_module.moduleflags);
     end;
 
 

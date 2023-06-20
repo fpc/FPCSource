@@ -715,6 +715,7 @@ implementation
        nbas,ncon,nld,nmem,
        ncgrtti,pass_2,
        cgobj,cutils,procinfo,
+       ngenutil,
 {$ifdef x86}
        cgx86,
 {$endif x86}
@@ -4949,7 +4950,11 @@ implementation
          if not(current_module.islibrary) then
            begin
              if tf_init_final_units_by_calls in target_info.flags then
-               cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
+               begin
+                 { Only insert call if there are init functions }
+                 if cnodeutils.has_init_list then
+                   cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false);
+               end
              else
                g_call_system_proc(list,'fpc_initializeunits',[],nil).resetiftemp;
            end
