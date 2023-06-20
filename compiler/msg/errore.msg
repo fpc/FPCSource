@@ -1656,7 +1656,7 @@ parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declarin
 %
 # Type Checking
 #
-# 04132 is the last used one
+# 04133 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2114,6 +2114,8 @@ type_e_nested_procvar_to_funcref=04131_E_A nested function variable can not be a
 % in design assigning a nested function variable to a function reference is forbidden.
 type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of a WebAssembly externref
 % WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
+type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly reference types don't have an observable size
+% WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
 %
 % \end{description}
 #
