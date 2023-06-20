@@ -457,7 +457,6 @@ implementation
                  { allow helpers for SizeOf and BitSizeOf }
                  if p1.nodetype=typen then
                    ttypenode(p1).helperallowed:=true;
-                 //Writeln(p1.nodetype, p1.resultdef.typ);
                  if (p1.resultdef.typ=forwarddef) then
                    Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
 {$ifdef wasm}
