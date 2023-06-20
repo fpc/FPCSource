@@ -201,6 +201,186 @@ Type
 
       TColors = TColorRec;
 
+
+  TAlphaColors = record
+    const
+      Null                 = TAlphaColor(0);
+      Alpha                = TAlphaColor($ff000000);
+      Black                = Alpha;
+      Blue                 = TAlphaColor($ff0000ff);
+      Green                = TAlphaColor($ff008000);
+      Lime                 = TAlphaColor($ff00ff00);
+      Red                  = TAlphaColor($ffff0000);
+      White                = TAlphaColor($ffffffff);
+      AliceBlue            = TAlphaColor($ffF0F8FF);
+      AntiqueWhite         = TAlphaColor($ffFAEBD7);
+      Aqua                 = TAlphaColor($ff00FFFF);
+      AquaMarine           = TAlphaColor($ff7FFFD4);
+      Azure                = TAlphaColor($ffF0FFFF);
+      Beige                = TAlphaColor($ffF5F5DC);
+      Bisque               = TAlphaColor($ffFFE4C4);
+      BlanchedAlmond       = TAlphaColor($ffFFEBCD);
+      BlueViolet           = TAlphaColor($ff8A2BE2);
+      Brown                = TAlphaColor($ffA52A2A);
+      BurlyWood            = TAlphaColor($ffDEB887);
+      CadetBlue            = TAlphaColor($ff5F9EA0);
+      Chartreuse           = TAlphaColor($ff7FFF00);
+      Chocolate            = TAlphaColor($ffD2691E);
+      Coral                = TAlphaColor($ffFF7F50);
+      CornflowerBlue       = TAlphaColor($ff6495ED);
+      CornSilk             = TAlphaColor($ffFFF8DC);
+      Crimson              = TAlphaColor($ffDC143C);
+      Cyan                 = TAlphaColor($ff00FFFF);
+      DarkBlue             = TAlphaColor($ff00008B);
+      DarkCyan             = TAlphaColor($ff008B8B);
+      DarkGoldenRod        = TAlphaColor($ffB8860B);
+      DarkGray             = TAlphaColor($ffA9A9A9);
+      DarkGreen            = TAlphaColor($ff006400);
+      DarkGrey             = TAlphaColor($ffA9A9A9);
+      DarkKhaki            = TAlphaColor($ffBDB76B);
+      DarkMagenta          = TAlphaColor($ff8B008B);
+      DarkOliveGreen       = TAlphaColor($ff556B2F);
+      DarkOrange           = TAlphaColor($ffFF8C00);
+      DarkOrchid           = TAlphaColor($ff9932CC);
+      DarkRed              = TAlphaColor($ff8B0000);
+      DarkSalmon           = TAlphaColor($ffE9967A);
+      DarkSeaGreen         = TAlphaColor($ff8FBC8F);
+      DarkSlateBlue        = TAlphaColor($ff483D8B);
+      DarkSlateGray        = TAlphaColor($ff2F4F4F);
+      DarkSlateGrey        = TAlphaColor($ff2F4F4F);
+      DarkTurquoise        = TAlphaColor($ff00CED1);
+      DarkViolet           = TAlphaColor($ff9400D3);
+      DeepPink             = TAlphaColor($ffFF1493);
+      DeepSkyBlue          = TAlphaColor($ff00BFFF);
+      DimGray              = TAlphaColor($ff696969);
+      DimGrey              = TAlphaColor($ff696969);
+      DodgerBlue           = TAlphaColor($ff1E90FF);
+      Firebrick            = TAlphaColor($ffB22222);
+      FloralWhite          = TAlphaColor($ffFFFAF0);
+      ForestGreen          = TAlphaColor($ff228B22);
+      Fuchsia              = TAlphaColor($ffFF00FF);
+      Gainsboro            = TAlphaColor($ffDCDCDC);
+      GhostWhite           = TAlphaColor($ffF8F8FF);
+      Gold                 = TAlphaColor($ffFFD700);
+      GoldenRod            = TAlphaColor($ffDAA520);
+      Gray                 = TAlphaColor($ff808080);
+      GreenYellow          = TAlphaColor($ffADFF2F);
+      Grey                 = TAlphaColor($ff808080);
+      HoneyDew             = TAlphaColor($ffF0FFF0);
+      HotPink              = TAlphaColor($ffFF69B4);
+      IndianRed            = TAlphaColor($ffCD5C5C);
+      Indigo               = TAlphaColor($ff4B0082);
+      Ivory                = TAlphaColor($ffFFFFF0);
+      Khaki                = TAlphaColor($ffF0E68C);
+      Lavender             = TAlphaColor($ffE6E6FA);
+      LavenderBlush        = TAlphaColor($ffFFF0F5);
+      LawnGreen            = TAlphaColor($ff7CFC00);
+      LemonChiffon         = TAlphaColor($ffFFFACD);
+      LightBlue            = TAlphaColor($ffADD8E6);
+      LightCoral           = TAlphaColor($ffF08080);
+      LightCyan            = TAlphaColor($ffE0FFFF);
+      LightGoldenRodYellow = TAlphaColor($ffFAFAD2);
+      LightGray            = TAlphaColor($ffD3D3D3);
+      LightGreen           = TAlphaColor($ff90EE90);
+      LightGrey            = TAlphaColor($ffD3D3D3);
+      LightPink            = TAlphaColor($ffFFB6C1);
+      LightSalmon          = TAlphaColor($ffFFA07A);
+      LightSeaGreen        = TAlphaColor($ff20B2AA);
+      LightSkyBlue         = TAlphaColor($ff87CEFA);
+      LightSlateGray       = TAlphaColor($ff778899);
+      LightSlateGrey       = TAlphaColor($ff778899);
+      LightSteelBlue       = TAlphaColor($ffB0C4DE);
+      LightYellow          = TAlphaColor($ffFFFFE0);
+      LtGray               = TAlphaColor($ffC0C0C0);
+      MedGray              = TAlphaColor($ffA0A0A0);
+      DkGray               = TAlphaColor($ff808080);
+      MoneyGreen           = TAlphaColor($ffC0DCC0);
+      LegacySkyBlue        = TAlphaColor($ffF0CAA6);
+      Cream                = TAlphaColor($ffF0FBFF);
+      LimeGreen            = TAlphaColor($ff32CD32);
+      Linen                = TAlphaColor($ffFAF0E6);
+      Magenta              = TAlphaColor($ffFF00FF);
+      Maroon               = TAlphaColor($ff800000);
+      MediumAquaMarine     = TAlphaColor($ff66CDAA);
+      MediumBlue           = TAlphaColor($ff0000CD);
+      MediumOrchid         = TAlphaColor($ffBA55D3);
+      MediumPurple         = TAlphaColor($ff9370DB);
+      MediumSeaGreen       = TAlphaColor($ff3CB371);
+      MediumSlateBlue      = TAlphaColor($ff7B68EE);
+      MediumSpringGreen    = TAlphaColor($ff00FA9A);
+      MediumTurquoise      = TAlphaColor($ff48D1CC);
+      MediumVioletRed      = TAlphaColor($ffC71585);
+      MidnightBlue         = TAlphaColor($ff191970);
+      MintCream            = TAlphaColor($ffF5FFFA);
+      MistyRose            = TAlphaColor($ffFFE4E1);
+      Moccasin             = TAlphaColor($ffFFE4B5);
+      NavajoWhite          = TAlphaColor($ffFFDEAD);
+      Navy                 = TAlphaColor($ff000080);
+      OldLace              = TAlphaColor($ffFDF5E6);
+      Olive                = TAlphaColor($ff808000);
+      OliveDrab            = TAlphaColor($ff6B8E23);
+      Orange               = TAlphaColor($ffFFA500);
+      OrangeRed            = TAlphaColor($ffFF4500);
+      Orchid               = TAlphaColor($ffDA70D6);
+      PaleGoldenRod        = TAlphaColor($ffEEE8AA);
+      PaleGreen            = TAlphaColor($ff98FB98);
+      PaleTurquoise        = TAlphaColor($ffAFEEEE);
+      PaleVioletRed        = TAlphaColor($ffDB7093);
+      PapayaWhip           = TAlphaColor($ffFFEFD5);
+      PeachPuff            = TAlphaColor($ffFFDAB9);
+      Peru                 = TAlphaColor($ffCD853F);
+      Pink                 = TAlphaColor($ffFFC0CB);
+      Plum                 = TAlphaColor($ffDDA0DD);
+      PowderBlue           = TAlphaColor($ffB0E0E6);
+      Purple               = TAlphaColor($ff800080);
+      RosyBrown            = TAlphaColor($ffBC8F8F);
+      RoyalBlue            = TAlphaColor($ff4169E1);
+      SaddleBrown          = TAlphaColor($ff8B4513);
+      Salmon               = TAlphaColor($ffFA8072);
+      SandyBrown           = TAlphaColor($ffF4A460);
+      SeaGreen             = TAlphaColor($ff2E8B57);
+      SeaShell             = TAlphaColor($ffFFF5EE);
+      Sienna               = TAlphaColor($ffA0522D);
+      Silver               = TAlphaColor($ffC0C0C0);
+      SkyBlue              = TAlphaColor($ff87CEEB);
+      SlateBlue            = TAlphaColor($ff6A5ACD);
+      SlateGray            = TAlphaColor($ff708090);
+      SlateGrey            = TAlphaColor($ff708090);
+      Snow                 = TAlphaColor($ffFFFAFA);
+      SpringGreen          = TAlphaColor($ff00FF7F);
+      SteelBlue            = TAlphaColor($ff4682B4);
+      Tan                  = TAlphaColor($ffD2B48C);
+      Teal                 = TAlphaColor($ff008080);
+      Thistle              = TAlphaColor($ffD8BFD8);
+      Tomato               = TAlphaColor($ffFF6347);
+      Turquoise            = TAlphaColor($ff40E0D0);
+      Violet               = TAlphaColor($ffEE82EE);
+      Wheat                = TAlphaColor($ffF5DEB3);
+      WhiteSmoke           = TAlphaColor($ffF5F5F5);
+      Yellow               = TAlphaColor($ffFFFF00);
+      YellowGreen          = TAlphaColor($ff9ACD32);
+  public
+    constructor Create(const Color: TAlphaColor);
+    class var ColorToRGB: function (Color: TAlphaColor): Longint;
+    case Cardinal of
+          0:
+            (Color: TAlphaColor);
+          2:
+            (HiWord, LoWord: Word);
+          3:
+    {$IFDEF BIGENDIAN}
+            (A, R, G, B: Byte);
+    {$ELSE}
+            (B, G, R, A: Byte);
+    {$ENDIF}
+  end;
+  TAlphaColorRec = TAlphaColors;
+
+  TAlphaColorF = record
+    R, G, B, A: Single;
+  end;
+
+
 // copied from Lazutils version
 ///////////////////////////////
 
@@ -331,5 +511,11 @@ class operator TColorRec.:= (AColor : TColorRec): TColor;
 begin
   result:=AColor.Color;
 end;
+
+constructor TAlphaColors.Create(const Color: TAlphaColor);
+begin
+  Self := TAlphaColors(Color);
+end;
+
 
 end.
