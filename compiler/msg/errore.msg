@@ -2457,7 +2457,6 @@ sym_f_systemunitnotloaded=05100_F_System unit not loaded
 sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly reference types cannot be used inside records, objects, or classes
 % WebAssembly reference types don't have an in-memory representation and therefore
 % cannot be used inside records, objects or classes.
-%
 % \end{description}
 #
 # Codegenerator
