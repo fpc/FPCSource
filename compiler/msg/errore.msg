@@ -1656,8 +1656,8 @@ parser_e_suspending_externals_not_supported_on_current_platform=03368_E_Declarin
 %
 # Type Checking
 #
-# 04133 is the last used one
-# type_w_dangerous_type_conversion=04133
+# 04134 is the last used one
+# type_w_dangerous_type_conversion=04134
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1882,7 +1882,7 @@ type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported for
 type_e_illegal_type_conversion=04054_E_Illegal type conversion: "$1" to "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-type_w_dangerous_type_conversion=04133_W_Type conversion between unrelated/incompatible types: "$1" to "$2"
+type_w_dangerous_type_conversion=04134_W_Type conversion between unrelated/incompatible types: "$1" to "$2"
 % The typecast is allowed for compatibility but types are unrelated or not compatible
 type_h_pointer_to_longint_conv_not_portable=04055_H_Conversion between ordinals and pointers is not portable
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
@@ -2117,6 +2117,8 @@ type_e_nested_procvar_to_funcref=04131_E_A nested function variable can not be a
 % in design assigning a nested function variable to a function reference is forbidden.
 type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of a WebAssembly externref
 % WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
+type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly reference types don't have an observable size
+% WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
 %
 % \end{description}
 #

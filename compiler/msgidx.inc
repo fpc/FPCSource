@@ -536,7 +536,7 @@ const
   type_e_constant_expr_expected=04052;
   type_e_operator_not_supported_for_types=04053;
   type_e_illegal_type_conversion=04054;
-  type_w_dangerous_type_conversion=04133;
+  type_w_dangerous_type_conversion=04134;
   type_h_pointer_to_longint_conv_not_portable=04055;
   type_w_pointer_to_longint_conv_not_portable=04056;
   type_e_cant_choose_overload_function=04057;
@@ -606,6 +606,7 @@ const
   type_w_array_size_does_not_match_size_of_constant_string=04130;
   type_e_nested_procvar_to_funcref=04131;
   type_e_cannot_take_address_of_wasm_externref=04132;
+  type_e_cannot_determine_size_of_wasm_reference_type=04133;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -1167,9 +1168,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 91547;
+  MsgTxtSize = 91613;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,109,369,134,102,63,148,38,223,71,
+    28,109,369,135,102,63,148,38,223,71,
     68,20,30,1,1,1,1,1,1,1
   );
