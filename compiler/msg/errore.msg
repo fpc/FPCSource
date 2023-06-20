@@ -2444,6 +2444,8 @@ sym_f_systemunitnotloaded=05100_F_System unit not loaded.
 % The compiler used a function that requires the system unit to be loaded,
 % but it was not yet loaded. This is an internal compiler error and must be reported.
 sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly reference types cannot be used inside records, objects, or classes
+% WebAssembly reference types don't have an in-memory representation and therefore
+% cannot be used inside records, objects or classes.
 %
 % \end{description}
 #
