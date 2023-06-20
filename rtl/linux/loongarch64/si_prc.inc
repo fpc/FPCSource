@@ -85,13 +85,12 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     la.got $t0, initialstkptr
     st.d $sp, $t0, 0
 
-{$if defined(FPC_USE_LIBC)}
-    { call PascalMain }
-    bl PASCALMAIN
-{$else}
+{$if not defined(FPC_USE_LIBC)}
     bl InitTLS
 {$endif}
-{$endif}
+
+    { call PascalMain }
+    bl PASCALMAIN
     break 1
   end;
 
