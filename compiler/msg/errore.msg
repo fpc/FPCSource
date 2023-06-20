@@ -2119,7 +2119,7 @@ type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of 
 #
 # Symtable
 #
-# 05099 is the last used one
+# 05101 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2443,6 +2443,7 @@ sym_e_symbol_no_capture=05099_E_Symbol "$1" can not be captured
 sym_f_systemunitnotloaded=05100_F_System unit not loaded.
 % The compiler used a function that requires the system unit to be loaded,
 % but it was not yet loaded. This is an internal compiler error and must be reported.
+sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly reference types cannot be used inside records, objects, or classes
 %
 % \end{description}
 #
