@@ -126,7 +126,7 @@ Const
     {$endif sparc}
     {$ifdef sparc64}
          ppcbin:='ppcsparc64';
-          processorname:='sparc64';
+         processorname:='sparc64';
     {$endif sparc64}
     {$ifdef x86_64}
          ppcbin:='ppcx64';
@@ -183,6 +183,8 @@ Const
     end;
 
   var
+    warn : Boolean;
+    ShowErrno : Boolean;
     extrapath : ansistring;
 
   function findexe(var ppcbin:string): boolean;
@@ -261,18 +263,146 @@ Const
           writeln(processorname);
           halt(0);
         end;
-   end;
+      end;
 
+Function FindConfigFile(const aFile : string) : String;
+// Adapted from check_configfile(fn:string; var foundfn:string):boolean;
+{
+  Order to read configuration file :
+  Unix:
+   1 - current dir
+   2 - ~/.fpc.cfg
+   3 - configpath
+   4 - /etc
+  Windows:
+   1 - current dir
+   2 - home dir of user or all users
+   3 - config path
+   4 - next to binary
+  Other:
+   1 - current dir
+   3 - config path
+   4 - next to binary
+}
+
+var
+  {$ifdef unix}hs,{$endif} aSearchPath,exepath,configpath : string;
+
+  Procedure AddToPath(aDir : String);
+
+  begin
+    if aDir='' then exit;
+    if (aSearchPath<>'') then
+      aSearchPath:=aSearchPath+PathSeparator;
+    aSearchPath:=aSearchPath+IncludeTrailingPathDelimiter(SetDirSeparators(aDir));
+  end;
+
+begin
+  if FileExists(aFile) then
+    Exit(aFile);
+  ExePath:=SetDirSeparators(ExtractFilePath(paramstr(0)));
+  aSearchPath:='';
+  { retrieve configpath }
+  configpath:=SetDirSeparators(GetEnvironmentVariable('PPC_CONFIG_PATH'));
+{$ifdef Unix}
+  hs:=SetDirSeparators(GetEnvironmentVariable('HOME'));
+  if (hs<>'') then
+    begin
+    Result:=IncludeTrailingPathDelimiter(hs)+'.'+aFile;
+    if FileExists(Result) then
+      exit;
+    end;
+  if configpath='' then
+    configpath:=ExpandFileName(ExePath+'../etc/');
+{$endif}
+  AddToPath(ConfigPath);
+{$ifdef WINDOWS}
+  AddToPath(GetEnvironmentVariable('USERPROFILE'));
+  AddToPath(GetEnvironmentVariable('ALLUSERSPROFILE'));
+{$endif WINDOWS}
+{$ifdef Unix}
+  AddToPath('/etc/');
+{$else}
+  AddToPath(exepath);
+{$endif}
+  Result:=FileSearch(aFile,aSearchPath);
+end;
+
+Procedure CheckWarn(aOpt : String);
+
+Var
+  Len,I : integer;
+
+begin
+  Len:=Length(aOpt);
+  For I:=1 to Len do
+    begin
+    if (aOpt[i]='w') then
+      Warn:=(I=Len) or (aOpt[i+1]<>'-');
+    if (aOpt[i]='q') then
+      ShowErrNo:=(I=Len) or (aOpt[i+1]<>'-');
+    end;
+end;
+
+procedure SetExeSuffix(var ExeSuffix : string; aValue : string);
+
+begin
+  if ExeSuffix='' then
+    exesuffix :=aValue
+  else if Warn then
+    begin
+    Write('Warning: ');
+    if ShowErrNo then
+      Write('(99999) ');
+    Writeln('Compiler version already set to: ',ExeSuffix);
+    end;
+end;
+
+Procedure ProcessConfigFile(aFileName : String; var ExeSuffix : String);
+
+  Function Stripline(aLine : String) : string;
+
+  Var
+    P : integer;
+
+  begin
+    if (aLine<>'') and (aLine[1]=';') then exit;
+    Pos('#',aLine); // no ifdef or include.
+    if P=0 then
+      P:=Length(aLine)+1;
+    Result:=Copy(aLine,1,P-1);
+  end;
+
+Var
+  aFile : Text;
+  aLine : String;
+
+begin
+  Assign(aFile,aFileName);
+  {$push}{$I-}
+  filemode:=0;
+  Reset(aFile);
+  {$pop}
+  if ioresult<>0 then
+    Error('Cannot open config file: '+aFileName);
+  While not EOF(aFile) do
+    begin
+    ReadLn(aFile,aLine);
+    aLine:=StripLine(aLine);
+    if aLine='' then
+      continue;
+    if Copy(aLine,1,2)='-V' then
+      SetExeSuffix(ExeSuffix,Copy(aLine,3,Length(aLine)-2));
+    end;
+  {$i+}
+  Close(aFile);
+end;
 
   var
-     s              : ansistring;
-     cpusuffix,
-     SourceCPU,
-     ppcbin,
-     versionStr,
-     TargetCPU   : string;
-     ppccommandline : array of ansistring;
-     ppccommandlinelen : longint;
+     s,CfgFile: ansistring;
+     CPUSuffix, ExeSuffix, SourceCPU, ppcbin, TargetName, TargetCPU: string;
+     PPCCommandLine: array of ansistring;
+     PPCCommandLineLen: longint;
      i : longint;
      errorvalue     : Longint;
 
@@ -283,54 +413,70 @@ Const
        Inc(PPCCommandLineLen);
      end;
 
+begin
+  ppccommandline := [];
+  setlength(ppccommandline, paramcount);
+  ppccommandlinelen := 0;
+  cpusuffix := '';        // if not empty, signals attempt at cross
+  // compiler.
+  extrapath := '';
+  initplatform(ppcbin, SourceCPU);
+  exesuffix := '';                      { Default is just the name }
+  if ParamCount = 0 then
   begin
-     ppccommandline:=[];
-     setlength(ppccommandline,paramcount);
-     ppccommandlinelen:=0;
-     cpusuffix     :='';        // if not empty, signals attempt at cross
-                                // compiler.
-     extrapath     :='';
-     versionstr:='';                      { Default is just the name }
-     initplatform(ppcbin,SourceCPU);
-     if ParamCount = 0 then
-       begin
-         SetLength (PPCCommandLine, 1);
-         AddToCommandLine('-?F' + ParamStr (0));
-       end
-     else
-      for i:=1 to paramcount do
-       begin
-          s:=paramstr(i);
-          if pos('-V',s)=1 then
-              versionstr:=copy(s,3,length(s)-2)
+    SetLength(PPCCommandLine, 1);
+    AddToCommandLine('-?F'+ParamStr(0));
+  end
+  else
+    for i := 1 to paramcount do
+    begin
+      s := ParamStr(i);
+      if pos('-t', s) = 1 then
+      begin
+        targetname := copy(s, 3, length(s)-2);
+        AddToCommandLine(S);
+      end
+      else if pos('-V', s) = 1 then
+        SetExeSuffix(ExeSuffix,copy(s, 3, length(s)-2))
+      else
+      begin
+        if pos('-P', s) = 1 then
+           begin
+             TargetCPU:=copy(s,3,length(s)-2);
+             CheckSpecialProcessors(TargetCPU,SourceCPU,ppcbin,cpusuffix,exesuffix);
+             if TargetCPU <> SourceCPU then
+               begin
+                 cpusuffix:=processortosuffix(TargetCPU);
+                 ppcbin:='ppc'+crosssuffix+cpusuffix;
+               end;
+           end
+        else if pos('-Xp',s)=1 then
+          extrapath:=copy(s,4,length(s)-3)
+        else
+        begin
+          if pos('-h', s) = 1 then
+            AddToCommandLine('-hF'+ParamStr(0))
+          else if pos('-?', s) = 1 then
+            AddToCommandLine('-?F'+ParamStr(0))
           else
             begin
-              if pos('-P',s)=1 then
-                 begin
-                   TargetCPU:=copy(s,3,length(s)-2);
-                   CheckSpecialProcessors(TargetCPU,SourceCPU,ppcbin,cpusuffix,versionstr);
-                   if TargetCPU <> SourceCPU then
-                     begin
-                       cpusuffix:=processortosuffix(TargetCPU);
-                       ppcbin:='ppc'+crosssuffix+cpusuffix;
-                     end;
-                 end
-              else if pos('-Xp',s)=1 then
-                extrapath:=copy(s,4,length(s)-3)
-              else
-                begin
-                  if pos('-h',s)=1 then
-                    AddToCommandLine('-hF'+ParamStr(0))
-                  else if pos('-?',s)=1 then
-                    AddToCommandLine('-?F'+ParamStr(0))
-                  else
-                    AddToCommandLine(S);
-                end;
+            AddToCommandLine(S);
+            if pos('-v', s) = 1 then
+              CheckWarn(Copy(S,3,length(S)-2));
             end;
+        end;
+      end;
+    end;
+     if (TargetName<>'') then
+       begin
+       S:='fpc-'+TargetName+'.cfg';
+       CfgFile:=FindConfigFile(s);
+       if CfgFile='' then
+         Error('Cannot find subtarget config file: '+s);
+       ProcessConfigFile(CfgFile,ExeSuffix);
        end;
-     SetLength(ppccommandline,ppccommandlinelen);
-
-     ppcbin:=findcompiler(ppcbin,cpusuffix,versionstr);
+     SetLength(ppccommandline, ppccommandlinelen);
+     ppcbin := findcompiler(ppcbin, cpusuffix, exesuffix);
 
      { call ppcXXX }
      try

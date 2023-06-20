@@ -256,6 +256,9 @@ interface
        outputfilename    : string;
        outputprefix      : pshortstring;
        outputsuffix      : pshortstring;
+       { selected subtarget }
+       subtarget         : string;
+
        { specified with -FE or -FU }
        outputexedir      : TPathStr;
        outputunitdir     : TPathStr;
@@ -1002,6 +1005,8 @@ implementation
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in Target_Info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
+         else if subtarget<>'' then
+           Replace(s,'$FPCTARGET',target_full_string+'-'+lower(subtarget))
          else
            Replace(s,'$FPCTARGET',target_full_string);
          Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
