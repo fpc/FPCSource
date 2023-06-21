@@ -36,10 +36,10 @@ type
     FVerbose : Boolean;
   Public
     constructor Create(aOwner: TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
   Protected
     procedure DisplayPageText(Doc: TPDFDocument; aIndex: Integer;  aPage: TPDFPageObject);
-    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string);
+    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string); reintroduce;
     Procedure DoProgress(Sender : TObject;aKind : TPDFProgressKind; aCurrent,aCount : Integer);
     procedure DisplayCatalog(Doc: TPDFDocument);
     procedure DisplayInfo(Doc: TPDFDocument);
@@ -149,6 +149,7 @@ begin
   if (FSections=[]) then
     for S in TInfoSection do
       Include(FSections,S);
+  Result:=true;
 end;
 
 procedure TPDFDumpApplication.Usage(Msg: String);
