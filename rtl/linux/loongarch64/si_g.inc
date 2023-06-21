@@ -77,6 +77,7 @@ procedure main_stub; assembler; nostackframe;
     la.got, $t0, SysInitEntryInformation
     st.d $sp, $t0, TEntryInformation.OS.stkptr
     la.got $t1, StackLength
+    ld.d $t1, $t1, 0
     st.d $t1, $t0, TEntryInformation.OS.stklen
     la.got $t2, _FPC_libc_haltproc
     st.d $t2, $t0, TEntryInformation.OS.haltproc
