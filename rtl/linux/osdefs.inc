@@ -126,5 +126,6 @@
 {$ifdef cpuloongarch64}
   {$define generic_linux_syscalls}
   {$define use_statx_syscall}
+  {$define use_prlimit64}
   {$undef usestime}
 {$endif cpuloongarch64}
