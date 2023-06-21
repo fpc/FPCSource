@@ -1434,15 +1434,12 @@ begin
   Result:='';
   if Length(Tokens)>=2 then
     For I:=1 to Length(Tokens)-2 do
-      begin
-      if Tokens[I].TokenType=ptString then
-
-        Result:=Result+aUnicodeMap.InterPret(Tokens[I].TokenData)
-      else if Tokens[i].IsNumber then
-        begin
+      case Tokens[I].TokenType of
+      ptString,ptHexString:
+        Result:=Result+aUnicodeMap.InterPret(Tokens[I].TokenData);
+      ptNumber:
         if Abs(Tokens[i].AsDouble)>PDFTextArraySpaceTreshold then
-          Result:=Result+' '
-        end
+          Result:=Result+' ';
       else
         Raise EConvertError.Create('Unexpected char');
       end;
