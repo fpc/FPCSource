@@ -1410,7 +1410,7 @@ class procedure TPDFParser.RunlengthDecode(aSrc, aDest: TStream);
 Var
   I : Integer;
   RLE,B,Cnt,C : Byte;
-  Buf : Array[0..128] of byte;
+  {%H-}Buf : Array[0..128] of byte;
 
 begin
   RLE:=128;
