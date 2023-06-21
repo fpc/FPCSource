@@ -102,14 +102,14 @@ type
   PStat      = ^Stat;
 
   { Referred to rtl/linux/linux.pp }
-  statx_timestamp = record
+  statx64_timestamp = record
     tv_sec : cint64;
     tv_nsec : cuint32;
     __reserved : cint32;
   end;
-  pstatx_timestamp = ^statx_timestamp;
+  pstatx64_timestamp = ^statx64_timestamp;
 
-  tstatx = record
+  tstatx64 = record
     stx_mask : cuint32;
     stx_blksize : cuint32;
     stx_attributes : cuint64;
@@ -122,17 +122,17 @@ type
     stx_size : cuint64;
     stx_blocks : cuint64;
     stx_attributes_mask : cuint64;
-    stx_atime : statx_timestamp;
-    stx_btime : statx_timestamp;
-    stx_ctime : statx_timestamp;
-    stx_mtime : statx_timestamp;
+    stx_atime : statx64_timestamp;
+    stx_btime : statx64_timestamp;
+    stx_ctime : statx64_timestamp;
+    stx_mtime : statx64_timestamp;
     stx_rdev_major : cuint32;
     stx_rdev_minor : cuint32;
     stx_dev_major : cuint32;
     stx_dev_minor : cuint32;
     __spare2 : array[0..13] of cuint64;
   end;
-  pstatx = ^tstatx;
+  pstatx64 = ^tstatx64;
 
   { directory services }
   { the Dirent type for getdents64 is no longer declared as ending with

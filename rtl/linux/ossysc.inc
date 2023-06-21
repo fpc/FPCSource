@@ -122,7 +122,7 @@ end;
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 var
-  nbuf:tstatx;
+  nbuf:tstatx64;
 
 begin
   Fpstat:=do_syscall(syscall_nr_statx,AT_FDCWD,TSysParam(path),AT_NO_AUTOMOUNT,STATX_BASIC_STATS,TSysParam(@nbuf));
@@ -430,7 +430,7 @@ end;
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 var
-  nbuf:tstatx;
+  nbuf:tstatx64;
   nonestr:char=#0;
 
 begin

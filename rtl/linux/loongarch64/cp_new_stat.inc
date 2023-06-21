@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-  procedure cp_new_stat(nbuf: pstatx; buf: pstat);
+  procedure cp_new_stat(nbuf: pstatx64; buf: pstat);
 
   begin
     buf^.st_dev:=makedev(nbuf^.stx_dev_major,nbuf^.stx_dev_minor);
