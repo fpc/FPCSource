@@ -25,7 +25,11 @@ unit fppdfobjects;
 interface
 
 uses
-  TypInfo, Types, rtlConsts, SysUtils, Classes, Contnrs, fppdfconsts;
+  TypInfo,
+  {$IFDEF DEBUGPDFALLOCATION}
+  Types,
+  {$ENDIF}
+  rtlConsts, SysUtils, Classes, Contnrs, fppdfconsts;
 
 Const
   PDFTextArraySpaceTreshold = 200;
@@ -1426,7 +1430,7 @@ Var
 
 begin
   if aUnicodeMap=Nil then
-    Exit(GetFullText);
+    Exit('');
   Result:='';
   if Length(Tokens)>=2 then
     For I:=1 to Length(Tokens)-2 do
@@ -2108,7 +2112,7 @@ begin
     If (Length(TokenData)>2) and (TokenData[1]=#254) and (TokenData[2]=#255) then
       begin
       Len:=Length(TokenData)-2;
-      SetLength(UString,Len div 2);
+      SetLength(UString{%H-},Len div 2);
       Move(TokenData[3],UString[1],Len);
       P:=PWord(PUnicodeChar(UString));
       For I:=1 to Length(UString) do
