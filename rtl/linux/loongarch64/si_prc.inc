@@ -50,6 +50,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 
     st.d $sp, $t1, TEntryInformation.OS.stkptr
     la.got $t0, StackLength
+    ld.d $t0, $t0, 0
     st.d $t0, $t1, TEntryInformation.OS.stklen
     la.got $t2, _FPC_proc_haltproc
     st.d $t2, $t1, TEntryInformation.OS.haltproc
