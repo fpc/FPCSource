@@ -586,6 +586,7 @@ Var
   lRes,lRawlen : Integer;
 
 begin
+  Result:='';
   aValue:=Char(aStartByte)+GetTillByte(Ord('>'));
   lRawlen:=Length(aValue) div 2;
   SetLength(Result{%H-},lRawLen);
