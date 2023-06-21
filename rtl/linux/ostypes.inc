@@ -90,12 +90,49 @@ const
 {$endif}
   _STAT_VER = _STAT_VER_LINUX;
 
+{$if defined(use_statx_syscall)}
+  STATX_BASIC_STATS=$000007ff;
+{$endif}
+
 type
 
 {$i stat.inc}
 
   TStat      = Stat;
   PStat      = ^Stat;
+
+  { Referred to rtl/linux/linux.pp }
+  statx64_timestamp = record
+    tv_sec : cint64;
+    tv_nsec : cuint32;
+    __reserved : cint32;
+  end;
+  pstatx64_timestamp = ^statx64_timestamp;
+
+  tstatx64 = record
+    stx_mask : cuint32;
+    stx_blksize : cuint32;
+    stx_attributes : cuint64;
+    stx_nlink : cuint32;
+    stx_uid : cuint32;
+    stx_gid : cuint32;
+    stx_mode : word;
+    __spare0 : array[0..0] of word;
+    stx_ino : cuint64;
+    stx_size : cuint64;
+    stx_blocks : cuint64;
+    stx_attributes_mask : cuint64;
+    stx_atime : statx64_timestamp;
+    stx_btime : statx64_timestamp;
+    stx_ctime : statx64_timestamp;
+    stx_mtime : statx64_timestamp;
+    stx_rdev_major : cuint32;
+    stx_rdev_minor : cuint32;
+    stx_dev_major : cuint32;
+    stx_dev_minor : cuint32;
+    __spare2 : array[0..13] of cuint64;
+  end;
+  pstatx64 = ^tstatx64;
 
   { directory services }
   { the Dirent type for getdents64 is no longer declared as ending with

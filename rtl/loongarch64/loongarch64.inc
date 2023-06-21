@@ -139,7 +139,7 @@ procedure SysInitFPU;
   begin
     setrm(0);
     setcause(0);
-    setenables(fpu_z or fpu_v);
+    setenables(fpu_z or fpu_v or fpu_o);
     softfloat_exception_mask:=[exPrecision,exUnderflow];
     softfloat_exception_flags:=[];
   end;
@@ -509,18 +509,10 @@ procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$ifdef FPUFD}
-var
-  cw: TNativeFPUControlWord;
-{$endif}
 begin
   softfloat_exception_flags:=[];
   softfloat_exception_mask:=[exPrecision,exUnderflow];
 {$ifdef FPUFD}
-  cw:=GetNativeFPUControlWord;
-  cw.cw:=0;
-  { round to nearest }
-  cw.rndmode:=0;
-  SetNativeFPUControlWord(cw);
+  SetNativeFPUControlWord(DefaultFPUControlWord);
 {$endif}
 end;

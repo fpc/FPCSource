@@ -48,6 +48,8 @@ const
   STACK_MARGIN_MAX = 64;    { Stack size margin for stack checking }
 {$elseif defined(CPUZ80)}
   STACK_MARGIN_MAX = 64;    { Stack size margin for stack checking }
+{$elseif defined(CPULOONGARCH64)}
+  STACK_MARGIN_MAX = 65536;    { Stack size margin for stack checking }
 {$else}
   STACK_MARGIN_MAX = 16384;    { Stack size margin for stack checking }
 {$endif}

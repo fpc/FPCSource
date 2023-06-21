@@ -110,6 +110,28 @@ begin
 {$endif}
 end;
 
+{$if defined(use_statx_syscall)}
+function makedev(major,minor: cuint32): cuint32;
+
+begin
+  makedev:=(minor and $ff) or (major shl 8) or ((minor and $fffffff00) shl 12);
+end;
+
+{$i cp_new_stat.inc}
+
+function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+
+var
+  nbuf:tstatx64;
+
+begin
+  Fpstat:=do_syscall(syscall_nr_statx,AT_FDCWD,TSysParam(path),AT_NO_AUTOMOUNT,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpstat=0 then
+    cp_new_stat(@nbuf,@buf);
+end;
+
+{$else defined(use_statx_syscall)}
+
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
@@ -124,6 +146,7 @@ begin
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
@@ -403,6 +426,20 @@ end;
 
 {$undef FPC_ALIGN_DUMMY}
 
+{$if defined(use_statx_syscall)}
+function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
+
+var
+  nbuf:tstatx64;
+  nonestr:char=#0;
+
+begin
+  Fpfstat:=do_syscall(syscall_nr_statx,fd,TSysParam(@nonestr),AT_EMPTY_PATH,STATX_BASIC_STATS,TSysParam(@nbuf));
+  if Fpfstat=0 then
+    cp_new_stat(@nbuf,@sb);
+end;
+
+{$else defined(use_statx_syscall)}
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
@@ -416,6 +453,7 @@ begin
   FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
 {$endif}
 end;
+{$endif defined(use_statx_syscall)}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPFORK}
@@ -699,11 +737,23 @@ begin
 end;
 
 
+{$ifdef USE_PRLIMIT64}
+function FpPRlimit64(pid : pid_t; resource : cInt; nrlim, orlim : PRLimit) : cInt;
+begin
+  FpPRlimit64 := do_syscall(syscall_nr_prlimit64, TSysParam(pid),
+    TSysParam(resource), TSysParam(nrlim), TSysParam(orlim));
+end;
+{$endif}
+
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; [public, alias : 'FPC_SYSC_GETRLIMIT'];
 begin
 {$ifndef NO_SYSCALL_GETRLIMIT}
-  FpGetRLimit := do_syscall(syscall_nr_getrlimit,
-    TSysParam(resource), TSysParam(rlim));
+  {$ifndef USE_PRLIMIT64}
+    FpGetRLimit := do_syscall(syscall_nr_getrlimit,
+      TSysParam(resource), TSysParam(rlim));
+  {$else}
+    FpGetRLimit := FpPRlimit64(0, RLIMIT_STACK, PRLimit(0), rlim);
+  {$endif}
 {$else}
   FpGetRLimit := do_syscall(syscall_nr_ugetrlimit,
     TSysParam(resource), TSysParam(rlim));
@@ -729,7 +779,11 @@ end;
 
 function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
 begin
+{$ifndef USE_PRLIMIT64}
   fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
+{$else}
+  fpsetrlimit:=FpPRlimit64(0, RLIMIT_STACK, rlim, PRLimit(0));
+{$endif USE_PRLIMIT64}
 end;
 
 function FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint;

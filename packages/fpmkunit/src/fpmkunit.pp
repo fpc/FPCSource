@@ -3076,6 +3076,9 @@ var
     GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
     if not(FileExists(GccExecutable)) then
       GccExecutable := ExeSearch(AddProgramExtension(CrossPrefix+'gnu-gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
+    { ugly hack to find gcc on newer linuxes }
+    if not(FileExists(GccExecutable)) and (CrossPrefix='i386-linux-') then
+      GccExecutable := ExeSearch(AddProgramExtension('i686-linux-gnu-gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
     if FileExists(GccExecutable) then
       begin
 {$ifdef HAS_UNIT_PROCESS}
