@@ -92,6 +92,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 
     { call PascalMain }
     bl PASCALMAIN
+{$endif}    
     break 1
   end;
 
