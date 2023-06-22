@@ -25,7 +25,9 @@ uses
 type
 
   { TPDFDumpApplication }
-  TInfoSection = (isInfo,isCatalog,isTrailer,isObjects, isFonts, isPages,isPageContents,isPageText, isDictionaries);
+
+  TInfoSection = (isInfo, isCatalog, isTrailer, isObjects, isFonts,
+                  isPages, isPageContents, isPageText, isDictionaries);
   TInfoSections = Set of TInfoSection;
 
   TPDFDumpApplication = class(TCustomApplication)
@@ -36,21 +38,21 @@ type
     FVerbose : Boolean;
   Public
     constructor Create(aOwner: TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
   Protected
     procedure DisplayPageText(Doc: TPDFDocument; aIndex: Integer;  aPage: TPDFPageObject);
-    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string);
-    Procedure DoProgress(Sender : TObject;aKind : TPDFProgressKind; aCurrent,aCount : Integer);
+    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string); reintroduce;
+    Procedure DoProgress(Sender: TObject; aKind: TPDFProgressKind; aCurrent, aCount : Integer);
     procedure DisplayCatalog(Doc: TPDFDocument);
     procedure DisplayInfo(Doc: TPDFDocument);
     procedure DisplayObjects(Doc: TPDFDocument);
     procedure DisplayFonts(Doc: TPDFDocument);
-    procedure DisplayPageContents(Doc: TPDFDocument; aIndex: Integer;   aPage: TPDFPageObject);
+    procedure DisplayPageContents(Doc: TPDFDocument; aIndex: Integer; aPage: TPDFPageObject);
     procedure DisplayPages(Doc: TPDFDocument);
     procedure DisplayTrailer(Doc: TPDFDocument);
   Public
     function ProcessOptions : Boolean;
-    procedure Usage(Msg : String);
+    procedure Usage(Msg: String);
     procedure DumpFile(FN: String);
     procedure DoRun; override;
   end;
@@ -149,6 +151,7 @@ begin
   if (FSections=[]) then
     for S in TInfoSection do
       Include(FSections,S);
+  Result:=true;
 end;
 
 procedure TPDFDumpApplication.Usage(Msg: String);
@@ -315,13 +318,13 @@ begin
         UnicodeMap:=nil;
       end
     else If cmd is TPDFTextCommand then
-     begin
-     rawText:=TPDFTextCommand(Cmd).GetFullText(UnicodeMap);
-     // Writeln('GetCodePage : ',CodePageToCodePageName(StringCodePage(Rawtext)));
-     SetCodePage(RawText,CP_UTF8);
-     Writeln(RawText);
-     end;
-   end;
+      begin
+      rawText:=TPDFTextCommand(Cmd).GetFullText(UnicodeMap);
+      //Writeln('GetCodePage : ',CodePageToCodePageName(StringCodePage(Rawtext)));
+      SetCodePage(RawText,CP_UTF8);
+      Writeln(RawText);
+      end;
+    end;
 end;
 
 procedure TPDFDumpApplication.DisplayPages(Doc : TPDFDocument);

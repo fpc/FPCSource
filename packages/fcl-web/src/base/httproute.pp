@@ -891,6 +891,8 @@ end;
 procedure THTTPRoute.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   // Do nothing
+  if ARequest=nil then ;
+  if AResponse=nil then ;
 end;
 
 destructor THTTPRoute.Destroy;

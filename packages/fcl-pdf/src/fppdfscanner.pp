@@ -586,9 +586,10 @@ Var
   lRes,lRawlen : Integer;
 
 begin
+  Result:='';
   aValue:=Char(aStartByte)+GetTillByte(Ord('>'));
   lRawlen:=Length(aValue) div 2;
-  SetLength(Result,lRawLen);
+  SetLength(Result{%H-},lRawLen);
   lRes:=HexToBin(PChar(aValue),PChar(Result),lRawLen);
   if lRes=-1 then
     DoError(senInvalidHexString,SErrInvalidHexString,[aValue]);
@@ -611,7 +612,6 @@ Var
   CharPos : Integer;
   lOpenCount : Integer;
   aByte,aByte2 : Byte;
-  aChar : Char absolute aByte;
   aChar2 : Char absolute aByte2;
   aChar3,aChar4 : Char;
   aOctal : integer;
