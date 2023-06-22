@@ -881,21 +881,33 @@ Const
 Var
   Buf : TBytes;
   aPos,toRead : QWord;
-  aCount : Longint;
+  aCount, FailCnt : Longint;
 
 begin
   Buf:=[];
   ToRead:=DataLength;
   aPos:=0;
+  FailCnt:=0;
   Repeat
     aCount:=ToRead;
     if aCount>MaxBufSize then
       aCount:=MaxBufSize;
     SetLength(Buf,aCount);
     aCount := aTransport.ReadBytes(Buf,aCount);
-    Move(Buf[0],Content[aPos],aCount);
-    Inc(aPos,aCount);
-    ToRead:=DataLength-aPos;
+    if aCount>0 then
+      begin
+      Move(Buf[0],Content[aPos],aCount);
+      Inc(aPos,aCount);
+      ToRead:=DataLength-aPos;
+      FailCnt:=0;
+      end
+    else
+      begin
+      sleep(1);
+      inc(FailCnt);
+      if FailCnt>100 then
+        raise Exception.Create('20230316102741 TWSFramePayload.ReadData');
+      end;
   Until (ToRead<=0);
 end;
 
@@ -912,7 +924,7 @@ begin
   LenFlag := buffer[1] and FlagLengthMask;
 
   Case LenFlag of
-   FlagTwoBytes:
+  FlagTwoBytes:
     begin
     aTransport.ReadBytes(Buffer,2);
     Paylen16:=Buffer.ToWord(0);
