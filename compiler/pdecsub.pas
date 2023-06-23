@@ -541,6 +541,7 @@ implementation
         found,
         searchagain : boolean;
         st,
+        insertst,
         genericst: TSymtable;
         aprocsym : tprocsym;
         popclass : integer;
@@ -850,19 +851,23 @@ implementation
         hadspecialize:=false;
         addgendummy:=false;
 
+        { ensure that we don't insert into a withsymtable (can happen with
+          anonymous functions) }
+        checkstack:=symtablestack.stack;
+        while checkstack^.symtable.symtabletype in [withsymtable] do
+          checkstack:=checkstack^.next;
+        insertst:=checkstack^.symtable;
+
         if not assigned(genericdef) then
           begin
             if ppf_anonymous in flags then
               begin
-                checkstack:=symtablestack.stack;
-                while checkstack^.symtable.symtabletype in [withsymtable] do
-                  checkstack:=checkstack^.next;
-                if not (checkstack^.symtable.symtabletype in [localsymtable,staticsymtable]) then
+                if not (insertst.symtabletype in [localsymtable,staticsymtable]) then
                   internalerror(2021050101);
                 { generate a unique name for the anonymous function; don't use
                   something like file position however as this might be inside
                   an include file that's included multiple times }
-                str(checkstack^.symtable.symlist.count,orgsp);
+                str(insertst.symlist.count,orgsp);
                 orgsp:='__FPCINTERNAL__Anonymous_'+orgsp;
                 sp:=upper(orgsp);
                 spnongen:=sp;
@@ -1028,7 +1033,7 @@ implementation
                  if (potype=potype_operator)and(optoken=NOTOKEN) then
                    parse_operator_name;
 
-                 srsym:=tsym(symtablestack.top.Find(sp));
+                 srsym:=tsym(insertst.Find(sp));
 
                  { Also look in the globalsymtable if we didn't found
                    the symbol in the localsymtable }
@@ -1098,7 +1103,7 @@ implementation
                   operation }
                 if (potype=potype_operator) then
                   begin
-                    aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                    aprocsym:=Tprocsym(insertst.Find(sp));
                     if aprocsym=nil then
                       aprocsym:=cprocsym.create('$'+sp);
                   end
@@ -1111,7 +1116,7 @@ implementation
                   include(aprocsym.symoptions,sp_internal);
                 if addgendummy then
                   include(aprocsym.symoptions,sp_generic_dummy);
-                symtablestack.top.insertsym(aprocsym);
+                insertst.insertsym(aprocsym);
               end;
           end;
 
@@ -1172,7 +1177,7 @@ implementation
                   dummysym:=tsym(astruct.symtable.find(spnongen))
                 else
                   begin
-                    dummysym:=tsym(symtablestack.top.find(spnongen));
+                    dummysym:=tsym(insertst.find(spnongen));
                     if not assigned(dummysym) and
                         (symtablestack.top=current_module.localsymtable) and
                         assigned(current_module.globalsymtable) then
@@ -1186,7 +1191,7 @@ implementation
                     if assigned(astruct) then
                       astruct.symtable.insertsym(dummysym)
                     else
-                      symtablestack.top.insertsym(dummysym);
+                      insertst.insertsym(dummysym);
                   end
                 else if (dummysym.typ<>procsym) and
                     (
@@ -1278,8 +1283,8 @@ implementation
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
-        pd.visibility:=symtablestack.top.currentvisibility;
-        if symtablestack.top.currentlyoptional then
+        pd.visibility:=insertst.currentvisibility;
+        if insertst.currentlyoptional then
           include(pd.procoptions,po_optional);
 
         { parse parameters }
