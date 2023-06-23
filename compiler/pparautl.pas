@@ -357,8 +357,13 @@ implementation
 
            { insert the name of the procedure as alias for the function result,
              we can't use realname because that will not work for compilerprocs
-             as the name is lowercase and unreachable from the code }
-           if (pd.proctypeoption<>potype_operator) or assigned(pd.resultname) then
+             as the name is lowercase and unreachable from the code;
+             don't insert this alias for an anonymous function unless an
+             explicit name is provided }
+           if (
+                 (pd.proctypeoption<>potype_operator) and
+                 not (po_anonymous in pd.procoptions)
+               ) or assigned(pd.resultname) then
              begin
                if assigned(pd.resultname) then
                  hs:=pd.resultname^
