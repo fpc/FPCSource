@@ -912,11 +912,14 @@ implementation
                             Delphi-compatible }
                           hdef2:=tstoreddef(hdef).getcopy;
                           tobjectdef(hdef2).childof:=tobjectdef(hdef);
+                          tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
                           hdef:=hdef2;
                         end
                       else
                         begin
-                          hdef:=tstoreddef(hdef).getcopy;
+                          hdef2:=tstoreddef(hdef).getcopy;
+                          tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
+                          hdef:=hdef2;
                           { check if it is an ansistirng(codepage) declaration }
                           if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                             begin
