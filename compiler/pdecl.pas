@@ -920,7 +920,7 @@ implementation
                           hdef2:=tstoreddef(hdef).getcopy;
                           tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
                           hdef:=hdef2;
-                          { check if it is an ansistirng(codepage) declaration }
+                          { check if it is an ansistring(codepage) declaration }
                           if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                             begin
                               p:=comp_expr([ef_accept_equal]);
