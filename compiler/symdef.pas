@@ -138,6 +138,9 @@ interface
           genconstraintdata : tgenericconstraintdata;
           { this is Nil if the def has no RTTI attributes }
           rtti_attribute_list : trtti_attribute_list;
+          { original def for "type <name>" declarations }
+          orgdef          : tstoreddef;
+          orgdefderef     : tderef;
           constructor create(dt:tdeftyp;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2100,6 +2103,8 @@ implementation
          ppufile.getderef(typesymderef);
          ppufile.getset(tppuset2(defoptions));
          ppufile.getset(tppuset1(defstates));
+         if df_unique in defoptions then
+           ppufile.getderef(orgdefderef);
          if df_genconstraint in defoptions then
            begin
              genconstraintdata:=tgenericconstraintdata.create;
@@ -2270,6 +2275,8 @@ implementation
         oldintfcrc:=ppufile.do_crc;
         ppufile.do_crc:=false;
         ppufile.putset(tppuset1(defstates));
+        if df_unique in defoptions then
+          ppufile.putderef(orgdefderef);
         if df_genconstraint in defoptions then
           genconstraintdata.ppuwrite(ppufile);
         if [df_generic,df_specialization]*defoptions<>[] then
@@ -2337,6 +2344,7 @@ implementation
         if not registered then
           register_def;
         typesymderef.build(typesym);
+        orgdefderef.build(orgdef);
         genericdefderef.build(genericdef);
         if assigned(rtti_attribute_list) then
           rtti_attribute_list.buildderef;
@@ -2368,6 +2376,8 @@ implementation
         i : longint;
       begin
         typesym:=ttypesym(typesymderef.resolve);
+        if df_unique in defoptions then
+          orgdef:=tstoreddef(orgdefderef.resolve);
         if df_specialization in defoptions then
           genericdef:=tstoreddef(genericdefderef.resolve);
         if assigned(rtti_attribute_list) then
