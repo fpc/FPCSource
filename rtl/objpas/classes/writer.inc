@@ -214,17 +214,12 @@ end;
 
 procedure TBinaryObjectWriter.WriteIdent(const Ident: string);
 begin
-  { Check if Ident is a special identifier before trying to just write
-    Ident directly }
-  if UpperCase(Ident) = 'NIL' then
-    WriteValue(vaNil)
-  else if UpperCase(Ident) = 'FALSE' then
-    WriteValue(vaFalse)
-  else if UpperCase(Ident) = 'TRUE' then
-    WriteValue(vaTrue)
-  else if UpperCase(Ident) = 'NULL' then
-    WriteValue(vaNull) else
-  begin
+  Case UpperCase(Ident) of
+    'NIL'   : WriteValue(vaNil);
+    'FALSE' : WriteValue(vaFalse);
+    'TRUE'  : WriteValue(vaTrue);
+    'NULL'  : WriteValue(vaNull);
+  else
     WriteValue(vaIdent);
     WriteStr(Ident);
   end;
