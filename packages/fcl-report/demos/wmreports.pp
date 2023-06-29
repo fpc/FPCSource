@@ -83,6 +83,7 @@ uses
   fpreportpdfexport,
   {$ENDIF}
   fpjson,
+  fpjsonreport,
   fpmimetypes;
 
 Type
@@ -477,7 +478,7 @@ begin
   FRunner:=TReportRunner.Create(Self);
   FRunner.Location:=ExtractFilePath(ParamStr(0));;
   FRunner.ReportApp:=TReportDemoApplication.GetReportClass(D).Create(Self);
-  FRunner.ReportApp.rpt:=TFPReport.Create(FRunner.ReportApp);
+  FRunner.ReportApp.rpt:=TFPJSONReport.Create(FRunner.ReportApp);
   FRunner.Format:=Fmt ;
   FRunner.location:=ExtractFilePath(ParamStr(0));
   RC:=TReportDemoApplication.GetRenderClass(Fmt);
