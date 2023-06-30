@@ -3382,7 +3382,7 @@ end;
 function _LookupVtableInfoEx(AGInterface: TDefaultGenericInterface; ATypeInfo: PTypeInfo; ASize: SizeInt;
   AFactory: THashFactoryClass): Pointer;
 begin
-  if ATypeInfo^.Kind in TComparerService.UseBinaryMethods then begin
+  if not Assigned(ATypeInfo) or (ATypeInfo^.Kind in TComparerService.UseBinaryMethods) then begin
     System.Error(reInvalidCast);
     Exit(Nil);
   end;
