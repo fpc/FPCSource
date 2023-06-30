@@ -3068,9 +3068,9 @@ implementation
                 if (rt=niln) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
                 if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags))  or
-                   (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
+                   (not (is_pchar(rd) or is_chararray(rd) or is_open_chararray(rd) or is_widechar(rd) or is_widechararray(rd) or is_open_widechararray(rd)) and
                     not(cs_pointermath in current_settings.localswitches) and
-                    not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
+                    not((rd.typ=pointerdef) and tpointerdef(rd).has_pointer_math)) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
