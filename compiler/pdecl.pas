@@ -460,6 +460,7 @@ implementation
 
       var
         p,paran,pcalln,ptmp : tnode;
+        ecnt : longint;
         i,pcount : sizeint;
         paras : array of tnode;
         od : tobjectdef;
@@ -494,6 +495,7 @@ implementation
 
               pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
               p:=nil;
+              ecnt:=errorcount;
               typecheckpass(pcalln);
 
               if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
@@ -555,8 +557,12 @@ implementation
                         paras[i].free;
                     end;
                 end
-              else
+              else begin
+                { provide *some* error in case there hasn't been one }
+                if errorcount=ecnt then
+                  message(parser_e_illegal_expression);
                 pcalln.free;
+              end;
             end
           else
             begin
