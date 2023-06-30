@@ -400,9 +400,7 @@ begin
     if AValue[1] <> '.' then
       FExtention := '.' + AValue
     else
-      FExtention := AValue
-  else
-    AValue := '';
+      FExtention := AValue;
 end;
 
 function TFontManager.SearchFont (afilename:string; doraise : boolean = true) : string;
