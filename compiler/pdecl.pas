@@ -493,7 +493,7 @@ implementation
               if constrsym.typ<>procsym then
                 internalerror(2018102301);
 
-              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[],nil);
+              pcalln:=ccallnode.create(paran,tprocsym(constrsym),od.symtable,cloadvmtaddrnode.create(p),[cnf_no_convert_procvar],nil);
               p:=nil;
               ecnt:=errorcount;
               typecheckpass(pcalln);
