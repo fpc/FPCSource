@@ -1,3 +1,5 @@
+{ %FAIL }
+
 {$mode objfpc}
 unit tw40332;
 
