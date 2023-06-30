@@ -3823,7 +3823,7 @@ implementation
                            with generic types as arguments we don't complain in
                            the generic, but only during the specialization }
                          ignoregenericparacall:=false;
-                         if df_generic in current_procinfo.procdef.defoptions then
+                         if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
                            begin
                              pt:=tcallparanode(left);
                              while assigned(pt) do
