@@ -2180,7 +2180,8 @@ end;
 
 class function TComparerService.TypeNeedsBinaryMethods<T>: Boolean;
 begin
-  Result := GetTypeKind(T) in TComparerService.UseBinaryMethods;
+  Result := (GetTypeKind(T) in TComparerService.UseBinaryMethods) or
+            ((GetTypeKind(T) = tkEnumeration) and not Assigned(TypeInfo(T)));
 end;
 
 class function TComparerService.LookupComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer;
