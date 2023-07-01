@@ -30,9 +30,6 @@ uses
   globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
-
-  { TOption }
-
   TOption=class
     FirstPass,
     ParaLogo,
