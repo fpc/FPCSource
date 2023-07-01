@@ -399,7 +399,9 @@ end;
 
 procedure TFontManager.SetExtension (AValue : string);
 begin
-  if AValue <> '' then
+  if AValue = '' then
+    FExtension:=''
+  else
     if AValue[1] <> '.' then
       FExtension := '.' + AValue
     else
