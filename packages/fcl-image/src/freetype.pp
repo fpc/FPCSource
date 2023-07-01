@@ -414,8 +414,8 @@ var p,fn : string;
     r : integer;
 begin
   Result:='';
-  if (pos('.', afilename)=0) and (DefaultFontExtension<>'') then
-    fn := afilename + DefaultFontExtension
+  if (ExtractFileExt(afilename)='') and (DefaultExtension<>'') then
+    fn := afilename + DefaultExtension
   else
     fn := aFilename;
   if FileExists(fn) then
