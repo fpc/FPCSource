@@ -188,17 +188,18 @@ Const
   DefaultFontExtension = '.ttf';
   DefaultFontExtention = DefaultFontExtension deprecated 'Use DefaultFontExtension';
 
+Var
   // Standard location for fonts in the Operating System
   {$ifdef Darwin}
-  DefaultSearchPath = '/Library/Fonts/';
+  DefaultSearchPath : string = '/Library/Fonts/';
   {$else}
-  DefaultSearchPath = '';
+  DefaultSearchPath : string = '';
   {$endif}
 
   {$IFDEF MAC}
-  DefaultResolution = 72;
+  DefaultResolution : Integer = 72;
   {$ELSE}
-  DefaultResolution = 96;
+  DefaultResolution : Integer = 96;
   {$ENDIF}
 
 implementation
