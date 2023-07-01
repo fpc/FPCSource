@@ -25,7 +25,7 @@ uses sysutils, classes, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FP
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
 { TODO : memory optimization: TStringBitmaps keeps for each differnet character
          only 1 bitmap }
-{ TODO : load other files depending on the extention }
+{ TODO : load other files depending on the extension }
 { possible TODO : different sizes/resolutions for x and y }
 { possible TODO : TFontmanager can fill a list of all the fonts he can find
               fontfiles and faces available in a fontfile }
@@ -114,7 +114,7 @@ type
       FTLib : PFT_Library;
       FList : TList;
       FPaths : TStringList;
-      FExtention : string;
+      FExtension : string;
       FResolution : integer;
       CurFont : TMgrFont;
       CurSize : PMgrSize;
@@ -122,7 +122,7 @@ type
       UseKerning : boolean;
       function GetSearchPath : string;
       procedure SetSearchPath (AValue : string);
-      procedure SetExtention (AValue : string);
+      procedure SetExtension (AValue : string);
       Procedure DoMakeString (Text : Array of cardinal; ABitmaps  : TBaseStringBitmaps);
       Procedure DoMakeString (Text : Array of cardinal; angle: real; ABitmaps  : TBaseStringBitmaps);
     protected
@@ -160,42 +160,45 @@ type
       function GetStringGray (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
       // Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
       property SearchPath : string read GetSearchPath write SetSearchPath;
-      property DefaultExtention : string read FExtention write SetExtention;
+      property DefaultExtension : string read FExtension write SetExtension;
+      property DefaultExtention : string read FExtension write SetExtension; deprecated 'Use DefaultExtension';
       property Resolution : integer read Fresolution write FResolution;
   end;
 
-const
-  sErrErrorsInCleanup : string = '%d errors detected while freeing a Font Manager object';
-  sErrFontFileNotFound : string = 'Font file "%s" not found';
-  sErrFreeType : string = 'Error %d while %s';
-  sInitializing : string = 'initializing font engine';
-  sDestroying : string = 'destroying font engine';
-  sErrErrorInCleanup : string = 'freeing Font Manager object';
-  sErrSetPixelSize : string = 'setting pixel size %d (resolution %d)';
-  sErrSetCharSize : string = 'setting char size %d (resolution %d)';
-  sErrLoadingGlyph : string = 'loading glyph';
-  sErrKerning : string = 'determining kerning distance';
-  sErrMakingString1 : string = 'making string bitmaps step 1';
-  sErrMakingString2 : string = 'making string bitmaps step 2';
-  sErrMakingString3 : string = 'making string bitmaps step 3';
-  sErrMakingString4 : string = 'making string bitmaps step 4';
-  sErrLoadFont : string = 'loading font %d from file %s';
-  sErrInitializing : string = 'initializing FreeType';
-  sErrDestroying : string = 'finalizing FreeType';
+Resourcestring
+  sErrErrorsInCleanup = '%d errors detected while freeing a Font Manager object';
+  sErrFontFileNotFound = 'Font file "%s" not found';
+  sErrFreeType = 'Error %d while %s';
+  sInitializing = 'initializing font engine';
+  sDestroying = 'destroying font engine';
+  sErrErrorInCleanup = 'freeing Font Manager object';
+  sErrSetPixelSize = 'setting pixel size %d (resolution %d)';
+  sErrSetCharSize = 'setting char size %d (resolution %d)';
+  sErrLoadingGlyph = 'loading glyph';
+  sErrKerning = 'determining kerning distance';
+  sErrMakingString1 = 'making string bitmaps step 1';
+  sErrMakingString2 = 'making string bitmaps step 2';
+  sErrMakingString3 = 'making string bitmaps step 3';
+  sErrMakingString4 = 'making string bitmaps step 4';
+  sErrLoadFont = 'loading font %d from file %s';
+  sErrInitializing = 'initializing FreeType';
+  sErrDestroying = 'finalizing FreeType';
 
-  DefaultFontExtention : string = '.ttf';
+Const
+  DefaultFontExtension = '.ttf';
+  DefaultFontExtention = DefaultFontExtension deprecated 'Use DefaultFontExtension';
 
   // Standard location for fonts in the Operating System
   {$ifdef Darwin}
-  DefaultSearchPath : string = '/Library/Fonts/';
+  DefaultSearchPath = '/Library/Fonts/';
   {$else}
-  DefaultSearchPath : string = '';
+  DefaultSearchPath = '';
   {$endif}
 
   {$IFDEF MAC}
-  DefaultResolution : integer = 72;
+  DefaultResolution = 72;
   {$ELSE}
-  DefaultResolution : integer = 96;
+  DefaultResolution = 96;
   {$ENDIF}
 
 implementation
@@ -326,7 +329,7 @@ begin
     FTError (sErrInitializing, r);
     end;
   SearchPath := DefaultSearchPath;
-  DefaultExtention := DefaultFontExtention;
+  DefaultExtension := DefaultFontExtension;
   Resolution := DefaultResolution;
 end;
 
@@ -394,13 +397,13 @@ begin
     end;
 end;
 
-procedure TFontManager.SetExtention (AValue : string);
+procedure TFontManager.SetExtension (AValue : string);
 begin
   if AValue <> '' then
     if AValue[1] <> '.' then
-      FExtention := '.' + AValue
+      FExtension := '.' + AValue
     else
-      FExtention := AValue;
+      FExtension := AValue;
 end;
 
 function TFontManager.SearchFont (afilename:string; doraise : boolean = true) : string;
@@ -409,8 +412,8 @@ var p,fn : string;
     r : integer;
 begin
   Result:='';
-  if (pos('.', afilename)=0) and (DefaultFontExtention<>'') then
-    fn := afilename + DefaultFontExtention
+  if (pos('.', afilename)=0) and (DefaultFontExtension<>'') then
+    fn := afilename + DefaultFontExtension
   else
     fn := aFilename;
   if FileExists(fn) then
