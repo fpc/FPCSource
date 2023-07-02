@@ -12054,7 +12054,7 @@ unit aoptx86;
                   Result:=true;
                   exit;
                 end
-              else if (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.optimizecputype]) and
+              else if (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
                 MatchInstruction(hp1,A_MOV,[S_W,S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
                 begin
                  { check for
