@@ -1,17 +1,3 @@
-{ **********************************************************************
-  This file is part of the Free Component Library
-
-  PDF names/constants.
-  Copyright (c) 2022 by Michael Van Canneyt michael@freepascal.org
-
-  See the file COPYING.FPC, included in this distribution,
-  for details about the copyright.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-  **********************************************************************}
 unit fppdfconsts;
 
 {$mode ObjFPC}{$H+}
@@ -236,7 +222,32 @@ const
   SCMAPKeyWMode          = 'WMode';
   SCMAPKeyUseCMap        = 'UseCMap';
 
-
+  SPDFExtGSStateType  = 'Type';
+  SPDFExtGSStateLW    = 'LW';
+  SPDFExtGSStateLC    = 'LC';
+  SPDFExtGSStateLJ    = 'LJ';
+  SPDFExtGSStateML    = 'ML';
+  SPDFExtGSStateD     = 'D';
+  SPDFExtGSStateRI    = 'RI';
+  SPDFExtGSStateop    = 'op';
+  SPDFExtGSStateOPM   = 'OPM';
+  SPDFExtGSStateFont  = 'Font';
+  SPDFExtGSStateBG    = 'BG';
+  SPDFExtGSStateBG2   = 'BG2';
+  SPDFExtGSStateUCR   = 'UCR';
+  SPDFExtGSStateUCR2  = 'UCR2';
+  SPDFExtGSStateTR    = 'TR';
+  SPDFExtGSStateTR2   = 'TR2';
+  SPDFExtGSStateHT    = 'HT';
+  SPDFExtGSStateFL    = 'FL';
+  SPDFExtGSStateSM    = 'SM';
+  SPDFExtGSStateSA    = 'SA';
+  SPDFExtGSStateBM    = 'BM';
+  SPDFExtGSStateSMask = 'SMask';
+  SPDFExtGSStateCA    = 'CA';
+  SPDFExtGSStateca_   = 'ca';
+  SPDFExtGSStateAIS   = 'AIS';
+  SPDFExtGSStateTK    = 'TK';
 
 
   // CJK Cmaps
@@ -302,6 +313,13 @@ const
   CMAPUniKS_UTF16_V = 'UniKS-UTF16-V';
   CMAPIdentity_H = 'Identity-H';
   CMAPIdentity_V = 'Identity-V';
+
+  SPDFColorSpaceDeviceGray  = 'DeviceGray';
+  SPDFColorSpaceDeviceRGB   = 'DeviceRGB';
+  SPDFColorSpaceDeviceCMYK  = 'DeviceCMYK';
+  SPDFColorSpacePattern     = 'Pattern';
+  SPDFColorSpaceCalGray     = 'CalGray';
+  SPDFColorSpaceCalRGB      = 'CalRGB';
 
 implementation
 

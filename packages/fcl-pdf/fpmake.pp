@@ -65,6 +65,9 @@ begin
     T:=P.Targets.AddUnit('src/fppdfobjects.pp');
     T.Dependencies.AddUnit('fppdfconsts');
 
+    T:=P.Targets.AddUnit('src/fppdfcommands.pp');
+    T.Dependencies.AddUnit('fppdfobjects');
+
     T:=P.Targets.AddUnit('src/fppdfscanner.pp');
     T.ResourceStrings:=true;
     T.Dependencies.AddUnit('fppdfobjects');
