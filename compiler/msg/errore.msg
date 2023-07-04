@@ -3910,6 +3910,7 @@ new features, etc.):
 #    I = VIS
 #    J = JVM
 #    L = LLVM variant
+#    l = loongarch64 targets
 #    M = MIPS (MIPSEB) targets
 #    m = MIPSEL targets
 #    P = PowerPC targets
@@ -4291,6 +4292,8 @@ a*2Twin64_Windows 64
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
+# loongarch64 targets
+l*2Tlinux_Linux
 # mipsel targets
 m*2Tandroid_Android
 m*2Tembedded_Embedded
