@@ -340,7 +340,28 @@
            function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
            function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
        end;
-                   
+
+       
+       TInterfaceThunk = Class(TInterfacedObject)
+       Public
+         Type
+           TArgData = record
+             addr : pointer;   // Location
+             info : pointer;   // type info (if available: nil for untyped args)
+             idx  : smallint;  // param index in rtti
+             ahigh : sizeint;  // For open arrays, high()
+           end;
+           PArgData = ^TargData;
+         TThunkCallBack = Procedure(aInstance: Pointer; aMethod,aCount : Longint; aData : PArgData) of object;
+       Private  
+         FCallback : TThunkCallback;
+       Protected  
+         Procedure Thunk(aMethod: Longint; aCount : Longint; aData : PArgData); virtual;
+       Public  
+         constructor create(aCallBack : TThunkCallback);
+         function InterfaceVMTOffset : word; virtual;
+       end;  
+       TInterfaceThunkClass = class of TInterfaceThunk;
 
        { some pointer definitions }
        PUnknown = ^IUnknown;
