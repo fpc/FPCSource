@@ -1569,7 +1569,7 @@ implementation
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in current_settings.localswitches) and
-           (current_objectdef.objecttype in [odt_interfacecom,odt_class,odt_helper]) then
+           (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_class,odt_helper]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
         { Objective-C/Java objectdefs can be "formal definitions", in which case

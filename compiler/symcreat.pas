@@ -126,6 +126,10 @@ interface
   function generate_pkg_stub(pd:tprocdef):tnode;
   procedure generate_attr_constrs(attrs:tfpobjectlist);
 
+  { Generate the hidden thunk class for interfaces,
+    so we can use them in TVirtualInterface on platforms that do not allow
+    generating executable code in memory at runtime.}
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
 
 
 implementation
@@ -133,7 +137,7 @@ implementation
   uses
     cutils,globals,verbose,systems,comphook,fmodule,constexp,
     symtable,defutil,symutil,procinfo,
-    pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
+    pbase,pdecl, pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
@@ -308,6 +312,34 @@ implementation
       current_scanner.nextfile;
       current_scanner.tempopeninputfile;
     end;
+
+    function str_parse_objecttypedef(typename : shortstring;str: ansistring): tobjectdef;
+     var
+       b,oldparse_only: boolean;
+       tmpstr: ansistring;
+       flags : tread_proc_flags;
+
+     begin
+      result:=nil;
+      Message1(parser_d_internal_parser_string,str);
+      oldparse_only:=parse_only;
+      parse_only:=true;
+      { "const" starts a new kind of block and hence makes the scanner return }
+      str:=str+'const;';
+      block_type:=bt_type;
+      { inject the string in the scanner }
+      current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
+      current_scanner.readtoken(false);
+      type_dec(b);
+      if (current_module.DefList.Last is tobjectdef) and
+         (tobjectdef(current_module.DefList.Last).GetTypeName=typename) then
+           result:=tobjectdef(current_module.DefList.Last);
+      parse_only:=oldparse_only;
+      { remove the temporary macro input file again }
+      current_scanner.closeinputfile;
+      current_scanner.nextfile;
+      current_scanner.tempopeninputfile;
+     end;
 
 
   function def_unit_name_prefix_if_toplevel(def: tdef): TSymStr;
@@ -1290,6 +1322,351 @@ implementation
         end;
     end;
 
+  function get_method_paramtype(vardef  : Tdef) : ansistring;
+
+  var
+    p : integer;
+    arrdef : tarraydef absolute vardef;
+
+  begin
+    {
+      None of the existing routines fulltypename,OwnerHierarchyName,FullOwnerHierarchyName,typename
+      results in a workable definition for open array parameters.
+    }
+    if not (vardef is tarraydef) then
+      result:=vardef.fulltypename
+    else
+      begin
+      if (ado_isarrayofconst in arrdef.arrayoptions) then
+        result:='Array Of Const'
+      else if (ado_OpenArray in arrdef.arrayoptions) then
+        result:='Array of '+arrdef.elementdef.fulltypename
+      else
+        result:=vardef.fulltypename;
+      end;
+    // ansistring(0) -> ansistring
+    p:=pos('(',result);
+    if p=0 then
+      p:=pos('[',result);
+    if p>0 then
+      result:=copy(result,1,p-1);
+  end;
+
+  function create_intf_method_args(p : tprocdef; out argcount: integer) : ansistring;
+
+  const
+    varspezprefixes : array[tvarspez] of shortstring =
+      ('','const','var','out','constref','final');
+  var
+    i : integer;
+    s : string;
+    para : tparavarsym;
+
+
+  begin
+    result:='';
+    argCount:=0;
+    for i:=0 to p.paras.Count-1 do
+      begin
+      para:=tparavarsym(p.paras[i]);
+      if vo_is_hidden_para in para.varoptions then
+        continue;
+      if Result<>'' then
+        Result:=Result+';';
+      inc(argCount);
+      result:=result+varspezprefixes[para.varspez]+' p'+tostr(argcount);
+      if Assigned(para.vardef) and not (para.vardef is tformaldef) then
+        result:=Result+' : '+get_method_paramtype(para.vardef);
+      end;
+    if Result<>'' then
+      Result:='('+Result+')';
+  end;
+
+  function generate_thunkclass_name(acount: Integer; objdef : tobjectdef) : shortstring;
+
+  var
+    cn : shortstring;
+    i : integer;
+
+  begin
+    cn:=ObjDef.GetTypeName;
+    for i:=0 to Length(cn) do
+      if cn[i]='.' then
+        cn[i]:='_';
+    result:='_t_hidden'+tostr(acount)+cn;
+  end;
+
+  function get_thunkclass_interface_vmtoffset(objdef : tobjectdef) : integer;
+
+  var
+    i,j,offs : integer;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+
+  begin
+    offs:=maxint;
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        if pd.extnumber<offs then
+          offs:=pd.extnumber;
+        end;
+      end;
+      if offs=maxint then
+        offs:=0;
+      result:=offs;
+    end;
+
+  procedure implement_interface_thunkclass_decl(cn : shortstring; objdef : tobjectdef);
+
+  var
+    str : ansistring;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+    def : tobjectdef;
+    offs,argcount,i,j : integer;
+
+  begin
+    str:='type '#10;
+    str:=str+cn+' = class(TInterfaceThunk,'+objdef.GetTypeName+')'#10;
+    str:=str+' protected '#10;
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        if pd.returndef<>voidtype then
+          str:=str+'function '
+        else
+          str:=str+'procedure ';
+        str:=str+proc.RealName;
+        str:=str+create_intf_method_args(pd,argcount);
+        if pd.returndef<>voidtype then
+          str:=str+' : '+get_method_paramtype(pd.returndef);
+        str:=str+';'#10;
+        end;
+      end;
+    offs:=get_thunkclass_interface_vmtoffset(objdef);
+    if offs>0 then
+      begin
+      str:=str+'public '#10;
+      str:=str+'  function InterfaceVMTOffset : word; override;'#10;
+      end;
+    str:=str+' end;'#10;
+    def:=str_parse_objecttypedef(cn,str);
+    if assigned(def) then
+      begin
+      def.created_in_current_module:=true;
+      include(def.objectoptions,oo_can_have_published);
+      end;
+    objdef.hiddenclassdef:=def;
+  end;
+
+  function str_parse_method(str: ansistring): tprocdef;
+   var
+     oldparse_only: boolean;
+     tmpstr: ansistring;
+     flags : tread_proc_flags;
+
+   begin
+    Message1(parser_d_internal_parser_string,str);
+    oldparse_only:=parse_only;
+    parse_only:=false;
+    { "const" starts a new kind of block and hence makes the scanner return }
+    str:=str+'const;';
+    block_type:=bt_none;
+    { inject the string in the scanner }
+    current_scanner.substitutemacro('hidden_interface_method',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
+    current_scanner.readtoken(false);
+    Result:=read_proc([],Nil);
+    parse_only:=oldparse_only;
+    { remove the temporary macro input file again }
+    current_scanner.closeinputfile;
+    current_scanner.nextfile;
+    current_scanner.tempopeninputfile;
+   end;
+
+
+  procedure implement_interface_thunkclass_impl_method(cn : shortstring; objdef : tobjectdef; proc : tprocsym; pd : tprocdef);
+
+  var
+    rest,str : ansistring;
+    pn,d : shortstring;
+    sym : tsym;
+    aArg,argcount,i : integer;
+    haveresult : boolean;
+    para : tparavarsym;
+    hasopenarray, washigh: Boolean;
+
+  begin
+    rest:='';
+    str:='';
+    if pd.returndef<>voidtype then
+      str:=str+'function '
+    else
+      str:=str+'procedure ';
+    pn:=proc.RealName;
+    str:=str+cn+'.'+pn;
+    str:=str+create_intf_method_args(pd,argcount);
+    haveresult:=pd.returndef<>voidtype;
+    if haveresult then
+      begin
+      rest:=get_method_paramtype(pd.returndef);
+      str:=str+' : '+rest;
+      end;
+    str:=str+';'#10;
+    str:=str+'var '#10;
+    str:=str+'  data : array[0..'+tostr(argcount)+'] of System.TInterfaceThunk.TArgData;'#10;
+    if haveresult then
+      str:=str+'  res : '+rest+';'#10;
+    str:=str+'begin'#10;
+    // initialize result.
+    if HaveResult then
+      begin
+      str:=Str+'  data[0].addr:=@Res;'#10;
+      str:=Str+'  data[0].info:=TypeInfo(Res);'#10;
+      end
+    else
+      begin
+      str:=Str+'  data[0].addr:=nil;'#10;
+      str:=Str+'  data[0].idx:=-1;'#10;
+      end;
+    str:=Str+'  data[0].idx:=-1;'#10;
+    str:=Str+'  data[0].ahigh:=-1;'#10;
+    // Fill rest of data
+    aArg:=0;
+    washigh:=false;
+    d:='0';
+    for i:=0 to pd.paras.Count-1 do
+      begin
+      para:=tparavarsym(pd.paras[i]);
+      // previous was open array. Record high
+      if (i>1) then
+        begin
+        WasHigh:=(vo_is_high_para in para.varoptions);
+        if Washigh then
+          // D is still value of previous (real) parameter
+          str:=str+'  data['+d+'].ahigh:=High(p'+d+');'#10
+        else
+          str:=str+'  data['+d+'].ahigh:=-1;'#10;
+        end;
+      if vo_is_hidden_para in para.varoptions then
+        continue;
+      inc(aArg);
+      d:=tostr(aArg);
+      Str:=Str+'  data['+d+'].addr:=@p'+d+';'#10;
+      Str:=Str+'  data['+d+'].idx:='+tostr(i)+';'#10;
+      if Assigned(para.vardef) and not (para.vardef is tformaldef) then
+        Str:=Str+'  data['+d+'].info:=TypeInfo(p'+d+');'#10
+      else
+        Str:=Str+'  data['+d+'].info:=Nil;'#10
+      end;
+    // if last was not high, set to sentinel.
+    if not WasHigh then
+      str:=str+'  data['+d+'].ahigh:=-1;'#10;
+    str:=str+'  Thunk('+tostr(pd.extnumber)+','+tostr(argcount)+',@Data);'#10;
+    if HaveResult then
+      str:=str+'  Result:=res;'#10;
+    str:=str+'end;'#10;
+    pd:=str_parse_method(str);
+  end;
+
+  procedure implement_thunkclass_interfacevmtoffset(cn : shortstring; objdef : tobjectdef; offs : integer);
+
+  var
+    str : ansistring;
+  begin
+    str:='function '+cn+'.InterfaceVMTOffset : word;'#10;
+    str:=str+'begin'#10;
+    str:=str+'  result:='+toStr(offs)+';'#10;
+    str:=str+'end;'#10;
+    str_parse_method(str);
+  end;
+
+
+  procedure implement_interface_thunkclass_impl(cn: shortstring; objdef : tobjectdef);
+
+  var
+    str : ansistring;
+    sym : tsym;
+    proc : tprocsym absolute sym;
+    pd : tprocdef;
+    offs,i,j : integer;
+
+  begin
+    offs:=get_thunkclass_interface_vmtoffset(objdef);
+    if offs>0 then
+      implement_thunkclass_interfacevmtoffset(cn,objdef,offs);
+    for I:=0 to objdef.symtable.symList.Count-1 do
+      begin
+      sym:=tsym(objdef.symtable.symList[i]);
+      if Not assigned(sym) then
+        continue;
+      if (Sym.typ<>procsym) then
+        continue;
+      for j:=0 to proc.ProcdefList.Count-1 do
+        begin
+        pd:=tprocdef(proc.ProcdefList[j]);
+        implement_interface_thunkclass_impl_method(cn,objdef,proc,pd);
+        end;
+      end;
+  end;
+
+  procedure add_synthetic_interface_classes_for_st(st : tsymtable);
+
+  var
+    i   : longint;
+    def : tdef;
+    objdef : tobjectdef absolute def;
+    recdef : trecorddef absolute def;
+    sstate: tscannerstate;
+    cn : shortstring;
+
+  begin
+    { skip if any errors have occurred, since then this can only cause more
+      errors }
+    if ErrorCount<>0 then
+      exit;
+    replace_scanner('hiddenclass_impl',sstate);
+    for i:=0 to st.deflist.count-1 do
+      begin
+      def:=tdef(st.deflist[i]);
+      if (def.typ<>objectdef) then
+        continue;
+      if not (objdef.objecttype in [odt_interfacecorba,odt_interfacecom]) then
+        continue;
+      if not (oo_can_have_published in objdef.objectoptions) then
+        continue;
+      // need to add here extended rtti check when it is available
+      cn:=generate_thunkclass_name(i,objdef);
+      implement_interface_thunkclass_decl(cn,objdef);
+      implement_interface_thunkclass_impl(cn,objdef);
+      end;
+    restore_scanner(sstate);
+    // Recurse for interfaces defined in a type section of a class/record.
+    for i:=0 to st.deflist.count-1 do
+      begin
+      def:=tdef(st.deflist[i]);
+      if (def.typ=objectdef) and (objdef.objecttype=odt_class) then
+        add_synthetic_interface_classes_for_st(objdef.symtable)
+      else if (def.typ=recorddef) and (m_advanced_records in current_settings.modeswitches) then
+        add_synthetic_interface_classes_for_st(recdef.symtable);
+      end;
+  end;
 
   procedure add_synthetic_method_implementations(st: tsymtable);
     var
