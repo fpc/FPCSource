@@ -25,7 +25,7 @@ unit fppdfparser;
 interface
 
 uses
-  Types, Typinfo, Classes, SysUtils, fppdfobjects, fppdfscanner, fppdfsource, streamex, fppdfpredict;
+  Types, Typinfo, Classes, SysUtils, fppdfobjects, fppdfscanner, fppdfsource, streamex, fppdfpredict, fppdfcommands;
 
 Const
   PDFMaxTrailerDistance = 6;  // Maximum number of bytes to scan backwards for trailer dictionary end: >>
