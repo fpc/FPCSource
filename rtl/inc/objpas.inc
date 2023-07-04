@@ -1224,6 +1224,28 @@
       FName:=aName;
     end;
 
+{****************************************************************************
+                             TInterfaceThunk
+****************************************************************************}
+
+Constructor TInterfaceThunk.Create(aCallback : TThunkCallback);
+
+begin
+  FCallBack:=aCallBack;
+end;
+
+Procedure TInterfaceThunk.Thunk(aMethod: Longint; aCount : Longint; aData : PArgData);
+
+begin
+  if Assigned(FCallBack) then
+    FCallBack(Self,aMethod,aCount,aData); 
+end;
+
+function TInterfaceThunk.InterfaceVMTOffset : word;
+
+begin
+  Result:=0;
+end;
 
 {****************************************************************************
                              Exception Support
