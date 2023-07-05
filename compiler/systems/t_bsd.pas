@@ -127,7 +127,9 @@ procedure TLinkerBSD.SetDefaultInfo;
 var
   LdProgram: string='ld';
 begin
-  if target_info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
+  if cs_link_lld in current_settings.globalswitches then
+    LdProgram:='ld.lld'
+  else if target_info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
     LdProgram:='ld.bfd';
   LibrarySuffix:=' ';
   LdSupportsNoResponseFile := (target_info.system in ([system_m68k_netbsd]+systems_darwin));
