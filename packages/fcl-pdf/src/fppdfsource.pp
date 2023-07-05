@@ -217,6 +217,8 @@ begin
       if not FillBufferForwardAt(FPosition) then
         aCount:=0;
     end;
+  if IsEOB then
+    FillBufferForwardAt(FPosition);
 end;
 
 procedure TPDFSourceStream.Previous;
