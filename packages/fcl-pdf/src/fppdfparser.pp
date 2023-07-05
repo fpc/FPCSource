@@ -2434,7 +2434,12 @@ begin
     aPage:=aDoc.Page[I];
     DoProgress(pkContentStream,I+1,aCount);
     aStream:=GetPageContentStream(aDoc,aPage);
-    ParseContentStream(aPage,aStream,aOnCommand)
+    try
+      ParseContentStream(aPage,aStream,aOnCommand)
+    finally
+      if aStream is TChainedStream then
+        aStream.Free;
+    end;
     end;
 end;
 
