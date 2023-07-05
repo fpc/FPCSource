@@ -2342,7 +2342,8 @@ const
         'Link-Time Optimization disabled for system unit', {cs_lto_nosystem}
         'Assemble on target OS', {cs_asemble_on_target}
         'Use a memory model to support >2GB static data on 64 Bit target', {cs_large}
-        'Generate UF2 binary' {cs_generate_uf2}
+        'Generate UF2 binary', {cs_generate_uf2}
+	'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }

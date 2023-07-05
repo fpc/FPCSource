@@ -239,7 +239,9 @@ interface
            this not supported on all OSes }
          cs_large,
          { if applicable, the compiler generates an executable in uf2 format }
-         cs_generate_uf2
+         cs_generate_uf2,
+	 { Use ld.lld linker }
+         cs_link_lld
        );
        tglobalswitches = set of tglobalswitch;
 
