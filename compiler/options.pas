@@ -2325,6 +2325,8 @@ begin
          include(init_settings.globalswitches,cs_asm_source);
        'r' :
          include(init_settings.globalswitches,cs_asm_regalloc);
+       'R' :
+         include(init_settings.globalswitches,cs_asm_rtti_source);
        't' :
          include(init_settings.globalswitches,cs_asm_tempalloc);
        'n' :
