@@ -9930,6 +9930,9 @@ const
   TDF_RTL_LAYOUT                      = $2000;
   TDF_NO_DEFAULT_RADIO_BUTTON         = $4000;
   TDF_CAN_BE_MINIMIZED                = $8000;
+  TDF_NO_SET_FOREGROUND               = $00010000;
+  TDF_SIZE_TO_CONTENT                 = $01000000;
+
 
 type
   TASKDIALOG_FLAGS = Integer;                         // Note: _TASKDIALOG_FLAGS is an int
