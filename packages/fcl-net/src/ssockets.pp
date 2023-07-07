@@ -161,7 +161,6 @@ type
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
     FSocket : longint;
-    FListened : Boolean;
     FAccepting : Boolean;
     FMaxConnections : Longint;
     FQueueSize : Longint;
@@ -341,7 +340,6 @@ uses
   resolve;
 
 Const
-  SocketWouldBlock = -2;
   SocketBlockingMode = 0;
   SocketNonBlockingMode = 1;
 
@@ -868,8 +866,11 @@ begin
 end;
 
 procedure TSocketServer.Abort;
+{$if defined(unix) or defined(mswindows) or defined(hasamiga)}
+{$else}
 var
   ASocket: longint;
+{$endif}
 begin
 {$if defined(unix)}
   fpShutdown(FSocket,SHUT_RDWR);
@@ -1003,11 +1004,10 @@ begin
   Listen;
   Repeat
     Repeat
+      Stream:=Nil;
       Try
         If (AcceptIdleTimeOut=0) or RunIdleLoop then
-          Stream:=GetConnection
-        else
-          Stream:=Nil;
+          Stream:=GetConnection;
         if Assigned(Stream) then
           if (MaxSimultaneousConnections>0) and (ConnectionCount>=MaxSimultaneousConnections) then
             begin
@@ -1257,7 +1257,7 @@ end;
 function TInetServer.SockToStream(ASocket: Longint): TSocketStream;
 Var
   H : TSocketHandler;
-  A : Boolean;
+  ok : Boolean;
   aClass : TInetSocketClass;
 
   procedure ShutDownH;
@@ -1265,7 +1265,6 @@ Var
     H.Shutdown(False);
     FreeAndNil(Result);
   end;
-
 
 begin
   H:=GetClientSocketHandler(aSocket);
@@ -1276,14 +1275,13 @@ begin
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
 
+  ok:=false;
   try
-    A:=H.Accept;
-  except
-    ShutDownH;
-    raise;
+    ok:=H.Accept;
+  finally
+    if not ok then
+      ShutDownH;
   end;
-  if Not A then
-    ShutDownH;
 end;
 
 function TInetServer.Accept: Longint;
