@@ -469,7 +469,7 @@ begin
     end;
      if (TargetName<>'') then
        begin
-       S:='fpc-'+TargetName+'.cfg';
+       S:='fpc-'+lowercase(TargetName)+'.cfg';
        CfgFile:=FindConfigFile(s);
        if CfgFile='' then
          Error('Cannot find subtarget config file: '+s);
