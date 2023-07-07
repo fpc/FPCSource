@@ -13,6 +13,10 @@
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA 02111-1301, USA.
+
+  2023-07  - Massimo Magnano
+           - procedure inside InternalWrite moved to protected methods (virtual)
+
 }
 unit FPWriteJPEG;
 
@@ -31,14 +35,16 @@ type
 
   TFPWriterJPEG = class(TFPCustomImageWriter)
   private
-    FGrayscale: boolean;
+    FGrayscale,   Continue: Boolean;
     FInfo: jpeg_compress_struct;
     FError: jpeg_error_mgr;
     FProgressiveEncoding: boolean;
     FQuality: TFPJPEGCompressionQuality;
     FProgressMgr: TFPJPEGProgressManager;
   protected
-    procedure InitWriting; virtual;
+    procedure InitWriting(Str: TStream; Img: TFPCustomImage); virtual;
+    procedure WriteHeader(Str: TStream; Img: TFPCustomImage); virtual;
+    procedure WritePixels(Str: TStream; Img: TFPCustomImage); virtual;
     procedure InternalWrite(Str: TStream; Img: TFPCustomImage); override;
     property CompressInfo : jpeg_compress_struct Read FInfo Write FInfo;
   public
@@ -98,7 +104,7 @@ end;
 { TFPWriterJPEG }
 
 
-procedure TFPWriterJPEG.InitWriting;
+procedure TFPWriterJPEG.InitWriting(Str: TStream; Img: TFPCustomImage);
 begin
   FError := jpeg_std_error;
   FInfo := Default(jpeg_compress_struct);
@@ -107,13 +113,76 @@ begin
   FInfo.progress := @FProgressMgr.pub;
   FProgressMgr.pub.progress_monitor := @ProgressCallback;
   FProgressMgr.instance := Self;
+end;
 
+procedure TFPWriterJPEG.WriteHeader(Str: TStream; Img: TFPCustomImage);
+begin
+  FInfo.image_width := Img.Width;
+  FInfo.image_height := Img.Height;
+  if FGrayscale then
+  begin
+    FInfo.input_components := 1;
+    FInfo.in_color_space := JCS_GRAYSCALE;
+  end
+  else
+  begin
+    FInfo.input_components := 3; // RGB has 3 components
+    FInfo.in_color_space := JCS_RGB;
+  end;
+
+  jpeg_set_defaults(@FInfo);
+  jpeg_set_quality(@FInfo, FQuality, True);
+
+  if ProgressiveEncoding then
+    jpeg_simple_progression(@FInfo);
+end;
+
+procedure TFPWriterJPEG.WritePixels(Str: TStream; Img: TFPCustomImage);
+var
+  LinesWritten: Cardinal;
+  SampArray: JSAMPARRAY;
+  SampRow: JSAMPROW;
+  Color: TFPColor;
+  x: Integer;
+  y: Integer;
+begin
+  Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
+  if not Continue then exit;
+  jpeg_start_compress(@FInfo, True);
+
+  // write one line per call
+  GetMem(SampArray,SizeOf(JSAMPROW));
+  GetMem(SampRow,FInfo.image_width*FInfo.input_components);
+  SampArray^[0]:=SampRow;
+  try
+    y:=0;
+    while (FInfo.next_scanline < FInfo.image_height) do begin
+      if FGrayscale then
+      for x:=0 to FInfo.image_width-1 do
+        SampRow^[x]:=CalculateGray(Img.Colors[x,y]) shr 8
+      else
+      for x:=0 to FInfo.image_width-1 do begin
+        Color:=Img.Colors[x,y];
+        SampRow^[x*3+0]:=Color.Red shr 8;
+        SampRow^[x*3+1]:=Color.Green shr 8;
+        SampRow^[x*3+2]:=Color.Blue shr 8;
+      end;
+      LinesWritten := jpeg_write_scanlines(@FInfo, SampArray, 1);
+      if LinesWritten<1 then break;
+      inc(y);
+    end;
+  finally
+    FreeMem(SampRow);
+    FreeMem(SampArray);
+  end;
+
+  jpeg_finish_compress(@FInfo);
+  Progress(psEnding, 100, False, Rect(0,0,0,0), '', Continue);
 end;
 
 procedure TFPWriterJPEG.InternalWrite(Str: TStream; Img: TFPCustomImage);
 var
   MemStream: TMemoryStream;
-  Continue: Boolean;
 
   procedure SetDestination;
   begin
@@ -122,71 +191,6 @@ var
     else
       MemStream := TMemoryStream.Create;
     jpeg_stdio_dest(@FInfo, @MemStream);
-  end;
-
-  procedure WriteHeader;
-  begin
-    FInfo.image_width := Img.Width;
-    FInfo.image_height := Img.Height;
-    if FGrayscale then
-    begin
-      FInfo.input_components := 1;
-      FInfo.in_color_space := JCS_GRAYSCALE;
-    end
-    else
-    begin
-      FInfo.input_components := 3; // RGB has 3 components
-      FInfo.in_color_space := JCS_RGB;
-    end;
-
-    jpeg_set_defaults(@FInfo);
-    jpeg_set_quality(@FInfo, FQuality, True);
-
-    if ProgressiveEncoding then
-      jpeg_simple_progression(@FInfo);
-  end;
-
-  procedure WritePixels;
-  var
-    LinesWritten: Cardinal;
-    SampArray: JSAMPARRAY;
-    SampRow: JSAMPROW;
-    Color: TFPColor;
-    x: Integer;
-    y: Integer;
-  begin
-    Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
-    if not Continue then exit;
-    jpeg_start_compress(@FInfo, True);
-
-    // write one line per call
-    GetMem(SampArray,SizeOf(JSAMPROW));
-    GetMem(SampRow,FInfo.image_width*FInfo.input_components);
-    SampArray^[0]:=SampRow;
-    try
-      y:=0;
-      while (FInfo.next_scanline < FInfo.image_height) do begin
-        if FGrayscale then
-        for x:=0 to FInfo.image_width-1 do
-          SampRow^[x]:=CalculateGray(Img.Colors[x,y]) shr 8
-        else
-        for x:=0 to FInfo.image_width-1 do begin
-          Color:=Img.Colors[x,y];
-          SampRow^[x*3+0]:=Color.Red shr 8;
-          SampRow^[x*3+1]:=Color.Green shr 8;
-          SampRow^[x*3+2]:=Color.Blue shr 8;
-        end;
-        LinesWritten := jpeg_write_scanlines(@FInfo, SampArray, 1);
-        if LinesWritten<1 then break;
-        inc(y);
-      end;
-    finally
-      FreeMem(SampRow);
-      FreeMem(SampArray);
-    end;
-
-    jpeg_finish_compress(@FInfo);
-    Progress(psEnding, 100, False, Rect(0,0,0,0), '', Continue);
   end;
 
   procedure EndWriting;
@@ -198,10 +202,10 @@ begin
   Continue := true;
   MemStream:=nil;
   try
-    InitWriting;
+    InitWriting(Str, Img);
     SetDestination;
-    WriteHeader;
-    WritePixels;
+    WriteHeader(MemStream, Img);
+    WritePixels(MemStream, Img);
     if MemStream<>Str then begin
       MemStream.Position:=0;
       Str.CopyFrom(MemStream,MemStream.Size);
