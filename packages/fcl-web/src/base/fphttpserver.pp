@@ -761,7 +761,7 @@ end;
 
 procedure TFPThreadedConnectionHandler.ConnectionDone(Sender: TObject);
 begin
-  RemoveConnection(Sender as TFPHTTPConnection)
+  RemoveConnection(Sender as TFPHTTPConnection);
 end;
 
 procedure TFPThreadedConnectionHandler.CheckRequests;
@@ -1793,6 +1793,7 @@ begin
     FConnectionHandler.WaitForRequests(High(Integer));
   end;
   FreeAndNil(FConnectionHandler);
+  FreeAndNil(FUpdateHandlers);
   FreeAndNil(FCertificateData);
   inherited Destroy;
 end;
@@ -1801,8 +1802,7 @@ function TFPCustomHttpServer.RegisterUpdateHandler(const aName: string;
   const OnCheck: THandlesUpgradeEvent; const OnUpgrade: TUpgradeConnectionEvent
   ): TUpgradeHandlerItem;
 begin
-  With UpdateHandlers do
-    Result:=AddHandler(aName,OnCheck,OnUpgrade)
+  Result:=UpdateHandlers.AddHandler(aName,OnCheck,OnUpgrade);
 end;
 
 procedure TFPCustomHttpServer.UnRegisterUpdateHandler(const aName: string);
