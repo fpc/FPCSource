@@ -1269,8 +1269,11 @@ Var
 begin
   H:=GetClientSocketHandler(aSocket);
   aClass:=DefaultInetSocketClass;
+
+  // Should be: Result:=TServerSocketStream.Create(ASocket,H);
+
   if aClass=Nil then
-      aClass:=TInetSocket;
+    aClass:=TInetSocket;
   Result:=aClass.Create(ASocket,H);
   (Result as TInetSocket).FHost:='';
   (Result as TInetSocket).FPort:=FPort;
