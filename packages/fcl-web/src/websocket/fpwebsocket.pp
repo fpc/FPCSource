@@ -538,7 +538,7 @@ procedure TWSHandShakeResponse.ToStrings(aHandShake: TWSHandshakeRequest; aRespo
 
   Var
     B : TBytes;
-    hash : TSHA1Digest;
+    {%H-}hash : TSHA1Digest;
     K : string;
   begin
     // respond key
@@ -1410,7 +1410,7 @@ begin
 
          if not (woCloseExplicit in Options) then
          begin
-          if (aFrame.Reason<CLOSE_NORMAL_CLOSURE) or
+           if (aFrame.Reason<CLOSE_NORMAL_CLOSURE) or
              (aFrame.Reason=CLOSE_RESERVER) or
              (aFrame.Reason=CLOSE_NO_STATUS_RCVD) or
              (aFrame.Reason=CLOSE_ABNORMAL_CLOSURE) or
