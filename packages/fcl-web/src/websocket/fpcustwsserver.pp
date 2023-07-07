@@ -108,10 +108,14 @@ Type
         FConnection: TWSServerConnection;
         FOnDone : TNotifyEvent;
         FDoHandshake : Boolean;
+        FHandler: TWSThreadedConnectionHandler;
       Public
-        Constructor CreateConnection(AConnection : TWSServerConnection; aOnConnectionDone : TNotifyEvent; DoHandShake : Boolean); virtual;
+        Constructor CreateConnection(aHandler: TWSThreadedConnectionHandler;
+          aConnection : TWSServerConnection; const aOnConnectionDone : TNotifyEvent;
+          DoHandShake : Boolean); virtual;
         Procedure Execute; override;
         Property Connection : TWSServerConnection Read FConnection;
+        Property Handler: TWSThreadedConnectionHandler read FHandler;
       end;
   Public
     procedure CheckIncomingMessages; override;
@@ -353,7 +357,8 @@ begin
   SendDataTo(aData,@DoAllowAll);
 end;
 
-Procedure TCustomWSServer.DoAllowAll(aConnection :TWSServerConnection; var aAllow : Boolean);
+procedure TCustomWSServer.DoAllowAll(aConnection: TWSServerConnection;
+  var aAllow: Boolean);
 
 begin
   aAllow:=Assigned(AConnection);
@@ -475,7 +480,8 @@ begin
   end;
 end;
 
-procedure TCustomWSServer.SendMessageTo(const AMessage: string; aSelector: TWSSendToFilter);
+procedure TCustomWSServer.SendMessageTo(const AMessage: string;
+  aSelector: TWSSendToFilter);
 
   Function DoAllow(Conn : TWSServerConnection) : Boolean;
   begin
@@ -674,8 +680,11 @@ end;
 
 { TWSThreadedConnectionHandler.TWSConnectionThread }
 
-constructor TWSThreadedConnectionHandler.TWSConnectionThread.CreateConnection(AConnection: TWSServerConnection; aOnConnectionDone : TNotifyEvent; DoHandShake : Boolean);
+constructor TWSThreadedConnectionHandler.TWSConnectionThread.CreateConnection(
+  aHandler: TWSThreadedConnectionHandler; aConnection: TWSServerConnection;
+  const aOnConnectionDone: TNotifyEvent; DoHandShake: Boolean);
 begin
+  FHandler:=aHandler;
   FOnDone:=aOnConnectionDone;
   FConnection:=AConnection;
   FDoHandshake:=DoHandshake;
@@ -703,9 +712,9 @@ begin
         Terminate;
       end;
   except
-    Raise;
-   //  on E : Exception do
-      // Server.HandleUnexpectedError(E);
+    on E: Exception do begin
+      Handler.Server.HandleError(Connection,E);
+    end;
   end;
   If Assigned(FOnDone) then
     FOnDone(Connection);
@@ -725,7 +734,7 @@ end;
 
 procedure TWSThreadedConnectionHandler.HandleConnection(aConnection: TWSServerConnection; DoHandshake: Boolean);
 begin
-  TWSConnectionThread.CreateConnection(aConnection,@ConnectionDone,DoHandShake);
+  TWSConnectionThread.CreateConnection(Self,aConnection,@ConnectionDone,DoHandShake);
 end;
 
 { TWSPooledConnectionHandler.THandleRequestTask }
