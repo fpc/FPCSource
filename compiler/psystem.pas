@@ -115,6 +115,10 @@ implementation
         systemunit.insertsym(csyssym.create('IsManagedType',in_ismanagedtype_x));
         systemunit.insertsym(csyssym.create('IsConstValue',in_isconstvalue_x));
         systemunit.insertsym(csyssym.create('fpc_eh_return_data_regno', in_const_eh_return_data_regno));
+        systemunit.insertsym(csyssym.create('AtomicIncrement',in_atomic_inc));
+        systemunit.insertsym(csyssym.create('AtomicDecrement',in_atomic_dec));
+        systemunit.insertsym(csyssym.create('AtomicExchange',in_atomic_xchg));
+        systemunit.insertsym(csyssym.create('AtomicCmpExchange',in_atomic_cmp_xchg));
         systemunit.insertsym(cconstsym.create_ord('False',constord,0,pasbool1type));
         systemunit.insertsym(cconstsym.create_ord('True',constord,1,pasbool1type));
       end;
