@@ -1238,3 +1238,48 @@
     {$i except.inc}
   {$endif}
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
+
+{****************************************************************************
+                             Various Delphi constructs
+****************************************************************************}
+
+
+function TPtrWrapper.ToPointer: Pointer;
+begin
+  Result:=Value;
+end;
+
+class function TPtrWrapper.GetNilValue: TPtrWrapper; inline; static;
+
+begin
+end;
+
+constructor TPtrWrapper.Create(AValue: PtrInt); overload;
+
+begin
+  Value:=Pointer(aValue);
+end;
+
+constructor TPtrWrapper.Create(AValue: Pointer); overload;
+
+begin
+  Value:=aValue;
+end;
+
+
+function TPtrWrapper.ToInteger: PtrInt;
+begin
+  Result:=PtrInt(Value);
+end;
+
+operator =(Left, Right: TPtrWrapper) c : Boolean;
+
+begin
+  c:=(Left.Value=Right.Value);
+end;
+
+operator <>(Left, Right: TPtrWrapper) c : Boolean;
+
+begin
+  Result:=(Left.Value<>Right.Value);
+end;
