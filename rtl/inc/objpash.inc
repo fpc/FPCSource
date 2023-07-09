@@ -581,3 +581,25 @@
        HashValue    : LongWord;
      end;
 {$endif FPC_HAS_FEATURE_RESOURCES}
+
+{*****************************************************************************
+                              Various Delphi elements
+ *****************************************************************************}
+
+Type
+  TPtrWrapper = record
+  private
+    Value: PByte;
+    class function GetNilValue: TPtrWrapper; inline; static;
+  public
+    constructor Create(AValue: PtrInt); overload;
+    constructor Create(AValue: Pointer); overload;
+    function ToPointer: Pointer;
+    function ToInteger: PtrInt;
+    class property NilValue: TPtrWrapper read GetNilValue;
+    // class operator Equal(Left, Right: TPtrWrapper): Boolean;
+    // class operator NotEqual(Left, Right: TPtrWrapper): Boolean;
+  end;
+  
+operator =(Left, Right: TPtrWrapper) c : Boolean;  
+operator <>(Left, Right: TPtrWrapper) c : Boolean;
