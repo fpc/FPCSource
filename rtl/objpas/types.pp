@@ -33,6 +33,11 @@ const
   RT_RCDATA = WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
 {$endif}
 
+Type
+  Epsilon: Single = 1E-40;
+  Epsilon2: Single = 1E-30;
+
+
 type
   TEndian =  Objpas.TEndian;
   TDirection = (FromBeginning, FromEnd);
