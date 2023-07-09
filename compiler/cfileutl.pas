@@ -70,7 +70,7 @@ interface
 
       TCachedSearchRec = record
         Name       : TCmdStr;
-        Attr       : byte;
+        Attr       : longint;
         Pattern    : TCmdStr;
         CachedDir  : TCachedDirectory;
         EntryIndex : longint;
