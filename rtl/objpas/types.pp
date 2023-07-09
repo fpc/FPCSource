@@ -33,7 +33,7 @@ const
   RT_RCDATA = WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
 {$endif}
 
-Type
+Const
   Epsilon: Single = 1E-40;
   Epsilon2: Single = 1E-30;
 
@@ -260,7 +260,8 @@ type
     procedure Inflate(DX, DY: Single);
     procedure Inflate(DL, DT, DR, DB: Single);
     function CenterPoint: TPointF;
-
+    function FitInto(const Dest: TRectF; out Ratio: Single): TRectF; overload;
+    function FitInto(const Dest: TRectF): TRectF; overload;
     procedure Union  (const r: TRectF); inline;
     procedure Offset (const dx,dy : Single); inline;
     procedure Offset (DP: TPointF); inline;
@@ -1102,6 +1103,29 @@ function TRectF.CenterPoint: TPointF;
 begin
   Result.X := (Right-Left) / 2 + Left;
   Result.Y := (Bottom-Top) / 2 + Top;
+end;
+
+function TRectF.FitInto(const Dest: TRectF; out Ratio: Single): TRectF;
+begin
+  if (Dest.Width<=0) or (Dest.Height<=0) then
+  begin
+    Ratio:=1.0;
+    exit(Self);
+  end;
+  Ratio:=Max(Self.Width / Dest.Width, Self.Height / Dest.Height);
+  if Ratio=0 then
+    exit(Self);
+  Result.Width:=Self.Width / Ratio;
+  Result.Height:=Self.Height / Ratio;
+  Result.Left:=Self.Left + (Self.Width - Result.Width) / 2;
+  Result.Top:=Self.Top + (Self.Height - Result.Height) / 2;
+end;
+
+function TRectF.FitInto(const Dest: TRectF): TRectF;
+var
+  Ratio: Single;
+begin
+  Result:=FitInto(Dest,Ratio);
 end;
 
 function TRectF.Contains(Pt: TPointF): Boolean;
