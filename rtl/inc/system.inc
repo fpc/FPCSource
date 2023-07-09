@@ -2188,3 +2188,220 @@ begin
   CtrlBreakHandler := Handler;
 end;
 {$ENDIF FPC_HAS_SETCTRLBREAKHANDLER}
+
+{$ifdef cpu16}
+function AtomicIncrement (var Target: smallint) : smallint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedIncrement(Target);
+end;
+
+
+function AtomicDecrement (var Target: smallint) : smallint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedDecrement(Target);
+end;
+
+
+function AtomicCmpExchange(var Target: smallint; NewValue, Comperand: smallint): smallint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedCompareExchange(Target,NewValue,Comperand);
+end;
+
+
+function AtomicExchange (var Target: smallint;Source : smallint) : smallint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedExchange(Target,Source);
+end;
+
+function AtomicIncrement (var Target: word) : word; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedIncrement(Target);
+end;
+
+
+function AtomicDecrement (var Target: word) : word; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedDecrement(Target);
+end;
+
+
+function AtomicCmpExchange(var Target: word; NewValue, Comperand: word): word; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedCompareExchange(TargetNewValue, Comperand);
+end;
+
+
+function AtomicExchange (var Target: word;Source : word) : word; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedExchange(Target,Source);
+end;
+{$endif cpu16}
+
+function AtomicIncrement (var Target: longint) : longint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedIncrement(Target);
+end;
+
+
+function AtomicDecrement (var Target: longint) : longint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedDecrement(Target);
+end;
+
+
+function AtomicCmpExchange(var Target: longint; NewValue, Comperand: longint): longint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedCompareExchange(Target,NewValue, Comperand);
+end;
+
+
+function AtomicExchange (var Target: longint;Source : longint) : longint; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedExchange(Target,Source);
+end;
+
+
+{$ifdef cpu64}
+function AtomicIncrement (var Target: int64) : int64; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedIncrement64(Target);
+end;
+
+
+function AtomicDecrement (var Target: int64) : int64; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedDecrement64(Target);
+end;
+
+
+function AtomicCmpExchange(var Target: int64; NewValue, Comperand: int64): int64; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=InterlockedCompareExchange64(Target,NewValue, Comperand);
+end;
+
+
+function AtomicExchange (var Target: int64;Source : int64) : int64; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+
+  Result:=InterlockedExchange64(Target,Source);
+end;
+{$endif cpu64}
+
+
+{ Pointer overloads }
+
+function AtomicIncrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+{$IFDEF CPU64}
+  Result:=Pointer(InterlockedIncrement64(int64(Target)));
+{$ELSE}  
+  Result:=Pointer(InterlockedIncrement(Longint(Target)));
+{$ENDIF}  
+end;
+
+
+function AtomicDecrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+{$IFDEF CPU64}
+  Result:=Pointer(InterlockedDecrement64(Int64(Target)));
+{$ELSE}  
+   Result:=Pointer(InterlockedDecrement(Longint(Target)));
+{$ENDIF}
+end;
+
+
+function AtomicCmpExchange(var Target: pointer; NewValue, Comperand: pointer): pointer; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+{$IFDEF CPU64}
+  Result:=Pointer(InterlockedCompareExchange64(Int64(Target),Int64(NewValue), Int64(Comperand)));
+{$ELSE}  
+  Result:=Pointer(InterlockedCompareExchange(LongInt(Target),LongInt(NewValue), LongInt(Comperand)));
+{$ENDIF}  
+end;
+
+
+function AtomicExchange(var Target: pointer;Source : pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+{$IFDEF CPU64}
+  Result:=Pointer(InterlockedExchange64(Int64(Target),Int64(Source)));
+{$ELSE}  
+  Result:=Pointer(InterlockedExchange(LongInt(Target),LongInt(Source)));
+{$ENDIF}
+end;
+
+function AtomicIncrement (var Target: Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=Cardinal(InterlockedIncrement(Longint(Target)));
+end;
+
+
+function AtomicDecrement (var Target: Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=Cardinal(InterlockedIncrement(Longint(Target)));
+end;
+
+
+function AtomicCmpExchange(var Target: Cardinal; NewValue, Comperand: Cardinal): Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=Cardinal(InterlockedCompareExchange(Longint(Target),Longint(NewValue), Longint(Comperand)));
+end;
+
+
+function AtomicExchange (var Target: Cardinal;Source : Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=Cardinal(InterlockedExchange(Longint(Target),Longint(Source)));
+end;
+
+
+{$ifdef cpu64}
+function AtomicIncrement (var Target: qword) : qword; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=QWord(InterlockedIncrement64(Int64(Target)));
+end;
+
+
+function AtomicDecrement (var Target: qword) : qword; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=QWord(InterlockedDecrement64(int64(Target)));
+end;
+
+
+function AtomicCmpExchange(var Target: qword; NewValue, Comperand: qword): qword; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=QWord(InterlockedCompareExchange64(Int64(Target),Int64(NewValue), Int64(Comperand)));
+end;
+
+
+function AtomicExchange (var Target: qword;Source : qword) : qword; {$ifdef SYSTEMINLINE}inline{$endif};
+
+begin
+  Result:=QWord(InterlockedExchange64(Int64(Target),Int64(Source)));
+end;
+{$endif}
