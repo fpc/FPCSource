@@ -1252,6 +1252,7 @@ end;
 class function TPtrWrapper.GetNilValue: TPtrWrapper; inline; static;
 
 begin
+  Result.Value:=Nil;
 end;
 
 constructor TPtrWrapper.Create(AValue: PtrInt); overload;
