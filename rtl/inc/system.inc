@@ -2234,7 +2234,7 @@ end;
 function AtomicCmpExchange(var Target: word; NewValue, Comperand: word): word; {$ifdef SYSTEMINLINE}inline{$endif};
 
 begin
-  Result:=InterlockedCompareExchange(TargetNewValue, Comperand);
+  Result:=InterlockedCompareExchange(Target, NewValue, Comperand);
 end;
 
 
