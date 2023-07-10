@@ -252,8 +252,7 @@ begin
     else
       begin
       OneOverSqrt2 := 1.0 / sqrt(2.0);
-      sinx := sin(x);
-      cosx := cos(x);
+      SinCos(x,sinx,cosx);
       result := sqrt(2.0/(PI*x)) *
            ( P1(x)*(OneOverSqrt2*(sinx-cosx))
              - 8.0/x*Q1(x)*(-OneOverSqrt2*(sinx+cosx))
