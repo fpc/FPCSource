@@ -2312,7 +2312,11 @@ begin
 {$IFDEF CPU64}
   Result:=Pointer(InterlockedIncrement64(int64(Target)));
 {$ELSE}  
+{$IFDEF CPU16}
+  Result:=Pointer(InterlockedIncrement(smallint(Target)));
+{$ELSE}  
   Result:=Pointer(InterlockedIncrement(Longint(Target)));
+{$ENDIF}  
 {$ENDIF}  
 end;
 
@@ -2323,7 +2327,11 @@ begin
 {$IFDEF CPU64}
   Result:=Pointer(InterlockedDecrement64(Int64(Target)));
 {$ELSE}  
+{$IFDEF CPU16}
+  Result:=Pointer(InterlockedDecrement(smallint(Target)));
+{$ELSE}  
    Result:=Pointer(InterlockedDecrement(Longint(Target)));
+{$ENDIF}
 {$ENDIF}
 end;
 
@@ -2334,7 +2342,11 @@ begin
 {$IFDEF CPU64}
   Result:=Pointer(InterlockedCompareExchange64(Int64(Target),Int64(NewValue), Int64(Comperand)));
 {$ELSE}  
+{$IFDEF CPU16}
+  Result:=Pointer(InterlockedCompareExchange(smallint(Target),smallint(NewValue),smallint(Comperand)));
+{$ELSE}  
   Result:=Pointer(InterlockedCompareExchange(LongInt(Target),LongInt(NewValue), LongInt(Comperand)));
+{$ENDIF}  
 {$ENDIF}  
 end;
 
@@ -2345,7 +2357,11 @@ begin
 {$IFDEF CPU64}
   Result:=Pointer(InterlockedExchange64(Int64(Target),Int64(Source)));
 {$ELSE}  
+{$IFDEF CPU16}
+  Result:=Pointer(InterlockedExchange(smallint(Target),smallint(Source)));
+{$ELSE}  
   Result:=Pointer(InterlockedExchange(LongInt(Target),LongInt(Source)));
+{$ENDIF}
 {$ENDIF}
 end;
 
