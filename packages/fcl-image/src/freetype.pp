@@ -19,7 +19,7 @@ unit freetype;
 
 interface
 
-uses sysutils, classes, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FPImgCmn;
+uses sysutils, classes, math, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FPImgCmn;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -542,13 +542,20 @@ begin
 end;
 
 procedure TFontManager.MakeTransformation (angle:real; out Transformation:FT_Matrix);
+var ScaledAngle,asin,acos : Real;
 begin
+  ScaledAngle :=Angle*$10000;
   with Transformation do
     begin
-    xx := round( cos(angle)*$10000);
+    sincos(ScaledAngle,asin,acos);
+    yx:=round(asin);
+    xx:=round(acos);
+    xy:=-yx; yy:=xx;
+{   xx := round( cos(angle)*$10000);
     xy := round(-sin(angle)*$10000);
     yx := round( sin(angle)*$10000);
     yy := round( cos(angle)*$10000);
+}
     end;
 end;
 

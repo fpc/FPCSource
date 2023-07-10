@@ -516,9 +516,11 @@ Unit UComplex;
     { sinus complex }
     { sin(x+iy) = sin(x).cos(iy) + cos(x).sin(iy) }
     { cos(ix) = cosh(x) et sin(ix) = i.sinh(x) }
+    var sinre,cosre : real;
     begin
-       csin.re := sin(z.re) * cosh(z.im);
-       csin.im := cos(z.re) * sinh(z.im);
+       sincos(z.re,sinre,cosre);
+       csin.re := sinre * cosh(z.im);
+       csin.im := cosre * sinh(z.im);
     end;
 
   function ctg (z : complex) : complex;
