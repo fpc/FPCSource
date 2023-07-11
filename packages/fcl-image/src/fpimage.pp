@@ -93,6 +93,8 @@ type
       property Capacity : integer read FCapacity write SetCapacity;
   end;
 
+  TResolutionUnit = (ruNone, ruPixelsPerInch, ruPixelsPerCentimeter);
+
   TFPCustomImage = class(TPersistent)
     private
       FOnProgress : TFPImgProgressEvent;
@@ -115,6 +117,15 @@ type
       function GetPixel (x,y:integer) : integer;
       function GetUsePalette : boolean;
     protected
+      //Resolution
+      FResolutionUnit: TResolutionUnit;
+      FResolutionX,
+      FResolutionY: Single;
+
+      procedure SetResolutionUnit(AResolutionUnit: TResolutionUnit);
+      function GetResolutionWidth: Single; virtual;
+      function GetResolutionHeight: Single; virtual;
+
       // Procedures to store the data. Implemented in descendants
       procedure SetInternalColor (x,y:integer; const Value:TFPColor); virtual;
       function GetInternalColor (x,y:integer) : TFPColor; virtual;
@@ -149,6 +160,12 @@ type
       property  Height : integer read FHeight write SetHeight;
       property  Width : integer read FWidth write SetWidth;
       property  Colors [x,y:integer] : TFPColor read GetColor write SetColor; default;
+      //Resolution
+      property ResolutionUnit: TResolutionUnit read FResolutionUnit write SetResolutionUnit;
+      property ResolutionX: Single read FResolutionX write FResolutionX;
+      property ResolutionY: Single read FResolutionY write FResolutionY;
+      property ResolutionWidth: Single read GetResolutionWidth;
+      property ResolutionHeight: Single read GetResolutionHeight;
       // Use of palette for colors
       property  UsePalette : boolean read GetUsePalette write SetUsePalette;
       property  Palette : TFPPalette read FPalette;

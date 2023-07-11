@@ -15,6 +15,9 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
   Save in format 24 bits compressed or not
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
 unit FPWritePCX;
@@ -61,8 +64,11 @@ begin
     YMin := 0;
     XMax := Img.Width - 1;
     YMax := Img.Height - 1;
-    HRes := 300;
-    VRes := 300;
+
+    Img.ResolutionUnit :=ruPixelsPerInch;
+    HRes :=Trunc(Img.ResolutionX);
+    VRes :=Trunc(Img.ResolutionY);
+
     ColorPlanes := 3;
     BytesPerLine := Img.Width;
     PaletteType := 1;
