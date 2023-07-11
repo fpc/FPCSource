@@ -1291,6 +1291,14 @@ implementation
         if insertst.currentlyoptional then
           include(pd.procoptions,po_optional);
 
+        { when extended rtti appears, then we must adapt this check}
+        if  (target_cpu=tsystemcpu.cpu_wasm32) and
+             assigned(astruct) and
+            (astruct.typ=objectdef) and
+            (tobjectdef(astruct).objecttype in [odt_interfacecom,odt_interfacecorba]) and
+            (pd.visibility=vis_published)  then
+          pd.synthetickind:=tsk_invoke_helper;
+
         { parse parameters }
         if token=_LKLAMMER then
           begin
