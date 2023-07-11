@@ -515,6 +515,7 @@ unit TypInfo;
           Parent: PPTypeInfo;
           Flags: TIntfFlagsBase;
           GUID: TGUID;
+          ThunkClass : PPTypeInfo;
           UnitNameField: ShortString;
           { PropertyTable: TPropData }
           { MethodTable: TIntfMethodTable }
@@ -555,6 +556,7 @@ unit TypInfo;
             Parent: PPTypeInfo;
             Flags : TIntfFlagsBase;
             IID: TGUID;
+            ThunkClass : PPTypeInfo;
             UnitNameField: ShortString;
             { IIDStr: ShortString; }
             { PropertyTable: TPropData }
@@ -756,6 +758,7 @@ unit TypInfo;
                IntfParentRef: TypeInfoPtr;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
+               ThunkClass : PPTypeInfo;
                IntfUnit: ShortString;
                { PropertyTable: TPropData }
                { MethodTable: TIntfMethodTable }
@@ -765,6 +768,7 @@ unit TypInfo;
                RawIntfParentRef: TypeInfoPtr;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
+               RawThunkClass : PPTypeInfo;
                RawIntfUnit: ShortString;
                { IIDStr: ShortString; }
                { PropertyTable: TPropData }

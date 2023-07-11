@@ -175,7 +175,7 @@ end;
 
 procedure TTestSimpleDictionary.DoKeyNotify(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
 begin
-  Writeln(FnotifyMessage+' Notification',FCurrentKeyNotify);
+  Writeln(FnotifyMessage+' Notification ',FCurrentKeyNotify);
   AssertSame(FnotifyMessage+' Correct sender', FDict,aSender);
   if (FCurrentKeyNotify>=Length(FExpectKeys)) then
     Fail(FnotifyMessage+' Too many notificiations');
@@ -185,7 +185,7 @@ end;
 
 procedure TTestSimpleDictionary.DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
 begin
-  Writeln(FnotifyMessage+' value Notification',FCurrentValueNotify);
+  Writeln(FnotifyMessage+' value Notification ',FCurrentValueNotify);
   AssertSame(FnotifyMessage+' value Correct sender', FDict,aSender);
   if (FCurrentValueNotify>=Length(FExpectValues)) then
     Fail(FnotifyMessage+' Too many value notificiations');
@@ -449,12 +449,24 @@ begin
   DoneExpectKeys;
 end;
 
+Const
+{$IFDEF FPC}
+  {$IFNDEF CPUWASM}
+    ReverseDeleteNotification = True;
+  {$ElSE}
+    ReverseDeleteNotification = False;
+  {$ENDIF}
+{$ELSE}
+   ReverseDeleteNotification = False;
+{$ENDIF}
+
 procedure TTestSimpleDictionary.TestNotificationDelete;
+
 
 begin
   DoAdd(3);
   Dict.OnKeyNotify:=@DoKeyNotify;
-  SetExpectKeys('Clear',[1,2,3],[cnRemoved,cnRemoved,cnRemoved],{$IFDEF FPC}true{$ELSE}False{$endif});
+  SetExpectKeys('Clear',[1,2,3],[cnRemoved,cnRemoved,cnRemoved],ReverseDeleteNotification);
   Dict.Clear;
   DoneExpectKeys;
 end;
@@ -471,7 +483,7 @@ procedure TTestSimpleDictionary.TestValueNotificationDelete;
 begin
   DoAdd(3);
   Dict.OnValueNotify:=@DoValueNotify;
-  SetExpectValues('Clear',['1','2','3'],[cnRemoved,cnRemoved,cnRemoved],{$IFDEF FPC}true{$ELSE}False{$endif});
+  SetExpectValues('Clear',['1','2','3'],[cnRemoved,cnRemoved,cnRemoved],ReverseDeleteNotification);
   Dict.Clear;
   DoneExpectValues;
 end;

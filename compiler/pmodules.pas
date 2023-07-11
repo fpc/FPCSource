@@ -1233,6 +1233,13 @@ type
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
+         // This needs to be done before we generate the VMTs
+         if (target_cpu=tsystemcpu.cpu_wasm32) then
+           begin
+           add_synthetic_interface_classes_for_st(current_module.globalsymtable);
+           add_synthetic_interface_classes_for_st(current_module.localsymtable);
+           end;
+
          { Generate VMTs }
          if Errorcount=0 then
            begin
@@ -2259,6 +2266,10 @@ type
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
+
+         // This needs to be done before we generate the VMTs
+         if (target_cpu=tsystemcpu.cpu_wasm32) then
+           add_synthetic_interface_classes_for_st(current_module.localsymtable);
 
          { Generate VMTs }
          if Errorcount=0 then

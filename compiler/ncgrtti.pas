@@ -1741,6 +1741,9 @@ implementation
             { write GUID }
             tcb.emit_guid_const(def.iidguid^);
 
+            { write hidden class reference - if it is nil, write_rtti_reference writes nil }
+            write_rtti_reference(tcb,def.hiddenclassdef,fullrtti);
+
             { write unit name }
             tcb.emit_shortstring_const(current_module.realmodulename^);
 
