@@ -268,6 +268,11 @@ implementation
                       tcb.emit_ord_const(def.paras.count,u16inttype);
                       maybe_add_comment(tcb,#9'caller args size');
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
+                      maybe_add_comment(tcb,#9'invoke helper');
+                      if def.invoke_helper=nil then
+                        tcb.emit_tai(Tai_const.Create_nil_dataptr,voidcodepointertype)
+                      else
+                        tcb.emit_procdef_const(def.invoke_helper);
                       maybe_add_comment(tcb,#9'name');
                       tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
