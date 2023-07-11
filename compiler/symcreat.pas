@@ -1215,11 +1215,86 @@ implementation
         setverbosity('W+');
     end;
 
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring; forward;
+  function str_parse_method(str: ansistring): tprocdef; forward;
+
+
+  procedure implement_invoke_helper(cn : string;pd: tprocdef);
+
+    var
+      sarg,str : ansistring;
+      pt, pn,d : shortstring;
+      sym : tsym;
+      aArg,argcount,i : integer;
+      isarray,haveresult : boolean;
+      para : tparavarsym;
+      hasopenarray, washigh: Boolean;
+
+    begin
+      str:='procedure __invoke_helper__';
+      pn:=pd.procsym.realname;
+      str:=str+cn+'__'+pn;
+      for I:=1 to length(str) do
+        if str[i]='.' then
+          str[i]:='_';
+      str:=str+'(Instance : Pointer; Args : PPointer);'#10;
+      argCount:=0;
+      for i:=0 to pd.paras.Count-1 do
+        begin
+          para:=tparavarsym(pd.paras[i]);
+          if vo_is_hidden_para in para.varoptions then
+            continue;
+          inc(argCount);
+          if argCount=1 then
+            str:=str+'Type'#10;
+          pt:=get_method_paramtype(para.vardef,true,isArray);
+          if isArray then
+            begin
+            str:=str+'  tpa'+tostr(argcount)+' = '+pt+';'#10;
+            pt:='^tpa'+tostr(argcount);
+            end;
+          str:=str+'  tp'+tostr(argcount)+' = '+pt+';'#10;
+        end;
+      haveresult:=pd.returndef<>voidtype;
+      if haveresult then
+        begin
+        if argCount=0 then
+          str:=str+'Type'#10;
+        pt:=get_method_paramtype(pd.returndef ,true,isArray);
+        if isArray then
+          begin
+          str:=str+'  tra'+tostr(argcount)+' = '+pt+';'#10;
+          pt:='^tra';
+          end;
+        str:=str+'  tr = '+pt+';'#10;
+        end;
+      str:=str+'begin'#10'  ';
+      if haveResult then
+        str:=str+'TR(args[0])^:=';
+      str:=str+cn+'(Instance).'+pn+'(';
+      argCount:=0;
+      for i:=0 to pd.paras.Count-1 do
+        begin
+          para:=tparavarsym(pd.paras[i]);
+          if vo_is_hidden_para in para.varoptions then
+            continue;
+          inc(argCount);
+          sarg:=tostr(argcount);
+          if argCount>1 then
+            str:=str+',';
+          str:=str+'tp'+sarg+'(Args['+sarg+'])^';
+        end;
+      str:=str+');'#10;
+      str:=str+'end;'#10;
+      pd.invoke_helper:=str_parse_method(str);
+  end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
       def : tdef;
       pd  : tprocdef;
+      cn  : shortstring;
     begin
       for i:=0 to st.deflist.count-1 do
         begin
@@ -1318,11 +1393,19 @@ implementation
               implement_interface_wrapper(pd);
             tsk_call_no_parameters:
               implement_call_no_parameters(pd);
+            tsk_invoke_helper:
+              begin
+                if (pd.owner.defowner) is tobjectdef  then
+                  cn:=tobjectdef(def.owner.defowner).GetTypeName
+                else
+                  internalerror(2023061107);
+                implement_invoke_helper(cn,pd);
+              end;
           end;
         end;
     end;
 
-  function get_method_paramtype(vardef  : Tdef) : ansistring;
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring;
 
   var
     p : integer;
@@ -1333,16 +1416,32 @@ implementation
       None of the existing routines fulltypename,OwnerHierarchyName,FullOwnerHierarchyName,typename
       results in a workable definition for open array parameters.
     }
+    isAnonymousArrayDef:=false;
+    if asPointer and (vardef.typ=formaldef) then
+      exit('pointer');
     if not (vardef is tarraydef) then
       result:=vardef.fulltypename
     else
       begin
       if (ado_isarrayofconst in arrdef.arrayoptions) then
-        result:='Array Of Const'
+        begin
+          if asPointer then
+            Result:='Array of TVarRec'
+          else
+            result:='Array Of Const';
+          asPointer:=False;
+          isAnonymousArrayDef:=true;
+        end
       else if (ado_OpenArray in arrdef.arrayoptions) then
-        result:='Array of '+arrdef.elementdef.fulltypename
+        begin
+        result:='Array of '+arrdef.elementdef.fulltypename;
+        asPointer:=False;
+        isAnonymousArrayDef:=true;
+        end
       else
+        begin
         result:=vardef.fulltypename;
+        end;
       end;
     // ansistring(0) -> ansistring
     p:=pos('(',result);
@@ -1350,6 +1449,17 @@ implementation
       p:=pos('[',result);
     if p>0 then
       result:=copy(result,1,p-1);
+    if asPointer then
+      Result:='^'+Result;
+  end;
+
+  function get_method_paramtype(vardef  : Tdef; asPointer : Boolean) : ansistring;
+
+  var
+    ad : boolean;
+
+  begin
+    result:=get_method_paramtype(vardef,aspointer,ad);
   end;
 
   function create_intf_method_args(p : tprocdef; out argcount: integer) : ansistring;
@@ -1376,7 +1486,7 @@ implementation
       inc(argCount);
       result:=result+varspezprefixes[para.varspez]+' p'+tostr(argcount);
       if Assigned(para.vardef) and not (para.vardef is tformaldef) then
-        result:=Result+' : '+get_method_paramtype(para.vardef);
+        result:=Result+' : '+get_method_paramtype(para.vardef,false);
       end;
     if Result<>'' then
       Result:='('+Result+')';
@@ -1456,7 +1566,7 @@ implementation
         str:=str+proc.RealName;
         str:=str+create_intf_method_args(pd,argcount);
         if pd.returndef<>voidtype then
-          str:=str+' : '+get_method_paramtype(pd.returndef);
+          str:=str+' : '+get_method_paramtype(pd.returndef,false);
         str:=str+';'#10;
         end;
       end;
@@ -1525,7 +1635,7 @@ implementation
     haveresult:=pd.returndef<>voidtype;
     if haveresult then
       begin
-      rest:=get_method_paramtype(pd.returndef);
+      rest:=get_method_paramtype(pd.returndef,false);
       str:=str+' : '+rest;
       end;
     str:=str+';'#10;
