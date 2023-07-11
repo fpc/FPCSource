@@ -257,7 +257,6 @@ begin
     // ignore mess
   end;
   {$ENDIF}
-
   DestFile:=SysUtils.GetTempFileName('', 'CS2');
   z:=TZipper.Create;
   z.FileName:=DestFile;
@@ -454,8 +453,11 @@ begin
       ContentStreams.Add(ContentStream);
       // Start filenames at 1
       Zipper.Entries.AddFileEntry(TStringStream(ContentStreams.Items[i]), format('%U',[i+1]));
+      if (i mod 100)=0 then
+        write(i,' ');
       inc(i);
     end;
+    Writeln;
     Zipper.ZipAllFiles;
     {
     i:=0;
@@ -493,8 +495,11 @@ begin
       UnzipArchiveFiles.Clear;
       UnzipArchiveFiles.Add(Unzipper.Entries[i].ArchiveFileName);
       Unzipper.UnZipFiles(UnzipArchiveFiles);
+      if (i mod 100)=0 then
+        write(i,' ');
       inc(i);
     end;
+    writeln();
   finally
     CallBackHandler.Free;
     Unzipper.Free;
