@@ -16,6 +16,7 @@
 
   2023-07  - Massimo Magnano
            - procedure inside InternalWrite moved to protected methods (virtual)
+           - added Resolution support
 
 }
 unit FPWriteJPEG;
@@ -132,6 +133,10 @@ begin
 
   jpeg_set_defaults(@FInfo);
   jpeg_set_quality(@FInfo, FQuality, True);
+
+  FInfo.density_unit :=ResolutionUnitTodensity_unit(Img.ResolutionUnit);
+  FInfo.X_density :=Round(Img.ResolutionX);
+  FInfo.Y_density :=Round(Img.ResolutionY);
 
   if ProgressiveEncoding then
     jpeg_simple_progression(@FInfo);

@@ -18,6 +18,9 @@
    - If we have bpp <= 8 make an indexed image instead of converting it to RGB
    - Support for RLE4 and RLE8 decoding
    - Support for top-down bitmaps
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
 {$mode objfpc}
@@ -288,6 +291,10 @@ begin
         Img.Palette.Color[i]:=FPalette[i];
     end;
     Img.SetSize(BFI.Width,BFI.Height);
+
+    Img.ResolutionUnit:=ruPixelsPerCentimeter;
+    Img.ResolutionX :=BFI.XPelsPerMeter/100;
+    Img.ResolutionY :=BFI.YPelsPerMeter/100;
 
     percent:=0;
     percentinterval:=(Img.Height*4) div 100;
