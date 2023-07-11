@@ -356,6 +356,7 @@
        Private  
          FCallback : TThunkCallback;
        Protected  
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          Procedure Thunk(aMethod: Longint; aCount : Longint; aData : PArgData); virtual;
        Public  
          constructor create(aCallBack : TThunkCallback);
