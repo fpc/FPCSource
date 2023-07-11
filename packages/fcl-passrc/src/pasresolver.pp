@@ -29909,7 +29909,8 @@ begin
       btIntSingle,
       btUIntSingle,
       btIntDouble,
-      btUIntDouble:
+      btUIntDouble,
+      btCurrency:
         begin
         Result:=TResEvalRangeInt.Create;
         TResEvalRangeInt(Result).ElKind:=revskInt;
