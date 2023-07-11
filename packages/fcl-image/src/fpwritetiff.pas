@@ -30,6 +30,9 @@
    bigtiff 64bit offsets
    endian - currently using system endianess
    orientation with rotation
+
+   2023-07  - Massimo Magnano
+            - added Resolution support
 }
 unit FPWriteTiff;
 
@@ -121,6 +124,8 @@ function CompressDeflate(InputData: PByte; InputCount: cardinal;
   ErrorMsg: PAnsiString = nil): boolean;
 
 implementation
+
+uses FPReadTiff;
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
 begin
@@ -415,6 +420,20 @@ var
   cx,cy,x,y,sx: DWord;
   dx,dy: integer;
   ChunkBytesPerLine: DWord;
+
+  procedure WriteResolutionValues;
+  begin
+       IFD.ResolutionUnit :=ResolutionUnitToTifResolutionUnit(Img.ResolutionUnit);
+       IFD.XResolution.Numerator :=Trunc(Img.ResolutionX*1000);
+       IFD.XResolution.Denominator :=1000;
+       IFD.YResolution.Numerator :=Trunc(Img.ResolutionY*1000);
+       IFD.YResolution.Denominator :=1000;
+
+       Img.Extra[TiffResolutionUnit]:=IntToStr(IFD.ResolutionUnit);
+       Img.Extra[TiffXResolution]:=TiffRationalToStr(IFD.XResolution);
+       Img.Extra[TiffYResolution]:=TiffRationalToStr(IFD.YResolution);
+  end;
+
 begin
   ChunkOffsets:=nil;
   Chunk:=nil;
@@ -429,6 +448,9 @@ begin
       IFD.PhotoMetricInterpretation:=2;
     if not (IFD.PhotoMetricInterpretation in [0,1,2]) then
       TiffError('PhotoMetricInterpretation="'+Img.Extra[TiffPhotoMetric]+'" not supported');
+
+    //Resolution
+    WriteResolutionValues;
 
     GrayBits:=0;
     RedBits:=0;

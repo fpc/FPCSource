@@ -37,6 +37,9 @@
  Not to do:
    Separate mask (deprecated)
 
+ 2023-07  - Massimo Magnano
+          - added Resolution support
+
 }
 unit FPReadTiff;
 
@@ -149,6 +152,9 @@ procedure DecompressLZW(Buffer: Pointer; Count: PtrInt;
 function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
   out Decompressed: PByte; var DecompressedCount: cardinal;
   ErrorMsg: PAnsiString = nil): boolean;
+
+function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
+function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
 
 implementation
 
@@ -1763,6 +1769,14 @@ var
   TilesAcross, TilesDown: DWord;
   ChunkLeft, ChunkTop, ChunkWidth, ChunkHeight: DWord;
   ChunkBytesPerLine: DWord;
+
+  procedure ReadResolutionValues;
+  begin
+       CurFPImg.ResolutionUnit :=TifResolutionUnitToResolutionUnit(IFD.ResolutionUnit);
+       CurFPImg.ResolutionX :=IFD.XResolution.Numerator/IFD.XResolution.Denominator;
+       CurFPImg.ResolutionY :=IFD.YResolution.Numerator/IFD.YResolution.Denominator;
+  end;
+
 begin
   if (IFD.ImageWidth=0) or (IFD.ImageHeight=0) then
     exit;
@@ -1838,6 +1852,9 @@ begin
     DoCreateImage(IFD);
     CurFPImg:=IFD.Img;
     if CurFPImg=nil then exit;
+
+    //Resolution
+    ReadResolutionValues;
 
     SetFPImgExtras(CurFPImg, IFD);
 
@@ -2461,6 +2478,25 @@ begin
   end;
   Result:=true;
 end;
+
+function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
+begin
+  Case ATifResolutionUnit of
+  2: Result :=ruPixelsPerInch;
+  3: Result :=ruPixelsPerCentimeter;
+  else Result :=ruNone;
+  end;
+end;
+
+function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
+begin
+  Case AResolutionUnit of
+  ruPixelsPerInch: Result :=2;
+  ruPixelsPerCentimeter: Result :=3;
+  else Result :=1;
+  end;
+end;
+
 
 initialization
   if ImageHandlers.ImageReader[TiffHandlerName]=nil then

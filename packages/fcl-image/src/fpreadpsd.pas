@@ -18,6 +18,7 @@
   2023-07  - Massimo Magnano
            - code fixes for reading palettes
            - added Read of Image Resources Section
+           - added Resolution support
 
 }
 unit FPReadPSD;
@@ -257,6 +258,9 @@ type
     property OnCreateImage: TPSDCreateCompatibleImgEvent read FOnCreateImage write FOnCreateImage;
   end;
 
+function PSDResolutionUnitToResolutionUnit(APSDResolutionUnit: Word): TResolutionUnit;
+function ResolutionUnitToPSdResolutionUnit(AResolutionUnit: TResolutionUnit): Word;
+
 implementation
 
 function CorrectCMYK(const C : TFPColor): TFPColor;
@@ -295,6 +299,24 @@ function LabToRGB(const L:TLab):TFPColor;
 begin
   // ToDo
   Result:=colBlack;
+end;
+
+function PSDResolutionUnitToResolutionUnit(APSDResolutionUnit: Word): TResolutionUnit;
+begin
+  Case APSDResolutionUnit of
+  PSD_RES_INCH: Result :=ruPixelsPerInch;
+  PSD_RES_CM: Result :=ruPixelsPerCentimeter;
+  else Result :=ruNone;
+  end;
+end;
+
+function ResolutionUnitToPSdResolutionUnit(AResolutionUnit: TResolutionUnit): Word;
+begin
+  Case AResolutionUnit of
+  ruPixelsPerInch: Result :=PSD_RES_INCH;
+  ruPixelsPerCentimeter: Result :=PSD_RES_CM;
+  else Result :=0;
+  end;
 end;
 
 { TFPReaderPSD }
@@ -404,7 +426,32 @@ end;
 
 procedure TFPReaderPSD.ReadResourceBlockData(Img: TFPCustomImage; blockID: Word;
                                              blockName: ShortString; Size: LongWord; Data: Pointer);
+var
+  ResolutionInfo:TResolutionInfo;
+  ResDWord: DWord;
+
 begin
+  case blockID of
+  PSD_RESN_INFO:begin
+            ResolutionInfo :=TResolutionInfo(Data^);
+            //MaxM: Do NOT Remove the Casts after BEToN
+            Img.ResolutionUnit :=PSDResolutionUnitToResolutionUnit(BEToN(Word(ResolutionInfo.hResUnit)));
+
+            //MaxM: Resolution always recorded in a fixed point implied decimal int32
+            //      with 16 bits before point and 16 after (cast as DWord and divide resolution by 2^16)
+            ResDWord :=BEToN(DWord(ResolutionInfo.hRes));
+            Img.ResolutionX :=ResDWord/65536;
+            ResDWord :=BEToN(DWord(ResolutionInfo.vRes));
+            Img.ResolutionY :=ResDWord/65536;
+
+            if (Img.ResolutionUnit<>ruNone) and
+               (ResolutionInfo.vResUnit<>ResolutionInfo.hResUnit)
+            then Case BEToN(Word(ResolutionInfo.vResUnit)) of
+                 PSD_RES_INCH: Img.ResolutionY :=Img.ResolutionY/2.54; //Vertical Resolution is in Inch convert to Cm
+                 PSD_RES_CM: Img.ResolutionY :=Img.ResolutionY*2.54; //Vertical Resolution is in Cm convert to Inch
+                 end;
+          end;
+  end;
 end;
 
 procedure TFPReaderPSD.InternalRead(Stream: TStream; Img: TFPCustomImage);

@@ -15,6 +15,9 @@
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
   Load all format compressed or not
+
+  2023-07  - Massimo Magnano
+           - added Resolution support
 }
 
 unit FPReadPCX;
@@ -42,7 +45,7 @@ type
     procedure CreateBWPalette(Img: TFPCustomImage);
     procedure CreatePalette16(Img: TFPCustomImage);
     procedure ReadPalette(Stream: TStream; Img: TFPCustomImage);
-    procedure AnalyzeHeader(Img: TFPCustomImage);
+    procedure AnalyzeHeader(Img: TFPCustomImage); virtual;
     function InternalCheck(Stream: TStream): boolean; override;
     procedure InternalRead(Stream: TStream; Img: TFPCustomImage); override;
     procedure ReadScanLine(Row: integer; Stream: TStream); virtual;
@@ -140,6 +143,11 @@ begin
     FCompressed   := Encoding = 1;
     Img.Width     := XMax - XMin + 1;
     Img.Height    := YMax - YMin + 1;
+
+    Img.ResolutionUnit:=ruPixelsPerInch;
+    Img.ResolutionX :=HRes;
+    Img.ResolutionY :=VRes;
+
     FLineSize     := (BytesPerLine * ColorPlanes);
     GetMem(FScanLine, FLineSize);
   end;

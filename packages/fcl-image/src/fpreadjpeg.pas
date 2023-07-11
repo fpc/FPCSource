@@ -19,6 +19,7 @@
 
     2023-07  - Massimo Magnano
              - procedure inside InternalRead moved to protected methods (virtual)
+             - added Resolution support
 }
 unit FPReadJPEG;
 
@@ -92,6 +93,10 @@ type
     property MinHeight:integer read FMinHeight write FMinHeight;
   end;
 
+
+function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
+function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;
+
 implementation
 
 procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
@@ -164,6 +169,24 @@ begin
   // ToDo
 end;
 
+function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
+begin
+  Case Adensity_unit of
+  1: Result :=ruPixelsPerInch;
+  2: Result :=ruPixelsPerCentimeter;
+  else Result :=ruNone;
+  end;
+end;
+
+function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;
+begin
+  Case AResolutionUnit of
+  ruPixelsPerInch: Result :=1;
+  ruPixelsPerCentimeter: Result :=2;
+  else Result :=0;
+  end;
+end;
+
 { TFPReaderJPEG }
 
 procedure TFPReaderJPEG.SetSmoothing(const AValue: boolean);
@@ -207,6 +230,10 @@ begin
 
   FGrayscale := FInfo.jpeg_color_space = JCS_GRAYSCALE;
   FProgressiveEncoding := jpeg_has_multiple_scans(@FInfo);
+
+  Img.ResolutionUnit:=density_unitToResolutionUnit(CompressInfo.density_unit);
+  Img.ResolutionX :=CompressInfo.X_density;
+  Img.ResolutionY :=CompressInfo.Y_density;
 end;
 
 procedure TFPReaderJPEG.ReadPixels(Str: TStream; Img: TFPCustomImage);
