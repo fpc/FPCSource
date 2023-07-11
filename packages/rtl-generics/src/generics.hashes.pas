@@ -33,6 +33,10 @@ unit Generics.Hashes;
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
 
+{$IFDEF CPUWASM}
+{$DEFINE NOGOTO}
+{$ENDIF}
+
 interface
 
 uses
@@ -195,8 +199,10 @@ function HashWord(
   AInitVal: UInt32): UInt32;         //* the previous hash, or an arbitrary value */
 var
   a,b,c: UInt32;
+{$IFNDEF NOGOTO}
 label
   Case0, Case1, Case2, Case3;
+{$ENDIF}
 begin
   //* Set up the internal state */
   a := $DEADBEEF + (UInt32(ALength) shl 2) + AInitVal;
@@ -215,6 +221,16 @@ begin
   end;
 
   //*------------------------------------------- handle the last 3 uint32_t's */
+{$IFDEF NOGOTO}
+  if aLength=3 then
+    c+=AKey[2];
+  if aLength>=2 then
+    b+=AKey[1];
+  if aLength>=1 then
+    a+=AKey[0];
+  if aLength>0 then
+    final_abc;
+{$ELSE}
   case ALength of //* all the case statements fall through */
     3: goto Case3;
     2: goto Case2;
@@ -226,6 +242,7 @@ begin
   Case1: a+=AKey[0];
     final_abc;
   Case0:     //* case 0: nothing left to add */
+{$ENDIF}
   //*------------------------------------------------------ report the result */
   Result := c;
 end;
@@ -237,8 +254,10 @@ var APrimaryHashAndInitVal: UInt32;                      //* IN: seed OUT: prima
 var ASecondaryHashAndInitVal: UInt32);               //* IN: more seed OUT: secondary hash value */
 var
   a,b,c: UInt32;
+{$IFNDEF NOGOTO}
 label
   Case0, Case1, Case2, Case3;
+{$ENDIF}
 begin
   //* Set up the internal state */
   a := $deadbeef + (UInt32(ALength shl 2)) + APrimaryHashAndInitVal;
@@ -258,6 +277,16 @@ begin
   end;
 
   //*------------------------------------------- handle the last 3 uint32_t's */
+{$IFDEF NOGOTO}
+  if aLength=3 then
+     c+=AKey[2];
+  if aLength>=2 then
+     b+=AKey[1];
+  if aLength>=1 then
+     a+=AKey[0];
+  if aLength>0 then
+    final_abc;
+{$ELSE}
   case ALength of                     //* all the case statements fall through */
     3: goto Case3;
     2: goto Case2;
@@ -269,6 +298,7 @@ begin
   Case1: a+=AKey[0];
     final_abc;
   Case0:     //* case 0: nothing left to add */
+{$ENDIF}
   //*------------------------------------------------------ report the result */
   APrimaryHashAndInitVal := c;
   ASecondaryHashAndInitVal := b;
@@ -286,8 +316,45 @@ var
   k16: ^UInt16 absolute AKey;
   k8: ^UInt8 absolute AKey;
 
+{$IFNDEF NOGOTO}
 label _10, _8, _6, _4, _2;
 label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, Case2, Case1;
+{$endif}
+
+{$IFDEF NOGOTO}
+  procedure Do10; inline;
+
+  begin
+    c+=k16[4];
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do8; inline;
+
+  begin
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do6; inline;
+
+  begin
+    b+=k16[2];
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do4; inline;
+
+  begin
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do2; inline;
+  begin
+    a+=k16[0];
+  end;
+{$ENDIF}
 
 begin
   a := $DEADBEEF + UInt32(ALength) + AInitVal;
@@ -346,51 +413,96 @@ begin
       11:
         begin
           c+=(UInt32(k8[10])) shl 16;     //* fall through */
+{$IFDEF NOGOTO}
+          do10;
+{$ELSE}
           goto _10;
+{$ENDIF}
         end;
       10:
-        begin _10:
+        begin
+{$IFDEF NOGOTO}
+          do10;
+{$ELSE}
+          _10:
           c+=k16[4];
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       9 :
         begin
           c+=k8[8];                      //* fall through */
+{$IFDEF NOGOTO}
+          do8;
+{$ELSE}
           goto _8;
+{$ENDIF}
         end;
       8 :
-        begin _8:
+        begin
+{$IFDEF NOGOTO}
+          do8;
+{$ELSE}
+          _8:
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       7 :
         begin
           b+=(UInt32(k8[6])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          Do6 ;
+{$ELSE}
           goto _6;
+{$ENDIF}
         end;
       6 :
-        begin _6:
+        begin
+{$IFDEF NOGOTO}
+          Do6 ;
+{$ELSE}
+          _6:
           b+=k16[2];
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       5 :
         begin
           b+=k8[4];                      //* fall through */
+{$IFDEF NOGOTO}
+          Do4;
+{$ELSE}
           goto _4;
+{$ENDIF}
         end;
       4 :
-        begin _4:
+        begin
+{$IFDEF NOGOTO}
+          Do4;
+{$ELSE}
+          _4:
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       3 :
         begin
           a+=(UInt32(k8[2])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          do2;
+{$ELSE}
           goto _2;
+{$ENDIF}
         end;
       2 :
-        begin _2:
+        begin
+{$IFDEF NOGOTO}
+          do2;
+{$ELSE}
+         _2:
           a+=k16[0];
+{$ENDIF}
         end;
       1 :
         begin
@@ -420,7 +532,34 @@ begin
       ALength -= 12;
       k8 += 12;
     end;
-
+{$IFDEF NOGOTO}
+  if Alength=0 then
+    Exit(c);
+  if ALength=12 then
+    c+=(UInt32(k8[11])) shl 24;
+  if aLength>=11 then
+    c+=(UInt32(k8[10])) shl 16;
+  if aLength>=10 then
+    c+=(UInt32(k8[9])) shl 8;
+  if aLength>=9 then
+    c+=k8[8];
+  if aLength>=8 then
+    b+=(UInt32(k8[7])) shl 24;
+  if aLength>=7 then
+    b+=(UInt32(k8[6])) shl 16;
+  if aLength>=6 then
+    b+=(UInt32(k8[5])) shl 8;
+  if aLength>=5 then
+    b+=k8[4];
+  if aLength>=4 then
+    a+=(UInt32(k8[3])) shl 24;
+  if aLength>=3 then
+    a+=(UInt32(k8[2])) shl 16;
+  if aLength>=2 then
+    a+=(UInt32(k8[1])) shl 8;
+  // case aLength=0 was handled first, so we know aLength>=1.
+  a+=k8[0];
+{$ELSE}
     case ALength of
       12: goto Case12;
       11: goto Case11;
@@ -449,6 +588,7 @@ begin
     Case3: a+=(UInt32(k8[2])) shl 16;
     Case2: a+=(UInt32(k8[1])) shl 8;
     Case1: a+=k8[0];
+{$ENDIF}
   end;
 
   final_abc;
@@ -481,8 +621,45 @@ var
   k16: ^UInt16 absolute AKey;
   k8: ^UInt8 absolute AKey;
 
+{$IFNDEF NOGOTO}
 label _10, _8, _6, _4, _2;
 label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, Case2, Case1;
+{$ENDIF}
+
+{$IFDEF NOGOTO}
+  procedure Do10; inline;
+
+  begin
+    c+=k16[4];
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do8; inline;
+
+  begin
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do6; inline;
+
+  begin
+    b+=k16[2];
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do4; inline;
+
+  begin
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do2; inline;
+  begin
+    a+=k16[0];
+  end;
+{$ENDIF}
 
 begin
   //* Set up the internal state */
@@ -548,51 +725,96 @@ begin
       11:
         begin
           c+=(UInt32(k8[10])) shl 16;     //* fall through */
-          goto _10;
+{$IFDEF NOGOTO}
+          Do10;
+{$ELSE}
+          goto _10
+{$ENDIF}
         end;
       10:
-        begin _10:
+        begin
+{$IFDEF NOGOTO}
+         Do10;
+{$ELSE}
+        _10:
           c+=k16[4];
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       9 :
         begin
           c+=k8[8];                      //* fall through */
+{$IFDEF NOGOTO}
+          Do8;
+{$ELSE}
           goto _8;
+{$ENDIF}
         end;
       8 :
-        begin _8:
+        begin
+{$IFDEF NOGOTO}
+          Do8;
+{$ELSE}
+        _8:
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       7 :
         begin
           b+=(UInt32(k8[6])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          Do6 ;
+{$ELSE}
           goto _6;
+{$ENDIF}
         end;
       6 :
-        begin _6:
+        begin
+{$IFDEF NOGOTO}
+          Do6 ;
+{$ELSE}
+        _6:
           b+=k16[2];
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       5 :
         begin
           b+=k8[4];                      //* fall through */
+{$IFDEF NOGOTO}
+          Do4 ;
+{$ELSE}
           goto _4;
+{$ENDIF}
         end;
       4 :
-        begin _4:
+        begin
+{$IFDEF NOGOTO}
+          Do4 ;
+{$ELSE}
+        _4:
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       3 :
         begin
           a+=(UInt32(k8[2])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          Do2 ;
+{$ELSE}
           goto _2;
+{$ENDIF}
         end;
       2 :
-        begin _2:
+        begin
+{$IFDEF NOGOTO}
+          Do2;
+{$ELSE}
+        _2:
           a+=k16[0];
+{$ENDIF}
         end;
       1 :
         begin
@@ -627,7 +849,37 @@ begin
       ALength -= 12;
       k8 += 12;
     end;
-
+{$IFDEF NOGOTO}
+  if aLength=0 then
+    begin
+    APrimaryHashAndInitVal := c;
+    ASecondaryHashAndInitVal := b;
+    Exit;              // zero length strings require no mixing
+    end;
+  if aLength=12 then
+    c+=(UInt32(k8[11])) shl 24;
+  if aLength>=11 then
+    c+=(UInt32(k8[10])) shl 16;
+  if aLength>=10 then
+    c+=(UInt32(k8[9])) shl 8;
+  if aLength>=9 then
+    c+=k8[8];
+  if aLength>=8 then
+    b+=(UInt32(k8[7])) shl 24;
+  if aLength>=7 then
+    b+=(UInt32(k8[6])) shl 16;
+  if aLength>=6 then
+    b+=(UInt32(k8[5])) shl 8;
+  if aLength>=5 then
+    b+=k8[4];
+  if aLength>=4 then
+    a+=(UInt32(k8[3])) shl 24;
+  if aLength>=3 then
+    a+=(UInt32(k8[2])) shl 16;
+  if aLength>=2 then
+    a+=(UInt32(k8[1])) shl 8;
+  a+=k8[0];
+{$ELSE}
     case ALength of
       12: goto Case12;
       11: goto Case11;
@@ -661,6 +913,7 @@ begin
     Case3: a+=(UInt32(k8[2])) shl 16;
     Case2: a+=(UInt32(k8[1])) shl 8;
     Case1: a+=k8[0];
+{$ENDIF}
   end;
 
   final_abc;
@@ -680,8 +933,45 @@ var
   k16: ^UInt16 absolute AKey;
   k8: ^UInt8 absolute AKey;
 
+{$IFNDEF NOGOTO}
 label _10, _8, _6, _4, _2;
 label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, Case2, Case1;
+{$ENDIF}
+
+{$IFDEF NOGOTO}
+  procedure Do10; inline;
+
+  begin
+    c+=k16[4];
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do8; inline;
+
+  begin
+    b+=k16[2]+((UInt32(k16[3])) shl 16);
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do6; inline;
+
+  begin
+    b+=k16[2];
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do4; inline;
+
+  begin
+    a+=k16[0]+((UInt32(k16[1])) shl 16);
+  end;
+
+  procedure Do2; inline;
+  begin
+    a+=k16[0];
+  end;
+{$ENDIF}
 
 begin
   //* Set up the internal state */
@@ -747,51 +1037,96 @@ begin
       11:
         begin
           c+=(UInt32(k8[10])) shl 16;     //* fall through */
+{$IFDEF NOGOTO}
+          Do10;
+{$ELSE}
           goto _10;
+{$ENDIF}
         end;
       10:
-        begin _10:
+        begin
+{$IFDEF NOGOTO}
+          Do10;
+{$ELSE}
+        _10:
           c+=k16[4];
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       9 :
         begin
           c+=k8[8];                      //* fall through */
+{$IFDEF NOGOTO}
+          Do8;
+{$ELSE}
           goto _8;
+{$ENDIF}
         end;
       8 :
-        begin _8:
+        begin
+{$IFDEF NOGOTO}
+          Do8;
+{$ELSE}
+        _8:
           b+=k16[2]+((UInt32(k16[3])) shl 16);
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       7 :
         begin
           b+=(UInt32(k8[6])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          Do6;
+{$ELSE}
           goto _6;
+{$ENDIF}
         end;
       6 :
-        begin _6:
+        begin
+{$IFDEF NOGOTO}
+          Do6;
+{$ELSE}
+        _6:
           b+=k16[2];
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       5 :
         begin
           b+=k8[4];                      //* fall through */
+{$IFDEF NOGOTO}
+          Do4;
+{$ELSE}
           goto _4;
+{$ENDIF}
         end;
       4 :
-        begin _4:
+        begin
+{$IFDEF NOGOTO}
+          Do4;
+{$ELSE}
+        _4:
           a+=k16[0]+((UInt32(k16[1])) shl 16);
+{$ENDIF}
         end;
       3 :
         begin
           a+=(UInt32(k8[2])) shl 16;      //* fall through */
+{$IFDEF NOGOTO}
+          Do2;
+{$ELSE}
           goto _2;
+{$ENDIF}
         end;
       2 :
-        begin _2:
+        begin
+{$IFDEF NOGOTO}
+          Do2;
+{$ELSE}
+        _2:
           a+=k16[0];
+{$ENDIF}
         end;
       1 :
         begin
@@ -826,7 +1161,38 @@ begin
       ALength -= 12;
       k8 += 12;
     end;
+{$IFDEF NOGOTO}
+    if aLength=0 then
+      begin
+      APrimaryHashAndInitVal := c;
+      ASecondaryHashAndInitVal := b;
+      Exit;              // zero length strings require no mixing
+      end;
+    if aLength=12 then
+      c+=(UInt32(k8[11])) shl 24;
+    if aLength>=11 then
+      c+=(UInt32(k8[10])) shl 16;
+    if aLength>=10 then
+      c+=(UInt32(k8[9])) shl 8;
+    if aLength>=9 then
+      c+=k8[8];
+    if aLength>=8 then
+      b+=(UInt32(k8[7])) shl 24;
+    if aLength>=7 then
+      b+=(UInt32(k8[6])) shl 16;
+    if aLength>=6 then
+      b+=(UInt32(k8[5])) shl 8;
+    if aLength>=5 then
+      b+=k8[4];
+    if aLength>=4 then
+      a+=(UInt32(k8[3])) shl 24;
+    if aLength>=3 then
+      a+=(UInt32(k8[2])) shl 16;
+    if aLength>=2 then
+      a+=(UInt32(k8[1])) shl 8;
+    a+=k8[0];
 
+{$ELSE}
     case ALength of
       12: goto Case12;
       11: goto Case11;
@@ -860,6 +1226,7 @@ begin
     Case3: a+=(UInt32(k8[2])) shl 16;
     Case2: a+=(UInt32(k8[1])) shl 8;
     Case1: a+=k8[0];
+{$ENDIF}
   end;
 
   final_abc;
@@ -879,7 +1246,9 @@ var
   //k16: ^UInt16 absolute AKey;
   k8: ^UInt8 absolute AKey;
 
+{$IFNDEF NOGOTO}
 label Case12, Case11, Case10, Case9, Case8, Case7, Case6, Case5, Case4, Case3, Case2, Case1;
+{$ENDIF NOGOTO}
 
 begin
   a := $DEADBEEF + UInt32(ALength shl 2) + AInitVal; // delphi version bug? original version don't have "shl 2"
@@ -936,7 +1305,34 @@ begin
       ALength -= 12;
       k8 += 12;
     end;
+{$IFDEF NOGOTO}
+  if aLength=0 then
+    exit(c);
+  if aLength=12 then
+    c+=(UInt32(k8[11])) shl 24;
+  if aLength>=11 then
+    c+=(UInt32(k8[10])) shl 16;
+  if aLength>=10 then
+    c+=(UInt32(k8[9])) shl 8;
+  if aLength>=9 then
+    c+=k8[8];
+  if aLength>=8 then
+    b+=(UInt32(k8[7])) shl 24;
+  if aLength>=7 then
+    b+=(UInt32(k8[6])) shl 16;
+  if aLength>=6 then
+    b+=(UInt32(k8[5])) shl 8;
+  if aLength>=5 then
+    b+=k8[4];
+  if aLength>=4 then
+    a+=(UInt32(k8[3])) shl 24;
+  if aLength>=3 then
+    a+=(UInt32(k8[2])) shl 16;
+  if aLength>=2 then
+    a+=(UInt32(k8[1])) shl 8;
+  a+=k8[0];
 
+{$ELSE}
     case ALength of
       12: goto Case12;
       11: goto Case11;
@@ -965,6 +1361,7 @@ begin
     Case3: a+=(UInt32(k8[2])) shl 16;
     Case2: a+=(UInt32(k8[1])) shl 8;
     Case1: a+=k8[0];
+{$ENDIF}
   end;
 
   final_abc;
