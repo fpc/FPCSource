@@ -106,8 +106,6 @@ type
 
 implementation
 
-uses FPReadPNG;
-
 constructor TFPWriterPNG.create;
 begin
   inherited;

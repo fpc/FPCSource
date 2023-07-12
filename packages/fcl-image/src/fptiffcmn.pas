@@ -100,10 +100,17 @@ const
   // Planar configuration - TIFF 6.0 spec p. 38
   TiffPlanarConfigurationChunky = 1; //Chunky format
   TiffPlanarConfigurationPlanar = 2; //Planar format
+
 type
   TTiffChunkType = (
     tctStrip,
     tctTile
+    );
+
+  TTiffCheckIFDOrder = (
+    tcioSmart,
+    tcioAlways,
+    tcioNever
     );
 
   { TTiffIFD - Image File Directory }
@@ -176,6 +183,9 @@ procedure ClearTiffExtras(Img: TFPCustomImage);
 procedure CopyTiffExtras(SrcImg, DestImg: TFPCustomImage);
 procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
 function TiffCompressionName(c: Word): string;
+
+function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
+function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
 
 implementation
 
@@ -255,6 +265,24 @@ begin
   34677: Result:='SGILOG24';
   34712: Result:='JP2000';
   else Result:='unknown('+IntToStr(c)+')';
+  end;
+end;
+
+function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
+begin
+  Case ATifResolutionUnit of
+  2: Result :=ruPixelsPerInch;
+  3: Result :=ruPixelsPerCentimeter;
+  else Result :=ruNone;
+  end;
+end;
+
+function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
+begin
+  Case AResolutionUnit of
+  ruPixelsPerInch: Result :=2;
+  ruPixelsPerCentimeter: Result :=3;
+  else Result :=1;
   end;
 end;
 
