@@ -101,6 +101,10 @@ type
       FExtra : TStringlist;
       FPalette : TFPPalette;
       FHeight, FWidth : integer;
+      //Resolution
+      FResolutionUnit: TResolutionUnit;
+      FResolutionX,
+      FResolutionY: Single;
       procedure SetHeight (Value : integer);
       procedure SetWidth (Value : integer);
       procedure SetExtra (const key:String; const AValue:string);
@@ -116,13 +120,9 @@ type
       procedure SetPixel (x,y:integer; Value:integer);
       function GetPixel (x,y:integer) : integer;
       function GetUsePalette : boolean;
-    protected
-      //Resolution
-      FResolutionUnit: TResolutionUnit;
-      FResolutionX,
-      FResolutionY: Single;
-
       procedure SetResolutionUnit(AResolutionUnit: TResolutionUnit);
+    protected
+
       function GetResolutionWidth: Single; virtual;
       function GetResolutionHeight: Single; virtual;
 
