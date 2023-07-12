@@ -7191,6 +7191,7 @@ begin
   '  Enum: byte;',
   '  Enums: tenums;',
   'begin',
+  '  Enum:=ord(1);',
   '  Enums:=[];',
   '  Enums:=[0];',
   '  Enums:=[1..2];',
@@ -7206,6 +7207,7 @@ begin
     'this.Enums = {};',
     '']),
     LinesToStr([
+    '$mod.Enum = 1;',
     '$mod.Enums = {};',
     '$mod.Enums = rtl.createSet(0);',
     '$mod.Enums = rtl.createSet(null, 1, 2);',

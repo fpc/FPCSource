@@ -13640,16 +13640,16 @@ function TPasToJSConverter.ConvertBuiltIn_Ord(El: TParamsExpr;
     Result:=nil;
     OrdValue:=nil;
     ParamValue:=aResolver.Eval(Param,[]);
+    if ParamValue=nil then exit;
     try
-      if ParamValue<>nil then
+      OrdValue:=aResolver.ExprEvaluator.OrdValue(ParamValue,El);
+      if OrdValue=ParamValue then
+        ParamValue:=nil;
+      if OrdValue<>nil then
         begin
-        OrdValue:=aResolver.ExprEvaluator.OrdValue(ParamValue,El);
-        if OrdValue<>nil then
-          begin
-          // ord(constant) -> constant
-          Result:=ConvertConstValue(OrdValue,AContext,El);
-          exit;
-          end;
+        // ord(constant) -> constant
+        Result:=ConvertConstValue(OrdValue,AContext,El);
+        exit;
         end;
     finally
       ReleaseEvalValue(ParamValue);

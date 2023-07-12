@@ -19450,7 +19450,8 @@ begin
   try
     Evaluated:=fExprEvaluator.OrdValue(Value,Params);
   finally
-    ReleaseEvalValue(Value);
+    if Evaluated<>Value then
+      ReleaseEvalValue(Value);
   end;
   if Proc=nil then ;
 end;

@@ -637,8 +637,6 @@ begin
 end;
 
 procedure TTestConstParser.TestConstErrorRecovery;
-Var
-  D : String;
 begin
   Add('Const');
   Add(' A : 1;');
