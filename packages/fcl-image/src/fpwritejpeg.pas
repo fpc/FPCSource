@@ -26,13 +26,11 @@ unit FPWriteJPEG;
 interface
 
 uses
-  Classes, SysUtils, FPImage, JPEGLib, FPReadJPEG, JcAPIstd, JcAPImin, JDataDst,
+  Classes, SysUtils, FPImage, JPEGLib, JPEGcomn, JcAPIstd, JcAPImin, JDataDst,
   JcParam, JError;
 
 type
   { TFPWriterJPEG }
-
-  TFPJPEGCompressionQuality = 1..100;   // 100 = best quality, 25 = pretty awful
 
   TFPWriterJPEG = class(TFPCustomImageWriter)
   private

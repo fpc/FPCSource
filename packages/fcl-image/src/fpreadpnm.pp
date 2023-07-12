@@ -52,7 +52,7 @@ type
       FBitPP        : Byte;
       FScanLineSize : Integer;
       FScanLine   : PByte;
-      procedure ReadHeader(Stream : TStream);
+      procedure ReadHeader(Stream : TStream); virtual;
       function  InternalCheck (Stream:TStream):boolean;override;
       procedure InternalRead(Stream:TStream;Img:TFPCustomImage);override;
       procedure ReadScanLine(Row : Integer; Stream:TStream);

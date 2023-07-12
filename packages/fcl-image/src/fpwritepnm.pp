@@ -36,6 +36,7 @@ type
     FBinaryFormat: boolean;
     procedure SetFullWidth(AValue: Boolean);
   protected
+    function SaveHeader(useBitMapType:Integer;Stream:TStream;Img:TFPCustomImage):boolean; virtual;
     procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
   public
     Property FullWidth: Boolean Read FFullWidth Write SetFullWidth; {if true write 16 bits per colour for P5, P6 formats}
@@ -127,32 +128,32 @@ begin
     BinaryFormat:=True;
 end;
 
-procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
-var useBitMapType: integer;
+function TFPWriterPNM.SaveHeader(useBitMapType:Integer;Stream:TStream;Img:TFPCustomImage):boolean;
+const
+    MagicWords:Array[1..6]OF String[2]=('P1','P2','P3','P4','P5','P6');
+var
+   PNMInfo:String;
+   strWidth,StrHeight:String[15];
+begin
+    Result:=false;
+    with Img do
+      begin
+        Str(Img.Width,StrWidth);
+        Str(Img.Height,StrHeight);
+      end;
+    PNMInfo:=Concat(MagicWords[useBitMapType],#10,StrWidth,#32,StrHeight,#10);
+    if (useBitMapType in [5,6]) and FullWidth then
+      PNMInfo:=Concat(PNMInfo,'65535'#10)
+    else if (useBitMapType in [2,3,5,6]) then
+      PNMInfo:=Concat(PNMInfo,'255'#10);
+    stream.seek(0,soFromBeginning);
+    stream.Write(PNMInfo[1],Length(PNMInfo));
+    Result := true;
+end;
 
-  function SaveHeader(stream:TStream):boolean;
-    const
-      MagicWords:Array[1..6]OF String[2]=('P1','P2','P3','P4','P5','P6');
-    var
-      PNMInfo:String;
-      strWidth,StrHeight:String[15];
-    begin
-      SaveHeader:=false;
-      with Img do
-        begin
-          Str(Img.Width,StrWidth);
-          Str(Img.Height,StrHeight);
-        end;
-      PNMInfo:=Concat(MagicWords[useBitMapType],#10,StrWidth,#32,StrHeight,#10);
-      if (useBitMapType in [5,6]) and FullWidth then
-        PNMInfo:=Concat(PNMInfo,'65535'#10)
-      else if (useBitMapType in [2,3,5,6]) then
-        PNMInfo:=Concat(PNMInfo,'255'#10);
-      stream.seek(0,soFromBeginning);
-      stream.Write(PNMInfo[1],Length(PNMInfo));
-      SaveHeader := true;
-    end;
-  var
+procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
+var
+    useBitMapType: integer;
     Row,Coulumn,nBpLine,i:Integer;
     aColor:TFPColor;
     aLine:PByte;
@@ -161,7 +162,7 @@ var useBitMapType: integer;
     LinuxEndOfLine: char;
     UseColorDepth: TPNMColorDepth;
 
-  begin
+begin
     LinuxEndOfLine := #10;
 
     //determine color depth
@@ -178,7 +179,7 @@ var useBitMapType: integer;
     if BinaryFormat then inc(useBitMapType,3);
     if FullWidth and Not BinaryFormat then
       Raise FPImageException.Create('Fullwidth can only be used with binary format');
-    SaveHeader(Stream);
+    SaveHeader(useBitMapType, Stream, Img);
     case useBitMapType of
       1:nBpLine:=Img.Width*2;{p p p}
       2:nBpLine:=Img.Width*4;{lll lll lll}
@@ -255,7 +256,7 @@ var useBitMapType: integer;
         if useBitMapType in[1..3] then Stream.Write(LinuxEndOfLine,1);
       end;
     FreeMem(aLine,nBpLine);
-  end;
+end;
 
 function TFPWriterPNM.GetColorDepthOfExtension(AExtension: string
   ): TPNMColorDepth;

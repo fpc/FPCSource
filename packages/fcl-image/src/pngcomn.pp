@@ -52,6 +52,12 @@ type
     BitDepth, ColorType, Compression, Filter, Interlace : byte;
   end;
 
+  TPNGPhysicalDimensions = packed record
+    X_Pixels, Y_Pixels :DWord;
+    Unit_Specifier :Byte;
+  end;
+  PPNGPhysicalDimensions=^TPNGPhysicalDimensions;
+
 const
 
   Signature    : Array[0..7] of Byte = ($89, $50, $4E, $47, $0D, $0A, $1A, $0A);

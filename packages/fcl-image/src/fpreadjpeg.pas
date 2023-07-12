@@ -28,13 +28,11 @@ unit FPReadJPEG;
 interface
 
 uses
-  Classes, SysUtils, Types, FPImage, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  Classes, SysUtils, Types, FPImage, JPEGcomn, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
 
 type
-  { TFPReaderJPEG }
-  { This is a FPImage reader for jpeg images. }
-
-  TFPReaderJPEG = class;
+  //MaxM: these common types should stay only in JPEGcomn units, but we should change LCL uses
+  TFPJPEGCompressionQuality = 1..100;   // 100 = best quality, 25 = pretty awful
 
   PFPJPEGProgressManager = ^TFPJPEGProgressManager;
   TFPJPEGProgressManager = record
@@ -53,6 +51,9 @@ type
     eoUnknown, eoNormal, eoMirrorHor, eoRotate180, eoMirrorVert,
     eoMirrorHorRot270, eoRotate90, eoMirrorHorRot90, eoRotate270
   );
+
+  { TFPReaderJPEG }
+  { This is a FPImage reader for jpeg images. }
 
   TFPReaderJPEG = class(TFPCustomImageReader)
   private
@@ -93,9 +94,6 @@ type
     property MinHeight:integer read FMinHeight write FMinHeight;
   end;
 
-
-function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
-function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;
 
 implementation
 
@@ -167,24 +165,6 @@ procedure ProgressCallback(CurInfo: j_common_ptr);
 begin
   if CurInfo=nil then exit;
   // ToDo
-end;
-
-function density_unitToResolutionUnit(Adensity_unit: UINT8): TResolutionUnit;
-begin
-  Case Adensity_unit of
-  1: Result :=ruPixelsPerInch;
-  2: Result :=ruPixelsPerCentimeter;
-  else Result :=ruNone;
-  end;
-end;
-
-function ResolutionUnitTodensity_unit(AResolutionUnit: TResolutionUnit): UINT8;
-begin
-  Case AResolutionUnit of
-  ruPixelsPerInch: Result :=1;
-  ruPixelsPerCentimeter: Result :=2;
-  else Result :=0;
-  end;
 end;
 
 { TFPReaderJPEG }

@@ -58,12 +58,6 @@ type
   TTiffCreateCompatibleImgEvent = procedure(Sender: TFPReaderTiff;
                                             ImgFileDir: TTiffIFD) of object;
 
-  TTiffCheckIFDOrder = (
-    tcioSmart,
-    tcioAlways,
-    tcioNever
-    );
-
   { TFPReaderTiff }
 
   TFPReaderTiff = class(TFPCustomImageReader)
@@ -84,11 +78,6 @@ type
     procedure SetStreamPos(p: DWord);
     function ReadTiffHeader(QuickTest: boolean; out IFDStart: DWord): boolean; // returns IFD: offset to first IFD
     function ReadIFD(Start: DWord; IFD: TTiffIFD): DWord;// Image File Directory
-    procedure ReadDirectoryEntry(var EntryTag: Word; IFD: TTiffIFD);
-    function ReadEntryUnsigned: DWord;
-    function ReadEntrySigned: Cint32;
-    function ReadEntryRational: TTiffRational;
-    function ReadEntryString: string;
     function ReadByte: Byte;
     function ReadWord: Word;
     function ReadDWord: DWord;
@@ -112,6 +101,11 @@ type
     procedure DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
     procedure DecodeDeflate(var Buffer: Pointer; var Count: PtrInt; ExpectedCount: PtrInt);
   protected
+    procedure ReadDirectoryEntry(var EntryTag: Word; IFD: TTiffIFD); virtual;
+    function ReadEntryUnsigned: DWord;
+    function ReadEntrySigned: Cint32;
+    function ReadEntryRational: TTiffRational;
+    function ReadEntryString: string;
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
     procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
@@ -152,9 +146,6 @@ procedure DecompressLZW(Buffer: Pointer; Count: PtrInt;
 function DecompressDeflate(Compressed: PByte; CompressedCount: cardinal;
   out Decompressed: PByte; var DecompressedCount: cardinal;
   ErrorMsg: PAnsiString = nil): boolean;
-
-function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
-function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
 
 implementation
 
@@ -2477,24 +2468,6 @@ begin
     exit;
   end;
   Result:=true;
-end;
-
-function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
-begin
-  Case ATifResolutionUnit of
-  2: Result :=ruPixelsPerInch;
-  3: Result :=ruPixelsPerCentimeter;
-  else Result :=ruNone;
-  end;
-end;
-
-function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
-begin
-  Case AResolutionUnit of
-  ruPixelsPerInch: Result :=2;
-  ruPixelsPerCentimeter: Result :=3;
-  else Result :=1;
-  end;
 end;
 
 
