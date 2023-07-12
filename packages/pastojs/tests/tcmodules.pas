@@ -940,6 +940,7 @@ type
     procedure TestRangeChecks_StringIndex;
     procedure TestRangeChecks_TypecastInt;
     procedure TestRangeChecks_TypeHelperInt;
+    procedure TestRangeChecks_AssignCurrency;
 
     // Async/AWait
     Procedure TestAsync_Proc;
@@ -34806,6 +34807,52 @@ begin
     '      this.p.FSize = v;',
     '    }',
     '}, 16);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignCurrency;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'var',
+  '  c: currency = 2.34;',
+  '  i: double;',
+  'procedure DoIt(p: currency);',
+  'begin',
+  '  c:=i;',
+  '  c+=i;',
+  '  c:=1;',
+  'end;',
+  '{$R-}',
+  'procedure DoSome;',
+  'begin',
+  '  DoIt(i);',
+  '  c:=i;',
+  '  c:=2;',
+  'end;',
+  'begin',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignCurrency',
+    LinesToStr([ // statements
+    'this.c = 2.34;',
+    'this.i = 0.0;',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, -922337203685477, 922337203685477);',
+    '  $mod.c = rtl.rc(rtl.trunc($mod.i * 10000), -922337203685477, 922337203685477);',
+    '  rtl.rc($mod.c += rtl.trunc($mod.i * 10000), -922337203685477, 922337203685477);',
+    '  $mod.c = 10000;',
+    '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.i * 10000);',
+    '  $mod.c = rtl.trunc($mod.i * 10000);',
+    '  $mod.c = 20000;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
