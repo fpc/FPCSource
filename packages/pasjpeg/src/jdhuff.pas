@@ -559,8 +559,11 @@ function jpeg_fill_bit_buffer (var state : bitread_working_state;
                               {register} get_buffer : bit_buf_type;
                               {register} bits_left : int;
                               nbits  : int) : boolean;
+{$IFNDEF NOGOTO}
 label
   no_more_bytes;
+{$ENDIF}
+
 { Load up the bit buffer to a depth of at least nbits }
 var
   { Copy heavily used state fields into locals (hopefully registers) }
@@ -570,6 +573,43 @@ var
   {register} c : int;
 var
   cinfo : j_decompress_ptr;
+
+
+  Procedure DoNomoreBytes;
+
+  begin
+    { We get here if we've read the marker that terminates the compressed
+      data segment.  There should be enough bits in the buffer register
+      to satisfy the request; if so, no problem. }
+
+    if (nbits <= bits_left) then
+      exit;
+    { Uh-oh.  Report corrupted data to user and stuff zeroes into
+      the data stream, so that we can produce some kind of image.
+      We use a nonvolatile flag to ensure that only one warning message
+      appears per data segment. }
+
+    if not cinfo^.entropy^.insufficient_data then
+    begin
+      WARNMS(j_common_ptr(cinfo), JWRN_HIT_MARKER);
+      cinfo^.entropy^.insufficient_data := TRUE;
+    end;
+    { Fill the buffer with zero bits }
+    get_buffer := get_buffer shl (MIN_GET_BITS - bits_left);
+    bits_left := MIN_GET_BITS;
+  end;
+
+  Procedure PrepareExit;
+  begin
+    { Unload the local registers }
+    state.next_input_byte := next_input_byte;
+    state.bytes_in_buffer := bytes_in_buffer;
+    state.get_buffer := get_buffer;
+    state.bits_left := bits_left;
+
+    jpeg_fill_bit_buffer := TRUE;
+  end;
+
 begin
   next_input_byte := state.next_input_byte;
   bytes_in_buffer := state.bytes_in_buffer;
@@ -640,7 +680,13 @@ begin
 
           cinfo^.unread_marker := c;
           { See if we need to insert some fake zero bits. }
-          goto no_more_bytes;
+          {$IFDEF NOGOTO}
+            DoNomoreBytes;
+            PrepareExit;
+            exit;
+          {$ELSE}
+            goto no_more_bytes;
+          {$ENDIF}
         end;
       end;
 
@@ -651,36 +697,13 @@ begin
   end
   else
   begin
+{$IFNDEF NOGOTO}
   no_more_bytes:
-    { We get here if we've read the marker that terminates the compressed
-      data segment.  There should be enough bits in the buffer register
-      to satisfy the request; if so, no problem. }
-
-    if (nbits > bits_left) then
-    begin
-      { Uh-oh.  Report corrupted data to user and stuff zeroes into
-        the data stream, so that we can produce some kind of image.
-        We use a nonvolatile flag to ensure that only one warning message
-        appears per data segment. }
-
-      if not cinfo^.entropy^.insufficient_data then
-      begin
-        WARNMS(j_common_ptr(cinfo), JWRN_HIT_MARKER);
-        cinfo^.entropy^.insufficient_data := TRUE;
-      end;
-      { Fill the buffer with zero bits }
-      get_buffer := get_buffer shl (MIN_GET_BITS - bits_left);
-      bits_left := MIN_GET_BITS;
-    end;
+{$ENDIF}
+    DoNomoreBytes;
   end;
 
-  { Unload the local registers }
-  state.next_input_byte := next_input_byte;
-  state.bytes_in_buffer := bytes_in_buffer;
-  state.get_buffer := get_buffer;
-  state.bits_left := bits_left;
-
-  jpeg_fill_bit_buffer := TRUE;
+  prepareExit;
 end;
 
 
@@ -848,8 +871,10 @@ end;
 {METHODDEF}
 function decode_mcu (cinfo : j_decompress_ptr;
                      var MCU_data : array of JBLOCKROW) : boolean; far;
+{$IFNDEF NOGOTO}
 label
   label1, label2, label3;
+{$ENDIF}
 var
   entropy : huff_entropy_ptr;
   {register} s, k, r : int;
@@ -863,8 +888,26 @@ var
   state : savable_state;
   dctbl : d_derived_tbl_ptr;
   actbl : d_derived_tbl_ptr;
+  skiptolabel1,skiptolabel2,skiptolabel3 : Boolean;
+
 var
   nb, look : int; {register}
+
+  // Return true if we assign a result and must exit decode_mcu
+  function DoDecode(aTable : d_derived_tbl_ptr) : Boolean;
+
+  begin
+    s := jpeg_huff_decode(br_state,get_buffer,bits_left,aTable,nb);
+    if (s < 0) then
+    begin
+      decode_mcu := FALSE;
+      exit(true);
+    end;
+    get_buffer := br_state.get_buffer;
+    bits_left := br_state.bits_left;
+    DoDecode:=False;
+  end;
+
 begin
   entropy := huff_entropy_ptr (cinfo^.entropy);
 
@@ -904,8 +947,8 @@ begin
       dctbl := entropy^.dc_cur_tbls[blkn];
       actbl := entropy^.ac_cur_tbls[blkn];
 
+      SkipToLabel1:=False;
       { Decode a single block's worth of coefficients }
-
       { Section F.2.2.1: decode the DC coefficient difference }
       {HUFF_DECODE(s, br_state, dctbl, return FALSE, label1);}
       if (bits_left < HUFF_LOOKAHEAD) then
@@ -920,35 +963,38 @@ begin
         if (bits_left < HUFF_LOOKAHEAD) then
         begin
           nb := 1;
+          {$IFDEF NOGOTO}
+          if DoDecode(dctbl) then
+            exit;
+          SkipToLabel1:=True;
+          {$ELSE}
           goto label1;
+          {$ENDIF}
         end;
       end;
-      {look := PEEK_BITS(HUFF_LOOKAHEAD);}
-      look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
-                   pred(1 shl HUFF_LOOKAHEAD);
-
-      nb := dctbl^.look_nbits[look];
-      if (nb <> 0) then
-      begin
-        {DROP_BITS(nb);}
-        Dec(bits_left, nb);
-
-        s := dctbl^.look_sym[look];
-      end
-      else
-      begin
-        nb := HUFF_LOOKAHEAD+1;
-    label1:
-        s := jpeg_huff_decode(br_state,get_buffer,bits_left,dctbl,nb);
-        if (s < 0) then
+      if not SkipToLabel1 then
         begin
-          decode_mcu := FALSE;
-          exit;
-        end;
-        get_buffer := br_state.get_buffer;
-        bits_left := br_state.bits_left;
-      end;
+          {look := PEEK_BITS(HUFF_LOOKAHEAD);}
+          look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
+                       pred(1 shl HUFF_LOOKAHEAD);
 
+          nb := dctbl^.look_nbits[look];
+          if (nb <> 0) then
+          begin
+            {DROP_BITS(nb);}
+            Dec(bits_left, nb);
+
+            s := dctbl^.look_sym[look];
+          end
+          else
+          begin
+            nb := HUFF_LOOKAHEAD+1;
+            {$IFNDEF NOGOTO}
+            label1:
+            {$ENDIF}
+            if DoDecode(dctbl) then exit;
+          end;
+        end;
       if (s <> 0) then
       begin
         {CHECK_BIT_BUFFER(br_state, s, return FALSE);}
@@ -993,6 +1039,7 @@ begin
         while (k < DCTSIZE2) do         { Nomssi: k is incr. in the loop }
         begin
           {HUFF_DECODE(s, br_state, actbl, return FALSE, label2);}
+          skiptolabel2:=False;
           if (bits_left < HUFF_LOOKAHEAD) then
           begin
             if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left, 0)) then
@@ -1005,35 +1052,39 @@ begin
             if (bits_left < HUFF_LOOKAHEAD) then
             begin
               nb := 1;
+              {$IFDEF NOGOTO}
+              if DoDecode(actbl) then
+                exit;
+              skiptolabel2:=True;
+              {$ELSE}
               goto label2;
+              {$ENDIF}
             end;
           end;
           {look := PEEK_BITS(HUFF_LOOKAHEAD);}
-          look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
-                       pred(1 shl HUFF_LOOKAHEAD);
-
-          nb := actbl^.look_nbits[look];
-          if (nb <> 0) then
-          begin
-            {DROP_BITS(nb);}
-            Dec(bits_left, nb);
-
-            s := actbl^.look_sym[look];
-          end
-          else
-          begin
-            nb := HUFF_LOOKAHEAD+1;
-        label2:
-            s := jpeg_huff_decode(br_state,get_buffer,bits_left,actbl,nb);
-            if (s < 0) then
+          if not SkipToLabel2 then
             begin
-              decode_mcu := FALSE;
-              exit;
-            end;
-            get_buffer := br_state.get_buffer;
-            bits_left := br_state.bits_left;
-          end;
+              look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
+                           pred(1 shl HUFF_LOOKAHEAD);
 
+              nb := actbl^.look_nbits[look];
+              if (nb <> 0) then
+              begin
+                {DROP_BITS(nb);}
+                Dec(bits_left, nb);
+
+                s := actbl^.look_sym[look];
+              end
+              else
+              begin
+                nb := HUFF_LOOKAHEAD+1;
+                {$IFNDEF NOGOTO}
+                label2:
+                {$ENDIF}
+                if DoDecode(actbl) then
+                  exit;
+              end;
+            end;
           r := s shr 4;
           s := s and 15;
 
@@ -1084,6 +1135,7 @@ begin
         k := 1;
         while (k < DCTSIZE2) do
         begin
+          SkipToLabel3:=False;
           {HUFF_DECODE(s, br_state, actbl, return FALSE, label3);}
           if (bits_left < HUFF_LOOKAHEAD) then
           begin
@@ -1097,35 +1149,39 @@ begin
             if (bits_left < HUFF_LOOKAHEAD) then
             begin
               nb := 1;
+              {$IFDEF NOGOTO}
+              if DoDecode(actbl) then
+                exit;
+              SkipToLabel3:=True;
+              {$ELSE}
               goto label3;
+              {$ENDIF}
             end;
           end;
-          {look := PEEK_BITS(HUFF_LOOKAHEAD);}
-          look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
-                       pred(1 shl HUFF_LOOKAHEAD);
-
-          nb := actbl^.look_nbits[look];
-          if (nb <> 0) then
-          begin
-            {DROP_BITS(nb);}
-            Dec(bits_left, nb);
-
-            s := actbl^.look_sym[look];
-          end
-          else
-          begin
-            nb := HUFF_LOOKAHEAD+1;
-        label3:
-            s := jpeg_huff_decode(br_state,get_buffer,bits_left,actbl,nb);
-            if (s < 0) then
+          if not SkipToLabel3 then
             begin
-              decode_mcu := FALSE;
-              exit;
-            end;
-            get_buffer := br_state.get_buffer;
-            bits_left := br_state.bits_left;
-          end;
+              {look := PEEK_BITS(HUFF_LOOKAHEAD);}
+              look := int(get_buffer shr (bits_left -  HUFF_LOOKAHEAD)) and
+                           pred(1 shl HUFF_LOOKAHEAD);
 
+              nb := actbl^.look_nbits[look];
+              if (nb <> 0) then
+              begin
+                {DROP_BITS(nb);}
+                Dec(bits_left, nb);
+
+                s := actbl^.look_sym[look];
+              end
+              else
+              begin
+                nb := HUFF_LOOKAHEAD+1;
+                {$IFNDEF NOGOTO}
+                label3:
+                {$ENDIF}
+                if DoDecode(actbl) then exit;
+
+              end;
+            end;
           r := s shr 4;
           s := s and 15;
 

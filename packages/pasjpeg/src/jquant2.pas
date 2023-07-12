@@ -368,10 +368,13 @@ end;
 
 {LOCAL}
 procedure update_box (cinfo : j_decompress_ptr; var boxp : box);
+{$IFNDEF NOGOTO}
 label
   have_c0min, have_c0max,
   have_c1min, have_c1max,
   have_c2min, have_c2max;
+{$ENDIF}
+
 { Shrink the min/max bounds of a box to enclose only nonzero elements, }
 { and recompute its volume and population }
 var
@@ -382,6 +385,9 @@ var
   c0min,c0max,c1min,c1max,c2min,c2max : int;
   dist0,dist1,dist2 : INT32;
   ccount : long;
+{$IFDEF NOGOTO}
+  doBreak : boolean;
+{$ENDIF}
 begin
   cquantize := my_cquantize_ptr(cinfo^.cquantize);
   histogram := cquantize^.histogram;
@@ -390,8 +396,12 @@ begin
   c1min := boxp.c1min;  c1max := boxp.c1max;
   c2min := boxp.c2min;  c2max := boxp.c2max;
 
+{$IFDEF NOGOTO}
+DoBreak:=False;
+{$ENDIF}
   if (c0max > c0min) then
     for c0 := c0min to c0max do
+      begin
       for c1 := c1min to c1max do
       begin
         histp := @(histogram^[c0]^[c1][c2min]);
@@ -401,29 +411,60 @@ begin
           begin
             c0min := c0;
             boxp.c0min := c0min;
+            {$IFDEF NOGOTO}
+            DoBreak:=True;
+            Break; // inner loop
+            {$ELSE}
             goto have_c0min;
+            {$ENDIF}
           end;
           Inc(histp);
         end;
       end;
+      {$IFDEF NOGOTO}
+      if DoBreak then
+        Break;
+      {$ENDIF}
+      end;
+
+{$IFNDEF NOGOTO}
  have_c0min:
+{$ELSE}
+ DoBreak:=False;
+{$ENDIF}
   if (c0max > c0min) then
     for c0 := c0max downto c0min do
-      for c1 := c1min to c1max do
       begin
-        histp := @(histogram^[c0]^[c1][c2min]);
-        for c2 := c2min to c2max do
+        for c1 := c1min to c1max do
         begin
-          if ( histp^ <> 0) then
+          histp := @(histogram^[c0]^[c1][c2min]);
+          for c2 := c2min to c2max do
           begin
-            c0max := c0;
-            boxp.c0max := c0;
-            goto have_c0max;
+            if ( histp^ <> 0) then
+            begin
+              c0max := c0;
+              boxp.c0max := c0;
+              {$IFDEF NOGOTO}
+              DoBreak:=True;
+              Break; // inner loop
+              {$ELSE}
+              goto have_c0max;
+              {$ENDIF}
+            end;
+            Inc(histp);
           end;
-          Inc(histp);
         end;
+        {$IFDEF NOGOTO}
+        if DoBreak then
+          Break;
+        {$ENDIF}
       end;
- have_c0max:
+
+{$IFNDEF NOGOTO}
+  have_c0max:
+{$ELSE}
+  DoBreak:=False;
+{$ENDIF}
   if (c1max > c1min) then
     for c1 := c1min to c1max do
       for c0 := c0min to c0max do
@@ -435,12 +476,26 @@ begin
           begin
             c1min := c1;
             boxp.c1min := c1;
+            {$IFDEF NOGOTO}
+            DoBreak:=True;
+            Break; // inner loop
+            {$ELSE}
             goto have_c1min;
+            {$ENDIF}
           end;
           Inc(histp);
         end;
+        {$IFDEF NOGOTO}
+        if DoBreak then
+          Break;
+        {$ENDIF}
       end;
- have_c1min:
+{$IFNDEF NOGOTO}
+  have_c1min:
+{$ELSE}
+  DoBreak:=False;
+{$ENDIF}
+
   if (c1max > c1min) then
     for c1 := c1max downto c1min do
       for c0 := c0min to c0max do
@@ -452,46 +507,92 @@ begin
           begin
             c1max := c1;
             boxp.c1max := c1;
+            {$IFDEF NOGOTO}
+            DoBreak:=True;
+            Break; // inner loop
+            {$ELSE}
             goto have_c1max;
+            {$ENDIF}
           end;
           Inc(histp);
         end;
+        {$IFDEF NOGOTO}
+        if DoBreak then
+          Break;
+        {$ENDIF}
       end;
- have_c1max:
+{$IFNDEF NOGOTO}
+  have_c1max:
+{$ELSE}
+  DoBreak:=False;
+{$ENDIF}
+
   if (c2max > c2min) then
     for c2 := c2min to c2max do
-      for c0 := c0min to c0max do
       begin
-        histp := @(histogram^[c0]^[c1min][c2]);
-        for c1 := c1min to c1max do
+        for c0 := c0min to c0max do
         begin
-          if (histp^ <> 0) then
+          histp := @(histogram^[c0]^[c1min][c2]);
+          for c1 := c1min to c1max do
           begin
-            c2min := c2;
-            boxp.c2min := c2min;
-            goto have_c2min;
+            if (histp^ <> 0) then
+            begin
+              c2min := c2;
+              boxp.c2min := c2min;
+              {$IFDEF NOGOTO}
+              DoBreak:=True;
+              Break; // inner loop
+              {$ELSE}
+              goto have_c2min;
+              {$ENDIF}
+            end;
+            Inc(histp, HIST_C2_ELEMS);
           end;
-          Inc(histp, HIST_C2_ELEMS);
         end;
+        {$IFDEF NOGOTO}
+        if DoBreak then
+          Break;
+        {$ENDIF}
       end;
- have_c2min:
+{$IFNDEF NOGOTO}
+  have_c2min:
+{$ELSE}
+  DoBreak:=False;
+{$ENDIF}
+
   if (c2max > c2min) then
     for c2 := c2max downto c2min do
-      for c0 := c0min to c0max do
       begin
-        histp := @(histogram^[c0]^[c1min][c2]);
-        for c1 := c1min to c1max do
+        for c0 := c0min to c0max do
         begin
-          if (histp^ <> 0) then
+          histp := @(histogram^[c0]^[c1min][c2]);
+          for c1 := c1min to c1max do
           begin
-            c2max := c2;
-            boxp.c2max := c2max;
-            goto have_c2max;
+            if (histp^ <> 0) then
+            begin
+              c2max := c2;
+              boxp.c2max := c2max;
+              {$IFDEF NOGOTO}
+              DoBreak:=True;
+              Break; // inner loop
+              {$ELSE}
+              goto have_c2max;
+              {$ENDIF}
+            end;
+            Inc(histp, HIST_C2_ELEMS);
           end;
-          Inc(histp, HIST_C2_ELEMS);
         end;
+        {$IFDEF NOGOTO}
+        if DoBreak then
+          Break;
+        {$ENDIF}
       end;
- have_c2max:
+{$IFNDEF NOGOTO}
+  have_c2max:
+{$ELSE}
+  DoBreak:=False;
+{$ENDIF}
+
 
   { Update box volume.
     We use 2-norm rather than real volume here; this biases the method
