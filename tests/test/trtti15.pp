@@ -183,8 +183,10 @@ const
 begin
   Writeln('Testing interface ITestRaw');
   { raw interfaces don't support $M+ currently }
-  TestInterface(GetTypeData(TypeInfo(ITestRaw)), True, 'Test', 0{1}, [
-      MakeMethod('Test', ccReg, mkFunction, TypeInfo(LongInt), [])
+  TestInterface(GetTypeData(TypeInfo(ITestRaw)), True, 'Test',1, [
+      MakeMethod('Test', ccReg, mkFunction, TypeInfo(LongInt), [
+      MakeParam('$self', [pfHidden, pfSelf, pfAddress], TypeInfo(ITestRaw))
+      ])
     ]);
 
   Writeln('Testing interface ITest');
