@@ -21,7 +21,7 @@
 unit Pas2jsLogger;
 
 {$mode objfpc}{$H+}
-
+{$WARN 6018 off : Unreachable code}
 {$i pas2js_defines.inc}
 
 interface
