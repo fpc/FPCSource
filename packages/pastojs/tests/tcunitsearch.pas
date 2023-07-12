@@ -877,7 +877,7 @@ begin
   AddUnit('unit1.pas',
   ['var a: longint;'],
   ['']);
-  AddUnit('sub/unit1.pas',
+  AddUnit('sub'+PathDelim+'unit1.pas',
   ['var b: longint;'],
   ['']);
   AddFile('test1.pas',[
@@ -887,7 +887,7 @@ begin
     '  a:=b;',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'sub/unit1.pas" and "'+WorkDir+'unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'sub'+PathDelim+'unit1.pas" and "'+WorkDir+'unit1.pas"',ErrorMsg);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_IndirectDuplicate;
@@ -897,7 +897,7 @@ begin
   AddUnit('unit1.pas',
   ['var a: longint;'],
   ['']);
-  AddUnit('sub/unit1.pas',
+  AddUnit('sub'+PathDelim+'unit1.pas',
   ['var b: longint;'],
   ['']);
   AddUnit('unit2.pas',
@@ -908,7 +908,7 @@ begin
     'begin',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'unit1.pas" and "'+WorkDir+'sub/unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "'+WorkDir+'unit1.pas" and "'+WorkDir+'sub'+PathDelim+'unit1.pas"',ErrorMsg);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile_WorkNotEqProgDir;

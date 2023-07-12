@@ -32,6 +32,7 @@ const
   // default parser+scanner options
   po_tcmodules = po_Pas2js+[po_KeepScannerError];
   co_tcmodules = [];
+  JSONNewLine = {$IFDEF Windows}'\r\n'{$ELSE}'\n'{$ENDIF};
 type
   TSrcMarkerKind = (
     mkLabel,
@@ -8877,11 +8878,11 @@ begin
   CheckSource('TestStringConst_Multiline',
     LinesToStr([
     'this.a = "";',
-    'this.b = "\nline";',
+    'this.b = "'+JSONNewLine+'line";',
     'this.c = "Single";',
     'this.d = "`";',
     'this.e = "abc`xyz";',
-    'this.f = "first''line\n       second''line\n";',
+    'this.f = "first''line'+JSONNewLine+'       second''line\n";',
     '']),
     LinesToStr([
     ]));
