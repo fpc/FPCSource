@@ -21,17 +21,10 @@ uses
   SysUtils,Classes, FPImage, FPImgCmn, PNGComn, ZStream;
 
 Type
+  { TFPReaderPNG }
 
   TSetPixelProc = procedure (x,y:integer; CD : TColordata) of object;
   TConvertColorProc = function (CD:TColorData) : TFPColor of object;
-
-  TPNGPhysicalDimensions = packed record
-    X_Pixels, Y_Pixels :DWord;
-    Unit_Specifier :Byte;
-  end;
-  PPNGPhysicalDimensions=^TPNGPhysicalDimensions;
-
-  { TFPReaderPNG }
 
   TFPReaderPNG = class (TFPCustomImageReader)
     private

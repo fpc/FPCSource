@@ -44,7 +44,6 @@ uses
   Math, Classes, SysUtils, zbase, zdeflate, FPimage, FPTiffCmn;
 
 type
-
   { TTiffWriterEntry }
 
   TTiffWriterEntry = class
@@ -88,7 +87,6 @@ type
     procedure SortEntries;
     procedure WriteTiff;
     procedure WriteHeader;
-    procedure WriteIFDs;
     procedure WriteEntry(Entry: TTiffWriterEntry);
     procedure WriteData;
     procedure WriteEntryData(Entry: TTiffWriterEntry);
@@ -96,6 +94,7 @@ type
     procedure WriteWord(w: Word);
     procedure WriteDWord(d: DWord);
   protected
+    procedure WriteIFDs; virtual;
     procedure InternalWrite(Stream: TStream; Img: TFPCustomImage); override;
     procedure AddEntryString(Tag: word; const s: string);
     procedure AddEntryShort(Tag: word; Value: Word);
@@ -124,8 +123,6 @@ function CompressDeflate(InputData: PByte; InputCount: cardinal;
   ErrorMsg: PAnsiString = nil): boolean;
 
 implementation
-
-uses FPReadTiff;
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
 begin
