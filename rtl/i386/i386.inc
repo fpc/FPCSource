@@ -440,6 +440,7 @@ function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt; forward;
 
 var
   IndexByte_Impl: function(const buf;len:SizeInt;b:byte):SizeInt = @IndexByte_Dispatch;
+{$define has_i386_IndexByte_Impl} { used in assembler to manually inline IndexByte }
 
 function IndexByte_Dispatch(const buf;len:SizeInt;b:byte):SizeInt;
 begin
@@ -1519,8 +1520,10 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
-var
-  saveres,saveebx,saveesi,saveedi : longint;
+{$ifndef FPC_PROFILE}
+  nostackframe;
+{$endif}
+// eax = res, edx = high(res), ecx = p
 asm
 {$ifdef FPC_PROFILE}
         push  %eax
@@ -1531,87 +1534,65 @@ asm
         pop   %edx
         pop   %eax
 {$endif FPC_PROFILE}
-        movl    %ebx,saveebx
-        movl    %esi,saveesi
-        movl    %edi,saveedi
-        movl    %ecx,%esi
-        movl    %eax,%edi
-        movl    %edi,saveres
-        movl    $1,%ecx
-        testl   %esi,%esi
-        movl    %esi,%eax
-        jz      .LStrPasDone
-        leal    3(%esi),%edx
-        andl    $-4,%edx
-        // skip length byte
-        incl    %edi
-        subl    %esi,%edx
-        jz      .LStrPasAligned
-        // align source to multiple of 4 (not dest, because we can't read past
-        // the end of the source, since that may be past the end of the heap
-        // -> sigsegv!!)
-.LStrPasAlignLoop:
-        movb    (%esi),%al
-        incl    %esi
-        testb   %al,%al
-        jz      .LStrPasDone
-        incl    %edi
-        incb    %cl
-        decb    %dl
-        movb    %al,-1(%edi)
-        jne     .LStrPasAlignLoop
-        .balign  16
-.LStrPasAligned:
-        movl    (%esi),%ebx
-        addl    $4,%edi
-        leal    0x0fefefeff(%ebx),%eax
-        movl    %ebx,%edx
-        addl    $4,%esi
-        notl    %edx
-        andl    %edx,%eax
-        addl    $4,%ecx
-        andl    $0x080808080,%eax
-        movl    %ebx,-4(%edi)
-        jnz     .LStrPasEndFound
-        cmpl    $252,%ecx
-        ja      .LStrPasPreEndLoop
-        jmp     .LStrPasAligned
-.LStrPasEndFound:
-        subl    $4,%ecx
-        // this won't overwrite data since the result = 255 AnsiChar string
-        // and we never process more than the first 255 chars of p
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        shrl    $8,%eax
-        jc      .LStrPasDone
-        incl    %ecx
-        jmp     .LStrPasDone
-.LStrPasPreEndLoop:
-        testb   %cl,%cl
-        jz      .LStrPasDone
-        movl    (%esi),%eax
-.LStrPasEndLoop:
-        testb   %al,%al
-        jz      .LStrPasDone
-        movb    %al,(%edi)
-        shrl    $8,%eax
-        incl    %edi
-        incb    %cl
-        jnz     .LStrPasEndLoop
-.LStrPasDone:
-        movl    saveres,%edi
-        addb    $255,%cl
-        movb    %cl,(%edi)
-        movl    saveesi,%esi
-        movl    saveedi,%edi
-        movl    saveebx,%ebx
+        test    %ecx, %ecx
+        jz      .LEmpty
+        push    %eax { save res }
+        push    %ecx { save p }
+        push    %edx { save high(res) }
+        mov     %ecx, %eax { eax = IndexByte.buf }
+        { edx is already high(res) = IndexByte.count.
+          Careful: using high(res) instead of -1 limits the scan by high(res) which is a good thing,
+          but assumes that IndexByte is “safe” and won’t read potentially invalid memory past the searched byte even if formally (and wrongly) allowed by ‘count’.
+          Generic and x86 versions are “safe”. }
+        xor     %ecx, %ecx { ecx = 0 = IndexByte.value }
+        { Stack is already aligned on 16 bytes if the function is nostackframe: return address + push eax + push ecx + push edx.
+          With a stack frame, there is an additional push ebp and need 12 more bytes to align. }
+{$if defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
+        leal    -12(%esp), %esp
+{$endif defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
+{$if defined(FPC_PIC) or not defined(has_i386_IndexByte_Impl)}
+        call    IndexByte
+{$else}
+        call    IndexByte_Impl { manually inline IndexByte }
+{$endif}
+{$if defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
+        leal    12(%esp), %esp
+{$endif defined(FPC_SYSTEM_STACKALIGNMENT16) and defined(FPC_PROFILE)}
+        pop     %ecx { ecx = high(res) = Move.len }
+        test    %eax, %eax { If IndexByte result (eax) is non-negative (terminator is among first high(res) characters), use it, otherwise keep high(res). }
+{$ifdef CPUX86_HAS_CMOV}
+        cmovns  %eax, %ecx
+{$else}
+        js      .LEcxIsLen
+        mov     %eax, %ecx
+.LEcxIsLen:
+{$endif}
+        pop     %eax { pop p to eax = Move.src }
+        pop     %edx { pop res to edx }
+        mov     %cl, (%edx) { res[0] := len }
+        inc     %edx { res[1] = Move.dst }
+{$ifdef FPC_PROFILE}
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    -12(%esp), %esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
+        call    Move
+{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
+        leal    12(%esp), %esp
+{$endif FPC_SYSTEM_STACKALIGNMENT16}
+        jmp     .LReturn
+{$else FPC_PROFILE}
+        jmp     Move { can perform a tail call }
+{$endif FPC_PROFILE}
+
+.LEmpty:
+        movb    $0, (%eax)
+{$ifdef FPC_PROFILE}
+.LReturn:
+{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+{$undef has_i386_IndexByte_Impl} { no longer required }
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
