@@ -55,4 +55,5 @@ begin
       wasError := True;
   end;
   assert(wasError);
+  writeln('All OK');
 end.

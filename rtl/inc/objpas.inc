@@ -1241,6 +1241,19 @@ begin
     FCallBack(Self,aMethod,aCount,aData); 
 end;
 
+function TInterfaceThunk.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+
+begin
+  result:=longint(E_NOINTERFACE);
+  if (TMethod(FCallBack).Data<>Nil) then
+    // Query the object that created us, this is normally TVirtualInterface
+    // Take care: do not call QueryInterface, that would create a never-ending loop !!
+    if TObject(TMethod(FCallBack).Data).GetInterface(iid,obj) then
+      result:=S_OK;
+  if (Result<>S_OK) then
+    Result:=Inherited QueryInterface(iid,obj);
+end;
+
 function TInterfaceThunk.InterfaceVMTOffset : word;
 
 begin

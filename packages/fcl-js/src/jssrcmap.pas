@@ -704,7 +704,7 @@ var
       buf.Write(s[1],length(s)*sizeof(char));
   end;
 
-  procedure AddChar(c: char);
+  procedure AddChar({%H-}c: char);
   begin
     buf.Write(c,sizeof(char));
   end;

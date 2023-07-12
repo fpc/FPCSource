@@ -1,4 +1,4 @@
-{ ********************************************************************* 
+{ *********************************************************************
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2016 Michael Van Canneyt.
        
@@ -29,10 +29,8 @@ uses
 Type
   {$ifdef pas2js}
   TJSWriterString = UnicodeString;
-  TJSWriterChar = WideChar;
   {$else}
   TJSWriterString = AnsiString;
-  TJSWriterChar = AnsiChar;
   {$endif}
 
   TTextWriter = class;
@@ -97,7 +95,7 @@ Type
   end;
   {$endif}
 
-  TBufferWriter_Buffer = Array of {$ifdef fpc}byte{$else}string{$endif};
+  TBufferWriter_Buffer = Array of {$IFDEF PAS2JS}String{$ELSE}Byte{$ENDIF};
 
   { TBufferWriter }
 
@@ -382,22 +380,24 @@ begin
   FCapacity:=FBufPos;
 end;
 {$else}
-Var
-  DesLen,MinLen : Integer;
+var
+  DesLen,MinLen : Cardinal;
 
 begin
-  Result:=Length(S)*SizeOf(TJSWriterChar);
-  if Result=0 then exit;
-  MinLen:=Result+integer(FBufPos);
-  If (MinLen>integer(Capacity)) then
+  Result := Length(S);
+  if Result = 0 then
+    Exit;
+
+  MinLen:=Result + FBufPos;
+  if MinLen > Capacity then
     begin
-    DesLen:=(FCapacity*3) div 2;
-    if DesLen>MinLen then
-      MinLen:=DesLen;
-    Capacity:=MinLen;
+    DesLen:=(FCapacity * 3) div 2;
+    if DesLen > MinLen then
+      MinLen := DesLen;
+    Capacity := MinLen;
     end;
-  Move(S[1],FBuffer[FBufPos],Result);
-  FBufPos:=integer(FBufPos)+Result;
+  Move(S[1], FBuffer[FBufPos], Result);
+  FBufPos:=FBufPos + Result;
 end;
 {$endif}
 
