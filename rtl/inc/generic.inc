@@ -994,18 +994,24 @@ end;
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   l : ObjpasInt;
-  s: shortstring;
 begin
   if p=nil then
-    l:=0
-  else
-    l:=strlen(p);
+    begin
+      res[0]:=#0;
+      exit;
+    end;
+{ On platforms where IndexByte with len > 0 will not read the invalid memory past the null terminator, high(res) can be used as a limit. }
+{$if defined(cpui386) or defined(cpux86_64)}
+  l:=IndexByte(p^,high(res),0);
+  if l<0 then
+    l:=high(res);
+{$else IndexByte(p^,high(res),0) can crash}
+  l:=strlen(p);
   if l>high(res) then
     l:=high(res);
-  if l>0 then
-    move(p^,s[1],l);
-  s[0]:=chr(l);
-  res:=s;
+{$endif IndexByte(p^,high(res),0) can crash}
+  move(p^,res[1],l);
+  res[0]:=chr(l);
 end;
 
 
