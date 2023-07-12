@@ -198,6 +198,7 @@ begin
   Inc(FErrorCount);
   if aContext.Error is EParserError then
     FLastErrorNumber:=EParserError(aContext.Error).ErrNo;
+  if Allow then ;
 end;
 
 procedure TTestParser.SetupParser;
