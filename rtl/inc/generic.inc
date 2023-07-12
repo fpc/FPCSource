@@ -1322,7 +1322,7 @@ end;
 function fpc_pchar_length(p:PAnsiChar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   if assigned(p) then
-    Result:=IndexByte(p^,high(Result),0)
+    Result:=IndexByte(p^,-1,0)
   else
     Result:=0;
 end;
