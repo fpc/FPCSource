@@ -128,10 +128,12 @@ begin
           AddUnit('fpimage');
           AddUnit('bmpcomn');
         end;
+    T:=P.Targets.AddUnit('jpegcomn.pas');    
     T:=P.Targets.AddUnit('fpreadjpeg.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
+          Addunit('jpegcomn');
         end;
     T:=P.Targets.AddUnit('fpreadpcx.pas');
       with T.Dependencies do
@@ -195,7 +197,7 @@ begin
       with T.Dependencies do
         begin
           AddUnit('fpimage');
-          AddUnit('fpreadjpeg');
+          AddUnit('jpegcomn');
         end;
     T:=P.Targets.AddUnit('fpwritepcx.pas');
       with T.Dependencies do
