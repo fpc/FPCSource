@@ -171,6 +171,9 @@ function inflate_blocks (var s : inflate_blocks_state;
                          var z : z_stream;
                          r : integer) : integer;           { initial return code }
 
+Type
+  tblockaction = (baFallThrough,baContinue,baExit);
+
 var
   t : cardinal;               { temporary storage }
   b : cardinal;              { bit buffer }
@@ -189,7 +192,7 @@ var
 var
   cs : pInflate_codes_state;
   
-  procedure do_btree;
+  function do_btree : TBlockAction;
   
   begin
     while (s.sub.trees.index < 4 + (s.sub.trees.table shr 10)) do
@@ -210,7 +213,7 @@ var
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
-          exit;
+          exit(baExit);
         end;
         dec(n);
         b := b or (cardinal(p^) shl k);
@@ -247,7 +250,7 @@ var
       z.next_in := p;
       s.write := q;
       inflate_blocks := inflate_flush(s,z,r);
-      exit;
+      exit(baExit);
     end;
     s.sub.trees.index := 0;
     {$IFDEF ZLIB_DEBUG}
@@ -255,9 +258,10 @@ var
     {$ENDIF}
     s.mode := DTREE;
     { fall through again }
+    do_btree:=baFallThrough;
   end;
   
-  procedure do_dtree;
+  function do_dtree : TBlockaction;
   
   begin
     while TRUE do
@@ -283,7 +287,7 @@ var
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
-          exit;
+          exit(baExit);
         end;
         dec(n);
         b := b or (cardinal(p^) shl k);
@@ -333,7 +337,7 @@ var
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
-            exit;
+            exit(baExit);
           end;
           dec(n);
           b := b or (cardinal(p^) shl k);
@@ -368,7 +372,7 @@ var
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
-          exit;
+          exit(baExit);
         end;
         if c = 16 then
           c := s.sub.trees.blens^[i - 1]
@@ -405,7 +409,7 @@ var
         z.next_in := p;
         s.write := q;
         inflate_blocks := inflate_flush(s,z,r);
-        exit;
+        exit(baExit);
       end;
       {$IFDEF ZLIB_DEBUG}
       Tracev('inflate:       trees ok');
@@ -423,14 +427,16 @@ var
         z.next_in := p;
         s.write := q;
         inflate_blocks := inflate_flush(s,z,r);
-        exit;
+        exit(baExit);
       end;
       s.sub.decode.codes := cs;
     end;
     s.mode := CODES;
+    do_dtree:=baFallThrough;
   end;
-  
-  function do_codes: boolean;
+
+
+  function do_codes: tblockaction;
   
   begin
     { update pointers }
@@ -445,7 +451,7 @@ var
     if (r <> Z_STREAM_END) then
     begin
       inflate_blocks := inflate_flush(s, z, r);
-      exit;
+      exit(baExit);
     end;
     r := Z_OK;
     inflate_codes_free(s.sub.decode.codes, z);
@@ -471,7 +477,7 @@ var
     if (not s.last) then
     begin
       s.mode := ZTYPE;
-      exit(false); { break for switch statement in C-code }
+      exit(baContinue); { break for switch statement in C-code }
     end;
     {$ifndef patch112}
     if (k > 7) then           { return unused byte, if any }
@@ -485,10 +491,10 @@ var
     end;
     {$endif}
     s.mode := DRY;
-    do_codes:=true;
+    do_codes:=baFallThrough;
   end;
 
-  procedure do_dry;
+  function do_dry : tblockaction;
   
   begin
     {FLUSH}
@@ -513,9 +519,10 @@ var
       z.next_in := p;
       s.write := q;
       inflate_blocks := inflate_flush(s,z,r);
-      exit;
+      exit(baExit);
     end;
     s.mode := BLKDONE;
+    do_dry:=baFallThrough;
   end;
 
   procedure do_blkdone;
@@ -880,44 +887,62 @@ begin
         s.mode := BTREE;
         { fall trough case is handled by the while }
         { try GOTO for speed - Nomssi }
-        do_btree;
-        do_dtree;
-        if not do_codes then 
-          continue;
-        do_dry;
+        if do_btree=baExit then
+          Exit;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
+          exit;
         do_blkdone;
         exit;
       end;
     BTREE:
       begin
-        do_btree;
-        do_dtree;
-        if not do_codes then
-          continue;
-        do_dry;
+        if do_btree=baExit then
+          Exit;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
+          exit;
         do_blkdone;
         exit;
       end;
     DTREE:
       begin
-        do_dtree;
-        if not do_codes then 
-          continue;
-        do_dry;
+        if do_dtree=baExit then
+          Exit;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
+          exit;
         do_blkdone;
         exit;
       end;
     CODES:
       begin
-        if not do_codes then 
-          continue;
-        do_dry;
+        Case do_codes of
+          baContinue : continue;
+          baExit : Exit;
+        end;
+        if do_dry=baExit then
+          exit;
         do_blkdone;
         exit;
       end;
     DRY:
       begin
-        do_dry;
+        if do_dry=baExit then
+          exit;
         do_blkdone;
         exit;
       end;
