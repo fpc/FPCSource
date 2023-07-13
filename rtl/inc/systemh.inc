@@ -1562,6 +1562,10 @@ Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$define FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
 {$endif}
 
+{$ifdef CPUI8086}
+   {$define FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
+{$endif CPUI806}
+
 {$ifdef cpu16}
 function AtomicIncrement (var Target: smallint) : smallint; {$ifdef SYSTEMINLINE}inline{$endif};
 function AtomicDecrement (var Target: smallint) : smallint; {$ifdef SYSTEMINLINE}inline{$endif};
@@ -1593,7 +1597,11 @@ function InterlockedExchange64 (var Target: int64;Source : int64) : int64; publi
 function InterlockedExchangeAdd64 (var Target: int64;Source : int64) : int64; public name 'FPC_INTERLOCKEDEXCHANGEADD64';
 function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64; public name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 {$endif cpu64}
+
 { Pointer overloads }
+
+{$ifndef FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
+
 function AtomicIncrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
 function AtomicDecrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
 function AtomicCmpExchange(var Target: pointer; NewValue, Comperand: pointer): pointer; {$ifdef SYSTEMINLINE}inline{$endif};
@@ -1609,6 +1617,7 @@ function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comp
 { Note: in case of FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER this is an alias for
         InterlockedCompareExchange (this doesn't work with inline however) }
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; {$ifndef FPC_INTERLOCKED_POINTER_INLINE}inline;{$else}external name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
+}
 {$elseif defined(cpu64)}
 function InterlockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT64';
 function InterlockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT64';
@@ -1624,6 +1633,9 @@ function InterlockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer
 function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$endif FPC_HAS_EXPLICIT_INTERLOCKED_POINTER / CPU64}
+
+{$endif FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
+
 { unsigned overloads }
 {$ifdef cpu16}
 function AtomicIncrement (var Target: word) : word; {$ifdef SYSTEMINLINE}inline{$endif};

@@ -2306,6 +2306,8 @@ end;
 
 { Pointer overloads }
 
+{$ifndef FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
+
 function AtomicIncrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
 
 begin
@@ -2364,6 +2366,8 @@ begin
 {$ENDIF}
 {$ENDIF}
 end;
+
+{$endif FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
 
 function AtomicIncrement (var Target: Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
 
