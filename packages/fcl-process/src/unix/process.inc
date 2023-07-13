@@ -454,10 +454,6 @@ begin
 end;
 
 Function TProcess.WaitOnExit : Boolean;
-
-Var
-  R : Dword;
-
 begin
   if FRunning then
     fexitcode:=waitprocess(handle);
