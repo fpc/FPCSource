@@ -175,10 +175,12 @@ begin
         begin
           AddUnit('fpimage');
         end;
+    T:=P.Targets.AddUnit('psdcomn.pas');
     T:=P.Targets.AddUnit('fpreadpsd.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
+          AddUnit('psdcomn');
         end;
     T:=P.Targets.AddUnit('xwdfile.pp');
     T:=P.Targets.AddUnit('fpreadxwd.pas');
