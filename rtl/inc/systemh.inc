@@ -1617,7 +1617,7 @@ function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comp
 { Note: in case of FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER this is an alias for
         InterlockedCompareExchange (this doesn't work with inline however) }
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; {$ifndef FPC_INTERLOCKED_POINTER_INLINE}inline;{$else}external name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
-}
+
 {$elseif defined(cpu64)}
 function InterlockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT64';
 function InterlockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT64';
