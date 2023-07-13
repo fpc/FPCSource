@@ -205,6 +205,7 @@ type
     Procedure TestVarInitConst;
     Procedure TestVarOfVarFail;
     Procedure TestConstOfVarFail;
+    Procedure TestConstSelfFail;
     Procedure TestTypedConstWrongExprFail;
     Procedure TestVarWrongExprFail;
     Procedure TestArgWrongExprFail;
@@ -2926,6 +2927,15 @@ begin
   Add('  b: a = 1;');
   Add('begin');
   CheckParserException('Expected type, but got variable',PParser.nParserExpectedTypeButGot);
+end;
+
+procedure TTestResolver.TestConstSelfFail;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  a = a;');
+  Add('begin');
+  CheckResolverException('identifier not found "a"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestTypedConstWrongExprFail;

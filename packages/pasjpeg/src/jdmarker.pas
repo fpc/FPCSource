@@ -537,17 +537,23 @@ end;  { get_sof }
 {LOCAL}
 function get_sos (cinfo : j_decompress_ptr) : boolean;
 { Process a SOS marker }
+{$IFNDEF NOGOTO}
 label
   id_found;
+{$ENDIF}
+
 var
   length : INT32;
   i, ci, n, c, cc : int;
   compptr : jpeg_component_info_ptr;
+  foundid : boolean;
+
 { Declare and initialize local copies of input pointer/count }
 var
   datasrc : jpeg_source_mgr_ptr;
   next_input_byte : JOCTETptr;    { Array[] of JOCTET; }
   bytes_in_buffer : size_t;
+
 begin
   datasrc := cinfo^.src;
   next_input_byte := datasrc^.next_input_byte;
@@ -674,16 +680,29 @@ begin
     Inc(next_input_byte);
 
     compptr := jpeg_component_info_ptr(cinfo^.comp_info);
+
+    FoundID:=False;
+
     for ci := 0 to Pred(cinfo^.num_components) do
     begin
-      if (cc = compptr^.component_id) then
+      FoundID:=(cc = compptr^.component_id);
+      if FoundID then
+        begin
+      {$IFDEF NOGOTO}
+        Break;
+      {$ELSE}
         goto id_found;
+      {$ENDIF}
+        end;
       Inc(compptr);
     end;
 
-    ERREXIT1(j_common_ptr(cinfo), JERR_BAD_COMPONENT_ID, cc);
+    if not FoundID then
+      ERREXIT1(j_common_ptr(cinfo), JERR_BAD_COMPONENT_ID, cc);
 
+  {$IFNDEF NOGOTO}
   id_found:
+  {$ENDIF}
 
     cinfo^.cur_comp_info[i] := compptr;
     compptr^.dc_tbl_no := (c shr 4) and 15;

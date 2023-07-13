@@ -28,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -128,10 +128,12 @@ begin
           AddUnit('fpimage');
           AddUnit('bmpcomn');
         end;
+    T:=P.Targets.AddUnit('jpegcomn.pas');    
     T:=P.Targets.AddUnit('fpreadjpeg.pas');
       with T.Dependencies do
         begin
           AddUnit('fpimage');
+          Addunit('jpegcomn');
         end;
     T:=P.Targets.AddUnit('fpreadpcx.pas');
       with T.Dependencies do
@@ -195,7 +197,7 @@ begin
       with T.Dependencies do
         begin
           AddUnit('fpimage');
-          AddUnit('fpreadjpeg');
+          AddUnit('jpegcomn');
         end;
     T:=P.Targets.AddUnit('fpwritepcx.pas');
       with T.Dependencies do
@@ -233,10 +235,12 @@ begin
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
-    T.Dependencies.AddInclude('libfreetype.inc');
+      T.CPUS:=T.CPUS-[wasm32];
+      T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       T.ResourceStrings:=true;
-    T.Dependencies.AddInclude('libfreetype.inc');
+      T.CPUS:=T.CPUS-[wasm32];
+      T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,ios,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin

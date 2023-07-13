@@ -10325,6 +10325,9 @@ begin
     FindData.Found:=DeclEl;
     end;
 
+  if (DeclEl is TPasVariable) and El.HasParent(DeclEl) then
+    RaiseIdentifierNotFound(20230712105546,aName,El);
+
   Ref:=CreateReference(DeclEl,El,Access,@FindData);
   CheckFoundElement(FindData,Ref);
 
