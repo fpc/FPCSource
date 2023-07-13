@@ -83,6 +83,11 @@ begin
           // ignore format in nasm
           skipnext:=true;
         end
+      else if copy(param,1,4)='-fo=' then  
+        begin
+        // Watcom
+        object_name:=copy(param,5,length(Param)-4);
+        end
       else if (Param[1]='-') then
         begin
           { option Param not handled }
