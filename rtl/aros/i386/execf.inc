@@ -71,12 +71,12 @@ begin
   GetLibAdress := Pointer((Base -(Offset * SizeOf(Pointer)))^);
 end;
 
-procedure Debug(s: string);
+procedure Debug(s: shortstring);
 type
   TkPrintf = function(Msg: PAnsiChar): Integer; cdecl;
 var
   kPrintf: TkPrintf;
-  d: string;
+  d: shortstring;
   i: Integer;
 begin
   if Assigned(AOS_ExecBase) then
@@ -93,7 +93,7 @@ begin
   end;
 end;
 
-procedure Debugln(s: string);
+procedure Debugln(s: shortstring);
 begin
   Debug(s + #10);
 end;
