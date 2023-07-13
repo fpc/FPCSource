@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$ifndef IN_SYSTEM}
+
 {$GOTO ON}
 {$define IN_DPMIEXCP_UNIT}
 {$ifndef NO_EXCEPTIONS_IN_SYSTEM}
@@ -474,12 +475,12 @@ const
                                   Helpers
 ****************************************************************************}
 
-procedure err(const x : string);
+procedure err(const x : shortstring);
 begin
    write(stderr, x);
 end;
 
-procedure errln(const x : string);
+procedure errln(const x : shortstring);
 begin
    writeln(stderr, x);
 end;
@@ -487,7 +488,7 @@ end;
 
 procedure itox(v,len : longint);
 var
-  st : string;
+  st : shortstring;
 begin
   st:=hexstr(v,len);
   err(st);
@@ -861,7 +862,7 @@ const
   old_video_mode : byte = 3;
 
 
-procedure dump_selector(const name : string; sel : word);
+procedure dump_selector(const name : shortstring; sel : word);
 var
   base,limit : longint;
 begin
