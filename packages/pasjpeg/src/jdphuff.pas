@@ -521,10 +521,11 @@ var
     if (s < 0) then
     begin
       decode_mcu_AC_first := FALSE;
-      exit;
+      exit(true);
     end;
     get_buffer := br_state.get_buffer;
     bits_left := br_state.bits_left;
+    DoDecode:=false;
   end;
 
 begin
