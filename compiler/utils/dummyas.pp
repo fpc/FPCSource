@@ -86,7 +86,7 @@ begin
       else if copy(param,1,4)='-fo=' then  
         begin
         // Watcom
-        object_name:=copy(param,5,length(Param)-4);
+        object_name:=copy(param,5);
         end
       else if (Param[1]='-') then
         begin
