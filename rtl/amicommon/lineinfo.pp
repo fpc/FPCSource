@@ -133,7 +133,7 @@ var
   filestab   : tstab;   { stab with current file info }
   filename,
   lastfilename,         { store last processed file }
-  dbgfn : string;
+  dbgfn : ansistring;
   lastopenstabs: Boolean; { store last result of processing a file }
 
   stabrelocofs,stabreloclen: longint;
