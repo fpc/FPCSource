@@ -384,7 +384,7 @@ Type
   UInt32  = Cardinal;
   UIntPtr = PtrUInt;
 
-{$IFDEF FPC_HAS_ANSICHAR_CHAR}
+{$IF DECLARED(AnsiChar)}
 // Compiler defines AnsiChar and WideChar, not AnsiChar
 {$IFDEF UNICODERTL}
   Char = WideChar;
