@@ -39,5 +39,6 @@ function StrPas(Str: PAnsiChar): string;overload;
 function StrPCopy(Dest: PAnsiChar; Const Source: string): PAnsiChar;overload;
 function StrPLCopy(Dest: PAnsiChar; Const Source: string; MaxLen: SizeUInt): PAnsiChar;overload;
 function StrAlloc(Size: cardinal): PAnsiChar;
+procedure StrDispose(Str: PAnsiChar);
 function StrBufSize(Str: PAnsiChar): Cardinal;
 
