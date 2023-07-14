@@ -398,15 +398,16 @@ Type
 {$ENDIF}
 
 { Zero - terminated strings }
-  PChar               = ^Char;
-  PPChar              = ^PChar;
-  PPPChar             = ^PPChar;
-
-  { AnsiChar is equivalent of AnsiChar, so we need
-    to use type renamings }
+  // Ansichar is the basic type
   TAnsiChar           = AnsiChar;
   PAnsiChar           = ^AnsiChar;
   PPAnsiChar          = ^PAnsiChar;
+  PPPAnsiChar         = ^PPAnsiChar;
+  
+  // Char is an alias
+  PChar               = ^Char;
+  PPChar              = ^PChar;
+  PPPChar             = ^PPChar;
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
