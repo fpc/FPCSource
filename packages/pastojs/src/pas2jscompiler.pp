@@ -2482,7 +2482,7 @@ begin
     {$ENDIF}
     try
       WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
-      aFileWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),buf);
+      aFileWriter.SaveJSToStream(WithUTF8BOM, TJSWriterString(ExtractFilename(MapFilename)), buf);
       {$IFDEF Pas2js}
       {$ELSE}
       buf.Position:=0;

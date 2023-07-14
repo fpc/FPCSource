@@ -65,7 +65,7 @@ type
   public
     property SrcMap: TPas2JSSrcMap read FSrcMap write SetSrcMap;
     destructor Destroy; override;
-    procedure SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: string; s: TFPJSStream);
+    procedure SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: TJSWriterString; s: TFPJSStream);
     procedure WriteFile(Src, Filename: string);
     // Final destination filename. Usually unit, unless combining javascript in single file.
     property DestFileName : String read FDestFileName Write FDestFileName;
@@ -226,14 +226,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean;
-  const MapFilename: string; s: TFPJSStream);
+procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean; const MapFilename: TJSWriterString; s: TFPJSStream);
 var
-  MapSrc: string;
+  MapSrc: TJSWriterString;
   {$ifdef pas2js}
   i: integer;
   {$ELSE}
-  bom: string;
+  bom: TJSWriterString;
   {$endif}
 begin
   if MapFilename<>'' then
