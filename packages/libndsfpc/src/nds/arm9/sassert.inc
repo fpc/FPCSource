@@ -1,12 +1,12 @@
 {$ifdef NDS_INTERFACE}
 procedure __sassert(const fileName: PAnsiChar; lineNumber: cint; const conditionString: PAnsiChar; const amessage: PAnsiChar); cdecl; external;
 procedure sassert(e: boolean; msg: ansistring); inline;
-procedure AssertErrorHandler(const Msg, Filename:ansistring; LineNumber: Integer; ErrorAddr: Pointer);
+procedure AssertErrorHandler(const Msg, Filename:shortstring; LineNumber: Integer; ErrorAddr: Pointer);
 
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
-procedure AssertErrorHandler(const Msg, Filename: Ansistring; LineNumber: Integer; ErrorAddr: Pointer);
+procedure AssertErrorHandler(const Msg, Filename: shortstring; LineNumber: Integer; ErrorAddr: Pointer);
 begin
   //ErrorAddr is address Assert will return to
   //(i.e. instruction following call to Assert).
