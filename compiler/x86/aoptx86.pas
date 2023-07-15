@@ -11721,7 +11721,7 @@ unit aoptx86;
           var
             RegSize: TSubRegister;
             CurrentVal: TCGInt;
-            NewReg: TRegister;
+            ANewReg: TRegister;
             X: ShortInt;
           begin
             Result := False;
@@ -11739,8 +11739,10 @@ unit aoptx86;
                 RegSize := R_SUBW;
               S_L:
                 RegSize := R_SUBD;
+{$ifdef x86_64}
               S_Q:
                 RegSize := R_SUBQ;
+{$endif x86_64}
               else
                 InternalError(2021100401);
             end;
@@ -11748,9 +11750,10 @@ unit aoptx86;
             { See if the value has already been reserved for another CMOV instruction }
             CurrentVal := taicpu(p).oper[0]^.val;
             for X := 0 to StoredCount - 1 do
-              if ConstVals[X] = CurrentVal then
+              if (ConstVals[X] = CurrentVal) and
+                (getsubreg(taicpu(p).oper[1]^.reg) <= getsubreg(ConstRegs[X])) then
                 begin
-                  ConstRegs[StoredCount] := ConstRegs[X];
+                  ConstRegs[StoredCount] := newreg(R_INTREGISTER, getsupreg(ConstRegs[X]), RegSize);
                   ConstVals[StoredCount] := CurrentVal;
                   Result := True;
 
@@ -11759,16 +11762,16 @@ unit aoptx86;
                   Exit;
                 end;
 
-            NewReg := GetIntRegisterBetween(RegSize, TmpUsedRegs, search_start_p, stop_search_p, True);
-            if NewReg = NR_NO then
+            ANewReg := GetIntRegisterBetween(RegSize, TmpUsedRegs, search_start_p, stop_search_p, True);
+            if ANewReg = NR_NO then
               { No free registers }
               Exit;
 
             { Reserve the register so subsequent TryCMOVConst calls don't all end
               up vying for the same register }
-            IncludeRegInUsedRegs(NewReg, TmpUsedRegs);
+            IncludeRegInUsedRegs(ANewReg, TmpUsedRegs);
 
-            ConstRegs[StoredCount] := NewReg;
+            ConstRegs[StoredCount] := ANewReg;
             ConstVals[StoredCount] := CurrentVal;
 
             Inc(StoredCount);
@@ -12338,7 +12341,7 @@ unit aoptx86;
                                           below) }
                                         if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                           begin
-                                            hp_new := taicpu.op_const_reg(A_MOV, taicpu(hp1).opsize, taicpu(hp1).oper[0]^.val, ConstRegs[x]);
+                                            hp_new := taicpu.op_const_reg(A_MOV, reg2opsize(ConstRegs[x]), taicpu(hp1).oper[0]^.val, ConstRegs[x]);
                                             taicpu(hp_new).fileinfo := taicpu(hp_prev).fileinfo;
 
                                             asml.InsertBefore(hp_new, hp_flagalloc);
@@ -12353,7 +12356,7 @@ unit aoptx86;
                                           hp_new := hpmov1;
 
                                         AllocRegBetween(ConstRegs[x], hp_new, hp1, UsedRegs);
-                                        taicpu(hp1).loadreg(0, ConstRegs[x]);
+                                        taicpu(hp1).loadreg(0, newreg(R_INTREGISTER, getsupreg(ConstRegs[X]), getsubreg(taicpu(hp1).oper[1]^.reg)));
                                         Inc(x);
                                       end;
 
@@ -12591,7 +12594,8 @@ unit aoptx86;
                                         RegMatch := False;
 
                                         for x := 0 to c - 1 do
-                                          if (ConstVals[x] = taicpu(hp1).oper[0]^.val) then
+                                          if (ConstVals[x] = taicpu(hp1).oper[0]^.val) and
+                                            (getsubreg(taicpu(hp1).oper[1]^.reg) <= getsubreg(ConstRegs[X])) then
                                             begin
                                               RegMatch := True;
 
@@ -12602,7 +12606,7 @@ unit aoptx86;
                                                 below) }
                                               if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                                 begin
-                                                  hp_new := taicpu.op_const_reg(A_MOV, taicpu(hp1).opsize, taicpu(hp1).oper[0]^.val, ConstRegs[x]);
+                                                  hp_new := taicpu.op_const_reg(A_MOV, reg2opsize(ConstRegs[X]), taicpu(hp1).oper[0]^.val, ConstRegs[X]);
                                                   asml.InsertBefore(hp_new, hp_flagalloc);
                                                   if Assigned(hp_prev2) then
                                                     TrySwapMovOp(hp_prev2, hp_new);
@@ -12615,7 +12619,7 @@ unit aoptx86;
                                                 hp_new := hpmov2;
 
                                               AllocRegBetween(ConstRegs[x], hp_new, hp1, UsedRegs);
-                                              taicpu(hp1).loadreg(0, ConstRegs[x]);
+                                              taicpu(hp1).loadreg(0, newreg(R_INTREGISTER, getsupreg(ConstRegs[X]), getsubreg(taicpu(hp1).oper[1]^.reg)));
                                               Break;
                                             end;
 
@@ -12673,7 +12677,8 @@ unit aoptx86;
                                         RegMatch := False;
 
                                         for x := 0 to c - 1 do
-                                          if (ConstVals[x] = taicpu(hp1).oper[0]^.val) then
+                                          if (ConstVals[x] = taicpu(hp1).oper[0]^.val) and
+                                            (getsubreg(taicpu(hp1).oper[1]^.reg) <= getsubreg(ConstRegs[X])) then
                                             begin
                                               RegMatch := True;
 
@@ -12684,7 +12689,7 @@ unit aoptx86;
                                                 below) }
                                               if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                                 begin
-                                                  hp_new := taicpu.op_const_reg(A_MOV, taicpu(hp1).opsize, taicpu(hp1).oper[0]^.val, ConstRegs[x]);
+                                                  hp_new := taicpu.op_const_reg(A_MOV, reg2opsize(ConstRegs[X]), taicpu(hp1).oper[0]^.val, ConstRegs[X]);
                                                   asml.InsertBefore(hp_new, hp_flagalloc);
                                                   if Assigned(hp_prev2) then
                                                     TrySwapMovOp(hp_prev2, hp_new);
@@ -12697,7 +12702,7 @@ unit aoptx86;
                                                 hp_new := hpmov1;
 
                                               AllocRegBetween(ConstRegs[x], hp_new, hp1, UsedRegs);
-                                              taicpu(hp1).loadreg(0, ConstRegs[x]);
+                                              taicpu(hp1).loadreg(0, newreg(R_INTREGISTER, getsupreg(ConstRegs[X]), getsubreg(taicpu(hp1).oper[1]^.reg)));
                                               Break;
                                             end;
 
