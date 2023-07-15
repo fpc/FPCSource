@@ -2535,7 +2535,7 @@ begin
   StartProgram(true);
   Add([
   'type',
-  '  TArrA = array of AnsiChar;',
+  '  TArrA = array of char;',
   '  TArrB = array of string;',
   '  TObject = class',
   '  public',
@@ -2586,7 +2586,7 @@ begin
   WithTypeInfo:=true;
   StartProgram(true);
   Add('type');
-  Add('  TArrA = array of AnsiChar;');
+  Add('  TArrA = array of char;');
   Add('  TArrB = array of string;');
   Add('var');
   Add('  A: TArrA;');

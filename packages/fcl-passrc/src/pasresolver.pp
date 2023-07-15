@@ -43,7 +43,7 @@ Works:
   - fail to write a loop var inside the loop
 - spot duplicates
 - type cast base types
-- AnsiChar
+- char
   - ord(), chr()
 - record
   - variants
@@ -101,7 +101,7 @@ Works:
   - cast integer to enum, enum to integer
   - $ScopedEnums
 - sets - TPasSetType
-  - set of AnsiChar
+  - set of char
   - set of integer
   - set of boolean
   - set of enum
@@ -120,7 +120,7 @@ Works:
 - procedure inc/dec(var ordinal; decr: ordinal = 1)
 - function Assigned(Pointer or Class or Class-Of): boolean
 - arrays TPasArrayType
-  - TPasEnumType, AnsiChar, integer, range
+  - TPasEnumType, char, integer, range
   - low, high, length, setlength, assigned
   - function concat(array1,array2,...): array
   - function copy(array): array, copy(a,start), copy(a,start,end)
@@ -132,7 +132,7 @@ Works:
   - open array, override, pass array literal, pass var
   - type cast array to arrays with same dimensions and compatible element type
   - static array range checking
-  - const array of AnsiChar = string
+  - const array of char = string
   - a:=[...]   // assignation using constant array
   - a:=[[...],[...]]
   - a:=[...]+[...]  a+[]  []+a   modeswitch arrayoperators
@@ -176,7 +176,7 @@ Works:
   - integer ranges
   - boolean ranges
   - enum ranges
-  - AnsiChar ranges
+  - char ranges
   - +, -, *, div, mod, /, shl, shr, or, and, xor, in, ^^, ><
   - =, <>, <, <=, >, >=
   - ord(), low(), high(), pred(), succ(), length()
@@ -190,9 +190,9 @@ Works:
     rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
     array[rg], low(array), high(array)
 - for..in..do :
-  - type boolean, AnsiChar, byte, shortint, word, smallint, longword, longint
-  - type enum range, AnsiChar range, integer range
-  - type/var set of: enum, enum range, integer, integer range, AnsiChar, AnsiChar range
+  - type boolean, char, byte, shortint, word, smallint, longword, longint
+  - type enum range, char range, integer range
+  - type/var set of: enum, enum range, integer, integer range, char, char range
   - array var
   - function: enumerator
   - class
@@ -255,7 +255,7 @@ ToDo:
    - operator enumerator
    - binaryexpr
    - advanced records
-- Include/Exclude for set of int/AnsiChar/bool
+- Include/Exclude for set of int/char/bool
 - error if property method resolution is not used
 - $H-hintpos$H+
 - $pop, $push
@@ -340,7 +340,7 @@ type
     btContext,     // any source declared type with LoTypeEl/HiTypeEl
     btModule,
     btUntyped,     // TPasArgument without ArgType
-    btChar,        // AnsiChar
+    btChar,        // char
     {$ifdef FPC_HAS_CPSTRING}
     btAnsiChar,    // ansichar
     {$endif}
@@ -476,7 +476,7 @@ const
     'Context',
     'Module',
     'Untyped',
-    'AnsiChar',
+    'Char',
     {$ifdef FPC_HAS_CPSTRING}
     'AnsiChar',
     {$endif}
@@ -6248,7 +6248,7 @@ begin
       BaseTypeData:=TResElDataBaseType(EnumType.CustomData);
       if BaseTypeData.BaseType in (btAllChars+[btBoolean,btByte]) then
         exit;
-      RaiseXExpectedButYFound(20170216151553,'AnsiChar or boolean',
+      RaiseXExpectedButYFound(20170216151553,'Char or boolean',
         GetElementTypeName(EnumType),GetEnumTypePosEl);
       end;
     end;
@@ -6596,7 +6596,7 @@ begin
         RaiseXExpectedButYFound(20171009193514,'range',GetElementTypeName(RangeResolved.IdentEl),Expr);
       end
     else if RangeResolved.BaseType in btArrayRangeTypes then
-      // full range, e.g. array[AnsiChar]
+      // full range, e.g. array[char]
     else if (RangeResolved.BaseType=btContext) and (RangeResolved.LoTypeEl is TPasEnumType) then
       // e.g. array[enumtype]
     else if (RangeResolved.BaseType=btContext) and (RangeResolved.LoTypeEl is TPasGenericTemplateType) then
@@ -7727,7 +7727,7 @@ begin
                       GetResolverResultDescription(VarResolved,true),loop.VariableName);
                 revskChar:
                   if VarRangeInt.ElKind<>revskChar then
-                    RaiseXExpectedButYFound(20171109200753,'AnsiChar',
+                    RaiseXExpectedButYFound(20171109200753,'char',
                       GetResolverResultDescription(VarResolved,true),loop.VariableName);
                 revskBool:
                   if VarRangeInt.ElKind<>revskBool then
@@ -13321,7 +13321,7 @@ begin
           if (Bin.Kind=pekRange) and (LeftResolved.BaseType in btAllChars) then
             begin
             if not (RightResolved.BaseType in btAllChars) then
-              RaiseXExpectedButYFound(20170216152603,'AnsiChar',BaseTypeNames[RightResolved.BaseType],Bin.Right);
+              RaiseXExpectedButYFound(20170216152603,'char',BaseTypeNames[RightResolved.BaseType],Bin.Right);
             SetResolverValueExpr(ResolvedEl,btRange,
               FBaseTypes[LeftResolved.BaseType],FBaseTypes[LeftResolved.BaseType],
               Bin,[rrfReadable]);
@@ -14045,7 +14045,7 @@ begin
   {$ENDIF}
   if ResolvedEl.BaseType in btAllStrings then
     begin
-    // stringvar[] => AnsiChar
+    // stringvar[] => char
     case GetActualBaseType(ResolvedEl.BaseType) of
     {$ifdef FPC_HAS_CPSTRING}
     btAnsiString,btRawByteString,btShortString:
@@ -14749,7 +14749,7 @@ begin
     begin
     if RBT in btAllChars then
       exit;
-    RaiseXExpectedButYFound(20170216152702,'AnsiChar',BaseTypeNames[RHS.BaseType],Right);
+    RaiseXExpectedButYFound(20170216152702,'char',BaseTypeNames[RHS.BaseType],Right);
     end
   else if LBT=btContext then
     begin
@@ -14834,7 +14834,7 @@ begin
         LHS.BaseType:=GetCombinedChar(LHS,RHS,Right);
         exit;
         end;
-      RaiseXExpectedButYFound(20170420093024,'AnsiChar',BaseTypeNames[RHS.BaseType],Right);
+      RaiseXExpectedButYFound(20170420093024,'char',BaseTypeNames[RHS.BaseType],Right);
       end
     else if LBT in btAllStrings then
       begin
@@ -14967,7 +14967,7 @@ function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
 {$ENDIF}
 {$ENDIF}
 
-// returns true if Value is a Pascal AnsiChar literal
+// returns true if Value is a Pascal char literal
 // btAnsiChar: #65, #$50, ^G, 'a'
 // btWideChar: #10000, 'ä'
 var
@@ -16028,7 +16028,7 @@ begin
         begin
         // ansichar(ansistring)
         if fExprEvaluator.StringToOrd(Value,nil)>$ffff then
-          RaiseXExpectedButYFound(20181005141025,'AnsiChar','string',Params);
+          RaiseXExpectedButYFound(20181005141025,'char','string',Params);
         Result:=Value;
         Value:=nil;
         end
@@ -16041,7 +16041,7 @@ begin
           Value:=nil;
           end
         else
-          RaiseXExpectedButYFound(20181005141058,'AnsiChar','string',Params);
+          RaiseXExpectedButYFound(20181005141058,'char','string',Params);
         end
       else if (bt=btAnsiString) or ((bt=btString) and (BaseTypeString=btAnsiString)) then
         begin
@@ -19428,7 +19428,7 @@ begin
       end;
     end;
   if Result=cIncompatible then
-    exit(CheckRaiseTypeArgNo(20170216152334,1,Param,ParamResolved,'enum or AnsiChar',RaiseOnError));
+    exit(CheckRaiseTypeArgNo(20170216152334,1,Param,ParamResolved,'enum or char',RaiseOnError));
 
   Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
 end;
@@ -19482,13 +19482,13 @@ begin
     exit(cIncompatible);
   Params:=TParamsExpr(Expr);
 
-  // first param: enumtype, range, built-in ordinal type (AnsiChar, longint, ...)
+  // first param: enumtype, range, built-in ordinal type (char, longint, ...)
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
   bt:=ParamResolved.BaseType;
   if bt in btAllRanges then
-    // e.g. high(AnsiChar)
+    // e.g. high(char)
     Result:=cExact
   else if bt=btSet then
     Result:=cExact
@@ -19791,7 +19791,7 @@ begin
     exit(cIncompatible);
   Params:=TParamsExpr(Expr);
 
-  // first param: enum, range, set, AnsiChar or integer
+  // first param: enum, range, set, char or integer
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
@@ -20274,7 +20274,7 @@ begin
 
   for i:=0 to length(Params.Params)-1 do
     begin
-    // all params: AnsiChar or string
+    // all params: char or string
     Param:=Params.Params[i];
     ComputeElement(Param,ParamResolved,[]);
     if not (rrfReadable in ParamResolved.Flags)
@@ -20297,7 +20297,7 @@ begin
   ParamsArr:=Params.Params;
   for i:=0 to length(ParamsArr)-1 do
     begin
-    // all params: AnsiChar or string
+    // all params: char or string
     Param:=ParamsArr[i];
     ComputeElement(Param,ParamResolved,[]);
     if i=0 then
@@ -20325,7 +20325,7 @@ begin
   try
     for i:=0 to length(Params.Params)-1 do
       begin
-      // all params: AnsiChar or string
+      // all params: char or string
       Param:=Params.Params[i];
       Value:=Eval(Param,Flags);
       if Value=nil then
@@ -22362,11 +22362,11 @@ begin
         @BI_Assigned_OnGetCallCompatibility,@BI_Assigned_OnGetCallResult,
         nil,@BI_Assigned_OnFinishParamsExpr,bfAssigned);
   if bfChr in TheBaseProcs then
-    AddBuiltInProc('Chr','function Chr(const Integer): AnsiChar',
+    AddBuiltInProc('Chr','function Chr(const Integer): char',
         @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,
         @BI_Chr_OnEval,nil,bfChr);
   if bfOrd in TheBaseProcs then
-    AddBuiltInProc('Ord','function Ord(const Enum or AnsiChar): integer',
+    AddBuiltInProc('Ord','function Ord(const Enum or char): integer',
         @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,
         @BI_Ord_OnEval,nil,bfOrd);
   if bfLow in TheBaseProcs then
@@ -26615,7 +26615,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
   procedure Check_ArrayOfChar_String(ArrType: TPasArrayType;
     ArrLength: integer; const ElTypeResolved: TPasResolverResult;
     Expr: TPasExpr; ErrorEl: TPasElement);
-  // check if assigning a string to an array of AnsiChar fits
+  // check if assigning a string to an array of char fits
   var
     Value: TResEvalValue;
     ElBT: TResolverBaseType;
@@ -26629,7 +26629,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     ElBT:=GetActualBaseType(ElTypeResolved.BaseType);
     if length(ArrType.Ranges)=0 then
       begin
-      // dynamic array of AnsiChar can hold any string
+      // dynamic array of char can hold any string
       // ToDo: check if value can be converted without loss
       Result:=cExact;
       exit;
@@ -26987,7 +26987,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       if (ElTypeResolved.BaseType in btAllChars) then
         if (Values.BaseType in btAllStrings) then
           begin
-          // e.g. array of AnsiChar = ''
+          // e.g. array of char = ''
           Check_ArrayOfChar_String(ArrType,ExpectedCount,ElTypeResolved,Expr,ErrorEl);
           exit;
           end
@@ -27283,7 +27283,7 @@ begin
             begin
             FromTypeEl:=FromResolved.LoTypeEl;
             if FromTypeEl.ClassType=TPasEnumType then
-              // e.g. AnsiChar(TEnum)
+              // e.g. Char(TEnum)
               Result:=cCompatible;
             end;
           end
@@ -30465,7 +30465,7 @@ function TPasResolver.CheckClassIsClass(SrcType, DestType: TPasType): integer;
 // check if Src is equal or descends from Dest
 // Generics: TBird<T> is both directions a TBird<word>
 //       and TBird<TMap<T>> is both directions a TBird<TMap<word>>
-//       but a TBird<word> is not a TBird<AnsiChar>
+//       but a TBird<word> is not a TBird<char>
 
   function CheckSpecialized(SrcScope, DestScope: TPasGenericScope): boolean;
   var

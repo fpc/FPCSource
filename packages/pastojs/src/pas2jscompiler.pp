@@ -615,7 +615,7 @@ type
     procedure WriteHelpLine(S: String);
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile;
     // Override these for PCU format
-    procedure HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String; var Handled: boolean);
+    procedure HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: TPasScannerString; var Handled: boolean);
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; virtual;
     // Command-line option handling
     procedure HandleOptionPCUFormat(aValue: String); virtual;
@@ -2393,7 +2393,7 @@ begin
   end;
 end;
 
-procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String;
+procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: TPasScannerString;
   var Handled: boolean);
 Var
   Imp : TJSImportStatement;
