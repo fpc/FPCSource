@@ -814,7 +814,7 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : ShortString[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization
