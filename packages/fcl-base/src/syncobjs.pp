@@ -99,6 +99,8 @@ type
 {$DEFINE NOPOINTER}
 {$ENDIF}
 
+  TBitOffset = 0 .. 31;
+
   TInterlocked = class sealed
     class function Add(var Target: Longint; aIncrement: Longint): Longint; overload; static; inline;
     class function Exchange(var Target: Longint; Value: Longint): Longint; overload; static; inline;
@@ -106,6 +108,10 @@ type
     class function CompareExchange(var Target: Longint; Value: Longint; Comparand: Longint; out Succeeded: Boolean): Longint; overload; static;
     class function Decrement(var Target: Longint): Longint; overload; static; inline;
     class function Increment(var Target: Longint): Longint; overload; static; inline;
+
+    class function BitTestAndSet(var Target: Longint; BitOffset: TBitOffset): Boolean; static;
+    class function BitTestAndClear(var Target: Longint; BitOffset: TBitOffset): Boolean; static;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
     class function Exchange(var Target: Single; Value: Single): Single; overload; static; inline;
     class function CompareExchange(var Target: Single; Value: Single; Comparand: Single): Single; overload; static; inline;
@@ -395,29 +401,41 @@ begin
   Result := InterLockedIncrement(Target); // returns new value
 end;
 
+class function TInterlocked.BitTestAndSet(var Target: Longint; BitOffset: TBitOffset): Boolean;
+var
+  Fetch, NewValue: Longint;
+begin
+  repeat
+    Fetch := Target;
+    Result := Boolean(Fetch shr BitOffset and 1);
+    NewValue := Fetch or Longint(1) shl BitOffset;
+  until InterlockedCompareExchange(Target, NewValue, Fetch) = Fetch;
+end;
+
+class function TInterlocked.BitTestAndClear(var Target: Longint; BitOffset: TBitOffset): Boolean;
+var
+  Fetch, NewValue: Longint;
+begin
+  repeat
+    Fetch := Target;
+    Result := Boolean(Fetch shr BitOffset and 1);
+    NewValue := Fetch and not (Longint(1) shl BitOffset);
+  until InterlockedCompareExchange(Target, NewValue, Fetch) = Fetch;
+end;
+
 { ---------------------------------------------------------------------
   32-bit single versions
   ---------------------------------------------------------------------}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 class function TInterlocked.Exchange(var Target: Single; Value: Single): Single; overload; static; inline;
-var
-  IntValue: Longint;
-  SinglePtr: PSingle;
 begin
-  IntValue := TInterlocked.Exchange(Longint(Target), Longint(Value));
-  SinglePtr := @IntValue;
-  Result := SinglePtr^;
+  Result := TSingleRec(TInterlocked.Exchange(Longint(Target), Longint(Value))).Value;
 end;
 
 class function TInterlocked.CompareExchange(var Target: Single; Value: Single; Comparand: Single): Single; overload; static; inline;
-var
-  IntValue: Longint;
-  SinglePtr: PSingle;
 begin
-  IntValue := TInterlocked.CompareExchange(Longint(Target), Longint(Value), Longint(Comparand));
-  SinglePtr := @IntValue;
-  Result := SinglePtr^;
+  Result := TSingleRec(TInterlocked.CompareExchange(Longint(Target), Longint(Value), Longint(Comparand))).Value;
 end;
 {$endif}
 
@@ -465,25 +483,15 @@ end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 class function TInterlocked.CompareExchange(var Target: Double; Value: Double; Comparand: Double): Double; overload; static; inline;
-var
-  Int64Value: Int64;
-  DoublePtr: PDouble;
 begin
-  Int64Value := TInterlocked.CompareExchange(Int64(Target), Int64(Value), Int64(Comparand));
-  DoublePtr := @Int64Value;
-  Result := DoublePtr^;
+  Result := TDoubleRec(TInterlocked.CompareExchange(Int64(Target), Int64(Value), Int64(Comparand))).Value;
 end;
 {$endif}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 class function TInterlocked.Exchange(var Target: Double; Value: Double): Double; overload; static; inline;
-var
-  Int64Value: Int64;
-  DoublePtr: PDouble;
 begin
-  Int64Value := TInterlocked.Exchange(Int64(Target), Int64(Value));
-  DoublePtr := @Int64Value;
-  Result := DoublePtr^;
+  Result := TDoubleRec(TInterlocked.Exchange(Int64(Target), Int64(Value))).Value;
 end;
 {$endif}
 
