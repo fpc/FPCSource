@@ -716,7 +716,7 @@ type
   TPScannerFormatPathEvent = function(const aPath: String): String of object;
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: TPasScannerString; State: TWarnMsgState; var Handled: boolean) of object;
   TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
-  TPScannerLinkLibEvent = procedure(Sender: TObject; Const aLibName,aLibAlias,aLibOptions : String; var Handled: boolean) of object;
+  TPScannerLinkLibEvent = procedure(Sender: TObject; Const aLibName,aLibAlias,aLibOptions : TPasScannerString; var Handled: boolean) of object;
 
   // aFileName: full filename (search is already done) aOptions: list of name:value pairs.
   TResourceHandler = Procedure (Sender : TObject; const aFileName : String; aOptions : TStrings) of object;

@@ -18,9 +18,6 @@ program testpas2js;
 {$mode objfpc}{$H+}
 
 uses
-  {$ifdef unix}
-  cwstring,
-  {$endif}
   {$IFDEF EnableMemCheck}
   MemCheck,
   {$ENDIF}
