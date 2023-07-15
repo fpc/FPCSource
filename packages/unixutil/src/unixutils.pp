@@ -73,7 +73,7 @@ Const
 { Utility functions }
 
 Type
- TPermissionString = AnsiString[9];
+ TPermissionString = string[9];
 
 Type
   TGlobFlag = (gfErr,gfMark,gfNoSort,gfNoCheck,gfAppend,gfNoEscape,
