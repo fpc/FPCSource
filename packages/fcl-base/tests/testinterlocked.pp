@@ -10,7 +10,7 @@ var
   New32, Old32: Longint;
   i64: Int64;
   New64, Old64: Int64;
-  Changed: Boolean;
+  Changed, OldBitValue: Boolean;
   list1, list2, oldlist: TStringList;
   d1, d2, dOld: Double;
   s1, s2, sOld: Single;
@@ -50,6 +50,7 @@ begin
   if Old32 <> 48 then halt(15);
   if i32 <> 96 then halt(15);
 
+{$ifdef cpu64}
   {* test all kinds of Int64 usage *}
   i64 := 12;
   New64 := TInterlocked.Increment(i64);
@@ -75,6 +76,7 @@ begin
   Old64 := TInterlocked.Read(i64);
   if Old64 <> 48 then halt(30);
   if i64 <> 48 then halt(31);
+{$endif}
 
   {* test all kinds of TObject and generic class usage *}
   list1 := TStringList.Create;
@@ -112,6 +114,7 @@ begin
 
   writeln('tests passed so far');
 
+{$ifdef cpu64}
   {* test all kinds of Double usage *}
   d1 := Double(3.14);
   d2 := Double(6.28);
@@ -130,6 +133,7 @@ begin
   if dOld <> Double(6.28) then halt(50);
   if d1 <> Double(3.14) then halt(51);
   if d1 = d2 then halt(52);
+{$endif}
 
   {* test all kinds of Single usage *}
   s1 := Single(3.14);
@@ -150,19 +154,21 @@ begin
   if s1 <> s2 then halt(61);
 
   {* test BitTestAndClear usage *}
-{
-  // enable when implemented!
   i32 := 96;
-  Changed := TInterlocked.BitTestAndClear(i32, 6);
-  if Changed <> True then halt(62);
+  OldBitValue := TInterlocked.BitTestAndClear(i32, 6);
+  if OldBitValue <> True then halt(62);
   if i32 <> 32 then halt(63);
-}
+  OldBitValue := TInterlocked.BitTestAndClear(i32, 6);
+  if OldBitValue <> False then halt(64);
+  if i32 <> 32 then halt(65);
+
   {* test BitTestAndSet usage *}
-{
-  // enable when implemented!
-  Changed := TInterlocked.BitTestAndSet(i32, 4);
-  if Changed <> False then halt(64);
-  if i32 <> 48 then halt(65);
-}
+  OldBitValue := TInterlocked.BitTestAndSet(i32, 6);
+  if OldBitValue <> False then halt(66);
+  if i32 <> 96 then halt(67);
+  OldBitValue := TInterlocked.BitTestAndSet(i32, 6);
+  if OldBitValue <> True then halt(68);
+  if i32 <> 96 then halt(69);
+
   writeln('testing of TInterlocked methods ended');
 end.
