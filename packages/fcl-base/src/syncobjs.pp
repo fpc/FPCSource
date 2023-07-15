@@ -94,6 +94,46 @@ type
    TSimpleEvent = class(TEventObject)
       constructor Create;
    end;
+   
+{$IFDEF CPU16}   
+{$DEFINE NOPOINTER}
+{$ENDIF}
+
+  TInterlocked = class sealed
+    class function Add(var Target: Longint; aIncrement: Longint): Longint; overload; static; inline;
+    class function Exchange(var Target: Longint; Value: Longint): Longint; overload; static; inline;
+    class function CompareExchange(var Target: Longint; Value: Longint; Comparand: Longint): Longint; overload; static; inline;
+    class function CompareExchange(var Target: Longint; Value: Longint; Comparand: Longint; out Succeeded: Boolean): Longint; overload; static;
+    class function Decrement(var Target: Longint): Longint; overload; static; inline;
+    class function Increment(var Target: Longint): Longint; overload; static; inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+    class function Exchange(var Target: Single; Value: Single): Single; overload; static; inline;
+    class function CompareExchange(var Target: Single; Value: Single; Comparand: Single): Single; overload; static; inline;
+{$endif}
+{$ifdef cpu64}
+    class function Add(var Target: Int64; aIncrement: Int64): Int64; overload; static; inline;
+    class function Exchange(var Target: Int64; Value: Int64): Int64; overload; static; inline;
+    class function CompareExchange(var Target: Int64; Value: Int64; Comparand: Int64): Int64; overload; static; inline;
+    class function Decrement(var Target: Int64): Int64; overload; static; inline;
+    class function Increment(var Target: Int64): Int64; overload; static; inline;
+    class function Read(var Target: Int64): Int64; static; inline;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+    class function CompareExchange(var Target: Double; Value: Double; Comparand: Double): Double; overload; static; inline;
+    class function Exchange(var Target: Double; Value: Double): Double; overload; static; inline;
+{$endif}
+{$endif cpu64}
+
+{$IFNDEF NOPOINTER}
+    class function Exchange(var Target: Pointer; Value: Pointer): Pointer; overload; static; inline;
+    class function Exchange(var Target: TObject; Value: TObject): TObject; overload; static; inline;
+    class function CompareExchange(var Target: Pointer; Value: Pointer; Comparand: Pointer): Pointer; overload; static; inline;
+    class function CompareExchange(var Target: TObject; Value: TObject; Comparand: TObject): TObject; overload; static; inline;
+{$ifndef VER3_0}
+    generic class function Exchange<T: class>(var Target: T; Value: T): T; overload; static; inline;
+    generic class function CompareExchange<T: class>(var Target: T; Value: T; Comparand: T): T; overload; static; inline;
+{$endif VER3_0}
+{$ENDIF NOPOINTER}
+  end;
 
 implementation
 
@@ -308,5 +348,184 @@ constructor TSimpleEvent.Create;
 begin
   inherited Create(nil, True, False, '');
 end;
+
+{ ---------------------------------------------------------------------
+  TInterlocked
+  ---------------------------------------------------------------------}
+
+
+class function TInterlocked.Add(var Target: Longint; aIncrement: Longint): Longint; overload; static; inline;
+var
+  PreviousValue: Longint;
+begin
+  PreviousValue := InterLockedExchangeAdd(Target, aIncrement); // returns previous value
+  Result := PreviousValue + aIncrement;
+end;
+
+
+class function TInterlocked.CompareExchange(var Target: Longint; Value: Longint; Comparand: Longint): Longint; overload; static; inline;
+begin
+  Result := InterlockedCompareExchange(Target, Value, Comparand);
+end;
+
+class function TInterlocked.CompareExchange(var Target: Longint; Value: Longint; Comparand: Longint; out Succeeded: Boolean): Longint; overload; static;
+begin
+  Result := InterlockedCompareExchange(Target, Value, Comparand);
+  Succeeded := (Result = Comparand);
+end;
+
+
+
+class function TInterlocked.Decrement(var Target: Longint): Longint; overload; static; inline;
+begin
+  Result := InterLockedDecrement(Target); // returns new value
+end;
+
+
+class function TInterlocked.Exchange(var Target: Longint; Value: Longint): Longint; overload; static; inline;
+begin
+  Result := InterLockedExchange(Target, Value);
+end;
+
+
+
+
+class function TInterlocked.Increment(var Target: Longint): Longint; overload; static; inline;
+begin
+  Result := InterLockedIncrement(Target); // returns new value
+end;
+
+{ ---------------------------------------------------------------------
+  32-bit single versions
+  ---------------------------------------------------------------------}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+class function TInterlocked.Exchange(var Target: Single; Value: Single): Single; overload; static; inline;
+var
+  IntValue: Longint;
+  SinglePtr: PSingle;
+begin
+  IntValue := TInterlocked.Exchange(Longint(Target), Longint(Value));
+  SinglePtr := @IntValue;
+  Result := SinglePtr^;
+end;
+
+class function TInterlocked.CompareExchange(var Target: Single; Value: Single; Comparand: Single): Single; overload; static; inline;
+var
+  IntValue: Longint;
+  SinglePtr: PSingle;
+begin
+  IntValue := TInterlocked.CompareExchange(Longint(Target), Longint(Value), Longint(Comparand));
+  SinglePtr := @IntValue;
+  Result := SinglePtr^;
+end;
+{$endif}
+
+
+{ ---------------------------------------------------------------------
+  64-bit versions
+  ---------------------------------------------------------------------}
+
+{$ifdef cpu64}
+class function TInterlocked.Read(var Target: Int64): Int64; static; inline;
+begin
+  Result := InterlockedCompareExchange64(Target, 0, 0);
+end;
+
+class function TInterlocked.Increment(var Target: Int64): Int64; overload; static; inline;
+begin
+  Result := InterLockedIncrement64(Target); // returns new value
+end;
+
+class function TInterlocked.Exchange(var Target: Int64; Value: Int64): Int64; overload; static; inline;
+begin
+  Result := System.InterLockedExchange64(Target, Value);
+end;
+
+class function TInterlocked.Decrement(var Target: Int64): Int64; overload; static; inline;
+begin
+  Result := InterLockedDecrement64(Target); // returns new value
+end;class function TInterlocked.Add(var Target: Int64; aIncrement: Int64): Int64; overload; static; inline;
+var
+  PreviousValue: Int64;
+begin
+  PreviousValue := System.InterLockedExchangeAdd64(Target, aIncrement); // returns previous value
+  Result := PreviousValue + aIncrement;
+end;
+
+class function TInterlocked.CompareExchange(var Target: Int64; Value: Int64; Comparand: Int64): Int64; overload; static; inline;
+begin
+  Result := System.InterlockedCompareExchange64(Target, Value, Comparand);
+end;
+
+
+{ ---------------------------------------------------------------------
+  64-bit double versions
+  ---------------------------------------------------------------------}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+class function TInterlocked.CompareExchange(var Target: Double; Value: Double; Comparand: Double): Double; overload; static; inline;
+var
+  Int64Value: Int64;
+  DoublePtr: PDouble;
+begin
+  Int64Value := TInterlocked.CompareExchange(Int64(Target), Int64(Value), Int64(Comparand));
+  DoublePtr := @Int64Value;
+  Result := DoublePtr^;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+class function TInterlocked.Exchange(var Target: Double; Value: Double): Double; overload; static; inline;
+var
+  Int64Value: Int64;
+  DoublePtr: PDouble;
+begin
+  Int64Value := TInterlocked.Exchange(Int64(Target), Int64(Value));
+  DoublePtr := @Int64Value;
+  Result := DoublePtr^;
+end;
+{$endif}
+
+{$endif cpu64}
+
+{ ---------------------------------------------------------------------
+  Pointer versions
+  ---------------------------------------------------------------------}
+  
+{$IFNDEF NOPOINTER}
+class function TInterlocked.CompareExchange(var Target: Pointer; Value: Pointer; Comparand: Pointer): Pointer; overload; static; inline;
+begin
+  Result := InterlockedCompareExchange(Target, Value, Comparand);
+end;
+
+class function TInterlocked.CompareExchange(var Target: TObject; Value: TObject; Comparand: TObject): TObject; overload; static; inline;
+begin
+  Result := TObject(InterlockedCompareExchange(Pointer(Target), Pointer(Value), Pointer(Comparand)));
+end;
+
+class function TInterlocked.Exchange(var Target: Pointer; Value: Pointer): Pointer; overload; static; inline;
+begin
+  Result := InterLockedExchange(Target, Value);
+end;
+
+class function TInterlocked.Exchange(var Target: TObject; Value: TObject): TObject; overload; static; inline;
+begin
+  Result := TObject(InterLockedExchange(Pointer(Target), Pointer(Value)));
+end;
+
+{$ifndef VER3_0}
+generic class function TInterlocked.CompareExchange<T>(var Target: T; Value: T; Comparand: T): T; overload; static; inline;
+begin
+  Result := T(InterlockedCompareExchange(Pointer(Target), Pointer(Value), Pointer(Comparand)));
+end;
+
+generic class function TInterlocked.Exchange<T>(var Target: T; Value: T): T; overload; static; inline;
+begin
+  Result := T(InterLockedExchange(Pointer(Target), Pointer(Value)));
+end;
+{$endif VER3_0}
+
+{$ENDIF NOPOINTER}
 
 end.
