@@ -178,7 +178,7 @@ asm
   swi #0xff0000
 end['r0'];
 
-function GBAIntToStr(i: integer): ajsçstring;
+function GBAIntToStr(i: integer): ansistring;
 var
   s: ansistring;
 begin
