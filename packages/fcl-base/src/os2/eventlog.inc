@@ -113,7 +113,7 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
   var LogEntries: TLogEntryRec): longint; cdecl; external 'DOSCALLS' index 432;
 
 
-function TEventLog.DefaultFileName: ;
+function TEventLog.DefaultFileName: string;
 
 begin
   Result := GetEnvironmentVariable ('TEMP');
@@ -164,14 +164,14 @@ begin
 end;
 
 
-procedure TEventLog.WriteSystemLog (EventType: TEventType; const Msg: );
+procedure TEventLog.WriteSystemLog (EventType: TEventType; const Msg: string);
 
 const
   WinET: array [TEventType] of Str3 = ('USR', 'INF', 'WRN', 'ERR', 'DBG');
 
 var
   P: PLogEntryRec;
-  S: ;
+  M,S: AnsiString;
   Cnt, TSize, DSize: cardinal;
   W: word;
 
@@ -181,7 +181,8 @@ begin
   else
     begin
       S := Copy (Identification, 1, 256);
-      TSize := Length (Msg);
+      M:=Msg;
+      TSize := Length (M);
       Cnt := Succ (Pred (TSize) div MaxDataSize);
       if Cnt > high (word) then
         begin
@@ -201,13 +202,13 @@ begin
                 if (W = Pred (Cnt)) and (TSize mod MaxDataSize <> 0) then
                   begin
                     Len := 24 + 256 + 260 + 12 + TSize mod MaxDataSize;
-                    Move (Msg [Succ (W * MaxDataSize)],
+                    Move (M [Succ (W * MaxDataSize)],
                                 Data_O256_ProcName [1], TSize mod MaxDataSize);
                   end
                 else
                   begin
                     Len := 24 + 256 + 260 + 12 + MaxDataSize;
-                    Move (Msg [Succ (W * MaxDataSize)],
+                    Move (M [Succ (W * MaxDataSize)],
                                           Data_O256_ProcName [1], MaxDataSize);
                   end;
                 Rec_ID := $4650; { FP }
@@ -222,7 +223,7 @@ begin
     end;
 end;
 
-Function TEventLog.RegisterMessageFile(AFileName : ) : Boolean;
+Function TEventLog.RegisterMessageFile(AFileName : string) : Boolean;
 
 begin
   Result:=True;
