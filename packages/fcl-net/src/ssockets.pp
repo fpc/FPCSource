@@ -928,9 +928,10 @@ begin
     Result := winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
-    If not Result then
-      DoOnIdle;
-  Until Result or (Not FAccepting);
+    If Result then
+      break;
+    DoOnIdle;
+  Until (Not FAccepting);
 end;
 
 procedure TSocketServer.Listen;
