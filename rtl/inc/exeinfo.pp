@@ -60,7 +60,8 @@ type
 function OpenExeFile(var e:TExeFile;const fn:shortstring):boolean;
 function FindExeSection(var e:TExeFile;const secname:shortstring;var secofs,seclen:longint):boolean;
 function CloseExeFile(var e:TExeFile):boolean;
-function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean; overload;
+function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; overload;
 
 {$ifdef CPUI8086}
 procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
@@ -75,6 +76,18 @@ uses
   ctypes, baseunix, dl,
 {$endif}
   strings{$ifdef windows},windows{$endif windows};
+
+function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean; 
+
+var
+  fn : ansistring;
+
+begin
+  ReadDebugLink:=ReadDebugLink(e,fn);
+  if ReadDebugLink then
+    dbgfn:=fn;
+end;
+
 
 {$if defined(unix) and not defined(beos) and not defined(haiku)}
 
