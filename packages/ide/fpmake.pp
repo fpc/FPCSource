@@ -146,8 +146,6 @@ end;
 
 procedure add_ide_comandlineoptions();
 begin
-  if SameText(Defaults.SubTarget,'unicodertl') then
-    exit;
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
   AddCustomFpmakeCommandlineOption('NoGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
