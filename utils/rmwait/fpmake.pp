@@ -2,7 +2,11 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses 
+  {$ifdef unix}
+  cthreads,
+  {$endif}
+  fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rmwait(const ADirectory: string);
@@ -35,7 +39,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_rmwait;
+  add_rmwait('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
