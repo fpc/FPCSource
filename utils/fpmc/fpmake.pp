@@ -2,7 +2,11 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, sysutils;
+uses 
+{$ifdef unix}
+  cthreads,
+{$endif}
+  fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
 procedure add_fpmc(const ADirectory: string);
@@ -69,7 +73,7 @@ end;
 
 {$ifndef ALLPACKAGES}
 begin
-  add_fpmc;
+  add_fpmc('');
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
