@@ -626,17 +626,15 @@
 Type
   TPtrWrapper = record
   private
-    Value: PByte;
+    FValue: Pointer;
     class function GetNilValue: TPtrWrapper; inline; static;
   public
     constructor Create(AValue: PtrInt); overload;
     constructor Create(AValue: Pointer); overload;
-    function ToPointer: Pointer;
-    function ToInteger: PtrInt;
+    function ToPointer: Pointer; inline;
+    function ToInteger: PtrInt; inline;
     class property NilValue: TPtrWrapper read GetNilValue;
-    // class operator Equal(Left, Right: TPtrWrapper): Boolean;
-    // class operator NotEqual(Left, Right: TPtrWrapper): Boolean;
+    class operator =(Left, Right: TPtrWrapper): Boolean; inline;
+    { ...to allow convenient and direct reading without relying on inline... and convenient writing from SysUtils until TMarshal is moved here... }
+    property Value: Pointer read FValue write FValue;
   end;
-  
-operator =(Left, Right: TPtrWrapper) c : Boolean;  
-operator <>(Left, Right: TPtrWrapper) c : Boolean;
