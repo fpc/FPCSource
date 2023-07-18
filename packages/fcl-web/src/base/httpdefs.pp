@@ -1998,7 +1998,11 @@ Var
 begin
   F:=TFileStream.Create(AFileName,fmCreate);
   Try
+{$IFDEF VER3_2}  
+    F.WriteBuffer(FRawData[0],DataSize);
+{$ELSE}
     F.WriteBuffer(FRawData,0,DataSize);
+{$ENDIF}    
   finally
     F.Free;
   end;
