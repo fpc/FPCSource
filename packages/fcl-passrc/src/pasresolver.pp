@@ -23408,7 +23408,7 @@ procedure TPasResolver.RaiseIncompatibleTypeDesc(id: TMaxPrecInt; MsgNumber: int
 {$IFDEF PAS2JS}
     vtUnicodeString: Result:=Args[ArgNo].VUnicodeString;
 {$ELSE}
-    vtUnicodeString: Result:=UnicodeString(Args[ArgNo].VUnicodeString);
+    vtUnicodeString: Result:={%H-}UnicodeString(Args[ArgNo].VUnicodeString);
     vtAnsiString: Result:=AnsiString(Args[ArgNo].VAnsiString);
 {$ENDIF}    
     else
