@@ -1197,16 +1197,21 @@ end;
 
 procedure TCustomTestResolver.ParseMain(ExpectedModuleClass: TPasModuleClass);
 var
+  {$IFNDEF NOCONSOLE}
   aFilename: String;
+  {$ENDIF}
   aRow, aCol: Integer;
 begin
   FFirstStatement:=nil;
+  if ExpectedModuleClass=nil then ;
   try
     ParseModule;
   except
     on E: EParserError do
       begin
+      {$IFNDEF NOCONSOLE}
       aFilename:=E.Filename;
+      {$ENDIF}
       aRow:=E.Row;
       aCol:=E.Column;
 {$IFNDEF NOCONSOLE}
@@ -1220,12 +1225,16 @@ begin
       end;
     on E: EPasResolve do
       begin
+      {$IFNDEF NOCONSOLE}
       aFilename:=Scanner.CurFilename;
+      {$ENDIF}
       aRow:=Scanner.CurRow;
       aCol:=Scanner.CurColumn;
       if E.PasElement<>nil then
         begin
+        {$IFNDEF NOCONSOLE}
         aFilename:=E.PasElement.SourceFilename;
+        {$ENDIF}
         ResolverEngine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,aRow,aCol);
         end;
 {$IFNDEF NOCONSOLE}
@@ -1459,7 +1468,10 @@ var
   var
     aLabel: PSrcMarker;
     ReferenceElements, LabelElements: TFPList;
-    i, j, aLine, aCol: Integer;
+    i, j: Integer;
+    {$IFNDEF NOCONSOLE}
+    aLine, aCol: Integer;
+    {$ENDIF}
     El, Ref, LabelEl: TPasElement;
   begin
     //writeln('CheckResolverReference searching reference: ',aMarker^.Filename,' Line=',aMarker^.Row,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
@@ -2146,14 +2158,17 @@ end;
 
 procedure TCustomTestResolver.HandleError(CurEngine: TTestEnginePasResolver;
   E: Exception);
+{$IFNDEF NOCONSOLE}
 var
   ErrFilename: String;
   ErrRow, ErrCol: Integer;
+{$ENDIF}
 begin
+  if CurEngine=nil then ;
+  {$IFNDEF NOCONSOLE}
   ErrFilename:=CurEngine.Scanner.CurFilename;
   ErrRow:=CurEngine.Scanner.CurRow;
   ErrCol:=CurEngine.Scanner.CurColumn;
-  {$IFNDEF NOCONSOLE}
   writeln('ERROR: TCustomTestResolver.HandleError during parsing: '+E.ClassName+':'+E.Message
     +' File='+ErrFilename
     +' LineNo='+IntToStr(ErrRow)
@@ -4623,7 +4638,7 @@ begin
   Add('  v:longint;');
   Add('begin');
   Add('  v:=''A'';');
-  CheckResolverException('Incompatible types: got "AnsiChar" expected "Longint"',
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -4705,7 +4720,7 @@ begin
   Add([
   'var',
   '  i,j:string;',
-  '  k:AnsiChar;',
+  '  k:char;',
   '  w:widechar;',
   'begin',
   '  i:='''';',
@@ -4719,7 +4734,7 @@ begin
   '  k:=''a'';',
   '  k:='''''''';',
   '  k:=j[1];',
-  '  k:=AnsiChar(#10);',
+  '  k:=char(#10);',
   '  w:=k;',
   '  w:=#66;',
   '  w:=#6666;',
@@ -4736,7 +4751,7 @@ begin
   ResolverEngine.BaseTypeString:=btUnicodeString;
   StartProgram(false);
   Add('var');
-  Add('  k:AnsiChar;');
+  Add('  k:char;');
   Add('  w:widechar;');
   Add('begin');
   Add('  w:=k;');
@@ -4788,7 +4803,7 @@ begin
   Add('  TFlags = set of TFlag;');
   Add('var');
   Add('  i: longint;');
-  Add('  c: AnsiChar;');
+  Add('  c: char;');
   Add('  s: string;');
   Add('  d: double;');
   Add('  f: TFlag;');
@@ -4829,7 +4844,7 @@ begin
   '  fs: single;',
   '  d: double;',
   '  b: boolean;',
-  '  c: AnsiChar;',
+  '  c: char;',
   '  s: string;',
   'begin',
   '  d:=double({#a_read}i);',
@@ -4844,9 +4859,9 @@ begin
   '  b:=boolean({#k_read}i);',
   '  i:=longint({#l_read}b);',
   '  d:=double({#m_read}i);',
-  '  c:=AnsiChar({#n_read}c);',
-  '  c:=AnsiChar({#o_read}i);',
-  '  c:=AnsiChar(65);',
+  '  c:=char({#n_read}c);',
+  '  c:=char({#o_read}i);',
+  '  c:=char(65);',
   '  s:=string({#p_read}s);',
   '  s:=string({#q_read}c);',
   '']);
@@ -4862,13 +4877,13 @@ begin
   Add('  TCaption = string;');
   Add('  TYesNo = boolean;');
   Add('  TFloat = double;');
-  Add('  TChar = AnsiChar;');
+  Add('  TChar = char;');
   Add('var');
   Add('  i: longint;');
   Add('  s: string;');
   Add('  b: boolean;');
   Add('  d: double;');
-  Add('  c: AnsiChar;');
+  Add('  c: char;');
   Add('begin');
   Add('  i:=integer({#a_read}i);');
   Add('  i:=integer({#h_read}b);');
@@ -4898,9 +4913,9 @@ begin
   StartProgram(false);
   Add('var');
   Add('  s: string;');
-  Add('  c: AnsiChar;');
+  Add('  c: char;');
   Add('begin');
-  Add('  c:=AnsiChar(s);');
+  Add('  c:=char(s);');
   CheckResolverException(sIllegalTypeConversionTo,nIllegalTypeConversionTo);
 end;
 
@@ -4992,13 +5007,13 @@ begin
   'var',
   '  bo: boolean;',
   '  by: byte;',
-  '  ch: AnsiChar;',
+  '  ch: char;',
   '  s: string;',
   '  i: longint = high(abc);',
   'begin',
   '  for bo:=low(boolean) to high(boolean) do;',
   '  for by:=low(byte) to high(byte) do;',
-  '  for ch:=low(AnsiChar) to high(AnsiChar) do;',
+  '  for ch:=low(char) to high(AnsiChar) do;',
   '  for i:=low(s) to high(s) do;',
   '']);
   ParseProgram;
@@ -5064,11 +5079,11 @@ procedure TTestResolver.TestStr_CharFail;
 begin
   StartProgram(false);
   Add('var');
-  Add('  c: AnsiChar;');
+  Add('  c: char;');
   Add('  aString: string;');
   Add('begin');
   Add('  Str(c,aString);');
-  CheckResolverException('Incompatible type for arg no. 1: Got "AnsiChar", expected "boolean, integer, enum value"',
+  CheckResolverException('Incompatible type for arg no. 1: Got "Char", expected "boolean, integer, enum value"',
     nIncompatibleTypeArgNo);
 end;
 
@@ -5370,7 +5385,7 @@ begin
   '  i: longint;',
   '  f: TFlag;',
   '  b: boolean;',
-  '  c: AnsiChar;',
+  '  c: char;',
   '  s: string;',
   'begin',
   '  case i of',
@@ -5419,7 +5434,7 @@ begin
   Add('  case i of');
   Add('  ''1'': ;');
   Add('  end;');
-  CheckResolverException('Incompatible types: got "AnsiChar" expected "Longint"',
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -5660,10 +5675,10 @@ end;
 procedure TTestResolver.TestForLoopStartIncompFail;
 begin
   StartProgram(false);
-  Add('var i: AnsiChar;');
+  Add('var i: char;');
   Add('begin');
   Add('  for i:=1 to 2 do ;');
-  CheckResolverException('Incompatible types: got "Longint" expected "AnsiChar"',
+  CheckResolverException('Incompatible types: got "Longint" expected "Char"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -5673,7 +5688,7 @@ begin
   Add('var i: longint;');
   Add('begin');
   Add('  for i:=1 to ''2'' do ;');
-  CheckResolverException('Incompatible types: got "AnsiChar" expected "Longint"',
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -6574,7 +6589,7 @@ begin
   Add('procedure {#int64}DoIt(p: int64); external;  var i6: int64;');
   Add('procedure {#comp}DoIt(p: comp); external;  var co: comp;');
   Add('procedure {#boolean}DoIt(p: boolean); external;  var bo: boolean;');
-  Add('procedure {#AnsiChar}DoIt(p: AnsiChar); external;  var ch: AnsiChar;');
+  Add('procedure {#char}DoIt(p: char); external;  var ch: char;');
   Add('procedure {#widechar}DoIt(p: widechar); external;  var wc: widechar;');
   Add('procedure {#string}DoIt(p: string); external;  var st: string;');
   Add('procedure {#widestring}DoIt(p: widestring); external;  var ws: widestring;');
@@ -6592,7 +6607,7 @@ begin
   Add('  {@int64}DoIt(i6);');
   Add('  {@comp}DoIt(co);');
   Add('  {@boolean}DoIt(bo);');
-  Add('  {@AnsiChar}DoIt(ch);');
+  Add('  {@char}DoIt(ch);');
   Add('  {@widechar}DoIt(wc);');
   Add('  {@string}DoIt(st);');
   Add('  {@widestring}DoIt(ws);');
@@ -6653,7 +6668,7 @@ begin
   Add([
   'function {#a}StrToDate(const a: String): double; begin end;',
   'function {#b}StrToDate(const a: String; const b: string): double; begin end;',
-  'function {#c}StrToDate(const a: String; const b: string; c: AnsiChar): double; begin end;',
+  'function {#c}StrToDate(const a: String; const b: string; c: char): double; begin end;',
   'var d: double;',
   'begin',
   '  d:={@a}StrToDate('''');',
@@ -7203,7 +7218,7 @@ begin
   StartProgram(false);
   Add([
   'function DoIt: string;',
-  '  function Sub: AnsiChar;',
+  '  function Sub: char;',
   '  begin',
   '    {#a1}DoIt:=#65;',
   '    {#a2}DoIt[1]:=#66;',
@@ -7827,7 +7842,7 @@ begin
   'procedure DoIt(p: Pointer);',
   'var',
   '  s: string absolute p;',
-  '  t: array of AnsiChar absolute s;',
+  '  t: array of char absolute s;',
   'begin',
   'end;',
   'begin']);
@@ -10519,12 +10534,12 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TObject = class');
-  Add('    procedure ProcA(c: AnsiChar); virtual; abstract;');
+  Add('    procedure ProcA(c: char); virtual; abstract;');
   Add('  end;');
   Add('  TClassA = class');
-  Add('    procedure ProcA(c: AnsiChar); override;');
+  Add('    procedure ProcA(c: char); override;');
   Add('  end;');
-  Add('procedure TClassA.ProcA(c: AnsiChar);');
+  Add('procedure TClassA.ProcA(c: char);');
   Add('begin');
   Add('  inherited ProcA(c);');
   Add('end;');
@@ -14665,7 +14680,7 @@ begin
   StartProgram(false);
   Add('type');
   Add('  TArrA = array[1..2] of longint;');
-  Add('  TArrB = array[AnsiChar] of boolean;');
+  Add('  TArrB = array[char] of boolean;');
   Add('  TArrC = array[byte,''a''..''z''] of longint;');
   Add('const');
   Add('  ArrA: TArrA = (3,4);');
@@ -14688,21 +14703,21 @@ begin
   StartProgram(false);
   Add([
   'type',
-  '  TArrA = array[1..3] of AnsiChar;',
+  '  TArrA = array[1..3] of char;',
   'const',
   {
   '  A: TArrA = (''p'',''a'',''p'');', // duplicate allowed, this bracket is not a set
   '  B: TArrA = ''pas'';',
   '  Three = length(TArrA);',
-  '  C: array[1..Three] of AnsiChar = ''pas'';',
+  '  C: array[1..Three] of char = ''pas'';',
   '  D = ''pp'';',
-  '  E: array[length(D)..Three] of AnsiChar = D;',
+  '  E: array[length(D)..Three] of char = D;',
   '  F: array[1..2] of widechar = ''äö'';',
   }
-  '  G: array[1..2] of AnsiChar = ''ä'';',
+  '  G: array[1..2] of char = ''ä'';',
   {
-  '  H: array[1..4] of AnsiChar = ''äö'';',
-  '  I: array[1..4] of AnsiChar = ''ä''+''ö'';',
+  '  H: array[1..4] of char = ''äö'';',
+  '  I: array[1..4] of char = ''ä''+''ö'';',
   }
   'begin']);
   ParseProgram;
@@ -14714,18 +14729,18 @@ begin
   Add([
   '{$mode delphi}',
   'type',
-  '  TArrA = array[1..3] of AnsiChar;',
+  '  TArrA = array[1..3] of char;',
   'const',
   '  A: TArrA = (''p'',''a'',''p'');', // duplicate allowed, this bracket is not a set
   '  B: TArrA = ''pas'';',
   '  Three = length(TArrA);',
-  '  C: array[1..Three] of AnsiChar = ''pas'';',
+  '  C: array[1..Three] of char = ''pas'';',
   '  D = ''pp'';',
-  '  E: array[length(D)..Three] of AnsiChar = D;',
+  '  E: array[length(D)..Three] of char = D;',
   '  F: array[1..2] of widechar = ''äö'';',
-  '  G: array[1..2] of AnsiChar = ''ä'';',
-  '  H: array[1..4] of AnsiChar = ''äö'';',
-  '  I: array[1..4] of AnsiChar = ''ä''+''ö'';',
+  '  G: array[1..2] of char = ''ä'';',
+  '  H: array[1..4] of char = ''äö'';',
+  '  I: array[1..4] of char = ''ä''+''ö'';',
   'begin']);
   ParseProgram;
 end;
@@ -14747,11 +14762,11 @@ begin
   Add([
   'procedure {#a}Run(const s: string); overload;',
   'begin end;',
-  'procedure {#b}Run(const a: array of AnsiChar); overload;',
+  'procedure {#b}Run(const a: array of char); overload;',
   'begin end;',
   'var',
   '  s: string;',
-  '  c: AnsiChar;',
+  '  c: char;',
   'begin',
   '  {@a}Run(''foo'');',
   '  {@a}Run(s);',
@@ -14817,10 +14832,10 @@ procedure TTestResolver.TestArray_LowHigh;
 begin
   StartProgram(false);
   Add('type');
-  Add('  TArrA = array[AnsiChar] of longint;');
+  Add('  TArrA = array[char] of longint;');
   Add('  TArrB = array of TArrA;');
   Add('var');
-  Add('  c: AnsiChar;');
+  Add('  c: char;');
   Add('  i: longint;');
   Add('begin');
   Add('  for c:=low(TArrA) to High(TArrA) do ;');
@@ -15089,7 +15104,7 @@ begin
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
   '  OneInt2: array of integer = (7);',
-  '  Chars: array of AnsiChar = ''aoc'';',
+  '  Chars: array of char = ''aoc'';',
   '  Names: array of string = (''a'',''foo'');',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure DoIt(Ints: TArrInt);',
@@ -15131,7 +15146,7 @@ begin
   '  Aliases: TarrStr = {#aliases_array}[''foo'',''b'',''b''];',
   '  OneInt: TArrInt = {#oneint_array}[7];',
   '  TwoInt: array of integer = {#twoint1_array}[7]+{#twoint2_array}[8];',
-  '  Chars: array of AnsiChar = ''aoc'';',
+  '  Chars: array of char = ''aoc'';',
   '  Names: array of string = {#names_array}[''a'',''a''];',
   '  NameCount = low(Names)+high(Names)+length(Names);',
   'procedure {#DoArrOfSet}DoIt(const s: TArrOfSet); overload; begin end;',
@@ -15419,10 +15434,10 @@ begin
   StartProgram(false);
   Add([
   '{$mode delphi}',
-  'Function CharInSet(Ch: AnsiChar;Const CSet : array of AnsiChar) : Boolean;',
+  'Function CharInSet(Ch: char;Const CSet : array of char) : Boolean;',
   'begin',
   'end;',
-  'var Key: AnsiChar;',
+  'var Key: char;',
   'begin',
   '  if CharInSet(Key, [^V, ^X, ^C]) then ;',
   '  CharInSet(Key,''abc'');',
@@ -15436,9 +15451,9 @@ begin
   StartProgram(false);
   Add([
   '{$mode delphi}',
-  'type TArrChr = array of AnsiChar;',
+  'type TArrChr = array of char;',
   'var',
-  '  Key: AnsiChar;',
+  '  Key: char;',
   '  s: string;',
   '  a: TArrChr;',
   'begin',
@@ -18851,7 +18866,7 @@ begin
   '  TStringHelper = type helper for String',
   '    procedure DoIt;',
   '  end;',
-  '  TCharHelper = type helper for AnsiChar',
+  '  TCharHelper = type helper for char',
   '    procedure Fly;',
   '  end;',
   'procedure TStringHelper.DoIt;',
@@ -18880,7 +18895,7 @@ begin
     '  TStringHelper = type helper for String',
     '    procedure DoIt;',
     '  end;',
-    '  TCharHelper = type helper for AnsiChar',
+    '  TCharHelper = type helper for char',
     '    procedure Fly;',
     '  end;',
     '']),

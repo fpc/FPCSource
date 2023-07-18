@@ -2803,7 +2803,7 @@ Var
   B : TBytes;
 
 begin
-  SetLength(B,AStream.Size);
+  SetLength(B{%H-},AStream.Size);
   if Length(B)>0 then
     AStream.Read(B[0],length(B));
   FContent:=TEncoding.Default.GetAnsiString(B);
