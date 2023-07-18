@@ -1689,7 +1689,7 @@ var
     TargetStream.Write(s[1],length(s));
   end;
 
-  procedure WriteChar(const c: AnsiChar);
+  procedure WriteChar(const {%H-}c: AnsiChar);
   begin
     TargetStream.Write(c,1);
   end;

@@ -9070,7 +9070,7 @@ begin
                 citCorba:
                   // CORBA:  rtl.getIntfT(objVar,intftype)
                   Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnIntfGetIntfT),El);
-                else RaiseNotSupported(El,AContext,20180401225752);
+                else RaiseNotSupported(El,AContext,20180401225752){%H-};
                 end;
                 end
               else
@@ -9626,7 +9626,7 @@ begin
                 SNE.B:=CreateLiteralNull(El);
                 end;
               else
-                RaiseNotSupported(El,AContext,20180401225502,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
+                RaiseNotSupported(El,AContext,20180401225502,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]){%H-};
               end;
               exit;
               end;
@@ -11772,7 +11772,7 @@ var
       RaiseNotSupported(El,AContext,20170403000550);
       end;
     else
-      RaiseNotSupported(El,AContext,20170402233834);
+      RaiseNotSupported(El,AContext,20170402233834){%H-};
     end;
 
     if aResolver.IsHelperMethod(AccessEl) then
@@ -12299,7 +12299,7 @@ begin
                 Call.AddArg(CreateReferencePathExpr(Decl,AContext));
                 end;
               else
-                RaiseNotSupported(El,AContext,20180416102614,InterfaceTypeNames[TPasClassType(Decl).InterfaceType]);
+                RaiseNotSupported(El,AContext,20180416102614,InterfaceTypeNames[TPasClassType(Decl).InterfaceType]){%H-};
               end;
               exit; // bsObjectChecks not needed
               end;
@@ -16046,7 +16046,7 @@ begin
         citCom: IntfKind:='com';
         citCorba: ; // default
         else
-          RaiseNotSupported(El,AContext,20180405093512);
+          RaiseNotSupported(El,AContext,20180405093512){%H-};
         end;
       NeedInitFunction:=NeedTypeInfo or (IntfKind<>'') or (coShortRefGlobals in Options);
       end;
@@ -20078,7 +20078,7 @@ begin
       citCom: NeedIntfRef:=true;
       citCorba: NeedTryFinally:=false;
       else
-        RaiseNotSupported(El.VariableName,AContext,20180328192842);
+        RaiseNotSupported(El.VariableName,AContext,20180328192842){%H-};
       end;
     else
       RaiseNotSupported(El.VariableName,AContext,20180328192452);
@@ -20476,7 +20476,7 @@ begin
     argVar: inc(Flags,pfVar);
     argOut: inc(Flags,pfOut);
   else
-    RaiseNotSupported(Arg,AContext,20170409192127,AccessNames[Arg.Access]);
+    RaiseNotSupported(Arg,AContext,20170409192127,AccessNames[Arg.Access]){%H-};
   end;
   if Flags>0 then
     Param.Elements.AddElement.Expr:=CreateLiteralNumber(Arg,Flags);
@@ -21325,7 +21325,7 @@ begin
           // 'guid': function(){ return rtl.getIntfT(this.GetObj(),IntfType); }
           FunName:=GetBIName(pbifnIntfGetIntfT);
         else
-          RaiseNotSupported(Prop,aContext,20180406085319,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]);
+          RaiseNotSupported(Prop,aContext,20180406085319,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]){%H-};
         end;
         Call:=CreateCallExpression(Prop);
         RetSt.Expr:=Call;
@@ -21358,7 +21358,7 @@ begin
           // 'guid': function(){ return this.GetIntf(); },
           end;
         else
-          RaiseNotSupported(Prop,FuncContext,20180406085053,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]);
+          RaiseNotSupported(Prop,FuncContext,20180406085053,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]){%H-};
         end;
         RetSt.Expr:=GetterJS;
         GetterJS:=nil;
@@ -23061,7 +23061,7 @@ begin
                   Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.LoTypeEl,
                     AContext));
                   end;
-                else RaiseNotSupported(El,AContext,20180401225931,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
+                else RaiseNotSupported(El,AContext,20180401225931,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]){%H-};
                 end;
                 end;
               okInterface: ;// IntfVar:=IntfVar
@@ -23138,7 +23138,7 @@ begin
         akMinus: T:=TJSSubEqAssignStatement(CreateElement(TJSSubEqAssignStatement,El));
         akMul: T:=TJSMulEqAssignStatement(CreateElement(TJSMulEqAssignStatement,El));
         akDivision: T:=TJSDivEqAssignStatement(CreateElement(TJSDivEqAssignStatement,El));
-        else RaiseNotSupported(El,AContext,20161107221807);
+        else RaiseNotSupported(El,AContext,20161107221807){%H-};
       end;
       T.Expr:=AssignContext.RightSide;
       AssignContext.RightSide:=nil;
@@ -23833,7 +23833,7 @@ begin
       RaiseNotSupported(El,AContext,20171112160707);
   else
     {$IFDEF VerbosePas2JS}
-    writeln('TPasToJSConverter.ConvertForStatement LoopType=',El.LoopType);
+    writeln('TPasToJSConverter.ConvertForStatement LoopType=',El.LoopType){%H-};
     {$ENDIF}
     RaiseNotSupported(El,AContext,20171110141937);
   end;
@@ -24596,7 +24596,7 @@ begin
           citCom: IntfKind:='com';
           citCorba: ; // default
           else
-            RaiseNotSupported(El,AContext,20200905132130);
+            RaiseNotSupported(El,AContext,20200905132130){%H-};
           end;
         NeedInitFunction:=(pcsfPublished in ClassScope.Flags) or (IntfKind<>'');
         if not NeedInitFunction then
@@ -26679,7 +26679,7 @@ begin
                 Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
                 end;
               else
-                RaiseNotSupported(El,AContext,20180401230251,InterfaceTypeNames[TPasClassType(ArgTypeEl).InterfaceType]);
+                RaiseNotSupported(El,AContext,20180401230251,InterfaceTypeNames[TPasClassType(ArgTypeEl).InterfaceType]){%H-};
               end;
               end
             else
@@ -27256,7 +27256,7 @@ begin
         exit;
         end;
       else
-        RaiseNotSupported(Arg,AContext,20170214120739);
+        RaiseNotSupported(Arg,AContext,20170214120739){%H-};
     end;
     end;
   Result:=CreatePrimitiveDotExpr(ArgName,PosEl);

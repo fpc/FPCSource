@@ -172,7 +172,7 @@ begin
         @CompareCompilerFilesPasUnitname,@CompareUnitnameAndCompilerFile_PasUnitName
         {$ENDIF});
   else
-    Raise EPas2jsFileCache.CreateFmt('Internal Unknown key type: %d',[Ord(KeyType)]);
+    Raise EPas2jsFileCache.CreateFmt('Internal Unknown key type: %d',[Ord(KeyType)]){%H-};
   end;
 end;
 
