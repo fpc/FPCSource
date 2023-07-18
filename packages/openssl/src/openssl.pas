@@ -1321,9 +1321,12 @@ var
   function EVP_DigestSignInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
   function EVP_DigestSignUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
   function EVP_DigestSignFinal(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+  function EVP_DigestSign(ctx: PEVP_MD_CTX; sigret:Pbyte; siglen:pcsize_t; const tbs : pointer; tbslen: csize_t): cint;
+
   function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
   function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
   function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+  function EVP_DigestVerify(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t; const tbs : pointer; tbslen: csize_t): cint;
   //function
   //
   // PEM Functions - pem.h
@@ -1583,7 +1586,7 @@ type
   TSslLibraryInit = function:cInt; cdecl;
   TOPENSSL_INIT_new = function : POPENSSL_INIT_SETTINGS; cdecl;
   TOPENSSL_INIT_free = procedure(settings : POPENSSL_INIT_SETTINGS); cdecl;
-  TOPENSSL_INIT_set_config_appname = function (settings:POPENSSL_INIT_SETTINGS; config_file : PAnsiChar) : cint;
+  TOPENSSL_INIT_set_config_appname = function (settings:POPENSSL_INIT_SETTINGS; config_file : PAnsiChar) : cint; cdecl;
 
   TOPENSSL_init_ssl = function ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint; cdecl;
   TOPENSSL_cleanup = procedure; cdecl;
@@ -1791,9 +1794,12 @@ type
   //
   TEVP_MD_CTX_new = function(): PEVP_MD_CTX; cdecl;
   TEVP_MD_CTX_free = procedure(ctx: PEVP_MD_CTX); cdecl;
-  TEVP_DigestSignVerifyInit = function(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
-  TEVP_DigestSignFinal = function(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
-  TEVP_DigestVerifyFinal = function(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+  TEVP_DigestSignVerifyInit = function(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint; cdecl;
+  TEVP_DigestSignFinal = function(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint; cdecl;
+  TEVP_DigestSign = function(ctx: PEVP_MD_CTX; sigret : Pbyte; siglen : pcsize_t; const tbs : Pbyte; tbslen : csize_t) : cint; cdecl;
+  TEVP_DigestVerifyFinal = function(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint; cdecl;
+  TEVP_DigestVerify = function(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t; tbs : PByte; tbslen: csize_t): cint; cdecl;
+
   // PEM functions
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
@@ -2051,8 +2057,10 @@ var
   _EVP_MD_CTX_free : TEVP_MD_CTX_free = nil;
   _EVP_DigestSignInit: TEVP_DigestSignVerifyInit = nil;
   _EVP_DigestSignFinal: TEVP_DigestSignFinal = nil;
+  _EVP_DigestSign: TEVP_DigestSign = nil;
   _EVP_DigestVerifyInit: TEVP_DigestSignVerifyInit = nil;
   _EVP_DigestVerifyFinal: TEVP_DigestVerifyFinal = nil;
+  _EVP_DigestVerify: TEVP_DigestVerify = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
 
@@ -3637,6 +3645,14 @@ begin
     Result := -1;
 end;
 
+function EVP_DigestVerify(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t; const tbs : pointer; tbslen: csize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestVerify) then
+    Result := _EVP_DigestVerify(ctx, sig, siglen, tbs, tbslen)
+  else
+    Result := -1;
+end;
+
 function EVP_PKEY_size(key: pEVP_PKEY): integer;
 begin
   if InitSSLInterface and Assigned(_EVP_PKEY_size) then
@@ -3813,6 +3829,15 @@ begin
   else
     Result := -1;
 end;
+
+function EVP_DigestSign(ctx: PEVP_MD_CTX; sigret:Pbyte; siglen:pcsize_t; const tbs : pointer; tbslen: csize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestSign) then
+    Result := _EVP_DigestSign(ctx, sigret, siglen,tbs,tbslen)
+  else
+    Result := -1;
+end;
+
 
 function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
 begin
@@ -5002,6 +5027,8 @@ begin
   _SslWrite := GetProcAddr(SSLLibHandle, 'SSL_write');
   _SslPending := GetProcAddr(SSLLibHandle, 'SSL_pending');
   _SslGetPeerCertificate := GetProcAddr(SSLLibHandle, 'SSL_get_peer_certificate');
+  if not Assigned(_SslGetPeerCertificate) 
+  then _SslGetPeerCertificate := GetProcAddr(SSLLibHandle, 'SSL_get1_peer_certificate');
   _SslGetVersion := GetProcAddr(SSLLibHandle, 'SSL_get_version');
   _SslCtxSetVerify := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_verify');
   _SslGetCurrentCipher := GetProcAddr(SSLLibHandle, 'SSL_get_current_cipher');
@@ -5106,8 +5133,10 @@ begin
   _EVP_MD_CTX_free := GetProcAddr(SSLUtilHandle, 'EVP_MD_CTX_free');
   _EVP_DigestSignInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignInit');
   _EVP_DigestSignFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignFinal');
+  _EVP_DigestSign := GetProcAddr(SSLUtilHandle, 'EVP_DigestSign');
   _EVP_DigestVerifyInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyInit');
   _EVP_DigestVerifyFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyFinal');
+  _EVP_DigestVerify := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerify');
    // 3DES functions
   _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'DES_set_odd_parity');
   _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'DES_set_key_checked');
@@ -5631,8 +5660,10 @@ begin
   _EVP_MD_CTX_free := nil;
   _EVP_DigestSignInit := nil;
   _EVP_DigestSignFinal := nil;
+  _EVP_DigestSign := nil;
   _EVP_DigestVerifyInit := nil;
   _EVP_DigestVerifyFinal := nil;
+  _EVP_DigestVerify := nil;
 
   // PEM
 
