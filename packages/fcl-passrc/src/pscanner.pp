@@ -113,6 +113,11 @@ resourcestring
   SWarnIgnoringLinkLib = 'Ignoring LINKLIB directive %s -> %s (Options: %s)';
 
 type
+  {$IF NOT DECLARED(RTLSTRING)}
+    RTLString = ansistring;
+    TRTLStringDynArray = array of RTLString;
+  {$ENDIF}
+
   // String used for scanning
   TPasScannerString = RawByteString;
   // String used for interfacing with PasTree
