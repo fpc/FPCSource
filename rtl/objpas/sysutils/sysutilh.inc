@@ -335,6 +335,9 @@ Type
   { interface handling }
   {$i intfh.inc}
 
+  { strange Delphi thing }
+  {$i sysmarshalh.inc}
+
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
 

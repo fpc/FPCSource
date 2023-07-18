@@ -43,6 +43,9 @@
   { Type helpers}
   {$i syshelp.inc}
 
+  { strange Delphi thing }
+  {$i sysmarshal.inc}
+
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
   begin

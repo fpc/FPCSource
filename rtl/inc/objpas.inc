@@ -1285,41 +1285,35 @@ end;
 
 function TPtrWrapper.ToPointer: Pointer;
 begin
-  Result:=Value;
+  Result:=FValue;
 end;
 
-class function TPtrWrapper.GetNilValue: TPtrWrapper; inline; static;
+class function TPtrWrapper.GetNilValue: TPtrWrapper;
 
 begin
-  Result.Value:=Nil;
+  Result.FValue:=Nil;
 end;
 
-constructor TPtrWrapper.Create(AValue: PtrInt); overload;
+constructor TPtrWrapper.Create(AValue: PtrInt);
 
 begin
-  Value:=Pointer(aValue);
+  FValue:=Pointer(aValue);
 end;
 
-constructor TPtrWrapper.Create(AValue: Pointer); overload;
+constructor TPtrWrapper.Create(AValue: Pointer);
 
 begin
-  Value:=aValue;
+  FValue:=aValue;
 end;
 
 
 function TPtrWrapper.ToInteger: PtrInt;
 begin
-  Result:=PtrInt(Value);
+  Result:=PtrInt(FValue);
 end;
 
-operator =(Left, Right: TPtrWrapper) c : Boolean;
+class operator TPtrWrapper.=(Left, Right: TPtrWrapper): Boolean;
 
 begin
-  c:=(Left.Value=Right.Value);
-end;
-
-operator <>(Left, Right: TPtrWrapper) c : Boolean;
-
-begin
-  Result:=(Left.Value<>Right.Value);
+  Result:=Left.FValue=Right.FValue;
 end;
