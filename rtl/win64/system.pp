@@ -117,6 +117,11 @@ begin
      { what about Input and Output ?? PM }
      { now handled, FPK }
    end;
+  if Ole32Dll <> 0 then
+    begin
+      WinFreeLibrary(Ole32Dll); { Careful, FreeLibrary should not be called from DllMain. }
+      Ole32Dll := 0;
+    end;
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
