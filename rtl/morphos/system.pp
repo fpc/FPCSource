@@ -35,8 +35,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
   AllFilesMask = '#?';
@@ -67,13 +67,13 @@ var
   ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   MOS_ambMsg   : Pointer;
-  MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  MOS_ConName  : PAnsiChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
   AOS_wbMsg: Pointer absolute MOS_ambMsg;  { common Amiga code compatibility kludge }
 
   argc: LongInt;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
 
 
 implementation
@@ -102,7 +102,7 @@ type
   pWBArg = ^tWBArg;
   tWBArg = record
     wa_Lock: longint;
-    wa_Name: PChar;
+    wa_Name: PAnsiChar;
   end;
 
   WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }
@@ -114,7 +114,7 @@ type
     sm_Process   : pMsgPort;
     sm_Segment   : longint;
     sm_NumArgs   : longint;
-    sm_ToolWindow: PChar;
+    sm_ToolWindow: PAnsiChar;
     sm_ArgList   : PWBArgList;
   end;
 

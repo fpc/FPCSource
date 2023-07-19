@@ -257,7 +257,7 @@ Function Re(z: complex): ArbFloat;
 Function Im(z: complex): ArbFloat;
 
 { Creates a string from a floatingpoint value}
-Function R2S(x: ArbFloat; p, q: integer): string;
+Function R2S(x: ArbFloat; p, q: integer): ShortString;
 
 {Calculate inproduct of V1 and V2, which are vectors with N elements;
 I1 and I2 are the SIZEOF the datatypes of V1 and V2
@@ -298,7 +298,7 @@ begin
 end;
 
 {Kind of Sysutils.TrimRight and TrimLeft called after eachother}
-procedure Compress(var s: string);
+procedure Compress(var s: ShortString);
 var i, j: LONGINT;
 begin
      j := length(s);
@@ -308,8 +308,8 @@ begin
      s := copy(s, i, j+1-i)
 end;
 
-Function R2S(x: ArbFloat; p, q: integer): string;
-var s: string;
+Function R2S(x: ArbFloat; p, q: integer): ShortString;
+var s: ShortString;
     i, j, k: integer;
 begin
    if q=-1 then

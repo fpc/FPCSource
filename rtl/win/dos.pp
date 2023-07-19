@@ -35,8 +35,8 @@ Type
     nFileSizeLow: DWORD;
     dwReserved0: DWORD;
     dwReserved1: DWORD;
-    cFileName: array[0..MAX_PATH-1] of Char;
-    cAlternateFileName: array[0..15] of Char;
+    cFileName: array[0..MAX_PATH-1] of AnsiChar;
+    cAlternateFileName: array[0..15] of AnsiChar;
     // The structure should be 320 bytes long...
     pad : system.integer;
   end;
@@ -90,7 +90,7 @@ type
      dwMinorVersion : DWORD;
      dwBuildNumber : DWORD;
      dwPlatformId : DWORD;
-     szCSDVersion : array[0..127] of char;
+     szCSDVersion : array[0..127] of AnsiChar;
    end;
 
 var
@@ -262,10 +262,10 @@ type
     dwThreadId: DWORD;
   end;
 
-function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar;
+function CreateProcess(lpApplicationName: PAnsiChar; lpCommandLine: PAnsiChar;
             lpProcessAttributes, lpThreadAttributes: Pointer;
             bInheritHandles: Longbool; dwCreationFlags: DWORD; lpEnvironment: Pointer;
-            lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
+            lpCurrentDirectory: PAnsiChar; const lpStartupInfo: TStartupInfo;
             var lpProcessInformation: TProcessInformation): longbool;
   stdcall; external 'kernel32' name 'CreateProcessA';
 function getExitCodeProcess(h:THandle;var code:longint):longbool;
@@ -283,7 +283,7 @@ var
   { Maximum length of both short string is
     2x255 = 510, plus possibly two double-quotes,
     two spaces and the final #0, makes 515 chars }
-  CommandLine : array[0..515] of char;
+  CommandLine : array[0..515] of AnsiChar;
   has_no_double_quote : boolean;
 begin
   DosError:=0;
@@ -320,7 +320,7 @@ begin
   l:=l+length(ComLine);
   { Terminate string }
   CommandLine[l]:=#0;
-  if not CreateProcess(nil, PChar(@CommandLine),
+  if not CreateProcess(nil, PAnsiChar(@CommandLine),
            Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
    begin
      DosError:=Last2DosError(GetLastError);
@@ -340,11 +340,11 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
+function GetDiskFreeSpace(drive:PAnsiChar;var sector_cluster,bytes_sector,
                           freeclusters,totalclusters:DWORD):longbool;
   stdcall; external 'kernel32' name 'GetDiskFreeSpaceA';
 type
-   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,
+   TGetDiskFreeSpaceEx = function(drive:PAnsiChar;var availableforcaller,
                              total,free):longbool;stdcall;
 
 var
@@ -352,7 +352,7 @@ var
 
 function diskfree(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : DWORD;
   qwtotal,qwfree,qwcaller : int64;
@@ -390,7 +390,7 @@ end;
 
 function disksize(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : DWORD;
   qwtotal,qwfree,qwcaller : int64;
@@ -431,7 +431,7 @@ end;
 
 { Needed kernel calls }
 
-function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWinFindData): THandle;
+function FindFirstFile (lpFileName: PAnsiChar; var lpFindFileData: TWinFindData): THandle;
   stdcall; external 'kernel32' name 'FindFirstFileA';
 function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWinFindData): LongBool;
   stdcall; external 'kernel32' name 'FindNextFileA';
@@ -449,9 +449,9 @@ end;
 Procedure PCharToString (Var S : String);
 Var L : Longint;
 begin
-  L:=strlen(pchar(@S[0]));
+  L:=strlen(PAnsiChar(@S[0]));
   Move (S[0],S[1],L);
-  S[0]:=char(l);
+  S[0]:=AnsiChar(l);
 end;
 
 
@@ -489,7 +489,7 @@ begin
 
   { FindFirstFile is a Win32 Call }
   F.WinFindData.dwFileAttributes:=DosToWinAttr(f.attr);
-  F.FindHandle:=FindFirstFile (pchar(@f.Name),F.WinFindData);
+  F.FindHandle:=FindFirstFile (PAnsiChar(@f.Name),F.WinFindData);
 
   If F.FindHandle=Invalid_Handle_value then
    begin
@@ -534,17 +534,17 @@ function GetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime
   stdcall; external 'kernel32' name 'GetFileTime';
 function SetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime) : longbool;
   stdcall; external 'kernel32' name 'SetFileTime';
-function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
+function SetFileAttributes(lpFileName : PAnsiChar;dwFileAttributes : longint) : longbool;
   stdcall; external 'kernel32' name 'SetFileAttributesA';
-function GetFileAttributes(lpFileName : pchar) : longint;
+function GetFileAttributes(lpFileName : PAnsiChar) : longint;
   stdcall; external 'kernel32' name 'GetFileAttributesA';
 
 
 { <immobilizer> }
 
-function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
+function GetFullPathName(lpFileName: PAnsiChar; nBufferLength: Longint; lpBuffer: PAnsiChar; var lpFilePart : PAnsiChar):DWORD;
     stdcall; external 'kernel32' name 'GetFullPathNameA';
-function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
+function GetShortPathName(lpszLongPath:PAnsiChar; lpszShortPath:PAnsiChar; cchBuffer:DWORD):DWORD;
     stdcall; external 'kernel32' name 'GetShortPathNameA';
 
 
@@ -632,7 +632,7 @@ var
 begin
   doserror:=0;
   s:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-  l:=GetFileAttributes(pchar(s));
+  l:=GetFileAttributes(PAnsiChar(s));
   if l=longint($ffffffff) then
    begin
      doserror:=getlasterror;
@@ -652,7 +652,7 @@ begin
   else
      begin
        s:=ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-       if SetFileAttributes(pchar(s),attr) then
+       if SetFileAttributes(PAnsiChar(s),attr) then
         doserror:=0
       else
         doserror:=getlasterror;
@@ -662,13 +662,13 @@ end;
 { change to short filename if successful win32 call PM }
 function GetShortName(var p : String) : boolean;
 var
-  buffer   : array[0..255] of char;
+  buffer   : array[0..255] of AnsiChar;
   ret : longint;
 begin
   {we can't mess with p, because we have to return it if call is
       unsuccesfully.}
 
-  if Length(p)>0 then                   {copy p to array of char}
+  if Length(p)>0 then                   {copy p to array of AnsiChar}
    move(p[1],buffer[0],length(p));
   buffer[length(p)]:=chr(0);
 
@@ -761,9 +761,9 @@ end;
   terminated by a #0
 }
 
-function GetEnvironmentStrings : pchar;
+function GetEnvironmentStrings : PAnsiChar;
   stdcall; external 'kernel32' name 'GetEnvironmentStringsA';
-function FreeEnvironmentStrings(p : pchar) : longbool;
+function FreeEnvironmentStrings(p : PAnsiChar) : longbool;
   stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
 
 {$push}
@@ -772,7 +772,7 @@ function FreeEnvironmentStrings(p : pchar) : longbool;
 
 function envcount : longint;
 var
-   hp,p : pchar;
+   hp,p : PAnsiChar;
    count : longint;
 begin
    p:=GetEnvironmentStrings;
@@ -791,7 +791,7 @@ end;
 
 Function EnvStr (Index: longint): string;
 var
-   hp,p : pchar;
+   hp,p : PAnsiChar;
    count,i : longint;
 begin
    { envcount takes some time in win32 }
@@ -819,7 +819,7 @@ Function  GetEnv(envvar: string): string;
 var
    s : string;
    i : longint;
-   hp,p : pchar;
+   hp,p : PAnsiChar;
 begin
    getenv:='';
    p:=GetEnvironmentStrings;
@@ -842,11 +842,11 @@ begin
 end;
 {$pop}
 
-function GetModuleHandle(p : PChar) : PtrUInt;
+function GetModuleHandle(p : PAnsiChar) : PtrUInt;
   stdcall; external 'kernel32' name 'GetModuleHandleA';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
   stdcall; external 'kernel32' name 'GetVersionExA';
-function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
+function GetProcAddress(hModule : THandle;lpProcName : PAnsiChar) : pointer;
   stdcall; external 'kernel32' name 'GetProcAddress';
 
 

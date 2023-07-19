@@ -1300,7 +1300,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(Const buf;len:SizeInt;b:Char):SizeInt; assembler;
+function IndexChar0(Const buf;len:SizeInt;b:AnsiChar):SizeInt; assembler;
 var
   saveesi,saveebx : longint;
 asm
@@ -1518,7 +1518,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
-procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   saveres,saveebx,saveesi,saveedi : longint;
 asm
@@ -1578,7 +1578,7 @@ asm
         jmp     .LStrPasAligned
 .LStrPasEndFound:
         subl    $4,%ecx
-        // this won't overwrite data since the result = 255 char string
+        // this won't overwrite data since the result = 255 AnsiChar string
         // and we never process more than the first 255 chars of p
         shrl    $8,%eax
         jc      .LStrPasDone
@@ -1688,7 +1688,7 @@ end;
 label str_int_shortcut;
 
 
-procedure int_str(l:longword;out s:string);assembler;nostackframe;
+procedure int_str(l:longword;out s:shortstring);assembler;nostackframe;
 
 asm
   pushl %esi
@@ -1699,7 +1699,7 @@ asm
   jmp str_int_shortcut
 end;
 
-procedure int_str(l:longint;out s:string);assembler;nostackframe;
+procedure int_str(l:longint;out s:shortstring);assembler;nostackframe;
 
 {Optimized for speed, but balanced with size.}
 

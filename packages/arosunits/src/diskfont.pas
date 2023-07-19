@@ -25,7 +25,7 @@ const
 type
   PFontContents = ^TFontContents;
   TFontContents = record
-    fc_FileName: array[0..MAXFONTPATH - 1] of Char;
+    fc_FileName: array[0..MAXFONTPATH - 1] of AnsiChar;
     fc_YSize: Word;
     fc_Style: Byte;
     fc_Flags: Byte;
@@ -33,7 +33,7 @@ type
 
   PTFontContents = ^TTFontContents;
   TTFontContents = record
-    tfc_FileName: array[0..MAXFONTPATH - 3] of Char;
+    tfc_FileName: array[0..MAXFONTPATH - 3] of AnsiChar;
     tfc_TagCount: Word;
     tfc_YSize: Word;
     tfc_Style,
@@ -63,7 +63,7 @@ type
     dfh_FileID: Word;
     dfh_Revision: Word;
     dfh_Segment: BPTR;
-    dfh_Name: array [0..MAXFONTNAME-1] of Char;
+    dfh_Name: array [0..MAXFONTNAME-1] of AnsiChar;
     dfh_TF: TTextFont;
   end;
 
@@ -98,14 +98,14 @@ type
   end;
 
 const
-  DISKFONTNAME: PChar = 'diskfont.library';
+  DISKFONTNAME: PAnsiChar = 'diskfont.library';
 
 var
   DiskfontBase: PLibrary;
 
-function AvailFonts(Buffer: PChar; BufBytes: LongInt; Flags: LongInt): LongInt; syscall DiskfontBase 6;
+function AvailFonts(Buffer: PAnsiChar; BufBytes: LongInt; Flags: LongInt): LongInt; syscall DiskfontBase 6;
 procedure DisposeFontContents(FontContentsHeader: PFontContentsHeader); syscall DiskfontBase 8;
-function NewFontContents(FontsLock: BPTR; FontName: PChar): PFontContentsHeader; syscall DiskfontBase 7;
+function NewFontContents(FontsLock: BPTR; FontName: PAnsiChar): PFontContentsHeader; syscall DiskfontBase 7;
 function NewScaledDiskFont(SourceFont: PTextFont; DestTextAttr: PTextAttr): PDiskFontHeader; syscall DiskfontBase 9;
 function OpenDiskFont(TextAttr: PTextAttr): PTextFont; syscall DiskfontBase 5;
 //function GetDiskFontCtrl(tagid: LongInt): LongInt;

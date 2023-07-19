@@ -516,7 +516,7 @@ type TInt8 = Byte;
 8-bit unsigned integer type; used in Symbian OS to mean an 8-bit
 unsigned integer, independent of the implementation.
 }
-type TUint8 = Char;
+type TUint8 = AnsiChar;
 
 
 
@@ -690,7 +690,7 @@ their limited precision is acceptable.
 
 8-bit unsigned character.
 
-Use instead of C++ built-in char type because it is guaranteed to be unsigned.
+Use instead of C++ built-in AnsiChar type because it is guaranteed to be unsigned.
 Use instead of TInt8 where the application is really for text rather than
 8-bit arithmetic or binary quantities.
 
@@ -700,7 +700,7 @@ variant is being built. Use TText8 only when you are dealing explicitly with
 8-bit text, regardless of build.
 
 @see TText }
-type TText8 = Char;
+type TText8 = AnsiChar;
 
 
 
@@ -2748,7 +2748,7 @@ Asserts that a condition is true at compilation time.
 {
 @internalComponent
 }
-//static const char* const KSuppressPlatSecDiagnosticMagicValue = (const char*)1;
+//static const AnsiChar* const KSuppressPlatSecDiagnosticMagicValue = (const AnsiChar*)1;
 
 //#ifndef __REMOVE_PLATSEC_DIAGNOSTIC_STRINGS__
 {
@@ -2811,7 +2811,7 @@ argument, these APIs will not emit any form of diagnostic message.
 @publishedPartner
 @released
 }
-//static const char* const KSuppressPlatSecDiagnostic = KSuppressPlatSecDiagnosticMagicValue;
+//static const AnsiChar* const KSuppressPlatSecDiagnostic = KSuppressPlatSecDiagnosticMagicValue;
 
 //#else /* __REMOVE_PLATSEC_DIAGNOSTIC_STRINGS__ }
 

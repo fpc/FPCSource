@@ -31,20 +31,20 @@ Type
 
    tFields = Record
       x,y,wid : integer;
-      pic : string;
+      pic : shortstring;
    End;
 
 Var
    win : tnWindow;
    address : Array [1..MAXROWS] of tAddress;
    fields : Array [1..MAXCOLS] of tFields;
-   s : string;
+   s : shortstring;
    i,
    m1,m2,
    att1,att2,att3,
    row,
    col : integer;
-   ch : char;
+   ch : AnsiChar;
    IsDone : boolean;
 
 Procedure Display(row : integer);
@@ -71,8 +71,8 @@ End;
 Procedure BindArrows;
 Begin
    win.ec.Special := ^I^R^L^P^N;
-   m1 := win.ec.AddChMap(#0+Char(nKeyRight)+^R#0);
-   m2 := win.ec.AddChMap(#0+Char(nKeyLeft)+^L#0);
+   m1 := win.ec.AddChMap(#0+AnsiChar(nKeyRight)+^R#0);
+   m2 := win.ec.AddChMap(#0+AnsiChar(nKeyLeft)+^L#0);
    win.FWrite(1,win.Rows,48,0,'[F2]-Arrows');
 End;
 
@@ -122,8 +122,8 @@ Begin
       Writeln('     Street [                                        ]');
       Write  ('   Zip/City [  ]-[     ] [                              ]');
       Show;
-      ec.AddChMap(^P#0#0+Char(nKeyPgUp));
-      ec.AddChMap(^N#0#0+Char(nKeyPgDn));
+      ec.AddChMap(^P#0#0+AnsiChar(nKeyPgUp));
+      ec.AddChMap(^N#0#0+AnsiChar(nKeyPgDn));
       BindArrows;
       row := 1;
       col := 1;

@@ -17,12 +17,12 @@ Const
   MM_WARNING = 3;
   MM_INFO = 4;
 
-  MM_NULLLBL       = PChar(nil);
+  MM_NULLLBL       = PAnsiChar(nil);
   MM_NULLSEV       = 0;
   MM_NULLMC        = Longint(0);
-  MM_NULLTXT       = PChar(0);
-  MM_NULLACT       = PChar(0);
-  MM_NULLTAG       = PChar(0);
+  MM_NULLTXT       = PAnsiChar(0);
+  MM_NULLACT       = PAnsiChar(0);
+  MM_NULLTAG       = PAnsiChar(0);
 
   MM_NOTOK = -(1);
   MM_OK = 0;
@@ -30,8 +30,8 @@ Const
   MM_NOCON = 4;
 
 
-function fmtmsg(__classification:longint; __label:Pchar; __severity:longint; __text:Pchar; __action:Pchar;  __tag:Pchar):longint;cdecl;external clib name 'fmtmsg';
-function addseverity(__severity:longint; __string:Pchar):longint;cdecl;external clib name 'addseverity';
+function fmtmsg(__classification:longint; __label:PAnsiChar; __severity:longint; __text:PAnsiChar; __action:PAnsiChar;  __tag:PAnsiChar):longint;cdecl;external clib name 'fmtmsg';
+function addseverity(__severity:longint; __string:PAnsiChar):longint;cdecl;external clib name 'addseverity';
 
 
 { ---------------------------------------------------------------------

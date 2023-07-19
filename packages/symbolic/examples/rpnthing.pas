@@ -26,7 +26,7 @@ program RPNThing;
 
 Uses Symbolic,Crt;
 
-function GetKey:char;
+function GetKey:AnsiChar;
 
 begin
  repeat
@@ -43,7 +43,7 @@ end;
 
 VAR Stack    : array[0..100] of TExpression;
     I,StackPtr : Integer;
-    InputC   : Char;
+    InputC   : AnsiChar;
     S        : String;
     Flag     : Boolean;
 

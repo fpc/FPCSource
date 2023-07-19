@@ -18,8 +18,8 @@ interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
-{ force ansistrings }
-{$H+}
+{$H+} // will result in unicode string in unicode RTL
+
 {$modeswitch typehelpers}
 {$modeswitch advancedrecords}
 
@@ -297,7 +297,7 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PAnsiChar }
 
 { Include platform independent implementation part }
 
@@ -581,14 +581,14 @@ begin
 {$ifdef USE_STATX}
   { first try statx }
   if {$ifdef FPC_USE_LIBC} (@statx<>nil) and {$endif}
-     (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
+     (statx(AT_FDCWD,PAnsiChar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
     begin
       Result:=Infox.stx_mtime.tv_sec;
       exit;
     end;
 {$endif USE_STATX}
 
-  If  (fpstat(pchar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
+  If  (fpstat(PAnsiChar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result:=info.st_mtime;
@@ -652,7 +652,7 @@ begin
     begin
       Result:=Result or faSymLink;
       // Windows reports if the link points to a directory.
-      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+      if (fpstat(PAnsiChar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
         Result := Result or faDirectory;
     end;
 end;
@@ -681,7 +681,7 @@ begin
       Result:=Result or faSymLink;
       // Windows reports if the link points to a directory.
       { as we are only interested in the st_mode field here, we do not need to use statx }
-      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+      if (fpstat(PAnsiChar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
         Result := Result or faDirectory;
     end;
 end;
@@ -1061,7 +1061,7 @@ Begin
         DirName:='./'
       Else
         DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
-      UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
+      UnixFindData^.DirPtr := fpopendir(PAnsiChar(DirName));
     end;
   SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
   Found:=False;
@@ -1137,7 +1137,7 @@ Var
 {$ifdef USE_STATX}
   Infox : TStatx;
 {$endif USE_STATX}
-  Char0 : char;
+  Char0 : AnsiChar;
 begin
   Result:=-1;
 {$ifdef USE_STATX}
@@ -1202,7 +1202,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  Result:=fpUnLink (pchar(SystemFileName))>=0;
+  Result:=fpUnLink (PAnsiChar(SystemFileName))>=0;
 end;
 
 
@@ -1221,7 +1221,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  Result:=fpAccess(PChar(SystemFileName),W_OK)<>0;
+  Result:=fpAccess(PAnsiChar(SystemFileName),W_OK)<>0;
 end;
 
 Function FileSetDate (Const FileName : RawByteString; Age : Int64) : Longint;
@@ -1239,7 +1239,7 @@ begin
   times[0].tv_nsec:=0;
   times[1].tv_sec:=Age;
   times[1].tv_nsec:=0;
-  if utimensat(AT_FDCWD,PChar(SystemFileName),times,0) = -1 then
+  if utimensat(AT_FDCWD,PAnsiChar(SystemFileName),times,0) = -1 then
     Result:=fpgeterrno;
   if fpgeterrno=ESysENOSYS then
 {$endif USE_UTIMENSAT}
@@ -1247,7 +1247,7 @@ begin
       Result:=0;
       t.actime:= Age;
       t.modtime:=Age;
-      if fputime(PChar(SystemFileName), @t) = -1 then
+      if fputime(PAnsiChar(SystemFileName), @t) = -1 then
         Result:=fpgeterrno;
     end
 end;
@@ -1257,7 +1257,7 @@ Function IsFileNameCaseSensitive(Const aFileName : RawByteString) : Boolean;
 var
   res : clong;
 begin
-  res:=FpPathconf(PChar(aFileName),11 {_PC_CASE_SENSITIVE });
+  res:=FpPathconf(PAnsiChar(aFileName),11 {_PC_CASE_SENSITIVE });
   { fall back to default if path is not found }
   if res<0 then
     Result:=FileNameCaseSensitive
@@ -1274,7 +1274,7 @@ Function IsFileNameCasePreserving(Const aFileName : RawByteString) : Boolean;
 var
   res : clong;
 begin
-  res:=FpPathconf(PChar(aFileName),12 { _PC_CASE_PRESERVING });
+  res:=FpPathconf(PAnsiChar(aFileName),12 { _PC_CASE_PRESERVING });
   if res<0 then
     { fall back to default if path is not found }
     Result:=FileNameCasePreserving
@@ -1305,7 +1305,7 @@ end;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -1313,9 +1313,9 @@ Const
     );
 var
   Drives   : byte = 4;
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
-Function GetDriveStr(Drive : Byte) : Pchar;
+Function GetDriveStr(Drive : Byte) : PAnsiChar;
 
 begin
   case Drive of
@@ -1330,7 +1330,7 @@ end;
 
 Function DiskFree(Drive: Byte): int64;
 var
-  p : PChar;
+  p : PAnsiChar;
   fs : TStatfs;
 Begin
   p:=GetDriveStr(Drive);
@@ -1342,7 +1342,7 @@ End;
 
 Function DiskSize(Drive: Byte): int64;
 var
-  p : PChar;
+  p : PAnsiChar;
   fs : TStatfs;
 Begin
   p:=GetDriveStr(Drive);
@@ -1527,12 +1527,9 @@ end;
                               OS utility functions
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
-
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 begin
-  { no need to adjust the code page of EnvVar to DefaultSystemCodePage, as only
-    ASCII identifiers are supported }
-  Result:=BaseUnix.FPGetenv(PChar(pointer(EnvVar)));
+  Result:=BaseUnix.FPGetenv(PAnsiChar(pointer(EnvVar)));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -1541,7 +1538,7 @@ begin
   Result:=FPCCountEnvVar(EnvP);
 end;
 
-Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+Function GetEnvironmentString(Index : Integer) : RTLString;
 
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
@@ -1554,7 +1551,7 @@ var
   e      : EOSError;
   CommandLine: RawByteString;
   LPath  : RawByteString;
-  cmdline2 : ppchar;
+  cmdline2 : PPAnsiChar;
 
 Begin
   { always surround the name of the application by quotes
@@ -1576,12 +1573,12 @@ Begin
        UniqueString(CommandLine);
        SetCodePage(CommandLine,DefaultFileSystemCodePage,true);
        cmdline2:=StringtoPPChar(CommandLine,1);
-       cmdline2^:=pchar(pointer(LPath));
+       cmdline2^:=PAnsiChar(pointer(LPath));
      end
    else
      begin
-       getmem(cmdline2,2*sizeof(pchar));
-       cmdline2^:=pchar(LPath);
+       getmem(cmdline2,2*sizeof(PAnsiChar));
+       cmdline2^:=PAnsiChar(LPath);
        cmdline2[1]:=nil;
      end;
 
@@ -1593,7 +1590,7 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-      fpexecve(pchar(pointer(LPath)),Cmdline2,envp);
+      fpexecv(PAnsiChar(pointer(LPath)),Cmdline2);
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -1701,7 +1698,7 @@ begin
         begin
           SetLength(Result, MAX_PATH);
           SetLength(Result, FileRead(h, Result[1], Length(Result)));
-          SetLength(Result, strlen(PChar(Result)));
+          SetLength(Result, strlen(PAnsiChar(Result)));
           FileClose(h);
           Result:='/data/data/' + Result;
           _HasPackageDataDir:=DirectoryExists(Result);

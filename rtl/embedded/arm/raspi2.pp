@@ -75,7 +75,7 @@ begin
     UARTLCR := GET32(AUX_MU_LCR_REG);
 end;
 
-procedure UARTPuts(C: Char);
+procedure UARTPuts(C: AnsiChar);
 begin
     while True do
     begin
@@ -85,14 +85,14 @@ begin
     PUT32(AUX_MU_IO_REG, DWord(C));
 end;
 
-function UARTGet(): Char;
+function UARTGet(): AnsiChar;
 begin
     while True do
     begin
         if (GET32(AUX_MU_LSR_REG) and $01) > 0 then break;
     end;
 
-    UARTGet := Char(GET32(AUX_MU_IO_REG) and $FF);
+    UARTGet := AnsiChar(GET32(AUX_MU_IO_REG) and $FF);
 end;
 
 procedure UARTFlush();
@@ -103,14 +103,14 @@ begin
     end;
 end;
 
-function RaspiWrite(ACh: char; AUserData: pointer): boolean;
+function RaspiWrite(ACh: AnsiChar; AUserData: pointer): boolean;
 begin
     UARTPuts(ACh);
 
     RaspiWrite := true;
 end;
 
-function RaspiRead(var ACh: char; AUserData: pointer): boolean;
+function RaspiRead(var ACh: AnsiChar; AUserData: pointer): boolean;
 begin
     if (GET32(AUX_MU_LSR_REG) and $01) > 0 then
     begin

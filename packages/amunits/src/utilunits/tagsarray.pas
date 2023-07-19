@@ -50,7 +50,7 @@ begin
         vtboolean : TagList[ii].ti_data := PtrInt(byte(Args[i].vboolean));
         vtpchar   : TagList[ii].ti_data := PtrInt(Args[i].vpchar);
         vtchar    : TagList[ii].ti_data := PtrInt(Args[i].vchar);
-        vtstring  : TagList[ii].ti_data := PtrInt(PChar(string(Args[i].vstring^)));
+        vtstring  : TagList[ii].ti_data := PtrInt(PAnsiChar(AnsiString(Args[i].vstring^)));
         vtpointer : TagList[ii].ti_data := PtrInt(Args[i].vpointer);
       end;
       inc(ii);

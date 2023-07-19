@@ -58,7 +58,7 @@ var
 function CreateNewProc(tags: PTagItem): PProcess; public name '_fpc_amiga_createproc';
 var
   seglistbptr: dword;
-  name: pchar;
+  name: PAnsiChar;
   entryfunc: pointer;
   stacksize: dword;
   m: pmsgport;
@@ -120,7 +120,7 @@ begin
 end;
 
 function NameFromLock(lock  : LongInt;
-                      buffer: PChar;
+                      buffer: PAnsiChar;
                       len   : LongInt): LongBool; public name '_fpc_amiga_namefromlock';
 var
   fib_area: array[1..sizeof(TFileInfoBlock) + sizeof(longint)] of byte;
@@ -171,7 +171,7 @@ begin
 end;
 
 function NameFromFH(fh    : BPTR;
-                    buffer: PChar;
+                    buffer: PAnsiChar;
                     len   : LongInt): LongBool; public name '_fpc_amiga_namefromfh';
 begin
 {$warning NameFromFH unimplemented!}
@@ -258,12 +258,12 @@ begin
   end;
 end;
 
-function MatchFirst(pat   : PChar;
+function MatchFirst(pat   : PAnsiChar;
                     anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchfirst';
 var
   fib_area: array[1..sizeof(TFileInfoBlock) + sizeof(longint)] of byte;
   fib: pfileinfoblock;
-  p: PChar;
+  p: PAnsiChar;
   len: LongInt;
   Path,FileN: AnsiString;
   LastSeparatorPos: Integer;
@@ -310,7 +310,7 @@ begin
   else
   begin
     newLock := True;
-    DirLock := Lock(PChar(Path), ACCESS_READ);
+    DirLock := Lock(PAnsiChar(Path), ACCESS_READ);
   end;
   //
   // no dirlock found -> dir not found
@@ -417,7 +417,7 @@ begin
 end;
 
 // we emulate that by the old execute command, should be enough for most cases
-function SystemTagList(command: PChar;
+function SystemTagList(command: PAnsiChar;
                        tags   : PTagItem): LongInt; public name '_fpc_amiga_systemtaglist';
 var
   I,O: BPTR; // in / ouput handles
@@ -442,8 +442,8 @@ begin
     SystemTagList := -1;
 end;
 
-function GetVar(name  : PChar;
-                buffer: PChar;
+function GetVar(name  : PAnsiChar;
+                buffer: PAnsiChar;
                 size  : LongInt;
                 flags : LongInt): LongInt; public name '_fpc_amiga_getvar';
 begin
@@ -451,7 +451,7 @@ begin
   GetVar:=-1;
 end;
 
-function SetFileDate(name: PChar;
+function SetFileDate(name: PAnsiChar;
                      date: PDateStamp): LongBool; public name '_fpc_amiga_setfiledate';
 begin
 {$warning SetFileDate unimplemented!}
@@ -470,11 +470,11 @@ begin
   SetFileSize:=-1;
 end;
 
-function GetProgramName(buf: PChar;
+function GetProgramName(buf: PAnsiChar;
                         len: LongInt): LongBool; public name '_fpc_amiga_getprogramname';
 var
   pr: PProcess;
-  pn: PChar;
+  pn: PAnsiChar;
   pl: longint;
   pcli: PCommandLineInterface;
 begin
@@ -487,7 +487,7 @@ begin
       pcli:=PCommandLineInterface(pr^.pr_CLI shl 2);
       if (pcli <> nil) and (pcli^.cli_CommandName <> 0) then
         begin
-          pn:=PChar(pcli^.cli_CommandName shl 2) + 1;
+          pn:=PAnsiChar(pcli^.cli_CommandName shl 2) + 1;
           pl:=Byte(pn[-1]);
           if pl > len-1 then
             pl:=len-1;
@@ -500,7 +500,7 @@ end;
 
 function GetProgramDir: LongInt; public name '_fpc_amiga_getprogramdir';
 var
-  cmd: array[0..255] of char;
+  cmd: array[0..255] of AnsiChar;
   prglock: LongInt;
 begin
   { this is quite minimalistic and only covers the simplest cases }
@@ -515,11 +515,11 @@ begin
 end;
 
 var
-  __fpc_global_args: pchar; external name '__fpc_args';
+  __fpc_global_args: PAnsiChar; external name '__fpc_args';
   __fpc_global_arglen: dword; external name '__fpc_arglen';
-  __fpc_args_buffer: pchar;
+  __fpc_args_buffer: PAnsiChar;
 
-function GetArgStr: PChar; public name '_fpc_amiga_getargstr';
+function GetArgStr: PAnsiChar; public name '_fpc_amiga_getargstr';
 var
   len: dword;
 begin

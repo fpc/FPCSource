@@ -222,8 +222,8 @@ type
         next     : Pcups_lang_str;        //Next language in cache
         used     : longint;               //Number of times this entry has been used
         encoding : cups_encoding_t;       //Text encoding
-        language : array[0..15] of char;  //Language/locale name
-        messages : array[0..Ord(CUPS_MSG_MAX)-1] of Pchar; //Message array
+        language : array[0..15] of AnsiChar;  //Language/locale name
+        messages : array[0..Ord(CUPS_MSG_MAX)-1] of PAnsiChar; //Message array
    end;
    cups_lang_t = cups_lang_str;
    Pcups_lang_t=^cups_lang_t;
@@ -404,22 +404,22 @@ type
             version : http_version_t;//Protocol version
             keep_alive : http_keepalive_t; //Keep-alive supported?
             hostaddr : sockaddr_in;        //Address of connected host
-            hostname : array[0..(HTTP_MAX_HOST)-1] of char; //Name of connected host
-            fields : array[0..Ord(HTTP_FIELD_MAX)-1] of array[0..(HTTP_MAX_VALUE)-1] of char; //Field values
-            data : ^char;                                   //Pointer to data buffer
+            hostname : array[0..(HTTP_MAX_HOST)-1] of AnsiChar; //Name of connected host
+            fields : array[0..Ord(HTTP_FIELD_MAX)-1] of array[0..(HTTP_MAX_VALUE)-1] of AnsiChar; //Field values
+            data : ^AnsiChar;                                   //Pointer to data buffer
             data_encoding : http_encoding_t;                //Chunked or not
             data_remaining : longint;                       //Number of bytes left
             used : longint;                                 //Number of bytes used in buffer
-            buffer : array[0..(HTTP_MAX_BUFFER)-1] of char; //Buffer for messages
+            buffer : array[0..(HTTP_MAX_BUFFER)-1] of AnsiChar; //Buffer for messages
             auth_type : longint;                            //Authentication in use
             md5_state : md5_state_t;                        //MD5 state
-            nonce : array[0..(HTTP_MAX_VALUE)-1] of char;   //Nonce value
+            nonce : array[0..(HTTP_MAX_VALUE)-1] of AnsiChar;   //Nonce value
             nonce_count : longint;                          //Nonce count
             tls : pointer;                                  //TLS state information
             encryption : http_encryption_t;                 //Encryption requirements
             input_set : Pfd_set;                            //select() set for httpWait()
          end;
-    TArrayChar32=array[0..32] of char;
+    TArrayChar32=array[0..32] of AnsiChar;
 
 
 //
@@ -489,9 +489,9 @@ Type
   Pppd_attr_t  =^ppd_attr_t;
   PPppd_attr_t =^Pppd_attr_t;
   ppd_attr_t = record
-    name : array[0..(PPD_MAX_NAME)-1] of char;                //Name of attribute (cupsXYZ)
-    spec : array[0..(PPD_MAX_NAME + PPD_MAX_TEXT)-1] of char; //Specifier string, if any
-    value: Pchar;                                             //Value string
+    name : array[0..(PPD_MAX_NAME)-1] of AnsiChar;                //Name of attribute (cupsXYZ)
+    spec : array[0..(PPD_MAX_NAME + PPD_MAX_TEXT)-1] of AnsiChar; //Specifier string, if any
+    value: PAnsiChar;                                             //Value string
   end;
 
   //Option choices
@@ -499,20 +499,20 @@ Type
   PPppd_choice_t=^Pppd_choice_t;
   PPPppd_choice_t=^PPppd_choice_t;
   ppd_choice_t = record
-    marked : Char;                              //0 if not selected, 1 otherwise
-    choice : Array[0..(PPD_MAX_NAME)-1] of char;//Computer-readable option name
-    text   : Array[0..(PPD_MAX_TEXT)-1] of char;//Human-readable option name
-    code   : Pchar;                             //Code to send for this option
+    marked : AnsiChar;                              //0 if not selected, 1 otherwise
+    choice : Array[0..(PPD_MAX_NAME)-1] of AnsiChar;//Computer-readable option name
+    text   : Array[0..(PPD_MAX_TEXT)-1] of AnsiChar;//Human-readable option name
+    code   : PAnsiChar;                             //Code to send for this option
     option : Pointer;                           //Pointer to parent option structure
   end;
 
   //Options
   Pppd_option_t=^ppd_option_t;
   ppd_option_t = record
-    conflicted : char;                              //0 if no conflicts exist, 1 otherwise
-    keyword    : array[0..(PPD_MAX_NAME)-1] of char;//Option keyword name ("PageSize", etc.)
-    defchoice  : array[0..(PPD_MAX_NAME)-1] of char;//Default option choice
-    text       : array[0..(PPD_MAX_TEXT)-1] of char;//Human-readable text
+    conflicted : AnsiChar;                              //0 if no conflicts exist, 1 otherwise
+    keyword    : array[0..(PPD_MAX_NAME)-1] of AnsiChar;//Option keyword name ("PageSize", etc.)
+    defchoice  : array[0..(PPD_MAX_NAME)-1] of AnsiChar;//Default option choice
+    text       : array[0..(PPD_MAX_TEXT)-1] of AnsiChar;//Human-readable text
     ui         : ppd_ui_t;                          //Type of UI option
     section    : ppd_section_t;                     //Section for command
     order      : integer;                           //Order number
@@ -526,8 +526,8 @@ Type
     the group's keyword name. }
   Pppd_group_str=^ppd_group_str;
   ppd_group_str = record
-    text          : array[0..(PPD_MAX_TEXT - PPD_MAX_NAME)-1] of char; //Human-readable group name
-    name          : array[0..(PPD_MAX_NAME)-1] of char;                //Group name
+    text          : array[0..(PPD_MAX_TEXT - PPD_MAX_NAME)-1] of AnsiChar; //Human-readable group name
+    name          : array[0..(PPD_MAX_NAME)-1] of AnsiChar;                //Group name
     num_options   : longint;                                           //Number of options
     options       : Pppd_option_t;                                     //Options
     num_subgroups : longint;                                           //Number of sub-groups
@@ -539,17 +539,17 @@ Type
   //Constraints
   Pppd_const_t=^ppd_const_t;
   ppd_const_t = record
-    option1 : array[0..(PPD_MAX_NAME)-1] of char; //First keyword
-    choice1 : array[0..(PPD_MAX_NAME)-1] of char; //First option/choice (blank for all)
-    option2 : array[0..(PPD_MAX_NAME)-1] of char; //Second keyword
-    choice2 : array[0..(PPD_MAX_NAME)-1] of char; //Second option/choice (blank for all)
+    option1 : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //First keyword
+    choice1 : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //First option/choice (blank for all)
+    option2 : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //Second keyword
+    choice2 : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //Second option/choice (blank for all)
   end;
 
   //Page Sizes
   Pppd_size_t=^ppd_size_t;
   ppd_size_t = record
     marked : LongInt;                            //Page size selected?
-    name   : array[0..(PPD_MAX_NAME)-1] of char; //Media size option
+    name   : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //Media size option
     width  : single;                             //Width of media in points
     length : single;                             //Length of media in points
     left   : single;                             //Left printable margin in points
@@ -561,16 +561,16 @@ Type
   //Emulators
   Pppd_emul_t=^ppd_emul_t;
   ppd_emul_t = record
-    name : array[0..(PPD_MAX_NAME)-1] of char; //Emulator name
-    start: Pchar;                              //Code to switch to this emulation
-    stop : Pchar;                              //Code to stop this emulation
+    name : array[0..(PPD_MAX_NAME)-1] of AnsiChar; //Emulator name
+    start: PAnsiChar;                              //Code to switch to this emulation
+    stop : PAnsiChar;                              //Code to stop this emulation
   end;
 
   //sRGB Color Profiles
   Pppd_profile_t=^ppd_profile_t;
   ppd_profile_t = record
-    resolution : array[0..(PPD_MAX_NAME)-1] of char;   //Resolution or "-"
-    media_type : array[0..(PPD_MAX_NAME)-1] of char;   //Media type of "-"
+    resolution : array[0..(PPD_MAX_NAME)-1] of AnsiChar;   //Resolution or "-"
+    media_type : array[0..(PPD_MAX_NAME)-1] of AnsiChar;   //Media type of "-"
     density    : single;                               //Ink density to use
     gamma      : single;                               //Gamma correction to use
     matrix     : array[0..2] of array[0..2] of single; //Transform matrix
@@ -589,20 +589,20 @@ Type
     manual_copies      : longint;                //1 = Copies done manually, 0 = hardware
     throughput         : longint;                //Pages per minute
     colorspace         : ppd_cs_t;               //Default colorspace
-    patches            : Pchar;                  //Patch commands to be sent to printer
+    patches            : PAnsiChar;                  //Patch commands to be sent to printer
     num_emulations     : longint;                //Number of emulations supported
     emulations         : Pppd_emul_t;            //Emulations and the code to invoke them
-    jcl_begin          : Pchar;                  //Start JCL commands
-    jcl_ps             : Pchar;                  //Enter PostScript interpreter
-    jcl_end            : Pchar;                  //End JCL commands
-    lang_encoding      : Pchar;                  //Language encoding
-    lang_version       : Pchar;                  //Language version (English, Spanish, etc.)
-    modelname          : Pchar;                  //Model name (general)
-    ttrasterizer       : Pchar;                  //Truetype rasterizer
-    manufacturer       : Pchar;                  //Manufacturer name
-    product            : Pchar;                  //Product name (from PS RIP/interpreter)
-    nickname           : Pchar;                  //Nickname (specific)
-    shortnickname      : Pchar;                  //Short version of nickname
+    jcl_begin          : PAnsiChar;                  //Start JCL commands
+    jcl_ps             : PAnsiChar;                  //Enter PostScript interpreter
+    jcl_end            : PAnsiChar;                  //End JCL commands
+    lang_encoding      : PAnsiChar;                  //Language encoding
+    lang_version       : PAnsiChar;                  //Language version (English, Spanish, etc.)
+    modelname          : PAnsiChar;                  //Model name (general)
+    ttrasterizer       : PAnsiChar;                  //Truetype rasterizer
+    manufacturer       : PAnsiChar;                  //Manufacturer name
+    product            : PAnsiChar;                  //Product name (from PS RIP/interpreter)
+    nickname           : PAnsiChar;                  //Nickname (specific)
+    shortnickname      : PAnsiChar;                  //Short version of nickname
     num_groups         : longint;                //Number of UI groups
     groups             : Pppd_group_t;           //UI groups
     num_sizes          : longint;                //Number of page sizes
@@ -613,14 +613,14 @@ Type
     num_consts         : longint;                //Number of UI/Non-UI constraints
     consts             : Pppd_const_t;           //UI/Non-UI constraints
     num_fonts          : longint;                //Number of pre-loaded fonts
-    fonts              : PPchar;                 //Pre-loaded fonts
+    fonts              : PPAnsiChar;                 //Pre-loaded fonts
     num_profiles       : longint;                //Number of sRGB color profiles
     profiles           : Pppd_profile_t;         //sRGB color profiles
     num_filters        : longint;                //Number of filters
-    filters            : PPchar;                 //Filter strings...
+    filters            : PPAnsiChar;                 //Filter strings...
     flip_duplex        : longint;                //1 = Flip page for back sides (New in CUPS 1.1)
-    protocols          : Pchar;                  //Protocols (BCP, TBCP) string (New in CUPS 1.1.19)
-    pcfilename         : Pchar;                  //PCFileName string
+    protocols          : PAnsiChar;                  //Protocols (BCP, TBCP) string (New in CUPS 1.1.19)
+    pcfilename         : PAnsiChar;                  //PCFileName string
     num_attrs          : longint;                //Number of attributes
     cur_attr           : longint;                //Current attribute
     attrs              : PPppd_attr_t;           //Attributes
@@ -883,7 +883,7 @@ Type
   ipp_value_t = record
       case longint of
         0 : ( aInteger : longint );                  //Integer/enumerated value
-        1 : ( aBoolean : char );                     //Boolean value
+        1 : ( aBoolean : AnsiChar );                     //Boolean value
         2 : ( aDate : array[0..10] of ipp_uchar_t ); //Date/time value
         3 : ( resolution : record                    //Resolution value
                              xres : longint;           //Horizontal resolution
@@ -895,8 +895,8 @@ Type
                         upper : longint;               //Upper value
                       end );
         5 : ( _string : record                       //String with language value
-                          charset: Pchar;              //Character set
-                          text   : Pchar;              //String
+                          charset: PAnsiChar;              //Character set
+                          text   : PAnsiChar;              //String
                         end );
         6 : ( unknown : record                       //Unknown attribute type
                           length : longint;            //Length of attribute
@@ -912,7 +912,7 @@ Type
          next      : Pipp_attribute_s;   //Next attribute in list
          group_tag : ipp_tag_t;          //Job/Printer/Operation group tag
          value_tag : ipp_tag_t;          //What type of value is it?
-         name      : Pchar;              //Name of attribute
+         name      : PAnsiChar;              //Name of attribute
          num_values: longint;            //Number of values
          values    : array[0..0] of ipp_value_t; //Values
   end;
@@ -971,24 +971,23 @@ const
   CUPS_PRINTER_OPTIONS   = $FFFC;	// ~(CLASS | REMOTE | IMPLICIT)
 
 type
-  PPPChar = ^PPChar;
   cups_ptype_t = dword; //See bit flags consts
-  TFunctionWithParam1 = function (_para1:Pchar):Pchar;
+  TFunctionWithParam1 = function (_para1:PAnsiChar):PAnsiChar;
 
   //Printer Options
   Pcups_option_t= ^cups_option_t;
   PPcups_option_t=^Pcups_option_t;
   cups_option_t = record
-                    name  : PChar; //Name of option
-                    value : PChar; //Value of option
+                    name  : PAnsiChar; //Name of option
+                    value : PAnsiChar; //Value of option
                   end;
 
   //Destination
   Pcups_dest_t=^cups_dest_t;
   PPcups_dest_t=^Pcups_dest_t;
   cups_dest_t = record
-                  name       : PChar;          //Printer or class name
-                  instance   : PChar;          //Local instance name or NULL
+                  name       : PAnsiChar;          //Printer or class name
+                  instance   : PAnsiChar;          //Local instance name or NULL
                   is_default : Longint;        //Is this printer the default?
                   num_options: Longint;        //Number of options
                   options    : Pcups_option_t; //Options
@@ -998,10 +997,10 @@ type
   PPcups_job_t=^Pcups_job_t;
   cups_job_t = record
                  id               : longint;       //The job ID
-                 dest             : Pchar;         //Printer or class name
-                 title            : Pchar;         //Title/job name
-                 user             : Pchar;         //User the submitted the job
-                 format           : Pchar;         //Document format
+                 dest             : PAnsiChar;         //Printer or class name
+                 title            : PAnsiChar;         //Title/job name
+                 user             : PAnsiChar;         //User the submitted the job
+                 format           : PAnsiChar;         //Document format
                  state            : ipp_jstate_t;  //Job state
                  size             : longint;       //Size in kilobytes
                  priority         : longint;       //Priority (1-100)
@@ -1015,48 +1014,48 @@ var
   //
   //cups_language.pp
   //
-  cupsLangEncoding: function (lang:Pcups_lang_t):Pchar;cdecl;
+  cupsLangEncoding: function (lang:Pcups_lang_t):PAnsiChar;cdecl;
   cupsLangFlush: procedure; cdecl;
   cupsLangFree: procedure (lang:Pcups_lang_t);cdecl;
-  cupsLangGet: function (language:Pchar):Pcups_lang_t;cdecl;
+  cupsLangGet: function (language:PAnsiChar):Pcups_lang_t;cdecl;
   //
   //cups_http.pp
   //
   httpCheck: function (http:Phttp_t):longint;cdecl;
   httpClose: procedure (http_t :Phttp_t); cdecl;
-  httpConnect: function (host:Pchar; port:longint):Phttp_t;cdecl;
-  httpConnectEncrypt: function (host:Pchar; port:longint; encrypt:http_encryption_t):Phttp_t;cdecl;
-  httpDelete: function (http:Phttp_t; uri:Pchar):longint;cdecl;
+  httpConnect: function (host:PAnsiChar; port:longint):Phttp_t;cdecl;
+  httpConnectEncrypt: function (host:PAnsiChar; port:longint; encrypt:http_encryption_t):Phttp_t;cdecl;
+  httpDelete: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
   httpEncryption: function (http:Phttp_t; e:http_encryption_t):longint;cdecl;
   httpError: function (http : longint) : longint; cdecl;
   httpFlush: procedure (http:Phttp_t);cdecl;
-  httpGet: function (http:Phttp_t; uri:Pchar):longint;cdecl;
-  httpGets: function (line:Pchar; length:longint; http:Phttp_t):Pchar;cdecl;
-  httpGetDateString: function (t:time_t):Pchar;cdecl;
-  httpGetDateTime: function (s:Pchar):time_t;cdecl;
+  httpGet: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
+  httpGets: function (line:PAnsiChar; length:longint; http:Phttp_t):PAnsiChar;cdecl;
+  httpGetDateString: function (t:time_t):PAnsiChar;cdecl;
+  httpGetDateTime: function (s:PAnsiChar):time_t;cdecl;
   httpGetField: function (http,field : longint) : longint; cdecl;
-  //httpGetHostByName: function (name:Pchar):^hostent;cdecl;
-  httpGetSubField: function (http:Phttp_t; field:http_field_t; name:Pchar; value:Pchar):Pchar;cdecl;
-  httpHead: function (http:Phttp_t; uri:Pchar):longint;cdecl;
+  //httpGetHostByName: function (name:PAnsiChar):^hostent;cdecl;
+  httpGetSubField: function (http:Phttp_t; field:http_field_t; name:PAnsiChar; value:PAnsiChar):PAnsiChar;cdecl;
+  httpHead: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
   httpInitialize: procedure ;cdecl;
-  httpOptions: function (http:Phttp_t; uri:Pchar):longint;cdecl;
-  httpPost: function (http:Phttp_t; uri:Pchar):longint;cdecl;
-  httpPut: function (http:Phttp_t; uri:Pchar):longint;cdecl;
-  httpRead: function (http:Phttp_t; buffer:Pchar; length:longint):longint;cdecl;
+  httpOptions: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
+  httpPost: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
+  httpPut: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
+  httpRead: function (http:Phttp_t; buffer:PAnsiChar; length:longint):longint;cdecl;
   httpReconnect: function (http:Phttp_t):longint;cdecl;
-  httpSeparate: procedure (uri:Pchar; method:Pchar; username:Pchar; host:Pchar; port:Plongint; resource:Pchar);cdecl;
-  httpSetField: procedure (http:Phttp_t; field:http_field_t; value:Pchar);cdecl;
-  httpStatus: function (status:http_status_t):Pchar;cdecl;
-  httpTrace: function (http:Phttp_t; uri:Pchar):longint;cdecl;
+  httpSeparate: procedure (uri:PAnsiChar; method:PAnsiChar; username:PAnsiChar; host:PAnsiChar; port:Plongint; resource:PAnsiChar);cdecl;
+  httpSetField: procedure (http:Phttp_t; field:http_field_t; value:PAnsiChar);cdecl;
+  httpStatus: function (status:http_status_t):PAnsiChar;cdecl;
+  httpTrace: function (http:Phttp_t; uri:PAnsiChar):longint;cdecl;
   httpUpdate: function (http:Phttp_t):http_status_t;cdecl;
   httpWait: function (http:Phttp_t; msec:longint):longint;cdecl;
-  httpWrite: function (http:Phttp_t; buffer:Pchar; length:longint):longint;cdecl;
-  //httpEncode64: function (out:Pchar; in:Pchar):Pchar;cdecl;
-  //httpDecode64: function (out:Pchar; in:Pchar):Pchar;cdecl;
+  httpWrite: function (http:Phttp_t; buffer:PAnsiChar; length:longint):longint;cdecl;
+  //httpEncode64: function (out:PAnsiChar; in:PAnsiChar):PAnsiChar;cdecl;
+  //httpDecode64: function (out:PAnsiChar; in:PAnsiChar):PAnsiChar;cdecl;
   httpGetLength: function (http:Phttp_t):longint;cdecl;
-  httpMD5: function (_para1:Pchar; _para2:Pchar; _para3:Pchar; {%H-}_para4:TArrayChar32):Pchar;cdecl;
-  httpMD5Final: function (_para1:Pchar; _para2:Pchar; _para3:Pchar; {%H-}_para4:TArrayChar32):Pchar;cdecl;
-  httpMD5String: function (_para1:Pmd5_byte_t; {%H-}_para2:TArrayChar32):Pchar;cdecl;
+  httpMD5: function (_para1:PAnsiChar; _para2:PAnsiChar; _para3:PAnsiChar; {%H-}_para4:TArrayChar32):PAnsiChar;cdecl;
+  httpMD5Final: function (_para1:PAnsiChar; _para2:PAnsiChar; _para3:PAnsiChar; {%H-}_para4:TArrayChar32):PAnsiChar;cdecl;
+  httpMD5String: function (_para1:Pmd5_byte_t; {%H-}_para2:TArrayChar32):PAnsiChar;cdecl;
 
   //
   // cups_ppd
@@ -1066,51 +1065,51 @@ var
   ppdConflicts: function (ppd:Pppd_file_t):longint;cdecl;
   ppdEmit: function (ppd:Pppd_file_t; fp:PFILE; section:ppd_section_t):longint;cdecl;
   ppdEmitFd: function (ppd:Pppd_file_t; fd:longint; section:ppd_section_t):longint;cdecl;
-  ppdEmitJCL: function (ppd:Pppd_file_t; fp:PFILE; job_id:longint; user:Pchar; title:Pchar):longint;cdecl;
-  ppdFindChoice: function (o:Pppd_option_t; option:Pchar):Pppd_choice_t;cdecl;
-  ppdFindMarkedChoice: function (ppd:Pppd_file_t; keyword:Pchar):Pppd_choice_t;cdecl;
-  ppdFindOption: function (ppd:Pppd_file_t; keyword:Pchar):Pppd_option_t;cdecl;
-  ppdIsMarked: function (ppd:Pppd_file_t; keyword:Pchar; option:Pchar):longint;cdecl;
+  ppdEmitJCL: function (ppd:Pppd_file_t; fp:PFILE; job_id:longint; user:PAnsiChar; title:PAnsiChar):longint;cdecl;
+  ppdFindChoice: function (o:Pppd_option_t; option:PAnsiChar):Pppd_choice_t;cdecl;
+  ppdFindMarkedChoice: function (ppd:Pppd_file_t; keyword:PAnsiChar):Pppd_choice_t;cdecl;
+  ppdFindOption: function (ppd:Pppd_file_t; keyword:PAnsiChar):Pppd_option_t;cdecl;
+  ppdIsMarked: function (ppd:Pppd_file_t; keyword:PAnsiChar; option:PAnsiChar):longint;cdecl;
   ppdMarkDefaults: procedure (ppd:Pppd_file_t);cdecl;
-  ppdMarkOption: function (ppd:Pppd_file_t; keyword:Pchar; option:Pchar):longint;cdecl;
+  ppdMarkOption: function (ppd:Pppd_file_t; keyword:PAnsiChar; option:PAnsiChar):longint;cdecl;
   ppdOpen: function (fp:PFILE):Pppd_file_t;cdecl;
   ppdOpenFd: function (fd:longint):Pppd_file_t;cdecl;
-  ppdOpenFile: function (filename:Pchar):Pppd_file_t;cdecl;
-  ppdPageLength: function (ppd:Pppd_file_t; name:Pchar):single;cdecl;
-  ppdPageSize: function (ppd:Pppd_file_t; name:Pchar):Pppd_size_t;cdecl;
-  ppdPageWidth: function (ppd:Pppd_file_t; name:Pchar):single;cdecl;
+  ppdOpenFile: function (filename:PAnsiChar):Pppd_file_t;cdecl;
+  ppdPageLength: function (ppd:Pppd_file_t; name:PAnsiChar):single;cdecl;
+  ppdPageSize: function (ppd:Pppd_file_t; name:PAnsiChar):Pppd_size_t;cdecl;
+  ppdPageWidth: function (ppd:Pppd_file_t; name:PAnsiChar):single;cdecl;
   {New in CUPS 1.1.19}
-  ppdErrorString: function (status:ppd_status_t):Pchar;cdecl;
-  ppdFindAttr: function (ppd:Pppd_file_t; name:Pchar; spec:Pchar):Pchar;cdecl;
-  ppdFindNextAttr: function (ppd:Pppd_file_t; name:Pchar; spec:Pchar):Pchar;cdecl;
+  ppdErrorString: function (status:ppd_status_t):PAnsiChar;cdecl;
+  ppdFindAttr: function (ppd:Pppd_file_t; name:PAnsiChar; spec:PAnsiChar):PAnsiChar;cdecl;
+  ppdFindNextAttr: function (ppd:Pppd_file_t; name:PAnsiChar; spec:PAnsiChar):PAnsiChar;cdecl;
   ppdLastError: function (line:Plongint):ppd_status_t;cdecl;
 
   //
   // cups_ipp
   //
-  ippAddBoolean: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; value:char):Pipp_attribute_t;cdecl;
-  ippAddBooleans: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; num_values:longint; values:Pchar):Pipp_attribute_t;cdecl;
-  ippAddDate: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; value:Pipp_uchar_t):Pipp_attribute_t;cdecl;
-  ippAddInteger: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:Pchar; value:longint):Pipp_attribute_t;cdecl;
-  ippAddIntegers: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:Pchar; num_values:longint;
+  ippAddBoolean: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; value:AnsiChar):Pipp_attribute_t;cdecl;
+  ippAddBooleans: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; num_values:longint; values:PAnsiChar):Pipp_attribute_t;cdecl;
+  ippAddDate: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; value:Pipp_uchar_t):Pipp_attribute_t;cdecl;
+  ippAddInteger: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:PAnsiChar; value:longint):Pipp_attribute_t;cdecl;
+  ippAddIntegers: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:PAnsiChar; num_values:longint;
                values:Plongint):Pipp_attribute_t;cdecl;
-  ippAddRange: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; lower:longint; upper:longint):Pipp_attribute_t;cdecl;
-  ippAddRanges: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; num_values:longint; lower:Plongint;
+  ippAddRange: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; lower:longint; upper:longint):Pipp_attribute_t;cdecl;
+  ippAddRanges: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; num_values:longint; lower:Plongint;
                upper:Plongint):Pipp_attribute_t;cdecl;
-  ippAddResolution: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; units:ipp_res_t; xres:longint;
+  ippAddResolution: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; units:ipp_res_t; xres:longint;
                yres:longint):Pipp_attribute_t;cdecl;
-  ippAddResolutions: function (ipp:Pipp_t; group:ipp_tag_t; name:Pchar; num_values:longint; units:ipp_res_t;
+  ippAddResolutions: function (ipp:Pipp_t; group:ipp_tag_t; name:PAnsiChar; num_values:longint; units:ipp_res_t;
                xres:Plongint; yres:Plongint):Pipp_attribute_t;cdecl;
   ippAddSeparator: function (ipp:Pipp_t):Pipp_attribute_t;cdecl;
-  ippAddString: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:Pchar; charset:Pchar;
-               value:Pchar):Pipp_attribute_t;cdecl;
-  ippAddStrings: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:Pchar; num_values:longint;
-               charset:Pchar; values:PPchar):Pipp_attribute_t;cdecl;
+  ippAddString: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:PAnsiChar; charset:PAnsiChar;
+               value:PAnsiChar):Pipp_attribute_t;cdecl;
+  ippAddStrings: function (ipp:Pipp_t; group:ipp_tag_t; _type:ipp_tag_t; name:PAnsiChar; num_values:longint;
+               charset:PAnsiChar; values:PPAnsiChar):Pipp_attribute_t;cdecl;
   ippDateToTime: function (date:Pipp_uchar_t):time_t;cdecl;
   ippDelete: procedure (ipp:Pipp_t);cdecl;
-  ippErrorString: function (error:ipp_status_t):Pchar;cdecl;
-  ippFindAttribute: function (ipp:Pipp_t; name:Pchar; _type:ipp_tag_t):Pipp_attribute_t;cdecl;
-  ippFindNextAttribute: function (ipp:Pipp_t; name:Pchar; _type:ipp_tag_t):Pipp_attribute_t;cdecl;
+  ippErrorString: function (error:ipp_status_t):PAnsiChar;cdecl;
+  ippFindAttribute: function (ipp:Pipp_t; name:PAnsiChar; _type:ipp_tag_t):Pipp_attribute_t;cdecl;
+  ippFindNextAttribute: function (ipp:Pipp_t; name:PAnsiChar; _type:ipp_tag_t):Pipp_attribute_t;cdecl;
   ippLength: function (ipp:Pipp_t):size_t;cdecl;
   ippNew: function :Pipp_t;cdecl;
   ippRead: function (http:Phttp_t; ipp:Pipp_t):ipp_state_t;cdecl;
@@ -1124,44 +1123,44 @@ var
   //
   //cups.pp
   //
-  cupsServer: function :Pchar;cdecl;
-  cupsGetDefault:function :PChar; cdecl;
-  cupsGetPPD:function (printer :Pchar): PChar;cdecl;
+  cupsServer: function :PAnsiChar;cdecl;
+  cupsGetDefault:function :PAnsiChar; cdecl;
+  cupsGetPPD:function (printer :PAnsiChar): PAnsiChar;cdecl;
   cupsLastError:function : ipp_status_t; cdecl;
-  cupsGetPrinters:function (printers :PPPchar):longint;cdecl;
-  cupsDoFileRequest:function (http:Phttp_t; request:Pipp_t; const resource:Pchar; const filename:Pchar):Pipp_t;cdecl;
-  cupsCancelJob:function (printer:Pchar; job:longint):longint;cdecl;
+  cupsGetPrinters:function (printers :PPPAnsiChar):longint;cdecl;
+  cupsDoFileRequest:function (http:Phttp_t; request:Pipp_t; const resource:PAnsiChar; const filename:PAnsiChar):Pipp_t;cdecl;
+  cupsCancelJob:function (printer:PAnsiChar; job:longint):longint;cdecl;
   cupsEncryption:function :http_encryption_t;cdecl;
   cupsFreeJobs:procedure (num_jobs:longint; jobs:Pcups_job_t);cdecl;
-  cupsGetClasses:function (classes:PPPchar):longint;cdecl;
-  cupsGetJobs:function (jobs:PPcups_job_t; dest:Pchar; myjobs:longint; completed:longint):longint;cdecl;
-  cupsPrintFile:function (printer:Pchar; filename:Pchar; title:Pchar;
+  cupsGetClasses:function (classes:PPPAnsiChar):longint;cdecl;
+  cupsGetJobs:function (jobs:PPcups_job_t; dest:PAnsiChar; myjobs:longint; completed:longint):longint;cdecl;
+  cupsPrintFile:function (printer:PAnsiChar; filename:PAnsiChar; title:PAnsiChar;
       num_options:longint; options:Pcups_option_t):longint;cdecl;
-  cupsPrintFiles:function (printer:Pchar; num_files:longint; files:PPchar;
-      title:Pchar; num_options:longint; options:Pcups_option_t):longint;cdecl;
-  cupsTempFile:function (filename:Pchar; len:longint):Pchar;cdecl;
-  cupsTempFd:function (filename:Pchar; len:longint):longint;cdecl;
-  cupsAddDest:function (name:Pchar; instance:Pchar; num_dests:longint;
+  cupsPrintFiles:function (printer:PAnsiChar; num_files:longint; files:PPAnsiChar;
+      title:PAnsiChar; num_options:longint; options:Pcups_option_t):longint;cdecl;
+  cupsTempFile:function (filename:PAnsiChar; len:longint):PAnsiChar;cdecl;
+  cupsTempFd:function (filename:PAnsiChar; len:longint):longint;cdecl;
+  cupsAddDest:function (name:PAnsiChar; instance:PAnsiChar; num_dests:longint;
       dests:PPcups_dest_t):longint;cdecl;
   cupsFreeDests:procedure (num_dests:longint; dests:Pcups_dest_t);cdecl;
-  cupsGetDest:function (name:Pchar; instance:Pchar;
+  cupsGetDest:function (name:PAnsiChar; instance:PAnsiChar;
       num_dests:longint; dests:Pcups_dest_t):Pcups_dest_t;cdecl;
   cupsGetDests:function (dests:PPcups_dest_t):longint;cdecl;
   cupsSetDests:procedure (num_dests:longint; dests:Pcups_dest_t);cdecl;
-  cupsAddOption:function (name:Pchar; value:Pchar; num_options:longint; options:PPcups_option_t):longint;cdecl;
+  cupsAddOption:function (name:PAnsiChar; value:PAnsiChar; num_options:longint; options:PPcups_option_t):longint;cdecl;
   cupsEncodeOptions:procedure (ipp:Pipp_t; num_options:longint; options:Pcups_option_t);cdecl;
   cupsFreeOptions:procedure (num_options:longint; options:Pcups_option_t);cdecl;
-  cupsGetOption:function (name:Pchar; num_options:longint; options:Pcups_option_t):Pchar;cdecl;
-  cupsParseOptions:function (arg:Pchar; num_options:longint; options:PPcups_option_t):longint;cdecl;
+  cupsGetOption:function (name:PAnsiChar; num_options:longint; options:Pcups_option_t):PAnsiChar;cdecl;
+  cupsParseOptions:function (arg:PAnsiChar; num_options:longint; options:PPcups_option_t):longint;cdecl;
   cupsMarkOptions:function (ppd:Pppd_file_t; num_options:longint; options:Pcups_option_t):longint;cdecl;
-  cupsGetPassword:function (prompt:Pchar):Pchar;cdecl;
+  cupsGetPassword:function (prompt:PAnsiChar):PAnsiChar;cdecl;
   cupsSetEncryption:procedure (e:http_encryption_t);cdecl;
   cupsSetPasswordCB:procedure (cb: TFunctionWithParam1);cdecl;
-  cupsSetServer:procedure (server:Pchar);cdecl;
-  cupsSetUser:procedure (user:Pchar);cdecl;
-  cupsUser:function :Pchar;cdecl;
+  cupsSetServer:procedure (server:PAnsiChar);cdecl;
+  cupsSetUser:procedure (user:PAnsiChar);cdecl;
+  cupsUser:function :PAnsiChar;cdecl;
   
-function cupsDoRequest(ahttp :Phttp_t; aRequest :Pipp_t; aResource :PChar) : Pipp_t;
+function cupsDoRequest(ahttp :Phttp_t; aRequest :Pipp_t; aResource :PAnsiChar) : Pipp_t;
 function cupsLangDefault : Pcups_lang_t;
 
 procedure InitializeCups;
@@ -1376,7 +1375,7 @@ begin
 end;
 
 function cupsDoRequest(ahttp :Phttp_t; aRequest :Pipp_t;
-  aResource :PChar):Pipp_t;
+  aResource :PAnsiChar):Pipp_t;
 begin
   Result:=cupsDoFileRequest(aHttp,aRequest,aResource,nil);
 end;

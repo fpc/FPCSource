@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
@@ -1080,9 +1081,9 @@ end;
  *       Miscellaneous procedures and functions                       *
  **********************************************************************}
 
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PAnsiChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 var
-  b, c : pchar;
+  b, c : PAnsiChar;
 
   procedure SkipWhitespace;
     begin
@@ -1102,7 +1103,7 @@ var
             begin
               setlength(s, l);
               if l>0 then
-                move (b^, s[1],l*SizeOf(char));
+                move (b^, s[1],l*SizeOf(AnsiChar));
               Strings.Add (s);
             end;
           inc (result);
@@ -1110,7 +1111,7 @@ var
     end;
 
 var
-  quoted : char;
+  quoted : AnsiChar;
 begin
   result := 0;
   c := Content;
@@ -1698,8 +1699,8 @@ type
 
 function CharToOrd(var P: Pointer): Cardinal;
 begin
-  result:= ord(pchar(P)^);
-  inc(pchar(P));
+  result:= ord(PAnsiChar(P)^);
+  inc(PAnsiChar(P));
 end;
 
 function WideCharToOrd(var P: Pointer): Cardinal;
@@ -1711,23 +1712,23 @@ end;
 function Utf8ToOrd(var P:Pointer): Cardinal;
 begin
   // Should also check for illegal utf8 combinations
-  Result := Ord(PChar(P)^);
+  Result := Ord(PAnsiChar(P)^);
   Inc(P);
   if (Result and $80) <> 0 then
     if (Ord(Result) and %11100000) = %11000000 then begin
       Result := ((Result and %00011111) shl 6)
-                or (ord(PChar(P)^) and %00111111);
+                or (ord(PAnsiChar(P)^) and %00111111);
       Inc(P);
     end else if (Ord(Result) and %11110000) = %11100000 then begin
       Result := ((Result and %00011111) shl 12)
-                or ((ord(PChar(P)^) and %00111111) shl 6)
-                or (ord((PChar(P)+1)^) and %00111111);
+                or ((ord(PAnsiChar(P)^) and %00111111) shl 6)
+                or (ord((PAnsiChar(P)+1)^) and %00111111);
       Inc(P,2);
     end else begin
       Result := ((ord(Result) and %00011111) shl 18)
-                or ((ord(PChar(P)^) and %00111111) shl 12)
-                or ((ord((PChar(P)+1)^) and %00111111) shl 6)
-                or (ord((PChar(P)+2)^) and %00111111);
+                or ((ord(PAnsiChar(P)^) and %00111111) shl 12)
+                or ((ord((PAnsiChar(P)+1)^) and %00111111) shl 6)
+                or (ord((PAnsiChar(P)+2)^) and %00111111);
       Inc(P,3);
     end;
 end;
@@ -1767,7 +1768,7 @@ var
       NewInString := InString;
       w := CharToOrdfunc(P);
       if w = ord('''') then
-        begin //quote char
+        begin //quote AnsiChar
         if not InString then
           NewInString := True;
         NewStr := '''''';
@@ -1776,7 +1777,7 @@ var
         begin //printable ascii or bytes
         if not InString then
           NewInString := True;
-        NewStr := char(w);
+        NewStr := AnsiChar(w);
         end
       else
         begin //ascii control chars, non ascii
@@ -1799,7 +1800,7 @@ var
 
   procedure OutString(s: String);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
+    OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
   end;
 
   procedure OutWString(W: WideString);
@@ -1815,9 +1816,9 @@ var
   procedure OutUtf8Str(s: String);
   begin
     if Encoding=oteLFM then
-      OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd)
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@CharToOrd)
     else
-      OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
+      OutChars(Pointer(S),PAnsiChar(S)+Length(S),@Utf8ToOrd);
   end;
 
   function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -2589,6 +2590,9 @@ var
     Output.WriteByte(0);        // Terminate property list
   end;
 
+const
+  signature: PAnsiChar = 'TPF0';
+
 begin
   Version:=TBinaryObjectReader.TBOVersion.boVersion0;
   parser := TParser.Create(Input);
@@ -2650,7 +2654,7 @@ begin
     result:=afalse;
 end;
 
-function LineStart(Buffer, BufPos: PChar): PChar;
+function LineStart(Buffer, BufPos: PAnsiChar): PAnsiChar;
 
 begin
   Result := BufPos;

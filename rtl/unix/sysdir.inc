@@ -28,7 +28,7 @@ const
 Procedure Do_MkDir(s: rawbytestring);
 
 Begin
-  If Fpmkdir(pchar(s), MODE_MKDIR)<0 Then
+  If Fpmkdir(PAnsiChar(s), MODE_MKDIR)<0 Then
    Errno2Inoutres
 End;
 
@@ -41,7 +41,7 @@ begin
       InOutRes := 16;
       exit;
     end;
-  If Fprmdir(pchar(S))<0 Then
+  If Fprmdir(PAnsiChar(S))<0 Then
    Errno2Inoutres
 End;
 
@@ -49,7 +49,7 @@ End;
 Procedure do_ChDir(s: rawbytestring);
 
 Begin
-  If Fpchdir(pchar(s))<0 Then
+  If Fpchdir(PAnsiChar(s))<0 Then
    Errno2Inoutres;
   { file not exists is path not found under tp7 }
   if InOutRes=2 then
@@ -66,7 +66,7 @@ End;
 
 procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 var
-  buf          : array[0..2047] of char;
+  buf          : array[0..2047] of AnsiChar;
 {$ifndef FPC_USE_LIBC}
   cwdinfo      : stat;
   rootinfo     : stat;
@@ -121,7 +121,7 @@ begin
             { then do not set the name.               }
             if (not ((d^.d_name[0]='.') and ((d^.d_name[1]=#0) or
                     ((d^.d_name[1]='.') and (d^.d_name[2]=#0))))) then
-              { d^.d_name is an array[0..x] of char -> will be assigned the
+              { d^.d_name is an array[0..x] of AnsiChar -> will be assigned the
                 ansi code page on conversion to ansistring -> also typecast
                 '/' to ansistring rather than rawbytestring so code pages match
                 (will be unconditionally set to DefaultFileSystemCodePage at

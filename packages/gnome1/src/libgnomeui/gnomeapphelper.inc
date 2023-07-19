@@ -50,8 +50,8 @@ type
      end;
 
 const
-   GNOMEUIINFO_KEY_UIDATA :Pchar = 'uidata';
-   GNOMEUIINFO_KEY_UIBDATA :Pchar = 'uibdata';
+   GNOMEUIINFO_KEY_UIDATA :PAnsiChar = 'uidata';
+   GNOMEUIINFO_KEY_UIBDATA :PAnsiChar = 'uibdata';
 
 function GNOMEUIINFO_END : TGnomeUIInfo;
 function GNOMEUIINFO_SEPARATOR : TGnomeUIInfo;
@@ -115,20 +115,20 @@ function GNOMEUIINFO_MENU_GAME_TREE(tree : gpointer) : TGnomeUIInfo;
 
 
 const
-   GNOME_MENU_FILE_STRING :Pchar = '_File';
-   GNOME_MENU_FILE_PATH :Pchar = '_File/';
-   GNOME_MENU_EDIT_STRING :Pchar = '_Edit';
-   GNOME_MENU_EDIT_PATH :Pchar = '_Edit/';
-   GNOME_MENU_VIEW_STRING :Pchar = '_View';
-   GNOME_MENU_VIEW_PATH :Pchar = '_View/';
-   GNOME_MENU_SETTINGS_STRING :Pchar = '_Settings';
-   GNOME_MENU_SETTINGS_PATH :Pchar = '_Settings/';
-   GNOME_MENU_NEW_STRING :Pchar = '_New';
-   GNOME_MENU_NEW_PATH :Pchar = '_New/';
-   GNOME_MENU_FILES_STRING :Pchar = 'Fi_les';
-   GNOME_MENU_FILES_PATH :Pchar = 'Fi_les/';
-   GNOME_MENU_WINDOWS_STRING :Pchar = '_Windows';
-   GNOME_MENU_WINDOWS_PATH :Pchar = '_Windows/';
+   GNOME_MENU_FILE_STRING :PAnsiChar = '_File';
+   GNOME_MENU_FILE_PATH :PAnsiChar = '_File/';
+   GNOME_MENU_EDIT_STRING :PAnsiChar = '_Edit';
+   GNOME_MENU_EDIT_PATH :PAnsiChar = '_Edit/';
+   GNOME_MENU_VIEW_STRING :PAnsiChar = '_View';
+   GNOME_MENU_VIEW_PATH :PAnsiChar = '_View/';
+   GNOME_MENU_SETTINGS_STRING :PAnsiChar = '_Settings';
+   GNOME_MENU_SETTINGS_PATH :PAnsiChar = '_Settings/';
+   GNOME_MENU_NEW_STRING :PAnsiChar = '_New';
+   GNOME_MENU_NEW_PATH :PAnsiChar = '_New/';
+   GNOME_MENU_FILES_STRING :PAnsiChar = 'Fi_les';
+   GNOME_MENU_FILES_PATH :PAnsiChar = 'Fi_les/';
+   GNOME_MENU_WINDOWS_STRING :PAnsiChar = '_Windows';
+   GNOME_MENU_WINDOWS_PATH :PAnsiChar = '_Windows/';
 type
    PGnomeUIBuilderData = ^TGnomeUIBuilderData;
    TGnomeUISignalConnectFunc = procedure (uiinfo:PGnomeUIInfo; signal_name:Pgchar; uibdata:PGnomeUIBuilderData);cdecl;

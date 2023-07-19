@@ -13,6 +13,7 @@
 
  **********************************************************************}
 {$R-}
+{$H-}
 unit WVPHelp;
 
 interface
@@ -126,7 +127,7 @@ end;
 
 function TVPHHelpFile.ReadBlock(Data: pointer; DataSize: longint): boolean;
 var OK: boolean;
-    C: char;
+    C: AnsiChar;
 begin
   F^.Read(C,sizeof(C));
   OK:=(F^.Status=stOK) and (C='þ');

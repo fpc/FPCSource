@@ -137,7 +137,7 @@ var
   gpm_mx             : longint;cvar;external;
   gpm_my             : longint;cvar;external;
   gpm_timeout        : TTimeVal;cvar;external;
-  _gpm_buf           : array[0..0] of char;cvar;external;
+  _gpm_buf           : array[0..0] of AnsiChar;cvar;external;
   _gpm_arg           : ^word;cvar;external;
   gpm_handler        : TGpmHandler;cvar;external;
   gpm_data           : pointer;cvar;external;
@@ -177,8 +177,8 @@ function Gpm_RaiseRoi(which:PGpmRoi; before:PGpmRoi):PGpmRoi;cdecl;external name
 function Gpm_LowerRoi(which:PGpmRoi; after:PGpmRoi):PGpmRoi;cdecl;external name 'Gpm_LowerRoi';
 {function Gpm_Wgetch:longint;cdecl;external;
 function Gpm_Getch:longint;}
-function Gpm_GetLibVersion(var where:longint):pchar;cdecl;external name 'Gpm_GetLibVersion';
-function Gpm_GetServerVersion(var where:longint):pchar;cdecl;external name 'Gpm_GetServerVersion';
+function Gpm_GetLibVersion(var where:longint):PAnsiChar;cdecl;external name 'Gpm_GetLibVersion';
+function Gpm_GetServerVersion(var where:longint):PAnsiChar;cdecl;external name 'Gpm_GetServerVersion';
 function gpm_getsnapshot(eptr:Pgpmevent):longint;cdecl;external name 'Gpm_GetSnapshot';
 function Gpm_GetSnapshot(var ePtr:TGpmEvent):longint;cdecl;external name 'Gpm_GetSnapshot';
 {$else}
@@ -218,7 +218,7 @@ type  Pgpm_stst=^Tgpm_stst;
       Pmicetab=^Tmicetab;
       Tmicetab=record
         next:Pmicetab;
-        device,protocol,options:Pchar;
+        device,protocol,options:PAnsiChar;
       end;
 
       string63=string[63];
@@ -227,7 +227,7 @@ type  Pgpm_stst=^Tgpm_stst;
         autodetect:longint;
         mice_count:longint;
         repeater:longint;
-        repeater_type:Pchar;
+        repeater_type:PAnsiChar;
         run_status:longint;
         micelist:Pmicetab;
         progname,
@@ -398,7 +398,7 @@ function gpm_open(var conn:Tgpmconnect;flag:longint):longint;
 
 var tty:string;
     flagstr:string[10];
-    term:Pchar;
+    term:PAnsiChar;
     i:cardinal;
     addr:Tunixsockaddr;
     win:Twinsize;

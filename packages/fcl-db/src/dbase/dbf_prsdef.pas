@@ -48,20 +48,20 @@ type
 
   TDynamicType = class(TObject)
   private
-    FMemory: PPChar;
-    FMemoryPos: PPChar;
+    FMemory: PPAnsiChar;
+    FMemoryPos: PPAnsiChar;
     FSize: PInteger;
   public
-    constructor Create(DestMem, DestPos: PPChar; ASize: PInteger);
+    constructor Create(DestMem, DestPos: PPAnsiChar; ASize: PInteger);
 
     procedure AssureSpace(ASize: Integer);
     procedure Resize(NewSize: Integer; Exact: Boolean);
     procedure Rewind;
-    procedure Append(Source: PChar; Length: Integer);
+    procedure Append(Source: PAnsiChar; Length: Integer);
     procedure AppendInteger(Source: Integer);
 
-    property Memory: PPChar read FMemory;
-    property MemoryPos: PPChar read FMemoryPos;
+    property Memory: PPAnsiChar read FMemory;
+    property MemoryPos: PPAnsiChar read FMemoryPos;
     property Size: PInteger read FSize;
   end;
 
@@ -74,8 +74,8 @@ type
     AuxData: pointer;
     ResetDest: boolean;
     WantsFunction: boolean;
-    Args: array[0..MaxArg-1] of PChar;
-    ArgsPos: array[0..MaxArg-1] of PChar;
+    Args: array[0..MaxArg-1] of PAnsiChar;
+    ArgsPos: array[0..MaxArg-1] of PAnsiChar;
     ArgsSize: array[0..MaxArg-1] of Integer;
     ArgsType: array[0..MaxArg-1] of TExpressionType;
     ArgList: array[0..MaxArg-1] of PExpressionRec;
@@ -88,8 +88,8 @@ type
   end;
 
   TExprWordRec = record
-    Name: PChar;
-    ShortName: PChar;
+    Name: PAnsiChar;
+    ShortName: PAnsiChar;
     IsOperator: Boolean;
     IsVariable: Boolean;
     IsFunction: Boolean;
@@ -99,8 +99,8 @@ type
     ResultType: TExpressionType;
     MinArg: Integer;
     MaxArg: Integer;
-    TypeSpec: PChar;
-    Description: PChar;
+    TypeSpec: PAnsiChar;
+    Description: PAnsiChar;
     ExprFunc: TExprFunc;
   end;
 
@@ -108,7 +108,7 @@ type
 
   TExprWord = class(TObject)
   private
-    FName: string;
+    FName: AnsiString;
     FExprFunc: TExprFunc;
   protected
     FRefCount: Cardinal;
@@ -121,14 +121,14 @@ type
     function GetResultType: TExpressionType; virtual;
     function GetMinFunctionArg: Integer; virtual;
     function GetMaxFunctionArg: Integer; virtual;
-    function GetDescription: string; virtual;
-    function GetTypeSpec: string; virtual;
-    function GetShortName: string; virtual;
+    function GetDescription: AnsiString; virtual;
+    function GetTypeSpec: AnsiString; virtual;
+    function GetShortName: AnsiString; virtual;
     procedure SetFixedLen(NewLen: integer); virtual;
   public
-    constructor Create(const AName: string; AExprFunc: TExprFunc);
+    constructor Create(const AName: AnsiString; AExprFunc: TExprFunc);
 
-    function AsPointer: PChar; virtual;
+    function AsPointer: PAnsiChar; virtual;
     function LenAsPointer: PInteger; virtual;
     function IsNullAsPointer: PBoolean; virtual;
     function IsFunction: Boolean; virtual;
@@ -142,10 +142,10 @@ type
     property ResultType: TExpressionType read GetResultType;
     property MinFunctionArg: Integer read GetMinFunctionArg;
     property MaxFunctionArg: Integer read GetMaxFunctionArg;
-    property Name: string read FName;
-    property ShortName: string read GetShortName;
-    property Description: string read GetDescription;
-    property TypeSpec: string read GetTypeSpec;
+    property Name: AnsiString read FName;
+    property ShortName: AnsiString read GetShortName;
+    property Description: AnsiString read GetDescription;
+    property TypeSpec: AnsiString read GetTypeSpec;
   end;
 
   TExpressShortList = class(TSortedCollection)
@@ -174,7 +174,7 @@ type
   protected
     function GetResultType: TExpressionType; override;
   public
-    constructor Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+    constructor Create(const AName: AnsiString; AVarType: TExpressionType; AExprFunc: TExprFunc);
   end;
 
   TFloatConstant = class(TConstant)
@@ -182,32 +182,32 @@ type
     FValue: Double;
   public
     // not overloaded to support older Delphi versions
-    constructor Create(const AName: string; const AValue: string);
-    constructor CreateAsDouble(const AName: string; AValue: Double);
+    constructor Create(const AName: AnsiString; const AValue: AnsiString);
+    constructor CreateAsDouble(const AName: AnsiString; AValue: Double);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
 
     property Value: Double read FValue write FValue;
   end;
 
   TUserConstant = class(TFloatConstant)
   private
-    FDescription: string;
+    FDescription: AnsiString;
   protected
-    function GetDescription: string; override;
+    function GetDescription: AnsiString; override;
   public
-    constructor CreateAsDouble(Const AName, Descr: string; AValue: Double);
+    constructor CreateAsDouble(const AName, Descr: AnsiString; AValue: Double);
   end;
 
   TStringConstant = class(TConstant)
   private
-    FValue: string;
+    FValue: ansistring;
   public
     // Allow undelimited, delimited by single quotes, delimited by double quotes
-    // If delimited, allow escaping inside string with double delimiters
-    constructor Create(const AValue: string);
+    // If delimited, allow escaping inside AnsiString with double delimiters
+    constructor Create(const AValue: ansistring);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
   TIntegerConstant = class(TConstant)
@@ -216,7 +216,7 @@ type
   public
     constructor Create(AValue: Integer);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
 {$ifdef SUPPORT_INT64}
@@ -226,7 +226,7 @@ type
   public
     constructor Create(AValue: Int64);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 {$endif}
 
@@ -235,9 +235,9 @@ type
     FValue: Boolean;
   public
     // not overloaded to support older Delphi versions
-    constructor Create(const AName: string; AValue: Boolean);
+    constructor Create(const AName: AnsiString; AValue: Boolean);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
 
     property Value: Boolean read FValue write FValue;
   end;
@@ -260,7 +260,7 @@ type
     function GetCanVary: Boolean; override;
     function GetResultType: TExpressionType; override;
   public
-    constructor Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+    constructor Create(const AName: AnsiString; AVarType: TExpressionType; AExprFunc: TExprFunc);
     function IsNullAsPointer: PBoolean; override;
   end;
 
@@ -268,23 +268,23 @@ type
   private
     FValue: PDouble;
   public
-    constructor Create(const AName: string; AValue: PDouble);
+    constructor Create(const AName: AnsiString; AValue: PDouble);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
   TStringVariable = class(TVariable)
   private
-    FValue: PPChar;
+    FValue: PPAnsiChar;
     FFixedLen: Integer;
   protected
     function GetFixedLen: Integer; override;
     procedure SetFixedLen(NewLen: integer); override;
   public
-    constructor Create(const AName: string; AValue: PPChar; AIsNull: PBoolean);
+    constructor Create(const AName: AnsiString; AValue: PPAnsiChar; AIsNull: PBoolean);
 
     function LenAsPointer: PInteger; override;
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
 
     property FixedLen: Integer read FFixedLen;
   end;
@@ -293,18 +293,18 @@ type
   private
     FValue: PDateTimeRec;
   public
-    constructor Create(const AName: string; AValue: PDateTimeRec);
+    constructor Create(const AName: AnsiString; AValue: PDateTimeRec);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
   TIntegerVariable = class(TVariable)
   private
     FValue: PInteger;
   public
-    constructor Create(const AName: string; AValue: PInteger; AIsNull: PBoolean);
+    constructor Create(const AName: AnsiString; AValue: PInteger; AIsNull: PBoolean);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
 {$ifdef SUPPORT_INT64}
@@ -313,9 +313,9 @@ type
   private
     FValue: PLargeInt;
   public
-    constructor Create(const AName: string; AValue: PLargeInt);
+    constructor Create(const AName: AnsiString; AValue: PLargeInt);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
 {$endif}
@@ -324,9 +324,9 @@ type
   private
     FValue: PBoolean;
   public
-    constructor Create(const AName: string; AValue: PBoolean);
+    constructor Create(const AName: AnsiString; AValue: PBoolean);
 
-    function AsPointer: PChar; override;
+    function AsPointer: PAnsiChar; override;
   end;
 
   TLeftBracket = class(TExprWord)
@@ -349,30 +349,30 @@ type
     FOperPrec: Integer;
     FMinFunctionArg: Integer;
     FMaxFunctionArg: Integer;
-    FDescription: string;
-    FTypeSpec: string;
-    FShortName: string;
+    FDescription: AnsiString;
+    FTypeSpec: AnsiString;
+    FShortName: AnsiString;
     FResultType: TExpressionType;
   protected
-    function GetDescription: string; override;
+    function GetDescription: AnsiString; override;
     function GetIsOperator: Boolean; override;
     function GetMinFunctionArg: Integer; override;
     function GetMaxFunctionArg: Integer; override;
     function GetResultType: TExpressionType; override;
-    function GetTypeSpec: string; override;
-    function GetShortName: string; override;
+    function GetTypeSpec: AnsiString; override;
+    function GetShortName: AnsiString; override;
 
-    procedure InternalCreate(const AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
+    procedure InternalCreate(const AName, ATypeSpec: AnsiString; AMinFuncArg: Integer; AResultType: TExpressionType;
       AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
   public
-    constructor Create(const AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; const Descr: string);
+    constructor Create(const AName, AShortName, ATypeSpec: AnsiString; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; const Descr: AnsiString);
     // Create operator: name, param types used, result type, func addr, operator precedence
-    constructor CreateOper(const AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
+    constructor CreateOper(const AName, ATypeSpec: AnsiString; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
 
     function IsFunction: Boolean; override;
 
     property OperPrec: Integer read FOperPrec;
-    property TypeSpec: string read FTypeSpec;
+    property TypeSpec: AnsiString read FTypeSpec;
   end;
 
   TVaryingFunction = class(TFunction)
@@ -388,11 +388,11 @@ const
   ('a' in 'a,b') =True
   ('c' in 'a,b') =False}
 
-function ExprCharToExprType(ExprChar: Char): TExpressionType;
+function ExprCharToExprType(ExprChar: AnsiChar): TExpressionType;
 
 implementation
 
-function ExprCharToExprType(ExprChar: Char): TExpressionType;
+function ExprCharToExprType(ExprChar: AnsiChar): TExpressionType;
 begin
   case ExprChar of
     'B': Result := etBoolean;
@@ -433,10 +433,10 @@ begin
   begin
     length := PInteger(Args[1])^;
     if length = -1 then
-      length := StrLen(PPChar(Args[0])^);
-    Res.Append(PPChar(Args[0])^, length);
-    // NULL indicator (placed after NULL terminated string)
-    length := StrLen(PPChar(Args[0])^)+1;
+      length := StrLen(PPAnsiChar(Args[0])^);
+    Res.Append(PPAnsiChar(Args[0])^, length);
+    // NULL indicator (placed after NULL terminated AnsiString)
+    length := StrLen(PPAnsiChar(Args[0])^)+1;
     Res.AssureSpace(length+1);
     PBoolean(Res.Memory^+length)^ := Assigned(Args[2]) and PBoolean(Args[2])^;
   end;
@@ -479,7 +479,7 @@ end;
 
 { TExpressionWord }
 
-constructor TExprWord.Create(const AName: string; AExprFunc: TExprFunc);
+constructor TExprWord.Create(const AName: AnsiString; AExprFunc: TExprFunc);
 begin
   FName := AName;
   FExprFunc := AExprFunc;
@@ -490,12 +490,12 @@ begin
   Result := False;
 end;
 
-function TExprWord.GetDescription: string;
+function TExprWord.GetDescription: AnsiString;
 begin
   Result := EmptyStr;
 end;
 
-function TExprWord.GetShortName: string;
+function TExprWord.GetShortName: AnsiString;
 begin
   Result := EmptyStr;
 end;
@@ -526,7 +526,7 @@ begin
   Result := (@FExprFunc <> @_StringConstant)         and
 //            (@FExprFunc <> @_StringVariable)         and
 //            (@FExprFunc <> @_StringVariableFixedLen) and
-// string variable cannot be used as normal parameter
+// AnsiString variable cannot be used as normal parameter
 // because it is indirectly referenced and possibly
 // not null-terminated (fixed len)
             (@FExprFunc <> @_FloatVariable)          and
@@ -560,12 +560,12 @@ begin
   Result := etUnknown;
 end;
 
-function TExprWord.GetTypeSpec: string;
+function TExprWord.GetTypeSpec: AnsiString;
 begin
   Result := EmptyStr;
 end;
 
-function TExprWord.AsPointer: PChar;
+function TExprWord.AsPointer: PAnsiChar;
 begin
   Result := nil;
 end;
@@ -591,7 +591,7 @@ end;
 
 { TConstant }
 
-constructor TConstant.Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+constructor TConstant.Create(const AName: AnsiString; AVarType: TExpressionType; AExprFunc: TExprFunc);
 begin
   inherited Create(AName, AExprFunc);
 
@@ -605,7 +605,7 @@ end;
 
 { TFloatConstant }
 
-constructor TFloatConstant.Create(const AName, AValue: string);
+constructor TFloatConstant.Create(const AName: AnsiString; const aValue : AnsiString);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
 
@@ -615,36 +615,36 @@ begin
     FValue := 0.0;
 end;
 
-constructor TFloatConstant.CreateAsDouble(const AName: string; AValue: Double);
+constructor TFloatConstant.CreateAsDouble(const AName: AnsiString; AValue: Double);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
 
   FValue := AValue;
 end;
 
-function TFloatConstant.AsPointer: PChar;
+function TFloatConstant.AsPointer: PAnsiChar;
 begin
-  Result := PChar(@FValue);
+  Result := PAnsiChar(@FValue);
 end;
 
 { TUserConstant }
 
-constructor TUserConstant.CreateAsDouble(const AName, Descr: string; AValue: Double);
+constructor TUserConstant.CreateAsDouble(const AName, Descr: AnsiString; AValue: Double);
 begin
   FDescription := Descr;
   inherited CreateAsDouble(AName, AValue);
 end;
 
-function TUserConstant.GetDescription: string;
+function TUserConstant.GetDescription: AnsiString;
 begin
   Result := FDescription;
 end;
 
 { TStringConstant }
 
-constructor TStringConstant.Create(const AValue: string);
+constructor TStringConstant.Create(const AValue: AnsiString);
 var
-  firstChar, lastChar: Char;
+  firstChar, lastChar: AnsiChar;
 begin
   inherited Create(AValue, etString, _StringConstant);
 
@@ -659,23 +659,23 @@ begin
     FValue := AValue;
 end;
 
-function TStringConstant.AsPointer: PChar;
+function TStringConstant.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 { TBooleanConstant }
 
-constructor TBooleanConstant.Create(const AName: string; AValue: Boolean);
+constructor TBooleanConstant.Create(const AName: AnsiString; AValue: Boolean);
 begin
   inherited Create(AName, etBoolean, _BooleanVariable);
 
   FValue := AValue;
 end;
 
-function TBooleanConstant.AsPointer: PChar;
+function TBooleanConstant.AsPointer: PAnsiChar;
 begin
-  Result := PChar(@FValue);
+  Result := PAnsiChar(@FValue);
 end;
 
 { TIntegerConstant }
@@ -687,9 +687,9 @@ begin
   FValue := AValue;
 end;
 
-function TIntegerConstant.AsPointer: PChar;
+function TIntegerConstant.AsPointer: PAnsiChar;
 begin
-  Result := PChar(@FValue);
+  Result := PAnsiChar(@FValue);
 end;
 
 {$ifdef SUPPORT_INT64}
@@ -702,9 +702,9 @@ begin
   FValue := AValue;
 end;
 
-function TLargeIntConstant.AsPointer: PChar;
+function TLargeIntConstant.AsPointer: PAnsiChar;
 begin
-  Result := PChar(@FValue);
+  Result := PAnsiChar(@FValue);
 end;
 {$endif}
 
@@ -717,7 +717,7 @@ end;
 
 { TVariable }
 
-constructor TVariable.Create(const AName: string; AVarType: TExpressionType; AExprFunc: TExprFunc);
+constructor TVariable.Create(const AName: AnsiString; AVarType: TExpressionType; AExprFunc: TExprFunc);
 begin
   inherited Create(AName, AExprFunc);
 
@@ -741,33 +741,33 @@ end;
 
 { TFloatVariable }
 
-constructor TFloatVariable.Create(const AName: string; AValue: PDouble);
+constructor TFloatVariable.Create(const AName: AnsiString; AValue: PDouble);
 begin
   inherited Create(AName, etFloat, _FloatVariable);
   FValue := AValue;
 end;
 
-function TFloatVariable.AsPointer: PChar;
+function TFloatVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 { TStringVariable }
 
-constructor TStringVariable.Create(const AName: string; AValue: PPChar; AIsNull: PBoolean);
+constructor TStringVariable.Create(const AName: AnsiString; AValue: PPAnsiChar; AIsNull: PBoolean);
 begin
   // variable or fixed length?
   inherited Create(AName, etString, _StringVariable);
 
-  // store pointer to string
+  // store pointer to AnsiString
   FValue := AValue;
   FFixedLen := -1;
   FIsNull := AIsNull;
 end;
 
-function TStringVariable.AsPointer: PChar;
+function TStringVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 function TStringVariable.GetFixedLen: Integer;
@@ -787,59 +787,59 @@ end;
 
 { TDateTimeVariable }
 
-constructor TDateTimeVariable.Create(const AName: string; AValue: PDateTimeRec);
+constructor TDateTimeVariable.Create(const AName: AnsiString; AValue: PDateTimeRec);
 begin
   inherited Create(AName, etDateTime, _DateTimeVariable);
   FValue := AValue;
 end;
 
-function TDateTimeVariable.AsPointer: PChar;
+function TDateTimeVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 { TIntegerVariable }
 
-constructor TIntegerVariable.Create(const AName: string; AValue: PInteger; AIsNull: PBoolean);
+constructor TIntegerVariable.Create(const AName: AnsiString; AValue: PInteger; AIsNull: PBoolean);
 begin
   inherited Create(AName, etInteger, _IntegerVariable);
   FValue := AValue;
   FIsNull := AIsNull;
 end;
 
-function TIntegerVariable.AsPointer: PChar;
+function TIntegerVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 {$ifdef SUPPORT_INT64}
 
 { TLargeIntVariable }
 
-constructor TLargeIntVariable.Create(const AName: string; AValue: PLargeInt);
+constructor TLargeIntVariable.Create(const AName: AnsiString; AValue: PLargeInt);
 begin
   inherited Create(AName, etLargeInt, _LargeIntVariable);
   FValue := AValue;
 end;
 
-function TLargeIntVariable.AsPointer: PChar;
+function TLargeIntVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 {$endif}
 
 { TBooleanVariable }
 
-constructor TBooleanVariable.Create(const AName: string; AValue: PBoolean);
+constructor TBooleanVariable.Create(const AName: AnsiString; AValue: PBoolean);
 begin
   inherited Create(AName, etBoolean, _BooleanVariable);
   FValue := AValue;
 end;
 
-function TBooleanVariable.AsPointer: PChar;
+function TBooleanVariable.AsPointer: PAnsiChar;
 begin
-  Result := PChar(FValue);
+  Result := PAnsiChar(FValue);
 end;
 
 { TLeftBracket }
@@ -897,12 +897,12 @@ end;
 
 function TExpressList.Compare(Key1, Key2: Pointer): Integer;
 begin
-  Result := StrIComp(PChar(Key1), PChar(Key2));
+  Result := StrIComp(PAnsiChar(Key1), PAnsiChar(Key2));
 end;
 
 function TExpressList.KeyOf(Item: Pointer): Pointer;
 begin
-  Result := PChar(TExprWord(Item).Name);
+  Result := PAnsiChar(TExprWord(Item).Name);
 end;
 
 procedure TExpressList.FreeItem(Item: Pointer);
@@ -928,12 +928,12 @@ end;
 
 function TExpressShortList.Compare(Key1, Key2: Pointer): Integer;
 begin
-  Result := StrIComp(PChar(Key1), PChar(Key2));
+  Result := StrIComp(PAnsiChar(Key1), PAnsiChar(Key2));
 end;
 
 function TExpressShortList.KeyOf(Item: Pointer): Pointer;
 begin
-  Result := PChar(TExprWord(Item).ShortName);
+  Result := PAnsiChar(TExprWord(Item).ShortName);
 end;
 
 procedure TExpressShortList.FreeItem(Item: Pointer);
@@ -988,8 +988,8 @@ end;
 
 { TFunction }
 
-constructor TFunction.Create(const AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
-  AExprFunc: TExprFunc; const Descr: string);
+constructor TFunction.Create(const AName, AShortName, ATypeSpec: AnsiString; AMinFuncArg: Integer; AResultType: TExpressionType;
+  AExprFunc: TExprFunc; const Descr: AnsiString);
 begin
   //to increase compatibility don't use default parameters
   FDescription := Descr;
@@ -997,13 +997,13 @@ begin
   InternalCreate(AName, ATypeSpec, AMinFuncArg, AResultType, AExprFunc, false, 0);
 end;
 
-constructor TFunction.CreateOper(const AName, ATypeSpec: string; AResultType: TExpressionType;
+constructor TFunction.CreateOper(const AName, ATypeSpec: AnsiString; AResultType: TExpressionType;
   AExprFunc: TExprFunc; AOperPrec: Integer);
 begin
   InternalCreate(AName, ATypeSpec, -1, AResultType, AExprFunc, true, AOperPrec);
 end;
 
-procedure TFunction.InternalCreate(const AName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType;
+procedure TFunction.InternalCreate(const AName, ATypeSpec: AnsiString; AMinFuncArg: Integer; AResultType: TExpressionType;
   AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
 begin
   inherited Create(AName, AExprFunc);
@@ -1022,7 +1022,7 @@ begin
     raise EParserException.Create('Too many arguments');
 end;
 
-function TFunction.GetDescription: string;
+function TFunction.GetDescription: AnsiString;
 begin
   Result := FDescription;
 end;
@@ -1047,12 +1047,12 @@ begin
   Result := FResultType;
 end;
 
-function TFunction.GetShortName: string;
+function TFunction.GetShortName: AnsiString;
 begin
   Result := FShortName;
 end;
 
-function TFunction.GetTypeSpec: string;
+function TFunction.GetTypeSpec: AnsiString;
 begin
   Result := FTypeSpec;
 end;
@@ -1071,7 +1071,7 @@ end;
 
 { TDynamicType }
 
-constructor TDynamicType.Create(DestMem, DestPos: PPChar; ASize: PInteger);
+constructor TDynamicType.Create(DestMem, DestPos: PPAnsiChar; ASize: PInteger);
 begin
   inherited Create;
 
@@ -1094,7 +1094,7 @@ end;
 
 procedure TDynamicType.Resize(NewSize: Integer; Exact: Boolean);
 var
-  tempBuf: PChar;
+  tempBuf: PAnsiChar;
   bytesCopy, pos: Integer;
 begin
   // if not exact requested make newlength a multiple of ArgAllocSize
@@ -1107,7 +1107,7 @@ begin
   if bytesCopy > NewSize then
     bytesCopy := NewSize;
   Move(FMemory^^, tempBuf^, bytesCopy);
-  // save position in string
+  // save position in AnsiString
   pos := FMemoryPos^ - FMemory^;
   // delete old mem
   FreeMem(FMemory^);
@@ -1118,9 +1118,9 @@ begin
   FMemoryPos^ := FMemory^ + pos;
 end;
 
-procedure TDynamicType.Append(Source: PChar; Length: Integer);
+procedure TDynamicType.Append(Source: PAnsiChar; Length: Integer);
 begin
-  // make room for string plus null-terminator
+  // make room for AnsiString plus null-terminator
   AssureSpace(Length+4);
   // copy
   Move(Source^, FMemoryPos^^, Length);

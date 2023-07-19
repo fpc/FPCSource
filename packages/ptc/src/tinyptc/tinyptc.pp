@@ -4,7 +4,7 @@ unit TinyPTC;
 
 interface
 
-function ptc_open(const ATitle: string; AWidth, AHeight: Integer): Boolean;
+function ptc_open(const ATitle: AnsiString; AWidth, AHeight: Integer): Boolean;
 function ptc_update(ABuffer: Pointer): Boolean;
 procedure ptc_close;
 
@@ -19,7 +19,7 @@ var
   Palette: TPTCPalette = nil;
   Width, Height: Integer;
 
-function ptc_open(const ATitle: string; AWidth, AHeight: Integer): Boolean;
+function ptc_open(const ATitle: AnsiString; AWidth, AHeight: Integer): Boolean;
 begin
   try
     if Console = nil then

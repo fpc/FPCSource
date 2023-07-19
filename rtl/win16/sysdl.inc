@@ -57,7 +57,7 @@ begin
   Result:=true;
 end;
 
-function SysGetLoadErrorStr: string;
+function SysGetLoadErrorStr: ansistring;
 var
   rc,c : integer;
   temp: WideString;

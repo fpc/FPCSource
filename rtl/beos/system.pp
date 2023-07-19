@@ -21,7 +21,7 @@ var
   heap_handle : longint;
 implementation
 
-procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
+procedure debugger(s : PAnsiChar); cdecl; external 'root' name 'debugger';
 
 function disable_debugger(state : integer): integer; external 'root' name 'disable_debugger';
 //begin
@@ -88,7 +88,7 @@ end ['EAX'];*)
 { must return the first address of new data space or nil if fail }
 (*function Sbrk(size : longint):pointer;
 var newsize,newrealsize:longint;
-  s : string;
+  s : shortstring;
 begin
   WriteLn('SBRK');
   Str(size, s);
@@ -133,7 +133,7 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
 { must return the first address of new data space or nil if fail }
 //function Sbrk(size : longint):pointer;
 //var newsize,newrealsize:longint;
-//  s : string;
+//  s : shortstring;
 //begin
 //  sbrk := sbrk2(size);
 (*  sbrk := nil;
@@ -202,7 +202,7 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
 
 Function ParamCount: Longint;
 var
-  s : string;
+  s : shortstring;
 Begin
   ParamCount := 0;
   Paramcount:=argc - 1;
@@ -240,7 +240,7 @@ var
  cookie: longint;
  image : image_info;
  index : byte;
- s : string;
+ s : shortstring;
 begin
   cookie:=0;
   fillchar(image, sizeof(image_info), 0);
@@ -260,10 +260,10 @@ begin
     end;
 end;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
 var
-  s: string;
-  s1: string;
+  s: shortstring;
+  s1: shortstring;
 begin
 
   { stricly conforming POSIX applications  }
@@ -370,7 +370,7 @@ begin
 end;
 
 var
-  s : string;
+  s : shortstring;
 begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);

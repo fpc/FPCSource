@@ -721,7 +721,7 @@ begin
           PackageVariant.IsInheritable := True;
           end;
         PackageVariant.Name := PackageVariantName;
-        PackageVariant.Options := Copy(PackageVariantStr, pos(':', PackageVariantStr) +1).Split(',');
+        PackageVariant.Options := Copy(PackageVariantStr, pos(':', PackageVariantStr) +1).Split(RTLString(','));
         end;
       inc(i);
       until PackageVariantStr='';

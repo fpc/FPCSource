@@ -162,11 +162,11 @@ type
     appData: Pointer;                       // General usage app dependent field
     pdiRefNum: UInt16;                      // The refNum of the Pdi library
     events: UInt16;                         // Mask of events (see kPdiXXXXEventMask constants)
-    groupName: PChar;
-    propertyName: PChar;
-    parameterName: PChar;
-    parameterValue: PChar;
-    propertyValue: PChar;
+    groupName: PAnsiChar;
+    propertyName: PAnsiChar;
+    parameterName: PAnsiChar;
+    parameterValue: PAnsiChar;
+    propertyValue: PAnsiChar;
   end;
   PdiReaderTag = PdiReaderType;
   PdiReaderPtr = ^PdiReaderType;
@@ -237,19 +237,19 @@ function PdiWriteProperty(libRefnum: UInt16; ioWriter: PdiWriterPtr; propertyNam
 
 function PdiWriteParameter(libRefnum: UInt16; ioWriter: PdiWriterPtr; parameter: UInt16; parameterName: Boolean): Err; syscall PdiLibTrapWriteParameter;
 
-function PdiWritePropertyValue(libRefnum:UInt16; ioWriter: PdiWriterPtr; buffer: PChar; options: UInt16): Err; syscall PdiLibTrapWritePropertyValue;
+function PdiWritePropertyValue(libRefnum:UInt16; ioWriter: PdiWriterPtr; buffer: PAnsiChar; options: UInt16): Err; syscall PdiLibTrapWritePropertyValue;
 
 function PdiWritePropertyFields(libRefnum: UInt16; ioWriter: PdiWriterPtr; fields: PCharPtr; fieldNumber, options: UInt16): Err; syscall PdiLibTrapWritePropertyFields;
 
-function PdiWritePropertyBinaryValue(libRefnum: UInt16; ioWriter: PdiWriterPtr; const buffer: PChar; size, options: UInt16): Err; syscall PdiLibTrapWritePropertyBinaryValue;
+function PdiWritePropertyBinaryValue(libRefnum: UInt16; ioWriter: PdiWriterPtr; const buffer: PAnsiChar; size, options: UInt16): Err; syscall PdiLibTrapWritePropertyBinaryValue;
 
 function PdiSetEncoding(libRefnum: UInt16; ioWriter: PdiWriterPtr; encoding: UInt16): Err; syscall PdiLibTrapSetEncoding;
 
 function PdiSetCharset(libRefnum: UInt16; ioWriter: PdiWriterPtr; charset: CharEncodingType): Err; syscall PdiLibTrapSetCharset;
 
-function PdiWritePropertyStr(libRefnum: UInt16; ioWriter: PdiWriterPtr; const propertyName: PChar; writeMode, requiredFields: UInt8): Err; syscall PdiLibTrapWritePropertyStr;
+function PdiWritePropertyStr(libRefnum: UInt16; ioWriter: PdiWriterPtr; const propertyName: PAnsiChar; writeMode, requiredFields: UInt8): Err; syscall PdiLibTrapWritePropertyStr;
 
-function PdiWriteParameterStr(libRefnum: UInt16; ioWriter: PdiWriterPtr; const parameterName, parameterValue: PChar): Err; syscall PdiLibTrapWriteParameterStr;
+function PdiWriteParameterStr(libRefnum: UInt16; ioWriter: PdiWriterPtr; const parameterName, parameterValue: PAnsiChar): Err; syscall PdiLibTrapWriteParameterStr;
 
 (*******************************************************************
  * Customisation functions group

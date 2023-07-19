@@ -137,7 +137,7 @@ function DosMonClose(MonHandle:word):word; cdecl;
 * For a detailed description of this call see the chapter "Character Device
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
-function DosMonOpen(DevName:PChar;var MonHandle:word):word; cdecl;
+function DosMonOpen(DevName:PAnsiChar;var MonHandle:word):word; cdecl;
 function DosMonOpen(DevName:string;var MonHandle:word):word;
 
 {Wait for a data record, move it from the input buffer of a registered
@@ -234,7 +234,7 @@ function DosMonClose(MonHandle:word):word; cdecl;
 external 'EMXWRAP' index 403;
 {external 'MONCALLS' index 3;}
 
-function DosMonOpen(DevName:PChar;var MonHandle:word):word; cdecl;
+function DosMonOpen(DevName:PAnsiChar;var MonHandle:word):word; cdecl;
 external 'EMXWRAP' index 404;
 {external 'MONCALLS' index 4;}
 

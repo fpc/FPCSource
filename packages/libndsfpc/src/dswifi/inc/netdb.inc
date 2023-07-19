@@ -52,6 +52,6 @@ type
   end;
   phostent = ^hostent;
 
-function gethostbyname(const name: pchar): phostent; cdecl; external;
+function gethostbyname(const name: PAnsiChar): phostent; cdecl; external;
 
 {$endif NDS_INTERFACE}

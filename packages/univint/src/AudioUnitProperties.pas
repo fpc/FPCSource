@@ -1538,7 +1538,7 @@ const
 }
 type
 	AudioUnitParameterInfo = record
-		name : packed array [0..51] of char;
+		name : packed array [0..51] of AnsiChar;
 		unitName: CFStringRef {__nullable};
 		clumpID: UInt32;
 		cfNameString: CFStringRef {__nullable};

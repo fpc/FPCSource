@@ -14,6 +14,7 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$H+}
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
@@ -58,7 +59,7 @@ type
 {$endif FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
 
 {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
-function FindResource(hInstance: HINST; lpName, lpType: PChar): HRSRC; inline;
+function FindResource(hInstance: HINST; lpName, lpType: PAnsiChar): HRSRC; inline;
 begin
   Result:=WinProcs.FindResource(hInstance,FarAddr(lpName^),FarAddr(lpType^));
 end;

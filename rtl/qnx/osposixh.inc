@@ -45,17 +45,17 @@ type
 {                         POSIX STRUCTURES                              }
 {***********************************************************************}
 CONST
-    _UTSNAME_LENGTH = 256;   { 256 + 1 in pchar format }
+    _UTSNAME_LENGTH = 256;   { 256 + 1 in PAnsiChar format }
     _UTSNAME_NODENAME_LENGTH = 256;
 
 TYPE
    { system information services }
    utsname = packed record   { don't forget to verify the alignment }
-     sysname : array[0.._UTSNAME_LENGTH] of char;
-     nodename : array[0.._UTSNAME_LENGTH] of char;
-     release : array[0.._UTSNAME_LENGTH] of char;
-     version : array[0.._UTSNAME_LENGTH] of char;
-     machine : array[0.._UTSNAME_LENGTH] of char;
+     sysname : array[0.._UTSNAME_LENGTH] of AnsiChar;
+     nodename : array[0.._UTSNAME_LENGTH] of AnsiChar;
+     release : array[0.._UTSNAME_LENGTH] of AnsiChar;
+     version : array[0.._UTSNAME_LENGTH] of AnsiChar;
+     machine : array[0.._UTSNAME_LENGTH] of AnsiChar;
    end;
 
   { file characteristics services }
@@ -109,7 +109,7 @@ TYPE
 {$endif} 
     d_reclen : smallint;
     d_namelen : smallint;
-    d_name : array[0..255] of char;
+    d_name : array[0..255] of AnsiChar;
    end;
 
    pdir = ^dir;

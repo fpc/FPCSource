@@ -442,7 +442,7 @@ function XML_GET_CONTENT(n: pointer): xmlCharPtr;
   xmlDoc = record
     _private    : pointer;	(* application data *)
     _type       : xmlElementType;       (* XML_DOCUMENT_NODE, must be second ! *)
-    name        : pchar;	(* name/filename/URI of the document *)
+    name        : PAnsiChar;	(* name/filename/URI of the document *)
     children    : xmlCharPtr; (* the document tree *)
     last        : xmlCharPtr;	(* last child link *)
     parent      : xmlCharPtr;	(* child->parent link *)
@@ -568,7 +568,7 @@ procedure xmlBufferDump(fp: PFILE; buf: xmlBufferPtr); EXTDECL; external xml2lib
 function xmlBufferAdd(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; EXTDECL; external xml2lib;
 function xmlBufferAddHead(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; EXTDECL; external xml2lib;
 function xmlBufferCat(buf: xmlBufferPtr; str: xmlCharPtr): cint; EXTDECL; external xml2lib;
-function xmlBufferCCat(buf: xmlBufferPtr; str: pchar): cint; EXTDECL; external xml2lib;
+function xmlBufferCCat(buf: xmlBufferPtr; str: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlBufferShrink(buf: xmlBufferPtr; len: cuint): cint; EXTDECL; external xml2lib;
 function xmlBufferGrow(buf: xmlBufferPtr; len: cuint): cint; EXTDECL; external xml2lib;
 procedure xmlBufferEmpty(buf: xmlBufferPtr); EXTDECL; external xml2lib;
@@ -745,7 +745,7 @@ function xmlUnsetProp(node: xmlNodePtr; name: xmlCharPtr): cint; EXTDECL; extern
 					 xmlChar *string);
 external xml2lib void EXTDECL
 		xmlBufferWriteChar	(xmlBufferPtr buf,
-					 char *string);
+					 AnsiChar *string);
 external xml2lib void EXTDECL
 		xmlBufferWriteQuotedString(xmlBufferPtr buf,
 					 xmlChar *string);
@@ -770,19 +770,19 @@ function xmlReconciliateNs(doc: xmlDocPtr; tree: xmlNodePtr): cint; EXTDECL; ext
  *)
 procedure xmlDocDumpFormatMemory(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint; format: cint); EXTDECL; external xml2lib;
 procedure xmlDocDumpMemory(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint); EXTDECL; external xml2lib;
-procedure xmlDocDumpMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: pchar); EXTDECL; external xml2lib;
-procedure xmlDocDumpFormatMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: pchar; format: cint); EXTDECL; external xml2lib;
+procedure xmlDocDumpMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: PAnsiChar); EXTDECL; external xml2lib;
+procedure xmlDocDumpFormatMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: PAnsiChar; format: cint); EXTDECL; external xml2lib;
 function xmlDocFormatDump(f: PFILE; cur: xmlDocPtr; format: cint): cint; EXTDECL; external xml2lib;
 function xmlDocDump(f: PFILE; cur: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlElemDump(f: PFILE; doc: xmlDocPtr; cur: xmlNodePtr): cint; EXTDECL; external xml2lib;
-function xmlSaveFormatFile(filename: pchar; cur: xmlDocPtr; format: cint): cint; EXTDECL; external xml2lib;
-function xmlSaveFile(filename: pchar; cur: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlSaveFormatFile(filename: PAnsiChar; cur: xmlDocPtr; format: cint): cint; EXTDECL; external xml2lib;
+function xmlSaveFile(filename: PAnsiChar; cur: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlNodeDump(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint): cint; EXTDECL; external xml2lib;
-function xmlSaveFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: pchar): cint; EXTDECL; external xml2lib;
-function xmlSaveFormatFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: pchar; format: cint): cint; EXTDECL; external xml2lib;
-procedure xmlNodeDumpOutput(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint; encoding: pchar); EXTDECL; external xml2lib;
-function xmlSaveFormatFileEnc(filename: pchar; cur: xmlDocPtr; encoding: pchar; format: cint): cint; EXTDECL; external xml2lib;
-function xmlSaveFileEnc(filename: pchar; cur: xmlDocPtr; encoding: pchar): cint; EXTDECL; external xml2lib;
+function xmlSaveFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlSaveFormatFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL; external xml2lib;
+procedure xmlNodeDumpOutput(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint; encoding: PAnsiChar); EXTDECL; external xml2lib;
+function xmlSaveFormatFileEnc(filename: PAnsiChar; cur: xmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL; external xml2lib;
+function xmlSaveFileEnc(filename: PAnsiChar; cur: xmlDocPtr; encoding: PAnsiChar): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (*

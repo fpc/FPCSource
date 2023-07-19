@@ -37,7 +37,7 @@ USES Exec,utility,agraphics;
 VAR TTEngineBase : pLibrary = nil;
 
 const
-    TTENGINENAME : PChar = 'ttengine.library';
+    TTENGINENAME : PAnsiChar = 'ttengine.library';
 
 
   { $VER: ttengine.h 6.0 (3.1.2003) (c) by Grzegorz Kraszewski 2002.  }

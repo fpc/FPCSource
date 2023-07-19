@@ -645,7 +645,7 @@ type
     lpDSPath: LPSTR;              // Path to the Active Directory portion of the GPO
     lpFileSysPath: LPSTR;         // Path to the file system portion of the GPO
     lpDisplayName: LPSTR;         // Friendly display name
-    szGPOName: array [0..49] of CHAR; // Unique name
+    szGPOName: array [0..49] of AnsiChar; // Unique name
     GPOLink: GPO_LINK;            // Link information
     lParam: LPARAM;               // Free space for the caller to store GPO specific information
     pNext: PGROUP_POLICY_OBJECTA; // Next GPO in the list

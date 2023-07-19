@@ -1155,6 +1155,9 @@ implementation
         { anybody wants to determine a good value here :)? }
         if len>100 then
           g_concatcopy_move(list,source,dest,len)
+        else if ((source.alignment>0) and (source.alignment<4)) or
+                ((dest.alignment>0) and (dest.alignment<4)) then
+          g_concatcopy_unaligned(list,source,dest,len)
         else
           begin
             count:=len div 4;

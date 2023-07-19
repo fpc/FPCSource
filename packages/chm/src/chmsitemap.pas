@@ -188,8 +188,8 @@ type
     procedure SetItems(const AValue: TChmSiteMapItems);
     procedure CheckLookup;
   protected
-    procedure FoundTag (ACaseInsensitiveTag, AActualTag: string);
-    procedure FoundText(AText: string);
+    procedure FoundTag (ACaseInsensitiveTag, AActualTag: Ansistring);
+    procedure FoundText(AText: Ansistring);
   public
     constructor Create(AType: TSiteMapType);
     destructor Destroy; override;
@@ -274,7 +274,7 @@ begin
     FLoadDict.add(sitemapkws[en],en);
 end;
 
-procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
+procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: Ansistring);
     procedure NewSiteMapItem;
     begin
       FCurrentItems.Add(TChmSiteMapItem.Create(FCurrentItems));
@@ -396,7 +396,7 @@ begin
   //end   {html}
 end;
 
-procedure TChmSiteMap.FoundText(AText: string);
+procedure TChmSiteMap.FoundText(AText: ansistring);
 begin
   //WriteLn('TEXT:', AText);
 end;

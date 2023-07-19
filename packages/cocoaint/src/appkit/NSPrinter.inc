@@ -31,7 +31,7 @@ type
     {$if defined(__LP64__)}
     _reserved:array[0..2] of id;
     {$else}
-    _compatibilityPadding:array[0..19] of char;
+    _compatibilityPadding:array[0..19] of AnsiChar;
     {$endif}
   public
     class function printerNames: NSArray; message 'printerNames';

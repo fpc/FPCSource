@@ -39,7 +39,7 @@ type
   End;
 
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; external name 'FPC_WASI_CONVERTTOFDRELATIVEPATH';
-function fpc_wasi_path_readlink_ansistring(fd: __wasi_fd_t; const path: PChar; path_len: size_t; out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
+function fpc_wasi_path_readlink_ansistring(fd: __wasi_fd_t; const path: PAnsiChar; path_len: size_t; out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
 function FNMatch(const Pattern,Name:rawbytestring):Boolean;
 function WasiFindFirst(const Path: RawByteString; Attr: Word; var f: TWasiSearchRec): longint;
 function WasiFindNext(var f: TWasiSearchRec): longint;
@@ -198,7 +198,7 @@ begin
   if ConvertToFdRelativePath(s,fd,pr)<>0 then
     exit;
   { todo: __WASI_LOOKUPFLAGS_SYMLINK_FOLLOW??? }
-  if __wasi_path_filestat_get(fd,0,PChar(pr),Length(pr),@st)<>__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,0,PAnsiChar(pr),Length(pr),@st)<>__WASI_ERRNO_SUCCESS then
     exit;
   info.FSize:=st.size;
   info.FMTime:=st.mtim;
@@ -290,7 +290,7 @@ Begin
            repeat
              res:=__wasi_path_open(fd,
                                    0,
-                                   PChar(pr),
+                                   PAnsiChar(pr),
                                    length(pr),
                                    __WASI_OFLAGS_DIRECTORY,
                                    __WASI_RIGHTS_FD_READDIR,

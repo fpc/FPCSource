@@ -93,7 +93,7 @@
     end;
 
 
-  procedure tvarrec.init(p: pchar);
+  procedure tvarrec.init(p: PAnsiChar);
     begin
       VType:=vtPChar;
       Value:=JLObject(p);
@@ -180,7 +180,7 @@
 
   function tvarrec.VChar: ansichar;
     begin
-      result:=char(JLByte(Value).byteValue);
+      result:=AnsiChar(JLByte(Value).byteValue);
     end;
 
 
@@ -214,9 +214,9 @@
     end;
 
 
-  function tvarrec.VPChar: PChar;
+  function tvarrec.VPChar: PAnsiChar;
     begin
-      result:=PChar(Value);
+      result:=PAnsiChar(Value);
     end;
 
 

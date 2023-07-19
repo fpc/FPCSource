@@ -29,13 +29,13 @@ type
   TXauth = record
     family: cushort;
     address_length: cushort;
-    address: Pchar;
+    address: PAnsiChar;
     number_length: cushort;
-    number: Pchar;
+    number: PAnsiChar;
     name_length: cushort;
-    name: PChar;
+    name: PAnsiChar;
     data_length: cushort;
-    data: PChar;
+    data: PAnsiChar;
   end;
 
 {$ifndef _XAUTH_STRUCT_ONLY}
@@ -54,21 +54,21 @@ type
 
 _XFUNCPROTOBEGIN
 
-char *XauFileName(void);
+AnsiChar *XauFileName(void);
 
 Xauth *XauReadAuth(
 FILE*	/* auth_file */
 );
 
 int XauLockAuth(
-_Xconst char*	/* file_name */,
+_Xconst AnsiChar*	/* file_name */,
 int		/* retries */,
 int		/* timeout */,
 long		/* dead */
 );
 
 int XauUnlockAuth(
-_Xconst char*	/* file_name */
+_Xconst AnsiChar*	/* file_name */
 );
 
 int XauWriteAuth(
@@ -84,19 +84,19 @@ unsigned int	/* address_length */,
 unsigned short	/* family */,
 unsigned short	/* address_length */,
 #endif
-_Xconst char*	/* address */,
+_Xconst AnsiChar*	/* address */,
 #if NeedWidePrototypes
 unsigned int	/* number_length */,
 #else
 unsigned short	/* number_length */,
 #endif
-_Xconst char*	/* number */,
+_Xconst AnsiChar*	/* number */,
 #if NeedWidePrototypes
 unsigned int	/* name_length */,
 #else
 unsigned short	/* name_length */,
 #endif
-_Xconst char*	/* name */
+_Xconst AnsiChar*	/* name */
 );
 
 Xauth *XauGetBestAuthByAddr(
@@ -107,15 +107,15 @@ unsigned int	/* address_length */,
 unsigned short	/* family */,
 unsigned short	/* address_length */,
 #endif
-_Xconst char*	/* address */,
+_Xconst AnsiChar*	/* address */,
 #if NeedWidePrototypes
 unsigned int	/* number_length */,
 #else
 unsigned short	/* number_length */,
 #endif
-_Xconst char*	/* number */,
+_Xconst AnsiChar*	/* number */,
 int		/* types_length */,
-char**		/* type_names */,
+AnsiChar**		/* type_names */,
 _Xconst int*	/* type_lengths */
 );
 

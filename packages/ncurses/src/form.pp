@@ -159,25 +159,25 @@ const
    REQ_RIGHT_FIELD = KEY_MAX + 14;  { move to right to field  }
    REQ_UP_FIELD = KEY_MAX + 15;     { move to up to field    }
    REQ_DOWN_FIELD = KEY_MAX + 16;   { move to down to field  }
-   REQ_NEXT_CHAR = KEY_MAX + 17;    { move to next char in field  }
-   REQ_PREV_CHAR = KEY_MAX + 18;    { move to prev char in field  }
+   REQ_NEXT_CHAR = KEY_MAX + 17;    { move to next AnsiChar in field  }
+   REQ_PREV_CHAR = KEY_MAX + 18;    { move to prev AnsiChar in field  }
    REQ_NEXT_LINE = KEY_MAX + 19;    { move to next line in field  }
    REQ_PREV_LINE = KEY_MAX + 20;    { move to prev line in field  }
    REQ_NEXT_WORD = KEY_MAX + 21;    { move to next word in field  }
    REQ_PREV_WORD = KEY_MAX + 22;    { move to prev word in field  }
-   REQ_BEG_FIELD = KEY_MAX + 23;    { move to first char in field   }
-   REQ_END_FIELD = KEY_MAX + 24;    { move after last char in fld   }
+   REQ_BEG_FIELD = KEY_MAX + 23;    { move to first AnsiChar in field   }
+   REQ_END_FIELD = KEY_MAX + 24;    { move after last AnsiChar in fld   }
    REQ_BEG_LINE = KEY_MAX + 25;     { move to beginning of line  }
-   REQ_END_LINE = KEY_MAX + 26;     { move after last char in line   }
+   REQ_END_LINE = KEY_MAX + 26;     { move after last AnsiChar in line   }
    REQ_LEFT_CHAR = KEY_MAX + 27;    { move left in field    }
    REQ_RIGHT_CHAR = KEY_MAX + 28;   { move right in field    }
    REQ_UP_CHAR = KEY_MAX + 29;      { move up in field    }
    REQ_DOWN_CHAR = KEY_MAX + 30;    { move down in field    }
    REQ_NEW_LINE = KEY_MAX + 31;     { insert/overlay new line  }
-   REQ_INS_CHAR = KEY_MAX + 32;     { insert blank char at cursor  }
+   REQ_INS_CHAR = KEY_MAX + 32;     { insert blank AnsiChar at cursor  }
    REQ_INS_LINE = KEY_MAX + 33;     { insert blank line at cursor  }
-   REQ_DEL_CHAR = KEY_MAX + 34;     { delete char at cursor  }
-   REQ_DEL_PREV = KEY_MAX + 35;     { delete char before cursor  }
+   REQ_DEL_CHAR = KEY_MAX + 34;     { delete AnsiChar at cursor  }
+   REQ_DEL_PREV = KEY_MAX + 35;     { delete AnsiChar before cursor  }
    REQ_DEL_LINE = KEY_MAX + 36;     { delete line at cursor  }
    REQ_DEL_WORD = KEY_MAX + 37;     { delete word at cursor  }
    REQ_CLR_EOL = KEY_MAX + 38;      { clear to end of line    }
@@ -191,8 +191,8 @@ const
    REQ_SCR_BPAGE = KEY_MAX + 46;    { scroll field backward a page  }
    REQ_SCR_FHPAGE = KEY_MAX + 47;   { scroll field forward   half page  }
    REQ_SCR_BHPAGE = KEY_MAX + 48;   { scroll field backward half page  }
-   REQ_SCR_FCHAR = KEY_MAX + 49;    { horizontal scroll char  }
-   REQ_SCR_BCHAR = KEY_MAX + 50;    { horizontal scroll char  }
+   REQ_SCR_FCHAR = KEY_MAX + 49;    { horizontal scroll AnsiChar  }
+   REQ_SCR_BCHAR = KEY_MAX + 50;    { horizontal scroll AnsiChar  }
    REQ_SCR_HFLINE = KEY_MAX + 51;   { horizontal scroll line   }
    REQ_SCR_HBLINE = KEY_MAX + 52;   { horizontal scroll line   }
    REQ_SCR_HFHALF = KEY_MAX + 53;   { horizontal scroll half line  }
@@ -279,7 +279,7 @@ function set_field_fore(_para1:PFIELD; _para2:chtype):Longint; cdecl;external li
 function set_field_back(_para1:PFIELD; _para2:chtype):Longint; cdecl;external libform;
 function set_field_pad(_para1:PFIELD; _para2:Longint):Longint; cdecl;external libform;
 function field_pad(_para1:PFIELD):Longint; cdecl;external libform;
-function set_field_buffer(_para1:PFIELD; _para2:Longint;_para3:PChar):Longint; cdecl;external libform;
+function set_field_buffer(_para1:PFIELD; _para2:Longint;_para3:PAnsiChar):Longint; cdecl;external libform;
 function set_field_status(_para1:PFIELD; _para2:Bool):Longint; cdecl;external libform;
 function set_field_userptr(_para1:PFIELD; _para2:Pointer):Longint; cdecl;external libform;
 function set_field_opts(_para1:PFIELD; _para2:Field_Options):Longint; cdecl;external libform;
@@ -292,7 +292,7 @@ function field_status(_para1:PFIELD):Bool; cdecl;external libform;
 function field_arg(_para1:PFIELD):Pointer; cdecl;external libform;
 function field_userptr(_para1:PFIELD):Pointer; cdecl;external libform;
 function field_type(_para1:PFIELD):PFIELDTYPE; cdecl;external libform;
-function field_buffer(_para1:PFIELD; _para2:Longint):PChar; cdecl;external libform;
+function field_buffer(_para1:PFIELD; _para2:Longint):PAnsiChar; cdecl;external libform;
 function field_opts(_para1:PFIELD):Field_Options; cdecl;external libform;
 
 (*  FORM routines  *)
@@ -327,8 +327,8 @@ function set_form_userptr(_para1:PFORM; _para2:Pointer):Longint; cdecl;external 
 function set_form_opts(_para1:PFORM; _para2:Form_Options):Longint; cdecl;external libform;
 function form_opts_on(_para1:PFORM; _para2:Form_Options):Longint; cdecl;external libform;
 function form_opts_off(_para1:PFORM; _para2:Form_Options):Longint; cdecl;external libform;
-function form_request_by_name(_para1:PChar):Longint; cdecl;external libform;
-function form_request_name(_para1:Longint):PChar; cdecl;external libform;
+function form_request_by_name(_para1:PAnsiChar):Longint; cdecl;external libform;
+function form_request_name(_para1:Longint):PAnsiChar; cdecl;external libform;
 function form_userptr(_para1:PFORM):Pointer; cdecl;external libform;
 function form_opts(_para1:PFORM):Form_Options; cdecl;external libform;
 function data_ahead(_para1:PFORM):Bool; cdecl;external libform;

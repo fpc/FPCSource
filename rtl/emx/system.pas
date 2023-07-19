@@ -40,8 +40,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 255;
  MaxPathLen = 256;
@@ -103,12 +103,12 @@ const   UnusedHandle=-1;
 var
 { C-compatible arguments and environment }
   argc  : longint;external name '_argc';
-  argv  : ppchar;external name '_argv';
-  envp  : ppchar;external name '_environ';
+  argv  : PPAnsiChar;external name '_argv';
+  envp  : PPAnsiChar;external name '_environ';
   EnvC: cardinal; external name '_envc';
 
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
-  Environment: PChar;
+  Environment: PAnsiChar;
 
 var
 (* Type / run mode of the current process: *)
@@ -137,7 +137,7 @@ const
   OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
 
 type
-  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+  TDosOpenL = function (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                                  EA: pointer): cardinal; cdecl;
@@ -204,7 +204,7 @@ end {['EAX']};
 
 function paramstr(l:longint):string;
 
-var p:^Pchar;
+var p:^PAnsiChar;
 
 begin
     { There seems to be a problem with EMX for DOS when trying to }
@@ -223,7 +223,7 @@ begin
                 mov eax, 7F33h
                 call syscall    { error handle already with empty string }
             end ['eax', 'ecx', 'edx'];
-            ParamStr := StrPas (PChar (P));
+            ParamStr := StrPas (PAnsiChar (P));
             FreeMem (P, 260);
         end
     else
@@ -265,7 +265,7 @@ end {['eax', 'ecx', 'edx']};
 
 type
   TWinMessageBox = function (Parent, Owner: cardinal;
-         BoxText, BoxTitle: PChar; Identity, Style: cardinal): cardinal; cdecl;
+         BoxText, BoxTitle: PAnsiChar; Identity, Style: cardinal): cardinal; cdecl;
   TWinInitialize = function (Options: cardinal): cardinal; cdecl;
   TWinCreateMsgQueue = function (Handle: cardinal; cmsg: longint): cardinal;
                                                                          cdecl;
@@ -282,7 +282,7 @@ const
   EnvSize: cardinal = 0;
 
 var
-  ErrorBuf: array [0..ErrorBufferLength] of char;
+  ErrorBuf: array [0..ErrorBufferLength] of AnsiChar;
   ErrorLen: longint;
   PMWinHandle: cardinal;
 
@@ -291,7 +291,7 @@ function ErrorWrite (var F: TextRec): integer;
   An error message should always end with #13#10#13#10
 }
 var
-  P: PChar;
+  P: PAnsiChar;
   I: longint;
 begin
   if F.BufPos > 0 then
@@ -318,7 +318,7 @@ begin
      I := 4;
    if (I = 4) then
     begin
-      WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+      WinMessageBox (0, 0, @ErrorBuf, PAnsiChar ('Error'), 0, MBStyle);
       ErrorLen := 0;
     end;
   F.BufPos := 0;
@@ -329,7 +329,7 @@ function ErrorClose (var F: TextRec): integer;
 begin
   if ErrorLen > 0 then
    begin
-     WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+     WinMessageBox (0, 0, @ErrorBuf, PAnsiChar ('Error'), 0, MBStyle);
      ErrorLen := 0;
    end;
   ErrorLen := 0;
@@ -355,7 +355,7 @@ end;
 
 procedure DosEnvInit;
 var
- Q: PPChar;
+ Q: PPAnsiChar;
  I: cardinal;
 begin
 (* It's a hack, in fact - DOS stores the environment the same way as OS/2 does,
@@ -502,7 +502,7 @@ var TIB: PThreadInfoBlock;
     PIB: PProcessInfoBlock;
 
 const
- FatalHeap: array [0..33] of char = 'FATAL: Cannot initialize heap!!'#13#10'$';
+ FatalHeap: array [0..33] of AnsiChar = 'FATAL: Cannot initialize heap!!'#13#10'$';
 
 begin
     {Determine the operating system we are running on.}

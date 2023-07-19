@@ -30,8 +30,8 @@ type
   end;
 
   TGIFHeader = packed record
-    Signature:array[0..2] of Char;    //* Header Signature (always "GIF") */
-    Version:array[0..2] of Char;      //* GIF format version("87a" or "89a") */
+    Signature:array[0..2] of AnsiChar;    //* Header Signature (always "GIF") */
+    Version:array[0..2] of AnsiChar;      //* GIF format version("87a" or "89a") */
     // Logical Screen Descriptor
     ScreenWidth:word;                 //* Width of Display Screen in Pixels */
     ScreenHeight:word;                //* Height of Display Screen in Pixels */

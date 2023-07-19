@@ -25,7 +25,7 @@ uses Windows {$ifdef UNDER_CE}, windbase {$endif};
 {$PACKRECORDS C}
 {$ELSE}
 type
-  TCHAR = char;
+  TCHAR = AnsiChar;
 {$ENDIF}
 
 { max size of the object type name }
@@ -37,7 +37,7 @@ const
    
 type
   OBJTYPENAME = array[0..MAX_OBJTYPE_NAME-1] of TCHAR;
-  OBJTYPENAMEA = array[0..MAX_OBJTYPE_NAME-1] of CHAR;
+  OBJTYPENAMEA = array[0..MAX_OBJTYPE_NAME-1] of AnsiChar;
   OBJTYPENAMEW = array[0..MAX_OBJTYPE_NAME-1] of WCHAR;
   
 { Error/Return code used }
@@ -138,9 +138,9 @@ const
 type
    tagDevInfo = record
         pid : DWORD;                             { device ID }
-        szName : array[0..(MAX_PATH)-1] of char; { device name }
-        szType : array[0..79] of char;           { device type }
-        szPath : array[0..(MAX_PATH)-1] of char; { device path }
+        szName : array[0..(MAX_PATH)-1] of AnsiChar; { device name }
+        szType : array[0..79] of AnsiChar;           { device type }
+        szPath : array[0..(MAX_PATH)-1] of AnsiChar; { device path }
      end;
    DEVINFO = tagDevInfo;
    PDEVINFO = ^DEVINFO;
@@ -223,10 +223,10 @@ type
         cbStruct : UINT;
         hIconLarge : HICON;
         hIconSmall : HICON;
-        szName : array[0..(MAX_PATH)-1] of char;
-        szSyncText : array[0..(MAX_PATH)-1] of char;
-        szTypeText : array[0..79] of char;
-        szPlTypeText : array[0..79] of char;
+        szName : array[0..(MAX_PATH)-1] of AnsiChar;
+        szSyncText : array[0..(MAX_PATH)-1] of AnsiChar;
+        szTypeText : array[0..79] of AnsiChar;
+        szPlTypeText : array[0..79] of AnsiChar;
      end;
    OBJUIDATA = tagObjUIData;
    POBJUIDATA = ^OBJUIDATA;

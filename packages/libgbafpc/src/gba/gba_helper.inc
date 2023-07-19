@@ -55,16 +55,16 @@ procedure memcpy16(dest: pointer; const src: pointer; hwcount: dword); cdecl; ex
 procedure memset32(dest: pointer; wd: dword; wcount: dword); cdecl; external;
 procedure memcpy32(dest: pointer; const src: pointer; wcount: dword); cdecl; external;
 
-function printf(format: Pchar; args: array of const): longint; cdecl; external;
-function printf(format: Pchar): longint; cdecl; varargs; external;
-function sprintf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sprintf(s: Pchar; format: Pchar): longint; varargs; cdecl; external;
-function iprintf(format: Pchar; args: array of const): longint; cdecl; external;
-function iprintf(format: Pchar): longint; varargs; cdecl; external;
-function scanf(format: Pchar; args: array of const): longint; cdecl; external;
-function scanf(format: Pchar): longint; cdecl; varargs; external;
-function sscanf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sscanf(s: Pchar; format: Pchar): longint; cdecl; varargs; external;
+function printf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function printf(format: PAnsiChar): longint; cdecl; varargs; external;
+function sprintf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sprintf(s: PAnsiChar; format: PAnsiChar): longint; varargs; cdecl; external;
+function iprintf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function iprintf(format: PAnsiChar): longint; varargs; cdecl; external;
+function scanf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function scanf(format: PAnsiChar): longint; cdecl; varargs; external;
+function sscanf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sscanf(s: PAnsiChar; format: PAnsiChar): longint; cdecl; varargs; external;
 
 function malloc(size: integer): pointer; cdecl; external;
 function realloc(ptr: pointer; size: integer): pointer; cdecl; external;
@@ -98,7 +98,7 @@ const
    SEEK_CUR = 1;
    SEEK_END = 2;
 
-function fopen(filename: Pchar; modes: Pchar): P_FILE; cdecl; external;
+function fopen(filename: PAnsiChar; modes: PAnsiChar): P_FILE; cdecl; external;
 function fread(ptr: pointer; size: longint; n: longint; stream: P_FILE): longint; cdecl; external;
 function fwrite(ptr: pointer; size: longint; n: longint; s: P_FILE): longint; cdecl; external;
 function ftell(stream: P_FILE): longint; cdecl; external;
@@ -155,13 +155,13 @@ const
   S_IWRITE      = $80;
   S_IEXEC       = $40;
 
-function diropen(const path: pchar): PDIR_ITER; cdecl; external;
+function diropen(const path: PAnsiChar): PDIR_ITER; cdecl; external;
 function dirreset(dirState: PDIR_ITER): cint; cdecl; external;
-function dirnext(dirState: PDIR_ITER; filename: pchar; filestat: Pstat): cint; cdecl; external;
+function dirnext(dirState: PDIR_ITER; filename: PAnsiChar; filestat: Pstat): cint; cdecl; external;
 function dirclose(dirState: PDIR_ITER): cint; cdecl; external;
   *)
-procedure DebugPrint(s: string); assembler; inline;
-function GBAIntToStr(i: integer): string;
+procedure DebugPrint(s: ansistring); assembler; inline;
+function GBAIntToStr(i: integer): ansistring;
 
 {$endif GBA_INTERFACE}
 
@@ -172,15 +172,15 @@ function GBAIntToStr(i: integer): string;
 // these are in ASM and optimized; use when possible
 {$l core_asm.o}
 
-procedure DebugPrint(s: string); assembler; inline;
+procedure DebugPrint(s: ansistring); assembler; inline;
 asm
   mov r0,s
   swi #0xff0000
 end['r0'];
 
-function GBAIntToStr(i: integer): string;
+function GBAIntToStr(i: integer): ansistring;
 var
-  s: string;
+  s: ansistring;
 begin
   str(i, s);
   GBAIntToStr := s;

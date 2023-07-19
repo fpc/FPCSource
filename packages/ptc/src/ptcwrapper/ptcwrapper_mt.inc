@@ -43,7 +43,7 @@ type
   TPTCWrapperOpenType = (pwotDefault, pwotFormat, pwotWidthHeightFormat, pwotMode);
   TPTCWrapperOpenRequest = record
     OpenType: TPTCWrapperOpenType;
-    Title: string;
+    Title: AnsiString;
     SurfaceWidth, SurfaceHeight: Integer;
     Width, Height: Integer;
     Format: IPTCFormat;
@@ -61,7 +61,7 @@ type
   end;
 
   TPTCWrapperOptionRequest = record
-    Option: string;
+    Option: AnsiString;
 
     Processed: Boolean;
     Result: Boolean;
@@ -109,13 +109,13 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Open(const ATitle: string; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
-    procedure Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: AnsiString; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: AnsiString; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: AnsiString; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+    procedure Open(const ATitle: AnsiString; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
     procedure Close;
 
-    function Option(const AOption: string): Boolean;
+    function Option(const AOption: AnsiString): Boolean;
 
     function Modes: TPTCModeList;
 
@@ -307,7 +307,7 @@ begin
   end;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: AnsiString; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -328,7 +328,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: AnsiString; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -350,7 +350,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: AnsiString; ASurfaceWidth, ASurfaceHeight, AWidth, AHeight: Integer; AFormat: IPTCFormat; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -376,7 +376,7 @@ begin
   until FOpenRequest.Processed;
 end;
 
-procedure TPTCWrapperThread.Open(const ATitle: string; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
+procedure TPTCWrapperThread.Open(const ATitle: AnsiString; ASurfaceWidth, ASurfaceHeight: Integer; AMode: IPTCMode; AVirtualPages: Integer; APages: Integer = 0);
 begin
   FSurfaceCriticalSection.Acquire;
   try
@@ -417,7 +417,7 @@ begin
   until FCloseRequest.Processed;
 end;
 
-function TPTCWrapperThread.Option(const AOption: string): Boolean;
+function TPTCWrapperThread.Option(const AOption: AnsiString): Boolean;
 begin
   FSurfaceCriticalSection.Acquire;
   try

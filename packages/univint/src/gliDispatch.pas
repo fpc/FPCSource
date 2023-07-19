@@ -334,7 +334,7 @@ type
 		get_pixel_mapusv : procedure( ctx: GLIContext; map: GLenum; values: PGLushort );
 		get_pointerv : procedure( ctx: GLIContext; pname: GLenum; params: UnivPtrPtr );
 		get_polygon_stipple : procedure( ctx: GLIContext; mask: PGLubyte );
-		get_string : function( ctx: GLIContext; name: GLenum ): PChar;
+		get_string : function( ctx: GLIContext; name: GLenum ): PAnsiChar;
 		get_tex_envfv : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: PGLfloat );
 		get_tex_enviv : procedure( ctx: GLIContext; target: GLenum; pname: GLenum; params: PGLint );
 		get_tex_gendv : procedure( ctx: GLIContext; coord: GLenum; pname: GLenum; params: PGLdouble );
@@ -812,7 +812,7 @@ type
 		get_handle_ARB : function( ctx: GLIContext; pname: GLenum ): GLhandleARB;
 		detach_object_ARB : procedure( ctx: GLIContext; containerObj: GLhandleARB; attachedObj: GLhandleARB );
 		create_shader_object_ARB : function( ctx: GLIContext; shaderType: GLenum ): GLhandleARB;
-		shader_source_ARB : procedure( ctx: GLIContext; shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPChar; const length: PGLint );
+		shader_source_ARB : procedure( ctx: GLIContext; shaderObj: GLhandleARB; count: GLsizei; {const} strng: PPAnsiChar; const length: PGLint );
 		compile_shader_ARB : procedure( ctx: GLIContext; shaderObj: GLhandleARB );
 		create_program_object_ARB : function( ctx: GLIContext ): GLhandleARB;
 		attach_object_ARB : procedure( ctx: GLIContext; containerObj: GLhandleARB; obj: GLhandleARB );
@@ -877,8 +877,8 @@ type
 		is_program : function( ctx: GLIContext; program_: GLuint ): GLboolean;
 		get_shaderiv : procedure( ctx: GLIContext; shader: GLuint; pname: GLenum; params: PGLint );
 		get_programiv : procedure( ctx: GLIContext; program_: GLuint; pname: GLenum; params: PGLint );
-		get_shader_info_log : procedure( ctx: GLIContext; shader: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PChar );
-		get_program_info_log : procedure( ctx: GLIContext; program_: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PChar );
+		get_shader_info_log : procedure( ctx: GLIContext; shader: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PAnsiChar );
+		get_program_info_log : procedure( ctx: GLIContext; program_: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PAnsiChar );
 	
 		stencil_func_separate : procedure( ctx: GLIContext; face: GLenum; func: GLenum; ref: GLint; mask: GLuint );
 		stencil_mask_separate : procedure( ctx: GLIContext; face: GLenum; mask: GLuint );
@@ -927,8 +927,8 @@ type
 		bind_buffer_base_EXT : procedure( ctx: GLIContext; target: GLenum; index: GLuint; buffer: GLuint );
 		begin_transform_feedback_EXT : procedure( ctx: GLIContext; primitiveMode: GLenum );
 		end_transform_feedback_EXT : procedure( ctx: GLIContext );
-		transform_feedback_varyings_EXT : procedure( ctx: GLIContext; program_: GLuint; count: GLsizei; {const} varyings: PPChar; bufferMode: GLenum );
-		get_transform_feedback_varying_EXT : procedure( ctx: GLIContext; program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PChar );
+		transform_feedback_varyings_EXT : procedure( ctx: GLIContext; program_: GLuint; count: GLsizei; {const} varyings: PPAnsiChar; bufferMode: GLenum );
+		get_transform_feedback_varying_EXT : procedure( ctx: GLIContext; program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; typ: PGLenum; name: PAnsiChar );
 		get_integer_indexedv_EXT : procedure( ctx: GLIContext; param: GLenum; index: GLuint; values: PGLint ); 
 		get_boolean_indexedv_EXT : procedure( ctx: GLIContext; param: GLenum; index: GLuint; values: PGLboolean );
 	
@@ -978,8 +978,8 @@ type
 		uniform3uiv_EXT : procedure( ctx: GLIContext; location: GLint; count: GLsizei; const value: PGLuint );
 		uniform4uiv_EXT : procedure( ctx: GLIContext; location: GLint; count: GLsizei; const value: PGLuint );
 		get_uniformuiv_EXT : procedure( ctx: GLIContext; program_: GLuint; location: GLint; params: PGLuint );
-		bind_frag_data_location_EXT : procedure( ctx: GLIContext; program_: GLuint; colorNumber: GLuint; const name: PChar );
-		get_frag_data_location_EXT : function( ctx: GLIContext; program_: GLuint; const name: PChar ): GLint;
+		bind_frag_data_location_EXT : procedure( ctx: GLIContext; program_: GLuint; colorNumber: GLuint; const name: PAnsiChar );
+		get_frag_data_location_EXT : function( ctx: GLIContext; program_: GLuint; const name: PAnsiChar ): GLint;
 	
 		{ EXT_draw_buffers2 }
 		color_mask_indexed_EXT : procedure( ctx: GLIContext; index: GLuint; r: GLboolean; g: GLboolean; b: GLboolean; a: GLboolean );

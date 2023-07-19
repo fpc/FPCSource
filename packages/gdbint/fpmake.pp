@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, classes, sysutils;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit, classes, sysutils;
 
 {$endif ALLPACKAGES}
 

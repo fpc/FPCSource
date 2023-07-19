@@ -270,7 +270,7 @@ const
 	kCSIdentityDuplicateFullNameErr = -6;
 	
 	{
-	 * The Posix name is not valid (char set: [a-zA-Z0-9_-] length:
+	 * The Posix name is not valid (AnsiChar set: [a-zA-Z0-9_-] length:
 	 * [1-255])
 	 }
 	kCSIdentityInvalidPosixNameErr = -7;

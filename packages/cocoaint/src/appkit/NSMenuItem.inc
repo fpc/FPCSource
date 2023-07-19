@@ -22,7 +22,7 @@ type
     _target: id;
     _action: SEL;
     _tag: NSInteger;
-    _keyEquivalentModifierMask: char;
+    _keyEquivalentModifierMask: AnsiChar;
     {$else}
     _keyEquivalentModifierMask_: NSUInteger;
     _userKEGenerationCount: NSInteger;

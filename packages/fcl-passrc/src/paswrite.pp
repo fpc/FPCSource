@@ -739,7 +739,7 @@ end;
 procedure TPasWriter.WriteConst(AConst: TPasConst);
 
 Const
-  Seps : Array[Boolean] of Char = ('=',':');
+  Seps : Array[Boolean] of AnsiChar = ('=',':');
 
 Var
   Vart,Decl : String;

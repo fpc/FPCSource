@@ -60,7 +60,7 @@ Const
 {$endif FPC_UNICODESTRING_TYPE_DEFINED}
 
 {
-  Default UnicodeChar <-> Char conversion is to only convert the
+  Default UnicodeChar <-> AnsiChar conversion is to only convert the
   lower 127 chars, all others are translated to '?'.
 
   These routines can be overridden for the Current Locale
@@ -81,7 +81,7 @@ begin
   for i:=1 to len do
     begin
       if word(source^)<256 then
-        p^:=char(word(source^))
+        p^:=AnsiChar(word(source^))
       else
         p^:='?';
       inc(source);
@@ -93,7 +93,7 @@ end;
 
 {$ifndef FPC_HAS_DEFAULT_ANSI_2_UNICODE}
 {$define FPC_HAS_DEFAULT_ANSI_2_UNICODE}
-procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:pansichar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
   i : SizeInt;
   p : PUnicodeChar;
@@ -111,13 +111,13 @@ end;
 
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
-function DefaultCharLengthPChar(const Str: PChar): PtrInt;
+function DefaultCharLengthPChar(const Str: PAnsiChar): PtrInt;
   begin
     DefaultCharLengthPChar:=length(Str);
   end;
 
 
-function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+function DefaultCodePointLength(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
   begin
     if str[0]<>#0 then
       DefaultCodePointLength:=1
@@ -294,7 +294,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),DefaultSystemCodePage,result,Size);
+    widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(@S2[1]),DefaultSystemCodePage,result,Size);
 end;
 {$endif FPC_HAS_SHORTSTR_TO_UNICODESTR}
 
@@ -340,7 +340,7 @@ begin
   if Size>0 then
   begin
     cp:=TranslatePlaceholderCP(StringCodePage(S2));
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),cp,result,Size);
+    widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(S2),cp,result,Size);
   end;
 end;
 {$endif FPC_HAS_ANSISTR_TO_UNICODESTR}
@@ -458,12 +458,12 @@ Var
   same : boolean;
 begin
   { only assign if s1 or s2 is empty }
-  if (S1='') then
+  if Length(S1)=0 then
     begin
       DestS:=s2;
       exit;
     end;
-  if (S2='') then
+  if Length(S2)=0 then
     begin
       DestS:=s1;
       exit;
@@ -565,7 +565,7 @@ end;
 
 {$ifndef FPC_HAS_CHAR_TO_UCHAR}
 {$define FPC_HAS_CHAR_TO_UCHAR}
-Function fpc_Char_To_UChar(const c : Char): UnicodeChar; compilerproc;
+Function fpc_Char_To_UChar(const c : AnsiChar): UnicodeChar; compilerproc;
 var
   w: unicodestring;
 begin
@@ -577,9 +577,9 @@ end;
 
 {$ifndef FPC_HAS_CHAR_TO_UNICODESTR}
 {$define FPC_HAS_CHAR_TO_UNICODESTR}
-Function fpc_Char_To_UnicodeStr(const c : Char): UnicodeString; compilerproc;
+Function fpc_Char_To_UnicodeStr(const c : AnsiChar): UnicodeString; compilerproc;
 {
-  Converts a Char to a UnicodeString;
+  Converts a AnsiChar to a UnicodeString;
 }
 begin
   widestringmanager.Ansi2UnicodeMoveProc(@c,DefaultSystemCodePage,result,1);
@@ -589,9 +589,9 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_CHAR}
 {$define FPC_HAS_UCHAR_TO_CHAR}
-Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
+Function fpc_UChar_To_Char(const c : UnicodeChar): AnsiChar; compilerproc;
 {
-  Converts a UnicodeChar to a Char;
+  Converts a UnicodeChar to a AnsiChar;
 }
 var
   s: ansistring;
@@ -655,7 +655,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_TO_UNICODESTR}
 {$define FPC_HAS_PCHAR_TO_UNICODESTR}
-Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
+Function fpc_PChar_To_UnicodeStr(const p : PAnsiChar): UnicodeString; compilerproc;
 Var
   L : SizeInt;
 begin
@@ -672,7 +672,7 @@ end;
 
 {$ifndef FPC_HAS_CHARARRAY_TO_UNICODESTR}
 {$define FPC_HAS_CHARARRAY_TO_UNICODESTR}
-Function fpc_CharArray_To_UnicodeStr(const arr: array of char; zerobased: boolean = true): UnicodeString; compilerproc;
+Function fpc_CharArray_To_UnicodeStr(const arr: array of ansichar; zerobased: boolean = true): UnicodeString; compilerproc;
 var
   i  : SizeInt;
 begin
@@ -689,7 +689,7 @@ begin
     end
   else
     i:=high(arr)+1;
-  widestringmanager.Ansi2UnicodeMoveProc(pchar(@arr),DefaultSystemCodePage,fpc_CharArray_To_UnicodeStr,i);
+  widestringmanager.Ansi2UnicodeMoveProc(pansichar(@arr),DefaultSystemCodePage,fpc_CharArray_To_UnicodeStr,i);
 end;
 {$endif FPC_HAS_CHARARRAY_TO_UNICODESTR}
 
@@ -799,7 +799,7 @@ end;
 
 {$ifndef FPC_HAS_UNICODESTR_TO_CHARARRAY}
 {$define FPC_HAS_UNICODESTR_TO_CHARARRAY}
-procedure fpc_unicodestr_to_chararray(out res: array of char; const src: UnicodeString); compilerproc;
+procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: UnicodeString); compilerproc;
 var
   len: SizeInt;
   temp: ansistring;
@@ -830,7 +830,7 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),TranslatePlaceholderCP(StringCodePage(src)),temp,len);
+    widestringmanager.ansi2widemoveproc(pansichar(@src[1]),TranslatePlaceholderCP(StringCodePage(src)),temp,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
@@ -851,9 +851,9 @@ var
   temp : widestring;
 begin
   len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
+  { make sure we don't access AnsiChar 1 if length is 0 (JM) }
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),DefaultSystemCodePage,temp,len);
+    widestringmanager.ansi2widemoveproc(pansichar(@src[1]),DefaultSystemCodePage,temp,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
@@ -1045,7 +1045,7 @@ function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : 
     temp: widestring;
     Len: SizeInt;
   begin
-     widestringmanager.Ansi2WideMoveProc(PChar(Src),StringCodePage(Src),temp,Length(Src));
+     widestringmanager.Ansi2WideMoveProc(PAnsiChar(Src),StringCodePage(Src),temp,Length(Src));
      Len:=Length(temp);
      if DestSize<=Len then
        Len:=Destsize-1;
@@ -1259,11 +1259,11 @@ end;
 
 {$ifndef FPC_HAS_POS_CHAR_UNICODESTR}
 {$define FPC_HAS_POS_CHAR_UNICODESTR}
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
+{ Faster version for a AnsiChar alone. Must be implemented because   }
+{ pos(c: AnsiChar; const s: shortstring) also exists, so otherwise   }
+{ using pos(AnsiChar,pansichar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : AnsiChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
   ns,idx: SizeInt;
 begin
@@ -1378,7 +1378,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If (Buf<>Nil) and (Len>0) then
     widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len)
@@ -1681,7 +1681,7 @@ end;
 {$endif CPU16 or CPU8}
 
 
-function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UnicodeToUtf8(Dest: PAnsiChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
       Result:=UnicodeToUtf8(Dest,MaxBytes,Source,Length(Source))
@@ -1690,7 +1690,7 @@ function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): Si
   end;
 
 
-function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
+function UnicodeToUtf8(Dest: PAnsiChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(217);
@@ -1713,24 +1713,24 @@ end;
             case lw of
               0..$7f:
                 begin
-                  Dest[j]:=char(lw);
+                  Dest[j]:=AnsiChar(lw);
                   inc(j);
                 end;
               $80..$7ff:
                 begin
                   if j+1>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($c0 or (lw shr 6));
-                  Dest[j+1]:=char($80 or (lw and $3f));
+                  Dest[j]:=AnsiChar($c0 or (lw shr 6));
+                  Dest[j+1]:=AnsiChar($80 or (lw and $3f));
                   inc(j,2);
                 end;
               $800..$d7ff,$e000..$ffff:
                 begin
                   if j+2>=MaxDestBytes then
                     break;
-                  Dest[j]:=char($e0 or (lw shr 12));
-                  Dest[j+1]:=char($80 or ((lw shr 6) and $3f));
-                  Dest[j+2]:=char($80 or (lw and $3f));
+                  Dest[j]:=AnsiChar($e0 or (lw shr 12));
+                  Dest[j+1]:=AnsiChar($80 or ((lw shr 6) and $3f));
+                  Dest[j+2]:=AnsiChar($80 or (lw and $3f));
                   inc(j,3);
                 end;
               $d800..$dbff:
@@ -1744,10 +1744,10 @@ end;
                     begin
                       { $d7c0 is ($d800 - ($10000 shr 10)) }
                       lw:=(longword(lw-$d7c0) shl 10) + (ord(source[i+1]) xor $dc00);
-                      Dest[j]:=char($f0 or (lw shr 18));
-                      Dest[j+1]:=char($80 or ((lw shr 12) and $3f));
-                      Dest[j+2]:=char($80 or ((lw shr 6) and $3f));
-                      Dest[j+3]:=char($80 or (lw and $3f));
+                      Dest[j]:=AnsiChar($f0 or (lw shr 18));
+                      Dest[j+1]:=AnsiChar($80 or ((lw shr 12) and $3f));
+                      Dest[j+2]:=AnsiChar($80 or ((lw shr 6) and $3f));
+                      Dest[j+3]:=AnsiChar($80 or (lw and $3f));
                       inc(j,4);
                       inc(i);
                     end;
@@ -1791,7 +1791,7 @@ end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
 
-function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToUnicode(Dest: PUnicodeChar; Source: PAnsiChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
       Result:=Utf8ToUnicode(Dest,MaxChars,Source,length(Source),True)
@@ -1800,13 +1800,13 @@ function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): Si
   end;
 
 
-function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PAnsiChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
   Result:=Utf8ToUnicode(Dest,MaxDestChars,Source,SourceBytes,True);
 end;
 
-function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PAnsiChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
 
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
@@ -1862,7 +1862,7 @@ end;
                 if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
                   begin
                     //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single char.
+                    //UTF-8 array. Fallback to single AnsiChar.
                     CharLen:= 1;
                   end;
                 for LookAhead := 1 to CharLen-1 do
@@ -1976,7 +1976,7 @@ end;
                 if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
                   begin
                     //Insuficient chars in string to decode
-                    //UTF-8 array. Fallback to single char.
+                    //UTF-8 array. Fallback to single AnsiChar.
                     CharLen:= 1;
                   end;
                 for LookAhead := 1 to CharLen-1 do
@@ -2064,10 +2064,10 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
     hs : UTF8String;
   begin
     result:='';
-    if s='' then
+    if Length(s)=0 then
       exit;
     SetLength(hs,length(s)*3);
-    i:=UnicodeToUtf8(pchar(hs),length(hs)+1,PUnicodeChar(s),length(s));
+    i:=UnicodeToUtf8(pansichar(hs),length(hs)+1,PUnicodeChar(s),length(s));
     if i>0 then
       begin
         SetLength(hs,i-1);
@@ -2085,10 +2085,10 @@ function UTF8Decode(const s : RawByteString): UnicodeString;
     hs : UnicodeString;
   begin
     result:='';
-    if s='' then
+    if Length(s)=0 then
       exit;
     SetLength(hs,length(s));
-    i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pchar(s),length(s));
+    i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pansichar(s),length(s));
     if i>0 then
       begin
         SetLength(hs,i-1);
@@ -2402,7 +2402,7 @@ begin
   Count := Length(S);
   SetLength(rs, Count);
   if Count > 0 then
-    fpc_pchar_ansistr_intern_charmove(pchar(@S),Low(S),rs,0,Count);
+    fpc_pchar_ansistr_intern_charmove(pansichar(@S),Low(S),rs,0,Count);
   Result := UTF8ToString(rs);
 end;
 {$endif not CPUJVM}

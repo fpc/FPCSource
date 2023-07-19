@@ -88,7 +88,7 @@ For other source and target encodings, you will have to override "TranslateEncod
 Buffer Handling
 ---------------
 - The document must be loaded completely into a piece of RAM
-- All character positions are referenced by PChar pointers
+- All character positions are referenced by PAnsiChar pointers
 - The TXmlParser instance can either "own" the buffer itself (then, FBufferSize is > 0)
   or reference the buffer of another instance or object (then, FBuffersize is 0 and
   FBuffer is not NIL)
@@ -239,63 +239,63 @@ TYPE
   TNotationDef = CLASS;
 
   TDtdElementRec = RECORD    // --- This Record is returned by the DTD parser callback function
-                     Start, Final : PChar;                             // Start/End of the Element's Declaration
+                     Start, Final : PAnsiChar;                             // Start/End of the Element's Declaration
                      CASE ElementType : TDtdElemType OF                // Type of the Element
                        deElement,                                      // <!ELEMENT>
                        deAttList  : (ElemDef      : TElemDef);         // <!ATTLIST>
                        deEntity   : (EntityDef    : TEntityDef);       // <!ENTITY>
                        deNotation : (NotationDef  : TNotationDef);     // <!NOTATION>
-                       dePI       : (Target       : PChar;             // <?PI ?>
-                                     Content      : PChar;
+                       dePI       : (Target       : PAnsiChar;             // <?PI ?>
+                                     Content      : PAnsiChar;
                                      AttrList     : TAttrList);
-                       deError    : (Pos          : PChar);            // Error
+                       deError    : (Pos          : PAnsiChar);            // Error
                        // deComment : ((No additional fields here));   // <!-- Comment -->
                    END;
 
   TXmlParser = CLASS                             // --- Internal Properties and Methods
                PROTECTED
-                 FBuffer      : PChar;           // NIL if there is no buffer available
+                 FBuffer      : PAnsiChar;           // NIL if there is no buffer available
                  FBufferSize  : INTEGER;         // 0 if the buffer is not owned by the Document instance
-                 FSource      : STRING;          // Name of Source of document. Filename for Documents loaded with LoadFromFile
+                 FSource      : AnsiString;          // Name of Source of document. Filename for Documents loaded with LoadFromFile
 
-                 FXmlVersion  : STRING;          // XML version from Document header. Default is '1.0'
-                 FEncoding    : STRING;          // Encoding from Document header. Default is 'UTF-8'
+                 FXmlVersion  : AnsiString;          // XML version from Document header. Default is '1.0'
+                 FEncoding    : AnsiString;          // Encoding from Document header. Default is 'UTF-8'
                  FStandalone  : BOOLEAN;         // Standalone declaration from Document header. Default is 'yes'
-                 FRootName    : STRING;          // Name of the Root Element (= DTD name)
-                 FDtdcFinal   : PChar;           // Pointer to the '>' character terminating the DTD declaration
+                 FRootName    : AnsiString;          // Name of the Root Element (= DTD name)
+                 FDtdcFinal   : PAnsiChar;           // Pointer to the '>' character terminating the DTD declaration
 
                  FNormalize   : BOOLEAN;         // If true: Pack Whitespace and don't return empty contents
                  EntityStack  : TEntityStack;    // Entity Stack for Parameter and General Entities
-                 FCurEncoding : STRING;          // Current Encoding during parsing (always uppercase)
+                 FCurEncoding : AnsiString;          // Current Encoding during parsing (always uppercase)
 
                  PROCEDURE AnalyzeProlog;                                         // Analyze XML Prolog or Text Declaration
-                 PROCEDURE AnalyzeComment (Start : PChar; VAR Final : PChar);     // Analyze Comments
-                 PROCEDURE AnalyzePI      (Start : PChar; VAR Final : PChar);     // Analyze Processing Instructions (PI)
+                 PROCEDURE AnalyzeComment (Start : PAnsiChar; VAR Final : PAnsiChar);     // Analyze Comments
+                 PROCEDURE AnalyzePI      (Start : PAnsiChar; VAR Final : PAnsiChar);     // Analyze Processing Instructions (PI)
                  PROCEDURE AnalyzeDtdc;                                           // Analyze Document Type Declaration
-                 PROCEDURE AnalyzeDtdElements (Start : PChar; VAR Final : PChar); // Analyze DTD declarations
+                 PROCEDURE AnalyzeDtdElements (Start : PAnsiChar; VAR Final : PAnsiChar); // Analyze DTD declarations
                  PROCEDURE AnalyzeTag;                                            // Analyze Start/End/Empty-Element Tags
                  PROCEDURE AnalyzeCData;                                          // Analyze CDATA Sections
                  PROCEDURE AnalyzeText (VAR IsDone : BOOLEAN);                    // Analyze Text Content between Tags
-                 PROCEDURE AnalyzeElementDecl  (Start : PChar; VAR Final : PChar);
-                 PROCEDURE AnalyzeAttListDecl  (Start : PChar; VAR Final : PChar);
-                 PROCEDURE AnalyzeEntityDecl   (Start : PChar; VAR Final : PChar);
-                 PROCEDURE AnalyzeNotationDecl (Start : PChar; VAR Final : PChar);
+                 PROCEDURE AnalyzeElementDecl  (Start : PAnsiChar; VAR Final : PAnsiChar);
+                 PROCEDURE AnalyzeAttListDecl  (Start : PAnsiChar; VAR Final : PAnsiChar);
+                 PROCEDURE AnalyzeEntityDecl   (Start : PAnsiChar; VAR Final : PAnsiChar);
+                 PROCEDURE AnalyzeNotationDecl (Start : PAnsiChar; VAR Final : PAnsiChar);
 
-                 PROCEDURE PushPE (VAR Start : PChar);
-                 PROCEDURE ReplaceCharacterEntities (VAR Str : STRING);
-                 PROCEDURE ReplaceParameterEntities (VAR Str : STRING);
-                 PROCEDURE ReplaceGeneralEntities   (VAR Str : STRING);
+                 PROCEDURE PushPE (VAR Start : PAnsiChar);
+                 PROCEDURE ReplaceCharacterEntities (VAR Str : AnsiString);
+                 PROCEDURE ReplaceParameterEntities (VAR Str : AnsiString);
+                 PROCEDURE ReplaceGeneralEntities   (VAR Str : AnsiString);
 
-                 FUNCTION GetDocBuffer : PChar;  // Returns FBuffer or a pointer to a NUL char if Buffer is empty
+                 FUNCTION GetDocBuffer : PAnsiChar;  // Returns FBuffer or a pointer to a NUL AnsiChar if Buffer is empty
 
                PUBLIC                         // --- Document Properties
-                 PROPERTY XmlVersion : STRING  READ FXmlVersion;                 // XML version from the Document Prolog
-                 PROPERTY Encoding   : STRING  READ FEncoding;                   // Document Encoding from Prolog
+                 PROPERTY XmlVersion : AnsiString  READ FXmlVersion;                 // XML version from the Document Prolog
+                 PROPERTY Encoding   : AnsiString  READ FEncoding;                   // Document Encoding from Prolog
                  PROPERTY Standalone : BOOLEAN READ FStandalone;                 // Standalone Declaration from Prolog
-                 PROPERTY RootName   : STRING  READ FRootName;                   // Name of the Root Element
+                 PROPERTY RootName   : AnsiString  READ FRootName;                   // Name of the Root Element
                  PROPERTY Normalize  : BOOLEAN READ FNormalize WRITE FNormalize; // True if Content is to be normalized
-                 PROPERTY Source     : STRING  READ FSource;                     // Name of Document Source (Filename)
-                 PROPERTY DocBuffer  : PChar   READ GetDocBuffer;                // Returns document buffer
+                 PROPERTY Source     : AnsiString  READ FSource;                     // Name of Document Source (Filename)
+                 PROPERTY DocBuffer  : PAnsiChar   READ GetDocBuffer;                // Returns document buffer
                PUBLIC                         // --- DTD Objects
                  Elements    : TElemList;     // Elements: List of TElemDef (contains Attribute Definitions)
                  Entities    : TNvpList;      // General Entities: List of TEntityDef
@@ -306,29 +306,29 @@ TYPE
                  DESTRUCTOR Destroy;                                      OVERRIDE;
 
                  // --- Document Handling
-                 FUNCTION  LoadFromFile   (Filename : STRING;
+                 FUNCTION  LoadFromFile   (Filename : AnsiString;
                                            FileMode : INTEGER = fmOpenRead OR fmShareDenyNone) : BOOLEAN;
                                                                           // Loads Document from given file
-                 FUNCTION  LoadFromBuffer (Buffer : PChar) : BOOLEAN;     // Loads Document from another buffer
-                 PROCEDURE SetBuffer      (Buffer : PChar);               // References another buffer
+                 FUNCTION  LoadFromBuffer (Buffer : PAnsiChar) : BOOLEAN;     // Loads Document from another buffer
+                 PROCEDURE SetBuffer      (Buffer : PAnsiChar);               // References another buffer
                  PROCEDURE Clear;                                         // Clear Document
 
                PUBLIC
                  // --- Scanning through the document
                  CurPartType : TPartType;                         // Current Type
-                 CurName     : STRING;                            // Current Name
-                 CurContent  : STRING;                            // Current Normalized Content
-                 CurStart    : PChar;                             // Current First character
-                 CurFinal    : PChar;                             // Current Last character
+                 CurName     : AnsiString;                            // Current Name
+                 CurContent  : AnsiString;                            // Current Normalized Content
+                 CurStart    : PAnsiChar;                             // Current First character
+                 CurFinal    : PAnsiChar;                             // Current Last character
                  CurAttr     : TAttrList;                         // Current Attribute List
-                 PROPERTY CurEncoding : STRING READ FCurEncoding; // Current Encoding
+                 PROPERTY CurEncoding : AnsiString READ FCurEncoding; // Current Encoding
                  PROCEDURE StartScan;
                  FUNCTION  Scan : BOOLEAN;
 
                  // --- Events / Callbacks
                  FUNCTION  LoadExternalEntity (SystemId, PublicId,
-                                               Notation : STRING) : TXmlParser;     VIRTUAL;
-                 FUNCTION  TranslateEncoding  (CONST Source : STRING) : STRING;     VIRTUAL;
+                                               Notation : AnsiString) : TXmlParser;     VIRTUAL;
+                 FUNCTION  TranslateEncoding  (CONST Source : AnsiString) : AnsiString;     VIRTUAL;
                  PROCEDURE DtdElementFound (DtdElementRec : TDtdElementRec);        VIRTUAL;
                END;
 
@@ -374,18 +374,18 @@ TYPE
   (*$ENDIF *)
 
   TNvpNode  = CLASS                     // Name-Value Pair Node
-                 Name  : STRING;
-                 Value : STRING;
-                 CONSTRUCTOR Create (TheName : STRING = ''; TheValue : STRING = '');
+                 Name  : AnsiString;
+                 Value : AnsiString;
+                 CONSTRUCTOR Create (TheName : AnsiString = ''; TheValue : AnsiString = '');
               END;
 
   TNvpList  = CLASS (TObjectList)       // Name-Value Pair List
                 PROCEDURE Add   (Node  : TNvpNode);
-                FUNCTION  Node  (Name  : STRING)  : TNvpNode;  OVERLOAD;
+                FUNCTION  Node  (Name  : AnsiString)  : TNvpNode;  OVERLOAD;
                 FUNCTION  Node  (Index : INTEGER) : TNvpNode;  OVERLOAD;
-                FUNCTION  Value (Name  : STRING)  : STRING;    OVERLOAD;
-                FUNCTION  Value (Index : INTEGER) : STRING;    OVERLOAD;
-                FUNCTION  Name  (Index : INTEGER) : STRING;
+                FUNCTION  Value (Name  : AnsiString)  : AnsiString;    OVERLOAD;
+                FUNCTION  Value (Index : INTEGER) : AnsiString;    OVERLOAD;
+                FUNCTION  Name  (Index : INTEGER) : AnsiString;
               END;
 
   TAttr     = CLASS (TNvpNode)          // Attribute of a Start-Tag or Empty-Element-Tag
@@ -394,7 +394,7 @@ TYPE
                END;
 
   TAttrList = CLASS (TNvpList)          // List of Attributes
-                PROCEDURE Analyze (Start : PChar; VAR Final : PChar);
+                PROCEDURE Analyze (Start : PAnsiChar; VAR Final : PAnsiChar);
               END;
 
   TEntityStack = CLASS (TObjectList)    // Stack where current position is stored before parsing entities
@@ -402,40 +402,40 @@ TYPE
                    Owner : TXmlParser;
                  PUBLIC
                    CONSTRUCTOR Create (TheOwner : TXmlParser);
-                   PROCEDURE Push (LastPos : PChar);                      OVERLOAD;
-                   PROCEDURE Push (Instance : TObject; LastPos : PChar);  OVERLOAD;
-                   FUNCTION  Pop : PChar;         // Returns next char or NIL if EOF is reached. Frees Instance.
+                   PROCEDURE Push (LastPos : PAnsiChar);                      OVERLOAD;
+                   PROCEDURE Push (Instance : TObject; LastPos : PAnsiChar);  OVERLOAD;
+                   FUNCTION  Pop : PAnsiChar;         // Returns next AnsiChar or NIL if EOF is reached. Frees Instance.
                  END;
 
   TAttrDef    = CLASS (TNvpNode)        // Represents a <!ATTLIST Definition. "Value" is the default value
-                  TypeDef     : STRING;           // Type definition from the DTD
-                  Notations   : STRING;           // Notation List, separated by pipe symbols '|'
+                  TypeDef     : AnsiString;           // Type definition from the DTD
+                  Notations   : AnsiString;           // Notation List, separated by pipe symbols '|'
                   AttrType    : TAttrType;        // Attribute Type
                   DefaultType : TAttrDefault;     // Default Type
                 END;
 
   TElemDef    = CLASS (TNvpList)       // Represents a <!ELEMENT Definition. Is a list of TAttrDef-Nodes
-                  Name       : STRING;            // Element name
+                  Name       : AnsiString;            // Element name
                   ElemType   : TElemType;         // Element type
-                  Definition : STRING;            // Element definition from DTD
+                  Definition : AnsiString;            // Element definition from DTD
                 END;
 
   TElemList   = CLASS (TObjectList)    // List of TElemDef nodes
-                  FUNCTION  Node (Name : STRING) : TElemDef;
+                  FUNCTION  Node (Name : AnsiString) : TElemDef;
                   PROCEDURE Add (Node : TElemDef);
                 END;
 
   TEntityDef  = CLASS (TNvpNode)       // Represents a <!ENTITY Definition.
-                  SystemId     : STRING;
-                  PublicId     : STRING;
-                  NotationName : STRING;
+                  SystemId     : AnsiString;
+                  PublicId     : AnsiString;
+                  NotationName : AnsiString;
                 END;
 
   TNotationDef = CLASS (TNvpNode)      // Represents a <!NOTATION Definition. Value is the System ID
-                   PublicId : STRING;
+                   PublicId : AnsiString;
                  END;
 
-  TCharset = SET OF CHAR;
+  TCharset = SET OF AnsiChar;
 
 
 CONST
@@ -453,26 +453,26 @@ CONST
   CDEnd         = ']]>';
 
   // --- Name Constants for the above enumeration types
-  CPartType_Name : ARRAY [TPartType] OF STRING =
+  CPartType_Name : ARRAY [TPartType] OF AnsiString =
                    ('', 'XML Prolog', 'Comment', 'PI',
                     'DTD Declaration', 'Start Tag', 'Empty Tag', 'End Tag',
                     'Text', 'CDATA');
-  CValueType_Name   : ARRAY [TValueType]    OF STRING = ('Normal', 'Implied', 'Fixed', 'Default');
-  CAttrDefault_Name : ARRAY [TAttrDefault]  OF STRING = ('Default', 'Required', 'Implied', 'Fixed');
-  CElemType_Name    : ARRAY [TElemType]     OF STRING = ('Empty', 'Any', 'Childs only', 'Mixed');
-  CAttrType_Name    : ARRAY [TAttrType]     OF STRING = ('Unknown', 'CDATA',
+  CValueType_Name   : ARRAY [TValueType]    OF AnsiString = ('Normal', 'Implied', 'Fixed', 'Default');
+  CAttrDefault_Name : ARRAY [TAttrDefault]  OF AnsiString = ('Default', 'Required', 'Implied', 'Fixed');
+  CElemType_Name    : ARRAY [TElemType]     OF AnsiString = ('Empty', 'Any', 'Childs only', 'Mixed');
+  CAttrType_Name    : ARRAY [TAttrType]     OF AnsiString = ('Unknown', 'CDATA',
                                                          'ID', 'IDREF', 'IDREFS',
                                                          'ENTITY', 'ENTITIES',
                                                          'NMTOKEN', 'NMTOKENS',
                                                          'Notation', 'Enumeration');
 
-FUNCTION  ConvertWs   (Source: STRING; PackWs: BOOLEAN) : STRING;          // Convert WS to spaces #x20
-PROCEDURE SetStringSF (VAR S : STRING; BufferStart, BufferFinal : PChar);  // SetString by Start/Final of buffer
-FUNCTION  StrSFPas    (Start, Finish : PChar) : STRING;                    // Convert buffer part to Pascal string
-FUNCTION  TrimWs      (Source : STRING) : STRING;                          // Trim Whitespace
+FUNCTION  ConvertWs   (Source: AnsiString; PackWs: BOOLEAN) : AnsiString;          // Convert WS to spaces #x20
+PROCEDURE SetStringSF (VAR S : AnsiString; BufferStart, BufferFinal : PAnsiChar);  // SetString by Start/Final of buffer
+FUNCTION  StrSFPas    (Start, Finish : PAnsiChar) : AnsiString;                    // Convert buffer part to Pascal string
+FUNCTION  TrimWs      (Source : AnsiString) : AnsiString;                          // Trim Whitespace
 
-FUNCTION  AnsiToUtf8  (Source : ANSISTRING) : STRING;                            // Convert Win-1252 to UTF-8
-FUNCTION  Utf8ToAnsi  (Source : STRING; UnknownChar : CHAR = '¿') : ANSISTRING;  // Convert UTF-8 to Win-1252
+FUNCTION  AnsiToUtf8  (Source : ANSISTRING) : AnsiString;                            // Convert Win-1252 to UTF-8
+FUNCTION  Utf8ToAnsi  (Source : AnsiString; UnknownChar : AnsiChar = '¿') : ANSISTRING;  // Convert UTF-8 to Win-1252
 
 
 (*
@@ -483,20 +483,20 @@ TCustomXmlScanner event based component wrapper for TXmlParser
 
 TYPE
   TCustomXmlScanner = CLASS;
-  TXmlPrologEvent   = PROCEDURE (Sender : TObject; XmlVersion, Encoding: STRING; Standalone : BOOLEAN) OF OBJECT;
-  TCommentEvent     = PROCEDURE (Sender : TObject; Comment : STRING)                                   OF OBJECT;
-  TPIEvent          = PROCEDURE (Sender : TObject; Target, Content: STRING; Attributes : TAttrList)    OF OBJECT;
-  TDtdEvent         = PROCEDURE (Sender : TObject; RootElementName : STRING)                           OF OBJECT;
-  TStartTagEvent    = PROCEDURE (Sender : TObject; TagName : STRING; Attributes : TAttrList)           OF OBJECT;
-  TEndTagEvent      = PROCEDURE (Sender : TObject; TagName : STRING)                                   OF OBJECT;
-  TContentEvent     = PROCEDURE (Sender : TObject; Content : STRING)                                   OF OBJECT;
+  TXmlPrologEvent   = PROCEDURE (Sender : TObject; XmlVersion, Encoding: AnsiString; Standalone : BOOLEAN) OF OBJECT;
+  TCommentEvent     = PROCEDURE (Sender : TObject; Comment : AnsiString)                                   OF OBJECT;
+  TPIEvent          = PROCEDURE (Sender : TObject; Target, Content: AnsiString; Attributes : TAttrList)    OF OBJECT;
+  TDtdEvent         = PROCEDURE (Sender : TObject; RootElementName : AnsiString)                           OF OBJECT;
+  TStartTagEvent    = PROCEDURE (Sender : TObject; TagName : AnsiString; Attributes : TAttrList)           OF OBJECT;
+  TEndTagEvent      = PROCEDURE (Sender : TObject; TagName : AnsiString)                                   OF OBJECT;
+  TContentEvent     = PROCEDURE (Sender : TObject; Content : AnsiString)                                   OF OBJECT;
   TElementEvent     = PROCEDURE (Sender : TObject; ElemDef : TElemDef)                                 OF OBJECT;
   TEntityEvent      = PROCEDURE (Sender : TObject; EntityDef : TEntityDef)                             OF OBJECT;
   TNotationEvent    = PROCEDURE (Sender : TObject; NotationDef : TNotationDef)                         OF OBJECT;
-  TErrorEvent       = PROCEDURE (Sender : TObject; ErrorPos : PChar)                                   OF OBJECT;
-  TExternalEvent    = PROCEDURE (Sender : TObject; SystemId, PublicId, NotationId : STRING;
+  TErrorEvent       = PROCEDURE (Sender : TObject; ErrorPos : PAnsiChar)                                   OF OBJECT;
+  TExternalEvent    = PROCEDURE (Sender : TObject; SystemId, PublicId, NotationId : AnsiString;
                                  VAR Result : TXmlParser)                                              OF OBJECT;
-  TEncodingEvent    = FUNCTION  (Sender : TObject; CurrentEncoding, Source : STRING) : STRING          OF OBJECT;
+  TEncodingEvent    = FUNCTION  (Sender : TObject; CurrentEncoding, Source : AnsiString) : AnsiString          OF OBJECT;
 
 
   TCustomXmlScanner = CLASS (TComponent)
@@ -522,28 +522,28 @@ TYPE
       FUNCTION  GetNormalize : BOOLEAN;
       PROCEDURE SetNormalize (Value : BOOLEAN);
 
-      PROCEDURE WhenXmlProlog(XmlVersion, Encoding: STRING; Standalone : BOOLEAN); VIRTUAL;
-      PROCEDURE WhenComment  (Comment : STRING);                                   VIRTUAL;
-      PROCEDURE WhenPI       (Target, Content: STRING; Attributes : TAttrList);    VIRTUAL;
-      PROCEDURE WhenDtdRead  (RootElementName : STRING);                           VIRTUAL;
-      PROCEDURE WhenStartTag (TagName : STRING; Attributes : TAttrList);           VIRTUAL;
-      PROCEDURE WhenEmptyTag (TagName : STRING; Attributes : TAttrList);           VIRTUAL;
-      PROCEDURE WhenEndTag   (TagName : STRING);                                   VIRTUAL;
-      PROCEDURE WhenContent  (Content : STRING);                                   VIRTUAL;
-      PROCEDURE WhenCData    (Content : STRING);                                   VIRTUAL;
+      PROCEDURE WhenXmlProlog(XmlVersion, Encoding: AnsiString; Standalone : BOOLEAN); VIRTUAL;
+      PROCEDURE WhenComment  (Comment : AnsiString);                                   VIRTUAL;
+      PROCEDURE WhenPI       (Target, Content: AnsiString; Attributes : TAttrList);    VIRTUAL;
+      PROCEDURE WhenDtdRead  (RootElementName : AnsiString);                           VIRTUAL;
+      PROCEDURE WhenStartTag (TagName : AnsiString; Attributes : TAttrList);           VIRTUAL;
+      PROCEDURE WhenEmptyTag (TagName : AnsiString; Attributes : TAttrList);           VIRTUAL;
+      PROCEDURE WhenEndTag   (TagName : AnsiString);                                   VIRTUAL;
+      PROCEDURE WhenContent  (Content : AnsiString);                                   VIRTUAL;
+      PROCEDURE WhenCData    (Content : AnsiString);                                   VIRTUAL;
       PROCEDURE WhenElement  (ElemDef : TElemDef);                                 VIRTUAL;
       PROCEDURE WhenAttList  (ElemDef : TElemDef);                                 VIRTUAL;
       PROCEDURE WhenEntity   (EntityDef : TEntityDef);                             VIRTUAL;
       PROCEDURE WhenNotation (NotationDef : TNotationDef);                         VIRTUAL;
-      PROCEDURE WhenDtdError (ErrorPos : PChar);                                   VIRTUAL;
+      PROCEDURE WhenDtdError (ErrorPos : PAnsiChar);                                   VIRTUAL;
 
     PUBLIC
       CONSTRUCTOR Create (AOwner: TComponent); OVERRIDE;
       DESTRUCTOR Destroy;                      OVERRIDE;
 
       PROCEDURE LoadFromFile   (Filename : TFilename);   // Load XML Document from file
-      PROCEDURE LoadFromBuffer (Buffer : PChar);         // Load XML Document from buffer
-      PROCEDURE SetBuffer      (Buffer : PChar);         // Refer to Buffer
+      PROCEDURE LoadFromBuffer (Buffer : PAnsiChar);         // Load XML Document from buffer
+      PROCEDURE SetBuffer      (Buffer : PAnsiChar);         // Refer to Buffer
       FUNCTION  GetFilename : TFilename;
 
       PROCEDURE Execute;                                 // Perform scanning
@@ -641,8 +641,8 @@ CONST
                                ANSI     Ã        ¤         *)
 
 
-FUNCTION  AnsiToUtf8 (Source : ANSISTRING) : STRING;
-          (* Converts the given Windows ANSI (Win1252) String to UTF-8. *)
+FUNCTION  AnsiToUtf8 (Source : ANSISTRING) : AnsiString;
+          (* Converts the given Windows ANSI (Win1252) string to UTF-8. *)
 VAR
   I   : INTEGER;  // Loop counter
   U   : WORD;     // Current Unicode value
@@ -677,16 +677,16 @@ BEGIN
 END;
 
 
-FUNCTION  Utf8ToAnsi (Source : STRING; UnknownChar : CHAR = '¿') : ANSISTRING;
-          (* Converts the given UTF-8 String to Windows ANSI (Win-1252).
+FUNCTION  Utf8ToAnsi (Source : AnsiString; UnknownChar : AnsiChar = '¿') : ANSISTRING;
+          (* Converts the given UTF-8 string to Windows ANSI (Win-1252).
              If a character can not be converted, the "UnknownChar" is inserted. *)
 VAR
   SourceLen : INTEGER;  // Length of Source string
   I, K      : INTEGER;
   A         : BYTE;     // Current ANSI character value
   U         : WORD;
-  Ch        : CHAR;     // Dest char
-  Len       : INTEGER;  // Current real length of "Result" string
+  Ch        : AnsiChar;     // Dest AnsiChar
+  Len       : INTEGER;  // Current real length of "Result" Sring
 BEGIN
   SourceLen := Length (Source);
   SetLength (Result, SourceLen);   // Enough room to live
@@ -719,7 +719,7 @@ BEGIN
             END;
         U := WIN1252_UNICODE [ORD (UnknownChar)];
         END;
-      Ch := UnknownChar;                                                // Retrieve ANSI char
+      Ch := UnknownChar;                                                // Retrieve ANSI AnsiChar
       FOR A := $00 TO $FF DO
         IF WIN1252_UNICODE [A] = U THEN BEGIN
           Ch := CHR (A);
@@ -746,10 +746,10 @@ faster than hand-coded assembler!)
 --> Just move this line below the StrScan function -->  *)
 
 
-FUNCTION StrPos (CONST Str, SearchStr : PChar) : PChar;
+FUNCTION StrPos (CONST Str, SearchStr : PAnsiChar) : PAnsiChar;
          // Same functionality as SysUtils.StrPos
 VAR
-  First : CHAR;
+  First : AnsiChar;
   Len   : INTEGER;
 BEGIN
   First  := SearchStr^;
@@ -767,7 +767,7 @@ BEGIN
 END;
 
 
-FUNCTION StrScan (CONST Start : PChar; CONST Ch : CHAR) : PChar;
+FUNCTION StrScan (CONST Start : PAnsiChar; CONST Ch : AnsiChar) : PAnsiChar;
          // Same functionality as SysUtils.StrScan
 BEGIN
   Result := Start;
@@ -787,7 +787,7 @@ Helper Functions
 ===============================================================================================
 *)
 
-FUNCTION  DelChars (Source : STRING; CharsToDelete : TCharset) : STRING;
+FUNCTION  DelChars (Source : AnsiString; CharsToDelete : TCharset) : AnsiString;
           // Delete all "CharsToDelete" from the string
 VAR
   I : INTEGER;
@@ -799,7 +799,7 @@ BEGIN
 END;
 
 
-FUNCTION  TrimWs (Source : STRING) : STRING;
+FUNCTION  TrimWs (Source : AnsiString) : AnsiString;
           // Trimms off Whitespace characters from both ends of the string
 VAR
   I : INTEGER;
@@ -818,7 +818,7 @@ BEGIN
 END;
 
 
-FUNCTION  ConvertWs (Source: STRING; PackWs: BOOLEAN) : STRING;
+FUNCTION  ConvertWs (Source: AnsiString; PackWs: BOOLEAN) : AnsiString;
           // Converts all Whitespace characters to the Space #x20 character
           // If "PackWs" is true, contiguous Whitespace characters are packed to one
 VAR
@@ -833,26 +833,26 @@ BEGIN
 END;
 
 
-PROCEDURE SetStringSF (VAR S : STRING; BufferStart, BufferFinal : PChar);
+PROCEDURE SetStringSF (VAR S : AnsiString; BufferStart, BufferFinal : PAnsiChar);
 BEGIN
   SetString (S, BufferStart, BufferFinal-BufferStart+1);
 END;
 
 
-FUNCTION  StrLPas  (Start : PChar; Len : INTEGER) : STRING;
+FUNCTION  StrLPas  (Start : PAnsiChar; Len : INTEGER) : AnsiString;
 BEGIN
   SetString (Result, Start, Len);
 END;
 
 
-FUNCTION  StrSFPas (Start, Finish : PChar) : STRING;
+FUNCTION  StrSFPas (Start, Finish : PAnsiChar) : AnsiString;
 BEGIN
   SetString (Result, Start, Finish-Start+1);
 END;
 
 
-FUNCTION  StrScanE (CONST Source : PChar; CONST CharToScanFor : CHAR) : PChar;
-          // If "CharToScanFor" is not found, StrScanE returns the last char of the
+FUNCTION  StrScanE (CONST Source : PAnsiChar; CONST CharToScanFor : AnsiChar) : PAnsiChar;
+          // If "CharToScanFor" is not found, StrScanE returns the last AnsiChar of the
           // buffer instead of NIL
 BEGIN
   Result := StrScan (Source, CharToScanFor);
@@ -861,13 +861,13 @@ BEGIN
 END;
 
 
-PROCEDURE ExtractName (Start : PChar; Terminators : TCharset; VAR Final : PChar);
+PROCEDURE ExtractName (Start : PAnsiChar; Terminators : TCharset; VAR Final : PAnsiChar);
           (* Extracts the complete Name beginning at "Start".
              It is assumed that the name is contained in Markup, so the '>' character is
              always a Termination.
-             Start:       IN  Pointer to first char of name. Is always considered to be valid
+             Start:       IN  Pointer to first AnsiChar of name. Is always considered to be valid
              Terminators: IN  Characters which terminate the name
-             Final:       OUT Pointer to last char of name *)
+             Final:       OUT Pointer to last AnsiChar of name *)
 BEGIN
   Final := Start+1;
   Include (Terminators, #0);
@@ -878,7 +878,7 @@ BEGIN
 END;
 
 
-PROCEDURE ExtractQuote (Start : PChar; VAR Content : STRING; VAR Final : PChar);
+PROCEDURE ExtractQuote (Start : PAnsiChar; VAR Content : AnsiString; VAR Final : PAnsiChar);
           (* Extract a string which is contained in single or double Quotes.
              Start:    IN   Pointer to opening quote
              Content:  OUT  The quoted string
@@ -912,8 +912,8 @@ have the same Encoding as the Document Entity, unless they carry a Text Declarat
 TYPE
   TEntityStackNode = CLASS
                        Instance : TObject;
-                       Encoding : STRING;
-                       LastPos  : PChar;
+                       Encoding : AnsiString;
+                       LastPos  : PAnsiChar;
                      END;
 
 (*
@@ -935,13 +935,13 @@ BEGIN
 END;
 
 
-PROCEDURE TEntityStack.Push (LastPos : PChar);
+PROCEDURE TEntityStack.Push (LastPos : PAnsiChar);
 BEGIN
   Push (NIL, LastPos);
 END;
 
 
-PROCEDURE TEntityStack.Push (Instance : TObject; LastPos : PChar);
+PROCEDURE TEntityStack.Push (Instance : TObject; LastPos : PAnsiChar);
 VAR
   ESN : TEntityStackNode;
 BEGIN
@@ -953,7 +953,7 @@ BEGIN
 END;
 
 
-FUNCTION  TEntityStack.Pop : PChar;
+FUNCTION  TEntityStack.Pop : PAnsiChar;
 VAR
   ESN : TEntityStackNode;
 BEGIN
@@ -984,13 +984,13 @@ SystemLiteral and PubidLiteral are quoted
 
 TYPE
   TExternalID = CLASS
-                  PublicId : STRING;
-                  SystemId : STRING;
-                  Final    : PChar;
-                  CONSTRUCTOR Create (Start : PChar);
+                  PublicId : AnsiString;
+                  SystemId : AnsiString;
+                  Final    : PAnsiChar;
+                  CONSTRUCTOR Create (Start : PAnsiChar);
                 END;
 
-CONSTRUCTOR TExternalID.Create (Start : PChar);
+CONSTRUCTOR TExternalID.Create (Start : PAnsiChar);
 BEGIN
   INHERITED Create;
   Final := Start;
@@ -1068,7 +1068,7 @@ BEGIN
 END;
 
 
-FUNCTION  TXmlParser.LoadFromFile (Filename : STRING; FileMode : INTEGER = fmOpenRead OR fmShareDenyNone) : BOOLEAN;
+FUNCTION  TXmlParser.LoadFromFile (Filename : AnsiString; FileMode : INTEGER = fmOpenRead OR fmShareDenyNone) : BOOLEAN;
           // Loads Document from given file
           // Returns TRUE if successful
 VAR
@@ -1121,7 +1121,7 @@ BEGIN
 END;
 
 
-FUNCTION  TXmlParser.LoadFromBuffer (Buffer : PChar) : BOOLEAN;
+FUNCTION  TXmlParser.LoadFromBuffer (Buffer : PAnsiChar) : BOOLEAN;
           // Loads Document from another buffer
           // Returns TRUE if successful
           // The "Source" property becomes '<MEM>' if successful
@@ -1141,7 +1141,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.SetBuffer (Buffer : PChar);      // References another buffer
+PROCEDURE TXmlParser.SetBuffer (Buffer : PAnsiChar);      // References another buffer
 BEGIN
   Clear;
   FBuffer     := Buffer;
@@ -1213,7 +1213,7 @@ END;
 PROCEDURE TXmlParser.AnalyzeProlog;
           // Analyze XML Prolog or Text Declaration
 VAR
-  F : PChar;
+  F : PAnsiChar;
 BEGIN
   CurAttr.Analyze (CurStart+5, F);
   IF EntityStack.Count = 0 THEN BEGIN
@@ -1234,7 +1234,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeComment (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeComment (Start : PAnsiChar; VAR Final : PAnsiChar);
           // Analyze Comments
 BEGIN
   Final := StrPos (Start+4, '-->');
@@ -1245,11 +1245,11 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzePI (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzePI (Start : PAnsiChar; VAR Final : PAnsiChar);
           // Analyze Processing Instructions (PI)
           // This is also called for Character
 VAR
-  F : PChar;
+  F : PAnsiChar;
 BEGIN
   CurPartType := ptPI;
   Final := StrPos (Start+2, '?>');
@@ -1274,13 +1274,13 @@ PROCEDURE TXmlParser.AnalyzeDtdc;
                  EntityDecl   ::= '<!ENTITY' S Name S EntityDef S?                       '>' |
                                   '<!ENTITY' S '%' S Name S PEDef S?                     '>'
                  NotationDecl ::= '<!NOTATION' S Name S (ExternalID |  PublicID) S?      '>'
-                 PI           ::=  '<?' PITarget (S (Char* - (Char* '?>' Char* )))?     '?>'
-                 Comment      ::= '<!--' ((Char - '-') | ('-' (Char - '-')))*          '-->'  *)
+                 PI           ::=  '<?' PITarget (S (AnsiChar* - (AnsiChar* '?>' AnsiChar* )))?     '?>'
+                 Comment      ::= '<!--' ((AnsiChar - '-') | ('-' (AnsiChar - '-')))*          '-->'  *)
 TYPE
   TPhase = (phName, phDtd, phInternal, phFinishing);
 VAR
   Phase       : TPhase;
-  F           : PChar;
+  F           : PAnsiChar;
   ExternalID  : TExternalID;
   ExternalDTD : TXmlParser;
   DER         : TDtdElementRec;
@@ -1296,7 +1296,7 @@ BEGIN
     END;
 
   // --- Scan DTDc
-  CurFinal := CurStart + 9;    // First char after '<!DOCTYPE'
+  CurFinal := CurStart + 9;    // First AnsiChar after '<!DOCTYPE'
   Phase    := phName;
   REPEAT
     CASE CurFinal^ OF
@@ -1366,7 +1366,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeDtdElements (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeDtdElements (Start : PAnsiChar; VAR Final : PAnsiChar);
           // Analyze the "Elements" of a DTD contained in the external or
           // internal DTD subset.
 VAR
@@ -1395,8 +1395,8 @@ BEGIN
               DER.ElementType := dePI;
               DER.Start       := Final;
               AnalyzePI (Final, Final);
-              DER.Target      := PChar (CurName);
-              DER.Content     := PChar (CurContent);
+              DER.Target      := PAnsiChar (CurName);
+              DER.Content     := PAnsiChar (CurContent);
               DER.AttrList    := CurAttr;
               DER.Final       := Final;
               DtdElementFound (DER);
@@ -1425,7 +1425,7 @@ END;
 PROCEDURE TXmlParser.AnalyzeTag;
           // Analyze Tags
 VAR
-  S, F    : PChar;
+  S, F    : PAnsiChar;
   Attr    : TAttr;
   ElemDef : TElemDef;
   AttrDef : TAttrDef;
@@ -1530,8 +1530,8 @@ PROCEDURE TXmlParser.AnalyzeText (VAR IsDone : BOOLEAN);
                IN  "CurFinal" points to the ampersand
                OUT "CurFinal" points to the first character after the semi-colon ';' *)
   VAR
-    P              : PChar;
-    Name           : STRING;
+    P              : PAnsiChar;
+    Name           : AnsiString;
     EntityDef      : TEntityDef;
     ExternalEntity : TXmlParser;
   BEGIN
@@ -1560,7 +1560,7 @@ PROCEDURE TXmlParser.AnalyzeText (VAR IsDone : BOOLEAN);
       IF EntityDef <> NIL THEN BEGIN
         IF EntityDef.Value <> '' THEN BEGIN
           EntityStack.Push (P+1);
-          CurFinal := PChar (EntityDef.Value);
+          CurFinal := PAnsiChar (EntityDef.Value);
           END
         ELSE BEGIN
           ExternalEntity := LoadExternalEntity (EntityDef.SystemId, EntityDef.PublicId, EntityDef.NotationName);
@@ -1618,7 +1618,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeElementDecl  (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeElementDecl  (Start : PAnsiChar; VAR Final : PAnsiChar);
           (* Parse <!ELEMENT declaration starting at "Start"
              Final must point to the terminating '>' character
              XmlSpec 3.2:
@@ -1643,7 +1643,7 @@ PROCEDURE TXmlParser.AnalyzeElementDecl  (Start : PChar; VAR Final : PChar);
 VAR
   Element : TElemDef;
   Elem2   : TElemDef;
-  F       : PChar;
+  F       : PAnsiChar;
   DER     : TDtdElementRec;
 BEGIN
   Element   := TElemDef.Create;
@@ -1657,7 +1657,7 @@ BEGIN
       Final := F;
       F := StrScan (Final+1, '>');
       IF F = NIL THEN BEGIN
-        Element.Definition := STRING (Final);
+        Element.Definition := AnsiString (Final);
         Final := StrEnd (Final);
         BREAK;
         END
@@ -1689,7 +1689,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeAttListDecl  (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeAttListDecl  (Start : PAnsiChar; VAR Final : PAnsiChar);
           (* Parse <!ATTLIST declaration starting at "Start"
              Final must point to the terminating '>' character
              XmlSpec 3.3:
@@ -1717,12 +1717,12 @@ TYPE
   TPhase = (phElementName, phName, phType, phNotationContent, phDefault);
 VAR
   Phase       : TPhase;
-  F           : PChar;
-  ElementName : STRING;
+  F           : PAnsiChar;
+  ElementName : AnsiString;
   ElemDef     : TElemDef;
   AttrDef     : TAttrDef;
   AttrDef2    : TAttrDef;
-  Strg        : STRING;
+  Strg        : AnsiString;
   DER         : TDtdElementRec;
 BEGIN
   Final     := Start + 9;   // The character after <!ATTLIST
@@ -1775,7 +1775,7 @@ BEGIN
                                         F := StrScan (Final+1, ')');
                                         IF F <> NIL
                                           THEN SetStringSF (AttrDef.TypeDef, Final+1, F-1)
-                                          ELSE AttrDef.TypeDef := STRING (Final+1);
+                                          ELSE AttrDef.TypeDef := AnsiString (Final+1);
                                         AttrDef.TypeDef := DelChars (AttrDef.TypeDef, CWhitespace);
                                         AttrDef.AttrType := atEnumeration;
                                         ReplaceParameterEntities (AttrDef.TypeDef);
@@ -1806,7 +1806,7 @@ BEGIN
                                       IF F <> NIL THEN
                                         SetStringSF (AttrDef.Notations, Final+1, F-1)
                                       ELSE BEGIN
-                                        AttrDef.Notations := STRING (Final+1);
+                                        AttrDef.Notations := AnsiString (Final+1);
                                         Final := StrEnd (Final);
                                         END;
                                       ReplaceParameterEntities (AttrDef.Notations);
@@ -1848,7 +1848,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeEntityDecl   (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeEntityDecl   (Start : PAnsiChar; VAR Final : PAnsiChar);
           (* Parse <!ENTITY declaration starting at "Start"
              Final must point to the terminating '>' character
              XmlSpec 4.2:
@@ -1875,13 +1875,13 @@ TYPE
 VAR
   Phase         : TPhase;
   IsParamEntity : BOOLEAN;
-  F             : PChar;
+  F             : PAnsiChar;
   ExternalID    : TExternalID;
   EntityDef     : TEntityDef;
   EntityDef2    : TEntityDef;
   DER           : TDtdElementRec;
 BEGIN
-  Final         := Start + 8;   // First char after <!ENTITY
+  Final         := Start + 8;   // First AnsiChar after <!ENTITY
   DER.Start     := Start;
   Phase         := phName;
   IsParamEntity := FALSE;
@@ -1950,7 +1950,7 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.AnalyzeNotationDecl (Start : PChar; VAR Final : PChar);
+PROCEDURE TXmlParser.AnalyzeNotationDecl (Start : PAnsiChar; VAR Final : PAnsiChar);
           // Parse <!NOTATION declaration starting at "Start"
           // Final must point to the terminating '>' character
           // XmlSpec 4.7: NotationDecl ::=  '<!NOTATION' S Name S (ExternalID |  PublicID) S? '>'
@@ -1959,7 +1959,7 @@ TYPE
 VAR
   ExternalID  : TExternalID;
   Phase       : TPhase;
-  F           : PChar;
+  F           : PAnsiChar;
   NotationDef : TNotationDef;
   DER         : TDtdElementRec;
 BEGIN
@@ -2002,13 +2002,13 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.PushPE (VAR Start : PChar);
+PROCEDURE TXmlParser.PushPE (VAR Start : PAnsiChar);
           (* If there is a parameter entity reference found in the data stream,
              the current position will be pushed to the entity stack.
              Start:  IN  Pointer to the '%' character starting the PE reference
                      OUT Pointer to first character of PE replacement text *)
 VAR
-  P         : PChar;
+  P         : PAnsiChar;
   EntityDef : TEntityDef;
 BEGIN
   P := StrScan (Start, ';');
@@ -2016,7 +2016,7 @@ BEGIN
     EntityDef := TEntityDef (ParEntities.Node (StrSFPas (Start+1, P-1)));
     IF EntityDef <> NIL THEN BEGIN
       EntityStack.Push (P+1);
-      Start := PChar (EntityDef.Value);
+      Start := PAnsiChar (EntityDef.Value);
       END
     ELSE
       Start := P+1;
@@ -2024,23 +2024,23 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.ReplaceCharacterEntities (VAR Str : STRING);
-          // Replaces all Character Entity References in the String
+PROCEDURE TXmlParser.ReplaceCharacterEntities (VAR Str : AnsiString);
+          // Replaces all Character Entity References in the string
 VAR
   Start  : INTEGER;
-  PAmp   : PChar;
-  PSemi  : PChar;
+  PAmp   : PAnsiChar;
+  PSemi  : PAnsiChar;
   PosAmp : INTEGER;
   Len    : INTEGER;    // Length of Entity Reference
 BEGIN
   IF Str = '' THEN EXIT;
   Start := 1;
   REPEAT
-    PAmp := StrPos (PChar (Str) + Start-1, '&#');
+    PAmp := StrPos (PAnsiChar (Str) + Start-1, '&#');
     IF PAmp = NIL THEN BREAK;
     PSemi := StrScan (PAmp+2, ';');
     IF PSemi = NIL THEN BREAK;
-    PosAmp := PAmp - PChar (Str) + 1;
+    PosAmp := PAmp - PAnsiChar (Str) + 1;
     Len    := PSemi-PAmp+1;
     IF CompareText (Str [PosAmp+2], 'x') = 0          // !!! Can't use "CHR" for Unicode characters > 255
       THEN Str [PosAmp] := CHR (StrToIntDef ('$'+Copy (Str, PosAmp+3, Len-4), 0))
@@ -2051,26 +2051,26 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.ReplaceParameterEntities (VAR Str : STRING);
-          // Recursively replaces all Parameter Entity References in the String
-  PROCEDURE ReplaceEntities (VAR Str : STRING);
+PROCEDURE TXmlParser.ReplaceParameterEntities (VAR Str : AnsiString);
+          // Recursively replaces all Parameter Entity References in the string
+  PROCEDURE ReplaceEntities (VAR Str : AnsiString);
   VAR
     Start   : INTEGER;
-    PAmp    : PChar;
-    PSemi   : PChar;
+    PAmp    : PAnsiChar;
+    PSemi   : PAnsiChar;
     PosAmp  : INTEGER;
     Len     : INTEGER;
     Entity  : TEntityDef;
-    Repl    : STRING;        // Replacement
+    Repl    : AnsiString;        // Replacement
   BEGIN
     IF Str = '' THEN EXIT;
     Start := 1;
     REPEAT
-      PAmp := StrPos (PChar (Str)+Start-1, '%');
+      PAmp := StrPos (PAnsiChar (Str)+Start-1, '%');
       IF PAmp = NIL THEN BREAK;
       PSemi := StrScan (PAmp+2, ';');
       IF PSemi = NIL THEN BREAK;
-      PosAmp := PAmp - PChar (Str) + 1;
+      PosAmp := PAmp - PAnsiChar (Str) + 1;
       Len    := PSemi-PAmp+1;
       Entity := TEntityDef (ParEntities.Node (Copy (Str, PosAmp+1, Len-2)));
       IF Entity <> NIL THEN BEGIN
@@ -2089,28 +2089,28 @@ BEGIN
 END;
 
 
-PROCEDURE TXmlParser.ReplaceGeneralEntities (VAR Str : STRING);
-          // Recursively replaces General Entity References in the String
-  PROCEDURE ReplaceEntities (VAR Str : STRING);
+PROCEDURE TXmlParser.ReplaceGeneralEntities (VAR Str : AnsiString);
+          // Recursively replaces General Entity References in the string
+  PROCEDURE ReplaceEntities (VAR Str : AnsiString);
   VAR
     Start          : INTEGER;
-    PAmp           : PChar;
-    PSemi          : PChar;
+    PAmp           : PAnsiChar;
+    PSemi          : PAnsiChar;
     PosAmp         : INTEGER;
     Len            : INTEGER;
     EntityDef      : TEntityDef;
-    EntName        : STRING;
-    Repl           : STRING;        // Replacement
+    EntName        : AnsiString;
+    Repl           : AnsiString;        // Replacement
     ExternalEntity : TXmlParser;
   BEGIN
     IF Str = '' THEN EXIT;
     Start := 1;
     REPEAT
-      PAmp := StrPos (PChar (Str)+Start-1, '&');
+      PAmp := StrPos (PAnsiChar (Str)+Start-1, '&');
       IF PAmp = NIL THEN BREAK;
       PSemi := StrScan (PAmp+2, ';');
       IF PSemi = NIL THEN BREAK;
-      PosAmp := PAmp - PChar (Str) + 1;
+      PosAmp := PAmp - PAnsiChar (Str) + 1;
       Len    := PSemi-PAmp+1;
       EntName := Copy (Str, PosAmp+1, Len-2);
       IF      EntName = 'lt'   THEN Repl := '<'
@@ -2143,7 +2143,7 @@ BEGIN
 END;
 
 
-FUNCTION  TXmlParser.LoadExternalEntity (SystemId, PublicId, Notation : STRING) : TXmlParser;
+FUNCTION  TXmlParser.LoadExternalEntity (SystemId, PublicId, Notation : AnsiString) : TXmlParser;
           // This will be called whenever there is a Parsed External Entity or
           // the DTD External Subset to be parsed.
           // It has to create a TXmlParser instance and load the desired Entity.
@@ -2151,7 +2151,7 @@ FUNCTION  TXmlParser.LoadExternalEntity (SystemId, PublicId, Notation : STRING) 
           // file name (relative to the Document source) and loads this file using
           // the LoadFromFile method.
 VAR
-  Filename : STRING;
+  Filename : AnsiString;
 BEGIN
   // --- Convert System ID to complete filename
   Filename := StringReplace (SystemId, '/', '\', [rfReplaceAll]);
@@ -2168,7 +2168,7 @@ BEGIN
 END;
 
 
-FUNCTION  TXmlParser.TranslateEncoding  (CONST Source : STRING) : STRING;
+FUNCTION  TXmlParser.TranslateEncoding  (CONST Source : AnsiString) : AnsiString;
           // The member variable "CurEncoding" always holds the name of the current
           // encoding, e.g. 'UTF-8' or 'ISO-8859-1'.
           // This virtual method "TranslateEncoding" is responsible for translating
@@ -2197,8 +2197,8 @@ BEGIN
 END;
 
 
-FUNCTION TXmlParser.GetDocBuffer: PChar;
-         // Returns FBuffer or a pointer to a NUL char if Buffer is empty
+FUNCTION TXmlParser.GetDocBuffer: PAnsiChar;
+         // Returns FBuffer or a pointer to a NUL AnsiChar if Buffer is empty
 BEGIN
   IF FBuffer = NIL
     THEN Result := #0
@@ -2244,7 +2244,7 @@ Node base class for the TNvpList
 ===============================================================================================
 *)
 
-CONSTRUCTOR TNvpNode.Create (TheName, TheValue : STRING);
+CONSTRUCTOR TNvpNode.Create (TheName, TheValue : AnsiString);
 BEGIN
   INHERITED Create;
   Name  := TheName;
@@ -2274,7 +2274,7 @@ END;
 
 
 
-FUNCTION  TNvpList.Node (Name : STRING) : TNvpNode;
+FUNCTION  TNvpList.Node (Name : AnsiString) : TNvpNode;
           // Binary search for Node
 VAR
   L, H : INTEGER;    // Low, High Limit
@@ -2311,7 +2311,7 @@ BEGIN
 END;
 
 
-FUNCTION  TNvpList.Value (Name : STRING) : STRING;
+FUNCTION  TNvpList.Value (Name : AnsiString) : AnsiString;
 VAR
   Nvp : TNvpNode;
 BEGIN
@@ -2322,7 +2322,7 @@ BEGIN
 END;
 
 
-FUNCTION  TNvpList.Value (Index : INTEGER) : STRING;
+FUNCTION  TNvpList.Value (Index : INTEGER) : AnsiString;
 BEGIN
   IF (Index < 0) OR (Index >= Count)
     THEN Result := ''
@@ -2330,7 +2330,7 @@ BEGIN
 END;
 
 
-FUNCTION  TNvpList.Name (Index : INTEGER) : STRING;
+FUNCTION  TNvpList.Name (Index : INTEGER) : AnsiString;
 BEGIN
   IF (Index < 0) OR (Index >= Count)
     THEN Result := ''
@@ -2347,7 +2347,7 @@ attributes in XML Prologs, Text Declarations and PIs.
 ===============================================================================================
 *)
 
-PROCEDURE TAttrList.Analyze (Start : PChar; VAR Final : PChar);
+PROCEDURE TAttrList.Analyze (Start : PAnsiChar; VAR Final : PAnsiChar);
           // Analyze the Buffer for Attribute=Name pairs.
           // Terminates when there is a character which is not IN CNameStart
           // (e.g. '?>' or '>' or '/>')
@@ -2355,9 +2355,9 @@ TYPE
   TPhase = (phName, phEq, phValue);
 VAR
   Phase : TPhase;
-  F     : PChar;
-  Name  : STRING;
-  Value : STRING;
+  F     : PAnsiChar;
+  Name  : AnsiString;
+  Value : AnsiString;
   Attr  : TAttr;
 BEGIN
   Clear;
@@ -2403,7 +2403,7 @@ List of TElemDef nodes.
 ===============================================================================================
 *)
 
-FUNCTION  TElemList.Node (Name : STRING) : TElemDef;
+FUNCTION  TElemList.Node (Name : AnsiString) : TElemDef;
           // Binary search for the Node with the given Name
 VAR
   L, H : INTEGER;    // Low, High Limit
@@ -2457,8 +2457,8 @@ TYPE
                        Scanner : TCustomXmlScanner;
                        CONSTRUCTOR Create (TheScanner : TCustomXmlScanner);
                        FUNCTION  LoadExternalEntity (SystemId, PublicId,
-                                                     Notation : STRING) : TXmlParser;  OVERRIDE;
-                       FUNCTION  TranslateEncoding  (CONST Source : STRING) : STRING;  OVERRIDE;
+                                                     Notation : AnsiString) : TXmlParser;  OVERRIDE;
+                       FUNCTION  TranslateEncoding  (CONST Source : AnsiString) : AnsiString;  OVERRIDE;
                        PROCEDURE DtdElementFound (DtdElementRec : TDtdElementRec);     OVERRIDE;
                       END;
 
@@ -2469,7 +2469,7 @@ BEGIN
 END;
 
 
-FUNCTION  TScannerXmlParser.LoadExternalEntity (SystemId, PublicId, Notation : STRING) : TXmlParser;
+FUNCTION  TScannerXmlParser.LoadExternalEntity (SystemId, PublicId, Notation : AnsiString) : TXmlParser;
 BEGIN
   IF Assigned (Scanner.FOnLoadExternal)
     THEN Scanner.FOnLoadExternal (Scanner, SystemId, PublicId, Notation, Result)
@@ -2477,7 +2477,7 @@ BEGIN
 END;
 
 
-FUNCTION  TScannerXmlParser.TranslateEncoding  (CONST Source : STRING) : STRING;
+FUNCTION  TScannerXmlParser.TranslateEncoding  (CONST Source : AnsiString) : AnsiString;
 BEGIN
   IF Assigned (Scanner.FOnTranslateEncoding)
     THEN Result := Scanner.FOnTranslateEncoding (Scanner, CurEncoding, Source)
@@ -2493,7 +2493,7 @@ BEGIN
       deAttList  : Scanner.WhenAttList  (ElemDef);
       deEntity   : Scanner.WhenEntity   (EntityDef);
       deNotation : Scanner.WhenNotation (NotationDef);
-      dePI       : Scanner.WhenPI       (STRING (Target), STRING (Content), AttrList);
+      dePI       : Scanner.WhenPI       (AnsiString (Target), AnsiString (Content), AttrList);
       deComment  : Scanner.WhenComment  (StrSFPas (Start, Final));
       deError    : Scanner.WhenDtdError (Pos);
       END;
@@ -2527,14 +2527,14 @@ BEGIN
 END;
 
 
-PROCEDURE TCustomXmlScanner.LoadFromBuffer (Buffer : PChar);
+PROCEDURE TCustomXmlScanner.LoadFromBuffer (Buffer : PAnsiChar);
           // Load XML Document from buffer
 BEGIN
   FXmlParser.LoadFromBuffer (Buffer);
 END;
 
 
-PROCEDURE TCustomXmlScanner.SetBuffer (Buffer : PChar);
+PROCEDURE TCustomXmlScanner.SetBuffer (Buffer : PAnsiChar);
           // Refer to Buffer
 BEGIN
   FXmlParser.SetBuffer (Buffer);
@@ -2559,63 +2559,63 @@ BEGIN
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenXmlProlog(XmlVersion, Encoding: STRING; Standalone : BOOLEAN);
+PROCEDURE TCustomXmlScanner.WhenXmlProlog(XmlVersion, Encoding: AnsiString; Standalone : BOOLEAN);
           // Is called when the parser has parsed the <? xml ?> declaration of the prolog
 BEGIN
   IF Assigned (FOnXmlProlog) THEN FOnXmlProlog (Self, XmlVersion, Encoding, Standalone);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenComment  (Comment : STRING);
+PROCEDURE TCustomXmlScanner.WhenComment  (Comment : AnsiString);
           // Is called when the parser has parsed a <!-- comment -->
 BEGIN
   IF Assigned (FOnComment) THEN FOnComment (Self, Comment);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenPI (Target, Content: STRING; Attributes : TAttrList);
+PROCEDURE TCustomXmlScanner.WhenPI (Target, Content: AnsiString; Attributes : TAttrList);
           // Is called when the parser has parsed a <?processing instruction ?>
 BEGIN
   IF Assigned (FOnPI) THEN FOnPI (Self, Target, Content, Attributes);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenDtdRead (RootElementName : STRING);
+PROCEDURE TCustomXmlScanner.WhenDtdRead (RootElementName : AnsiString);
           // Is called when the parser has completely parsed the DTD
 BEGIN
   IF Assigned (FOnDtdRead) THEN FOnDtdRead (Self, RootElementName);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenStartTag (TagName : STRING; Attributes : TAttrList);
+PROCEDURE TCustomXmlScanner.WhenStartTag (TagName : AnsiString; Attributes : TAttrList);
           // Is called when the parser has parsed a start tag like <p>
 BEGIN
   IF Assigned (FOnStartTag) THEN FOnStartTag (Self, TagName, Attributes);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenEmptyTag (TagName : STRING; Attributes : TAttrList);
+PROCEDURE TCustomXmlScanner.WhenEmptyTag (TagName : AnsiString; Attributes : TAttrList);
           // Is called when the parser has parsed an Empty Element Tag like <br/>
 BEGIN
   IF Assigned (FOnEmptyTag) THEN FOnEmptyTag (Self, TagName, Attributes);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenEndTag (TagName : STRING);
+PROCEDURE TCustomXmlScanner.WhenEndTag (TagName : AnsiString);
           // Is called when the parser has parsed an End Tag like </p>
 BEGIN
   IF Assigned (FOnEndTag) THEN FOnEndTag (Self, TagName);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenContent (Content : STRING);
+PROCEDURE TCustomXmlScanner.WhenContent (Content : AnsiString);
           // Is called when the parser has parsed an element's text content
 BEGIN
   IF Assigned (FOnContent) THEN FOnContent (Self, Content);
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenCData (Content : STRING);
+PROCEDURE TCustomXmlScanner.WhenCData (Content : AnsiString);
           // Is called when the parser has parsed a CDATA section
 BEGIN
   IF Assigned (FOnCData) THEN FOnCData (Self, Content);
@@ -2654,7 +2654,7 @@ BEGIN
 END;
 
 
-PROCEDURE TCustomXmlScanner.WhenDtdError (ErrorPos : PChar);
+PROCEDURE TCustomXmlScanner.WhenDtdError (ErrorPos : PAnsiChar);
           // Is called when the parser has found an Error in the DTD
 BEGIN
   IF Assigned (FOnDtdError) THEN FOnDtdError (Self, ErrorPos);

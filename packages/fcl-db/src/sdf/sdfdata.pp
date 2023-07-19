@@ -275,14 +275,14 @@ type
 //-----------------------------------------------------------------------------
   TSdfDataSet = class(TFixedFormatDataSet)
   private
-    FDelimiter : Char;
+    FDelimiter : AnsiChar;
     FFirstLineAsSchema : Boolean;
     FMultiLine         : Boolean;
     FStripTrailingDelimiters : Boolean;
     procedure DoStripTrailingDelimiters(var S: String);
     procedure SetMultiLine(const Value: Boolean);
     procedure SetFirstLineAsSchema(Value : Boolean);
-    procedure SetDelimiter(Value : Char);
+    procedure SetDelimiter(Value : AnsiChar);
   protected
     procedure InternalInitFieldDefs; override;
     function BufToStore(Buffer: TRecordBuffer): String; override;
@@ -293,7 +293,7 @@ type
   published
     // Whether or not to allow fields containing CR and/or LF (on write only)
     property AllowMultiLine: Boolean read FMultiLine write SetMultiLine;
-    property Delimiter: Char read FDelimiter write SetDelimiter;
+    property Delimiter: AnsiChar read FDelimiter write SetDelimiter;
     property FirstLineAsSchema: Boolean read FFirstLineAsSchema write SetFirstLineAsSchema;
     // Set this to True if you want to strip all last delimiters
     Property StripTrailingDelimiters : Boolean Read FStripTrailingDelimiters Write FStripTrailingDelimiters;
@@ -689,7 +689,7 @@ end;
 function TFixedFormatDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 var
   RecBuf,
-  BufEnd: PChar;
+  BufEnd: PAnsiChar;
 begin
   Result := GetActiveRecBuf(TRecordBuffer(RecBuf));
   if Result then
@@ -726,7 +726,7 @@ end;
 
 procedure TFixedFormatDataSet.SetFieldData(Field: TField; Buffer: Pointer);
 var
-  RecBuf: PChar;
+  RecBuf: PAnsiChar;
 begin
   if not (State in dsWriteModes) then
     DatabaseErrorFmt(SNotEditing, [Name], Self);
@@ -908,12 +908,12 @@ end;
 
 function TFixedFormatDataSet.StoreToBuf(Source: String): String;
 var i, Len: integer;
-    Src, Dest: PChar;
+    Src, Dest: PAnsiChar;
 begin
   // moves fixed length fields from Source to record buffer and null-terminates each field
   SetLength(Result, FRecordSize);
-  Src  := PChar(Source);
-  Dest := PChar(Result);
+  Src  := PAnsiChar(Source);
+  Dest := PAnsiChar(Result);
   for i := 0 to FieldDefs.Count - 1 do
   begin
     Len := FieldDefDataSize(FieldDefs[i])-1;
@@ -927,7 +927,7 @@ end;
 
 function TFixedFormatDataSet.BufToStore(Buffer: TRecordBuffer): String;
 var i, Len, SrcLen: integer;
-    Src, Dest: PChar;
+    Src, Dest: PAnsiChar;
 begin
   // calculate fixed length record size
   Len := 0;
@@ -935,8 +935,8 @@ begin
     Inc(Len, FieldDefDataSize(FieldDefs[i])-1);
   SetLength(Result, Len);
 
-  Src  := PChar(Buffer);
-  Dest := PChar(Result);
+  Src  := PAnsiChar(Buffer);
+  Dest := PAnsiChar(Result);
   for i := 0 to FieldDefs.Count - 1 do
   begin
     Len := FieldDefDataSize(FieldDefs[i])-1;
@@ -961,9 +961,9 @@ var
 
   function GetNextLine(const Value: string; out S: string; var P: Integer): Boolean;
   const
-    CR: char = #13;
-    LF: char = #10;
-    DQ: char = '"';
+    CR: AnsiChar = #13;
+    LF: AnsiChar = #10;
+    DQ: AnsiChar = '"';
   var
     L, P1: integer;
     InDQ: boolean;
@@ -1018,12 +1018,12 @@ end;
 
 function TSdfDataSet.ExtractDelimited(const S: String; var Pos: integer): string;
 const
-  CR: char = #13;
-  LF: char = #10;
-  DQ: char = '"';
+  CR: AnsiChar = #13;
+  LF: AnsiChar = #10;
+  DQ: AnsiChar = '"';
 var
   Len, P1: integer;
-  pSrc, pDest: PChar;
+  pSrc, pDest: PAnsiChar;
 begin
   Len := Length(S);
   P1 := Pos;
@@ -1136,13 +1136,13 @@ var
   Pos,
   Len     : Integer; // Actual length of field
   S       : String;
-  Dest    : PChar;
+  Dest    : PAnsiChar;
 begin
   SetLength(Result, FRecordSize);
   FillChar(Result[1], FRecordSize, Ord(' '));
 
   Pos := 1;
-  Dest := PChar(Result);
+  Dest := PAnsiChar(Result);
 
   for i := 0 to FieldDefs.Count - 1 do
   begin
@@ -1163,17 +1163,17 @@ end;
 
 function TSdfDataSet.BufToStore(Buffer: TRecordBuffer): String;
 const
-  CR: char = #13;
-  LF: char = #10;
-  DQ: char = '"';
+  CR: AnsiChar = #13;
+  LF: AnsiChar = #10;
+  DQ: AnsiChar = '"';
 var
-  Src: PChar;
+  Src: PAnsiChar;
   S : String;
   i, MaxLen, Len : Integer;
   QuoteMe: boolean;
 begin
   Result := '';
-  Src := PChar(Buffer);
+  Src := PAnsiChar(Buffer);
   for i := 0 to FieldDefs.Count - 1 do
   begin
     MaxLen := FieldDefDataSize(FieldDefs[i])-1;
@@ -1220,7 +1220,7 @@ begin
     S:=Copy(S,1,P);
 end;
 
-procedure TSdfDataSet.SetDelimiter(Value : Char);
+procedure TSdfDataSet.SetDelimiter(Value : AnsiChar);
 begin
   CheckInactive;
   FDelimiter := Value;

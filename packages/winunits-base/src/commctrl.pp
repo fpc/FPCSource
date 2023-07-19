@@ -2989,7 +2989,7 @@ CONST
 {$ifdef ie5plus}
          TTM_GETBUBBLESIZE              = (WM_USER + 30);
          TTM_ADJUSTRECT                 = (WM_USER + 31);
-         TTM_SETTITLEA                  = (WM_USER + 32);     // wParam = TTI_*, lParam = char* szTitle
+         TTM_SETTITLEA                  = (WM_USER + 32);     // wParam = TTI_*, lParam = AnsiChar* szTitle
          TTM_SETTITLEW                  = (WM_USER + 33);     // wParam = TTI_*, lParam = wchar* szTitle
 {$ENDIF}
 
@@ -3124,7 +3124,7 @@ TYPE
          tagNMTTDISPINFOA     = Record
                                  hdr          : NMHDR;
                                  lpszText     : LPSTR;
-                                 szText       : Array[0..79] of char;
+                                 szText       : Array[0..79] of AnsiChar;
                                  hinst        : HINST;
                                  uFlags       : UINT;
 {$ifdef ie3plus}
@@ -7269,7 +7269,7 @@ TYPE
          DummyStruct13        = Record
                                  hdr          : NMHDR;
                                  iItemid      : cint;
-                                 szText       : Array[0..CBEMAXSTRLEN-1] OF char;
+                                 szText       : Array[0..CBEMAXSTRLEN-1] OF AnsiChar;
                                  END;
          NMCBEDRAGBEGINA      = DummyStruct13;
          LPNMCBEDRAGBEGINA    = ^DummyStruct13;
@@ -7311,7 +7311,7 @@ TYPE
                                  hdr          : NMHDR;
                                  fChanged     : BOOL;
                                  iNewSelection : cint;
-                                 szText       : Array[0..CBEMAXSTRLEN-1] OF char;
+                                 szText       : Array[0..CBEMAXSTRLEN-1] OF AnsiChar;
                                  iWhy         : cint;
                                  END;
          NMCBEENDEDITA        = DummyStruct15;
@@ -8769,7 +8769,7 @@ TYPE
                                  pszFormat    : LPCSTR;          // format substring
                                  st           : SYSTEMTIME;      // current systemtime
                                  pszDisplay   : LPCSTR;          // string to display
-                                 szDisplay    : Array [0..63] OF CHAR;          // buffer pszDisplay originally points at
+                                 szDisplay    : Array [0..63] OF AnsiChar;          // buffer pszDisplay originally points at
                                  END;
          NMDATETIMEFORMATA    = tagNMDATETIMEFORMATA;
          LPNMDATETIMEFORMATA  = ^tagNMDATETIMEFORMATA;

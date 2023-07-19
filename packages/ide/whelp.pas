@@ -13,6 +13,7 @@
 
  **********************************************************************}
 {$R-}
+{$H-}
 unit WHelp;
 
 {$ifdef cpullvm}
@@ -35,7 +36,7 @@ const
       hscLink        = #2;
       hscLineStart   = #3;
       hscCode        = #5;
-      hscDirect      = #6; { add the next char directly }
+      hscDirect      = #6; { add the next AnsiChar directly }
       hscCenter      = #10;
       hscRight       = #11;
       hscNamedMark   = #12;
@@ -593,7 +594,7 @@ begin
       T1:=HelpFacility^.LoadTopic(K1^.FileID,K1^.HelpCtx);
       T2:=HelpFacility^.LoadTopic(K2^.FileID,K2^.HelpCtx);
       if assigned(T1^.Text) and assigned(T2^.Text) then
-        r:=strcomp(pchar(T1^.Text),pchar(T2^.Text))
+        r:=strcomp(PAnsiChar(T1^.Text),PAnsiChar(T2^.Text))
       else
         r:=0;
       if r>0 then
@@ -864,8 +865,8 @@ begin
   if Line<>'' then AddLine(Line); Line:='';
 end;
 var KWCount,NLFlag: sw_integer;
-    LastFirstChar: char;
-procedure NewSection(FirstChar: char);
+    LastFirstChar: AnsiChar;
+procedure NewSection(FirstChar: AnsiChar);
 begin
   if FirstChar<=#64 then FirstChar:=#32;
   FlushLine;
@@ -948,7 +949,7 @@ begin
       if IsMultiple then
         Begin
           Inc(MultiCount);
-          (* St:=Trim(strpas(pchar(HelpFacility^.LoadTopic(KW^.FileID,KW^.HelpCtx)^.Text))); *)
+          (* St:=Trim(strpas(PAnsiChar(HelpFacility^.LoadTopic(KW^.FileID,KW^.HelpCtx)^.Text))); *)
           St:=KW^.Tag^+' ['+IntToStr(MultiCount)+']';
           (* { Remove all special chars }
           for p:=1 to Length(st) do

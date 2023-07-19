@@ -30,7 +30,7 @@ uses exec, utility, workbench, agraphics;
 {************************************************************************}
 
 const
-  ASLNAME: PChar = 'asl.library';
+  ASLNAME: PAnsiChar = 'asl.library';
   ASL_TB = TAG_USER + $80000;
 
 {************************************************************************}
@@ -418,7 +418,7 @@ const
  * of the semaphore is given below; it exists only with asl.library V45 and
  * IPrefs V45 and beyond.
  }
-  ASL_SEMAPHORE_NAME: PChar = 'asl.library';
+  ASL_SEMAPHORE_NAME: PAnsiChar = 'asl.library';
 
 type
   PAslSemaphore = ^TAslSemaphore;

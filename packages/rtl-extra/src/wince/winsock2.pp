@@ -37,7 +37,7 @@ Const
 {$ENDIF WINCE}
 
 Type
-  u_char = Char;
+  u_char = AnsiChar;
   u_short = Word;
   u_int = DWord;
   u_long = DWord;
@@ -54,7 +54,7 @@ Type
 {$IFDEF UNICODE}
         PMBChar = PWideChar;
 {$ELSE}
-        PMBChar = PChar;
+        PMBChar = PAnsiChar;
 {$ENDIF}
 
 const
@@ -93,35 +93,35 @@ const
 type
   PHostEnt = ^THostEnt;
   THostEnt = record
-    h_name: PChar;
-    h_aliases: ^PChar;
+    h_name: PAnsiChar;
+    h_aliases: ^PAnsiChar;
     h_addrtype: Smallint;
     h_length: Smallint;
     case Byte of
-      0: (h_addr_list: ^PChar);
-      1: (h_addr: ^PChar)
+      0: (h_addr_list: ^PAnsiChar);
+      1: (h_addr: ^PAnsiChar)
   end;
 
   PNetEnt = ^TNetEnt;
   TNetEnt = record
-    n_name: PChar;
-    n_aliases: ^PChar;
+    n_name: PAnsiChar;
+    n_aliases: ^PAnsiChar;
     n_addrtype: Smallint;
     n_net: u_long;
   end;
 
   PServEnt = ^TServEnt;
   TServEnt = record
-    s_name: PChar;
-    s_aliases: ^PChar;
+    s_name: PAnsiChar;
+    s_aliases: ^PAnsiChar;
     s_port: Smallint;
-    s_proto: PChar;
+    s_proto: PAnsiChar;
   end;
 
   PProtoEnt = ^TProtoEnt;
   TProtoEnt = record
-    p_name: PChar;
-    p_aliases: ^Pchar;
+    p_name: PAnsiChar;
+    p_aliases: ^PAnsiChar;
     p_proto: Smallint;
   end;
 
@@ -380,9 +380,9 @@ type
       0: (sin_family: u_short;
           sin_port: u_short;
           sin_addr: TInAddr;
-          sin_zero: array[0..7] of Char);
+          sin_zero: array[0..7] of AnsiChar);
       1: (sa_family: u_short;
-          sa_data: array[0..13] of Char)
+          sa_data: array[0..13] of AnsiChar)
   end;
 
   { Structure used by kernel to store most addresses. }
@@ -412,12 +412,12 @@ const
 type
      sockaddr_storage = record
        ss_family:SmallInt;                          // Address family.
-       __ss_pad1:array[0.._SS_PAD1SIZE-1] of char;  // 6 byte pad, this is to make
+       __ss_pad1:array[0.._SS_PAD1SIZE-1] of AnsiChar;  // 6 byte pad, this is to make
                                                     // implementation specific pad up to
                                                     // alignment field that follows explicit
                                                     // in the data structure.
        __ss_align:Int64;                            // Field to force desired structure.
-       __ss_pad2:array[0.._SS_PAD2SIZE-1] of char;  // 112 byte pad to achieve desired size;
+       __ss_pad2:array[0.._SS_PAD2SIZE-1] of AnsiChar;  // 112 byte pad to achieve desired size;
                                                     // _SS_MAXSIZE value minus size of
                                                     // ss_family, __ss_pad1, and
                                                     // __ss_align fields is 112.
@@ -654,11 +654,11 @@ type
   TWSAData = record
     wVersion: Word;
     wHighVersion: Word;
-    szDescription: array[0..WSADESCRIPTION_LEN] of Char;
-    szSystemStatus: array[0..WSASYS_STATUS_LEN] of Char;
+    szDescription: array[0..WSADESCRIPTION_LEN] of AnsiChar;
+    szSystemStatus: array[0..WSASYS_STATUS_LEN] of AnsiChar;
     iMaxSockets: Word;
     iMaxUdpDg: Word;
-    lpVendorInfo: PChar;
+    lpVendorInfo: PAnsiChar;
   end;
 
 {       WSAOVERLAPPED = Record
@@ -679,7 +679,7 @@ type
 
         WSABUF = record
                 len: U_LONG;    { the length of the buffer }
-                buf: PChar;     { the pointer to the buffer }
+                buf: PAnsiChar;     { the pointer to the buffer }
         end {WSABUF};
         PWSABUF = ^WSABUF;
         LPWSABUF = PWSABUF;
@@ -769,7 +769,7 @@ Type
                 iSecurityScheme: Longint;
                 dwMessageSize: LongInt;
                 dwProviderReserved: LongInt;
-                szProtocol: Array[0..WSAPROTOCOL_LEN+1-1] of Char;
+                szProtocol: Array[0..WSAPROTOCOL_LEN+1-1] of AnsiChar;
         end {TWSAProtocol_InfoA};
         PWSAProtocol_InfoA = ^TWSAProtocol_InfoA;
         LPWSAProtocol_InfoA = PWSAProtocol_InfoA;
@@ -977,16 +977,16 @@ Type
 
         TWSAQuerySetA = record
                 dwSize: LongInt;
-                lpszServiceInstanceName: PChar;
+                lpszServiceInstanceName: PAnsiChar;
                 lpServiceClassId: PGUID;
                 lpVersion: PWSAVERSION;
-                lpszComment: PChar;
+                lpszComment: PAnsiChar;
                 dwNameSpace: LongInt;
                 lpNSProviderId: PGUID;
-                lpszContext: PChar;
+                lpszContext: PAnsiChar;
                 dwNumberOfProtocols: LongInt;
                 lpafpProtocols: PAFProtocols;
-                lpszQueryString: PChar;
+                lpszQueryString: PAnsiChar;
                 dwNumberOfCsAddrs: LongInt;
                 lpcsaBuffer: PCSADDR_INFO;
                 dwOutputFlags: LongInt;
@@ -1050,7 +1050,7 @@ Type
 
 {       Service Installation/Removal Data Types. }
         TWSANSClassInfoA = record
-                lpszName: PChar;
+                lpszName: PAnsiChar;
                 dwNameSpace: LongInt;
                 dwValueType: LongInt;
                 dwValueSize: LongInt;
@@ -1077,7 +1077,7 @@ Type
 
         TWSAServiceClassInfoA = record
                 lpServiceClassId: PGUID;
-                lpszServiceClassName: PChar;
+                lpszServiceClassName: PAnsiChar;
                 dwCount: LongInt;
                 lpClassInfos: PWSANSClassInfoA;
         end {TWSAServiceClassInfoA};
@@ -1106,7 +1106,7 @@ Type
                 dwNameSpace: LongInt;
                 fActive: LongInt{Bool};
                 dwVersion: LongInt;
-                lpszIdentifier: PChar;
+                lpszIdentifier: PAnsiChar;
         end {TWSANameSpace_InfoA};
         PWSANameSpace_InfoA = ^TWSANameSpace_InfoA;
         LPWSANameSpace_InfoA = PWSANameSpace_InfoA;
@@ -1147,41 +1147,41 @@ function connect( const s: TSocket; name: PSockAddr; namelen: Longint): Longint;
 function connect( const s: TSocket; const name: TSockAddr; namelen: Longint): Longint; external WINSOCK2_DLL name 'connect';
 
 function gethostbyaddr(addr: Pointer; len, struct: Longint): PHostEnt; external WINSOCK2_DLL name 'gethostbyaddr';
-function gethostbyname(name: PChar): PHostEnt; external WINSOCK2_DLL name 'gethostbyname';
-function gethostname(name: PChar; len: Longint): Longint; external WINSOCK2_DLL name 'gethostname';
+function gethostbyname(name: PAnsiChar): PHostEnt; external WINSOCK2_DLL name 'gethostbyname';
+function gethostname(name: PAnsiChar; len: Longint): Longint; external WINSOCK2_DLL name 'gethostname';
 function getpeername( const s: TSocket; var name: TSockAddr; var namelen: Longint ): Longint; external WINSOCK2_DLL name 'getpeername';
-function getprotobyname(name: PChar): PProtoEnt; external WINSOCK2_DLL name 'getprotobyname';
+function getprotobyname(name: PAnsiChar): PProtoEnt; external WINSOCK2_DLL name 'getprotobyname';
 function getprotobynumber(proto: Longint): PProtoEnt; external WINSOCK2_DLL name 'getprotobynumber';
-function getservbyport(port: Longint; proto: PChar): PServEnt; external WINSOCK2_DLL name 'getservbyport';
-function getservbyname(name, proto: PChar): PServEnt; external WINSOCK2_DLL name 'getservbyname';
+function getservbyport(port: Longint; proto: PAnsiChar): PServEnt; external WINSOCK2_DLL name 'getservbyport';
+function getservbyname(name, proto: PAnsiChar): PServEnt; external WINSOCK2_DLL name 'getservbyname';
 function getsockname( const s: TSocket; var name: TSockAddr; var namelen: Longint ): Longint; external WINSOCK2_DLL name 'getsockname';
-function getsockopt( const s: TSocket; const level, optname: Longint; optval: PChar; var optlen: Longint ): Longint; external WINSOCK2_DLL name 'getsockopt';
+function getsockopt( const s: TSocket; const level, optname: Longint; optval: PAnsiChar; var optlen: Longint ): Longint; external WINSOCK2_DLL name 'getsockopt';
 function getsockopt( const s: TSocket; const level, optname: Longint; optval: Pointer; var optlen: Longint ): Longint; external WINSOCK2_DLL name 'getsockopt';
 function getsockopt( const s: TSocket; const level, optname: Longint; var optval; var optlen: Longint ): Longint; external WINSOCK2_DLL name 'getsockopt';
 function htonl(hostlong: u_long): u_long; external WINSOCK2_DLL name 'htonl';
 function htons(hostshort: u_short): u_short; external WINSOCK2_DLL name 'htons';
-function inet_addr(cp: PChar): u_long; external WINSOCK2_DLL name 'inet_addr';
-function inet_ntoa(inaddr: TInAddr): PChar; external WINSOCK2_DLL name 'inet_ntoa';
+function inet_addr(cp: PAnsiChar): u_long; external WINSOCK2_DLL name 'inet_addr';
+function inet_ntoa(inaddr: TInAddr): PAnsiChar; external WINSOCK2_DLL name 'inet_ntoa';
 function ioctlsocket( const s: TSocket; cmd: Longint; var arg: u_long ): Longint; external WINSOCK2_DLL name 'ioctlsocket';
 function ioctlsocket( const s: TSocket; cmd: Longint; argp: pu_long ): Longint; external WINSOCK2_DLL name 'ioctlsocket';
 function listen(s: TSocket; backlog: Longint): Longint; external WINSOCK2_DLL name 'listen';
 function ntohl(netlong: u_long): u_long; external WINSOCK2_DLL name 'ntohl';
 function ntohs(netshort: u_short): u_short; external WINSOCK2_DLL name 'ntohs';
 function recv(s: TSocket; var Buf; len, flags: Longint): Longint; external WINSOCK2_DLL name 'recv';
-function recv(s: TSocket; Buf: PChar; len, flags: Longint): Longint; external WINSOCK2_DLL name 'recv';
+function recv(s: TSocket; Buf: PAnsiChar; len, flags: Longint): Longint; external WINSOCK2_DLL name 'recv';
 function recv(s: TSocket; Buf: Pointer; len, flags: Longint): Longint; external WINSOCK2_DLL name 'recv';
-function recvfrom(s: TSocket; Buf: PChar; len, flags: Longint; from: PSockAddr; fromlen: PLongint): Longint; external WINSOCK2_DLL name 'recvfrom';
+function recvfrom(s: TSocket; Buf: PAnsiChar; len, flags: Longint; from: PSockAddr; fromlen: PLongint): Longint; external WINSOCK2_DLL name 'recvfrom';
 function recvfrom(s: TSocket; Buf: Pointer; len, flags: Longint; from: PSockAddr; fromlen: PLongint): Longint; external WINSOCK2_DLL name 'recvfrom';
 function recvfrom(s: TSocket; var Buf; len, flags: Longint; const from: TSockAddr; var fromlen: Longint): Longint; external WINSOCK2_DLL name 'recvfrom';
 function select(nfds: Longint; readfds, writefds, exceptfds: PFDSet; timeout: PTimeVal): Longint; external WINSOCK2_DLL name 'select';
 function send(s: TSocket; const Buf; len, flags: Longint): Longint; external WINSOCK2_DLL name 'send';
-function send(s: TSocket; Buf: PChar; len, flags: Longint): Longint; external WINSOCK2_DLL name 'send';
+function send(s: TSocket; Buf: PAnsiChar; len, flags: Longint): Longint; external WINSOCK2_DLL name 'send';
 function send(s: TSocket; Buf: Pointer; len, flags: Longint): Longint; external WINSOCK2_DLL name 'send';
 function sendto(s: TSocket; const Buf; len, flags: Longint; const addrto: TSockAddr; tolen: Longint): Longint; external WINSOCK2_DLL name 'sendto';
-function sendto(s: TSocket; Buf: PChar; len, flags: Longint; addrto: PSockAddr; tolen: Longint): Longint; external WINSOCK2_DLL name 'sendto';
+function sendto(s: TSocket; Buf: PAnsiChar; len, flags: Longint; addrto: PSockAddr; tolen: Longint): Longint; external WINSOCK2_DLL name 'sendto';
 function sendto(s: TSocket; Buf: Pointer; len, flags: Longint; addrto: PSockAddr; tolen: Longint): Longint; external WINSOCK2_DLL name 'sendto';
 function setsockopt(s: TSocket; level, optname: Longint; const optval; optlen: Longint): Longint; external WINSOCK2_DLL name 'setsockopt';
-function setsockopt(s: TSocket; level, optname: Longint; optval: PChar; optlen: Longint): Longint; external WINSOCK2_DLL name 'setsockopt';
+function setsockopt(s: TSocket; level, optname: Longint; optval: PAnsiChar; optlen: Longint): Longint; external WINSOCK2_DLL name 'setsockopt';
 function setsockopt(s: TSocket; level, optname: Longint; optval: Pointer; optlen: Longint): Longint; external WINSOCK2_DLL name 'setsockopt';
 function shutdown(s: TSocket; how: Longint): Longint; external WINSOCK2_DLL name 'shutdown';
 function socket(af, struct, protocol: Longint): TSocket; external WINSOCK2_DLL name 'socket';
@@ -1190,7 +1190,7 @@ function socket(af, struct, protocol: Longint): TSocket; external WINSOCK2_DLL n
 function WSAAccept( s : TSocket; addr : TSockAddr; addrlen : PLongint; lpfnCondition : LPCONDITIONPROC; dwCallbackData : DWORD ): TSocket;  external WINSOCK2_DLL name 'WSAAccept';
 function WSAAddressToStringW( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoW;
         const lpszAddressString : PWideChar; var lpdwAddressStringLength : DWORD ): Longint;  external WINSOCK2_DLL name 'WSAAddressToStringW';
-function WSAAsyncGetHostByName(HWindow: HWND; wMsg: u_int; name, buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetHostByName';
+function WSAAsyncGetHostByName(HWindow: HWND; wMsg: u_int; name, buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetHostByName';
 function WSAAsyncSelect(s: TSocket; HWindow: HWND; wMsg: u_int; lEvent: Longint): Longint;  external WINSOCK2_DLL name 'WSAAsyncSelect';
 function WSACancelAsyncRequest(hAsyncTaskHandle: THandle): Longint;  external WINSOCK2_DLL name 'WSACancelAsyncRequest';
 function WSACleanup: Longint;  external WINSOCK2_DLL name 'WSACleanup';
@@ -1256,11 +1256,11 @@ function WSAIsBlocking: BOOL;  external WINSOCK2_DLL name 'WSAIsBlocking';
 function WSAUnhookBlockingHook: Longint;  external WINSOCK2_DLL name 'WSAUnhookBlockingHook';
 function WSASetBlockingHook(lpBlockFunc: TFarProc): TFarProc;  external WINSOCK2_DLL name 'WSASetBlockingHook';
 function WSACancelBlockingCall: Longint;  external WINSOCK2_DLL name 'WSACancelBlockingCall';
-function WSAAsyncGetServByName(HWindow: HWND; wMsg: u_int; name, proto, buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetServByName';
-function WSAAsyncGetServByPort( HWindow: HWND; wMsg, port: u_int; proto, buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetServByPort';
-function WSAAsyncGetProtoByName(HWindow: HWND; wMsg: u_int; name, buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetProtoByName';
-function WSAAsyncGetProtoByNumber(HWindow: HWND; wMsg: u_int; number: Longint; buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetProtoByNumber';
-function WSAAsyncGetHostByAddr(HWindow: HWND; wMsg: u_int; addr: PChar; len, struct: Longint; buf: PChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetHostByAddr';
+function WSAAsyncGetServByName(HWindow: HWND; wMsg: u_int; name, proto, buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetServByName';
+function WSAAsyncGetServByPort( HWindow: HWND; wMsg, port: u_int; proto, buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetServByPort';
+function WSAAsyncGetProtoByName(HWindow: HWND; wMsg: u_int; name, buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetProtoByName';
+function WSAAsyncGetProtoByNumber(HWindow: HWND; wMsg: u_int; number: Longint; buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetProtoByNumber';
+function WSAAsyncGetHostByAddr(HWindow: HWND; wMsg: u_int; addr: PAnsiChar; len, struct: Longint; buf: PAnsiChar; buflen: Longint): THandle;  external WINSOCK2_DLL name 'WSAAsyncGetHostByAddr';
 
 function WSADuplicateSocketA( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoA ) : Longint;  external WINSOCK2_DLL name 'WSADuplicateSocketA';
 function WSADuplicateSocketW( s : TSocket; dwProcessId : DWORD; lpProtocolInfo : LPWSAProtocol_InfoW ) : Longint;  external WINSOCK2_DLL name 'WSADuplicateSocketW';
@@ -1273,10 +1273,10 @@ function WSASendDisconnect( s : TSocket; lpOutboundDisconnectData : LPWSABUF ): 
 function WSASocketA( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_InfoA; g : GROUP; dwFlags : DWORD ): TSocket;  external WINSOCK2_DLL name 'WSASocketA';
 function WSASocket( af, iType, protocol : Longint; lpProtocolInfo : LPWSAProtocol_Info; g : GROUP; dwFlags : DWORD ): TSocket;  external WINSOCK2_DLL name 'WSASocket';
 function WSAAddressToStringA( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_InfoA;
-        const lpszAddressString : PChar; var lpdwAddressStringLength : DWORD ): Longint;  external WINSOCK2_DLL name 'WSAAddressToStringA';
+        const lpszAddressString : PAnsiChar; var lpdwAddressStringLength : DWORD ): Longint;  external WINSOCK2_DLL name 'WSAAddressToStringA';
 function WSAAddressToString( var lpsaAddress : TSockAddr; const dwAddressLength : DWORD; const lpProtocolInfo : LPWSAProtocol_Info;
         const lpszAddressString : PMBChar; var lpdwAddressStringLength : DWORD ): Longint;  external WINSOCK2_DLL name 'WSAAddressToString';
-function WSAStringToAddressA( const AddressString : PChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
+function WSAStringToAddressA( const AddressString : PAnsiChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_InfoA;
         var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint;  external WINSOCK2_DLL name 'WSAStringToAddressA';
 function WSAStringToAddress( const AddressString : PMBChar; const AddressFamily: Longint; const lpProtocolInfo : LPWSAProtocol_Info;
         var lpAddress : TSockAddr; var lpAddressLength : Longint ): Longint;  external WINSOCK2_DLL name 'WSAStringToAddress';
@@ -1298,7 +1298,7 @@ function WSAGetServiceClassInfo( const lpProviderId : PGUID; const lpServiceClas
         lpServiceClassInfo : LPWSAServiceClassInfo ): Longint;  external WINSOCK2_DLL name 'WSAGetServiceClassInfo';
 function WSAEnumNameSpaceProvidersA( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_InfoA ): Longint;  external WINSOCK2_DLL name 'WSAEnumNameSpaceProvidersA';
 function WSAEnumNameSpaceProviders( var lpdwBufferLength: DWORD; const lpnspBuffer: LPWSANameSpace_Info ): Longint;  external WINSOCK2_DLL name 'WSAEnumNameSpaceProviders';
-function WSAGetServiceClassNameByClassIdA( const lpServiceClassId: PGUID; lpszServiceClassName: PChar;
+function WSAGetServiceClassNameByClassIdA( const lpServiceClassId: PGUID; lpszServiceClassName: PAnsiChar;
         var lpdwBufferLength: DWORD ): Longint;  external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdA';
 function WSAGetServiceClassNameByClassIdW( const lpServiceClassId: PGUID; lpszServiceClassName: PWideChar;
         var lpdwBufferLength: DWORD ): Longint;  external WINSOCK2_DLL name 'WSAGetServiceClassNameByClassIdW';

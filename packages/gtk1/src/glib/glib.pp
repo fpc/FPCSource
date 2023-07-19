@@ -79,7 +79,7 @@ Type
 type
    PPgchar = ^Pgchar;
    Pgchar = ^gchar;
-   gchar = char;
+   gchar = AnsiChar;
    Pgshort = ^gshort;
    gshort = smallint;
    Pglong = ^glong;
@@ -89,7 +89,7 @@ type
    Pgboolean = ^gboolean;
    gboolean = longbool;
    Pguchar = ^guchar;
-   guchar = char;
+   guchar = AnsiChar;
    Pgushort = ^gushort;
    gushort = word;
    Pgulong = ^gulong;

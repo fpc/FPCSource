@@ -65,7 +65,7 @@ Uses
 {$DEFINE HAS_GETMSCOUNT}
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PAnsiChar }
 
 {$I dos.inc}
 
@@ -91,7 +91,7 @@ type
 
 Function DosVersion:Word;
 Var
-  Buffer : Array[0..255] of Char;
+  Buffer : Array[0..255] of AnsiChar;
   Tmp2,
   TmpStr : String[40];
   TmpPos,
@@ -227,7 +227,7 @@ end;
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
-  cmdline2 : ppchar;
+  cmdline2 : PPAnsiChar;
   commandline : RawByteString;
   realpath : ansistring;
 
@@ -248,16 +248,16 @@ Begin
        begin
          CommandLine:=ToSingleByteFileSystemEncodedFileName(ComLine);  // conversion must live till after fpexec!
          cmdline2:=StringtoPPChar(CommandLine,1);
-         cmdline2^:=pchar(realPath);
+         cmdline2^:=PAnsiChar(realPath);
        end
      else
        begin
-         getmem(cmdline2,2*sizeof(pchar));
-         cmdline2^:=pchar(realPath);
+         getmem(cmdline2,2*sizeof(PAnsiChar));
+         cmdline2^:=PAnsiChar(realPath);
          cmdline2[1]:=nil;
        end;
      {The child does the actual exec, and then exits}
-     fpExecv(pchar(realPath),cmdline2);
+     fpExecv(PAnsiChar(realPath),cmdline2);
      {If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -293,7 +293,7 @@ End;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -302,7 +302,7 @@ Const
 const
   Drives   : byte = 4;
 var
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Function AddDisk(const path:string) : byte;
 begin
@@ -551,7 +551,7 @@ Procedure FindNext(Var f: SearchRec);
 }
 Var
 
-  DirName  : Array[0..256] of Char;
+  DirName  : Array[0..256] of AnsiChar;
   i,
   ArrayPos : Longint;
   FName,
@@ -685,7 +685,7 @@ End;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path : pathstr;dirlist : string) : pathstr;
+Function FSearch(path : pathstr;dirlist : shortstring) : pathstr;
 Var
   info : BaseUnix.stat;
 Begin
@@ -699,7 +699,7 @@ Procedure GetFAttr(var f; var attr : word);
 Var
   info    : baseunix.stat;
   LinAttr : longint;
-  p       : pchar;
+  p       : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r       : RawByteString;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -710,9 +710,9 @@ Begin
   p:=@textrec(f).name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
+  p:=PAnsiChar(r);
 {$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
+  { use the PAnsiChar rather than the rawbytestring version so that we don't check
     a second time whether the string needs to be converted to the right code
     page
   }
@@ -756,7 +756,7 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-  p : pchar;
+  p : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r : Rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -773,9 +773,9 @@ Begin
   p:=@textrec(f).name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
-  p:=pchar(r);
+  p:=PAnsiChar(r);
 {$endif}
-  { use the pchar rather than the rawbytestring version so that we don't check
+  { use the PAnsiChar rather than the rawbytestring version so that we don't check
     a second time whether the string needs to be converted to the right code
     page
   }
@@ -793,7 +793,7 @@ End;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
   p:=envp;      {defined in syslinux}
@@ -806,10 +806,10 @@ Begin
 End;
 
 
-Function EnvStr (Index: longint): String;
+Function EnvStr (Index: longint): ShortString;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if Index <= 0 then
     envstr:=''
@@ -830,9 +830,9 @@ Begin
 end;
 
 
-Function GetEnv(EnvVar: String): String;
+Function GetEnv(EnvVar: ShortString): ShortString;
 var
-  p     : pchar;
+  p     : PAnsiChar;
 Begin
   p:=BaseUnix.fpGetEnv(EnvVar);
   if p=nil then

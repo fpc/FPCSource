@@ -1,3 +1,4 @@
+{MainUnit fpide.pas}
 {
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998 by Berczi Gabor

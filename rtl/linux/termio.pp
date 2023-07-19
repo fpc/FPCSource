@@ -37,7 +37,7 @@ implementation
 {We can implement ttyname more efficiently using proc than by including the
  generic ttyname.inc file.}
 
-function TTYName(Handle:cint):string;
+function TTYName(Handle:cint):shortstring;
 
 { Return the name of the current tty described by handle f.
   returns empty string in case of an error.}
@@ -51,11 +51,11 @@ begin
     begin
       str(handle,s);
       t:='/proc/self/fd/'+s+#0;
-      ttyname[0]:=char(fpreadlink(@t[1],@ttyname[1],255));
+      ttyname[0]:=AnsiChar(fpreadlink(@t[1],@ttyname[1],255));
     end;
 end;
 
-function TTYName(var F:Text):string;{$ifndef ver2_0}inline;{$endif}
+function TTYName(var F:Text):shortstring;{$ifndef ver2_0}inline;{$endif}
 {
   Idem as previous, only now for text variables;
 }

@@ -35,8 +35,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   maxExitCode = 255;
   MaxPathLen = 256;
@@ -62,9 +62,9 @@ const
   segB800: Word = $B800;}
 
 type
-  LPSTR = ^Char;far;
-  PFarChar = ^Char;far;
-  PHugeChar = ^Char;huge;
+  LPSTR = ^AnsiChar;far;
+  PFarChar = ^AnsiChar;far;
+  PHugeChar = ^AnsiChar;huge;
 
 var
 { Mem[] support }
@@ -73,7 +73,7 @@ var
   meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc:smallint; //!! public name 'operatingsystem_parameter_argc';
-  argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
+  argv:PPAnsiChar; //!! public name 'operatingsystem_parameter_argv';
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
@@ -232,14 +232,14 @@ end;
 procedure setup_arguments;
 var
   I: SmallInt;
-  pc: PChar;
+  pc: PAnsiChar;
   pfc: PFarChar;
-  quote: Char;
+  quote: AnsiChar;
   count: SmallInt;
   arglen, argv0len: SmallInt;
-  argblock: PChar;
-  arg: PChar;
-  argv0_arr: array [0..255] of Char;
+  argblock: PAnsiChar;
+  arg: PAnsiChar;
+  argv0_arr: array [0..255] of AnsiChar;
 {$IfDef SYSTEM_DEBUG_STARTUP}
   debug_output: Text;
 {$EndIf}
@@ -322,7 +322,7 @@ begin
     end;
   { set argc and allocate argv }
   argc:=count;
-  argv:=AllocMem((count+1)*SizeOf(PChar));
+  argv:=AllocMem((count+1)*SizeOf(PAnsiChar));
   { allocate a single memory block for all arguments }
   argblock:=GetMem(arglen);
   { create argv[0] }
@@ -435,7 +435,7 @@ begin
 end;
 
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if argv=nil then
     setup_arguments;
@@ -458,7 +458,7 @@ const
   ErrorBufferLength = 1024;
   ErrorMessageBoxFlags = MB_OK or MB_ICONHAND or MB_TASKMODAL;
 var
-  ErrorBuf : array[0..ErrorBufferLength] of char;
+  ErrorBuf : array[0..ErrorBufferLength] of AnsiChar;
   ErrorLen : SizeInt;
 
 procedure ErrorWrite(Var F: TextRec);
@@ -583,8 +583,8 @@ end;
 function CheckLFN:boolean;
 var
   regs     : Registers;
-  RootName : pchar;
-  buf      : array [0..31] of char;
+  RootName : PAnsiChar;
+  buf      : array [0..31] of AnsiChar;
 begin
 { Check LFN API on drive c:\ }
   RootName:='C:\';

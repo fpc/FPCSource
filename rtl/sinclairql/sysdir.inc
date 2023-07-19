@@ -26,7 +26,7 @@ begin
     directory. The file should be opened as a new file as
     errors occur if the file exists when creating a new
     directory when it's already there. }
-  chanId := io_open(PChar(s), Q_OPEN_OVER);
+  chanId := io_open(PAnsiChar(s), Q_OPEN_OVER);
   if chanId < 0 then
     begin
       Error2InOutRes(chanId); 
@@ -53,7 +53,7 @@ begin
     or directory name that is not present. It should return
     ERR_NF. (At least on RAM_/FLP_ or WIN_)
   }
-  Error2InOutRes(io_delet(pchar(s)));
+  Error2InOutRes(io_delet(PAnsiChar(s)));
 end;
 
 

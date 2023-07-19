@@ -11,8 +11,8 @@ function getutxent:Putmpx;cdecl;external clib name 'getutxent';
 function getutxid(__id:Putmpx):Putmpx;cdecl;external clib name 'getutxid';
 function getutxline(__line:Putmpx):Putmpx;cdecl;external clib name 'getutxline';
 function pututxline(__utmpx:Putmpx):Putmpx;cdecl;external clib name 'pututxline';
-function utmpxname(__file:Pchar):longint;cdecl;external clib name 'utmpxname';
-procedure updwtmpx(__wtmpx_file:Pchar; __utmpx:Putmpx);cdecl;external clib name 'updwtmpx';
+function utmpxname(__file:PAnsiChar):longint;cdecl;external clib name 'utmpxname';
+procedure updwtmpx(__wtmpx_file:PAnsiChar; __utmpx:Putmpx);cdecl;external clib name 'updwtmpx';
 procedure getutmp(__utmpx:Putmpx; __utmp:Putmp);cdecl;external clib name 'getutmp';
 procedure getutmpx(__utmp:Putmp; __utmpx:Putmpx);cdecl;external clib name 'getutmpx';
 
@@ -24,6 +24,6 @@ procedure getutmpx(__utmp:Putmp; __utmpx:Putmpx);cdecl;external clib name 'getut
 function getutxid(const __id:utmpx):Putmpx;cdecl;external clib name 'getutxid';
 function getutxline(const __line:utmpx):Putmpx;cdecl;external clib name 'getutxline';
 function pututxline(const __utmpx:utmpx):Putmpx;cdecl;external clib name 'pututxline';
-procedure updwtmpx(__wtmpx_file:Pchar;const __utmpx:utmpx);cdecl;external clib name 'updwtmpx';
+procedure updwtmpx(__wtmpx_file:PAnsiChar;const __utmpx:utmpx);cdecl;external clib name 'updwtmpx';
 procedure getutmp(const __utmpx:utmpx; var __utmp:utmp);cdecl;external clib name 'getutmp';
 procedure getutmpx(var __utmp:utmp; var __utmpx:utmpx);cdecl;external clib name 'getutmpx';

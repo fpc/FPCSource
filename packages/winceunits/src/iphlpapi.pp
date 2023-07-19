@@ -120,7 +120,7 @@ const
 
 type
     // IP_ADDRESS_STRING
-    IP_ADDRESS_STRING  = Array[0..3,0..3] of Char;
+    IP_ADDRESS_STRING  = Array[0..3,0..3] of AnsiChar;
     TIP_ADDRESS_STRING = IP_ADDRESS_STRING;
     IP_MASK_STRING     = IP_ADDRESS_STRING;
     TIP_MASK_STRING    = IP_ADDRESS_STRING;
@@ -143,8 +143,8 @@ type
     _IP_ADAPTER_INFO = Record
       Next                : PIP_ADAPTER_INFO;
       ComboIndex          : DWORD;
-      AdapterName         : Array[0..MAX_ADAPTER_NAME_LENGTH + 3] of Char;
-      Description         : Array[0..MAX_ADAPTER_DESCRIPTION_LENGTH + 3] of Char;
+      AdapterName         : Array[0..MAX_ADAPTER_NAME_LENGTH + 3] of AnsiChar;
+      Description         : Array[0..MAX_ADAPTER_DESCRIPTION_LENGTH + 3] of AnsiChar;
       AddressLength       : UINT;
       Address             : Array [0..MAX_ADAPTER_ADDRESS_LENGTH-1] of Byte;
       Index               : DWORD;

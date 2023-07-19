@@ -83,7 +83,7 @@ end;
 function WriteControlDataToStream(const AStream: TStream; const LZXResetInterval,
   WindowSize, CacheSize: DWord): Integer;
 var
-  LZXC: array [0..3] of char = 'LZXC';
+  LZXC: array [0..3] of AnsiChar = 'LZXC';
 begin
   //  ::DataSpace/Storage/MSCompressed/ControlData
   Result := AStream.Position;

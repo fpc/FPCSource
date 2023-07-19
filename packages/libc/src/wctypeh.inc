@@ -21,7 +21,7 @@ function iswspace(__wc:wint_t):longint;cdecl;external clib name 'iswspace';
 function iswupper(__wc:wint_t):longint;cdecl;external clib name 'iswupper';
 function iswxdigit(__wc:wint_t):longint;cdecl;external clib name 'iswxdigit';
 function iswblank(__wc:wint_t):longint;cdecl;external clib name 'iswblank';
-function wctype(__property:Pchar):wctype_t;cdecl;external clib name 'wctype';
+function wctype(__property:PAnsiChar):wctype_t;cdecl;external clib name 'wctype';
 function iswctype(__wc:wint_t; __desc:wctype_t):longint;cdecl;external clib name 'iswctype';
 function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
@@ -39,11 +39,11 @@ function __iswspace_l(__wc:wint_t; __locale:__locale_t):longint;cdecl;external c
 function __iswupper_l(__wc:wint_t; __locale:__locale_t):longint;cdecl;external clib name '__iswupper_l';
 function __iswxdigit_l(__wc:wint_t; __locale:__locale_t):longint;cdecl;external clib name '__iswxdigit_l';
 function __iswblank_l(__wc:wint_t; __locale:__locale_t):longint;cdecl;external clib name '__iswblank_l';
-function __wctype_l(__property:Pchar; __locale:__locale_t):wctype_t;cdecl;external clib name '__wctype_l';
+function __wctype_l(__property:PAnsiChar; __locale:__locale_t):wctype_t;cdecl;external clib name '__wctype_l';
 function __iswctype_l(__wc:wint_t; __desc:wctype_t; __locale:__locale_t):longint;cdecl;external clib name '__iswctype_l';
 function __towlower_l(__wc:wint_t; __locale:__locale_t):wint_t;cdecl;external clib name '__towlower_l';
 function __towupper_l(__wc:wint_t; __locale:__locale_t):wint_t;cdecl;external clib name '__towupper_l';
-function __wctrans_l(__property:Pchar; __locale:__locale_t):wctrans_t;cdecl;external clib name '__wctrans_l';
+function __wctrans_l(__property:PAnsiChar; __locale:__locale_t):wctrans_t;cdecl;external clib name '__wctrans_l';
 function __towctrans_l(__wc:wint_t; __desc:wctrans_t; __locale:__locale_t):wint_t;cdecl;external clib name '__towctrans_l';
 
 

@@ -66,7 +66,7 @@ end;
 
 
 { creation }
-function fl_create_crossbutton(Thetype : Longint; x,y,w,h : TFL_Coord; thelabel : Pchar) : PFL_OBJECT;
+function fl_create_crossbutton(Thetype : Longint; x,y,w,h : TFL_Coord; thelabel : PAnsiChar) : PFL_OBJECT;
 
 var ob : PFL_OBJECT;
 
@@ -79,7 +79,7 @@ begin
      fl_create_crossbutton:=ob;
 end;
 
-function fl_add_crossbutton(Thetype : longint; x,y,w,h : TFL_COORD; thelabel : pchar): PFL_OBJECT;
+function fl_add_crossbutton(Thetype : longint; x,y,w,h : TFL_COORD; thelabel : PAnsiChar): PFL_OBJECT;
 
 var ob : PFL_OBJECT;
     theform : PFL_FORM;

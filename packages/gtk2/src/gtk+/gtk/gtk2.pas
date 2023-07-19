@@ -108,7 +108,7 @@ const
 
 {$IFDEF KYLIX}
 Type
-  PPPchar   = PPPgchar;
+  PPPAnsiChar   = PPPgchar;
 {$ENDIF}
 
 

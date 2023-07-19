@@ -85,13 +85,13 @@ end;
 
 {$ifdef FPC_USE_LIBC}
 function __fxstat(__ver,filedes : cint; var __stat: tstat): cint; cdecl; external clib name '__fxstat'+suffix64bit;
-function __xstat(__ver : cint;FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__xstat'+suffix64bit;
-function __lxstat(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat'+suffix64bit;
+function __xstat(__ver : cint;FileName: PAnsiChar; var __stat: tstat): cint; cdecl; external clib name '__xstat'+suffix64bit;
+function __lxstat(__ver : cint; FileName: PAnsiChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat'+suffix64bit;
 {
 function __fxstat64(__ver : cint; FileDes: Integer; var __stat: tstat): cint; cdecl; external clib name '__fxstat64';
-function __xstat64(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__xstat64';
-function __lxstat64(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat64';
-function __xmknod(__ver : cint; Pathname: PChar; Mode: mode_t; var Device: dev_t): cint; cdecl; external clib name '__xmknod';
+function __xstat64(__ver : cint; FileName: PAnsiChar; var __stat: tstat): cint; cdecl; external clib name '__xstat64';
+function __lxstat64(__ver : cint; FileName: PAnsiChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat64';
+function __xmknod(__ver : cint; Pathname: PAnsiChar; Mode: mode_t; var Device: dev_t): cint; cdecl; external clib name '__xmknod';
 }
 {$define FPC_HAS_BASEUNIX_STAT}
 function  FpFstat(fd : cint; var sb : stat): cint;inline;
@@ -100,13 +100,13 @@ function  FpFstat(fd : cint; var sb : stat): cint;inline;
   end;
 
 
-function  fpLstat(path:pchar;Info:pstat):cint;inline;
+function  fpLstat(path:PAnsiChar;Info:pstat):cint;inline;
   begin
     fpLstat:=__lxstat(_STAT_VER,path,Info^);
   end;
 
 
-function  FpStat(path: pchar; var buf : stat): cint;inline;
+function  FpStat(path: PAnsiChar; var buf : stat): cint;inline;
   begin
     FpStat:=__xstat(_STAT_VER,path,buf);
   end;

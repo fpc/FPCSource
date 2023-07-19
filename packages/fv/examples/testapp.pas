@@ -36,6 +36,7 @@ PROGRAM testapp;
 { ****************************** END REMARK *** Leon de Boer, 06Nov99 * }
 
 {$I platform.inc}
+{$H-}
   USES
 {$IFDEF OS2PM}
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}

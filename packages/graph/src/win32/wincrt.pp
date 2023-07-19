@@ -18,7 +18,7 @@ unit WinCRT;
 
   interface
 
-    function readkey : char;
+    function readkey : AnsiChar;
     function keypressed : boolean;
     procedure delay(ms : word);
 
@@ -49,7 +49,7 @@ unit WinCRT;
 
     var
        keyboardhandling : TCriticalSection;
-       keybuffer : array[1..keybuffersize] of char;
+       keybuffer : array[1..keybuffersize] of AnsiChar;
        nextfree,nexttoread : longint;
 
     procedure inccyclic(var i : longint);
@@ -60,7 +60,7 @@ unit WinCRT;
            i:=1;
       end;
 
-    procedure addchar(c : char);
+    procedure addchar(c : AnsiChar);
 
       begin
          EnterCriticalSection(keyboardhandling);
@@ -78,7 +78,7 @@ unit WinCRT;
          LeaveCriticalSection(keyboardhandling);
       end;
 
-    function readkey : char;
+    function readkey : AnsiChar;
 
       begin
          while true do
@@ -127,7 +127,7 @@ unit WinCRT;
       begin
       end;
 
-    procedure addextchar(c : char);
+    procedure addextchar(c : AnsiChar);
 
       begin
          addchar(#0);

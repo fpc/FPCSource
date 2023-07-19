@@ -23,6 +23,12 @@ uses SysUtils, Classes;
 
 
 type
+{$IF SIZEOF(CHAR)=2}
+  TIDLString = String;
+{$ELSE}
+  TIDLString = UTF8String;
+{$ENDIF}
+
   EWebIDLError = class(Exception);
 
   TWebIDLVersion = (v1,v2);
@@ -38,7 +44,7 @@ type
     );
   TMessageTypes = set of TMessageType;
 
-  TMessageArgs = array of string;
+  TMessageArgs = array of TIDLString;
   TIDLToken = (
     tkEOF,
     tkUnknown ,
@@ -114,7 +120,7 @@ type
     tkvoid,
     tkShort,
     tkSequence,
-    //tkStringToken, Mattias: there is no string token in webidl
+    //tkStringToken, Mattias: there is no TIDLString token in webidl
     tkMixin,
     tkIncludes,
     tkMapLike,
@@ -142,8 +148,8 @@ Type
   TMaxFloat = double;
 
   TDirectiveEvaluator = class;
-  TDirectiveEvalVarEvent = function(Sender: TDirectiveEvaluator; Name: String; out Value: string): boolean of object;
-  TDirectiveEvalFunctionEvent = function(Sender: TDirectiveEvaluator; Name, Param: String; out Value: string): boolean of object;
+  TDirectiveEvalVarEvent = function(Sender: TDirectiveEvaluator; Name: TIDLString; out Value: TIDLString): boolean of object;
+  TDirectiveEvalFunctionEvent = function(Sender: TDirectiveEvaluator; Name, Param: TIDLString; out Value: TIDLString): boolean of object;
   TDirectiveEvalLogEvent = procedure(Sender: TDirectiveEvaluator; Args : Array of const) of object;
 
   { TDirectiveEvaluator }
@@ -178,15 +184,15 @@ Type
       TStackItem = record
         Level: TPrecedenceLevel;
         Operathor: TDirectiveToken;
-        Operand: String;
+        Operand: TIDLString;
         OperandPos: PChar;
       end;
     const
-      BoolValues: array[boolean] of string = (
+      BoolValues: array[boolean] of TIDLString = (
         '0', // false
         '1'  // true  Note: True is <>'0'
         );
-      dtNames: array[TDirectiveToken] of string = (
+      dtNames: array[TDirectiveToken] of TIDLString = (
         'EOF',
         'Identifier',
         'Integer',
@@ -207,27 +213,27 @@ Type
     FTokenEnd: PChar;
     FStack: array of TStackItem;
     FStackTop: Integer;
-    function IsFalse(const Value: String): boolean;
-    function IsTrue(const Value: String): boolean;
-    function IsInteger(const Value: String; out i: TMaxPrecInt): boolean;
-    function IsFloat(const Value: String; out e: TMaxFloat): boolean;
+    function IsFalse(const Value: TIDLString): boolean;
+    function IsTrue(const Value: TIDLString): boolean;
+    function IsInteger(const Value: TIDLString; out i: TMaxPrecInt): boolean;
+    function IsFloat(const Value: TIDLString; out e: TMaxFloat): boolean;
     procedure NextToken;
     procedure Log(aMsgType: TMessageType; aMsgNumber: integer;
-      const aMsgFmt: String; const Args: array of const; MsgPos: PChar = nil);
-    procedure LogXExpectedButTokenFound(const X: String; ErrorPos: PChar = nil);
+      const aMsgFmt: TIDLString; const Args: array of const; MsgPos: PChar = nil);
+    procedure LogXExpectedButTokenFound(const X: TIDLString; ErrorPos: PChar = nil);
     procedure ReadOperand(Skip: boolean = false); // unary operators plus one operand
     procedure ReadExpression; // binary operators
     procedure ResolveStack(MinStackLvl: integer; Level: TPrecedenceLevel;
       NewOperator: TDirectiveToken);
-    function GetTokenString: String;
-    function GetStringLiteralValue: String; // read value of tkString
-    procedure Push(const AnOperand: String; OperandPosition: PChar);
+    function GetTokenString: TIDLString;
+    function GetStringLiteralValue: TIDLString; // read value of tkString
+    procedure Push(const AnOperand: TIDLString; OperandPosition: PChar);
   public
     MsgLineNumber : Integer;
     MsgPos: integer;
     MsgNumber: integer;
     MsgType: TMessageType;
-    MsgPattern: String; // Format parameter
+    MsgPattern: TIDLString; // Format parameter
     constructor Create;
     destructor Destroy; override;
     function Eval(const Expr: PChar; aLineNumber: integer): boolean;
@@ -242,13 +248,13 @@ Type
 
   TWebIDLScanner = class
   private
-    FCurFile: UTF8String;
+    FCurFile: TIDLString;
     FEvaluator: TDirectiveEvaluator;
     FSource : TStringList;
     FCurRow: Integer;
     FCurToken: TIDLToken;
-    FCurTokenString: UTF8string;
-    FCurLine: UTF8string;
+    FCurTokenString: TIDLString;
+    FCurLine: TIDLString;
     FVersion: TWebIDLVersion;
     TokenStr: PChar;
     // Preprocessor #IFxxx skipping data
@@ -261,19 +267,19 @@ Type
     function DetermineToken2: TIDLToken;
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
-    function OnEvalFunction(Sender: TDirectiveEvaluator; Name, Param: String;
-      out Value: string): boolean;
+    function OnEvalFunction(Sender: TDirectiveEvaluator; Name, Param: TIDLString;
+      out Value: TIDLString): boolean;
     procedure OnEvalLog(Sender: TDirectiveEvaluator; Args: array of const);
-    function OnEvalVar(Sender: TDirectiveEvaluator; Name: String; out
-      Value: string): boolean;
-    function ReadComment: UTF8String;
-    function ReadIdent: UTF8String;
-    function ReadNumber(var S: UTF8String): TIDLToken;
+    function OnEvalVar(Sender: TDirectiveEvaluator; Name: TIDLString; out
+      Value: TIDLString): boolean;
+    function ReadComment: TIDLString;
+    function ReadIdent: TIDLString;
+    function ReadNumber(var S: TIDLString): TIDLToken;
   protected
-    Function GetErrorPos : String;
-    procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string; Const Args: array of Const);overload;
-    function ReadString: UTF8String; virtual;
+    Function GetErrorPos : TIDLString;
+    procedure Error(const Msg: String);overload;
+    procedure Error(const Msg: String; Const Args: array of Const);overload;
+    function ReadString: TIDLString; virtual;
     function DoFetchToken: TIDLToken;
     procedure HandleDirective; virtual;
     procedure HandleIfDef; virtual;
@@ -282,31 +288,31 @@ Type
     procedure HandleElse; virtual;
     procedure HandleEndIf; virtual;
     procedure PushSkipMode; virtual;
-    function IsDefined(const aName: string): boolean; virtual;
+    function IsDefined(const aName: TIDLString): boolean; virtual;
     procedure SkipWhitespace;
     procedure SkipLineBreak;
     procedure Init; virtual;
   public
     constructor Create(Source: TStream); overload;
-    constructor Create(const Source: UTF8String); overload;
-    constructor CreateFile(const aFileName: UTF8String);
+    constructor Create(const Source: TIDLString); overload;
+    constructor CreateFile(const aFileName: TIDLString);
     destructor Destroy; override;
     function FetchToken: TIDLToken;
 
-    property CurLine: UTF8String read FCurLine;
+    property CurLine: TIDLString read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
-    property CurFile: UTF8String read FCurFile write FCurFile;
+    property CurFile: TIDLString read FCurFile write FCurFile;
 
     property CurToken: TIDLToken read FCurToken;
-    property CurTokenString: UTF8String read FCurTokenString;
+    property CurTokenString: TIDLString read FCurTokenString;
     property Version : TWebIDLVersion Read FVersion Write FVersion;
 
     property Evaluator: TDirectiveEvaluator read FEvaluator;
   end;
 
 const
-  TokenInfos: array[TIDLToken] of string = (
+  TokenInfos: array[TIDLToken] of TIDLString = (
   '',
   '',
   '',
@@ -381,7 +387,7 @@ const
   'void',
   'short',
   'sequence',
-  //'string',
+  //'TIDLString',
   'mixin',
   'includes',
   'maplike',
@@ -402,7 +408,7 @@ Resourcestring
   SErrUnknownTerminator = 'Unknown terminator: "%s"';
   SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
   SUnterminatedComment = 'Unterminated comment at line %d, pos %d: ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrOpenString = 'TIDLString exceeds end of line';
   SErrInvalidEllipsis = 'Invalid ellipsis token';
   SErrUnknownToken = 'Unknown token, expected number or minus : "%s"';
   SErrXExpectedButYFound = '"%s" expected, but "%s" found';
@@ -411,6 +417,15 @@ Resourcestring
   SErrDivByZero = 'division by zero';
   SErrInvalidCharacterX = 'Invalid character ''%s''';
   SErrUnknownDirectiveX = 'Unknown directive ''%s''';
+
+Function MakeString(P : PChar; Len : Integer) : TIDLString; inline;
+
+begin
+  Result:='';
+  SetLength(Result,Len);
+  Move(P^,Result[1],Len*Sizeof(Char));
+end;
+
 
 Function GetTokenName(aToken : TIDLToken) : String;
 
@@ -440,17 +455,17 @@ end;
 
 { TDirectiveEvaluator }
 
-function TDirectiveEvaluator.IsFalse(const Value: String): boolean;
+function TDirectiveEvaluator.IsFalse(const Value: TIDLString): boolean;
 begin
   Result:=Value=BoolValues[false];
 end;
 
-function TDirectiveEvaluator.IsTrue(const Value: String): boolean;
+function TDirectiveEvaluator.IsTrue(const Value: TIDLString): boolean;
 begin
   Result:=Value<>BoolValues[false];
 end;
 
-function TDirectiveEvaluator.IsInteger(const Value: String; out i: TMaxPrecInt
+function TDirectiveEvaluator.IsInteger(const Value: TIDLString; out i: TMaxPrecInt
   ): boolean;
 var
   Code: integer;
@@ -459,7 +474,7 @@ begin
   Result:=Code=0;
 end;
 
-function TDirectiveEvaluator.IsFloat(const Value: String; out e: TMaxFloat
+function TDirectiveEvaluator.IsFloat(const Value: TIDLString; out e: TMaxFloat
   ): boolean;
 var
   Code: integer;
@@ -615,7 +630,7 @@ begin
 end;
 
 procedure TDirectiveEvaluator.Log(aMsgType: TMessageType; aMsgNumber: integer;
-  const aMsgFmt: String; const Args: array of const; MsgPos: PChar);
+  const aMsgFmt: TIDLString; const Args: array of const; MsgPos: PChar);
 begin
   if MsgPos=nil then
     MsgPos:=FTokenEnd;
@@ -630,7 +645,7 @@ begin
   raise EWebIDLError.CreateFmt(MsgPattern+' at pos '+IntToStr(PtrInt(MsgPos-FExpr))+' line '+IntToStr(MsgLineNumber),Args);
 end;
 
-procedure TDirectiveEvaluator.LogXExpectedButTokenFound(const X: String;
+procedure TDirectiveEvaluator.LogXExpectedButTokenFound(const X: TIDLString;
   ErrorPos: PChar);
 begin
   Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
@@ -651,7 +666,7 @@ procedure TDirectiveEvaluator.ReadOperand(Skip: boolean);
 var
   i: TMaxPrecInt;
   e: TMaxFloat;
-  S, aName, Param: String;
+  S, aName, Param: TIDLString;
   Code: integer;
   p, NameStartP: PChar;
   Lvl: integer;
@@ -721,7 +736,7 @@ begin
       end;
     //tkString:
     //  begin
-    //  // string literal
+    //  // TIDLString literal
     //  if not Skip then
     //    Push(GetStringLiteralValue,FTokenStart{$ifdef UsePChar}-PChar(Expression)+1{$endif});
     //  NextToken;
@@ -899,7 +914,7 @@ end;
 procedure TDirectiveEvaluator.ResolveStack(MinStackLvl: integer;
   Level: TPrecedenceLevel; NewOperator: TDirectiveToken);
 var
-  A, B, R: String;
+  A, B, R: TIDLString;
   Op: TDirectiveToken;
   AInt, BInt: TMaxPrecInt;
   AFloat, BFloat: TMaxFloat;
@@ -1047,16 +1062,20 @@ begin
   FStack[FStackTop].Level:=Level;
 end;
 
-function TDirectiveEvaluator.GetTokenString: String;
+function TDirectiveEvaluator.GetTokenString: TIDLString;
+
 begin
-  SetString(Result,FTokenStart,FTokenEnd-FTokenStart);
+  Result:=MakeString(FTokenStart,FTokenEnd-FTokenStart);
 end;
 
-function TDirectiveEvaluator.GetStringLiteralValue: String;
+function TDirectiveEvaluator.GetStringLiteralValue: TIDLString;
 var
   p, StartP: PChar;
-  s: string;
+  s: TIDLString;
+  len : Integer;
+
 begin
+  S:='';
   Result:='';
   p:=FTokenStart;
   repeat
@@ -1074,7 +1093,7 @@ begin
       until false;
       if p>StartP then
         begin
-        SetString(s,StartP,p-StartP);
+        S:=MakeString(StartP,p-StartP);
         Result:=Result+s;
         end;
       inc(p);
@@ -1085,7 +1104,7 @@ begin
   until false;
 end;
 
-procedure TDirectiveEvaluator.Push(const AnOperand: String;
+procedure TDirectiveEvaluator.Push(const AnOperand: TIDLString;
   OperandPosition: PChar);
 begin
   inc(FStackTop);
@@ -1134,13 +1153,13 @@ begin
   FSource.LoadFromStream(Source);
 end;
 
-constructor TWebIDLScanner.Create(const Source: UTF8String);
+constructor TWebIDLScanner.Create(const Source: TIDLString);
 begin
   Init;
   FSource.Text:=Source;
 end;
 
-constructor TWebIDLScanner.CreateFile(const aFileName: UTF8String);
+constructor TWebIDLScanner.CreateFile(const aFileName: TIDLString);
 begin
   Init;
   FSource.LoadFromFile(aFileName);
@@ -1160,22 +1179,22 @@ begin
   Result:=DoFetchToken;
 end;
 
-procedure TWebIDLScanner.Error(const Msg: string);
+procedure TWebIDLScanner.Error(const Msg: String);
 begin
   raise EWebIDLScanner.Create(GetErrorPos+Msg);
 end;
 
-procedure TWebIDLScanner.Error(const Msg: string; const Args: array of const);
+procedure TWebIDLScanner.Error(const Msg: String; const Args: array of const);
 begin
   raise EWebIDLScanner.Create(GetErrorPos+Format(Msg, Args));
 end;
 
-function TWebIDLScanner.ReadString : UTF8String;
+function TWebIDLScanner.ReadString : TIDLString;
 
 Var
   C : Char;
   I, OldLength, SectionLength: Integer;
-  S : UTF8String;
+  S : TIDLString;
   TokenStart: PChar;
 begin
   C:=TokenStr[0];
@@ -1214,7 +1233,11 @@ begin
                 end;
                 end;
               // WideChar takes care of conversion...
-              S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
+{$IF SIZEOF(CHAR)=1}
+              S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))));
+{$ELSE}
+              S:=WideChar(StrToInt('$'+S));
+{$ENDIF}
               end;
         #0  : Error(SErrOpenString);
       else
@@ -1222,8 +1245,8 @@ begin
       end;
       SetLength(Result, OldLength + SectionLength+1+Length(S));
       if SectionLength > 0 then
-        Move(TokenStart^, Result[OldLength + 1], SectionLength);
-      Move(S[1],Result[OldLength + SectionLength+1],Length(S));
+        Move(TokenStart^, Result[OldLength + 1], SectionLength*SizeOf(Char));
+      Move(S[1],Result[OldLength + SectionLength+1],Length(S)*SizeOf(char));
       Inc(OldLength, SectionLength+Length(S));
       // Next char
       // Inc(TokenStr);
@@ -1238,11 +1261,11 @@ begin
   SectionLength := TokenStr - TokenStart;
   SetLength(Result, OldLength + SectionLength);
   if SectionLength > 0 then
-    Move(TokenStart^, Result[OldLength + 1], SectionLength);
+    Move(TokenStart^, Result[OldLength + 1], SectionLength*SizeOf(Char));
   Inc(TokenStr);
 end;
 
-function TWebIDLScanner.ReadIdent: UTF8String;
+function TWebIDLScanner.ReadIdent: TIDLString;
 
 Var
   TokenStart : PChar;
@@ -1259,6 +1282,7 @@ begin
     Inc(TokenStr);
   until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
   SectionLength := TokenStr - TokenStart;
+
   SetString(Result, TokenStart, SectionLength);
 end;
 
@@ -1279,7 +1303,7 @@ begin
     end;
 end;
 
-function TWebIDLScanner.ReadNumber(var S : UTF8String) : TIDLToken;
+function TWebIDLScanner.ReadNumber(var S : TIDLString) : TIDLToken;
 
 Var
   TokenStart : PChar;
@@ -1304,7 +1328,7 @@ begin
       repeat
         Inc(TokenStr);
       until not (TokenStr[0] in ['i','n','f','t','y']);
-      Result:=tkNegInfinity; // We'll check at the end if the string is actually correct
+      Result:=tkNegInfinity; // We'll check at the end if the TIDLString is actually correct
       break;
       end;
     '.':
@@ -1347,27 +1371,26 @@ begin
     end;
     end;
   SectionLength := TokenStr - TokenStart;
-  S:='';
-  SetString(S, TokenStart, SectionLength);
+  S:=MakeString(TokenStart,SectionLength);
   if (Result=tkNegInfinity) and (S<>'-Infinity') then
     Error(SErrUnknownToken,[S]);
   if (Result=tkMinus) and (S<>'-') then
     Error(SErrUnknownTerminator,[s]);
 end;
 
-function TWebIDLScanner.GetErrorPos: String;
+function TWebIDLScanner.GetErrorPos: TIDLString;
 begin
   Result:=CurFile+'('+IntToStr(CurRow)+','+IntToStr(CurColumn)+')';
   Result:=Format('Scanner error at %s: ',[Result]);
 end;
 
-function TWebIDLScanner.ReadComment : UTF8String;
+function TWebIDLScanner.ReadComment : TIDLString;
 
 Var
   TokenStart : PChar;
   SectionLength : Integer;
   EOC,IsStar : Boolean;
-  S : String;
+  S : TIDLString;
 
 begin
   Result:='';
@@ -1554,7 +1577,7 @@ end;
 procedure TWebIDLScanner.HandleDirective;
 var
   p: PChar;
-  aDirective: string;
+  aDirective: TIDLString;
 begin
   inc(TokenStr);
   p:=TokenStr;
@@ -1577,7 +1600,7 @@ end;
 procedure TWebIDLScanner.HandleIfDef;
 var
   StartP: PChar;
-  aName: string;
+  aName: TIDLString;
 begin
   PushSkipMode;
   if FIsSkipping then
@@ -1606,7 +1629,7 @@ end;
 procedure TWebIDLScanner.HandleIfNDef;
 var
   StartP: PChar;
-  aName: string;
+  aName: TIDLString;
 begin
   PushSkipMode;
   if FIsSkipping then
@@ -1687,7 +1710,7 @@ begin
   Inc(FSkipStackIndex);
 end;
 
-function TWebIDLScanner.IsDefined(const aName: string): boolean;
+function TWebIDLScanner.IsDefined(const aName: TIDLString): boolean;
 begin
   Result:=false;
   if aName='' then ;
@@ -1727,7 +1750,7 @@ begin
 end;
 
 function TWebIDLScanner.OnEvalFunction(Sender: TDirectiveEvaluator; Name,
-  Param: String; out Value: string): boolean;
+  Param: TIDLString; out Value: TIDLString): boolean;
 begin
   Result:=true;
   if Name='defined' then
@@ -1739,7 +1762,7 @@ end;
 procedure TWebIDLScanner.OnEvalLog(Sender: TDirectiveEvaluator;
   Args: array of const);
 var
-  Msg: String;
+  Msg: TIDLString;
 begin
   if Sender.MsgType<=mtError then
     begin
@@ -1752,8 +1775,8 @@ begin
     ; //DoLog(Sender.MsgType,Sender.MsgNumber,Sender.MsgPattern,Args,true);
 end;
 
-function TWebIDLScanner.OnEvalVar(Sender: TDirectiveEvaluator; Name: String;
-  out Value: string): boolean;
+function TWebIDLScanner.OnEvalVar(Sender: TDirectiveEvaluator; Name: TIDLString;
+  out Value: TIDLString): boolean;
 begin
   Result:=true;
   Value:='';

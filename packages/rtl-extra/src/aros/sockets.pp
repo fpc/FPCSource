@@ -38,13 +38,13 @@ type
   TUnixSockAddr = packed Record
                   sa_len     : cuchar;
                   family       : sa_family_t;
-                  path:array[0..107] of char;    //104 total for freebsd.
+                  path:array[0..107] of AnsiChar;    //104 total for freebsd.
                   end;
 
 type
   hostent = record
-    h_name     : PChar;
-    h_aliases  : PPChar;
+    h_name     : PAnsiChar;
+    h_aliases  : PPAnsiChar;
     h_addrtype : LongInt;
     h_Length   : LongInt;
     h_addr_list: ^PDWord;
@@ -101,12 +101,12 @@ const
 
 { unix socket specific functions }
 {*
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;
-Function Bind(Sock:longint;const addr:string):boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean; deprecated;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean; deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;    deprecated;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;    deprecated;
+Procedure Str2UnixSockAddr(const addr:ansistring;var t:TUnixSockAddr;var len:longint); deprecated;
+Function Bind(Sock:longint;const addr:ansistring):boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:ansistring;var SockIn,SockOut:file):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:text):Boolean;    deprecated;
+Function Accept(Sock:longint;var addr:ansistring;var SockIn,SockOut:File):Boolean;    deprecated;
 *}
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
@@ -120,10 +120,10 @@ function bsd_bind(s: LongInt; const name: PSockAddr; NameLen: LongInt): LongInt;
 function bsd_listen(s: LongInt; BackLog: LongInt): LongInt; syscall SocketBase 7;
 function bsd_accept(s: LongInt; Addr: PSockaddr; AddrLen: PSockLen): LongInt; syscall SocketBase 8;
 function bsd_connect(s : LongInt; const Name: PSockaddr; NameLen: LongInt): LongInt; syscall SocketBase 9;
-function bsd_sendto(s: LongInt; const Msg: PChar; Len: LongInt; Flags: LongInt; const To_: PSockaddr; ToLen: LongInt): LongInt; syscall SocketBase 10;
-function bsd_send(s: LongInt; const msg: PChar; Len: LongInt; Flags: LongInt): LongInt; syscall SocketBase 11;
-function bsd_recvfrom(s: LongInt; Buf: PChar; Len: LongInt; Flags: LongInt; From: PSockaddr; FromLen: PSockLen): LongInt; syscall SocketBase 12;
-function bsd_recv(s: LongInt; buf: PChar; Len: LongInt; Flags: LongInt): LongInt; syscall SocketBase 13;
+function bsd_sendto(s: LongInt; const Msg: PAnsiChar; Len: LongInt; Flags: LongInt; const To_: PSockaddr; ToLen: LongInt): LongInt; syscall SocketBase 10;
+function bsd_send(s: LongInt; const msg: PAnsiChar; Len: LongInt; Flags: LongInt): LongInt; syscall SocketBase 11;
+function bsd_recvfrom(s: LongInt; Buf: PAnsiChar; Len: LongInt; Flags: LongInt; From: PSockaddr; FromLen: PSockLen): LongInt; syscall SocketBase 12;
+function bsd_recv(s: LongInt; buf: PAnsiChar; Len: LongInt; Flags: LongInt): LongInt; syscall SocketBase 13;
 function bsd_shutdown(s: LongInt; How: LongInt): LongInt; syscall SocketBase 14;
 function bsd_setsockopt(s: LongInt; level: LongInt; optname: LongInt; const optval: Pointer; optlen: LongInt) : LongInt; syscall SocketBase 15;
 function bsd_getsockopt(s: LongInt; Level: LongInt; OptName: LongInt; OptVal: Pointer; OptLen: PSockLen): LongInt; syscall SocketBase 16;
@@ -131,9 +131,9 @@ function bsd_getsockname(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): Lo
 function bsd_getpeername(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): LongInt; syscall SocketBase 18;
 function bsd_closesocket(s: LongInt): LongInt; syscall SocketBase 20;
 function bsd_Errno: LongInt; syscall SocketBase 27;
-function bsd_inet_ntoa(in_: LongWord): PChar; syscall SocketBase 29;
-function bsd_inet_addr(const cp: PChar): LongWord; syscall SocketBase 30;
-function bsd_gethostbyname(const Name: PChar): PHostEnt; syscall SocketBase 35;
+function bsd_inet_ntoa(in_: LongWord): PAnsiChar; syscall SocketBase 29;
+function bsd_inet_addr(const cp: PAnsiChar): LongWord; syscall SocketBase 30;
+function bsd_gethostbyname(const Name: PAnsiChar): PHostEnt; syscall SocketBase 35;
 function bsd_gethostbyaddr(const Addr: PByte; Len: LongInt; Type_: LongInt): PHostEnt; syscall SocketBase 36;
 
 Implementation

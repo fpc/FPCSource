@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -17,7 +18,7 @@
 function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean;
   
 begin
@@ -39,7 +40,7 @@ end;
 function ExtractFilePath(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -54,7 +55,7 @@ end;
 function ExtractFileDir(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -100,7 +101,7 @@ end;
 function ExtractFileName(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
 begin
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators;
@@ -112,7 +113,7 @@ end;
 function ExtractFileExt(const FileName: PathStr): PathStr;
 var
   i : longint;
-  EndSep : Set of Char;
+  EndSep : Set of AnsiChar;
   SOF : Boolean; // Dot at Start of filename ?
   
 begin
@@ -418,7 +419,7 @@ begin
       or (DirName[i] = DriveSeparator)
     {$endif}
       ) and
-       { avoid error in case last char=pathdelim }
+       { avoid error in case last AnsiChar=pathdelim }
        (length(dirname)>i) then
       begin
         DirName[i]:=#0;

@@ -60,7 +60,7 @@ interface
      sb1 = shortint;
 
      Peb1 = ^eb1;
-     eb1 = char;
+     eb1 = AnsiChar;
 
   const
      UB1MAXVAL:ub1 = 255;
@@ -197,7 +197,7 @@ interface
 
   type
      Poratext = ^oratext;
-     oratext = char;
+     oratext = AnsiChar;
 
 
   type

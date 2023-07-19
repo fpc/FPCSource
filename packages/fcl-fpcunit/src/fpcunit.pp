@@ -98,8 +98,10 @@ type
     class procedure AssertTrue(ACondition: boolean); overload;
     class procedure AssertFalse(const AMessage: string; ACondition: boolean; AErrorAddrs: Pointer = nil); overload;
     class procedure AssertFalse(ACondition: boolean); overload;
-    class procedure AssertEquals(const AMessage: string; Expected, Actual: string); overload;
-    class procedure AssertEquals(Expected, Actual: string); overload;
+    class procedure AssertEquals(const AMessage: string; Expected: AnsiString; Actual: UnicodeString); overload;
+    class procedure AssertEquals(const AMessage: string; Expected: UnicodeString; Actual: AnsiString); overload;
+    class procedure AssertEquals(const AMessage: string; Expected, Actual: Ansistring); overload;
+    class procedure AssertEquals(Expected, Actual: Ansistring); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: integer); overload;
@@ -114,8 +116,8 @@ type
     class procedure AssertEquals(Expected, Actual, Delta: double); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: boolean); overload;
     class procedure AssertEquals(Expected, Actual: boolean); overload;
-    class procedure AssertEquals(const AMessage: string; Expected, Actual: char); overload;
-    class procedure AssertEquals(Expected, Actual: char); overload;
+    class procedure AssertEquals(const AMessage: string; Expected, Actual: AnsiChar); overload;
+    class procedure AssertEquals(Expected, Actual: AnsiChar); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: TClass); overload;
     class procedure AssertEquals(Expected, Actual: TClass); overload;
     class procedure AssertSame(const AMessage: string; Expected, Actual: TObject); overload;
@@ -332,7 +334,7 @@ type
     property StartingTime: TDateTime read FStartingTime;
   end;
 
-  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
+  function ComparisonMsg(const aExpected: AnsiString; const aActual: AnsiString; const aCheckEqual: boolean=true): AnsiString; overload;
   function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): Unicodestring; overload;
   function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
 
@@ -426,7 +428,7 @@ begin
 end;
 
 
-function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
+function ComparisonMsg(const aExpected: Ansistring; const aActual: AnsiString; const aCheckEqual: boolean=true): AnsiString;
 // aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
 begin
   if aCheckEqual then
@@ -682,25 +684,38 @@ begin
   AssertFalse('', ACondition,CallerAddr);
 end;
 
+class procedure TAssert.AssertEquals(const AMessage: string;
+  Expected: AnsiString; Actual: UnicodeString);
+begin
+  AssertTrue(ComparisonMsg(AMessage ,UnicodeString(Expected), Actual), UnicodeString(Expected)=Actual,CallerAddr);
+end;
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: string);
+class procedure TAssert.AssertEquals(const AMessage: string;
+  Expected: UnicodeString; Actual: AnsiString);
+begin
+  AssertTrue(ComparisonMsg(AMessage ,Expected, UnicodeString(Actual)), Expected=UnicodeString(Actual),CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Ansistring);
 begin
   AssertTrue(ComparisonMsg(AMessage ,Expected, Actual), Expected=Actual,CallerAddr);
 end;
 
 
-class procedure TAssert.AssertEquals(Expected, Actual: string);
+class procedure TAssert.AssertEquals(Expected, Actual: Ansistring);
 begin
   AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
 end;
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Unicodestring);
+class procedure TAssert.AssertEquals(const AMessage: string; Expected,
+  Actual: UnicodeString);
 begin
   AssertTrue(ComparisonMsg(AMessage ,Expected, Actual), Expected=Actual,CallerAddr);
 end;
 
 
-class procedure TAssert.AssertEquals(Expected, Actual: Unicodestring);
+class procedure TAssert.AssertEquals(Expected, Actual: UnicodeString);
 begin
   AssertTrue(ComparisonMsg(Expected, Actual), Expected=Actual,CallerAddr);
 end;
@@ -793,13 +808,13 @@ begin
 end;
 
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: char);
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: AnsiChar);
 begin
   AssertTrue(ComparisonMsg(AMessage,Expected, Actual), Expected = Actual,CallerAddr);
 end;
 
 
-class procedure TAssert.AssertEquals(Expected, Actual: char);
+class procedure TAssert.AssertEquals(Expected, Actual: AnsiChar);
 begin
   AssertTrue(ComparisonMsg(Expected, Actual), Expected = Actual,CallerAddr);
 end;

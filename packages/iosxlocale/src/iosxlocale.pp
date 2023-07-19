@@ -53,7 +53,7 @@ function CFStringToStr(AString: CFStringRef): UTF8String;
     // Try the quick way first
     Str:=CFStringGetCStringPtr(AString, kCFStringEncodingUTF8);
     if Str<>nil then
-      Result:=PChar(Str)
+      Result:=PAnsiChar(Str)
     else
       begin
         // if that doesn't work this will
@@ -222,7 +222,7 @@ procedure GetMacFormatSettings(var ASettings: TFormatSettings);
         Result:=ADefault;
     end;
   
-    function _GetSeparator(dateStyle: CFDateFormatterStyle; timeStyle: CFDateFormatterStyle; DefSep: char): char;
+    function _GetSeparator(dateStyle: CFDateFormatterStyle; timeStyle: CFDateFormatterStyle; DefSep: AnsiChar): AnsiChar;
     var
       fmt: CFDateFormatterRef;
       s: utf8string;
@@ -264,7 +264,7 @@ procedure GetMacFormatSettings(var ASettings: TFormatSettings);
         if Length(s)=1 then
           ThousandSeparator:=s[1]
         else
-          ThousandSeparator:=' ';  // Unicode char has been returned. Probably it is a whitespace
+          ThousandSeparator:=' ';  // Unicode AnsiChar has been returned. Probably it is a whitespace
         CurrencyString:=CFStringToStr(CFLocaleGetValue(loc, kCFLocaleCurrencySymbol));
     
         DateSeparator:=_GetSeparator(kCFDateFormatterShortStyle, kCFDateFormatterNoStyle, DateSeparator);

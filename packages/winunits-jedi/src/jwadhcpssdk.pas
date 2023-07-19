@@ -86,12 +86,12 @@ type
     Server: LPDHCP_IP_ADDRESS;
     ParameterRequestList: LPBYTE;
     ParameterRequestListLength: DWORD;
-    MachineName: PCHAR;
+    MachineName: PAnsiChar;
     MachineNameLength: DWORD;
     ClientHardwareAddressType: BYTE;
     ClientHardwareAddressLength: BYTE;
     ClientHardwareAddress: LPBYTE;
-    ClassIdentifier: PCHAR;
+    ClassIdentifier: PAnsiChar;
     ClassIdentifierLength: DWORD;
     VendorClass: LPBYTE;
     VendorClassLength: DWORD;
@@ -99,7 +99,7 @@ type
     DNSNameLength: DWORD;
     DNSName: LPBYTE;
     DSDomainNameRequested: LongBool;
-    DSDomainName: PCHAR;
+    DSDomainName: PAnsiChar;
     DSDomainNameLen: DWORD;
     ScopeId: LPDWORD;
   end;

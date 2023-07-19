@@ -155,7 +155,7 @@ const maxargs=256;
 procedure exec(const path : pathstr;const comline : comstr);
 var c : comstr;
     i : integer;
-    args : array[0..maxargs] of pchar;
+    args : array[0..maxargs] of PAnsiChar;
     arg0 : pathstr;
     numargs,wstat : integer;
     Wiring : TWiring;
@@ -189,13 +189,13 @@ begin
   //writeln (stderr,'calling procve');
   i := procve(args[0],
               PROC_CURRENT_SPACE+PROC_INHERIT_CWD,
-              envP,         // const char * env[] If passed as NULL, the child process inherits the parent.s environment at the time of the call.
+              envP,         // const AnsiChar * env[] If passed as NULL, the child process inherits the parent.s environment at the time of the call.
               @Wiring,      // wiring_t *wiring, Pass NULL to inherit system defaults for wiring.
               nil,          // struct fd_set *fds, Not currently implemented. Pass in NULL.
               nil,          // void *appdata, Not currently implemented. Pass in NULL.
               0,            // size_t appdata_size, Not currently implemented. Pass in 0
               nil,          // void *reserved, Reserved. Pass NULL.
-              @args);       // const char *argv[]
+              @args);       // const AnsiChar *argv[]
   //writeln (stderr,'Ok');
   if i <> -1 then
   begin
@@ -243,7 +243,7 @@ end;
 
 
 function diskfree(drive : byte) : int64;
-{VAR Buf                 : ARRAY [0..255] OF CHAR;
+{VAR Buf                 : ARRAY [0..255] OF AnsiChar;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
@@ -274,7 +274,7 @@ end;
 
 
 function disksize(drive : byte) : int64;
-{VAR Buf                 : ARRAY [0..255] OF CHAR;
+{VAR Buf                 : ARRAY [0..255] OF AnsiChar;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
@@ -370,7 +370,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..256] of char;
+  path0 : array[0..256] of AnsiChar;
   p     : longint;
 begin
   IF path = '' then
@@ -559,14 +559,14 @@ var
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
-  p: pchar;
+  p: PAnsiChar;
 begin
   doserror := 0;
 {$ifdef FPC_ANSI_TEXTFILEREC}
   p := @filerec(f).name;
 {$else FPC_ANSI_TEXTFILEREC}
   r := ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-  p := pchar(r);
+  p := PAnsiChar(r);
 {$endif FPC_ANSI_TEXTFILEREC}
   if Fpstat (p, StatBuf) = 0 then
     attr := nwattr2dosattr (StatBuf.st_mode)
@@ -585,13 +585,13 @@ var
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
-  p: pchar;
+  p: PAnsiChar;
 begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   p := @filerec(f).name;
 {$else FPC_ANSI_TEXTFILEREC}
   r := ToSingleByteFileSystemEncodedFileName(filerec(f).name);
-  p := pchar(r);
+  p := PAnsiChar(r);
 {$endif FPC_ANSI_TEXTFILEREC}
   if Fpstat (p,StatBuf) = 0 then
   begin
@@ -620,7 +620,7 @@ end;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
   p:=envp;      {defined in system}
@@ -636,7 +636,7 @@ End;
 Function EnvStr (Index: longint): String;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if Index <= 0 then
     envstr:=''
@@ -659,8 +659,8 @@ end;
 
 { works fine (at least with netware 6.5) }
 Function  GetEnv(envvar: string): string;
-var envvar0 : array[0..512] of char;
-    p       : pchar;
+var envvar0 : array[0..512] of AnsiChar;
+    p       : PAnsiChar;
     SearchElement : string[255];
     i,isDosPath,res : longint;
 begin

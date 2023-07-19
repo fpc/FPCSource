@@ -52,7 +52,7 @@ USES Exec,intuition,utility, gadtools,agraphics;
 
   const
 
-     GTLAYOUTNAME : PCHar = 'gtlayout.library';
+     GTLAYOUTNAME : PAnsiChar = 'gtlayout.library';
 
      HORIZONTAL_KIND = 45;
      VERTICAL_KIND = 46;
@@ -556,7 +556,7 @@ const
 
 VAR GTLayoutBase : pLibrary = nil;
 
-PROCEDURE LT_LevelWidth(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'a5'; last : LONGINT location 'd2'); syscall GTLayoutBase 30;
+PROCEDURE LT_LevelWidth(par1 : pLayoutHandle location 'a0'; par2 : PAnsiChar location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'a5'; last : LONGINT location 'd2'); syscall GTLayoutBase 30;
 PROCEDURE LT_DeleteHandle(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 36;
 FUNCTION LT_CreateHandle(par1 : pScreen location 'a0'; last : pTextAttr location 'a1') : pLayoutHandle; syscall GTLayoutBase 42;
 FUNCTION LT_CreateHandleTagList(par1 : pScreen location 'a0'; tags : pTagItem location 'a1') : pLayoutHandle; syscall GTLayoutBase 48;
@@ -566,13 +566,13 @@ PROCEDURE LT_BeginRefresh(last : pLayoutHandle location 'a0'); syscall GTLayoutB
 PROCEDURE LT_EndRefresh(par1 : pLayoutHandle location 'a0'; last : LONGINT location 'd0'); syscall GTLayoutBase 72;
 FUNCTION LT_GetAttributesA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; tags : pTagItem location 'a1') : LONGINT; syscall GTLayoutBase 78;
 PROCEDURE LT_SetAttributesA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; tags : pTagItem location 'a1'); syscall GTLayoutBase 84;
-PROCEDURE LT_AddA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; par3 : pCHAR location 'd1'; par4 : LONGINT location 'd2'; tags : pTagItem location 'a1'); syscall GTLayoutBase 90;
+PROCEDURE LT_AddA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; par3 : PAnsiChar location 'd1'; par4 : LONGINT location 'd2'; tags : pTagItem location 'a1'); syscall GTLayoutBase 90;
 PROCEDURE LT_NewA(par1 : pLayoutHandle location 'a0'; tags : pTagItem location 'a1'); syscall GTLayoutBase 96;
 PROCEDURE LT_EndGroup(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 102;
-FUNCTION LT_LayoutA(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : pIBox location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : ulong location 'd2'; par7 : LONGINT location 'd3'; tags : pTagItem location 'A3') : pWindow; syscall GTLayoutBase 108;
+FUNCTION LT_LayoutA(par1 : pLayoutHandle location 'a0'; par2 : PAnsiChar location 'a1'; par3 : pIBox location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : ulong location 'd2'; par7 : LONGINT location 'd3'; tags : pTagItem location 'A3') : pWindow; syscall GTLayoutBase 108;
 FUNCTION LT_LayoutMenusA(par1 : pLayoutHandle location 'a0'; par2 : pNewMenu location 'a1'; tags : pTagItem location 'a2') : pMenu; syscall GTLayoutBase 114;
-FUNCTION LT_LabelWidth(par1 : pLayoutHandle location 'a0'; last : pCHAR location 'a1') : LONGINT; syscall GTLayoutBase 138;
-FUNCTION LT_LabelChars(par1 : pLayoutHandle location 'a0'; last : pCHAR location 'a1') : LONGINT; syscall GTLayoutBase 144;
+FUNCTION LT_LabelWidth(par1 : pLayoutHandle location 'a0'; last : PAnsiChar location 'a1') : LONGINT; syscall GTLayoutBase 138;
+FUNCTION LT_LabelChars(par1 : pLayoutHandle location 'a0'; last : PAnsiChar location 'a1') : LONGINT; syscall GTLayoutBase 144;
 PROCEDURE LT_LockWindow(last : pWindow location 'a0'); syscall GTLayoutBase 150;
 PROCEDURE LT_UnlockWindow(last : pWindow location 'a0'); syscall GTLayoutBase 156;
 PROCEDURE LT_DeleteWindowLock(last : pWindow location 'a0'); syscall GTLayoutBase 162;
@@ -591,7 +591,7 @@ FUNCTION LT_NewMenuTagList(tags : pTagItem location 'a0') : pMenu; syscall GTLay
 PROCEDURE LT_MenuControlTagList(par1 : pWindow location 'a0'; par2 : pMenu location 'a1'; tags : pTagItem location 'a2'); syscall GTLayoutBase 240;
 FUNCTION LT_GetMenuItem(par1 : pMenu location 'a0'; last : ulong location 'd0') : pMenuItem; syscall GTLayoutBase 246;
 FUNCTION LT_FindMenuCommand(par1 : pMenu location 'a0'; par2 : ulong location 'd0'; par3 : ulong location 'd1'; last : pGadget location 'a1') : pMenuItem; syscall GTLayoutBase 252;
-PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'd3'; last : LONGINT location 'd2'); syscall GTLayoutBase 258;
+PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle location 'a0'; par2 : PAnsiChar location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'd3'; last : LONGINT location 'd2'); syscall GTLayoutBase 258;
 PROCEDURE LT_Refresh(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 264;
 PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 270;
 FUNCTION LT_GetWindowUserData(par1 : pWindow location 'a0'; last : POINTER location 'a1') : POINTER; syscall GTLayoutBase 276;
@@ -604,9 +604,9 @@ FUNCTION LT_GetWindowUserData(par1 : pWindow location 'a0'; last : POINTER locat
 FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : array of PtrUInt) : pLayoutHandle;
 FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt) : LONGINT;
 PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt);
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : PAnsiChar; id : LONGINT; const tagList : array of PtrUInt);
 PROCEDURE LT_New(handle : pLayoutHandle; const tagList : array of PtrUInt);
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : PAnsiChar; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
 FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : array of PtrUInt) : pMenu;
 FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : array of PtrUInt) : pWindow;
 FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : array of PtrUInt) : BOOLEAN;
@@ -636,7 +636,7 @@ begin
     LT_SetAttributesA(handle , id , @tagList);
 end;
 
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : PAnsiChar; id : LONGINT; const tagList : array of PtrUInt);
 begin
     LT_AddA(handle , _type , _label , id , @tagList);
 end;
@@ -646,7 +646,7 @@ begin
     LT_NewA(handle , @tagList);
 end;
 
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : PAnsiChar; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
 begin
     LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , @tagParams);
 end;

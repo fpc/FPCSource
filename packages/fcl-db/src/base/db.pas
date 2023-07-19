@@ -31,7 +31,7 @@ const
 
   // Used in AsBoolean for string fields to determine
   // whether it's true or false.
-  YesNoChars : Array[Boolean] of char = ('N', 'Y');
+  YesNoChars : Array[Boolean] of AnsiChar = ('N', 'Y');
 
   SQLDelimiterCharacters = [';',',',' ','(',')',#13,#10,#9];
 
@@ -254,7 +254,7 @@ type
     DisplayText: Boolean) of object;
   TFieldSetTextEvent = procedure(Sender: TField; const aText: string) of object;
   TFieldRef = ^TField;
-  TFieldChars = set of Char;
+  TFieldChars = set of AnsiChar;
 
   PLookupListRec = ^TLookupListRec;
   TLookupListRec = record
@@ -416,7 +416,7 @@ type
     function GetData(Buffer: Pointer): Boolean; overload;
     function GetData(Buffer: Pointer; NativeFormat : Boolean): Boolean; overload;
     class function IsBlob: Boolean; virtual;
-    function IsValidChar(InputChar: Char): Boolean; virtual;
+    function IsValidChar(InputChar: AnsiChar): Boolean; virtual;
     procedure RefreshLookupList;
     procedure SetData(Buffer: Pointer); overload;
     procedure SetData(Buffer: Pointer; NativeFormat : Boolean); overload;
@@ -938,11 +938,15 @@ type
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBytes: TBytes; override;
-    function GetAsString: string; override;
+    function GetAsUnicodeString: Unicodestring; override;
+    function GetAsAnsiString: Ansistring; override;
     function GetAsVariant: Variant; override;
     function GetValue(var AValue: TBytes): Boolean;
+    function GetAsString : String; override;
+    Procedure SetAsString(const S : String); override;
     procedure SetAsBytes(const AValue: TBytes); override;
-    procedure SetAsString(const AValue: string); override;
+    procedure SetAsAnsiString(const AValue: ansistring); override;
+    procedure SetAsUnicodeString(const AValue: unicodestring); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1558,12 +1562,12 @@ type
   PBookmarkFlag = ^TBookmarkFlag;
   TBookmarkFlag = (bfCurrent, bfBOF, bfEOF, bfInserted);
 
-{ These types are used by Delphi/Unicode to replace the ambiguous "pchar" buffer types.
+{ These types are used by Delphi/Unicode to replace the ambiguous "PAnsiChar" buffer types.
   For now, they are just aliases to PAnsiChar, but in Delphi/Unicode it is pbyte. This will
   be changed later (2.8?), to allow a grace period for descendents to catch up.
   
   Testing with TRecordBuffer=PByte will turn up typing problems. TRecordBuffer=pansichar is backwards
-  compatible, even if overriden with "pchar" variants.
+  compatible, even if overriden with "PAnsiChar" variants.
 }
   TRecordBufferBaseType = AnsiChar; // must match TRecordBuffer. 
   TRecordBuffer = PAnsiChar;
@@ -1926,7 +1930,7 @@ type
     procedure Refresh;
     procedure Resync(Mode: TResyncMode); virtual;
     procedure SetFields(const Values: array of const);
-    function  Translate(Src, Dest: PChar; ToOem: Boolean): Integer; virtual;
+    function  Translate(Src, Dest: PAnsiChar; ToOem: Boolean): Integer; virtual;
     procedure UpdateCursorPos;
     procedure UpdateRecord;
     function UpdateStatus: TUpdateStatus; virtual;

@@ -66,9 +66,9 @@ var
  is_targa : boolean;    { records user -targa switch }
 
 function GetFirstChar(cinfo : j_compress_ptr;
-                      fptr : fileptr) : char;
+                      fptr : fileptr) : AnsiChar;
 var
-  c : char;
+  c : AnsiChar;
 begin
   if JFREAD(fptr, @c, 1) <> 1 then
     ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EMPTY);
@@ -88,7 +88,7 @@ end;
 function select_file_type (cinfo : j_compress_ptr;
                            var infile : FILE) : cjpeg_source_ptr;
 var
-  c : char;
+  c : AnsiChar;
 begin
   if (is_targa) then
   begin
@@ -117,7 +117,7 @@ begin
   'R': select_file_type := jinit_read_rle(cinfo);
 {$endif}
 {$ifdef TARGA_SUPPORTED}
-  char($00): select_file_type := jinit_read_targa(cinfo);
+  AnsiChar($00): select_file_type := jinit_read_targa(cinfo);
 {$endif}
   else
     ERREXIT(j_common_ptr(cinfo), JERR_UNKNOWN_FORMAT);
@@ -218,7 +218,7 @@ function parse_switches (cinfo : j_compress_ptr;
 var
   argn,
   argc : int;
-  arg : string;
+  arg : ansistring;
 var
   value : int;
   code : integer;
@@ -230,10 +230,10 @@ var
   qtablefile,                  { saves -qtables filename if any }
   qslotsarg,                   { saves -qslots parm if any }
   samplearg,                   { saves -sample parm if any }
-  scansarg : string;           { saves -scans parm if any }
+  scansarg : ansistring;           { saves -scans parm if any }
 var
   lval : long;
-  ch : char;
+  ch : AnsiChar;
 
 const
   printed_version : boolean = FALSE;

@@ -3,7 +3,7 @@ uses dynlibs, libfontconfig;
 Var
   FC : PFcConfig;
   FL : PFcStrList;
-  P : PChar;
+  P : PAnsiChar;
 
 begin
   Writeln('Load 1: ',loadfontconfiglib(''));

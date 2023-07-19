@@ -81,12 +81,12 @@ var
   gdk_pixbuf_major_version: guint; external gdkpixbuflib name 'gdk_pixbuf_major_version';
   gdk_pixbuf_minor_version: guint; external gdkpixbuflib name 'gdk_pixbuf_minor_version';
   gdk_pixbuf_micro_version: guint; external gdkpixbuflib name 'gdk_pixbuf_micro_version';
-  gdk_pixbuf_version: PChar ; external gdkpixbuflib name 'gdk_pixbuf_version';
+  gdk_pixbuf_version: PAnsiChar ; external gdkpixbuflib name 'gdk_pixbuf_version';
   {$ELSE }
   gdk_pixbuf_major_version: guint;cvar;external;
   gdk_pixbuf_minor_version: guint;cvar;external;
   gdk_pixbuf_micro_version: guint;cvar;external;
-  gdk_pixbuf_version: PChar;cvar;external;
+  gdk_pixbuf_version: PAnsiChar;cvar;external;
   {$ENDIF }
 {$ENDIF}
 
@@ -192,17 +192,17 @@ function gdk_pixbuf_copy(pixbuf:PGdkPixbuf):PGdkPixbuf; cdecl; external gdkpixbu
 function gdk_pixbuf_new_subpixbuf(src_pixbuf:PGdkPixbuf; src_x:longint; src_y:longint; width:longint; height:longint):PGdkPixbuf; cdecl; external gdkpixbuflib;
 
 { Simple loading  }
-function gdk_pixbuf_new_from_file(filename:Pchar; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_new_from_file(filename:PAnsiChar; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_new_from_data(data:Pguchar; colorspace:TGdkColorspace; has_alpha:gboolean; bits_per_sample:longint; width:longint;
            height:longint; rowstride:longint; destroy_fn:TGdkPixbufDestroyNotify; destroy_fn_data:gpointer):PGdkPixbuf; cdecl; external gdkpixbuflib;
-function gdk_pixbuf_new_from_xpm_data(data:PPchar):PGdkPixbuf; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_new_from_xpm_data(data:PPAnsiChar):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_new_from_inline(data_length:gint; var data:guint8; copy_pixels:gboolean; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
 
 {$IFDEF HasGTK2_4}
-function gdk_pixbuf_new_from_file_at_size(filename:Pchar; width, height: gint;error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_new_from_file_at_size(filename:PAnsiChar; width, height: gint;error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
 {$ENDIF HasGTK2_4}
 {$IFDEF HasGTK2_6}
-function gdk_pixbuf_new_from_file_at_scale(filename:Pchar; width, height: gint; preserve_aspect_ratio: gboolean; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_new_from_file_at_scale(filename:PAnsiChar; width, height: gint; preserve_aspect_ratio: gboolean; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
 {$ENDIF HasGTK2_6}
 
 { Mutations  }
@@ -210,12 +210,12 @@ procedure gdk_pixbuf_fill(pixbuf:PGdkPixbuf; pixel:guint32); cdecl; external gdk
 
 { Saving  }
 {$IFNDEF KYLIX}
-function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:Pchar; _type:Pchar; error:PPGError; args:array of const):gboolean; cdecl; overload; external gdkpixbuflib;
-function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:Pchar; _type:Pchar; error:PPGError):gboolean; cdecl; overload; external gdkpixbuflib;
+function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:PAnsiChar; _type:PAnsiChar; error:PPGError; args:array of const):gboolean; cdecl; overload; external gdkpixbuflib;
+function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:PAnsiChar; _type:PAnsiChar; error:PPGError):gboolean; cdecl; overload; external gdkpixbuflib;
 {$ELSE}
-function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:Pchar; _type:Pchar; error:PPGError):gboolean; varargs; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_save(pixbuf:PGdkPixbuf; filename:PAnsiChar; _type:PAnsiChar; error:PPGError):gboolean; varargs; cdecl; external gdkpixbuflib;
 {$ENDIF}
-function gdk_pixbuf_savev(pixbuf:PGdkPixbuf; filename:Pchar; _type:Pchar; option_keys:PPchar; option_values:PPchar;
+function gdk_pixbuf_savev(pixbuf:PGdkPixbuf; filename:PAnsiChar; _type:PAnsiChar; option_keys:PPAnsiChar; option_values:PPAnsiChar;
            error:PPGError):gboolean; cdecl; external gdkpixbuflib;
 
 { Adding an alpha channel  }
@@ -251,7 +251,7 @@ function gdk_pixbuf_flip(src: PGdkPixbuf; horizontal: gboolean): PGdkPixbuf; cde
 
 { Animation support  }
 function gdk_pixbuf_animation_get_type:GType; cdecl; external gdkpixbuflib;
-function gdk_pixbuf_animation_new_from_file(filename:Pchar; error:PPGError):PGdkPixbufAnimation; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_animation_new_from_file(filename:PAnsiChar; error:PPGError):PGdkPixbufAnimation; cdecl; external gdkpixbuflib;
 
 {$ifndef GDK_PIXBUF_DISABLE_DEPRECATED}
 function gdk_pixbuf_animation_ref(animation:PGdkPixbufAnimation):PGdkPixbufAnimation; cdecl; external gdkpixbuflib;

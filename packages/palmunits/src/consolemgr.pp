@@ -29,9 +29,9 @@ uses palmos, coretraps;
  * Console Manager Routines
  ********************************************************************)
 
-function ConPutS(const message: PChar): Err; syscall sysTrapConPutS;
+function ConPutS(const message: PAnsiChar): Err; syscall sysTrapConPutS;
 
-function ConGetS(message: PChar; timeout: Int32): Err; syscall sysTrapConGetS;
+function ConGetS(message: PAnsiChar; timeout: Int32): Err; syscall sysTrapConGetS;
 
 implementation
 

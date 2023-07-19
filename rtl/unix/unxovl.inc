@@ -16,6 +16,6 @@
 Function fpStatFS(Path:ansistring;Info:PStatfs):cint;
 
 begin
-  fpstatfs:=fpstatfs(pchar(path),info);
+  fpstatfs:=fpstatfs(PAnsiChar(path),info);
 end;
 

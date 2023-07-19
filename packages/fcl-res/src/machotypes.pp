@@ -32,7 +32,7 @@ type
   TMachOSubMachineTypex64 = (msmx64_all, msmx64_haswell);
   TMachOSubMachineTypeArm = (msmarm_all,msmarm_v4t,msmarm_v6,msmarm_v5tej,msmarm_xscale,msmarm_v7);
   TMachOSubMachineTypeAarch64 = (msmaarch64_all, msmaarch64_v8, msmaarch64_e);
-  TSegSectName = array[0..15] of char;
+  TSegSectName = array[0..15] of AnsiChar;
 
   TMachOSubMachineType = record
     case TMachOMachineType of

@@ -150,7 +150,7 @@ type
   {$IFDEF USE_UNICODE}
     TSDOChar = WideChar;
   {$ELSE USE_UNICODE}
-    TSDOChar = Char;
+    TSDOChar = AnsiChar;
   {$ENDIF USE_UNICODE}
 {$ENDIF HAS_SDO_CHAR}
 {$IFDEF HAS_SDO_CURRENCY}
@@ -300,13 +300,13 @@ type
     ['{76F00A3A-A6F8-4D78-8514-570207853453}']
 	{  getName returns the name of the type
      *
-	 * This method returns a const char* name of the type.
+	 * This method returns a const AnsiChar* name of the type.
 	 }
     function getName() : string;
 
 	{  getAlias returns the n'th alias
      *
-	 * This method returns a const char* corresponding to the
+	 * This method returns a const AnsiChar* corresponding to the
 	 * alias at index n of the list of aliases. Use getAliasCount to
 	 * discover the size of the list.
 	 }
@@ -434,7 +434,7 @@ type
   
 	{  getAlias returns the n'th alias
      *
-	 * This method returns a const char* corresponding to the
+	 * This method returns a const AnsiChar* corresponding to the
 	 * alias at index n of the list of aliases. Use getAliasCount to 
 	 * discover the size of the list.
 	 }
@@ -851,7 +851,7 @@ type
     procedure setBoolean(const APropertyIndex : PtrUInt; const AValue : TSDOBoolean); overload;
     procedure setBoolean(const AProperty : ISDOProperty; const AValue : TSDOBoolean); overload;
 
-    {  getByte returns a char by path, index or property
+    {  getByte returns a AnsiChar by path, index or property
      *
      * Returns the value of a property of either this object or an object 
        * reachable from it, as identified by the specified path.
@@ -912,7 +912,7 @@ type
     procedure setBytes(const AProperty : ISDOProperty; AValue : TSDOBytes);overload;
 {$ENDIF HAS_SDO_BYTES}
 
-    {  getString returns a wide char buffer
+    {  getString returns a wide AnsiChar buffer
      *
      * A DataObject of type String holds an array of wide characters as its value. These
      * methods transfer the contents of that buffer into an array of wchar_t allocated
@@ -1068,11 +1068,11 @@ type
      * just a place to store anything for later retrieval. 
      }
 
-    {virtual SDO_API void setUserData(const char* path,void* value) = 0;
+    {virtual SDO_API void setUserData(const AnsiChar* path,void* value) = 0;
     virtual SDO_API void setUserData(unsigned int propertyIndex, void* value) = 0;
     virtual SDO_API void setUserData(const Property& property, void* value) = 0;
     virtual SDO_API void setUserData(void* value) = 0;
-    virtual SDO_API void* getUserData(const char* path) = 0;
+    virtual SDO_API void* getUserData(const AnsiChar* path) = 0;
     virtual SDO_API void* getUserData(unsigned int propertyIndex) = 0;
     virtual SDO_API void* getUserData(const Property& property) = 0;
     virtual SDO_API void* getUserData() = 0;
@@ -1085,7 +1085,7 @@ type
      }
 
     {virtual SDO_API SequencePtr getSequence() = 0;
-    virtual SDO_API SequencePtr getSequence(const char* path) = 0;
+    virtual SDO_API SequencePtr getSequence(const AnsiChar* path) = 0;
     virtual SDO_API SequencePtr getSequence(unsigned int propertyIndex) = 0;
     virtual SDO_API SequencePtr getSequence(const Property& property) = 0;
     }
@@ -1155,7 +1155,7 @@ type
      * object from the root data object of the graph.
      }
 
-    //virtual SDO_SPI const char* objectToXPath() = 0;
+    //virtual SDO_SPI const AnsiChar* objectToXPath() = 0;
 
   end;
 

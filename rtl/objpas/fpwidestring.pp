@@ -747,7 +747,7 @@ begin
   Result:=CompareStrAnsiString(a,b);
 end;
 
-function StrCompAnsiString(S1, S2: PChar): PtrInt;
+function StrCompAnsiString(S1, S2: PAnsiChar): PtrInt;
 var
   l1,l2 : PtrInt;
 begin
@@ -758,7 +758,7 @@ begin
   Result := InternalCompareStrAnsiString(S1,S2,l1,l2);
 end;
 
-function StrLICompAnsiString(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function StrLICompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   a, b: ansistring;
 begin
@@ -771,12 +771,12 @@ begin
   Result:=CompareTextAnsiString(a,b);
 end;
 
-function StrICompAnsiString(S1, S2: PChar): PtrInt;
+function StrICompAnsiString(S1, S2: PAnsiChar): PtrInt;
 begin
   Result:=CompareTextAnsiString(ansistring(s1),ansistring(s2));
 end;
 
-function StrLowerAnsiString(Str: PChar): PChar;
+function StrLowerAnsiString(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin
@@ -784,7 +784,7 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
-function StrUpperAnsiString(Str: PChar): PChar;
+function StrUpperAnsiString(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin

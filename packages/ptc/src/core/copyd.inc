@@ -46,5 +46,5 @@ type
                    ASourceWidth, ASourceHeight, ASourcePitch: Integer;
                    ADestinationPixels: Pointer; ADestinationX, ADestinationY,
                    ADestinationWidth, ADestinationHeight, ADestinationPitch: Integer);
-    function Option(const AOption: String): Boolean;
+    function Option(const AOption: AnsiString): Boolean;
   end;

@@ -29,7 +29,7 @@ type
 {$ENDIF}
 
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
-function StabBackTraceStr(addr:CodePointer):string;
+function StabBackTraceStr(addr:CodePointer):shortstring;
 procedure CloseStabs;
 
 var
@@ -88,7 +88,7 @@ var
   filestab   : tstab;   { stab with current file info }
   filename,
   lastfilename,         { store last processed file }
-  dbgfn : string;
+  dbgfn : ansistring;
   lastopenstabs: Boolean; { store last result of processing a file }
 
 
@@ -277,7 +277,7 @@ begin
      seek(e.f,stabstrofs+dirstab.strpos);
      blockread(e.f,source[1],high(source)-1,res);
      dirlength:=strlen(@source[1]);
-     source[0]:=chr(dirlength);
+     SetLength(source,dirlength);
    end
   else
    dirlength:=0;
@@ -285,13 +285,13 @@ begin
    begin
      seek(e.f,stabstrofs+filestab.strpos);
      blockread(e.f,source[dirlength+1],high(source)-(dirlength+1),res);
-     source[0]:=chr(strlen(@source[1]));
+     SetLength(source,strlen(@source[1]));
    end;
   if funcstab.ntype<>0 then
    begin
      seek(e.f,stabstrofs+funcstab.strpos);
      blockread(e.f,func[1],high(func)-1,res);
-     func[0]:=chr(strlen(@func[1]));
+     SetLength(func,strlen(@func[1]));
      i:=pos(':',func);
      if i>0 then
       Delete(func,i,255);
@@ -304,7 +304,7 @@ begin
 end;
 
 
-function StabBackTraceStr(addr:CodePointer):string;
+function StabBackTraceStr(addr:CodePointer):shortstring;
 var
   func,
   source : string;

@@ -49,7 +49,7 @@ Type
     function OnPCUConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     function OnPCUConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
     function OnWriterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
-    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar; out Count: integer);
+    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PAnsiChar; out Count: integer);
   Public
     constructor Create(aCompilerFile: TPas2JSCompilerFile; aFormat: TPas2JSPrecompileFormat); reintroduce;
     destructor Destroy; override;
@@ -365,7 +365,7 @@ begin
 end;
 
 procedure TFilerPCUSupport.OnFilerGetSrc(Sender: TObject; aFilename: string;
-  out p: PChar; out Count: integer);
+  out p: PAnsiChar; out Count: integer);
 var
   SrcFile: TPas2jsFile;
 begin
@@ -374,7 +374,7 @@ begin
   SrcFile:=MyFile.Compiler.FS.LoadFile(aFilename);
   if SrcFile=nil then
     RaiseInternalError(20180311135329,aFilename);
-  p:=PChar(SrcFile.Source);
+  p:=PAnsiChar(SrcFile.Source);
   Count:=length(SrcFile.Source);
 end;
 

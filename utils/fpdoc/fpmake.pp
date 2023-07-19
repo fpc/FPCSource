@@ -2,7 +2,11 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, sysutils;
+uses 
+{$ifdef unix}
+  cthreads,
+{$endif}
+  fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
 procedure add_fpdoc(const ADirectory: string);

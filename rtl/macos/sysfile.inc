@@ -40,7 +40,7 @@ begin
   {$endif}
 end;
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 
 var
   spec: FSSpec;
@@ -63,7 +63,7 @@ begin
     InOutRes:=res;
 end;
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 var
   s1,s2: RawByteString;
 begin
@@ -76,7 +76,7 @@ begin
   InOutRes:= PathArgToFullPath(p2, s2);
   if InOutRes <> 0 then
     exit;
-  c_rename(PChar(s1),PChar(s2));
+  c_rename(PAnsiChar(s1),PAnsiChar(s2));
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
@@ -198,7 +198,7 @@ begin
   {$endif}
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -296,7 +296,7 @@ begin
           exit;
         end;
 
-      p:= PChar(fullPath);
+      p:= PAnsiChar(fullPath);
     end;
 
 

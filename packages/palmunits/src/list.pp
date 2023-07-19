@@ -50,7 +50,7 @@ type
 
 // Load data callback routine prototype
 type
-  ListDrawDataFuncType = procedure (itemNum: Int16; bounds: RectanglePtr; var itemsText: PChar);
+  ListDrawDataFuncType = procedure (itemNum: Int16; bounds: RectanglePtr; var itemsText: PAnsiChar);
   ListDrawDataFuncPtr = ListDrawDataFuncType;
 
 type
@@ -59,7 +59,7 @@ type
     id: UInt16;
     bounds: RectangleType;
     attr: ListAttrType;
-    itemsText: ^PChar;
+    itemsText: ^PAnsiChar;
     numItems: Int16;                        // number of choices in the list
     currentItem: Int16;                     // currently display choice
     topItem: Int16;                         // top item visible when poped up
@@ -81,7 +81,7 @@ procedure LstEraseList(listP: ListPtr); syscall sysTrapLstEraseList;
 
 function LstGetSelection(const listP: ListPtr): Int16; syscall sysTrapLstGetSelection;
 
-function LstGetSelectionText(const listP: ListPtr; itemNum: Int16): PChar; syscall sysTrapLstGetSelectionText;
+function LstGetSelectionText(const listP: ListPtr; itemNum: Int16): PAnsiChar; syscall sysTrapLstGetSelectionText;
 
 function LstHandleEvent(listP: ListPtr; const eventP: EventPtr): Boolean; syscall sysTrapLstHandleEvent;
 
@@ -91,7 +91,7 @@ procedure LstSetPosition(listP: ListPtr; x, y: Coord); syscall sysTrapLstSetPosi
 
 procedure LstSetSelection(listP: ListPtr; itemNum: Int16); syscall sysTrapLstSetSelection;
 
-procedure LstSetListChoices(listP: ListPtr; var itemsText: PChar; numItems: Int16); syscall sysTrapLstSetListChoices;
+procedure LstSetListChoices(listP: ListPtr; var itemsText: PAnsiChar; numItems: Int16); syscall sysTrapLstSetListChoices;
 
 procedure LstSetDrawFunction(listP: ListPtr; func: ListDrawDataFuncPtr); syscall sysTrapLstSetDrawFunction;
 

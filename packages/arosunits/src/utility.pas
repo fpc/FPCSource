@@ -231,8 +231,8 @@ function SDivMod32(Dividend, Divisor: LongInt): Int64; syscall AOS_UtilityBase 2
 function UDivMod32(Dividend, Divisor: LongWord): LongWord; syscall AOS_UtilityBase 26;
 function Stricmp(const Str1: STRPTR; const Str2: STRPTR): LongInt; syscall AOS_UtilityBase 27;
 function Strnicmp(const Str1: STRPTR; const Str2 : STRPTR; Length_: LongInt): LongInt; syscall AOS_UtilityBase 28;
-function ToUpper(c: LongWord): Char; syscall AOS_UtilityBase 29;
-function ToLower(c: LongWord): Char; syscall AOS_UtilityBase 30;
+function ToUpper(c: LongWord): AnsiChar; syscall AOS_UtilityBase 29;
+function ToLower(c: LongWord): AnsiChar; syscall AOS_UtilityBase 30;
 procedure ApplyTagChanges(List: PTagItem; ChangeList: PTagItem); syscall AOS_UtilityBase 31;
 function SMult64(Arg1, Arg2: LongInt): Int64; syscall AOS_UtilityBase 33;
 function UMult64(Arg1, Arg2: LongWord): QWord; syscall AOS_UtilityBase 34;
@@ -256,13 +256,13 @@ function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNa
 function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR;
 
 function TAG_(Value: Pointer): PtrUInt; overload; inline;
-function TAG_(Value: PChar): PtrUInt; overload; inline;
+function TAG_(Value: PAnsiChar): PtrUInt; overload; inline;
 function TAG_(Value: boolean): PtrUInt; overload; inline;
 function TAG_(Value: LongInt): PtrUInt; overload; inline;
 function TAG_(Value: LongWord): PtrUInt; overload; inline;
 
 function AsTag(Value: Pointer): PtrUInt; overload; inline;
-function AsTag(Value: PChar): PtrUInt; overload; inline;
+function AsTag(Value: PAnsiChar): PtrUInt; overload; inline;
 function AsTag(Value: boolean): PtrUInt; overload; inline;
 function AsTag(Value: LongInt): PtrUInt; overload; inline;
 function AsTag(Value: LongWord): PtrUInt; overload; inline;
@@ -297,7 +297,7 @@ begin
   TAG_ := PtrUInt(Value);
 end;
 
-function TAG_(value: pchar): PtrUInt; inline;
+function TAG_(value: PAnsiChar): PtrUInt; inline;
 begin
   TAG_ := PtrUInt(Value);
 end;
@@ -325,7 +325,7 @@ begin
   AsTag := PtrUInt(Value);
 end;
 
-function AsTag(value: pchar): PtrUInt; inline;
+function AsTag(value: PAnsiChar): PtrUInt; inline;
 begin
   AsTag := PtrUInt(Value);
 end;

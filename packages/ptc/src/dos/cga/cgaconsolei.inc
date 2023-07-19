@@ -63,10 +63,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TCGAConsole.Configure(const AFileName: string);
+procedure TCGAConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -86,7 +86,7 @@ begin
   CloseFile(F);
 end;
 
-function TCGAConsole.option(const _option: string): Boolean;
+function TCGAConsole.option(const _option: AnsiString): Boolean;
 begin
   {...}
   if _option = 'enable logging' then
@@ -110,24 +110,24 @@ begin
   Result := m_modes;
 end;
 
-procedure TCGAConsole.Open(const _title: string; _pages: Integer); overload;
+procedure TCGAConsole.Open(const _title: AnsiString; _pages: Integer); overload;
 begin
   open(_title, m_default_format, _pages);
 end;
 
-procedure TCGAConsole.open(const _title: string; _format: IPTCFormat;
+procedure TCGAConsole.open(const _title: AnsiString; _format: IPTCFormat;
                            _pages: Integer); overload;
 begin
   open(_title, m_default_width, m_default_height, _format, _pages);
 end;
 
-procedure TCGAConsole.open(const _title: string; _width, _height: Integer;
+procedure TCGAConsole.open(const _title: AnsiString; _width, _height: Integer;
                            _format: IPTCFormat; _pages: Integer); overload;
 begin
   open(_title, TPTCMode.Create(_width, _height, _format), _pages);
 end;
 
-procedure TCGAConsole.open(const _title: string; _mode: IPTCMode;
+procedure TCGAConsole.open(const _title: AnsiString; _mode: IPTCMode;
                            _pages: Integer); overload;
 var
   _width, _height: Integer;
@@ -475,22 +475,22 @@ begin
   Result := m_primary.format;
 end;
 
-function TCGAConsole.GetName: string;
+function TCGAConsole.GetName: AnsiString;
 begin
   Result := 'CGA';
 end;
 
-function TCGAConsole.GetTitle: string;
+function TCGAConsole.GetTitle: AnsiString;
 begin
   Result := m_title;
 end;
 
-function TCGAConsole.GetInformation: string;
+function TCGAConsole.GetInformation: AnsiString;
 begin
   Result := m_information;
 end;
 
-procedure TCGAConsole.internal_pre_open_setup(const _title: string);
+procedure TCGAConsole.internal_pre_open_setup(const _title: AnsiString);
 begin
   m_title := _title;
 end;

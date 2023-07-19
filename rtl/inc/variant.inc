@@ -238,7 +238,7 @@ end;
 
 { Chars }
 
-operator :=(const source : char) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : AnsiChar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromPStr(Dest,Source);
 end;
@@ -443,9 +443,9 @@ end;
 
 { Chars }
 
-operator :=(const source : variant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
 Var
-  S : String;
+  S : ShortString;
 begin
   VariantManager.VarToPStr(S,Source);
   If Length(S)>0 then
@@ -795,9 +795,9 @@ operator :=(const source : olevariant) dest : longbool;{$ifdef SYSTEMINLINE}inli
 
 
 { Chars }
-operator :=(const source : olevariant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
-    S : String;
+    S : ShortString;
   begin
     VariantManager.VarToPStr(S,Source);
     If Length(S)>0 then
@@ -983,7 +983,7 @@ operator :=(const source : longbool) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 
 
 { Chars }
-operator :=(const source : char) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : AnsiChar) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     variantmanager.olevarfrompstr(dest,source);
   end;
@@ -1112,7 +1112,7 @@ begin
 end;
 
 
-Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : AnsiChar; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(c,ShortString(v));
   end;
@@ -1144,7 +1144,7 @@ Function Pos (const w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYST
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 
-Function Pos (const v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const c : AnsiChar) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(ShortString(v),c);
   end;

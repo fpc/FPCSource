@@ -187,7 +187,7 @@ var
   KeymapBase: PLibrary = nil;
 
 const
-  KEYMAPNAME: PChar = 'keymap.library';
+  KEYMAPNAME: PAnsiChar = 'keymap.library';
   IKeymap: PInterface = nil;
 
 function KeymapObtain(): LongWord; syscall IKeymap 60;
@@ -196,8 +196,8 @@ procedure KeymapExpunge(); syscall IKeymap 68;
 function KeymapClone(): PInterface; syscall IKeymap 72;
 procedure SetKeyMapDefault(KeyMap: PKeyMap); syscall IKeymap 76;
 function AskKeyMapDefault: PKeyMap; syscall IKeymap 80;
-function MapRawKey(Event: PInputEvent; Buffer: PChar; Length: LongInt; KeyMap: PKeyMap): SmallInt; syscall IKeymap 84;
-function MapANSI(TheString: PChar; Count: LongInt; Buffer: PChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall IKeymap 88;
+function MapRawKey(Event: PInputEvent; Buffer: PAnsiChar; Length: LongInt; KeyMap: PKeyMap): SmallInt; syscall IKeymap 84;
+function MapANSI(TheString: PAnsiChar; Count: LongInt; Buffer: PAnsiChar; Length: LongInt; KeyMap: PKeyMap): LongInt; syscall IKeymap 88;
 function OpenKeyMapHandleA(const Filename: STRPTR; const TagList: PTagItem): APTR; syscall IKeymap 92;
 // 96 OpenKeyMapHandle
 procedure CloseKeyMapHandle(Handle: APTR); syscall IKeymap 100;

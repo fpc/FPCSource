@@ -32,7 +32,7 @@
    TGtkTextTag = record
         parent_instance : TGObject;
         table : PGtkTextTagTable;
-        name : Pchar;
+        name : PAnsiChar;
         priority : longint;
         values : PGtkTextAttributes;
         flag0 : longint;

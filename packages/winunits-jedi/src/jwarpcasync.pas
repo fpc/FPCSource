@@ -344,9 +344,9 @@ type
     Version: Cardinal;
     Flags: Cardinal;
     ServerPrincipalNameBufferLength: Cardinal;
-    ServerPrincipalName: PChar;
+    ServerPrincipalName: PAnsiChar;
     ClientPrincipalNameBufferLength: Cardinal;
-    ClientPrincipalName: PChar;
+    ClientPrincipalName: PAnsiChar;
     AuthenticationLevel: Cardinal;
     AuthenticationService: Cardinal;
     NullSession: BOOL;

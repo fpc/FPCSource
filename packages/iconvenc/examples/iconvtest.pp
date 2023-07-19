@@ -23,15 +23,16 @@ uses
   iconvenc;
 
 // some random Hebrew string for testing in CP1255
-Const InputString : array[0..21] of char = 
+Const InputString : array[0..21] of AnsiChar = 
           (#$e0,#$e1,#$e2,#$e3,#$e4,#$e5,#$e6,#$e7,
 	   #$e8,#$e9,#$eb,#$ec,#$ee,#$f0,#$f1,#$f2,
   	   #$f4,#$f6,#$f7,#$f8,#$f9,#$fa);
       InputEncoding = 'CP1255';
    
-procedure DoOneConversion(TargetEncoding:string);
+procedure DoOneConversion(TargetEncoding:AnsiString);
 var
-  fn,res: string;
+  fn : String;
+  res: Ansistring;
   f1:text;
   convres: integer;
 begin

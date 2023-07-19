@@ -14,6 +14,8 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$modeswitch unicodestrings-}
+{$h-}
 {$inline on}
 {$implicitexceptions off}
 
@@ -101,22 +103,22 @@ function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
-function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll';
+function strcoll (__s1:PAnsiChar; __s2:PAnsiChar):cint;cdecl;external clib name 'strcoll';
 {$ifdef netbsd}
   { NetBSD has a new setlocale function defined in /usr/include/locale.h
     that should be used }
-function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name '__setlocale50';
+function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; external clib name '__setlocale50';
 {$else}
-function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
+function setlocale(category: cint; locale: PAnsiChar): PAnsiChar; cdecl; external clib name 'setlocale';
 {$endif}
 {$if not(defined(beos) and not defined(haiku))}
-function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
-function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
-function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
+function mbrtowc(pwc: pwchar_t; const s: PAnsiChar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
+function wcrtomb(s: PAnsiChar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
+function mbrlen(const s: PAnsiChar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
 {$else beos}
-function mbtowc(pwc: pwchar_t; const s: pchar; n: size_t): size_t; cdecl; external clib name 'mbtowc';
-function wctomb(s: pchar; wc: wchar_t): size_t; cdecl; external clib name 'wctomb';
-function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mblen';
+function mbtowc(pwc: pwchar_t; const s: PAnsiChar; n: size_t): size_t; cdecl; external clib name 'mbtowc';
+function wctomb(s: PAnsiChar; wc: wchar_t): size_t; cdecl; external clib name 'wctomb';
+function mblen(const s: PAnsiChar; n: size_t): size_t; cdecl; external clib name 'mblen';
 {$endif beos}
 
 
@@ -207,22 +209,22 @@ type
   nl_item = cint;
 
 {$ifdef haiku}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'root' name 'nl_langinfo';
+  function nl_langinfo(__item:nl_item):PAnsiChar;cdecl;external 'root' name 'nl_langinfo';
 {$else}
   {$ifndef beos}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+  function nl_langinfo(__item:nl_item):PAnsiChar;cdecl;external libiconvname name 'nl_langinfo';
   {$endif}
 {$endif}
 
 {$if (not defined(bsd) and not defined(beos)) or defined(iconv_is_in_libc) or (defined(darwin) and not defined(cpupowerpc32))}
-function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
-function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
+function iconv_open(__tocode:PAnsiChar; __fromcode:PAnsiChar):iconv_t;cdecl;external libiconvname name 'iconv_open';
+function iconv(__cd:iconv_t; __inbuf:PPAnsiChar; __inbytesleft:psize_t; __outbuf:PPAnsiChar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
 const
   iconvctlname='iconvctl';
 {$else}
-function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
-function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
+function iconv_open(__tocode:PAnsiChar; __fromcode:PAnsiChar):iconv_t;cdecl;external libiconvname name 'libiconv_open';
+function iconv(__cd:iconv_t; __inbuf:PPAnsiChar; __inbytesleft:psize_t; __outbuf:PPAnsiChar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'libiconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'libiconv_close';
 const
   iconvctlname='libiconvctl';
@@ -232,6 +234,9 @@ var
 
 procedure fpc_rangeerror; [external name 'FPC_RANGEERROR'];
 
+Const
+  UTF8Name : ShortString = 'UTF-8';
+  TransLitname : ShortString ='//TRANSLIT';
 
 threadvar
   iconv_ansi2wide,
@@ -251,7 +256,7 @@ var
 {$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvindex: longint;
 {$endif}
-  iconvname, toencoding: rawbytestring;
+  iconvname, toencoding: shortstring;
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
 {$if declared(iconvindex)}
@@ -260,16 +265,16 @@ begin
     iconvname:=UnixCpMap[iconvindex].name
   else
     { default to UTF-8 on Unix platforms }
-    iconvname:='UTF-8';
+    iconvname:=UTF8Name;
 {$else}
   { Unix locale settings are ignored on iPhoneOS/iPhoneSimulator }
   iconvname:='UTF-8';
 {$endif}
   toencoding:=iconvname;
   if not assigned(iconvctl) then
-    toencoding:=toencoding+'//TRANSLIT';
-  iconv_wide2ansi:=iconv_open(pchar(toencoding),unicode_encoding2);
-  iconv_ansi2wide:=iconv_open(unicode_encoding2,pchar(iconvname));
+    toencoding:=toencoding+TransLitName;
+  iconv_wide2ansi:=iconv_open(PAnsiChar(@toencoding[1]),unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,PAnsiChar(@iconvname[1]));
   if assigned(iconvctl) and
      (iconv_wide2ansi<>iconv_t(-1)) then
   begin
@@ -289,7 +294,7 @@ end;
 
 
 {$if defined(beos) and not defined(haiku)}
-function nl_langinfo(__item:nl_item):pchar;
+function nl_langinfo(__item:nl_item):PAnsiChar;
 begin
   {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}
   // Now implement the minimum required to correctly initialize WideString support
@@ -305,7 +310,7 @@ end;
 {$endif}
 
 
-function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_is_from: boolean): iconv_t;
+function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: PAnsiChar; cp_is_from: boolean): iconv_t;
   var
     iconvindex: longint;
     toencoding: rawbytestring;
@@ -314,7 +319,7 @@ function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_
     { TODO: add caching (then we also don't need separate code for
       the default system page and other ones)
 
-      -- typecasting an ansistring function result to pchar is
+      -- typecasting an ansistring function result to PAnsiChar is
         unsafe normally, but these are constant strings -> no
         problem }
     open_iconv_for_cps:=iconv_t(-1);
@@ -323,13 +328,13 @@ function open_iconv_for_cps(cp: TSystemCodePage; const otherencoding: pchar; cp_
       exit;
     repeat
       if cp_is_from then
-        open_iconv_for_cps:=iconv_open(otherencoding,pchar(UnixCpMap[iconvindex].name))
+        open_iconv_for_cps:=iconv_open(otherencoding,PAnsiChar(UnixCpMap[iconvindex].name))
       else
       begin
         toencoding:=UnixCpMap[iconvindex].name;
         if not assigned(iconvctl) then
           toencoding:=toencoding+'//TRANSLIT';
-        open_iconv_for_cps:=iconv_open(pchar(toencoding),otherencoding);
+        open_iconv_for_cps:=iconv_open(PAnsiChar(toencoding),otherencoding);
       end;
       inc(iconvindex);
     until (open_iconv_for_cps<>iconv_t(-1)) or
@@ -357,8 +362,8 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     outleft : size_t;
     use_iconv: iconv_t;
     srcpos : pwidechar;
-    destpos: pchar;
-    mynil : pchar;
+    destpos: PAnsiChar;
+    mynil : PAnsiChar;
     my0 : size_t;
     err : longint;
     transliterate: cint;
@@ -373,7 +378,7 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     if cp=866 then
       begin
         Wide2AnsiMove(source,intermediate,28595,len);
-        if handle_aix_intermediate(pchar(intermediate),28595,cp,dest,len) then
+        if handle_aix_intermediate(PAnsiChar(intermediate),28595,cp,dest,len) then
           exit;
       end;
 {$endif aix}
@@ -413,9 +418,9 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
     outlength:=len*3;
     srclen:=len*2;
     srcpos:=source;
-    destpos:=pchar(dest);
+    destpos:=PAnsiChar(dest);
     outleft:=outlength;
-    while iconv(use_iconv,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
+    while iconv(use_iconv,PPAnsiChar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         err:=fpgetCerrno;
         case err of
@@ -437,13 +442,13 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
             end;
           ESysE2BIG:
             begin
-              outoffset:=destpos-pchar(dest);
+              outoffset:=destpos-PAnsiChar(dest);
               { extend }
               setlength(dest,outlength+len*3);
               inc(outleft,len*3);
               inc(outlength,len*3);
               { string could have been moved }
-              destpos:=pchar(dest)+outoffset;
+              destpos:=PAnsiChar(dest)+outoffset;
             end;
           else
             runerror(231);
@@ -457,15 +462,15 @@ procedure Wide2AnsiMove(source:pwidechar; var dest:RawByteString; cp:TSystemCode
   end;
 
 
-procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
+procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
   var
     outlength,
     outoffset,
     outleft : size_t;
     use_iconv: iconv_t;
     srcpos,
-    destpos: pchar;
-    mynil : pchar;
+    destpos: PAnsiChar;
+    mynil : PAnsiChar;
     my0 : size_t;
     err: cint;
     iconvindex: longint;
@@ -480,7 +485,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     if cp=866 then
       begin
         if handle_aix_intermediate(source,cp,cp,intermediate,len) then
-          source:=pchar(intermediate);
+          source:=PAnsiChar(intermediate);
       end;
 {$endif aix}
     if (cp=DefaultSystemCodePage) then
@@ -494,13 +499,19 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
           end;
         use_iconv:=iconv_ansi2wide;
         free_iconv:=false;
+        // Using Unicode RTL, we can end up here when iconv_ansi2wide is not yet initialized
+        if (use_iconv=Nil) then
+          begin
+          DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+          exit;
+          end;
       end
     else
       begin
         { TODO: add caching (then we also don't need separate code for
           the default system page and other ones)
 
-          -- typecasting an ansistring function result to pchar is
+          -- typecasting an ansistring function result to PAnsiChar is
             unsafe normally, but these are constant strings -> no
             problem }
         use_iconv:=open_iconv_for_cps(cp,unicode_encoding2,true);
@@ -518,7 +529,7 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
     outlength:=len+1;
     setlength(dest,outlength);
     srcpos:=source;
-    destpos:=pchar(dest);
+    destpos:=PAnsiChar(dest);
     outleft:=outlength*2;
     while iconv(use_iconv,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
@@ -540,13 +551,13 @@ procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; l
             end;
           ESysE2BIG:
             begin
-              outoffset:=destpos-pchar(dest);
+              outoffset:=destpos-PAnsiChar(dest);
               { extend }
               setlength(dest,outlength+len);
               inc(outleft,len*2);
               inc(outlength,len);
               { string could have been moved }
-              destpos:=pchar(dest)+outoffset;
+              destpos:=PAnsiChar(dest)+outoffset;
             end;
           else
             runerror(231);
@@ -589,28 +600,28 @@ begin
 end;
 
 
-procedure ConcatCharToAnsiStr(const c: char; var S: AnsiString; var index: SizeInt);
+procedure ConcatCharToAnsiStr(const c: AnsiChar; var S: AnsiString; var index: SizeInt);
 begin
   EnsureAnsiLen(s,index);
-  pchar(@s[index])^:=c;
+  PAnsiChar(@s[index])^:=c;
   inc(index);
 end;
 
 
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
+{ concatenates an utf-32 Char to a ansistring. S *must* be unique when entering. }
 {$if not(defined(beos) and not defined(haiku))}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt; var mbstate: mbstate_t);
 {$else not beos}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt);
 {$endif beos}
 var
-  p     : pchar;
+  p     : PAnsiChar;
   mblen : size_t;
 begin
   { we know that s is unique -> avoid uniquestring calls}
   p:=@s[index];
   if (nc<=127) then
-    ConcatCharToAnsiStr(char(nc),s,index)
+    ConcatCharToAnsiStr(AnsiChar(nc),s,index)
   else
     begin
       EnsureAnsiLen(s,index+MB_CUR_MAX);
@@ -623,7 +634,7 @@ begin
         inc(index,mblen)
       else
         begin
-          { invalid wide char }
+          { invalid wide AnsiChar }
           p^:='?';
           inc(index);
         end;
@@ -659,9 +670,9 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
           end
         else
 {$if not(defined(beos) and not defined(haiku))}
-          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
+          mblen:=mbrtowc(@wc, PAnsiChar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
-          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
+          mblen:=mbtowc(@wc, PAnsiChar(@s[i]), slen-i+1);
 {$endif not beos}
         case mblen of
           size_t(-2):
@@ -726,9 +737,9 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
           end
         else
 {$if not(defined(beos) and not defined(haiku))}
-          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
+          mblen:=mbrtowc(@wc, PAnsiChar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
-          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
+          mblen:=mbtowc(@wc, PAnsiChar(@s[i]), slen-i+1);
 {$endif beos}
         case mblen of
           size_t(-2):
@@ -867,10 +878,10 @@ function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions)
   code point is encountered, all characters part of this invalid code point
   are considered to form one "character" and the next character is
   considered to be the start of a new (possibly also invalid) code point }
-function CharLengthPChar(const Str: PChar): PtrInt;
+function CharLengthPChar(const Str: PAnsiChar): PtrInt;
   var
     nextlen: ptrint;
-    s: pchar;
+    s: PAnsiChar;
 {$if not(defined(beos) and not defined(haiku))}
     mbstate: mbstate_t;
 {$endif not beos}
@@ -895,7 +906,7 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   end;
 
 
-function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
+function CodePointLength(const Str: PAnsiChar; maxlookahead: ptrint): PtrInt;
 {$if not(defined(beos) and not defined(haiku))}
   var
     mbstate: mbstate_t;
@@ -914,9 +925,9 @@ function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
   end;
 
 
-function StrCompAnsiIntern(s1,s2 : PChar; len1, len2: PtrInt; canmodifys1, canmodifys2: boolean): PtrInt;
+function StrCompAnsiIntern(s1,s2 : PAnsiChar; len1, len2: PtrInt; canmodifys1, canmodifys2: boolean): PtrInt;
   var
-    a,b: pchar;
+    a,b: PAnsiChar;
     i: PtrInt;
   begin
     if not(canmodifys1) then
@@ -950,11 +961,11 @@ function StrCompAnsiIntern(s1,s2 : PChar; len1, len2: PtrInt; canmodifys1, canmo
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
   begin
-    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2),false,false);
+    result:=StrCompAnsiIntern(PAnsiChar(s1),PAnsiChar(s2),length(s1),length(s2),false,false);
   end;
 
 
-function StrCompAnsi(s1,s2 : PChar): PtrInt;
+function StrCompAnsi(s1,s2 : PAnsiChar): PtrInt;
   begin
     result:=strcoll(s1,s2);
   end;
@@ -966,19 +977,19 @@ function AnsiCompareText(const S1, S2: ansistring): PtrInt;
   begin
     a:=UpperAnsistring(s1);
     b:=UpperAnsistring(s2);
-    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b),true,true);
+    result:=StrCompAnsiIntern(PAnsiChar(a),PAnsiChar(b),length(a),length(b),true,true);
   end;
 
 
-function AnsiStrIComp(S1, S2: PChar): PtrInt;
+function AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
   begin
     result:=AnsiCompareText(ansistring(s1),ansistring(s2));
   end;
 
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   var
-    a, b: pchar;
+    a, b: PAnsiChar;
 begin
   if (maxlen=0) then
     exit(0);
@@ -1006,7 +1017,7 @@ begin
 end;
 
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   var
     a, b: ansistring;
 begin
@@ -1020,7 +1031,7 @@ begin
 end;
 
 
-procedure ansi2pchar(const s: ansistring; const orgp: pchar; out p: pchar);
+procedure ansi2pchar(const s: ansistring; const orgp: PAnsiChar; out p: PAnsiChar);
 var
   newlen: sizeint;
 begin
@@ -1034,7 +1045,7 @@ begin
 end;
 
 
-function AnsiStrLower(Str: PChar): PChar;
+function AnsiStrLower(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin
@@ -1043,7 +1054,7 @@ begin
 end;
 
 
-function AnsiStrUpper(Str: PChar): PChar;
+function AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 var
   temp: ansistring;
 begin
@@ -1052,9 +1063,9 @@ begin
 end;
 
 
-function envvarset(const varname: pchar): boolean;
+function envvarset(const varname: PAnsiChar): boolean;
 var
-  varval: pchar;
+  varval: PAnsiChar;
 begin
   varval:=fpgetenv(varname);
   result:=
@@ -1065,7 +1076,7 @@ end;
 
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
 var
-  langinfo: pchar;
+  langinfo: PAnsiChar;
 begin
 {$ifdef FPCRTL_FILESYSTEM_UTF8}
   if stdcp=scpFileSystemSingleByte then

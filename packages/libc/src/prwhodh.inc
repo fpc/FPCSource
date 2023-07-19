@@ -2,8 +2,8 @@
 type
    Poutmp = ^outmp;
    outmp = record
-        out_line : array[0..7] of char;
-        out_name : array[0..7] of char;
+        out_line : array[0..7] of AnsiChar;
+        out_name : array[0..7] of AnsiChar;
         out_time : int32_t;
      end;
 
@@ -14,12 +14,12 @@ type
 
    Pwhod = ^whod;
    whod = record
-        wd_vers : char;
-        wd_type : char;
-        wd_pad : array[0..1] of char;
+        wd_vers : AnsiChar;
+        wd_type : AnsiChar;
+        wd_pad : array[0..1] of AnsiChar;
         wd_sendtime : longint;
         wd_recvtime : longint;
-        wd_hostname : array[0..31] of char;
+        wd_hostname : array[0..31] of AnsiChar;
         wd_loadav : array[0..2] of longint;
         wd_boottime : longint;
         wd_we: packed array[0..(1024 div SizeOf(whoent))-1] of whoent;

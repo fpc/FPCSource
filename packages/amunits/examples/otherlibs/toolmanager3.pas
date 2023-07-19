@@ -39,9 +39,9 @@ uses exec, triton, tritonmacros,utility, linklist, vartags;
 
 
 const
-     cycle_entries : array [0..7] of pchar = ('Exec','Image','Sound','Menu','Icon','Dock','Access',NIL);
+     cycle_entries : array [0..7] of PAnsiChar = ('Exec','Image','Sound','Menu','Icon','Dock','Access',NIL);
 
-     liststrings : array [0..8] of pchar = (
+     liststrings : array [0..8] of PAnsiChar = (
                      '2024view' ,
                      'Add to archive',
                      'Delete',
@@ -58,7 +58,7 @@ var
    MyNode : pFPCNode;
    Triton_App : pTr_App;
 
-procedure CleanUp(why : string; err : longint);
+procedure CleanUp(why : ShortString; err : longint);
 begin
      if assigned(Triton_App) then TR_DeleteApp(triton_App);
      if assigned(LVList) then DestroyList(LVList);

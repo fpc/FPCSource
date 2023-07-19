@@ -97,7 +97,7 @@ procedure apr_version(pvsn: Papr_version_t);
  external LibAPR name LibNamePrefix + 'apr_version' + LibSuff4;
 
 { Return APR's version information as a string. }
-function apr_version_string: PChar;
+function apr_version_string: PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_version_string' + LibSuff0;
 

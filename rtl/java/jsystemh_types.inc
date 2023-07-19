@@ -384,17 +384,29 @@ Type
   UInt32  = Cardinal;
   UIntPtr = PtrUInt;
 
+{$IF DECLARED(AnsiChar)}
+// Compiler defines AnsiChar and WideChar, not AnsiChar
+{$IFDEF UNICODERTL}
+  Char = WideChar;
+{$ElSE}
+  Char = AnsiChar;
+{$ENDIF}
+
+{$ELSE}
+  // Compiler defines Char, we make AnsiChar an alias
+  AnsiChar = char;
+{$ENDIF}
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
 
-  { AnsiChar is equivalent of Char, so we need
+  { AnsiChar is equivalent of AnsiChar, so we need
     to use type renamings }
-  TAnsiChar           = Char;
-  AnsiChar            = Char;
-  PAnsiChar           = PChar;
-  PPAnsiChar          = PPChar;
+  TAnsiChar           = AnsiChar;
+  PAnsiChar           = ^AnsiChar;
+  PPAnsiChar          = ^PAnsiChar;
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
@@ -583,9 +595,9 @@ type
   TBoundArray = array of SizeInt;
 (*
 {$ifdef CPU16}
-  TPCharArray = packed array[0..(MaxSmallint div SizeOf(PChar))-1] of PChar;
+  TPCharArray = packed array[0..(MaxSmallint div SizeOf(PAnsiChar))-1] of PAnsiChar;
 {$else CPU16}
-  TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
+  TPCharArray = packed array[0..(MaxLongint div SizeOf(PAnsiChar))-1] of PAnsiChar;
 {$endif CPU16}
   PPCharArray = ^TPCharArray;
 *)
@@ -690,7 +702,7 @@ var
 (*
 {$ifndef HAS_CMDLINE}
 {Value should be changed during system initialization as appropriate.}
-var cmdline:Pchar=nil;
+var cmdline:PAnsiChar=nil;
 {$endif}
 *)
 

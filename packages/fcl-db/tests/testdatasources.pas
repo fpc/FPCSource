@@ -571,7 +571,7 @@ procedure TTestDatasources.TestCalculateFields;
 var ds, lkpDs   : TDataset;
     AFld1, AFld2, AFld3 : Tfield;
     StoreValue : Variant;
-    Buffer: pchar;
+    Buffer: PAnsiChar;
 begin
   ds := DBConnector.GetTraceDataset(True);
   lkpDs := DBConnector.GetNDataset(5);
@@ -633,7 +633,7 @@ end;
 procedure TTestDatasources.TestCalcLookupValue;
 var ds, lkpDs   : TDataset;
     AFld1, AFld2, AFld3 : Tfield;
-    Buffer: pchar;
+    Buffer: PAnsiChar;
 begin
   ds := DBConnector.GetNDataset(True,15);
   lkpDs := DBConnector.GetNDataset(5);

@@ -56,9 +56,9 @@ type
  }
   apr_vformatter_buff_t = record
     { The current position }
-    curpos: PChar;
+    curpos: PAnsiChar;
     { The end position of the format string }
-    endpos: PChar;
+    endpos: PAnsiChar;
   end;
 
 {
@@ -74,7 +74,7 @@ type
  *                 "bs\\path\\stuff" -> "stuff"
  * </PRE>
  }
-function apr_filepath_name_get(const pathname: PChar): PChar;
+function apr_filepath_name_get(const pathname: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_filepath_name_get' + LibSuff4;
 
@@ -161,7 +161,7 @@ type
   flush_func_t = function (b: Papr_vformatter_buff_t): Integer;
   
 function apr_vformatter(flush_func: flush_func_t;
- c: Papr_vformatter_buff_t; const fmt: PChar; ap: va_list): Integer;
+ c: Papr_vformatter_buff_t; const fmt: PAnsiChar; ap: va_list): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_vformatter' + LibSuff16;
 
@@ -176,8 +176,8 @@ function apr_vformatter(flush_func: flush_func_t;
  * reason; its value will never be modified by the apr_password_get()
  * function.
  }
-function apr_password_get(const prompt: PChar;
- pwbuf: PChar; bufsize: Papr_size_t): apr_status_t;
+function apr_password_get(const prompt: PAnsiChar;
+ pwbuf: PAnsiChar; bufsize: Papr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPR name LibNamePrefix + 'apr_password_get' + LibSuff12;
 
@@ -189,35 +189,35 @@ function apr_password_get(const prompt: PChar;
  * the standard macros do.  Tough.
  }
 { @see isalnum }
-//#define apr_isalnum(c) (isalnum(((unsigned char)(c))))
+//#define apr_isalnum(c) (isalnum(((unsigned AnsiChar)(c))))
 { @see isalpha }
-//#define apr_isalpha(c) (isalpha(((unsigned char)(c))))
+//#define apr_isalpha(c) (isalpha(((unsigned AnsiChar)(c))))
 { @see iscntrl }
-//#define apr_iscntrl(c) (iscntrl(((unsigned char)(c))))
+//#define apr_iscntrl(c) (iscntrl(((unsigned AnsiChar)(c))))
 { @see isdigit }
-//#define apr_isdigit(c) (isdigit(((unsigned char)(c))))
+//#define apr_isdigit(c) (isdigit(((unsigned AnsiChar)(c))))
 { @see isgraph }
-//#define apr_isgraph(c) (isgraph(((unsigned char)(c))))
+//#define apr_isgraph(c) (isgraph(((unsigned AnsiChar)(c))))
 { @see islower}
-//#define apr_islower(c) (islower(((unsigned char)(c))))
+//#define apr_islower(c) (islower(((unsigned AnsiChar)(c))))
 { @see isascii }
 {#ifdef isascii
-#define apr_isascii(c) (isascii(((unsigned char)(c))))
+#define apr_isascii(c) (isascii(((unsigned AnsiChar)(c))))
 #else
 #define apr_isascii(c) (((c) & ~0x7f)==0)
 #endif}
 { @see isprint }
-//#define apr_isprint(c) (isprint(((unsigned char)(c))))
+//#define apr_isprint(c) (isprint(((unsigned AnsiChar)(c))))
 { @see ispunct }
-//#define apr_ispunct(c) (ispunct(((unsigned char)(c))))
+//#define apr_ispunct(c) (ispunct(((unsigned AnsiChar)(c))))
 { @see isspace }
-//#define apr_isspace(c) (isspace(((unsigned char)(c))))
+//#define apr_isspace(c) (isspace(((unsigned AnsiChar)(c))))
 { @see isupper }
-//#define apr_isupper(c) (isupper(((unsigned char)(c))))
+//#define apr_isupper(c) (isupper(((unsigned AnsiChar)(c))))
 { @see isxdigit }
-//#define apr_isxdigit(c) (isxdigit(((unsigned char)(c))))
+//#define apr_isxdigit(c) (isxdigit(((unsigned AnsiChar)(c))))
 { @see tolower }
-function apr_tolower(c: Char): Char;
+function apr_tolower(c: AnsiChar): AnsiChar;
 { @see toupper }
-function apr_toupper(c: Char): Char;
+function apr_toupper(c: AnsiChar): AnsiChar;
 

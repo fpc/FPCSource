@@ -25,9 +25,9 @@
  * @param a Pool to allocate out of
  * @param string String to get the checksum of
  * @return The checksum
- * @deffunc char *ap_md5(apr_pool_t *a, const unsigned char *string)
+ * @deffunc AnsiChar *ap_md5(apr_pool_t *a, const unsigned AnsiChar *string)
  }
-function ap_md5(p: Papr_pool_t; const string_: PChar): PChar;
+function ap_md5(p: Papr_pool_t; const string_: PAnsiChar): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_md5' + LibSuff8;
 
@@ -37,9 +37,9 @@ function ap_md5(p: Papr_pool_t; const string_: PChar): PChar;
  * @param buf Buffer to generate checksum for
  * @param len The length of the buffer
  * @return The checksum
- * @deffunc char *ap_md5_binary(apr_pool_t *a, const unsigned char *buf, int len)
+ * @deffunc AnsiChar *ap_md5_binary(apr_pool_t *a, const unsigned AnsiChar *buf, int len)
  }
-function ap_md5_binary(a: Papr_pool_t; const buf: PChar; len: Integer): PChar;
+function ap_md5_binary(a: Papr_pool_t; const buf: PAnsiChar; len: Integer): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_md5_binary' + LibSuff12;
 
@@ -48,9 +48,9 @@ function ap_md5_binary(a: Papr_pool_t; const buf: PChar; len: Integer): PChar;
  * @param p The pool to allocate out of
  * @param context The context to convert
  * @return The converted encoding
- * @deffunc char *ap_md5contextTo64(apr_pool_t *p, apr_md5_ctx_t *context)
+ * @deffunc AnsiChar *ap_md5contextTo64(apr_pool_t *p, apr_md5_ctx_t *context)
  }
-function ap_md5contextTo64(a: Papr_pool_t; context: Papr_md5_ctx_t): PChar;
+function ap_md5contextTo64(a: Papr_pool_t; context: Papr_md5_ctx_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_md5contextTo64' + LibSuff8;
 
@@ -58,9 +58,9 @@ function ap_md5contextTo64(a: Papr_pool_t; context: Papr_md5_ctx_t): PChar;
  * Create an MD5 Digest for a given file
  * @param p The pool to allocate out of
  * @param infile The file to create the digest for
- * @deffunc char *ap_md5digest(apr_pool_t *p, apr_file_t *infile)
+ * @deffunc AnsiChar *ap_md5digest(apr_pool_t *p, apr_file_t *infile)
  }
-function ap_md5digest(p: Papr_pool_t; infile: Papr_file_t): PChar;
+function ap_md5digest(p: Papr_pool_t; infile: Papr_file_t): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibHTTPD name LibNamePrefix + 'ap_md5digest' + LibSuff8;
 

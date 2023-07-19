@@ -53,7 +53,11 @@ end;
 {$ifdef no_parent}
 begin
   add_packages_comandlineoptions();
-  add_packages('');
-  Installer.Run;
+
+  if Assigned(Installer) then
+    begin
+    add_packages('');
+    Installer.Run;
+    end;
 end.
 {$endif no_parent}

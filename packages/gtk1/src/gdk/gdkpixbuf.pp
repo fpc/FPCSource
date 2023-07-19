@@ -109,10 +109,10 @@ Uses
   var
 {$ifndef darwin}
     gdk_pixbuf_major_version : guint; cvar; external;
-    gdk_pixbuf_version : Pchar; cvar; external;
+    gdk_pixbuf_version : PAnsiChar; cvar; external;
 {$else darwin}
     gdk_pixbuf_major_version : guint; external libgdkpixbuf name 'gdk_pixbuf_major_version';
-    gdk_pixbuf_version : Pchar; external libgdkpixbuf name 'gdk_pixbuf_version';
+    gdk_pixbuf_version : PAnsiChar; external libgdkpixbuf name 'gdk_pixbuf_version';
 {$endif darwin}
 {$EndIf}
 
@@ -163,12 +163,12 @@ type
   function gdk_pixbuf_copy(pixbuf:PGdkPixbuf):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_copy';
 
   { Simple loading  }
-  function gdk_pixbuf_new_from_file(filename:Pchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_file';
+  function gdk_pixbuf_new_from_file(filename:PAnsiChar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_file';
 
   function gdk_pixbuf_new_from_data(data:Pguchar; colorspace:TGdkColorspace; has_alpha:gboolean; bits_per_sample:longint; width:longint;
              height:longint; rowstride:longint; destroy_fn:TGdkPixbufDestroyNotify; destroy_fn_data:gpointer):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_data';
 
-  function gdk_pixbuf_new_from_xpm_data(data:PPchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_xpm_data';
+  function gdk_pixbuf_new_from_xpm_data(data:PPAnsiChar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_new_from_xpm_data';
 
   { Adding an alpha channel  }
   function gdk_pixbuf_add_alpha(pixbuf:PGdkPixbuf; substitute_color:gboolean; r:guchar; g:guchar; b:guchar):PGdkPixbuf;cdecl; external libgdkpixbuf name 'gdk_pixbuf_add_alpha';
@@ -227,7 +227,7 @@ type
      TGdkPixbufFrameAction = (GDK_PIXBUF_FRAME_RETAIN,GDK_PIXBUF_FRAME_DISPOSE,
        GDK_PIXBUF_FRAME_REVERT);
 
-  function gdk_pixbuf_animation_new_from_file(filename:Pchar):PGdkPixbufAnimation;cdecl; external libgdkpixbuf name 'gdk_pixbuf_animation_new_from_file';
+  function gdk_pixbuf_animation_new_from_file(filename:PAnsiChar):PGdkPixbufAnimation;cdecl; external libgdkpixbuf name 'gdk_pixbuf_animation_new_from_file';
   function gdk_pixbuf_animation_ref(animation:PGdkPixbufAnimation):PGdkPixbufAnimation;cdecl; external libgdkpixbuf name 'gdk_pixbuf_animation_ref';
   procedure gdk_pixbuf_animation_unref(animation:PGdkPixbufAnimation);cdecl; external libgdkpixbuf name 'gdk_pixbuf_animation_unref';
   function gdk_pixbuf_animation_get_width(animation:PGdkPixbufAnimation):longint;cdecl; external libgdkpixbuf name 'gdk_pixbuf_animation_get_width';

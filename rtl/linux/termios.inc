@@ -3049,7 +3049,7 @@ Type
     c_oflag,
     c_cflag,
     c_lflag  : cardinal;
-    c_line   : char;
+    c_line   : AnsiChar;
     c_cc     : array[0..NCCS-1] of byte;
     c_ispeed,
     c_ospeed : cardinal;

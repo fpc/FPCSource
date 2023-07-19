@@ -166,7 +166,7 @@ end;
 
 // ************* Misc functions
 
-function __system_property_get(name:Pchar; value:Pchar):longint;cdecl;external 'c' name '__system_property_get';
+function __system_property_get(name:PAnsiChar; value:PAnsiChar):longint;cdecl;external 'c' name '__system_property_get';
 
 function GetSystemProperty(Name: PAnsiChar): shortstring;
 begin
@@ -178,7 +178,7 @@ var
 
 function SystemApiLevel: shortint;
 var
-  s: string;
+  s: shortstring;
   c: integer;
 begin
   if _ApiLevel < 0 then
@@ -196,7 +196,7 @@ end;
 var
   DefaultLogTag: string[20];
 
-function __android_log_write(prio: longint; tag, text: pchar): longint; cdecl; external 'log' name '__android_log_write';
+function __android_log_write(prio: longint; tag, text: PAnsiChar): longint; cdecl; external 'log' name '__android_log_write';
 
 procedure SysLogWrite(Priority: longint; Tag, Msg: PAnsiChar);
 begin
@@ -218,7 +218,7 @@ end;
 const
   IOBufferLength = 512;
 threadvar
-  IOBuf : array[0..IOBufferLength] of char;
+  IOBuf : array[0..IOBufferLength] of AnsiChar;
   IOLen : SizeInt;
 var
   IORedirected: boolean;
@@ -307,7 +307,7 @@ begin
   RedirectFile(StdErr);
 end;
 
-procedure SetDefaultSysLogTag(const Tag: string);
+procedure SetDefaultSysLogTag(const Tag: shortstring);
 var
   len: longint;
 begin
@@ -330,7 +330,7 @@ end;
 procedure InitAndroid;
 var
   i: integer;
-  s: string;
+  s: shortstring;
 begin
   if IsJniLibrary then
     begin

@@ -22,13 +22,13 @@ procedure ini_dummy;
   begin
   end;
 
-procedure libc_start_main(main: TProcedure; argc: ptruint; argv: ppchar; init, fini, rtld_fini: TProcedure; stack_end: pointer); cdecl; external name '__libc_start_main';
+procedure libc_start_main(main: TProcedure; argc: ptruint; argv: PPAnsiChar; init, fini, rtld_fini: TProcedure; stack_end: pointer); cdecl; external name '__libc_start_main';
 procedure libc_exit(code: ptruint); cdecl; external name 'exit';
 
 procedure _FPC_rv_enter(at_exit: TProcedure; sp: pptruint);
   var
     argc: ptruint;
-    argv: ppchar;
+    argv: PPAnsiChar;
   begin
     argc:=sp[0];
     argv:=@sp[1];

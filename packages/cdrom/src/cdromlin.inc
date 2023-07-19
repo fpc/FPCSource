@@ -3,7 +3,7 @@ uses
   unix,
   lincd;
 
-Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
+Function ReadCDTOC(Device : AnsiString; Var CDTOC : Array of TTocEntry) : Integer;
 
 Var
   I,Drive    : Integer;
@@ -62,7 +62,7 @@ end;
     /etc/fstab scanning.
   ---------------------------------------------------------------------}
 
-Function ExtractDevice(S : String) : String;
+Function ExtractDevice(S : AnsiString) : AnsiString;
 
 Var
   P,L : Integer;
@@ -85,11 +85,11 @@ begin
     end;
 end;
 
-Function TestFSTab(var Devices : Array of String) : Integer;
+Function TestFSTab(var Devices : Array of AnsiString) : Integer;
 
 Var
   fstab : text;
-  Line : String;
+  Line : AnsiString;
 
 begin
   Result:=0;
@@ -115,10 +115,10 @@ begin
     Result:=-1;
 end;
 
-Function GetCDRomDevices(Var Devices : Array of string) : Integer;
+Function GetCDRomDevices(Var Devices : Array of AnsiString) : Integer;
 
 
-  Function AlreadyAdded(AName: String; AMax: Integer): Boolean;
+  Function AlreadyAdded(AName: AnsiString; AMax: Integer): Boolean;
   var
     I: Integer;
   begin
@@ -129,13 +129,13 @@ Function GetCDRomDevices(Var Devices : Array of string) : Integer;
   end;
 
   // Resolves name if it's a symlink and adds it ensuring no dups
-  Function AddCdrom(ACDRom: String; I: Integer): Integer;
+  Function AddCdrom(ACDRom: AnsiString; I: Integer): Integer;
   var
     SInfo : stat;
-    RealName: String;
+    RealName: AnsiString;
   begin
     Result := I;
-    if fpStat(PChar(ACDRom), SInfo) <> -1 then
+    if fpStat(PAnsiChar(ACDRom), SInfo) <> -1 then
     begin
       RealName := ACDRom;
       if SInfo.st_mode and S_IFMT = S_IFLNK then
@@ -152,7 +152,7 @@ Function GetCDRomDevices(Var Devices : Array of string) : Integer;
 var
   I,J: Integer;
   CDRec: TCDSearchRec;
-  FSTab: array[0..10] of String;
+  FSTab: array[0..10] of AnsiString;
 
 begin
   I := 0;

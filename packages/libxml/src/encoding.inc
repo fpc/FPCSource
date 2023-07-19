@@ -46,8 +46,8 @@
  *)
 {$IFDEF TYPE}
   xmlCharEncoding = (
-    XML_CHAR_ENCODING_ERROR=   -1, (* No char encoding detected *)
-    XML_CHAR_ENCODING_NONE=	0, (* No char encoding detected *)
+    XML_CHAR_ENCODING_ERROR=   -1, (* No AnsiChar encoding detected *)
+    XML_CHAR_ENCODING_NONE=	0, (* No AnsiChar encoding detected *)
     XML_CHAR_ENCODING_UTF8=	1, (* UTF-8 *)
     XML_CHAR_ENCODING_UTF16LE=	2, (* UTF-16 little endian *)
     XML_CHAR_ENCODING_UTF16BE=	3, (* UTF-16 big endian *)
@@ -88,7 +88,7 @@
  *     if the return value is positive, else unpredictiable.
  * The value of @outlen after return is the number of octets consumed.
  *)
-  xmlCharEncodingInputFunc = function(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; cdecl;
+  xmlCharEncodingInputFunc = function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; cdecl;
 
 (**
  * xmlCharEncodingOutputFunc:
@@ -108,14 +108,14 @@
  *     if the return value is positive, else unpredictiable.
  * The value of @outlen after return is the number of octets produced.
  *)
-  xmlCharEncodingOutputFunc = function(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; cdecl;
+  xmlCharEncodingOutputFunc = function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; cdecl;
 
 (*
  * Block defining the handlers for non UTF-8 encodings.
  * If iconv is supported, there are two extra fields.
  *)
   xmlCharEncodingHandler = record
-    name      : pchar;
+    name      : PAnsiChar;
     input     : xmlCharEncodingInputFunc;
     output    : xmlCharEncodingOutputFunc;
 {$IFDEF LIBXML_ICONV_ENABLED}
@@ -133,23 +133,23 @@ procedure xmlInitCharEncodingHandlers; EXTDECL; external xml2lib;
 procedure xmlCleanupCharEncodingHandlers; EXTDECL; external xml2lib;
 procedure xmlRegisterCharEncodingHandler(handler: xmlCharEncodingHandlerPtr); EXTDECL; external xml2lib;
 function xmlGetCharEncodingHandler(enc: xmlCharEncoding): xmlCharEncodingHandlerPtr; EXTDECL; external xml2lib;
-function xmlFindCharEncodingHandler(name: pchar): xmlCharEncodingHandlerPtr; EXTDECL; external xml2lib;
-function xmlNewCharEncodingHandler(name: pchar; input: xmlCharEncodingInputFunc; output: xmlCharEncodingOutputFunc): xmlCharEncodingHandlerPtr; EXTDECL; external xml2lib;
+function xmlFindCharEncodingHandler(name: PAnsiChar): xmlCharEncodingHandlerPtr; EXTDECL; external xml2lib;
+function xmlNewCharEncodingHandler(name: PAnsiChar; input: xmlCharEncodingInputFunc; output: xmlCharEncodingOutputFunc): xmlCharEncodingHandlerPtr; EXTDECL; external xml2lib;
 
 (*
  * Interfaces for encoding names and aliases.
  *)
-function xmlAddEncodingAlias(name: pchar; alias: pchar): cint; EXTDECL; external xml2lib;
-function xmlDelEncodingAlias(alias: pchar): cint; EXTDECL; external xml2lib;
-function xmlGetEncodingAlias(alias: pchar): pchar; EXTDECL; external xml2lib;
+function xmlAddEncodingAlias(name: PAnsiChar; alias: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlDelEncodingAlias(alias: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlGetEncodingAlias(alias: PAnsiChar): PAnsiChar; EXTDECL; external xml2lib;
 procedure xmlCleanupEncodingAliases; EXTDECL; external xml2lib;
-function xmlParseCharEncoding(name: pchar): xmlCharEncoding; EXTDECL; external xml2lib;
-function xmlGetCharEncodingName(enc: xmlCharEncoding): pchar; EXTDECL; external xml2lib;
+function xmlParseCharEncoding(name: PAnsiChar): xmlCharEncoding; EXTDECL; external xml2lib;
+function xmlGetCharEncodingName(enc: xmlCharEncoding): PAnsiChar; EXTDECL; external xml2lib;
 
 (*
  * Interfaces directly used by the parsers.
  *)
-function xmlDetectCharEncoding(_in: pchar; len: cint): xmlCharEncoding; EXTDECL; external xml2lib;
+function xmlDetectCharEncoding(_in: PAnsiChar; len: cint): xmlCharEncoding; EXTDECL; external xml2lib;
 function xmlCharEncOutFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL; external xml2lib;
 function xmlCharEncInFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL; external xml2lib;
 function xmlCharEncFirstLine(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL; external xml2lib;
@@ -159,7 +159,7 @@ function xmlCharEncCloseFunc(handler: xmlCharEncodingHandlerPtr): cint; EXTDECL;
  * Export a few useful functions
  *)
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-function UTF8Toisolat1(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; EXTDECL; external xml2lib;
+function UTF8Toisolat1(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-function isolat1ToUTF8(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; EXTDECL; external xml2lib;
+function isolat1ToUTF8(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; EXTDECL; external xml2lib;
 {$ENDIF}

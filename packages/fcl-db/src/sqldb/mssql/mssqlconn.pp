@@ -28,8 +28,8 @@
     TMSSQLConnection properties:
       HostName - can be specified also as 'servername:port' or 'servername\instance'
                  (SQL Server Browser Service must be running on server to connect to specific instance)
-      CharSet - if you use Microsoft DB-Lib and set to 'UTF-8' then char/varchar fields will be UTF8Encoded/Decoded
-                if you use FreeTDS DB-Lib then you must compile with iconv support (requires libiconv2.dll) or cast char/varchar to nchar/nvarchar in SELECTs
+      CharSet - if you use Microsoft DB-Lib and set to 'UTF-8' then AnsiChar/varchar fields will be UTF8Encoded/Decoded
+                if you use FreeTDS DB-Lib then you must compile with iconv support (requires libiconv2.dll) or cast AnsiChar/varchar to nchar/nvarchar in SELECTs
       Params - "AutoCommit=true" - if you don't want explicitly commit/rollback transactions
                "TextSize=16777216" - set maximum size of text/image data returned
                "ApplicationName=YourAppName" - Set the app name for the connection. MSSQL 2000 and higher only
@@ -41,8 +41,7 @@ unit MSSQLConn;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, BufDataset,
-  dblib;
+  Types, Classes, SysUtils, sqldb, db, BufDataset, dblib;
 
 type
 
@@ -235,7 +234,7 @@ end;
 
 function TDBLibCursor.ReplaceParams(AParams: TParams): string;
 var i: integer;
-    ParamNames, ParamValues: array of string;
+    ParamNames, ParamValues: tansistringdynarray;
 begin
   if Assigned(AParams) and (AParams.Count > 0) then //taken from mysqlconn, pqconnection
   begin
@@ -373,7 +372,7 @@ function TMSSQLConnection.GetAsSQLText(Param: TParam): string;
   function StrToHex(const s: string): string;
   begin
     setlength(Result, 2*length(s));
-    BinToHex(PChar(s), PChar(Result), length(s));
+    BinToHex(PAnsiChar(s), PAnsiChar(Result), length(s));
   end;
 begin
   if not Param.IsNull then

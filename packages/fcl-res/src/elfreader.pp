@@ -78,7 +78,7 @@ type
 
     function FindSection(const aName : string) : integer; virtual; abstract;
     function FindResSection : boolean;
-    function ReadString(aStream : TStream; aPos : longword) : string;
+    function ReadString(aStream : TStream; aPos : longword) : AnsiString;
     procedure ReadNode(aStream : TStream; aParent : TResourceTreeNode;
       aResources : TResources; named : boolean); virtual; abstract;
     procedure ReadResData(aStream : TStream; aNode : TResourceTreeNode;
@@ -155,9 +155,9 @@ begin
 end;
 
 function TAbstractElfSubReader.ReadString(aStream: TStream; aPos: longword
-  ): string;
+  ): AnsiString;
 var oldpos : int64;
-    c : char;
+    c : AnsiChar;
     maxleft : int64;
 begin
   Result:='';

@@ -16,10 +16,10 @@ type
 
     Also, using memory models other than 'large' under win16 is somewhat nasty and
     is better to be avoided. }
-  PSTR = ^Char;
-  NPSTR = ^Char; near;
-//  LPSTR = ^Char; far;
-  LPCSTR = ^Char; far;
+  PSTR = ^AnsiChar;
+  NPSTR = ^AnsiChar; near;
+//  LPSTR = ^AnsiChar; far;
+  LPCSTR = ^AnsiChar; far;
   
   { PBYTE is already defined in system }
   LPBYTE = ^Byte; far;
@@ -184,7 +184,7 @@ type
     fFixedDisk: BYTE;
     nErrCode: UINT;
     reserved: array [0..3] of BYTE;
-    szPathName: array [0..127] of char;
+    szPathName: array [0..127] of AnsiChar;
   end;
   TOFStruct = OFSTRUCT;
 
@@ -754,7 +754,7 @@ type
     lfClipPrecision: BYTE;
     lfQuality: BYTE;
     lfPitchAndFamily: BYTE;
-    lfFaceName: array [0..LF_FACESIZE-1] of char;
+    lfFaceName: array [0..LF_FACESIZE-1] of AnsiChar;
   end;
   TLogFont = LOGFONT;
 
@@ -1740,7 +1740,7 @@ type
 { Keyboard input support }
   PKeyboardState = ^TKeyboardState;
   LPKeyboardState = ^TKeyboardState; far;
-  TKeyboardState = array [0..255] of Char;
+  TKeyboardState = array [0..255] of AnsiChar;
 
 const
   WM_SETFOCUS    = $0007;
@@ -1763,7 +1763,7 @@ const
   WM_KEYFIRST    = $0100;
   WM_KEYLAST     = $0108;
 
-{ WM_KEYUP/DOWN/CHAR HIWORD(lParam) flags }
+{ WM_KEYUP/DOWN/AnsiChar HIWORD(lParam) flags }
   KF_EXTENDED    = $0100;
   KF_DLGMODE     = $0800;
   KF_MENUMODE    = $1000;
@@ -1941,7 +1941,7 @@ type
   MENUITEMTEMPLATE = record
     mtOption: UINT;
     mtID: UINT;
-    mtString: array [0..0] of Char;
+    mtString: array [0..0] of AnsiChar;
   end;
   TMenuItemTemplate = MENUITEMTEMPLATE;
 
@@ -2723,7 +2723,7 @@ type
     dx: SmallInt;
     dy: SmallInt;
     wMax: SmallInt;
-    rgchMember: array [0..1] of char;
+    rgchMember: array [0..1] of AnsiChar;
   end;
   THelpWinInfo = HELPWININFO;
 
@@ -2867,13 +2867,13 @@ type
     UINT fRtsflow       :1;
     UINT fDummy2        :1;}
 
-    XonChar: char;
-    XoffChar: char;
+    XonChar: AnsiChar;
+    XoffChar: AnsiChar;
     XonLim: UINT;
     XoffLim: UINT;
-    PeChar: char;
-    EofChar: char;
-    EvtChar: char;
+    PeChar: AnsiChar;
+    EofChar: AnsiChar;
+    EvtChar: AnsiChar;
     TxDelay: UINT;
   end;
   TDCB = DCB;

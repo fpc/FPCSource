@@ -40,10 +40,10 @@ Translated into Pascal by Marco van de Voort
 //#include "notes.h"
 
 // replaced by pascalmain in si_c.pp
-//function cmain(argc:longint;argv:ppchar;env:ppchar):longint; cdecl; external name '_main';
+//function cmain(argc:longint;argv:PPAnsiChar;env:PPAnsiChar):longint; cdecl; external name '_main';
 
 
-Type TInitProc     = procedure(argc:longint;argv:ppchar;env:ppchar); cdecl;
+Type TInitProc     = procedure(argc:longint;argv:PPAnsiChar;env:PPAnsiChar); cdecl;
      PInitProc     = ^TInitProc;
      TCleanupProc  = procedure; cdecl;
      PCleanupProc  = ^TCleanupProc;
@@ -52,7 +52,7 @@ procedure atexit(prc:TCleanupProc); cdecl external name 'atexit';
 procedure cleanup(prc:TCleanupProc); cdecl external name 'cleanup';
 
 var
-  environ : ppchar; cvar; public  name '__environ';
+  environ : PPAnsiChar; cvar; public  name '__environ';
   _Dynamic  : longint; weakexternal name '_DYNAMIC';
 
 var
@@ -143,7 +143,7 @@ begin
  _fini();
 end;
 
-procedure handle_static_init(argc:longint;argv:ppchar;env:ppchar);  cdecl;
+procedure handle_static_init(argc:longint;argv:PPAnsiChar;env:PPAnsiChar);  cdecl;
 var fn : TInitProc;
     n,array_size : ptruint; // actually: size_t;
 begin
@@ -170,9 +170,9 @@ begin
      end;
 end;
 
-procedure handle_argv(argc:longint;argv:ppchar;env:ppchar); inline;
+procedure handle_argv(argc:longint;argv:PPAnsiChar;env:PPAnsiChar); inline;
 var
-  s: pchar;
+  s: PAnsiChar;
 begin
    if assigned(environ) then
       environ:=env;
@@ -194,7 +194,7 @@ static const struct {
 	int32_t	namesz;
 	int32_t	descsz;
 	int32_t	type;
-	char	name[sizeof(NOTE_FREEBSD_VENDOR)];
+	AnsiChar	name[sizeof(NOTE_FREEBSD_VENDOR)];
 	uint32_t desc;
 } crt_noinit_tag __attribute__ ((section (NOTE_SECTION),
     aligned(4))) __used = {

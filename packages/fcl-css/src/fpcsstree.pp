@@ -427,7 +427,7 @@ implementation
 Const
   sIndent = '  ';
 
-Function u8length(s : char) : Byte;
+Function  u8length(s : AnsiChar) : Byte;
 
 const u8_length : Array[0..15] of byte = (
 // 0 1 2 3 4 5 6 7 8 9 A B C D E F
@@ -445,7 +445,7 @@ Var
   O : TCSSString;
   u : TCSSString;
   W : Unicodestring;
-  C : Char;
+  C : AnsiChar;
 
   Procedure AddO;
   var
@@ -504,7 +504,7 @@ function StringToIdentifier(const S: TCSSString): TCSSString;
 
 Var
   iIn,iOut,L : Integer;
-  C : Char;
+  C : AnsiChar;
 
 begin
   Result:='';

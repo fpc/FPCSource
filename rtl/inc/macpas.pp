@@ -30,7 +30,7 @@ type
 {$ifndef FPUNONE}
   LongDouble = ValReal;
 {$endif}
-  FourCharArray = packed array[1..4] of char;
+  FourCharArray = packed array[1..4] of AnsiChar;
 
   UnsignedByte = Byte;
   UnsignedWord = Word;

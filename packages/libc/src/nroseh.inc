@@ -33,7 +33,7 @@ type
 
    Prose_address = ^rose_address;
    rose_address = record
-        rose_addr : array[0..4] of char;
+        rose_addr : array[0..4] of AnsiChar;
      end;
    Psockaddr_rose = ^sockaddr_rose;
    sockaddr_rose = record
@@ -58,7 +58,7 @@ type
         address : rose_address;
         mask : word;
         neighbour : ax25_address;
-        device : array[0..15] of char;
+        device : array[0..15] of AnsiChar;
         ndigis : byte;
         digipeaters : array[0..(AX25_MAX_DIGIS)-1] of ax25_address;
      end;

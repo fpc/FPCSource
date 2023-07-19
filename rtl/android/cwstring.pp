@@ -176,7 +176,7 @@ begin
   SetCodePage(dest, cp, False);
 end;
 
-procedure Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+procedure Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
   len2: SizeInt;
   conv: PUConverter;
@@ -317,7 +317,7 @@ begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
-function StrCompAnsi(s1,s2 : PChar): PtrInt;
+function StrCompAnsi(s1,s2 : PAnsiChar): PtrInt;
 begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
@@ -327,12 +327,12 @@ begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
-function AnsiStrIComp(S1, S2: PChar): PtrInt;
+function AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
 begin
   Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   as1, as2: ansistring;
 begin
@@ -341,7 +341,7 @@ begin
   Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), []);
 end;
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   as1, as2: ansistring;
 begin
@@ -350,7 +350,7 @@ begin
   Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), [coIgnoreCase]);
 end;
 
-function AnsiStrLower(Str: PChar): PChar;
+function AnsiStrLower(Str: PAnsiChar): PAnsiChar;
 var
   s, res: ansistring;
 begin
@@ -362,7 +362,7 @@ begin
   Result:=Str;
 end;
 
-function AnsiStrUpper(Str: PChar): PChar;
+function AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 var
   s, res: ansistring;
 begin
@@ -374,7 +374,7 @@ begin
   Result:=Str;
 end;
 
-function CodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+function CodePointLength(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
 var
   c: byte;
 begin
@@ -420,7 +420,7 @@ begin
   SetStdIOCodePage(StdErr);
 end;
 
-procedure Ansi2WideMove(source:pchar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
+procedure Ansi2WideMove(source:PAnsiChar; cp:TSystemCodePage; var dest:widestring; len:SizeInt);
 var
   us: UnicodeString;
 begin

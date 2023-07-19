@@ -57,13 +57,13 @@ TYPE
 
    { system information services }
    UtsName   = Record
-                Sysname : Array[0..UTSNAME_LENGTH -1] OF Char;   // Name of this OS
-                Nodename: Array[0..UTSNAME_NODENAME_LENGTH-1] OF Char;   // Name of this network node.
-                Release : Array[0..UTSNAME_LENGTH -1] OF Char;   // Release level.
-                Version : Array[0..UTSNAME_LENGTH -1] OF Char;   // Version level.
-                Machine : Array[0..UTSNAME_LENGTH -1] OF Char;   // Hardware type.
+                Sysname : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Name of this OS
+                Nodename: Array[0..UTSNAME_NODENAME_LENGTH-1] OF AnsiChar;   // Name of this network node.
+                Release : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Release level.
+                Version : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Version level.
+                Machine : Array[0..UTSNAME_LENGTH -1] OF AnsiChar;   // Hardware type.
                {$ifdef usedomain}
-                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
+                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of AnsiChar {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
                {$endif}
                end;
   TUtsName   = UtsName;
@@ -153,7 +153,7 @@ type
                 d_off         : off_t;
                 d_reclen      : cushort;                        // length of string in d_name
                 d_type        : cuchar;                         // file type, see below
-                d_name        : array[0..4095-sizeof(ino64_t)-sizeof(off_t)-sizeof(cushort)-sizeof(cuchar)] of char;  // name buffer + padding for extra records; align total record size to a page size
+                d_name        : array[0..4095-sizeof(ino64_t)-sizeof(off_t)-sizeof(cushort)-sizeof(cuchar)] of AnsiChar;  // name buffer + padding for extra records; align total record size to a page size
                end;
   TDirent  = Dirent;
   pDirent  = ^Dirent;
@@ -175,7 +175,7 @@ type
         // new libc one. NOTE that off_t must be real, so 64-bit ifdef
    Dir       = Record   // packing doesn't matter. This is a userland struct.
                 fd      : cint;
-                data    : pchar;
+                data    : PAnsiChar;
                 allocation: size_t;
                 _size     : size_t;
                 offset    : size_t;

@@ -45,10 +45,10 @@ type
     TAKE13			{ one or three arguments }
   );
 
-  cs_func_t = function (): PChar;
+  cs_func_t = function (): PAnsiChar;
   
   command_struct = record
-    name: PChar;		{ Name of this command }
+    name: PAnsiChar;		{ Name of this command }
     func: cs_func_t;       	{ Function invoked }
     cmd_data: Pointer;		{ Extra data, for functions which
 				 * implement multiple commands...
@@ -58,7 +58,7 @@ type
                                  }
     args_how: cmd_how;  	{ What the command expects as arguments }
 
-    errmsg: PChar;		{ 'usage' message, in case of syntax errors }
+    errmsg: PAnsiChar;		{ 'usage' message, in case of syntax errors }
   end;
 
   command_rec = command_struct;
@@ -120,7 +120,7 @@ type
 				 * request is served...
                                  }
     server: Pserver_rec;	{ Server_rec being configured for }
-    path: PChar;	        { If configuring for a directory,
+    path: PAnsiChar;	        { If configuring for a directory,
 				 * pathname of that directory.
 				 * NOPE!  That's what it meant previous to the
 				 * existance of <Files>, <Location> and regex
@@ -130,7 +130,7 @@ type
 				 * or being called in a dir context (path != NULL).
                                  }
     cmd: Pcommand_rec;	        { configuration command }
-    end_token: PChar;  	        { end token required to end a nested section }
+    end_token: PAnsiChar;  	        { end token required to end a nested section }
     context: Pointer;		{ per_dir_config vector passed
 				 * to handle_command }
   end;
@@ -142,7 +142,7 @@ type
   Phandler_rec = ^handler_rec;
   
   handler_rec = record
-    content_type: PChar;	{ MUST be all lower case }
+    content_type: PAnsiChar;	{ MUST be all lower case }
     handler: handler_t;
   end;
 
@@ -162,7 +162,7 @@ type
     merge_server_config_t = function (): Pointer; cdecl;
 {$else}
     init_t = procedure (param1: Pserver_rec; param2: Ppool); cdecl;
-    create_dir_config_t = function (p: Ppool; dir: PChar): Pointer; cdecl;
+    create_dir_config_t = function (p: Ppool; dir: PAnsiChar): Pointer; cdecl;
     merge_dir_config_t = function (p: PPool; base_conf, new_conf: Pointer): Pointer; cdecl;
     create_server_config_t = function (p: Ppool; s: Pserver_rec): Pointer; cdecl;
     merge_server_config_t = function (p: Ppool; base_conf, new_conf: Pointer): Pointer; cdecl;
@@ -190,7 +190,7 @@ type
 				 * config vectors.
                                  }
 
-    name: PChar;
+    name: PAnsiChar;
     dynamic_load_handle: Pointer;
 
     next: Pmodule_struct;
@@ -288,17 +288,17 @@ API_EXPORT(void) ap_set_module_config(void *conf_vector, module *m, void *val);
 
 { Generic command handling function... }
 
-{API_EXPORT_NONSTD(const char *) ap_set_string_slot(cmd_parms *, char *, char *);
-API_EXPORT_NONSTD(const char *) ap_set_string_slot_lower(cmd_parms *, char *, char *);
-API_EXPORT_NONSTD(const char *) ap_set_flag_slot(cmd_parms *, char *, int);
-API_EXPORT_NONSTD(const char *) ap_set_file_slot(cmd_parms *, char *, char *);}
+{API_EXPORT_NONSTD(const AnsiChar *) ap_set_string_slot(cmd_parms *, AnsiChar *, AnsiChar *);
+API_EXPORT_NONSTD(const AnsiChar *) ap_set_string_slot_lower(cmd_parms *, AnsiChar *, AnsiChar *);
+API_EXPORT_NONSTD(const AnsiChar *) ap_set_flag_slot(cmd_parms *, AnsiChar *, int);
+API_EXPORT_NONSTD(const AnsiChar *) ap_set_file_slot(cmd_parms *, AnsiChar *, AnsiChar *);}
 
 { For modules which need to read config files, open logs, etc. ...
  * this returns the fname argument if it begins with '/'; otherwise
  * it relativizes it wrt server_root.
  }
 
-//API_EXPORT(char *) ap_server_root_relative(pool *p, char *fname);
+//API_EXPORT(AnsiChar *) ap_server_root_relative(pool *p, AnsiChar *fname);
 
 { Finally, the hook for dynamically loading modules in... }
 
@@ -311,20 +311,20 @@ procedure ap_remove_module(m: Pmodule);
 procedure ap_add_loaded_module(m: Pmodule);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_add_named_module(const name: PChar): cint;
+function ap_add_named_module(const name: PAnsiChar): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 procedure ap_clear_module_list();
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_find_module_name(m: Pmodule): PChar;
+function ap_find_module_name(m: Pmodule): PAnsiChar;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-function ap_find_linked_module(const name: PChar): Pmodule;
+function ap_find_linked_module(const name: PAnsiChar): Pmodule;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 { for implementing subconfigs and customized config files }
-{API_EXPORT(const char *) ap_srm_command_loop(cmd_parms *parms, void *config);
+{API_EXPORT(const AnsiChar *) ap_srm_command_loop(cmd_parms *parms, void *config);
 
 #ifdef CORE_PRIVATE
 
@@ -340,7 +340,7 @@ extern API_VAR_EXPORT module **ap_loaded_modules;}
 
 { For http_main.c... }
 
-{API_EXPORT(server_rec *) ap_read_config(pool *conf_pool, pool *temp_pool, char *config_name);
+{API_EXPORT(server_rec *) ap_read_config(pool *conf_pool, pool *temp_pool, AnsiChar *config_name);
 API_EXPORT(void) ap_init_modules(pool *p, server_rec *s);
 API_EXPORT(void) ap_child_init_modules(pool *p, server_rec *s);
 API_EXPORT(void) ap_child_exit_modules(pool *p, server_rec *s);
@@ -358,14 +358,14 @@ CORE_EXPORT(void *) ap_merge_per_dir_configs(pool *p, void *base, void *new);}
 { For http_core.c... (<Directory> command and virtual hosts) }
 
 {CORE_EXPORT(int) ap_parse_htaccess(void **result, request_rec *r, int override,
-		const char *path, const char *access_name);
+		const AnsiChar *path, const AnsiChar *access_name);
 
-CORE_EXPORT(const char *) ap_init_virtual_host(pool *p, const char *hostname,
+CORE_EXPORT(const AnsiChar *) ap_init_virtual_host(pool *p, const AnsiChar *hostname,
 				server_rec *main_server, server_rec **);
-CORE_EXPORT(void) ap_process_resource_config(server_rec *s, char *fname, pool *p, pool *ptemp);
+CORE_EXPORT(void) ap_process_resource_config(server_rec *s, AnsiChar *fname, pool *p, pool *ptemp);
 }
 { ap_check_cmd_context() definitions: }
-//API_EXPORT(const char *) ap_check_cmd_context(cmd_parms *cmd, unsigned forbidden);
+//API_EXPORT(const AnsiChar *) ap_check_cmd_context(cmd_parms *cmd, unsigned forbidden);
 
 { ap_check_cmd_context():              Forbidden in: }
 const
@@ -393,10 +393,10 @@ const
 
 { for mod_perl }
 
-//CORE_EXPORT(const command_rec *) ap_find_command(const char *name, const command_rec *cmds);
-//CORE_EXPORT(const command_rec *) ap_find_command_in_modules(const char *cmd_name, module **mod);
+//CORE_EXPORT(const command_rec *) ap_find_command(const AnsiChar *name, const command_rec *cmds);
+//CORE_EXPORT(const command_rec *) ap_find_command_in_modules(const AnsiChar *cmd_name, module **mod);
 //CORE_EXPORT(void *) ap_set_config_vectors(cmd_parms *parms, void *config, module *mod);
-//CORE_EXPORT(const char *) ap_handle_command(cmd_parms *parms, void *config, const char *l);
+//CORE_EXPORT(const AnsiChar *) ap_handle_command(cmd_parms *parms, void *config, const AnsiChar *l);
 
 //#endif
 

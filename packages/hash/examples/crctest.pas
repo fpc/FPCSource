@@ -8,8 +8,8 @@ uses
   crc;
 
 const
-  testseq1: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGTVIRGATTSYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
-  testseq2: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGDVIRGATTHYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
+  testseq1: RawByteString = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGTVIRGATTSYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
+  testseq2: RawByteString = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGDVIRGATTHYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
 
   test1_crc128: u128 = (lo:14444300186948028230; hi:0);
   test2_crc128: u128 = (lo:3310614217963326015; hi:0);
@@ -19,13 +19,13 @@ const
   test2_crc32: longword = 1264209917;
 
 
-function IntToStr128(v: u128): string;
+function IntToStr128(v: u128): RawByteString;
 begin
   result := 'todo';
 end;
 
 
-procedure perform_crc32(const name, testcase: string; result: longword);
+procedure perform_crc32(const name, testcase: RawByteString; result: longword);
 var
   crc: longword;
 begin
@@ -39,7 +39,7 @@ begin
     writeln('failed (got=',crc,',expected=',result,')');
 end;
 
-procedure perform_crc64(const name, testcase: string; result: qword);
+procedure perform_crc64(const name, testcase: RawByteString; result: qword);
 var
   crc: qword;
 begin
@@ -53,7 +53,7 @@ begin
     writeln('failed (got=',crc,',expected=',result,')');
 end;
 
-procedure perform_crc128(const name, testcase: string; result: u128);
+procedure perform_crc128(const name, testcase: RawByteString; result: u128);
 var
   crc: u128;
 begin

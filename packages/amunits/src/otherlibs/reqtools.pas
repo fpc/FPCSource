@@ -15,7 +15,7 @@
  **********************************************************************}
 {
     History:
-    Added overlay functions for Pchar->Strings, functions
+    Added overlay functions for PAnsiChar->Strings, functions
     and procedures.
     14 Jul 2000.
 
@@ -116,7 +116,7 @@ CONST
 
 Const
 
-    REQTOOLSNAME  : PChar = 'reqtools.library';
+    REQTOOLSNAME  : PAnsiChar = 'reqtools.library';
     REQTOOLSVERSION = 38;
 
 Type
@@ -363,7 +363,7 @@ fixed-width font! pTextFont , not pTextAttr ) - default GfxBase^.DefaultFont }
 
 RT_WaitPointer  = $8000000A; { boolean to set the standard wait pointer in window -
 default FALSE }
-RT_Underscore   = $8000000B; { (V38) char preceding keyboard shortcut characters (will
+RT_Underscore   = $8000000B; { (V38) AnsiChar preceding keyboard shortcut characters (will
 be underlined) }
 RT_ShareIDCMP   = $8000000C; { (V38) share IDCMP port with window - default FALSE }
 RT_LockWindow   = $8000000D; { (V38) lock window and set standard wait pointer -
@@ -606,19 +606,19 @@ VAR ReqToolsBase : pLibrary = nil;
 FUNCTION rtAllocRequestA(typ : ULONG location 'd0'; taglist : pTagItem location 'a0') : POINTER; syscall ReqToolsBase 030;
 FUNCTION rtChangeReqAttrA(req : POINTER location 'a1'; taglist : pTagItem location 'a0') : LONGINT; syscall ReqToolsBase 048;
 PROCEDURE rtCloseWindowSafely(win : pWindow location 'a0'); syscall ReqToolsBase 150;
-FUNCTION rtEZRequestA(bodyfmt : PChar location 'a1'; gadfmt : PChar location 'a2'; reqinfo : prtReqInfo location 'a3'; argarray: POINTER location 'a4'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 066;
-FUNCTION rtFileRequestA(filereq : prtFileRequester location 'a1'; filebuf : PChar location 'a2'; title : PChar location 'a3'; taglist : pTagItem location 'a0') : POINTER; syscall ReqToolsBase 054;
-FUNCTION rtFontRequestA(fontreq : prtFontRequester location 'a1'; title : PChar location 'a3'; taglist : pTagItem location 'a0'): ULONG; syscall ReqToolsBase 096;
+FUNCTION rtEZRequestA(bodyfmt : PAnsiChar location 'a1'; gadfmt : PAnsiChar location 'a2'; reqinfo : prtReqInfo location 'a3'; argarray: POINTER location 'a4'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 066;
+FUNCTION rtFileRequestA(filereq : prtFileRequester location 'a1'; filebuf : PAnsiChar location 'a2'; title : PAnsiChar location 'a3'; taglist : pTagItem location 'a0') : POINTER; syscall ReqToolsBase 054;
+FUNCTION rtFontRequestA(fontreq : prtFontRequester location 'a1'; title : PAnsiChar location 'a3'; taglist : pTagItem location 'a0'): ULONG; syscall ReqToolsBase 096;
 PROCEDURE rtFreeFileList(filelist : prtFileList location 'a0'); syscall ReqToolsBase 060;
 PROCEDURE rtFreeReqBuffer(req : POINTER location 'a1'); syscall ReqToolsBase 042;
 PROCEDURE rtFreeRequest(req : POINTER location 'a1'); syscall ReqToolsBase 036;
-FUNCTION rtGetLongA(VAR longptr : ULONG location 'a1'; title : PChar location 'a2'; reqinfo : prtReqInfo location 'a3'; taglist: pTagItem location 'a0') : ULONG; syscall ReqToolsBase 078;
-FUNCTION rtGetStringA(buffer : pCHAR location 'a1'; maxchars : ULONG location 'd0'; title : PChar location 'a2'; reqinfo :prtReqInfo location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 072;
+FUNCTION rtGetLongA(VAR longptr : ULONG location 'a1'; title : PAnsiChar location 'a2'; reqinfo : prtReqInfo location 'a3'; taglist: pTagItem location 'a0') : ULONG; syscall ReqToolsBase 078;
+FUNCTION rtGetStringA(buffer : PAnsiChar location 'a1'; maxchars : ULONG location 'd0'; title : PAnsiChar location 'a2'; reqinfo :prtReqInfo location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 072;
 FUNCTION rtGetVScreenSize(screen : pScreen location 'a0'; VAR widthptr : ULONG location 'a1'; VAR heightptr :ULONG location 'a2') : ULONG; syscall ReqToolsBase 120;
 FUNCTION rtLockWindow(win : pWindow location 'a0') : POINTER; syscall ReqToolsBase 156;
-FUNCTION rtPaletteRequestA(title : PChar location 'a2'; reqinfo : prtReqInfo location 'a3'; taglist : pTagItem location 'a0') :LONGINT; syscall ReqToolsBase 102;
+FUNCTION rtPaletteRequestA(title : PAnsiChar location 'a2'; reqinfo : prtReqInfo location 'a3'; taglist : pTagItem location 'a0') :LONGINT; syscall ReqToolsBase 102;
 FUNCTION rtReqHandlerA(handlerinfo : prtHandlerInfo location 'a1'; sigs : ULONG location 'd0'; taglist : pTagItem location 'a0'): ULONG; syscall ReqToolsBase 108;
-FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester location 'a1'; title : PChar location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 144;
+FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester location 'a1'; title : PAnsiChar location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall ReqToolsBase 144;
 PROCEDURE rtScreenToFrontSafely(screen : pScreen location 'a0'); syscall ReqToolsBase 138;
 PROCEDURE rtSetReqPosition(reqpos : ULONG location 'd0'; newwindow : pNewWindow location 'a0'; screen : pScreen location 'a1'; window : pWindow location 'd2'); syscall ReqToolsBase 126;
 PROCEDURE rtSetWaitPointer(window : pWindow location 'a0'); syscall ReqToolsBase 114;
@@ -632,24 +632,24 @@ PROCEDURE rtUnlockWindow(win : pWindow location 'a0'; winlock : POINTER location
 
 FUNCTION rtAllocRequest(typ : ULONG; const argv : array of PtrUInt) : POINTER;
 FUNCTION rtChangeReqAttr(req : POINTER; const argv : array of PtrUInt) : LONGINT;
-FUNCTION rtEZRequest(bodyfmt : PChar; gadfmt : PChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PChar; title : PChar; const argv : array of PtrUInt) : POINTER;
-FUNCTION rtFontRequest(fontreq : prtFontRequester; title : PChar; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtGetLong(VAR longptr : ULONG; title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtGetString(buffer : pCHAR; maxchars : ULONG; title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtPaletteRequest(title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : LONGINT;
+FUNCTION rtEZRequest(bodyfmt : PAnsiChar; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PAnsiChar; title : PAnsiChar; const argv : array of PtrUInt) : POINTER;
+FUNCTION rtFontRequest(fontreq : prtFontRequester; title : PAnsiChar; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetLong(VAR longptr : ULONG; title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetString(buffer : PAnsiChar; maxchars : ULONG; title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtPaletteRequest(title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : LONGINT;
 FUNCTION rtReqHandler(handlerinfo : prtHandlerInfo; sigs : ULONG; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : PChar; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : PAnsiChar; const argv : array of PtrUInt) : ULONG;
 
 {overlay functions}
 
-FUNCTION rtEZRequestA(bodyfmt : PChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
-FUNCTION rtEZRequestA(const bodyfmt : RawByteString; gadfmt : PChar; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
+FUNCTION rtEZRequestA(bodyfmt : PAnsiChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
+FUNCTION rtEZRequestA(const bodyfmt : RawByteString; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
 FUNCTION rtEZRequestA(const bodyfmt : RawByteString; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
-FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; const title : RawByteString; taglist : pTagItem) : POINTER;
+FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PAnsiChar; const title : RawByteString; taglist : pTagItem) : POINTER;
 FUNCTION rtFontRequestA(fontreq : prtFontRequester; const title : RawByteString; taglist : pTagItem) : ULONG;
 FUNCTION rtGetLongA(VAR longptr : ULONG; const title : RawByteString; reqinfo : prtReqInfo; taglist : pTagItem) : ULONG;
-FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; taglist : pTagItem) : ULONG;
+FUNCTION rtGetStringA(buffer : PAnsiChar; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; taglist : pTagItem) : ULONG;
 FUNCTION rtPaletteRequestA(const title : RawByteString; reqinfo : prtReqInfo; taglist : pTagItem) : LONGINT;
 FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester; const title : RawByteString; taglist : pTagItem) : ULONG;
 
@@ -658,62 +658,62 @@ FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester; const titl
      For use with fpc 1.0 and above. + overlay
 }
 
-FUNCTION rtEZRequest(bodyfmt : PChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtEZRequest(const bodyfmt : RawByteString; gadfmt : PChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtEZRequest(bodyfmt : PAnsiChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtEZRequest(const bodyfmt : RawByteString; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
 FUNCTION rtEZRequest(const bodyfmt : RawByteString; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PChar; const title : RawByteString; const argv : array of PtrUInt) : POINTER;
+FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PAnsiChar; const title : RawByteString; const argv : array of PtrUInt) : POINTER;
 FUNCTION rtFontRequest(fontreq : prtFontRequester; const title : RawByteString; const argv : array of PtrUInt) : ULONG;
 FUNCTION rtGetLong(VAR longptr : ULONG; const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
-FUNCTION rtGetString(buffer : pCHAR; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetString(buffer : PAnsiChar; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
 FUNCTION rtPaletteRequest(const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : LONGINT;
 FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; const title : RawByteString; const argv : array of PtrUInt) : ULONG;
 
 IMPLEMENTATION
 
 
-FUNCTION rtEZRequestA(bodyfmt : PChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray: POINTER; taglist : pTagItem) : ULONG;
+FUNCTION rtEZRequestA(bodyfmt : PAnsiChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray: POINTER; taglist : pTagItem) : ULONG;
 BEGIN
-    rtEZRequestA := rtEZRequestA(bodyfmt,PChar(gadfmt),reqinfo,argarray,taglist);
+    rtEZRequestA := rtEZRequestA(bodyfmt,PAnsiChar(gadfmt),reqinfo,argarray,taglist);
 END;
 
-FUNCTION rtEZRequestA(const bodyfmt : RawByteString; gadfmt : PChar; reqinfo : prtReqInfo; argarray: POINTER; taglist : pTagItem) : ULONG;
+FUNCTION rtEZRequestA(const bodyfmt : RawByteString; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray: POINTER; taglist : pTagItem) : ULONG;
 BEGIN
-    rtEZRequestA := rtEZRequestA(PChar(bodyfmt),gadfmt,reqinfo,argarray,taglist);
+    rtEZRequestA := rtEZRequestA(PAnsiChar(bodyfmt),gadfmt,reqinfo,argarray,taglist);
 END;
 
 FUNCTION rtEZRequestA(const bodyfmt : RawByteString; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; taglist : pTagItem) : ULONG;
 BEGIN
-    rtEZRequestA := rtEZRequestA(PChar(bodyfmt),PChar(gadfmt),reqinfo,argarray,taglist);
+    rtEZRequestA := rtEZRequestA(PAnsiChar(bodyfmt),PAnsiChar(gadfmt),reqinfo,argarray,taglist);
 END;
 
-FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; const title : RawByteString; taglist : pTagItem) : POINTER;
+FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PAnsiChar; const title : RawByteString; taglist : pTagItem) : POINTER;
 BEGIN
-    rtFileRequestA := rtFileRequestA(filereq,filebuf,PChar(title),taglist);
+    rtFileRequestA := rtFileRequestA(filereq,filebuf,PAnsiChar(title),taglist);
 END;
 
 FUNCTION rtFontRequestA(fontreq : prtFontRequester; const title : RawByteString; taglist :pTagItem) : ULONG;
 BEGIN
-    rtFontRequestA := rtFontRequestA(fontreq,PChar(title),taglist);
+    rtFontRequestA := rtFontRequestA(fontreq,PAnsiChar(title),taglist);
 END;
 
 FUNCTION rtGetLongA(VAR longptr : ULONG; const title : RawByteString; reqinfo : prtReqInfo; taglist: pTagItem) : ULONG;
 BEGIN
-    rtGetLongA := rtGetLongA(longptr,PChar(title),reqinfo,taglist);
+    rtGetLongA := rtGetLongA(longptr,PAnsiChar(title),reqinfo,taglist);
 END;
 
-FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; const title : RawByteString; reqinfo :prtReqInfo; taglist : pTagItem) : ULONG;
+FUNCTION rtGetStringA(buffer : PAnsiChar; maxchars : ULONG; const title : RawByteString; reqinfo :prtReqInfo; taglist : pTagItem) : ULONG;
 BEGIN
-    rtGetStringA := rtGetStringA(buffer,maxchars,PChar(title),reqinfo,taglist);
+    rtGetStringA := rtGetStringA(buffer,maxchars,PAnsiChar(title),reqinfo,taglist);
 END;
 
 FUNCTION rtPaletteRequestA(const title : RawByteString; reqinfo : prtReqInfo; taglist : pTagItem) :LONGINT;
 BEGIN
-    rtPaletteRequestA := rtPaletteRequestA(PChar(title),reqinfo,taglist);
+    rtPaletteRequestA := rtPaletteRequestA(PAnsiChar(title),reqinfo,taglist);
 END;
 
 FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester; const title : RawByteString; taglist : pTagItem) : ULONG;
 BEGIN
-    rtScreenModeRequestA := rtScreenModeRequestA(screenmodereq,PChar(title),taglist);
+    rtScreenModeRequestA := rtScreenModeRequestA(screenmodereq,PAnsiChar(title),taglist);
 END;
 
 
@@ -727,32 +727,32 @@ begin
     rtChangeReqAttr := rtChangeReqAttrA(req,@argv);
 end;
 
-FUNCTION rtEZRequest(bodyfmt : PChar; gadfmt : PChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtEZRequest(bodyfmt : PAnsiChar; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
 begin
     rtEZRequest := rtEZRequestA(bodyfmt,gadfmt,reqinfo,argarray,@argv);
 end;
 
-FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PChar; title : PChar; const argv : array of PtrUInt) : POINTER;
+FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PAnsiChar; title : PAnsiChar; const argv : array of PtrUInt) : POINTER;
 begin
     rtFileRequest := rtFileRequestA(filereq,filebuf,title,@argv);
 end;
 
-FUNCTION rtFontRequest(fontreq : prtFontRequester; title : PChar; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtFontRequest(fontreq : prtFontRequester; title : PAnsiChar; const argv : array of PtrUInt) : ULONG;
 begin
     rtFontRequest := rtFontRequestA(fontreq,title,@argv);
 end;
 
-FUNCTION rtGetLong(VAR longptr : ULONG; title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetLong(VAR longptr : ULONG; title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
 begin
     rtGetLong := rtGetLongA(longptr,title,reqinfo,@argv);
 end;
 
-FUNCTION rtGetString(buffer : pCHAR; maxchars : ULONG; title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetString(buffer : PAnsiChar; maxchars : ULONG; title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
 begin
     rtGetString := rtGetStringA(buffer,maxchars,title,reqinfo,@argv);
 end;
 
-FUNCTION rtPaletteRequest(title : PChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : LONGINT;
+FUNCTION rtPaletteRequest(title : PAnsiChar; reqinfo : prtReqInfo; const argv : array of PtrUInt) : LONGINT;
 begin
     rtPaletteRequest := rtPaletteRequestA(title,reqinfo,@argv);
 end;
@@ -762,17 +762,17 @@ begin
     rtReqHandler := rtReqHandlerA(handlerinfo,sigs,@argv);
 end;
 
-FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : PChar; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtScreenModeRequest(screenmodereq : prtScreenModeRequester; title : PAnsiChar; const argv : array of PtrUInt) : ULONG;
 begin
     rtScreenModeRequest := rtScreenModeRequestA(screenmodereq,title,@argv);
 end;
 
-FUNCTION rtEZRequest(bodyfmt : PChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtEZRequest(bodyfmt : PAnsiChar; const gadfmt : RawByteString; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
 begin
     rtEZRequest := rtEZRequestA(bodyfmt,gadfmt,reqinfo,argarray,@argv);
 end;
 
-FUNCTION rtEZRequest(const bodyfmt : RawByteString; gadfmt : PChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtEZRequest(const bodyfmt : RawByteString; gadfmt : PAnsiChar; reqinfo : prtReqInfo; argarray : POINTER; const argv : array of PtrUInt) : ULONG;
 begin
     rtEZRequest := rtEZRequestA(bodyfmt,gadfmt,reqinfo,argarray,@argv);
 end;
@@ -782,7 +782,7 @@ begin
     rtEZRequest := rtEZRequestA(bodyfmt,gadfmt,reqinfo,argarray,@argv);
 end;
 
-FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PChar; const title : RawByteString; const argv : array of PtrUInt) : POINTER;
+FUNCTION rtFileRequest(filereq : prtFileRequester; filebuf : PAnsiChar; const title : RawByteString; const argv : array of PtrUInt) : POINTER;
 begin
      rtFileRequest :=  rtFileRequestA(filereq,filebuf,title,@argv);
 end;
@@ -797,7 +797,7 @@ begin
      rtGetLong := rtGetLongA(longptr,title,reqinfo,@argv);
 end;
 
-FUNCTION rtGetString(buffer : pCHAR; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
+FUNCTION rtGetString(buffer : PAnsiChar; maxchars : ULONG; const title : RawByteString; reqinfo : prtReqInfo; const argv : array of PtrUInt) : ULONG;
 begin
      rtGetString := rtGetStringA(buffer,maxchars,title,reqinfo,@argv);
 end;
@@ -814,7 +814,7 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : string[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization

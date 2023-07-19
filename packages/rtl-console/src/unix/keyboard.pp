@@ -35,21 +35,21 @@ type
   TTreeElement = record
     Next,Parent,Child :  PTreeElement;
     CanBeTerminal : boolean;
-    char : byte;
+    AnsiChar : byte;
     ScanValue : byte;
     CharValue : byte;
     ShiftValue : TEnhancedShiftState;
     SpecialHandler : Tprocedure;
   end;
 
-function RawReadKey:char;
-function RawReadString : String;
+function RawReadKey:AnsiChar;
+function RawReadString : ShortString;
 function KeyPressed : Boolean;
-procedure AddSequence(const St : String; AChar,AScan :byte);inline;
-function FindSequence(const St : String;var AChar, Ascan : byte) : boolean;
+procedure AddSequence(const St : ShortString; AChar,AScan :byte);inline;
+function FindSequence(const St : ShortString;var AChar, Ascan : byte) : boolean;
 procedure RestoreStartMode;
 
-function AddSpecialSequence(const St : string;Proc : Tprocedure) : PTreeElement; platform;
+function AddSpecialSequence(const St : Shortstring;Proc : Tprocedure) : PTreeElement; platform;
 
 
 {*****************************************************************************}
@@ -86,7 +86,7 @@ var
 const
   InSize=256;
 var
-  InBuf  : array [0..InSize-1] of char;
+  InBuf  : array [0..InSize-1] of AnsiChar;
 {  InCnt,}
   InHead,
   InTail : longint;
@@ -174,7 +174,7 @@ type
   end;
   kbsentry=packed record
     kb_func:byte;
-    kb_string:array[0..511] of char;
+    kb_string:array[0..511] of AnsiChar;
   end;
   vt_mode=packed record
     mode,          {vt mode}
@@ -405,7 +405,7 @@ begin
 end;
 {$endif}
 
-function ttyRecvChar:char;
+function ttyRecvChar:AnsiChar;
 
 var Readed,i : longint;
 
@@ -435,7 +435,7 @@ begin
 end;
 
 { returns an already read character back into InBuf }
-procedure PutBackIntoInBuf(ch: Char);
+procedure PutBackIntoInBuf(ch: AnsiChar);
 begin
   If InTail=0 then
     InTail:=InSize-1
@@ -514,7 +514,7 @@ const
 
   procedure GenMouseEvent;
   var MouseEvent: TMouseEvent;
-      ch : char;
+      ch : AnsiChar;
       fdsin : tfdSet;
       buttonval:byte;
   begin
@@ -603,10 +603,10 @@ const
         prepared to handle both types of messages }
   procedure GenMouseEvent_ExtendedSGR1006;
   var MouseEvent: TMouseEvent;
-      ch : char;
+      ch : AnsiChar;
       fdsin : tfdSet;
       buttonval: LongInt;
-      tempstr: string;
+      tempstr: shortstring;
       code: LongInt;
       X, Y: LongInt;
       ButtonMask: Word;
@@ -706,7 +706,7 @@ const
     LastMouseEvent:=MouseEvent;
   end;
 
-var roottree:array[char] of PTreeElement;
+var roottree:array[AnsiChar] of PTreeElement;
 
 procedure FreeElement (PT:PTreeElement);
 var next : PTreeElement;
@@ -722,7 +722,7 @@ end;
 
 procedure FreeTree;
 
-var i:char;
+var i:AnsiChar;
 
 begin
   for i:=low(roottree) to high(roottree) do
@@ -735,13 +735,13 @@ end;
 function NewPTree(ch : byte;Pa : PTreeElement) : PTreeElement;
 begin
   newPtree:=allocmem(sizeof(Ttreeelement));
-  newPtree^.char:=ch;
+  newPtree^.AnsiChar:=ch;
   newPtree^.Parent:=Pa;
   if Assigned(Pa) and (Pa^.Child=nil) then
     Pa^.Child:=newPtree;
 end;
 
-function DoAddSequence(const St : String; AChar,AScan :byte; const AShift: TEnhancedShiftState) : PTreeElement;
+function DoAddSequence(const St : shortstring; AChar,AScan :byte; const AShift: TEnhancedShiftState) : PTreeElement;
 var
   CurPTree,NPT : PTreeElement;
   c : byte;
@@ -765,13 +765,13 @@ begin
       if NPT=nil then
         NPT:=NewPTree(c,CurPTree);
       CurPTree:=nil;
-      while assigned(NPT) and (NPT^.char<c) do
+      while assigned(NPT) and (NPT^.AnsiChar<c) do
         begin
           CurPTree:=NPT;
           NPT:=NPT^.Next;
         end;
 
-      if assigned(NPT) and (NPT^.char=c) then
+      if assigned(NPT) and (NPT^.AnsiChar=c) then
         CurPTree:=NPT
       else
         begin
@@ -801,7 +801,7 @@ begin
           if (ScanValue<>AScan) then
             Writeln(system.stderr,'Scan was ',ScanValue,' now ',AScan);
           if (CharValue<>AChar) then
-            Writeln(system.stderr,'Char was ',chr(CharValue),' now ',chr(AChar));
+            Writeln(system.stderr,'AnsiChar was ',chr(CharValue),' now ',chr(AChar));
 {$endif DEBUG}
           ScanValue:=AScan;
           CharValue:=AChar;
@@ -819,26 +819,26 @@ begin
 end;
 
 
-procedure AddSequence(const St : String; AChar,AScan :byte);inline;
+procedure AddSequence(const St : shortstring; AChar,AScan :byte);inline;
 begin
   DoAddSequence(St,AChar,AScan,[]);
 end;
 
-{ Returns the Child that as c as char if it exists }
+{ Returns the Child that as c as AnsiChar if it exists }
 function FindChild(c : byte;Root : PTreeElement) : PTreeElement;
 var
   NPT : PTreeElement;
 begin
   NPT:=Root^.Child;
-  while assigned(NPT) and (NPT^.char<c) do
+  while assigned(NPT) and (NPT^.AnsiChar<c) do
     NPT:=NPT^.Next;
-  if assigned(NPT) and (NPT^.char=c) then
+  if assigned(NPT) and (NPT^.AnsiChar=c) then
     FindChild:=NPT
   else
     FindChild:=nil;
 end;
 
-function AddSpecialSequence(const St : string;Proc : Tprocedure) : PTreeElement;
+function AddSpecialSequence(const St : shortstring;Proc : Tprocedure) : PTreeElement;
 var
   NPT : PTreeElement;
 begin
@@ -847,7 +847,7 @@ begin
   AddSpecialSequence:=NPT;
 end;
 
-function FindSequence(const St : String;var AChar,AScan :byte) : boolean;
+function FindSequence(const St : shortstring;var AChar,AScan :byte) : boolean;
 var
   NPT : PTreeElement;
   i,p : byte;
@@ -884,136 +884,136 @@ begin
 end;
 
 type  key_sequence=packed record
-        char:0..127;
+        AnsiChar:0..127;
         scan:byte;
         shift:TEnhancedShiftState;
         st:string[7];
       end;
 
 const key_sequences:array[0..302] of key_sequence=(
-       (char:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
-       (char:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
-       (char:0;scan:kbAltB;shift:[essAlt];st:#27'B'),
-       (char:0;scan:kbAltB;shift:[essAlt];st:#27'b'),
-       (char:0;scan:kbAltC;shift:[essAlt];st:#27'C'),
-       (char:0;scan:kbAltC;shift:[essAlt];st:#27'c'),
-       (char:0;scan:kbAltD;shift:[essAlt];st:#27'D'),
-       (char:0;scan:kbAltD;shift:[essAlt];st:#27'd'),
-       (char:0;scan:kbAltE;shift:[essAlt];st:#27'E'),
-       (char:0;scan:kbAltE;shift:[essAlt];st:#27'e'),
-       (char:0;scan:kbAltF;shift:[essAlt];st:#27'F'),
-       (char:0;scan:kbAltF;shift:[essAlt];st:#27'f'),
-       (char:0;scan:kbAltG;shift:[essAlt];st:#27'G'),
-       (char:0;scan:kbAltG;shift:[essAlt];st:#27'g'),
-       (char:0;scan:kbAltH;shift:[essAlt];st:#27'H'),
-       (char:0;scan:kbAltH;shift:[essAlt];st:#27'h'),
-       (char:0;scan:kbAltI;shift:[essAlt];st:#27'I'),
-       (char:0;scan:kbAltI;shift:[essAlt];st:#27'i'),
-       (char:0;scan:kbAltJ;shift:[essAlt];st:#27'J'),
-       (char:0;scan:kbAltJ;shift:[essAlt];st:#27'j'),
-       (char:0;scan:kbAltK;shift:[essAlt];st:#27'K'),
-       (char:0;scan:kbAltK;shift:[essAlt];st:#27'k'),
-       (char:0;scan:kbAltL;shift:[essAlt];st:#27'L'),
-       (char:0;scan:kbAltL;shift:[essAlt];st:#27'l'),
-       (char:0;scan:kbAltM;shift:[essAlt];st:#27'M'),
-       (char:0;scan:kbAltM;shift:[essAlt];st:#27'm'),
-       (char:0;scan:kbAltN;shift:[essAlt];st:#27'N'),
-       (char:0;scan:kbAltN;shift:[essAlt];st:#27'n'),
-       (char:0;scan:kbAltO;shift:[essAlt];st:#27'O'),
-       (char:0;scan:kbAltO;shift:[essAlt];st:#27'o'),
-       (char:0;scan:kbAltP;shift:[essAlt];st:#27'P'),
-       (char:0;scan:kbAltP;shift:[essAlt];st:#27'p'),
-       (char:0;scan:kbAltQ;shift:[essAlt];st:#27'Q'),
-       (char:0;scan:kbAltQ;shift:[essAlt];st:#27'q'),
-       (char:0;scan:kbAltR;shift:[essAlt];st:#27'R'),
-       (char:0;scan:kbAltR;shift:[essAlt];st:#27'r'),
-       (char:0;scan:kbAltS;shift:[essAlt];st:#27'S'),
-       (char:0;scan:kbAltS;shift:[essAlt];st:#27's'),
-       (char:0;scan:kbAltT;shift:[essAlt];st:#27'T'),
-       (char:0;scan:kbAltT;shift:[essAlt];st:#27't'),
-       (char:0;scan:kbAltU;shift:[essAlt];st:#27'U'),
-       (char:0;scan:kbAltU;shift:[essAlt];st:#27'u'),
-       (char:0;scan:kbAltV;shift:[essAlt];st:#27'V'),
-       (char:0;scan:kbAltV;shift:[essAlt];st:#27'v'),
-       (char:0;scan:kbAltW;shift:[essAlt];st:#27'W'),
-       (char:0;scan:kbAltW;shift:[essAlt];st:#27'w'),
-       (char:0;scan:kbAltX;shift:[essAlt];st:#27'X'),
-       (char:0;scan:kbAltX;shift:[essAlt];st:#27'x'),
-       (char:0;scan:kbAltY;shift:[essAlt];st:#27'Y'),
-       (char:0;scan:kbAltY;shift:[essAlt];st:#27'y'),
-       (char:0;scan:kbAltZ;shift:[essAlt];st:#27'Z'),
-       (char:0;scan:kbAltZ;shift:[essAlt];st:#27'z'),
-       (char:0;scan:kbAltMinus;shift:[essAlt];st:#27'-'),
-       (char:0;scan:kbAltEqual;shift:[essAlt];st:#27'='),
-       (char:0;scan:kbAlt0;shift:[essAlt];st:#27'0'),
-       (char:0;scan:kbAlt1;shift:[essAlt];st:#27'1'),
-       (char:0;scan:kbAlt2;shift:[essAlt];st:#27'2'),
-       (char:0;scan:kbAlt3;shift:[essAlt];st:#27'3'),
-       (char:0;scan:kbAlt4;shift:[essAlt];st:#27'4'),
-       (char:0;scan:kbAlt5;shift:[essAlt];st:#27'5'),
-       (char:0;scan:kbAlt6;shift:[essAlt];st:#27'6'),
-       (char:0;scan:kbAlt7;shift:[essAlt];st:#27'7'),
-       (char:0;scan:kbAlt8;shift:[essAlt];st:#27'8'),
-       (char:0;scan:kbAlt9;shift:[essAlt];st:#27'9'),
+       (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
+       (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
+       (AnsiChar:0;scan:kbAltB;shift:[essAlt];st:#27'B'),
+       (AnsiChar:0;scan:kbAltB;shift:[essAlt];st:#27'b'),
+       (AnsiChar:0;scan:kbAltC;shift:[essAlt];st:#27'C'),
+       (AnsiChar:0;scan:kbAltC;shift:[essAlt];st:#27'c'),
+       (AnsiChar:0;scan:kbAltD;shift:[essAlt];st:#27'D'),
+       (AnsiChar:0;scan:kbAltD;shift:[essAlt];st:#27'd'),
+       (AnsiChar:0;scan:kbAltE;shift:[essAlt];st:#27'E'),
+       (AnsiChar:0;scan:kbAltE;shift:[essAlt];st:#27'e'),
+       (AnsiChar:0;scan:kbAltF;shift:[essAlt];st:#27'F'),
+       (AnsiChar:0;scan:kbAltF;shift:[essAlt];st:#27'f'),
+       (AnsiChar:0;scan:kbAltG;shift:[essAlt];st:#27'G'),
+       (AnsiChar:0;scan:kbAltG;shift:[essAlt];st:#27'g'),
+       (AnsiChar:0;scan:kbAltH;shift:[essAlt];st:#27'H'),
+       (AnsiChar:0;scan:kbAltH;shift:[essAlt];st:#27'h'),
+       (AnsiChar:0;scan:kbAltI;shift:[essAlt];st:#27'I'),
+       (AnsiChar:0;scan:kbAltI;shift:[essAlt];st:#27'i'),
+       (AnsiChar:0;scan:kbAltJ;shift:[essAlt];st:#27'J'),
+       (AnsiChar:0;scan:kbAltJ;shift:[essAlt];st:#27'j'),
+       (AnsiChar:0;scan:kbAltK;shift:[essAlt];st:#27'K'),
+       (AnsiChar:0;scan:kbAltK;shift:[essAlt];st:#27'k'),
+       (AnsiChar:0;scan:kbAltL;shift:[essAlt];st:#27'L'),
+       (AnsiChar:0;scan:kbAltL;shift:[essAlt];st:#27'l'),
+       (AnsiChar:0;scan:kbAltM;shift:[essAlt];st:#27'M'),
+       (AnsiChar:0;scan:kbAltM;shift:[essAlt];st:#27'm'),
+       (AnsiChar:0;scan:kbAltN;shift:[essAlt];st:#27'N'),
+       (AnsiChar:0;scan:kbAltN;shift:[essAlt];st:#27'n'),
+       (AnsiChar:0;scan:kbAltO;shift:[essAlt];st:#27'O'),
+       (AnsiChar:0;scan:kbAltO;shift:[essAlt];st:#27'o'),
+       (AnsiChar:0;scan:kbAltP;shift:[essAlt];st:#27'P'),
+       (AnsiChar:0;scan:kbAltP;shift:[essAlt];st:#27'p'),
+       (AnsiChar:0;scan:kbAltQ;shift:[essAlt];st:#27'Q'),
+       (AnsiChar:0;scan:kbAltQ;shift:[essAlt];st:#27'q'),
+       (AnsiChar:0;scan:kbAltR;shift:[essAlt];st:#27'R'),
+       (AnsiChar:0;scan:kbAltR;shift:[essAlt];st:#27'r'),
+       (AnsiChar:0;scan:kbAltS;shift:[essAlt];st:#27'S'),
+       (AnsiChar:0;scan:kbAltS;shift:[essAlt];st:#27's'),
+       (AnsiChar:0;scan:kbAltT;shift:[essAlt];st:#27'T'),
+       (AnsiChar:0;scan:kbAltT;shift:[essAlt];st:#27't'),
+       (AnsiChar:0;scan:kbAltU;shift:[essAlt];st:#27'U'),
+       (AnsiChar:0;scan:kbAltU;shift:[essAlt];st:#27'u'),
+       (AnsiChar:0;scan:kbAltV;shift:[essAlt];st:#27'V'),
+       (AnsiChar:0;scan:kbAltV;shift:[essAlt];st:#27'v'),
+       (AnsiChar:0;scan:kbAltW;shift:[essAlt];st:#27'W'),
+       (AnsiChar:0;scan:kbAltW;shift:[essAlt];st:#27'w'),
+       (AnsiChar:0;scan:kbAltX;shift:[essAlt];st:#27'X'),
+       (AnsiChar:0;scan:kbAltX;shift:[essAlt];st:#27'x'),
+       (AnsiChar:0;scan:kbAltY;shift:[essAlt];st:#27'Y'),
+       (AnsiChar:0;scan:kbAltY;shift:[essAlt];st:#27'y'),
+       (AnsiChar:0;scan:kbAltZ;shift:[essAlt];st:#27'Z'),
+       (AnsiChar:0;scan:kbAltZ;shift:[essAlt];st:#27'z'),
+       (AnsiChar:0;scan:kbAltMinus;shift:[essAlt];st:#27'-'),
+       (AnsiChar:0;scan:kbAltEqual;shift:[essAlt];st:#27'='),
+       (AnsiChar:0;scan:kbAlt0;shift:[essAlt];st:#27'0'),
+       (AnsiChar:0;scan:kbAlt1;shift:[essAlt];st:#27'1'),
+       (AnsiChar:0;scan:kbAlt2;shift:[essAlt];st:#27'2'),
+       (AnsiChar:0;scan:kbAlt3;shift:[essAlt];st:#27'3'),
+       (AnsiChar:0;scan:kbAlt4;shift:[essAlt];st:#27'4'),
+       (AnsiChar:0;scan:kbAlt5;shift:[essAlt];st:#27'5'),
+       (AnsiChar:0;scan:kbAlt6;shift:[essAlt];st:#27'6'),
+       (AnsiChar:0;scan:kbAlt7;shift:[essAlt];st:#27'7'),
+       (AnsiChar:0;scan:kbAlt8;shift:[essAlt];st:#27'8'),
+       (AnsiChar:0;scan:kbAlt9;shift:[essAlt];st:#27'9'),
 
-       (char:0;scan:kbF1;shift:[];st:#27'[[A'),                   {linux,konsole,xterm}
-       (char:0;scan:kbF2;shift:[];st:#27'[[B'),                   {linux,konsole,xterm}
-       (char:0;scan:kbF3;shift:[];st:#27'[[C'),                   {linux,konsole,xterm}
-       (char:0;scan:kbF4;shift:[];st:#27'[[D'),                   {linux,konsole,xterm}
-       (char:0;scan:kbF5;shift:[];st:#27'[[E'),                   {linux,konsole}
-       (char:0;scan:kbF1;shift:[];st:#27'[11~'),                  {Eterm,rxvt}
-       (char:0;scan:kbF2;shift:[];st:#27'[12~'),                  {Eterm,rxvt}
-       (char:0;scan:kbF3;shift:[];st:#27'[13~'),                  {Eterm,rxvt}
-       (char:0;scan:kbF4;shift:[];st:#27'[14~'),                  {Eterm,rxvt}
-       (char:0;scan:kbF5;shift:[];st:#27'[15~'),                  {xterm,Eterm,gnome,rxvt}
-       (char:0;scan:kbF6;shift:[];st:#27'[17~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF7;shift:[];st:#27'[18~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF8;shift:[];st:#27'[19~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF9;shift:[];st:#27'[20~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF10;shift:[];st:#27'[21~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF11;shift:[];st:#27'[23~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF12;shift:[];st:#27'[24~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
-       (char:0;scan:kbF1;shift:[];st:#27'[M'),                    {FreeBSD}
-       (char:0;scan:kbF2;shift:[];st:#27'[N'),                    {FreeBSD}
-       (char:0;scan:kbF3;shift:[];st:#27'[O'),                    {FreeBSD}
-       (char:0;scan:kbF4;shift:[];st:#27'[P'),                    {FreeBSD}
-       (char:0;scan:kbF5;shift:[];st:#27'[Q'),                    {FreeBSD}
-       (char:0;scan:kbF6;shift:[];st:#27'[R'),                    {FreeBSD}
-       (char:0;scan:kbF7;shift:[];st:#27'[S'),                    {FreeBSD}
-       (char:0;scan:kbF8;shift:[];st:#27'[T'),                    {FreeBSD}
-       (char:0;scan:kbF9;shift:[];st:#27'[U'),                    {FreeBSD}
-       (char:0;scan:kbF10;shift:[];st:#27'[V'),                   {FreeBSD}
-       (char:0;scan:kbF11;shift:[];st:#27'[W'),                   {FreeBSD}
-       (char:0;scan:kbF12;shift:[];st:#27'[X'),                   {FreeBSD}
-       (char:0;scan:kbF1;shift:[];st:#27'OP'),                    {vt100,gnome,konsole}
-       (char:0;scan:kbF2;shift:[];st:#27'OQ'),                    {vt100,gnome,konsole}
-       (char:0;scan:kbF3;shift:[];st:#27'OR'),                    {vt100,gnome,konsole}
-       (char:0;scan:kbF4;shift:[];st:#27'OS'),                    {vt100,gnome,konsole}
-       (char:0;scan:kbF5;shift:[];st:#27'Ot'),                    {vt100}
-       (char:0;scan:kbF6;shift:[];st:#27'Ou'),                    {vt100}
-       (char:0;scan:kbF7;shift:[];st:#27'Ov'),                    {vt100}
-       (char:0;scan:kbF8;shift:[];st:#27'Ol'),                    {vt100}
-       (char:0;scan:kbF9;shift:[];st:#27'Ow'),                    {vt100}
-       (char:0;scan:kbF10;shift:[];st:#27'Ox'),                   {vt100}
-       (char:0;scan:kbF11;shift:[];st:#27'Oy'),                   {vt100}
-       (char:0;scan:kbF12;shift:[];st:#27'Oz'),                   {vt100}
-       (char:27;scan:kbEsc;shift:[];st:#27'[0~'),                 {if linux keyboard patched, escape
+       (AnsiChar:0;scan:kbF1;shift:[];st:#27'[[A'),                   {linux,konsole,xterm}
+       (AnsiChar:0;scan:kbF2;shift:[];st:#27'[[B'),                   {linux,konsole,xterm}
+       (AnsiChar:0;scan:kbF3;shift:[];st:#27'[[C'),                   {linux,konsole,xterm}
+       (AnsiChar:0;scan:kbF4;shift:[];st:#27'[[D'),                   {linux,konsole,xterm}
+       (AnsiChar:0;scan:kbF5;shift:[];st:#27'[[E'),                   {linux,konsole}
+       (AnsiChar:0;scan:kbF1;shift:[];st:#27'[11~'),                  {Eterm,rxvt}
+       (AnsiChar:0;scan:kbF2;shift:[];st:#27'[12~'),                  {Eterm,rxvt}
+       (AnsiChar:0;scan:kbF3;shift:[];st:#27'[13~'),                  {Eterm,rxvt}
+       (AnsiChar:0;scan:kbF4;shift:[];st:#27'[14~'),                  {Eterm,rxvt}
+       (AnsiChar:0;scan:kbF5;shift:[];st:#27'[15~'),                  {xterm,Eterm,gnome,rxvt}
+       (AnsiChar:0;scan:kbF6;shift:[];st:#27'[17~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF7;shift:[];st:#27'[18~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF8;shift:[];st:#27'[19~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF9;shift:[];st:#27'[20~'),                  {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF10;shift:[];st:#27'[21~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF11;shift:[];st:#27'[23~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF12;shift:[];st:#27'[24~'),                 {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (AnsiChar:0;scan:kbF1;shift:[];st:#27'[M'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF2;shift:[];st:#27'[N'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF3;shift:[];st:#27'[O'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF4;shift:[];st:#27'[P'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF5;shift:[];st:#27'[Q'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF6;shift:[];st:#27'[R'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF7;shift:[];st:#27'[S'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF8;shift:[];st:#27'[T'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF9;shift:[];st:#27'[U'),                    {FreeBSD}
+       (AnsiChar:0;scan:kbF10;shift:[];st:#27'[V'),                   {FreeBSD}
+       (AnsiChar:0;scan:kbF11;shift:[];st:#27'[W'),                   {FreeBSD}
+       (AnsiChar:0;scan:kbF12;shift:[];st:#27'[X'),                   {FreeBSD}
+       (AnsiChar:0;scan:kbF1;shift:[];st:#27'OP'),                    {vt100,gnome,konsole}
+       (AnsiChar:0;scan:kbF2;shift:[];st:#27'OQ'),                    {vt100,gnome,konsole}
+       (AnsiChar:0;scan:kbF3;shift:[];st:#27'OR'),                    {vt100,gnome,konsole}
+       (AnsiChar:0;scan:kbF4;shift:[];st:#27'OS'),                    {vt100,gnome,konsole}
+       (AnsiChar:0;scan:kbF5;shift:[];st:#27'Ot'),                    {vt100}
+       (AnsiChar:0;scan:kbF6;shift:[];st:#27'Ou'),                    {vt100}
+       (AnsiChar:0;scan:kbF7;shift:[];st:#27'Ov'),                    {vt100}
+       (AnsiChar:0;scan:kbF8;shift:[];st:#27'Ol'),                    {vt100}
+       (AnsiChar:0;scan:kbF9;shift:[];st:#27'Ow'),                    {vt100}
+       (AnsiChar:0;scan:kbF10;shift:[];st:#27'Ox'),                   {vt100}
+       (AnsiChar:0;scan:kbF11;shift:[];st:#27'Oy'),                   {vt100}
+       (AnsiChar:0;scan:kbF12;shift:[];st:#27'Oz'),                   {vt100}
+       (AnsiChar:27;scan:kbEsc;shift:[];st:#27'[0~'),                 {if linux keyboard patched, escape
                                                                    returns this}
-       (char:0;scan:kbIns;shift:[];st:#27'[2~'),                  {linux,Eterm,rxvt}
-       (char:0;scan:kbDel;shift:[];st:#27'[3~'),                  {linux,Eterm,rxvt}
-       (char:0;scan:kbHome;shift:[];st:#27'[1~'),                 {linux}
-       (char:0;scan:kbHome;shift:[];st:#27'[7~'),                 {Eterm,rxvt}
-       (char:0;scan:kbHome;shift:[];st:#27'[H'),                  {FreeBSD}
-       (char:0;scan:kbHome;shift:[];st:#27'OH'),                  {some xterm configurations}
-       (char:0;scan:kbEnd;shift:[];st:#27'[4~'),                  {linux,Eterm}
-       (char:0;scan:kbEnd;shift:[];st:#27'[8~'),                  {rxvt}
-       (char:0;scan:kbEnd;shift:[];st:#27'[F'),                   {FreeBSD}
-       (char:0;scan:kbEnd;shift:[];st:#27'OF'),                   {some xterm configurations}
-       (char:0;scan:kbPgUp;shift:[];st:#27'[5~'),                 {linux,Eterm,rxvt}
-       (char:0;scan:kbPgUp;shift:[];st:#27'[I'),                  {FreeBSD}
-       (char:0;scan:kbPgDn;shift:[];st:#27'[6~'),                 {linux,Eterm,rxvt}
+       (AnsiChar:0;scan:kbIns;shift:[];st:#27'[2~'),                  {linux,Eterm,rxvt}
+       (AnsiChar:0;scan:kbDel;shift:[];st:#27'[3~'),                  {linux,Eterm,rxvt}
+       (AnsiChar:0;scan:kbHome;shift:[];st:#27'[1~'),                 {linux}
+       (AnsiChar:0;scan:kbHome;shift:[];st:#27'[7~'),                 {Eterm,rxvt}
+       (AnsiChar:0;scan:kbHome;shift:[];st:#27'[H'),                  {FreeBSD}
+       (AnsiChar:0;scan:kbHome;shift:[];st:#27'OH'),                  {some xterm configurations}
+       (AnsiChar:0;scan:kbEnd;shift:[];st:#27'[4~'),                  {linux,Eterm}
+       (AnsiChar:0;scan:kbEnd;shift:[];st:#27'[8~'),                  {rxvt}
+       (AnsiChar:0;scan:kbEnd;shift:[];st:#27'[F'),                   {FreeBSD}
+       (AnsiChar:0;scan:kbEnd;shift:[];st:#27'OF'),                   {some xterm configurations}
+       (AnsiChar:0;scan:kbPgUp;shift:[];st:#27'[5~'),                 {linux,Eterm,rxvt}
+       (AnsiChar:0;scan:kbPgUp;shift:[];st:#27'[I'),                  {FreeBSD}
+       (AnsiChar:0;scan:kbPgDn;shift:[];st:#27'[6~'),                 {linux,Eterm,rxvt}
 {$ifdef FREEBSD}
-       (char:0;scan:kbPgDn;shift:[];st:#27'[G'),                  {FreeBSD, conflicts with linux.
+       (AnsiChar:0;scan:kbPgDn;shift:[];st:#27'[G'),                  {FreeBSD, conflicts with linux.
                                                                    Note: new FreeBSD versions seem
                                                                    to use xterm-like sequences, so
                                                                    this one is not needed for them.
@@ -1023,220 +1023,220 @@ const key_sequences:array[0..302] of key_sequence=(
                                                                    it'll work over SSH across platforms
                                                                    too.}
 {$else FREEBSD}
-       (char:0;scan:kbCenter;shift:[];st:#27'[G'),                {linux}
+       (AnsiChar:0;scan:kbCenter;shift:[];st:#27'[G'),                {linux}
 {$endif FREEBSD}
-       (char:0;scan:kbCenter;shift:[];st:#27'[E'),                {xterm,gnome3}
-       (char:0;scan:kbUp;shift:[];st:#27'[A'),                    {linux,FreeBSD,rxvt}
-       (char:0;scan:kbDown;shift:[];st:#27'[B'),                  {linux,FreeBSD,rxvt}
-       (char:0;scan:kbRight;shift:[];st:#27'[C'),                 {linux,FreeBSD,rxvt}
-       (char:0;scan:kbLeft;shift:[];st:#27'[D'),                  {linux,FreeBSD,rxvt}
-       (char:0;scan:kbUp;shift:[];st:#27'OA'),                    {xterm}
-       (char:0;scan:kbDown;shift:[];st:#27'OB'),                  {xterm}
-       (char:0;scan:kbRight;shift:[];st:#27'OC'),                 {xterm}
-       (char:0;scan:kbLeft;shift:[];st:#27'OD'),                  {xterm}
+       (AnsiChar:0;scan:kbCenter;shift:[];st:#27'[E'),                {xterm,gnome3}
+       (AnsiChar:0;scan:kbUp;shift:[];st:#27'[A'),                    {linux,FreeBSD,rxvt}
+       (AnsiChar:0;scan:kbDown;shift:[];st:#27'[B'),                  {linux,FreeBSD,rxvt}
+       (AnsiChar:0;scan:kbRight;shift:[];st:#27'[C'),                 {linux,FreeBSD,rxvt}
+       (AnsiChar:0;scan:kbLeft;shift:[];st:#27'[D'),                  {linux,FreeBSD,rxvt}
+       (AnsiChar:0;scan:kbUp;shift:[];st:#27'OA'),                    {xterm}
+       (AnsiChar:0;scan:kbDown;shift:[];st:#27'OB'),                  {xterm}
+       (AnsiChar:0;scan:kbRight;shift:[];st:#27'OC'),                 {xterm}
+       (AnsiChar:0;scan:kbLeft;shift:[];st:#27'OD'),                  {xterm}
 (* Already recognized above as F11!
-       (char:0;scan:kbShiftF1;shift:[essShift];st:#27'[23~'),     {rxvt}
-       (char:0;scan:kbShiftF2;shift:[essShift];st:#27'[24~'),     {rxvt}
+       (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'[23~'),     {rxvt}
+       (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'[24~'),     {rxvt}
 *)
 (* These seem to be shifted. Probably something changed with linux's default keymaps.
-       (char:0;scan:kbShiftF3;shift:[essShift];st:#27'[25~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF4;shift:[essShift];st:#27'[26~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF5;shift:[essShift];st:#27'[28~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF6;shift:[essShift];st:#27'[29~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF7;shift:[essShift];st:#27'[31~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF8;shift:[essShift];st:#27'[32~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF9;shift:[essShift];st:#27'[33~'),     {linux,rxvt}
-       (char:0;scan:kbShiftF10;shift:[essShift];st:#27'[34~'),    {linux,rxvt}*)
-       (char:0;scan:kbShiftF1;shift:[essShift];st:#27'[25~'),     {linux}
-       (char:0;scan:kbShiftF2;shift:[essShift];st:#27'[26~'),     {linux}
-       (char:0;scan:kbShiftF3;shift:[essShift];st:#27'[28~'),     {linux}
-       (char:0;scan:kbShiftF4;shift:[essShift];st:#27'[29~'),     {linux}
-       (char:0;scan:kbShiftF5;shift:[essShift];st:#27'[31~'),     {linux}
-       (char:0;scan:kbShiftF6;shift:[essShift];st:#27'[32~'),     {linux}
-       (char:0;scan:kbShiftF7;shift:[essShift];st:#27'[33~'),     {linux}
-       (char:0;scan:kbShiftF8;shift:[essShift];st:#27'[34~'),     {linux}
-       (char:0;scan:kbShiftF11;shift:[essShift];st:#27'[23$'),    {rxvt}
-       (char:0;scan:kbShiftF12;shift:[essShift];st:#27'[24$'),    {rxvt}
-       (char:0;scan:kbShiftF1;shift:[essShift];st:#27'[11;2~'),   {konsole in vt420pc mode}
-       (char:0;scan:kbShiftF2;shift:[essShift];st:#27'[12;2~'),   {konsole in vt420pc mode}
-       (char:0;scan:kbShiftF3;shift:[essShift];st:#27'[13;2~'),   {konsole in vt420pc mode}
-       (char:0;scan:kbShiftF4;shift:[essShift];st:#27'[14;2~'),   {konsole in vt420pc mode}
-       (char:0;scan:kbShiftF5;shift:[essShift];st:#27'[15;2~'),   {xterm}
-       (char:0;scan:kbShiftF6;shift:[essShift];st:#27'[17;2~'),   {xterm}
-       (char:0;scan:kbShiftF7;shift:[essShift];st:#27'[18;2~'),   {xterm}
-       (char:0;scan:kbShiftF8;shift:[essShift];st:#27'[19;2~'),   {xterm}
-       (char:0;scan:kbShiftF9;shift:[essShift];st:#27'[20;2~'),   {xterm}
-       (char:0;scan:kbShiftF10;shift:[essShift];st:#27'[21;2~'),  {xterm}
-       (char:0;scan:kbShiftF11;shift:[essShift];st:#27'[23;2~'),  {xterm}
-       (char:0;scan:kbShiftF12;shift:[essShift];st:#27'[24;2~'),  {xterm}
-       (char:0;scan:kbShiftF1;shift:[essShift];st:#27'O2P'),      {konsole,xterm}
-       (char:0;scan:kbShiftF2;shift:[essShift];st:#27'O2Q'),      {konsole,xterm}
-       (char:0;scan:kbShiftF3;shift:[essShift];st:#27'O2R'),      {konsole,xterm}
-       (char:0;scan:kbShiftF4;shift:[essShift];st:#27'O2S'),      {konsole,xterm}
-       (char:0;scan:kbShiftF1;shift:[essShift];st:#27'[1;2P'),    {xterm,gnome3}
-       (char:0;scan:kbShiftF2;shift:[essShift];st:#27'[1;2Q'),    {xterm,gnome3}
-       (char:0;scan:kbShiftF3;shift:[essShift];st:#27'[1;2R'),    {xterm,gnome3}
-       (char:0;scan:kbShiftF4;shift:[essShift];st:#27'[1;2S'),    {xterm,gnome3}
-       (char:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'O5P'),        {konsole,xterm}
-       (char:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'O5Q'),        {konsole,xterm}
-       (char:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'O5R'),        {konsole,xterm}
-       (char:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'O5S'),        {konsole,xterm}
-       (char:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[1;5P'),      {xterm,gnome3}
-       (char:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[1;5Q'),      {xterm,gnome3}
-       (char:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[1;5R'),      {xterm,gnome3}
-       (char:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[1;5S'),      {xterm,gnome3}
-       (char:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[11;5~'),     {none, but expected}
-       (char:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[12;5~'),     {none, but expected}
-       (char:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13;5~'),     {none, but expected}
-       (char:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[14;5~'),     {none, but expected}
-       (char:0;scan:kbCtrlF5;shift:[essCtrl];st:#27'[15;5~'),     {xterm}
-       (char:0;scan:kbCtrlF6;shift:[essCtrl];st:#27'[17;5~'),     {xterm}
-       (char:0;scan:kbCtrlF7;shift:[essCtrl];st:#27'[18;5~'),     {xterm}
-       (char:0;scan:kbCtrlF8;shift:[essCtrl];st:#27'[19;5~'),     {xterm}
-       (char:0;scan:kbCtrlF9;shift:[essCtrl];st:#27'[20;5~'),     {xterm}
-       (char:0;scan:kbCtrlF10;shift:[essCtrl];st:#27'[21;5~'),    {xterm}
-       (char:0;scan:kbCtrlF11;shift:[essCtrl];st:#27'[23;5~'),    {xterm}
-       (char:0;scan:kbCtrlF12;shift:[essCtrl];st:#27'[24;5~'),    {xterm}
-       (char:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[11^'),       {rxvt}
-       (char:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[12^'),       {rxvt}
-       (char:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13^'),       {rxvt}
-       (char:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[14^'),       {rxvt}
-       (char:0;scan:kbCtrlF5;shift:[essCtrl];st:#27'[15^'),       {rxvt}
-       (char:0;scan:kbCtrlF6;shift:[essCtrl];st:#27'[17^'),       {rxvt}
-       (char:0;scan:kbCtrlF7;shift:[essCtrl];st:#27'[18^'),       {rxvt}
-       (char:0;scan:kbCtrlF8;shift:[essCtrl];st:#27'[19^'),       {rxvt}
-       (char:0;scan:kbCtrlF9;shift:[essCtrl];st:#27'[20^'),       {rxvt}
-       (char:0;scan:kbCtrlF10;shift:[essCtrl];st:#27'[21^'),      {rxvt}
-       (char:0;scan:kbCtrlF11;shift:[essCtrl];st:#27'[23^'),      {rxvt}
-       (char:0;scan:kbCtrlF12;shift:[essCtrl];st:#27'[24^'),      {rxvt}
-       (char:0;scan:kbShiftIns;shift:[essShift];st:#27'[2;2~'),   {should be the code, but shift+ins
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[25~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[26~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF5;shift:[essShift];st:#27'[28~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF6;shift:[essShift];st:#27'[29~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF7;shift:[essShift];st:#27'[31~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF8;shift:[essShift];st:#27'[32~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF9;shift:[essShift];st:#27'[33~'),     {linux,rxvt}
+       (AnsiChar:0;scan:kbShiftF10;shift:[essShift];st:#27'[34~'),    {linux,rxvt}*)
+       (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'[25~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'[26~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[28~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[29~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF5;shift:[essShift];st:#27'[31~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF6;shift:[essShift];st:#27'[32~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF7;shift:[essShift];st:#27'[33~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF8;shift:[essShift];st:#27'[34~'),     {linux}
+       (AnsiChar:0;scan:kbShiftF11;shift:[essShift];st:#27'[23$'),    {rxvt}
+       (AnsiChar:0;scan:kbShiftF12;shift:[essShift];st:#27'[24$'),    {rxvt}
+       (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'[11;2~'),   {konsole in vt420pc mode}
+       (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'[12;2~'),   {konsole in vt420pc mode}
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[13;2~'),   {konsole in vt420pc mode}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[14;2~'),   {konsole in vt420pc mode}
+       (AnsiChar:0;scan:kbShiftF5;shift:[essShift];st:#27'[15;2~'),   {xterm}
+       (AnsiChar:0;scan:kbShiftF6;shift:[essShift];st:#27'[17;2~'),   {xterm}
+       (AnsiChar:0;scan:kbShiftF7;shift:[essShift];st:#27'[18;2~'),   {xterm}
+       (AnsiChar:0;scan:kbShiftF8;shift:[essShift];st:#27'[19;2~'),   {xterm}
+       (AnsiChar:0;scan:kbShiftF9;shift:[essShift];st:#27'[20;2~'),   {xterm}
+       (AnsiChar:0;scan:kbShiftF10;shift:[essShift];st:#27'[21;2~'),  {xterm}
+       (AnsiChar:0;scan:kbShiftF11;shift:[essShift];st:#27'[23;2~'),  {xterm}
+       (AnsiChar:0;scan:kbShiftF12;shift:[essShift];st:#27'[24;2~'),  {xterm}
+       (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'O2P'),      {konsole,xterm}
+       (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'O2Q'),      {konsole,xterm}
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'O2R'),      {konsole,xterm}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'O2S'),      {konsole,xterm}
+       (AnsiChar:0;scan:kbShiftF1;shift:[essShift];st:#27'[1;2P'),    {xterm,gnome3}
+       (AnsiChar:0;scan:kbShiftF2;shift:[essShift];st:#27'[1;2Q'),    {xterm,gnome3}
+       (AnsiChar:0;scan:kbShiftF3;shift:[essShift];st:#27'[1;2R'),    {xterm,gnome3}
+       (AnsiChar:0;scan:kbShiftF4;shift:[essShift];st:#27'[1;2S'),    {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'O5P'),        {konsole,xterm}
+       (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'O5Q'),        {konsole,xterm}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'O5R'),        {konsole,xterm}
+       (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'O5S'),        {konsole,xterm}
+       (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[1;5P'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[1;5Q'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[1;5R'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[1;5S'),      {xterm,gnome3}
+       (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[11;5~'),     {none, but expected}
+       (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[12;5~'),     {none, but expected}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13;5~'),     {none, but expected}
+       (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[14;5~'),     {none, but expected}
+       (AnsiChar:0;scan:kbCtrlF5;shift:[essCtrl];st:#27'[15;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF6;shift:[essCtrl];st:#27'[17;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF7;shift:[essCtrl];st:#27'[18;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF8;shift:[essCtrl];st:#27'[19;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF9;shift:[essCtrl];st:#27'[20;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlF10;shift:[essCtrl];st:#27'[21;5~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlF11;shift:[essCtrl];st:#27'[23;5~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlF12;shift:[essCtrl];st:#27'[24;5~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlF1;shift:[essCtrl];st:#27'[11^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF2;shift:[essCtrl];st:#27'[12^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF3;shift:[essCtrl];st:#27'[13^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF4;shift:[essCtrl];st:#27'[14^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF5;shift:[essCtrl];st:#27'[15^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF6;shift:[essCtrl];st:#27'[17^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF7;shift:[essCtrl];st:#27'[18^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF8;shift:[essCtrl];st:#27'[19^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF9;shift:[essCtrl];st:#27'[20^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlF10;shift:[essCtrl];st:#27'[21^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlF11;shift:[essCtrl];st:#27'[23^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlF12;shift:[essCtrl];st:#27'[24^'),      {rxvt}
+       (AnsiChar:0;scan:kbShiftIns;shift:[essShift];st:#27'[2;2~'),   {should be the code, but shift+ins
                                                                    is paste X clipboard in many
                                                                    terminal emulators :(}
-       (char:0;scan:kbShiftDel;shift:[essShift];st:#27'[3;2~'),   {xterm,konsole}
-       (char:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2;5~'),     {xterm}
-       (char:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3;5~'),     {xterm}
-       (char:0;scan:kbShiftDel;shift:[essShift];st:#27'[3$'),     {rxvt}
-       (char:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2^'),       {rxvt}
-       (char:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3^'),       {rxvt}
-       (char:0;scan:kbAltF1;shift:[essAlt];st:#27#27'[[A'),
-       (char:0;scan:kbAltF2;shift:[essAlt];st:#27#27'[[B'),
-       (char:0;scan:kbAltF3;shift:[essAlt];st:#27#27'[[C'),
-       (char:0;scan:kbAltF4;shift:[essAlt];st:#27#27'[[D'),
-       (char:0;scan:kbAltF5;shift:[essAlt];st:#27#27'[[E'),
-       (char:0;scan:kbAltF1;shift:[essAlt];st:#27#27'[11~'),      {rxvt}
-       (char:0;scan:kbAltF2;shift:[essAlt];st:#27#27'[12~'),      {rxvt}
-       (char:0;scan:kbAltF3;shift:[essAlt];st:#27#27'[13~'),      {rxvt}
-       (char:0;scan:kbAltF4;shift:[essAlt];st:#27#27'[14~'),      {rxvt}
-       (char:0;scan:kbAltF5;shift:[essAlt];st:#27#27'[15~'),      {rxvt}
-       (char:0;scan:kbAltF6;shift:[essAlt];st:#27#27'[17~'),      {rxvt}
-       (char:0;scan:kbAltF7;shift:[essAlt];st:#27#27'[18~'),      {rxvt}
-       (char:0;scan:kbAltF8;shift:[essAlt];st:#27#27'[19~'),      {rxvt}
-       (char:0;scan:kbAltF9;shift:[essAlt];st:#27#27'[20~'),      {rxvt}
-       (char:0;scan:kbAltF10;shift:[essAlt];st:#27#27'[21~'),     {rxvt}
-       (char:0;scan:kbAltF11;shift:[essAlt];st:#27#27'[23~'),     {rxvt}
-       (char:0;scan:kbAltF12;shift:[essAlt];st:#27#27'[24~'),     {rxvt}
-       (char:0;scan:kbAltF1;shift:[essAlt];st:#27#27'OP'),        {xterm}
-       (char:0;scan:kbAltF2;shift:[essAlt];st:#27#27'OQ'),        {xterm}
-       (char:0;scan:kbAltF3;shift:[essAlt];st:#27#27'OR'),        {xterm}
-       (char:0;scan:kbAltF4;shift:[essAlt];st:#27#27'OS'),        {xterm}
-       (char:0;scan:kbAltF5;shift:[essAlt];st:#27#27'Ot'),        {xterm}
-       (char:0;scan:kbAltF6;shift:[essAlt];st:#27#27'Ou'),        {xterm}
-       (char:0;scan:kbAltF7;shift:[essAlt];st:#27#27'Ov'),        {xterm}
-       (char:0;scan:kbAltF8;shift:[essAlt];st:#27#27'Ol'),        {xterm}
-       (char:0;scan:kbAltF9;shift:[essAlt];st:#27#27'Ow'),        {xterm}
-       (char:0;scan:kbAltF10;shift:[essAlt];st:#27#27'Ox'),       {xterm}
-       (char:0;scan:kbAltF11;shift:[essAlt];st:#27#27'Oy'),       {xterm}
-       (char:0;scan:kbAltF12;shift:[essAlt];st:#27#27'Oz'),       {xterm}
-       (char:0;scan:kbAltF1;shift:[essAlt];st:#27'[1;3P'),        {xterm,gnome3}
-       (char:0;scan:kbAltF2;shift:[essAlt];st:#27'[1;3Q'),        {xterm,gnome3}
-       (char:0;scan:kbAltF3;shift:[essAlt];st:#27'[1;3R'),        {xterm,gnome3}
-       (char:0;scan:kbAltF4;shift:[essAlt];st:#27'[1;3S'),        {xterm,gnome3}
-       (char:0;scan:kbAltF1;shift:[essAlt];st:#27'O3P'),          {xterm on FreeBSD}
-       (char:0;scan:kbAltF2;shift:[essAlt];st:#27'O3Q'),          {xterm on FreeBSD}
-       (char:0;scan:kbAltF3;shift:[essAlt];st:#27'O3R'),          {xterm on FreeBSD}
-       (char:0;scan:kbAltF4;shift:[essAlt];st:#27'O3S'),          {xterm on FreeBSD}
-       (char:0;scan:kbAltF5;shift:[essAlt];st:#27'[15;3~'),       {xterm on FreeBSD}
-       (char:0;scan:kbAltF6;shift:[essAlt];st:#27'[17;3~'),       {xterm on FreeBSD}
-       (char:0;scan:kbAltF7;shift:[essAlt];st:#27'[18;3~'),       {xterm on FreeBSD}
-       (char:0;scan:kbAltF8;shift:[essAlt];st:#27'[19;3~'),       {xterm on FreeBSD}
-       (char:0;scan:kbAltF9;shift:[essAlt];st:#27'[20;3~'),       {xterm on FreeBSD}
-       (char:0;scan:kbAltF10;shift:[essAlt];st:#27'[21;3~'),      {xterm on FreeBSD}
-       (char:0;scan:kbAltF11;shift:[essAlt];st:#27'[23;3~'),      {xterm on FreeBSD}
-       (char:0;scan:kbAltF12;shift:[essAlt];st:#27'[24;3~'),      {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'[3;2~'),   {xterm,konsole}
+       (AnsiChar:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2;5~'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3;5~'),     {xterm}
+       (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'[3$'),     {rxvt}
+       (AnsiChar:0;scan:kbCtrlIns;shift:[essCtrl];st:#27'[2^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlDel;shift:[essCtrl];st:#27'[3^'),       {rxvt}
+       (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27#27'[[A'),
+       (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27#27'[[B'),
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27#27'[[C'),
+       (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27#27'[[D'),
+       (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27#27'[[E'),
+       (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27#27'[11~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27#27'[12~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27#27'[13~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27#27'[14~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27#27'[15~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF6;shift:[essAlt];st:#27#27'[17~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF7;shift:[essAlt];st:#27#27'[18~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF8;shift:[essAlt];st:#27#27'[19~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF9;shift:[essAlt];st:#27#27'[20~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltF10;shift:[essAlt];st:#27#27'[21~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltF11;shift:[essAlt];st:#27#27'[23~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltF12;shift:[essAlt];st:#27#27'[24~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27#27'OP'),        {xterm}
+       (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27#27'OQ'),        {xterm}
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27#27'OR'),        {xterm}
+       (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27#27'OS'),        {xterm}
+       (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27#27'Ot'),        {xterm}
+       (AnsiChar:0;scan:kbAltF6;shift:[essAlt];st:#27#27'Ou'),        {xterm}
+       (AnsiChar:0;scan:kbAltF7;shift:[essAlt];st:#27#27'Ov'),        {xterm}
+       (AnsiChar:0;scan:kbAltF8;shift:[essAlt];st:#27#27'Ol'),        {xterm}
+       (AnsiChar:0;scan:kbAltF9;shift:[essAlt];st:#27#27'Ow'),        {xterm}
+       (AnsiChar:0;scan:kbAltF10;shift:[essAlt];st:#27#27'Ox'),       {xterm}
+       (AnsiChar:0;scan:kbAltF11;shift:[essAlt];st:#27#27'Oy'),       {xterm}
+       (AnsiChar:0;scan:kbAltF12;shift:[essAlt];st:#27#27'Oz'),       {xterm}
+       (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27'[1;3P'),        {xterm,gnome3}
+       (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27'[1;3Q'),        {xterm,gnome3}
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27'[1;3R'),        {xterm,gnome3}
+       (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27'[1;3S'),        {xterm,gnome3}
+       (AnsiChar:0;scan:kbAltF1;shift:[essAlt];st:#27'O3P'),          {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF2;shift:[essAlt];st:#27'O3Q'),          {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF3;shift:[essAlt];st:#27'O3R'),          {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF4;shift:[essAlt];st:#27'O3S'),          {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF5;shift:[essAlt];st:#27'[15;3~'),       {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF6;shift:[essAlt];st:#27'[17;3~'),       {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF7;shift:[essAlt];st:#27'[18;3~'),       {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF8;shift:[essAlt];st:#27'[19;3~'),       {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF9;shift:[essAlt];st:#27'[20;3~'),       {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF10;shift:[essAlt];st:#27'[21;3~'),      {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF11;shift:[essAlt];st:#27'[23;3~'),      {xterm on FreeBSD}
+       (AnsiChar:0;scan:kbAltF12;shift:[essAlt];st:#27'[24;3~'),      {xterm on FreeBSD}
 
-       (char:0;scan:kbShiftTab;shift:[essShift];st:#27#9),        {linux - 'Meta_Tab'}
-       (char:0;scan:kbShiftTab;shift:[essShift];st:#27'[Z'),
-       (char:0;scan:kbShiftUp;shift:[essShift];st:#27'[1;2A'),    {xterm}
-       (char:0;scan:kbShiftDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
-       (char:0;scan:kbShiftRight;shift:[essShift];st:#27'[1;2C'), {xterm}
-       (char:0;scan:kbShiftLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
-       (char:0;scan:kbShiftPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (char:0;scan:kbShiftPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (char:0;scan:kbShiftUp;shift:[essShift];st:#27'[a'),       {rxvt}
-       (char:0;scan:kbShiftDown;shift:[essShift];st:#27'[b'),     {rxvt}
-       (char:0;scan:kbShiftRight;shift:[essShift];st:#27'[c'),    {rxvt}
-       (char:0;scan:kbShiftLeft;shift:[essShift];st:#27'[d'),     {rxvt}
-       (char:0;scan:kbShiftEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
-       (char:0;scan:kbShiftEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
-       (char:0;scan:kbShiftHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
-       (char:0;scan:kbShiftHome;shift:[essShift];st:#27'[7$'),    {rxvt}
+       (AnsiChar:0;scan:kbShiftTab;shift:[essShift];st:#27#9),        {linux - 'Meta_Tab'}
+       (AnsiChar:0;scan:kbShiftTab;shift:[essShift];st:#27'[Z'),
+       (AnsiChar:0;scan:kbShiftUp;shift:[essShift];st:#27'[1;2A'),    {xterm}
+       (AnsiChar:0;scan:kbShiftDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
+       (AnsiChar:0;scan:kbShiftRight;shift:[essShift];st:#27'[1;2C'), {xterm}
+       (AnsiChar:0;scan:kbShiftLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
+       (AnsiChar:0;scan:kbShiftPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbShiftPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbShiftUp;shift:[essShift];st:#27'[a'),       {rxvt}
+       (AnsiChar:0;scan:kbShiftDown;shift:[essShift];st:#27'[b'),     {rxvt}
+       (AnsiChar:0;scan:kbShiftRight;shift:[essShift];st:#27'[c'),    {rxvt}
+       (AnsiChar:0;scan:kbShiftLeft;shift:[essShift];st:#27'[d'),     {rxvt}
+       (AnsiChar:0;scan:kbShiftEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
+       (AnsiChar:0;scan:kbShiftEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
+       (AnsiChar:0;scan:kbShiftHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
+       (AnsiChar:0;scan:kbShiftHome;shift:[essShift];st:#27'[7$'),    {rxvt}
 
-       (char:0;scan:KbCtrlShiftUp;shift:[essCtrl,essShift];st:#27'[1;6A'),    {xterm}
-       (char:0;scan:KbCtrlShiftDown;shift:[essCtrl,essShift];st:#27'[1;6B'),  {xterm}
-       (char:0;scan:KbCtrlShiftRight;shift:[essCtrl,essShift];st:#27'[1;6C'), {xterm, xfce4}
-       (char:0;scan:KbCtrlShiftLeft;shift:[essCtrl,essShift];st:#27'[1;6D'),  {xterm, xfce4}
-       (char:0;scan:KbCtrlShiftHome;shift:[essCtrl,essShift];st:#27'[1;6H'),  {xterm}
-       (char:0;scan:KbCtrlShiftEnd;shift:[essCtrl,essShift];st:#27'[1;6F'),   {xterm}
-       (char:0;scan:kbCtrlShiftPgUp;shift:[essCtrl,essShift];st:#27'[5;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
-       (char:0;scan:kbCtrlShiftPgDn;shift:[essCtrl,essShift];st:#27'[6;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:KbCtrlShiftUp;shift:[essCtrl,essShift];st:#27'[1;6A'),    {xterm}
+       (AnsiChar:0;scan:KbCtrlShiftDown;shift:[essCtrl,essShift];st:#27'[1;6B'),  {xterm}
+       (AnsiChar:0;scan:KbCtrlShiftRight;shift:[essCtrl,essShift];st:#27'[1;6C'), {xterm, xfce4}
+       (AnsiChar:0;scan:KbCtrlShiftLeft;shift:[essCtrl,essShift];st:#27'[1;6D'),  {xterm, xfce4}
+       (AnsiChar:0;scan:KbCtrlShiftHome;shift:[essCtrl,essShift];st:#27'[1;6H'),  {xterm}
+       (AnsiChar:0;scan:KbCtrlShiftEnd;shift:[essCtrl,essShift];st:#27'[1;6F'),   {xterm}
+       (AnsiChar:0;scan:kbCtrlShiftPgUp;shift:[essCtrl,essShift];st:#27'[5;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (AnsiChar:0;scan:kbCtrlShiftPgDn;shift:[essCtrl,essShift];st:#27'[6;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
 
-       (char:0;scan:kbCtrlPgDn;shift:[essCtrl];st:#27'[6;5~'),    {xterm}
-       (char:0;scan:kbCtrlPgUp;shift:[essCtrl];st:#27'[5;5~'),    {xterm}
-       (char:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[1;5A'),      {xterm}
-       (char:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[1;5B'),    {xterm}
-       (char:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[1;5C'),   {xterm}
-       (char:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[1;5D'),    {xterm}
-       (char:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[Oa'),        {rxvt}
-       (char:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[Ob'),      {rxvt}
-       (char:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[Oc'),     {rxvt}
-       (char:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[Od'),      {rxvt}
-       (char:0;scan:kbCtrlEnd;shift:[essCtrl];st:#27'[1;5F'),     {xterm}
-       (char:0;scan:kbCtrlEnd;shift:[essCtrl];st:#27'[8^'),       {rxvt}
-       (char:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[1;5H'),    {xterm}
-       (char:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[7^'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlPgDn;shift:[essCtrl];st:#27'[6;5~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlPgUp;shift:[essCtrl];st:#27'[5;5~'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[1;5A'),      {xterm}
+       (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[1;5B'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[1;5C'),   {xterm}
+       (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[1;5D'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[Oa'),        {rxvt}
+       (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[Ob'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[Oc'),     {rxvt}
+       (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[Od'),      {rxvt}
+       (AnsiChar:0;scan:kbCtrlEnd;shift:[essCtrl];st:#27'[1;5F'),     {xterm}
+       (AnsiChar:0;scan:kbCtrlEnd;shift:[essCtrl];st:#27'[8^'),       {rxvt}
+       (AnsiChar:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[1;5H'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlHome;shift:[essCtrl];st:#27'[7^'),      {rxvt}
 
-       (char:0;scan:kbAltUp;shift:[essAlt];st:#27#27'[A'),        {rxvt}
-       (char:0;scan:kbAltDown;shift:[essAlt];st:#27#27'[B'),      {rxvt}
-       (char:0;scan:kbAltLeft;shift:[essAlt];st:#27#27'[D'),      {rxvt}
-       (char:0;scan:kbAltRight;shift:[essAlt];st:#27#27'[C'),     {rxvt}
+       (AnsiChar:0;scan:kbAltUp;shift:[essAlt];st:#27#27'[A'),        {rxvt}
+       (AnsiChar:0;scan:kbAltDown;shift:[essAlt];st:#27#27'[B'),      {rxvt}
+       (AnsiChar:0;scan:kbAltLeft;shift:[essAlt];st:#27#27'[D'),      {rxvt}
+       (AnsiChar:0;scan:kbAltRight;shift:[essAlt];st:#27#27'[C'),     {rxvt}
 {$ifdef HAIKU}
-       (char:0;scan:kbAltUp;shift:[essAlt];st:#27#27'OA'),
-       (char:0;scan:kbAltDown;shift:[essAlt];st:#27#27'OB'),
-       (char:0;scan:kbAltRight;shift:[essAlt];st:#27#27'OC'),
+       (AnsiChar:0;scan:kbAltUp;shift:[essAlt];st:#27#27'OA'),
+       (AnsiChar:0;scan:kbAltDown;shift:[essAlt];st:#27#27'OB'),
+       (AnsiChar:0;scan:kbAltRight;shift:[essAlt];st:#27#27'OC'),
 {$else}
-       (char:0;scan:kbAltUp;shift:[essAlt];st:#27'OA'),
-       (char:0;scan:kbAltDown;shift:[essAlt];st:#27'OB'),
-       (char:0;scan:kbAltRight;shift:[essAlt];st:#27'OC'),
+       (AnsiChar:0;scan:kbAltUp;shift:[essAlt];st:#27'OA'),
+       (AnsiChar:0;scan:kbAltDown;shift:[essAlt];st:#27'OB'),
+       (AnsiChar:0;scan:kbAltRight;shift:[essAlt];st:#27'OC'),
 {$endif}
-       (char:0;scan:kbAltLeft;shift:[essAlt];st:#27#27'OD'),
-       (char:0;scan:kbAltPgUp;shift:[essAlt];st:#27#27'[5~'),     {rxvt}
-       (char:0;scan:kbAltPgDn;shift:[essAlt];st:#27#27'[6~'),     {rxvt}
-       (char:0;scan:kbAltEnd;shift:[essAlt];st:#27#27'[4~'),
-       (char:0;scan:kbAltEnd;shift:[essAlt];st:#27#27'[8~'),      {rxvt}
-       (char:0;scan:kbAltHome;shift:[essAlt];st:#27#27'[1~'),
-       (char:0;scan:kbAltHome;shift:[essAlt];st:#27#27'[7~'),     {rxvt}
-       (char:0;scan:kbAltIns;shift:[essAlt];st:#27#27'[2~'),      {rxvt}
-       (char:0;scan:kbAltDel;shift:[essAlt];st:#27#27'[3~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltLeft;shift:[essAlt];st:#27#27'OD'),
+       (AnsiChar:0;scan:kbAltPgUp;shift:[essAlt];st:#27#27'[5~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltPgDn;shift:[essAlt];st:#27#27'[6~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltEnd;shift:[essAlt];st:#27#27'[4~'),
+       (AnsiChar:0;scan:kbAltEnd;shift:[essAlt];st:#27#27'[8~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltHome;shift:[essAlt];st:#27#27'[1~'),
+       (AnsiChar:0;scan:kbAltHome;shift:[essAlt];st:#27#27'[7~'),     {rxvt}
+       (AnsiChar:0;scan:kbAltIns;shift:[essAlt];st:#27#27'[2~'),      {rxvt}
+       (AnsiChar:0;scan:kbAltDel;shift:[essAlt];st:#27#27'[3~'),      {rxvt}
 
   { xterm default values }
   { xterm alternate default values }
   { ignored sequences }
-       (char:0;scan:0;shift:[];st:#27'[?1;0c'),
-       (char:0;scan:0;shift:[];st:#27'[?1l'),
-       (char:0;scan:0;shift:[];st:#27'[?1h'),
-       (char:0;scan:0;shift:[];st:#27'[?1;2c'),
-       (char:0;scan:0;shift:[];st:#27'[?7l'),
-       (char:0;scan:0;shift:[];st:#27'[?7h')
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?1;0c'),
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?1l'),
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?1h'),
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?1;2c'),
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?7l'),
+       (AnsiChar:0;scan:0;shift:[];st:#27'[?7h')
       );
 
 procedure LoadDefaultSequences;
@@ -1261,10 +1261,10 @@ begin
   { all Esc letter }
   for i:=low(key_sequences) to high(key_sequences) do
     with key_sequences[i] do
-      DoAddSequence(st,char,scan,shift);
+      DoAddSequence(st,AnsiChar,scan,shift);
 end;
 
-function RawReadKey:char;
+function RawReadKey:AnsiChar;
 var
   fdsin    : tfdSet;
 begin
@@ -1285,11 +1285,11 @@ begin
 end;
 
 
-function RawReadString : String;
+function RawReadString : shortstring;
 var
-  ch : char;
+  ch : AnsiChar;
   fdsin : tfdSet;
-  St : String;
+  St : shortstring;
 begin
   St:=RawReadKey;
   fpFD_ZERO (fdsin);
@@ -1372,7 +1372,7 @@ procedure force_linuxtty;
 
 var s:string[15];
     handle:sizeint;
-    thistty:string;
+    thistty:shortstring;
 
 begin
   is_console:=false;
@@ -1404,7 +1404,7 @@ end;
 {$endif linux}
 
 
-function DetectUtf8ByteSequenceStart(ch: Char): LongInt;
+function DetectUtf8ByteSequenceStart(ch: AnsiChar): LongInt;
 begin
   if Ord(ch)<128 then
     DetectUtf8ByteSequenceStart:=1
@@ -1419,7 +1419,7 @@ begin
 end;
 
 
-function IsValidUtf8ContinuationByte(ch: Char): Boolean;
+function IsValidUtf8ContinuationByte(ch: AnsiChar): Boolean;
 begin
   IsValidUtf8ContinuationByte:=(Ord(ch) and %11000000)=%10000000;
 end;
@@ -1429,7 +1429,7 @@ function ReadKey:TEnhancedKeyEvent;
 const
   ReplacementAsciiChar='?';
 var
-  store    : array [0..8] of char;
+  store    : array [0..8] of AnsiChar;
   arrayind : byte;
   SState: TEnhancedShiftState;
 
@@ -1450,7 +1450,7 @@ var
         end;
       end;
 
-    function ReadUtf8(ch: Char): LongInt;
+    function ReadUtf8(ch: AnsiChar): LongInt;
       const
         ErrorCharacter = $FFFD; { U+FFFD = REPLACEMENT CHARACTER }
       var
@@ -1503,7 +1503,7 @@ var
       end;
 
 var
-  ch       : char;
+  ch       : AnsiChar;
   fdsin    : tfdSet;
   NPT,NNPT : PTreeElement;
   k: TEnhancedKeyEvent;
@@ -1601,7 +1601,7 @@ begin
              End
            else
              begin
-               { Put that unused char back into InBuf? }
+               { Put that unused AnsiChar back into InBuf? }
                if ch<>#0 then
                  PutBackIntoInBuf(ch);
                break;
@@ -1763,7 +1763,7 @@ const
 
 var
   MyScan:byte;
-  MyChar : char;
+  MyChar : AnsiChar;
   MyUniChar: WideChar;
   MyKey: TEnhancedKeyEvent;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,Again : boolean;

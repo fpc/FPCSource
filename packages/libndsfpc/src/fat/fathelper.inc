@@ -88,7 +88,7 @@ const
 type
   dirent = record
     d_ino: cint;
-    d_name: array [0..NAME_MAX] of char;
+    d_name: array [0..NAME_MAX] of AnsiChar;
   end;
   PDirent = ^dirent;
   PPDirent = ^PDirent;
@@ -100,13 +100,13 @@ type
   end;
   PDIR = ^DIR;
 
-function diropen(const path: pchar): PDIR_ITER; cdecl; external;
+function diropen(const path: PAnsiChar): PDIR_ITER; cdecl; external;
 function dirreset(dirState: PDIR_ITER): cint; cdecl; external;
-function dirnext(dirState: PDIR_ITER; filename: pchar; filestat: Pstat): cint; cdecl; external;
+function dirnext(dirState: PDIR_ITER; filename: PAnsiChar; filestat: Pstat): cint; cdecl; external;
 function dirclose(dirState: PDIR_ITER): cint; cdecl; external;
 
 (* File handling *)
-function fopen(filename: Pchar; modes: Pchar): P_FILE; cdecl; external;
+function fopen(filename: PAnsiChar; modes: PAnsiChar): P_FILE; cdecl; external;
 function fread(ptr: pointer; size: longint; n: longint; stream: P_FILE): longint; cdecl; external;
 function fread(var ptr; size: longint; n: longint; var stream: _FILE): longint; cdecl; external;
 function fwrite(ptr: pointer; size: longint; n: longint; s: P_FILE): longint; cdecl; external;
@@ -122,8 +122,8 @@ function fileno(para1: P_FILE): longint; cdecl; external;
 function fileno(var para1: _FILE): longint; cdecl; external;
 function fstat(fildes: longint; buf: PStat): longint; cdecl; external;
 function fstat(fildes: longint; var buf: TStat): longint; cdecl; external;
-function _stat(__file:Pchar; var __buf:Tstat):longint; cdecl; external name 'stat';
+function _stat(__file:PAnsiChar; var __buf:Tstat):longint; cdecl; external name 'stat';
 function ftruncate(fildes: longint; len: longint): longint; cdecl; external;
-function unlink(path: Pchar): longint; cdecl; external;
-function rename(para1: Pchar; para2: Pchar): longint; cdecl; external;
+function unlink(path: PAnsiChar): longint; cdecl; external;
+function rename(para1: PAnsiChar; para2: PAnsiChar): longint; cdecl; external;
 {$endif NDS_INTERFACE}

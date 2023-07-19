@@ -367,7 +367,7 @@ Type
     procedure SysUnInstallDaemon(Daemon: TCustomDaemon);
     function  UnInstallRun: Boolean;
     function  RunDaemonsRun: Boolean;
-    Procedure Main(Argc : DWord; Args : PPchar);
+    Procedure Main(Argc : DWord; Args : PPChar);
     Function  RunGUIloop(P : Pointer) : integer;
   Protected
     // OS (System) dependent calls
@@ -772,7 +772,7 @@ begin
   // No Borland compatibility needed, as the install will take care of the -r
 end;
 
-procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPchar);
+procedure TCustomDaemonApplication.Main(Argc: DWord; Args: PPChar);
 
 Var
   SN : String;

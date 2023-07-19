@@ -83,24 +83,24 @@ begin
   inherited Destroy;
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; APages: Integer = 0);
+procedure TGDIConsole.Open(const ATitle: AnsiString; APages: Integer = 0);
 begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TGDIConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                APages: Integer = 0);
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TGDIConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
                            APages: Integer = 0);
 begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
 end;
 
-procedure TGDIConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TGDIConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                            AFormat: IPTCFormat; APages: Integer = 0);
 var
   tmpArea: IPTCArea;
@@ -435,10 +435,10 @@ begin
   // todo...
 end;
 
-procedure TGDIConsole.Configure(const AFileName: String);
+procedure TGDIConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -458,7 +458,7 @@ begin
   CloseFile(F);
 end;
 
-function TGDIConsole.Option(const AOption: String): Boolean;
+function TGDIConsole.Option(const AOption: AnsiString): Boolean;
 begin
   LOG('console option', AOption);
   Result := True;
@@ -685,18 +685,18 @@ begin
   Result := 2;
 end;
 
-function TGDIConsole.GetName: string;
+function TGDIConsole.GetName: AnsiString;
 begin
   Result := 'GDI';
 end;
 
-function TGDIConsole.GetTitle: string;
+function TGDIConsole.GetTitle: AnsiString;
 begin
   CheckOpen('TGDIConsole.GetTitle');
   Result := FTitle;
 end;
 
-function TGDIConsole.GetInformation: string;
+function TGDIConsole.GetInformation: AnsiString;
 begin
   CheckOpen('TGDIConsole.GetInformation');
   Result := ''; // todo...
@@ -767,7 +767,7 @@ begin
   Result := FMouse.MoveMouseTo(X, Y);
 end;
 
-procedure TGDIConsole.CheckOpen(const AMessage: String);
+procedure TGDIConsole.CheckOpen(const AMessage: AnsiString);
 begin
   if not FOpen then
   try
@@ -778,7 +778,7 @@ begin
   end;
 end;
 
-procedure TGDIConsole.CheckUnlocked(const AMessage: String);
+procedure TGDIConsole.CheckUnlocked(const AMessage: AnsiString);
 begin
   if FLocked then
   try

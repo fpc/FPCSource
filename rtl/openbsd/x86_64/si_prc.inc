@@ -16,7 +16,7 @@
 
 {$asmmode gas}
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -31,9 +31,9 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
   end;
 
 procedure _FPC_proc_haltproc; cdecl; forward;
-function _strrchr(str: PChar; character: LongInt): PChar; forward;
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure);
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure);
   var
     I: SizeUInt;
   begin
@@ -71,7 +71,7 @@ procedure _FPC_proc_haltproc; cdecl; assembler; nostackframe; public name '_halt
     jmp     _FPC_proc_haltproc
   end;
 
-function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; public name '_strrchr';
   begin
     _strrchr:=nil;
     repeat

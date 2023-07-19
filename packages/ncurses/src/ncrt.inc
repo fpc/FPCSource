@@ -77,7 +77,7 @@ Procedure InsLine;
 Procedure LowVideo;
 Procedure NormVideo;
 Procedure NoSound;
- Function Readkey : char;
+ Function Readkey : AnsiChar;
 Procedure Sound(hz : word);
 Procedure TextBackground(att : byte);
 Procedure TextColor(att : byte);
@@ -89,7 +89,7 @@ Procedure nStop;
 Procedure nStart;
  Function nCursor(c : integer) : integer;
  Function nEscDelay(d : longint) : longint;
- Function nTermName : string;
+ Function nTermName : shortstring;
 
 Const
 
@@ -204,7 +204,7 @@ Var
    ExitSave : pointer;                { pointer to original exit proc }
    fg,bg : integer;                   { foreground & background }
    cp : array [0..7,0..7] of integer; { color pair array }
-   ps : array [0..255] of char;       { for use with pchars }
+   ps : array [0..255] of AnsiChar;       { for use with pchars }
    doRefresh : boolean;               { immediate refresh toggle }
    SubWn,                             { window created from window() }
    PrevWn,                            { previous window when active changes }
@@ -502,9 +502,9 @@ End;
  Note: Make sure that keypad(win,true) has been issued prior to use.
        ( nWindow does this )
  ---------------------------------------------------------------------}
-Function nReadkey(win : pWindow) : char;
+Function nReadkey(win : pWindow) : AnsiChar;
 var
-   c : char;
+   c : AnsiChar;
    l : longint;
    xtnded : boolean;
 Begin
@@ -600,7 +600,7 @@ Begin
 End;
 
 { write a string to a window at the current cursor position }
-Procedure nWrite(win : pWindow; s : string);
+Procedure nWrite(win : pWindow; s : shortstring);
 Begin
    If TextAttr <> prev_textattr Then
       nWinColor(win,TextAttr);
@@ -616,7 +616,7 @@ End;
  =========================================================================}
 
 { used by CrtWrite }
-Procedure DoWrite(temp : string);
+Procedure DoWrite(temp : shortstring);
 Begin
    nWrite(ActiveWn,temp);
 End;
@@ -626,7 +626,7 @@ Function CrtWrite(Var F: TextRec): Integer;
   Top level write function for CRT
 }
 Var
-  Temp : String;
+  Temp : shortstring;
   idx,i : Longint;
 {  oldflush : boolean;}
 Begin
@@ -638,7 +638,7 @@ Begin
      if i>255 then
       i:=255;
      system.Move(F.BufPTR^[idx],Temp[1],F.BufPos);
-     Temp[0]:=Chr(i);
+     SetLength(Temp,i);
      DoWrite(Temp);
      dec(F.BufPos,i);
      inc(idx,i);
@@ -835,7 +835,7 @@ Begin
 { Below is more efficient code, but does not work well with
   nReadkey & extended keys because nReadkey's ungetch does not
   force a change in STDIN. So, a "while keypressed" block does
-  not produce the expected results when trapping for char(0)
+  not produce the expected results when trapping for AnsiChar(0)
   followed by a second scan code.
 
    FD_Zero(fd);
@@ -845,7 +845,7 @@ Begin
 End;
 
 { silently read a key from stdscr }
-Function Readkey : char;
+Function Readkey : AnsiChar;
 Begin
    tmp_b := IsEcho;
    noecho;
@@ -891,7 +891,7 @@ Begin
 End;
 
 { return the current terminal name (same as $TERM env variable) }
-Function nTermName : string;
+Function nTermName : shortstring;
 Begin
    nTermName := StrPas(termname);
 End;

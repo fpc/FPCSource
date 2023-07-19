@@ -12,12 +12,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+unit objpas;
 {$Mode ObjFpc}
 {$I-}
 {$ifndef Unix}
   {$S-}
 {$endif}
-unit objpas;
 
 interface
 
@@ -37,7 +37,11 @@ interface
 {$endif CPU16}
 
        { Ansistring are the default }
+{$IF SIZEOF(Char)=2}
+       PString = PWideString;
+{$ELSE}
        PString = PAnsiString;
+{$ENDIF}
 
        { array types }
 {$ifdef CPU16}
@@ -109,8 +113,8 @@ Var
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
     { Untyped file support }
-     Procedure AssignFile(out f:File;p:pchar);
-     Procedure AssignFile(out f:File;c:char);
+     Procedure AssignFile(out f:File;p:PAnsiChar);
+     Procedure AssignFile(out f:File;c:AnsiChar);
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:File;const Name:UnicodeString);
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
@@ -122,10 +126,10 @@ Var
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
      { Text file support }
-     Procedure AssignFile(out t:Text;p:pchar);
-     Procedure AssignFile(out t:Text;c:char);
-     Procedure AssignFile(out t:Text;p:pchar; aCodePage : TSystemCodePage);
-     Procedure AssignFile(out t:Text;c:char; aCodePage : TSystemCodePage);
+     Procedure AssignFile(out t:Text;p:PAnsiChar);
+     Procedure AssignFile(out t:Text;c:AnsiChar);
+     Procedure AssignFile(out t:Text;p:PAnsiChar; aCodePage : TSystemCodePage);
+     Procedure AssignFile(out t:Text;c:AnsiChar; aCodePage : TSystemCodePage);
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out t:Text;const Name:UnicodeString);
      Procedure AssignFile(out t:Text;const Name:UnicodeString; aCodePage : TSystemCodePage);
@@ -139,8 +143,8 @@ Var
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
      { Typed file supoort }
-     Procedure AssignFile(out f:TypedFile;p:pchar);
-     Procedure AssignFile(out f:TypedFile;c:char);
+     Procedure AssignFile(out f:TypedFile;p:PAnsiChar);
+     Procedure AssignFile(out f:TypedFile;c:AnsiChar);
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
@@ -190,12 +194,12 @@ Var
 
 { Untyped file support }
 
-Procedure AssignFile(out f:File;p:pchar);
+Procedure AssignFile(out f:File;p:PAnsiChar);
 begin
   System.Assign (F,p);
 end;
 
-Procedure AssignFile(out f:File;c:char);
+Procedure AssignFile(out f:File;c:AnsiChar);
 begin
   System.Assign (F,c);
 end;
@@ -225,24 +229,24 @@ end;
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file support }
 
-Procedure AssignFile(out t:Text;p:pchar);
+Procedure AssignFile(out t:Text;p:PAnsiChar);
 begin
   System.Assign (T,p);
 end;
 
-Procedure AssignFile(out t:Text;p:pchar; aCodePage : TSystemCodePage);
+Procedure AssignFile(out t:Text;p:PAnsiChar; aCodePage : TSystemCodePage);
 begin
   System.Assign (T,p);
   SetTextCodePage(T,aCodePage);
 end;
 
-Procedure AssignFile(out t:Text;c:char);
+Procedure AssignFile(out t:Text;c:AnsiChar);
 begin
   System.Assign (T,c);
 end;
 
 
-Procedure AssignFile(out t:Text;c:char; aCodePage : TSystemCodePage);
+Procedure AssignFile(out t:Text;c:AnsiChar; aCodePage : TSystemCodePage);
 begin
   System.Assign (T,c);
   SetTextCodePage(T,aCodePage);
@@ -285,12 +289,12 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Typed file support }
 
-Procedure AssignFile(out f:TypedFile;p:pchar);
+Procedure AssignFile(out f:TypedFile;p:PAnsiChar);
 begin
   System.Assign (F,p);
 end;
 
-Procedure AssignFile(out f:TypedFile;c:char);
+Procedure AssignFile(out f:TypedFile;c:AnsiChar);
 begin
   System.Assign (F,c);
 end;

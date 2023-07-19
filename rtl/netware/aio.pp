@@ -170,10 +170,10 @@ type
         notSupportedMask   : LONGINT;
         minBitRate         : BYTE;
         maxBitRate         : BYTE;       { minimum bit rate index supported }
-        minDataBits        : BYTE;       { minimum data bits per char index supported }
-        maxDataBits        : BYTE;       { maximum data bits per char index supported }
-        minStopBits        : BYTE;       { minimum stop bits per char index supported }
-        maxStopBits        : BYTE;       { maximum stop bits per char index supported }
+        minDataBits        : BYTE;       { minimum data bits per AnsiChar index supported }
+        maxDataBits        : BYTE;       { maximum data bits per AnsiChar index supported }
+        minStopBits        : BYTE;       { minimum stop bits per AnsiChar index supported }
+        maxStopBits        : BYTE;       { maximum stop bits per AnsiChar index supported }
         minParityMode      : BYTE;       { minimum parity mode index supported }
         maxParityMode      : BYTE;       { maximum parity mode index supported }
         minFlowCtrlMode    : BYTE;       { minimum flow control mode index supported }
@@ -280,7 +280,7 @@ type
         portNumber       : longint;        { "     " }
         bitRate          : BYTE;           { Bits per second index }
         dataBits         : BYTE;           { Bits per character index }
-        stopBits         : BYTE;           { Stop bits per char index }
+        stopBits         : BYTE;           { Stop bits per AnsiChar index }
         parityMode       : BYTE;           { Generated parity index }
         flowCtrlMode     : BYTE;           { Flow control mode }
         breakMode        : BYTE;           { Break control mode }
@@ -375,7 +375,7 @@ type
    TAIODRIVERLISTENTRY = record
         hardwareType : longint;
         ports : longint;
-        name  : array[0..127] of char;
+        name  : array[0..127] of AnsiChar;
      end;
 
    PAIODRIVERLIST = ^TAIODRIVERLIST;
@@ -396,7 +396,7 @@ type
    TAIOBOARDLISTENTRY = record
         boardNumber : longint;
         ports       : longint;
-        name        : array[0..127] of char;
+        name        : array[0..127] of AnsiChar;
      end;
 
    PAIOBOARDLIST = ^TAIOBOARDLIST;
@@ -453,11 +453,11 @@ function AIOGetExternalStatus(portHandle:longint; extStatus:PLongint; chgdExtSta
 function AIOGetExternalStatus(portHandle:longint; var extStatus,chgdExtStatus:Longint):longint;cdecl;external aionlm name 'AIOGetExternalStatus';
 
 function AIOGetFirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
-           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetFirstPortInfo';
-function AIOGetNextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetNextPortInfo';
+           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:PAnsiChar):longint;cdecl;external aionlm name 'AIOGetFirstPortInfo';
+function AIOGetNextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:PAnsiChar):longint;cdecl;external aionlm name 'AIOGetNextPortInfo';
 function AIOGetName_FirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
-           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetName_FirstPortInfo';
-function AIOGetName_NextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetName_NextPortInfo';
+           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:PAnsiChar):longint;cdecl;external aionlm name 'AIOGetName_FirstPortInfo';
+function AIOGetName_NextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:PAnsiChar):longint;cdecl;external aionlm name 'AIOGetName_NextPortInfo';
 function AIOGetPortCapability(portHandle:longint; pCapabilities:PAIOPORTCAPABILITIES; pDvrCapabilities:PAIODVRCAPABILITIES):longint;cdecl;external aionlm name 'AIOGetPortCapability';
 function AIOGetPortConfiguration(portHandle:longint; pPortConfig:PAIOPORTCONFIG; pDvrConfig:PAIODVRCONFIG):longint;cdecl;external aionlm name 'AIOGetPortConfiguration';
 function AIOGetPortStatus(portHandle:longint; writeCount:PLongint; writeState:PWORD; readCount:PLongint; readState:PWORD;
@@ -474,7 +474,7 @@ function AIOGetPortStatistics(portHandle:longint; var pPortStatistics:TAIOPORTST
 function AIOGetWriteBufferSize(portHandle:longint; writeSize:PLongint):longint;cdecl;external aionlm name 'AIOGetWriteBufferSize';
 function AIOGetWriteBufferSize(portHandle:longint; var writeSize:Longint):longint;cdecl;external aionlm name 'AIOGetWriteBufferSize';
 
-function AIOReadData(portHandle:longint; buffer:Pchar; length:longint; numberBytesRead:PLongint):longint;cdecl;external aionlm name 'AIOReadData';
+function AIOReadData(portHandle:longint; buffer:PAnsiChar; length:longint; numberBytesRead:PLongint):longint;cdecl;external aionlm name 'AIOReadData';
 function AIOReadData(portHandle:longint; var buffer; length:longint; var numberBytesRead:Longint):longint;cdecl;external aionlm name 'AIOReadData';
 
 function AIOReadStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external aionlm name 'AIOReadStatus';
@@ -490,7 +490,7 @@ function AIOSetFlowControlCharacters(portHandle:longint; transmitXon:byte; trans
 function AIOSetReadBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external aionlm name 'AIOSetReadBufferSize';
 function AIOSetWriteBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external aionlm name 'AIOSetWriteBufferSize';
 
-function AIOWriteData(portHandle:longint; buffer:Pchar; length:longint; numberBytesWritten:PLongint):longint;cdecl;external aionlm name 'AIOWriteData';
+function AIOWriteData(portHandle:longint; buffer:PAnsiChar; length:longint; numberBytesWritten:PLongint):longint;cdecl;external aionlm name 'AIOWriteData';
 function AIOWriteData(portHandle:longint; var buffer; length:longint; var numberBytesWritten:Longint):longint;cdecl;external aionlm name 'AIOWriteData';
 
 function AIOWriteStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external aionlm name 'AIOWriteStatus';

@@ -296,7 +296,7 @@ const
   WAVE_FORMAT_EXTENSIBLE                 = $FFFE; { Microsoft }
 
 type
-  TChunkID = array [0..3] of char;
+  TChunkID = array [0..3] of AnsiChar;
   TChunkHeader = packed record
     ID: TChunkID;
     Size: UInt32;

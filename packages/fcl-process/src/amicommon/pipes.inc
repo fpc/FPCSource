@@ -49,7 +49,7 @@ end;
 
 procedure PipeClose (const FHandle: THandle);
 var
-  Filename: array[0..255] of Char;
+  Filename: array[0..255] of AnsiChar;
   DeleteIt: Boolean;
 begin
   {$if not defined(AMIGA_V1_2_ONLY)}

@@ -113,7 +113,7 @@ var
   KeyMapBase: PLibrary = nil;
 
 const
-  KEYMAPNAME: PChar = 'keymap.library';
+  KEYMAPNAME: PAnsiChar = 'keymap.library';
 
 procedure SetKeyMapDefault(const KeyMap: PKeyMap location 'a0'); SysCall KeyMapBase 030;
 function AskKeyMapDefault: PKeyMap; SysCall KeyMapBase 036;
@@ -121,8 +121,8 @@ function MapRawKey(const Event: PInputEvent location 'a0'; Buffer: STRPTR locati
 function MapANSI(const Strg: STRPTR location 'a0'; Count: LongInt location 'd0'; Buffer: STRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 048;
 function MapRawKeyUCS4(const Event: PInputEvent location 'a0'; Buffer: WSTRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 54;
 function MapUCS4(const Strg: WSTRPTR location 'a0'; Count: LongInt location 'd0'; Buffer: STRPTR location 'a1'; Length: LongInt location 'd1'; const KeyMap: PKeyMap location 'a2'): LongInt; SysCall KeyMapBase 60;
-function ToANSI(UCS4Char: WideChar location 'a0'; const KeyMap: PKeyMap location 'a1'): Char; SysCall KeyMapBase 66;
-function ToUCS4(ASCIIChar: Char location 'a0'; const KeyMap: PKeyMap location 'a1'): WideChar; SysCall KeyMapBase 72;
+function ToANSI(UCS4Char: WideChar location 'a0'; const KeyMap: PKeyMap location 'a1'): AnsiChar; SysCall KeyMapBase 66;
+function ToUCS4(ASCIIChar: AnsiChar location 'a0'; const KeyMap: PKeyMap location 'a1'): WideChar; SysCall KeyMapBase 72;
 function GetKeyMapCodePage(const KeyMap: PKeyMap location 'a0'): STRPTR; SysCall KeyMapBase 78;
 
 // Helper calls

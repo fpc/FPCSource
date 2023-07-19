@@ -23,7 +23,7 @@ VAR ExData       : pExAllData;
     FileList     : pList;
     DirList      : pList;
     tempnode     : pFPCNode;
-    Buffer       : PChar;
+    Buffer       : PAnsiChar;
     i,temp       : longint;
     TotalSize    : longint;
     TheDir       : AnsiString;
@@ -61,7 +61,7 @@ BEGIN
     EAC^.eac_LastKey := 0;
     EAC^.eac_MatchString := NIL;
     EAC^.eac_MatchFunc := NIL;
-    MyLock:=Lock(PChar(TheDir),SHARED_LOCK);
+    MyLock:=Lock(PAnsiChar(TheDir),SHARED_LOCK);
     IF MyLock=0 THEN CleanUp('No lock on directory',10);
 
     REPEAT

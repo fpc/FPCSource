@@ -189,7 +189,6 @@ Type
   PPwasm_trap_t= ^Pwasm_trap_t;
   PPwasmtime_module_t = ^Pwasmtime_module_t;
   
-  Ppchar = ^pchar;
   Tcint = cint;
   Tbyte_t = byte;
   Tfloat32_t = single;
@@ -203,13 +202,13 @@ Type
   Twasm_name_t = Twasm_byte_vec_t;
 {
 static inline void wasm_name_new_from_string(
-  wasm_name_t* out, const char* s
+  wasm_name_t* out, const AnsiChar* s
 ) 
   wasm_byte_vec_new(out, strlen(s), s);
 
 
 static inline void wasm_name_new_from_string_nt(
-  wasm_name_t* out, const char* s
+  wasm_name_t* out, const AnsiChar* s
 ) 
   wasm_byte_vec_new(out, strlen(s) + 1, s);
 
@@ -790,17 +789,17 @@ var
   wasm_instance_new : function(_para1:Pwasm_store_t; _para2:Pwasm_module_t; imports:Pwasm_extern_vec_t; _para4:PPwasm_trap_t):Pwasm_instance_t; cdecl;
   wasm_instance_exports : procedure(_para1:Pwasm_instance_t; out_:Pwasm_extern_vec_t); cdecl;
   wasi_config_new : function:Pwasi_config_t; cdecl;
-  wasi_config_set_argv : procedure(config:Pwasi_config_t; argc:Tcint; argv:Ppchar); cdecl;
+  wasi_config_set_argv : procedure(config:Pwasi_config_t; argc:Tcint; argv:PPAnsiChar); cdecl;
   wasi_config_inherit_argv : procedure(config:Pwasi_config_t); cdecl;
-  wasi_config_set_env : procedure(config:Pwasi_config_t; envc:Tcint; names:Ppchar; values:Ppchar); cdecl;
+  wasi_config_set_env : procedure(config:Pwasi_config_t; envc:Tcint; names:PPAnsiChar; values:PPAnsiChar); cdecl;
   wasi_config_inherit_env : procedure(config:Pwasi_config_t); cdecl;
-  wasi_config_set_stdin_file : function(config:Pwasi_config_t; path:pchar):T_Bool;
+  wasi_config_set_stdin_file : function(config:Pwasi_config_t; path:PAnsiChar):T_Bool;
   wasi_config_inherit_stdin : procedure(config:Pwasi_config_t); cdecl;
-  wasi_config_set_stdout_file : function(config:Pwasi_config_t; path:pchar):T_Bool;
+  wasi_config_set_stdout_file : function(config:Pwasi_config_t; path:PAnsiChar):T_Bool;
   wasi_config_inherit_stdout : procedure(config:Pwasi_config_t); cdecl;
-  wasi_config_set_stderr_file : function(config:Pwasi_config_t; path:pchar):T_Bool;
+  wasi_config_set_stderr_file : function(config:Pwasi_config_t; path:PAnsiChar):T_Bool;
   wasi_config_inherit_stderr : procedure(config:Pwasi_config_t); cdecl;
-  wasi_config_preopen_dir : function(config:Pwasi_config_t; path:pchar; guest_path:pchar):T_Bool;
+  wasi_config_preopen_dir : function(config:Pwasi_config_t; path:PAnsiChar; guest_path:PAnsiChar):T_Bool;
   wasmtime_error_delete : procedure(error:Pwasmtime_error_t); cdecl;
   wasmtime_error_message : procedure(error:Pwasmtime_error_t; message:Pwasm_name_t); cdecl;
   wasmtime_config_debug_info_set : procedure(_para1:Pwasm_config_t; _para2:T_Bool); cdecl;
@@ -822,7 +821,7 @@ var
   wasmtime_config_static_memory_maximum_size_set : procedure(_para1:Pwasm_config_t; _para2:Tuint64_t); cdecl;
   wasmtime_config_static_memory_guard_size_set : procedure(_para1:Pwasm_config_t; _para2:Tuint64_t); cdecl;
   wasmtime_config_dynamic_memory_guard_size_set : procedure(_para1:Pwasm_config_t; _para2:Tuint64_t); cdecl;
-  wasmtime_config_cache_config_load : function(_para1:Pwasm_config_t; _para2:pchar):Pwasmtime_error_t; cdecl;
+  wasmtime_config_cache_config_load : function(_para1:Pwasm_config_t; _para2:PAnsiChar):Pwasmtime_error_t; cdecl;
   wasmtime_moduletype_delete : procedure(ty:Pwasmtime_moduletype_t); cdecl;
   wasmtime_moduletype_imports : procedure(_para1:Pwasmtime_moduletype_t; out_:Pwasm_importtype_vec_t); cdecl;
   wasmtime_moduletype_exports : procedure(_para1:Pwasmtime_moduletype_t; out_:Pwasm_exporttype_vec_t); cdecl;
@@ -835,7 +834,7 @@ var
   wasmtime_module_type : function(_para1:Pwasmtime_module_t):Pwasmtime_moduletype_t; cdecl;
   wasmtime_module_serialize : function(module:Pwasmtime_module_t; ret:Pwasm_byte_vec_t):Pwasmtime_error_t; cdecl;
   wasmtime_module_deserialize : function(engine:Pwasm_engine_t; bytes:Puint8_t; bytes_len:Tsize_t; ret:PPwasmtime_module_t):Pwasmtime_error_t; cdecl;
-  wasmtime_module_deserialize_file : function(engine:Pwasm_engine_t; path:pchar; ret:PPwasmtime_module_t):Pwasmtime_error_t; cdecl;
+  wasmtime_module_deserialize_file : function(engine:Pwasm_engine_t; path:PAnsiChar; ret:PPwasmtime_module_t):Pwasmtime_error_t; cdecl;
   wasmtime_store_new : function(engine:Pwasm_engine_t; data:pointer; finalizer: TFinalizer):Pwasmtime_store_t; cdecl;
   wasmtime_store_context : function(store:Pwasmtime_store_t):Pwasmtime_context_t; cdecl;
   wasmtime_store_delete : procedure(store:Pwasmtime_store_t); cdecl;
@@ -867,7 +866,7 @@ var
   wasmtime_func_call : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t; args:Pwasmtime_val_t; nargs:Tsize_t; results:Pwasmtime_val_t; 
       nresults:Tsize_t; trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
   wasmtime_func_call_unchecked : function(store:Pwasmtime_context_t; func:Pwasmtime_func_t; args_and_results:Pwasmtime_val_raw_t):Pwasm_trap_t; cdecl;
-  wasmtime_caller_export_get : function(caller:Pwasmtime_caller_t; name:pchar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
+  wasmtime_caller_export_get : function(caller:Pwasmtime_caller_t; name:PAnsiChar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
   wasmtime_caller_context : function(caller:Pwasmtime_caller_t):Pwasmtime_context_t; cdecl;
   wasmtime_func_from_raw : procedure(context:Pwasmtime_context_t; raw:Tsize_t; ret:Pwasmtime_func_t); cdecl;
   wasmtime_func_to_raw : function(context:Pwasmtime_context_t; func:Pwasmtime_func_t):Tsize_t; cdecl;
@@ -882,24 +881,24 @@ var
   wasmtime_instance_new : function(store:Pwasmtime_context_t; module:Pwasmtime_module_t; imports:Pwasmtime_extern_t; nimports:Tsize_t; instance:Pwasmtime_instance_t; 
       trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
   wasmtime_instance_type : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t):Pwasmtime_instancetype_t; cdecl;
-  wasmtime_instance_export_get : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; name:pchar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
-  wasmtime_instance_export_nth : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; index:Tsize_t; name:Ppchar; name_len:Psize_t; 
+  wasmtime_instance_export_get : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; name:PAnsiChar; name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
+  wasmtime_instance_export_nth : function(store:Pwasmtime_context_t; instance:Pwasmtime_instance_t; index:Tsize_t; name:PPAnsiChar; name_len:Psize_t; 
       item:Pwasmtime_extern_t):T_Bool;
   wasmtime_linker_new : function(engine:Pwasm_engine_t):Pwasmtime_linker_t; cdecl;
   wasmtime_linker_delete : procedure(linker:Pwasmtime_linker_t); cdecl;
   wasmtime_linker_allow_shadowing : procedure(linker:Pwasmtime_linker_t; allow_shadowing:T_Bool); cdecl;
-  wasmtime_linker_define : function(linker:Pwasmtime_linker_t; module:pchar; module_len:Tsize_t; name:pchar; name_len:Tsize_t; 
+  wasmtime_linker_define : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
       item:Pwasmtime_extern_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_define_func : function(linker:Pwasmtime_linker_t; module:pchar; module_len:Tsize_t; name:pchar; name_len:Tsize_t; 
+  wasmtime_linker_define_func : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
       ty:Pwasm_functype_t; cb:Twasmtime_func_callback_t; data:pointer; finalizer: TFInalizer):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_define_func_unchecked : function(linker:Pwasmtime_linker_t; module:pchar; module_len:Tsize_t; name:pchar; name_len:Tsize_t; 
+  wasmtime_linker_define_func_unchecked : function(linker:Pwasmtime_linker_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; name_len:Tsize_t; 
       ty:Pwasm_functype_t; cb:Twasmtime_func_unchecked_callback_t; data:pointer; finalizer: TFInalizer):Pwasmtime_error_t; cdecl;
   wasmtime_linker_define_wasi : function(linker:Pwasmtime_linker_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_define_instance : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:pchar; name_len:Tsize_t; instance:Pwasmtime_instance_t):Pwasmtime_error_t; cdecl;
+  wasmtime_linker_define_instance : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; instance:Pwasmtime_instance_t):Pwasmtime_error_t; cdecl;
   wasmtime_linker_instantiate : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:Pwasmtime_module_t; instance:Pwasmtime_instance_t; trap:PPwasm_trap_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_module : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:pchar; name_len:Tsize_t; module:Pwasmtime_module_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_get_default : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:pchar; name_len:Tsize_t; func:Pwasmtime_func_t):Pwasmtime_error_t; cdecl;
-  wasmtime_linker_get : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:pchar; module_len:Tsize_t; name:pchar; 
+  wasmtime_linker_module : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; module:Pwasmtime_module_t):Pwasmtime_error_t; cdecl;
+  wasmtime_linker_get_default : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; name:PAnsiChar; name_len:Tsize_t; func:Pwasmtime_func_t):Pwasmtime_error_t; cdecl;
+  wasmtime_linker_get : function(linker:Pwasmtime_linker_t; store:Pwasmtime_context_t; module:PAnsiChar; module_len:Tsize_t; name:PAnsiChar; 
       name_len:Tsize_t; item:Pwasmtime_extern_t):T_Bool;
   wasmtime_memorytype_new : function(min:Tuint64_t; max_present:T_Bool; max:Tuint64_t; is_64:T_Bool):Pwasm_memorytype_t; cdecl;
   wasmtime_memorytype_minimum : function(ty:Pwasm_memorytype_t):Tuint64_t; cdecl;
@@ -917,12 +916,12 @@ var
   wasmtime_table_set : function(store:Pwasmtime_context_t; table:Pwasmtime_table_t; index:Tuint32_t; value:Pwasmtime_val_t):Pwasmtime_error_t; cdecl;
   wasmtime_table_size : function(store:Pwasmtime_context_t; table:Pwasmtime_table_t):Tuint32_t; cdecl;
   wasmtime_table_grow : function(store:Pwasmtime_context_t; table:Pwasmtime_table_t; delta:Tuint32_t; init:Pwasmtime_val_t; prev_size:Puint32_t):Pwasmtime_error_t; cdecl;
-  wasmtime_trap_new : function(msg:pchar; msg_len:Tsize_t):Pwasm_trap_t; cdecl;
+  wasmtime_trap_new : function(msg:PAnsiChar; msg_len:Tsize_t):Pwasm_trap_t; cdecl;
   wasmtime_trap_code : function(_para1:Pwasm_trap_t; code:Pwasmtime_trap_code_t):T_Bool;
   wasmtime_trap_exit_status : function(_para1:Pwasm_trap_t; status:pcint):T_Bool;
   wasmtime_frame_func_name : function(_para1:Pwasm_frame_t):Pwasm_name_t; cdecl;
   wasmtime_frame_module_name : function(_para1:Pwasm_frame_t):Pwasm_name_t; cdecl;
-  wasmtime_wat2wasm : function(wat:pchar; wat_len:Tsize_t; ret:Pwasm_byte_vec_t):Pwasmtime_error_t; cdecl;
+  wasmtime_wat2wasm : function(wat:PAnsiChar; wat_len:Tsize_t; ret:Pwasm_byte_vec_t):Pwasmtime_error_t; cdecl;
   wasi_config_delete : procedure(_para1:Pwasi_config_t); cdecl;
 
 // Converted Inline functions

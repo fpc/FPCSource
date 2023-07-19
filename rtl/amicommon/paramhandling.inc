@@ -27,12 +27,12 @@ begin
   end;
 end;
 
-function GetWBArg(Idx: Integer): string;
+function GetWBArg(Idx: Integer): shortstring;
 var
   startup: PWBStartup;
   wbarg: PWBArgList;
-  Path: array[0..254] of Char;
-  strPath: string;
+  Path: array[0..254] of AnsiChar;
+  strPath: shortstring;
   Len: Integer;
 begin
   GetWBArg := '';
@@ -84,7 +84,7 @@ var
   Ende: Word;
   LocalIndex: Word;
   i: Integer;
-  P : PChar;
+  P : PAnsiChar;
   Temp : AnsiString;
   InQuotes: boolean;
 begin
@@ -159,9 +159,9 @@ begin
   argc:=localindex;
 end;
 
-function GetProgDir: string;
+function GetProgDir: shortstring;
 var
-  s1: string;
+  s1: shortstring;
   alock: BPTR;
   counter: Byte;
 begin
@@ -177,16 +177,16 @@ begin
       Counter := 1;
       while (s1[Counter] <> #0) and (Counter <> 0) do
         Inc(Counter);
-      s1[0] := char(Counter - 1);
+      s1[0] := AnsiChar(Counter - 1);
       GetProgDir := s1;
     end;
   end;
 end;
 
-function GetProgramName: string;
+function GetProgramName: shortstring;
 { Returns ONLY the program name }
 var
-  s1: string;
+  s1: shortstring;
   Counter: Byte;
 begin
   GetProgramName := '';
@@ -197,7 +197,7 @@ begin
     Counter := 1;
     while (s1[Counter] <> #0) and (Counter <> 0) do
       Inc(Counter);
-    s1[0] := char(Counter - 1);
+    s1[0] := AnsiChar(Counter - 1);
 
     { now remove any component path which should not be there }
     for Counter := Length(s1) downto 1 do
@@ -226,9 +226,9 @@ begin
 end;
 
 { argument number l }
-function ParamStr(l: LongInt): string;
+function ParamStr(l: LongInt): shortstring;
 var
-  s1: string;
+  s1: shortstring;
 begin
   ParamStr := '';
   if AOS_wbMsg <> nil then

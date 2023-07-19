@@ -825,7 +825,7 @@ var
   IDataTypes: PInterface;
 
 const
-  DATATYPESNAME: PChar = 'datatypes.library';
+  DATATYPESNAME: PAnsiChar = 'datatypes.library';
 
 function ObtainDataTypeA(Typ: LongWord; Handle: APTR; Attrs: PTagItem): PDataType; syscall IDataTypes 80;
 procedure ReleaseDataType(Dt: PDataType); syscall IDataTypes 88;

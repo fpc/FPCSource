@@ -991,7 +991,7 @@ function AudioFileWritePackets( inAudioFile: AudioFileID; inUseCache: Boolean; i
 					in Sound Designer II files, and possibly other things in other files.
 					For simplicity, referred to below as "chunks".
     @param      inAudioFile			an AudioFileID.
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      outNumberItems		on output, if successful, number of chunks of this type in the file.
     @result							returns noErr if successful.
 }
@@ -1002,7 +1002,7 @@ function AudioFileCountUserData( inAudioFile: AudioFileID; inUserDataID: UInt32;
     @function	AudioFileGetUserDataSize
     @abstract   Get the size of user data in a file
     @param      inAudioFile			an AudioFileID.
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
     @param      outUserDataSize		on output, if successful, the size of the user data chunk.
     @result							returns noErr if successful.
@@ -1014,7 +1014,7 @@ function AudioFileGetUserDataSize( inAudioFile: AudioFileID; inUserDataID: UInt3
     @function	AudioFileGetUserData
     @abstract   Get the data of a chunk in a file.
     @param      inAudioFile			an AudioFileID.
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
 	@param		ioUserDataSize		the size of the buffer on input, size of bytes copied to buffer on output 
     @param      outUserData			a pointer to a buffer in which to copy the chunk data.
@@ -1027,7 +1027,7 @@ function AudioFileGetUserData( inAudioFile: AudioFileID; inUserDataID: UInt32; i
     @function	AudioFileSetUserData
     @abstract   Set the data of a chunk in a file.
     @param      inAudioFile			an AudioFileID.
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
 	@param		inUserDataSize		on input the size of the data to copy, on output, size of bytes copied from the buffer  
     @param      inUserData			a pointer to a buffer from which to copy the chunk data 
@@ -1042,7 +1042,7 @@ function AudioFileSetUserData( inAudioFile: AudioFileID; inUserDataID: UInt32; i
     @function	AudioFileRemoveUserData
     @abstract   Remove a user chunk in a file.
     @param      inAudioFile			an AudioFileID.
-    @param      inUserDataID		the four char code of the chunk.
+    @param      inUserDataID		the four AnsiChar code of the chunk.
     @param      inIndex				an index specifying which chunk if there are more than one.
     @result							returns noErr if successful.
 }
@@ -1117,7 +1117,7 @@ function AudioFileRemoveUserData( inAudioFile: AudioFileID; inUserDataID: UInt32
 					kBytePacketTranslationFlag_IsEstimate will be set in the mFlags field.
 					
     @constant   kAudioFilePropertyChunkIDs 
-					returns an array of OSType four char codes for each kind of chunk in the file.
+					returns an array of OSType four AnsiChar codes for each kind of chunk in the file.
     @constant   kAudioFilePropertyInfoDictionary 
 					returns a CFDictionary filled with information about the data contained in the file. 
 					See dictionary key constants already defined for info string types. 
@@ -1347,9 +1347,9 @@ const
     @discussion This struct is used to specify a desired audio file type and data format ID  so
 				that a list of stream descriptions of available formats can be obtained.
     @field      mFileType
-					a four char code for the file type such as kAudioFileAIFFType, kAudioFileCAFType, etc.
+					a four AnsiChar code for the file type such as kAudioFileAIFFType, kAudioFileCAFType, etc.
     @field      mFormatID
-					a four char code for the format ID such as kAudioFormatLinearPCM, kAudioFormatMPEG4AAC, etc.
+					a four AnsiChar code for the format ID such as kAudioFormatLinearPCM, kAudioFormatMPEG4AAC, etc.
 }
 type
 	AudioFileTypeAndFormatID = record

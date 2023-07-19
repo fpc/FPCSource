@@ -98,7 +98,7 @@ Type
     pTime     = ^time_t;
     ptime_t   = ^time_t;
     clockid_t = cint;
-    caddr_t   = ^char;
+    caddr_t   = ^AnsiChar;
 
     uint32_t = cuint32;
     int32_t = cint32;
@@ -176,10 +176,10 @@ Type
     ffree,             { Free file nodes in system }
     favail  : fsblkcnt_t;   { free nodes avail to non-superuser}
     fsid    : clong;   { File system ID }
-    basetype: array [0..15] of char; { null-terminated fs type name }
+    basetype: array [0..15] of AnsiChar; { null-terminated fs type name }
     flag    : culong;  { bit-mask of flags }
     namelen : culong; { Maximum name length in system }
-    fstr    : array[0..31] of char; { fs-specific string }
+    fstr    : array[0..31] of AnsiChar; { fs-specific string }
 {$ifndef cpu64}
     spare   : array[0..15] of clong; { reserved for future use }
 {$endif}

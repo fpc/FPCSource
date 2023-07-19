@@ -99,15 +99,10 @@ type
   PPCharW = ^PWideChar;
   {$NODEFINE PPCharW}
 
-  {$IFNDEF JWA_INCLUDEMODE}
-  PPChar = PPCharA;
-  {$ENDIF JWA_INCLUDEMODE}
-
   PPPCharA = ^PPCharA;
   {$NODEFINE PPPCharA}
   PPPCharW = ^PPCharW;
   {$NODEFINE PPPCharW}
-  PPPChar = PPPCharA;
 
 //
 //  The #define LDAP_UNICODE controls if we map the undecorated calls to
@@ -526,7 +521,7 @@ type
     //  Following parameters MAY match up to reference implementation of LDAP
     //
 
-    ld_host: PChar;
+    ld_host: PAnsiChar;
     ld_version: ULONG;
     ld_lberoptions: Byte;
 
@@ -541,8 +536,8 @@ type
     ld_sizelimit: ULONG;
 
     ld_errno: ULONG;
-    ld_matched: PChar;
-    ld_error: PChar;
+    ld_matched: PAnsiChar;
+    ld_error: PAnsiChar;
     ld_msgid: ULONG;
 
     Reserved3: array  [0..6*SizeOf(ULONG)] of Byte;
@@ -590,7 +585,7 @@ type
   {$EXTERNALSYM berval}
   berval = record
     bv_len: ULONG;
-    bv_val: PChar;
+    bv_val: PAnsiChar;
   end;
   {$EXTERNALSYM LDAP_BERVAL}
   LDAP_BERVAL = berval;
@@ -769,21 +764,21 @@ function ldap_openA(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM ldap_openW}
 function ldap_openW(HostName: PWideChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM ldap_open}
-function ldap_open(HostName: PChar; PortNumber: ULONG): PLDAP; cdecl;
+function ldap_open(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 
 {$EXTERNALSYM ldap_initA}
 function ldap_initA(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM ldap_initW}
 function ldap_initW(HostName: PWideChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM ldap_init}
-function ldap_init(HostName: PChar; PortNumber: ULONG): PLDAP; cdecl;
+function ldap_init(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 
 {$EXTERNALSYM ldap_sslinitA}
 function ldap_sslinitA(HostName: PAnsiChar; PortNumber: ULONG; secure: integer): PLDAP; cdecl;
 {$EXTERNALSYM ldap_sslinitW}
 function ldap_sslinitW(HostName: PWideChar; PortNumber: ULONG; secure: integer): PLDAP; cdecl;
 {$EXTERNALSYM ldap_sslinit}
-function ldap_sslinit(HostName: PChar; PortNumber: ULONG; secure: integer): PLDAP; cdecl;
+function ldap_sslinit(HostName: PAnsiChar; PortNumber: ULONG; secure: integer): PLDAP; cdecl;
 
 //
 //  when calling ldap_init, you can call ldap_connect explicitly to have the
@@ -808,7 +803,7 @@ function cldap_openA(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM cldap_openW}
 function cldap_openW(HostName: PWideChar; PortNumber: ULONG): PLDAP; cdecl;
 {$EXTERNALSYM cldap_open}
-function cldap_open(HostName: PChar; PortNumber: ULONG): PLDAP; cdecl;
+function cldap_open(HostName: PAnsiChar; PortNumber: ULONG): PLDAP; cdecl;
 
 //
 //  Call unbind when you're done with the connection, it will free all
@@ -1028,26 +1023,26 @@ function ldap_simple_bindA(ld: PLDAP; dn, passwd: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_simple_bindW}
 function ldap_simple_bindW(ld: PLDAP; dn, passwd: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_simple_bind}
-function ldap_simple_bind(ld: PLDAP; dn, passwd: PChar): ULONG; cdecl;
+function ldap_simple_bind(ld: PLDAP; dn, passwd: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_simple_bind_sA}
 function ldap_simple_bind_sA(ld: PLDAP; dn, passwd: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_simple_bind_sW}
 function ldap_simple_bind_sW(ld: PLDAP; dn, passwd: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_simple_bind_s}
-function ldap_simple_bind_s(ld: PLDAP; dn, passwd: PChar): ULONG; cdecl;
+function ldap_simple_bind_s(ld: PLDAP; dn, passwd: PAnsiChar): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_bindA}
 function ldap_bindA(ld: PLDAP; dn, cred: PAnsiChar; method: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_bindW}
 function ldap_bindW(ld: PLDAP; dn, cred: PWideChar; method: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_bind}
-function ldap_bind(ld: PLDAP; dn, cred: PChar; method: ULONG): ULONG; cdecl;
+function ldap_bind(ld: PLDAP; dn, cred: PAnsiChar; method: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_bind_sA}
 function ldap_bind_sA(ld: PLDAP; dn, cred: PAnsiChar; method: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_bind_sW}
 function ldap_bind_sW(ld: PLDAP; dn, cred: PWideChar; method: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_bind_s}
-function ldap_bind_s(ld: PLDAP; dn, cred: PChar; method: ULONG): ULONG; cdecl;
+function ldap_bind_s(ld: PLDAP; dn, cred: PAnsiChar; method: ULONG): ULONG; cdecl;
 
 // The following functions can be used to pass in any arbitrary credentials
 // to the server. The application must be ready to interpret the response
@@ -1065,8 +1060,8 @@ function ldap_sasl_bindW(ExternalHandle: PLDAP; DistName: PWideChar;
   var ServerCtrls, ClientCtrls: PLDAPControlW;
   var MessageNumber: Integer): Integer; cdecl;
 {$EXTERNALSYM ldap_sasl_bind}
-function ldap_sasl_bind(ExternalHandle: PLDAP; DistName: PChar;
-  AuthMechanism: PChar; cred: PBERVAL;
+function ldap_sasl_bind(ExternalHandle: PLDAP; DistName: PAnsiChar;
+  AuthMechanism: PAnsiChar; cred: PBERVAL;
   var ServerCtrls, ClientCtrls: PLDAPControl;
   var MessageNumber: Integer): Integer; cdecl;
 
@@ -1078,8 +1073,8 @@ function ldap_sasl_bind_sW(ExternalHandle: PLDAP; DistName: PWideChar;
   AuthMechanism: PWideChar; cred: PBERVAL;
   var ServerCtrls, ClientCtrls: PLDAPControlW;
   var ServerData: PBERVAL): Integer; cdecl;
-function ldap_sasl_bind_s(ExternalHandle: PLDAP; DistName: PChar;
-  AuthMechanism: PChar; cred: PBERVAL;
+function ldap_sasl_bind_s(ExternalHandle: PLDAP; DistName: PAnsiChar;
+  AuthMechanism: PAnsiChar; cred: PBERVAL;
   var ServerCtrls, ClientCtrls: PLDAPControl;
   var ServerData: PBERVAL): Integer; cdecl;
 
@@ -1120,10 +1115,10 @@ function ldap_searchW(
 {$EXTERNALSYM ldap_search}
 function ldap_search(
   ld: PLDAP;
-  base: PChar;        // distinguished name or ''
+  base: PAnsiChar;        // distinguished name or ''
   scope: ULONG;           // LDAP_SCOPE_xxxx
-  filter: PChar;
-  attrs: PChar;       // pointer to an array of PAnsiChar attribute names
+  filter: PAnsiChar;
+  attrs: PAnsiChar;       // pointer to an array of PAnsiChar attribute names
   attrsonly: ULONG        // boolean on whether to only return attr names
 ): ULONG; cdecl;
 
@@ -1136,8 +1131,8 @@ function ldap_search_sW(ld: PLDAP; base: PWideChar; scope: ULONG;
   filter, attrs: PWideChar; attrsonly: ULONG;
   var res: PLDAPMessage): ULONG; cdecl;
 {$EXTERNALSYM ldap_search_s}
-function ldap_search_s(ld: PLDAP; base: PChar; scope: ULONG;
-  filter, attrs: PChar; attrsonly: ULONG;
+function ldap_search_s(ld: PLDAP; base: PAnsiChar; scope: ULONG;
+  filter, attrs: PAnsiChar; attrsonly: ULONG;
   var res: PLDAPMessage): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_search_stA}
@@ -1149,8 +1144,8 @@ function ldap_search_stW(ld: PLDAP; base: PWideChar; scope: ULONG;
   filter, attrs: PWideChar; attrsonly:  ULONG; var timeout: TLDAPTimeVal;
   var res: PLDAPMessage): ULONG; cdecl;
 {$EXTERNALSYM ldap_search_st}
-function ldap_search_st(ld: PLDAP; base: PChar; scope: ULONG;
-  filter, attrs: PChar; attrsonly:  ULONG; var timeout: TLDAPTimeVal;
+function ldap_search_st(ld: PLDAP; base: PAnsiChar; scope: ULONG;
+  filter, attrs: PAnsiChar; attrsonly:  ULONG; var timeout: TLDAPTimeVal;
   var res: PLDAPMessage): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_search_extA}
@@ -1164,8 +1159,8 @@ function ldap_search_extW(ld: PLDAP; base: PWideChar; scope: ULONG;
   var ServerControls, ClientControls: PLDAPControlW;
   TimeLimit, SizeLimit: ULONG; var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_search_ext}
-function ldap_search_ext(ld: PLDAP; base: PChar; scope: ULONG;
-  filter, attrs: PChar; attrsonly: ULONG;
+function ldap_search_ext(ld: PLDAP; base: PAnsiChar; scope: ULONG;
+  filter, attrs: PAnsiChar; attrsonly: ULONG;
   ServerControls, ClientControls: PPLDAPControl;
   TimeLimit, SizeLimit: ULONG; var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1182,8 +1177,8 @@ function ldap_search_ext_sW(ld: PLDAP; base: PWideChar; scope: ULONG;
   var timeout: TLDAPTimeVal; SizeLimit: ULONG;
   var res: PLDAPMessage): ULONG; cdecl;
 {$EXTERNALSYM ldap_search_ext_s}
-function ldap_search_ext_s(ld: PLDAP; base: PChar; scope: ULONG;
-  filter, attrs: PChar; attrsonly: ULONG;
+function ldap_search_ext_s(ld: PLDAP; base: PAnsiChar; scope: ULONG;
+  filter, attrs: PAnsiChar; attrsonly: ULONG;
   ServerControls, ClientControls: PPLDAPControl;
   timeout: PLDAPTimeVal; SizeLimit: ULONG;
   var res: PLDAPMessage): ULONG; cdecl;
@@ -1198,7 +1193,7 @@ function ldap_check_filterA(ld: PLDAP; SearchFilter: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_check_filterW}
 function ldap_check_filterW(ld: PLDAP; SearchFilter: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_check_filter}
-function ldap_check_filter(ld: PLDAP; SearchFilter: PChar): ULONG; cdecl;
+function ldap_check_filter(ld: PLDAP; SearchFilter: PAnsiChar): ULONG; cdecl;
 
 //
 //  modify an existing entry
@@ -1220,14 +1215,14 @@ function ldap_modifyA(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPModA): ULONG; cde
 {$EXTERNALSYM ldap_modifyW}
 function ldap_modifyW(ld: PLDAP; dn: PWideChar; var mods: PLDAPModW): ULONG; cdecl;
 {$EXTERNALSYM ldap_modify}
-function ldap_modify(ld: PLDAP; dn: PChar; var mods: PLDAPMod): ULONG; cdecl;
+function ldap_modify(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPMod): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_modify_sA}
 function ldap_modify_sA(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPModA): ULONG; cdecl;
 {$EXTERNALSYM ldap_modify_sW}
 function ldap_modify_sW(ld: PLDAP; dn: PWideChar; var mods: PLDAPModW): ULONG; cdecl;
 {$EXTERNALSYM ldap_modify_s}
-function ldap_modify_s(ld: PLDAP; dn: PChar; var mods: PLDAPMod): ULONG; cdecl;
+function ldap_modify_s(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPMod): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_modify_extA}
 function ldap_modify_extA(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPModA;
@@ -1238,7 +1233,7 @@ function ldap_modify_extW(ld: PLDAP; dn: PWideChar; var mods: PLDAPModW;
   var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_modify_ext}
-function ldap_modify_ext(ld: PLDAP; dn: PChar; var mods: PLDAPMod;
+function ldap_modify_ext(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPMod;
   var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1249,7 +1244,7 @@ function ldap_modify_ext_sA(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPModA;
 function ldap_modify_ext_sW(ld: PLDAP; dn: PWideChar; var mods: PLDAPModW;
   var ServerControls, ClientControls: PLDAPControlW): ULONG; cdecl;
 {$EXTERNALSYM ldap_modify_ext_s}
-function ldap_modify_ext_s(ld: PLDAP; dn: PChar; var mods: PLDAPMod;
+function ldap_modify_ext_s(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPMod;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
@@ -1298,7 +1293,7 @@ function ldap_modrdn2W(var ExternalHandle: LDAP;
   DeleteOldRdn: Integer): ULONG; cdecl;
 {$EXTERNALSYM ldap_modrdn2}
 function ldap_modrdn2(var ExternalHandle: LDAP;
-  DistinguishedName, NewDistinguishedName: PChar;
+  DistinguishedName, NewDistinguishedName: PAnsiChar;
   DeleteOldRdn: Integer): ULONG; cdecl;
 
 //
@@ -1313,7 +1308,7 @@ function ldap_modrdnW(var ExternalHandle: LDAP;
   DistinguishedName, NewDistinguishedName: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_modrdn}
 function ldap_modrdn(var ExternalHandle: LDAP;
-  DistinguishedName, NewDistinguishedName: PChar): ULONG; cdecl;
+  DistinguishedName, NewDistinguishedName: PAnsiChar): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_modrdn2_sA}
 function ldap_modrdn2_sA(var ExternalHandle: LDAP;
@@ -1325,7 +1320,7 @@ function ldap_modrdn2_sW(var ExternalHandle: LDAP;
   DeleteOldRdn: Integer): ULONG; cdecl;
 {$EXTERNALSYM ldap_modrdn2_s}
 function ldap_modrdn2_s(var ExternalHandle: LDAP;
-  DistinguishedName, NewDistinguishedName: PChar;
+  DistinguishedName, NewDistinguishedName: PAnsiChar;
   DeleteOldRdn: Integer): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_modrdn_sA}
@@ -1336,7 +1331,7 @@ function ldap_modrdn_sW(var ExternalHandle: LDAP;
   DistinguishedName, NewDistinguishedName: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_modrdn_s}
 function ldap_modrdn_s(var ExternalHandle: LDAP;
-  DistinguishedName, NewDistinguishedName: PChar): ULONG; cdecl;
+  DistinguishedName, NewDistinguishedName: PAnsiChar): ULONG; cdecl;
 
 //
 //  Extended Rename operations.  These take controls and separate out the
@@ -1352,7 +1347,7 @@ function ldap_rename_extW(ld: PLDAP; dn, NewRDN, NewParent: PWideChar;
   DeleteOldRdn: Integer; var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_rename_ext}
-function ldap_rename_ext(ld: PLDAP; dn, NewRDN, NewParent: PChar;
+function ldap_rename_ext(ld: PLDAP; dn, NewRDN, NewParent: PAnsiChar;
   DeleteOldRdn: Integer; var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1366,7 +1361,7 @@ function ldap_rename_ext_sW(ld: PLDAP;
   var ServerControls, ClientControls: PLDAPControlW): ULONG; cdecl;
 {$EXTERNALSYM ldap_rename_ext_s}
 function ldap_rename_ext_s(ld: PLDAP;
-  dn, NewRDN, NewParent: PChar; DeleteOldRdn: Integer;
+  dn, NewRDN, NewParent: PAnsiChar; DeleteOldRdn: Integer;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
@@ -1389,14 +1384,14 @@ function ldap_addA(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPModA): ULONG; cdecl
 {$EXTERNALSYM ldap_addW}
 function ldap_addW(ld: PLDAP; dn: PWideChar; var attrs: PLDAPModW): ULONG; cdecl;
 {$EXTERNALSYM ldap_add}
-function ldap_add(ld: PLDAP; dn: PChar; var attrs: PLDAPMod): ULONG; cdecl;
+function ldap_add(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPMod): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_add_sA}
 function ldap_add_sA(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPModA): ULONG; cdecl;
 {$EXTERNALSYM ldap_add_sW}
 function ldap_add_sW(ld: PLDAP; dn: PWideChar; var attrs: PLDAPModW): ULONG; cdecl;
 {$EXTERNALSYM ldap_add_s}
-function ldap_add_s(ld: PLDAP; dn: PChar; var attrs: PLDAPMod): ULONG; cdecl;
+function ldap_add_s(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPMod): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_add_extA}
 function ldap_add_extA(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPModA;
@@ -1407,7 +1402,7 @@ function ldap_add_extW(ld: PLDAP; dn: PWideChar; var attrs: PLDAPModW;
   var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_add_ext}
-function ldap_add_ext(ld: PLDAP; dn: PChar; var attrs: PLDAPMod;
+function ldap_add_ext(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPMod;
   var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1418,7 +1413,7 @@ function ldap_add_ext_sA(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPModA;
 function ldap_add_ext_sW(ld: PLDAP; dn: PWideChar; var attrs: PLDAPModW;
   var ServerControls, ClientControls: PLDAPControlW): ULONG; cdecl;
 {$EXTERNALSYM ldap_add_ext_s}
-function ldap_add_ext_s(ld: PLDAP; dn: PChar; var attrs: PLDAPMod;
+function ldap_add_ext_s(ld: PLDAP; dn: PAnsiChar; var attrs: PLDAPMod;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
@@ -1430,14 +1425,14 @@ function ldap_compareA(ld: PLDAP; dn, attr, value: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_compareW}
 function ldap_compareW(ld: PLDAP; dn, attr, value: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_compare}
-function ldap_compare(ld: PLDAP; dn, attr, value: PChar): ULONG; cdecl;
+function ldap_compare(ld: PLDAP; dn, attr, value: PAnsiChar): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_compare_sA}
 function ldap_compare_sA(ld: PLDAP; dn, attr, value: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_compare_sW}
 function ldap_compare_sW(ld: PLDAP; dn, attr, value: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_compare_s}
-function ldap_compare_s(ld: PLDAP; dn, attr, value: PChar): ULONG; cdecl;
+function ldap_compare_s(ld: PLDAP; dn, attr, value: PAnsiChar): ULONG; cdecl;
 
 //
 //  Extended Compare operations.  These take controls and are thread safe.
@@ -1459,7 +1454,7 @@ function ldap_compare_extW(ld: PLDAP; dn, Attr, Value: PWideChar;
   Data: PLDAPBerVal; var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_compare_ext}
-function ldap_compare_ext(ld: PLDAP; dn, Attr, Value: PChar;
+function ldap_compare_ext(ld: PLDAP; dn, Attr, Value: PAnsiChar;
   Data: PLDAPBerVal; var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1473,7 +1468,7 @@ function ldap_compare_ext_sW(ld: PLDAP;
   var ServerControls, ClientControls: PLDAPControlW): ULONG; cdecl;
 {$EXTERNALSYM ldap_compare_ext_s}
 function ldap_compare_ext_s(ld: PLDAP;
-  dn, Attr, Value: PChar; Data: PLDAPBerVal;
+  dn, Attr, Value: PAnsiChar; Data: PLDAPBerVal;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
@@ -1496,14 +1491,14 @@ function ldap_deleteA(ld: PLDAP; dn: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_deleteW}
 function ldap_deleteW(ld: PLDAP; dn: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_delete}
-function ldap_delete(ld: PLDAP; dn: PChar): ULONG; cdecl;
+function ldap_delete(ld: PLDAP; dn: PAnsiChar): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_delete_sA}
 function ldap_delete_sA(ld: PLDAP; dn: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_delete_sW}
 function ldap_delete_sW(ld: PLDAP; dn: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_delete_s}
-function ldap_delete_s(ld: PLDAP; dn: PChar): ULONG; cdecl;
+function ldap_delete_s(ld: PLDAP; dn: PAnsiChar): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_delete_extA}
 function ldap_delete_extA(ld: PLDAP; dn: PAnsiChar;
@@ -1514,7 +1509,7 @@ function ldap_delete_extW(ld: PLDAP; dn: PWideChar;
   var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_delete_ext}
-function ldap_delete_ext(ld: PLDAP; dn: PChar;
+function ldap_delete_ext(ld: PLDAP; dn: PAnsiChar;
   var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -1525,7 +1520,7 @@ function ldap_delete_ext_sA(ld: PLDAP; dn: PAnsiChar;
 function ldap_delete_ext_sW(ld: PLDAP; dn: PWideChar;
   var ServerControls, ClientControls: PLDAPControlW): ULONG; cdecl;
 {$EXTERNALSYM ldap_delete_ext_s}
-function ldap_delete_ext_s(ld: PLDAP; dn: PChar;
+function ldap_delete_ext_s(ld: PLDAP; dn: PAnsiChar;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
@@ -1613,9 +1608,9 @@ function ldap_parse_result (
         var Connection: LDAP;
         ResultMessage: PLDAPMessage;
         ReturnCode: PULONG;                     // returned by server
-        MatchedDNs: PPChar;                    // free with ldap_memfree
-        ErrorMessage: PPChar;                  // free with ldap_memfree
-        Referrals: PPPChar;                    // free with ldap_value_freeW
+        MatchedDNs: PPAnsiChar;                    // free with ldap_memfree
+        ErrorMessage: PPAnsiChar;                  // free with ldap_memfree
+        Referrals: PPPAnsiChar;                    // free with ldap_value_freeW
         var ServerControls: PPLDAPControl;     // free with ldap_free_controlsW
         Freeit: BOOL): ULONG; cdecl;
 
@@ -1646,7 +1641,7 @@ function ldap_parse_extended_resultW(
 function ldap_parse_extended_result(
   Connection: PLDAP;
   ResultMessage: PLDAPMessage;          // returned by server
-  var ResultOID: PChar;             // free with ldap_memfree
+  var ResultOID: PAnsiChar;             // free with ldap_memfree
   var ResultData: PBERVAL;              // free with ldap_memfree
   Freeit: ByteBool                      // Don't need the message anymore
 ): ULONG; cdecl;
@@ -1679,14 +1674,14 @@ function ldap_err2stringA(err: ULONG): PAnsiChar; cdecl;
 {$EXTERNALSYM ldap_err2stringW}
 function ldap_err2stringW(err: ULONG): PWideChar; cdecl;
 {$EXTERNALSYM ldap_err2string}
-function ldap_err2string(err: ULONG): PChar; cdecl;
+function ldap_err2string(err: ULONG): PAnsiChar; cdecl;
 
 //
 //  ldap_perror does nothing and is here just for compatibility.
 //
 
 {$EXTERNALSYM ldap_perror}
-procedure ldap_perror(ld: PLDAP; msg: PChar); cdecl;
+procedure ldap_perror(ld: PLDAP; msg: PAnsiChar); cdecl;
 
 //
 //  Return the first entry of a message.  It is freed when the message is
@@ -1720,7 +1715,7 @@ type
   PBerElement = ^BerElement;
   {$EXTERNALSYM BerElement}
   BerElement = record
-    opaque: PChar;      // this is an opaque structure used just for
+    opaque: PAnsiChar;      // this is an opaque structure used just for
                         // compatibility with reference implementation
   end;
 
@@ -1742,7 +1737,7 @@ function ldap_first_attributeW(ld: PLDAP; entry: PLDAPMessage;
   var ptr: PBerElement): PWideChar; cdecl;
 {$EXTERNALSYM ldap_first_attribute}
 function ldap_first_attribute(ld: PLDAP; entry: PLDAPMessage;
-  var ptr: PBerElement): PChar; cdecl;
+  var ptr: PBerElement): PAnsiChar; cdecl;
 
 //
 //  Return the next attribute... again, the attribute pointer should not be
@@ -1757,7 +1752,7 @@ function ldap_next_attributeW(ld: PLDAP; entry: PLDAPMessage;
   ptr: PBerElement): PWideChar; cdecl;
 {$EXTERNALSYM ldap_next_attribute}
 function ldap_next_attribute(ld: PLDAP; entry: PLDAPMessage;
-  ptr: PBerElement): PChar; cdecl;
+  ptr: PBerElement): PAnsiChar; cdecl;
 
 //
 //  Get a given attribute's list of values.  This is used during parsing of
@@ -1779,7 +1774,7 @@ function ldap_get_valuesW(ld: PLDAP; entry: PLDAPMessage;
   attr: PWideChar): PPCharW; cdecl;
 {$EXTERNALSYM ldap_get_values}
 function ldap_get_values(ld: PLDAP; entry: PLDAPMessage;
-  attr: PChar): PPChar; cdecl;
+  attr: PAnsiChar): PPAnsiChar; cdecl;
 
 //
 //  Get a given attribute's list of values.  This is used during parsing of
@@ -1801,7 +1796,7 @@ function ldap_get_values_lenW(ExternalHandle: PLDAP; Message: PLDAPMessage;
  attr: PWideChar): PPLDAPBerVal; cdecl;
 {$EXTERNALSYM ldap_get_values_len}
 function ldap_get_values_len(ExternalHandle: PLDAP; Message: PLDAPMessage;
- attr: PChar): PPLDAPBerVal; cdecl;
+ attr: PAnsiChar): PPLDAPBerVal; cdecl;
 
 //
 //  Return the number of values in a list returned by ldap_get_values.
@@ -1812,7 +1807,7 @@ function ldap_count_valuesA(vals: PPCharA): ULONG; cdecl;
 {$EXTERNALSYM ldap_count_valuesW}
 function ldap_count_valuesW(vals: PPCharW): ULONG; cdecl;
 {$EXTERNALSYM ldap_count_values}
-function ldap_count_values(vals: PPChar): ULONG; cdecl;
+function ldap_count_values(vals: PPAnsiChar): ULONG; cdecl;
 
 //
 //  Return the number of values in a list returned by ldap_get_values_len.
@@ -1830,7 +1825,7 @@ function ldap_value_freeA(vals: PPCharA): ULONG; cdecl;
 {$EXTERNALSYM ldap_value_freeW}
 function ldap_value_freeW(vals: PPCharW): ULONG; cdecl;
 {$EXTERNALSYM ldap_value_free}
-function ldap_value_free(vals: PPChar): ULONG; cdecl;
+function ldap_value_free(vals: PPAnsiChar): ULONG; cdecl;
 
 //
 //  Free structures returned by ldap_get_values_len.
@@ -1849,7 +1844,7 @@ function ldap_get_dnA(ld: PLDAP; entry: PLDAPMessage): PAnsiChar; cdecl;
 {$EXTERNALSYM ldap_get_dnW}
 function ldap_get_dnW(ld: PLDAP; entry: PLDAPMessage): PWideChar; cdecl;
 {$EXTERNALSYM ldap_get_dn}
-function ldap_get_dn(ld: PLDAP; entry: PLDAPMessage): PChar; cdecl;
+function ldap_get_dn(ld: PLDAP; entry: PLDAPMessage): PAnsiChar; cdecl;
 
 //
 //  When using ldap_explode_dn, you should free the returned string by
@@ -1861,7 +1856,7 @@ function ldap_explode_dnA(dn: PAnsiChar; notypes: ULONG): PPCharA; cdecl;
 {$EXTERNALSYM ldap_explode_dnW}
 function ldap_explode_dnW(dn: PWideChar; notypes: ULONG): PPCharW; cdecl;
 {$EXTERNALSYM ldap_explode_dn}
-function ldap_explode_dn(dn: PChar; notypes: ULONG): PPChar; cdecl;
+function ldap_explode_dn(dn: PAnsiChar; notypes: ULONG): PPAnsiChar; cdecl;
 
 //
 //  When calling ldap_dn2ufn, you should free the returned string by calling
@@ -1873,7 +1868,7 @@ function ldap_dn2ufnA(dn: PAnsiChar): PAnsiChar; cdecl;
 {$EXTERNALSYM ldap_dn2ufnW}
 function ldap_dn2ufnW(dn: PWideChar): PWideChar; cdecl;
 {$EXTERNALSYM ldap_dn2ufn}
-function ldap_dn2ufn(dn: PChar): PChar; cdecl;
+function ldap_dn2ufn(dn: PAnsiChar): PAnsiChar; cdecl;
 
 //
 //  This is used to free strings back to the LDAP API heap.  Don't pass in
@@ -1885,7 +1880,7 @@ procedure ldap_memfreeA(Block: PAnsiChar); cdecl;
 {$EXTERNALSYM ldap_memfreeW}
 procedure ldap_memfreeW(Block: PWideChar); cdecl;
 {$EXTERNALSYM ldap_memfree}
-procedure ldap_memfree(Block: PChar); cdecl;
+procedure ldap_memfree(Block: PAnsiChar); cdecl;
 
 {$EXTERNALSYM ber_bvfree}
 procedure ber_bvfree(bv: PLDAPBerVal); cdecl;
@@ -1906,7 +1901,7 @@ function ldap_ufn2dnA(ufn: PAnsiChar; var pDn: PAnsiChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_ufn2dnW}
 function ldap_ufn2dnW(ufn: PWideChar; var pDn: PWideChar): ULONG; cdecl;
 {$EXTERNALSYM ldap_ufn2dn}
-function ldap_ufn2dn(ufn: PChar; var pDn: PChar): ULONG; cdecl;
+function ldap_ufn2dn(ufn: PAnsiChar; var pDn: PAnsiChar): ULONG; cdecl;
 
 const
   {$EXTERNALSYM LBER_USE_DER}
@@ -1982,16 +1977,16 @@ function ldap_cleanup(hInstance: THandle): ULONG; cdecl;
 
 {$EXTERNALSYM ldap_escape_filter_elementA}
 function ldap_escape_filter_elementA(
-  sourceFilterElement: PChar; sourceLength: ULONG;
+  sourceFilterElement: PAnsiChar; sourceLength: ULONG;
   destFilterElement: PAnsiChar; destLength: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_escape_filter_elementW}
 function ldap_escape_filter_elementW(
-  sourceFilterElement: PChar; sourceLength: ULONG;
+  sourceFilterElement: PAnsiChar; sourceLength: ULONG;
   destFilterElement: PWideChar; destLength: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_escape_filter_element}
 function ldap_escape_filter_element(
-  sourceFilterElement: PChar; sourceLength: ULONG;
-  destFilterElement: PChar; destLength: ULONG): ULONG; cdecl;
+  sourceFilterElement: PAnsiChar; sourceLength: ULONG;
+  destFilterElement: PAnsiChar; destLength: ULONG): ULONG; cdecl;
 
 //
 //  Misc extensions for additional debugging.
@@ -2010,7 +2005,7 @@ function ldap_set_dbg_flags(NewFlags: ULONG): ULONG; cdecl;
 
 type
   {$EXTERNALSYM DBGPRINT}
-  DBGPRINT = function(Format: PChar {; ...} ): ULONG cdecl;
+  DBGPRINT = function(Format: PAnsiChar {; ...} ): ULONG cdecl;
   TDbgPrint = DBGPRINT;
 
 {$EXTERNALSYM ldap_set_dbg_routine}
@@ -2124,7 +2119,7 @@ function ldap_parse_sort_controlW(ExternalHandle: PLDAP;
 {$EXTERNALSYM ldap_parse_sort_control}
 function ldap_parse_sort_control(ExternalHandle: PLDAP;
   var Control: PLDAPControl; var Result: ULONG;
-  var Attribute: PChar): ULONG; cdecl;
+  var Attribute: PAnsiChar): ULONG; cdecl;
 
 //
 //  This API formats a list of sort keys into a search control.  Call
@@ -2236,8 +2231,8 @@ function ldap_search_init_pageW(ExternalHandle: PLDAP;
 
 {$EXTERNALSYM ldap_search_init_page}
 function ldap_search_init_page(ExternalHandle: PLDAP;
-  DistinguishedName: PChar; ScopeOfSearch: ULONG; SearchFilter: PChar;
-  AttributeList: PPChar; AttributesOnly: ULONG;
+  DistinguishedName: PAnsiChar; ScopeOfSearch: ULONG; SearchFilter: PAnsiChar;
+  AttributeList: PPAnsiChar; AttributesOnly: ULONG;
   var ServerControls, ClientControls: PLDAPControl;
   PageTimeLimit, TotalSizeLimit: ULONG;
   var SortKeys: PLDAPSortKey): PLDAPSearch; cdecl;
@@ -2308,7 +2303,7 @@ function ldap_parse_referenceW(Connection: PLDAP; ResultMessage: PLDAPMessage;
   var Referrals: PPCharW): ULONG; cdecl;
 {$EXTERNALSYM ldap_parse_reference}
 function ldap_parse_reference(Connection: PLDAP; ResultMessage: PLDAPMessage;
-  var Referrals: PPChar): ULONG; cdecl;
+  var Referrals: PPAnsiChar): ULONG; cdecl;
 
 //
 //  These APIs allow a client to send an extended request (free for all) to
@@ -2329,7 +2324,7 @@ function ldap_extended_operationW(ld: PLDAP; Oid: PWideChar;
   var Data: TLDAPBerVal; var ServerControls, ClientControls: PLDAPControlW;
   var MessageNumber: ULONG): ULONG; cdecl;
 {$EXTERNALSYM ldap_extended_operation}
-function ldap_extended_operation(ld: PLDAP; Oid: PChar;
+function ldap_extended_operation(ld: PLDAP; Oid: PAnsiChar;
   var Data: TLDAPBerVal; var ServerControls, ClientControls: PLDAPControl;
   var MessageNumber: ULONG): ULONG; cdecl;
 
@@ -2372,7 +2367,7 @@ type
     PrimaryConnection: PLDAP;
     ReferralFromConnection: PLDAP;
     NewDN: PWideChar;
-    HostName: PChar;
+    HostName: PAnsiChar;
     PortNumber: ULONG;
     SecAuthIdentity: Pointer;    // if null, use CurrentUser below
     CurrentUserToken: Pointer;   // pointer to current user's LUID
@@ -2397,7 +2392,7 @@ type
     PrimaryConnection: PLDAP;
     ReferralFromConnection: PLDAP;
     NewDN: PWideChar;
-    HostName: PChar;
+    HostName: PAnsiChar;
     NewConnection: PLDAP;
     PortNumber: ULONG;
     SecAuthIdentity: Pointer;    // if null, use CurrentUser below

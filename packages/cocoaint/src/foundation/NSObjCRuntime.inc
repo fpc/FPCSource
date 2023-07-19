@@ -145,7 +145,7 @@ function NSStringFromClass(aClass: pobjc_class): NSString; cdecl; external;
 function NSClassFromString(aClassName: NSString): pobjc_class; cdecl; external;
 function NSStringFromProtocol(proto: Protocol): NSString; cdecl; external; { available in 10_5, 2_0 }
 function NSProtocolFromString(namestr: NSString): Protocol; cdecl; external; { available in 10_5, 2_0 }
-function NSGetSizeAndAlignment(typePtr: PChar; sizep: NSUIntegerPtr; alignp: NSUIntegerPtr): PChar; cdecl; external;
+function NSGetSizeAndAlignment(typePtr: PAnsiChar; sizep: NSUIntegerPtr; alignp: NSUIntegerPtr): PAnsiChar; cdecl; external;
 procedure NSLog(format: NSString); varargs; cdecl; external;
 procedure NSLogv(format: NSString; args: va_list); cdecl; external;
 {$endif}

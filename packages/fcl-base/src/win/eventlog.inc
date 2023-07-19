@@ -21,7 +21,7 @@ const
 Function TEventLog.DefaultFileName : String;
 
 begin
-  Result:=ChangeFileExt(Paramstr(0),'.log');
+  Result:=ChangeFileExt(Paramstr(0),RTLString('.log'));
 end;
 
 Resourcestring
@@ -32,7 +32,7 @@ Procedure TEventLog.ActivateSystemLog;
 
 begin
   CheckIdentification;
-  FLogHandle := Pointer(OpenEventLogA(Nil,Pchar(Identification)));
+  FLogHandle := Pointer(OpenEventLogA(Nil,PAnsiChar(Identification)));
   If (FLogHandle=Nil) and FRaiseExceptionOnError then
     Raise ELogError.CreateFmt(SErrNoSysLog,[GetLastError]);
 end;
@@ -52,17 +52,21 @@ function ReportEvent(hEventLog: THandle; wType, wCategory: Word;
 procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 Var
-  P : PChar;
+  P : PAnsiChar;
   I : Integer;
   FCategory : Word;
   FEventID : DWord;
   FEventType : Word;
-
+  aMsg : AnsiString {$IF SIZEOF(CHAR)=1} absolute Msg{$ENDIF};
+  
 begin
   FCategory:=MapTypeToCategory(EventType);
   FEventID:=MapTypeToEventID(EventType);
   FEventType:=MapTypeToEvent(EventType);
-  P:=PChar(Msg);
+  {$IF SIZEOF(CHAR)=2}
+  aMsg:=Msg;
+  {$ENDIF}
+  P:=PAnsiChar(aMsg);
   If Not ReportEvent(Cardinal(FLogHandle),FEventType,FCategory,FEventID,Nil,1,0,@P,Nil) and FRaiseExceptionOnError then
     begin
     I:=GetLastError;
@@ -89,7 +93,7 @@ begin
   CheckIdentification;
   ELKey:=Format(SKeyEventLog,[IDentification]);
   Result:=RegCreateKeyExA(HKEY_LOCAL_MACHINE,
-                          PChar(ELKey),0,'',
+                          PAnsiChar(ELKey),0,'',
                           REG_OPTION_NON_VOLATILE,
                           KEY_ALL_ACCESS,
                           SecurityAttributes,Handle,
@@ -99,11 +103,11 @@ begin
       If AFileName='' then
         AFileName:=ParamStr(0);
       Value:=4;
-      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryCount),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PAnsiChar(SKeyCategoryCount),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
       Value:=7;
-      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyTypesSupported),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
-      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
-      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyEventMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PAnsiChar(SKeyTypesSupported),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PAnsiChar(SKeyCategoryMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PAnsiChar(SKeyEventMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
     end;
 end;
 
@@ -113,7 +117,7 @@ Var
   ELKey : String;
 begin
   ELKey:=Format(SKeyEventLog,[IDentification]);
-  Result:=(RegDeleteKeyA(HKEY_LOCAL_MACHINE,pchar(ELKey))=ERROR_SUCCESS);
+  Result:=(RegDeleteKeyA(HKEY_LOCAL_MACHINE,PAnsiChar(ELKey))=ERROR_SUCCESS);
 end;
 
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;

@@ -268,7 +268,7 @@ procedure ap_open_stderr_log(p: Papr_pool_t);
  * @param p The pool to allocate out of
  * @param file Name of the file to log stderr output
  *}
-function ap_replace_stderr_log(p: Papr_pool_t; file_: PChar): apr_status_t;
+function ap_replace_stderr_log(p: Papr_pool_t; file_: PAnsiChar): apr_status_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_replace_stderr_log' + LibSuff8;
 
@@ -330,9 +330,9 @@ function ap_replace_stderr_log(p: Papr_pool_t; file_: PChar): apr_status_t;
  * untrusted data.
  *}
 (*#ifdef DOXYGEN
-AP_DECLARE(void) ap_log_error(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_error(const AnsiChar *file, int line, int module_index,
                               int level, apr_status_t status,
-                              const server_rec *s, const char *fmt, ...);
+                              const server_rec *s, const AnsiChar *fmt, ...);
 #else
 #ifdef AP_HAVE_C99
 /* need additional step to expand APLOG_MARK first */
@@ -345,19 +345,19 @@ AP_DECLARE(void) ap_log_error(const char *file, int line, int module_index,
 #else
 #define ap_log_error ap_log_error_
 #endif
-AP_DECLARE(void) ap_log_error_(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_error_(const AnsiChar *file, int line, int module_index,
                                int level, apr_status_t status,
-                               const server_rec *s, const char *fmt, ...)
+                               const server_rec *s, const AnsiChar *fmt, ...)
                               __attribute__((format(printf,7,8)));
 #endif
 *)
-procedure ap_log_error(const file_: PChar;
+procedure ap_log_error(const file_: PAnsiChar;
                        line,
                        module_index,        //extra parameter from Apache 2.3.x
                        level: Integer;
                        status: apr_status_t;
                        const s: Pserver_rec;
-                       const fmt: PChar;
+                       const fmt: PAnsiChar;
                        fmt_args: array of const); cdecl;
   external LibHTTPD name 'ap_log_error' + LibSuff_;
 
@@ -383,9 +383,9 @@ procedure ap_log_error(const file_: PChar;
  * untrusted data.
  *}
 (*#ifdef DOXYGEN
-AP_DECLARE(void) ap_log_perror(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_perror(const AnsiChar *file, int line, int module_index,
                                int level, apr_status_t status, apr_pool_t *p,
-                               const char *fmt, ...);
+                               const AnsiChar *fmt, ...);
 #else
 #if defined(AP_HAVE_C99) && defined(APLOG_MAX_LOGLEVEL)
 /* need additional step to expand APLOG_MARK first */
@@ -397,15 +397,15 @@ AP_DECLARE(void) ap_log_perror(const char *file, int line, int module_index,
 #else
 #define ap_log_perror ap_log_perror_
 #endif
-AP_DECLARE(void) ap_log_perror_(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_perror_(const AnsiChar *file, int line, int module_index,
                                 int level, apr_status_t status, apr_pool_t *p,
-                                const char *fmt, ...)
+                                const AnsiChar *fmt, ...)
                                __attribute__((format(printf,7,8)));
 #endif
 *)
-procedure ap_log_perror(const file_: PChar; line, module_index, level: Integer;
+procedure ap_log_perror(const file_: PAnsiChar; line, module_index, level: Integer;
                         status: apr_status_t; p: Papr_pool_t;
-                        const fmt: PChar; fmt_args: array of const);
+                        const fmt: PAnsiChar; fmt_args: array of const);
    {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
    external LibHTTPD name 'ap_log_perror' + LibSuff_;
 
@@ -431,9 +431,9 @@ procedure ap_log_perror(const file_: PChar; line, module_index, level: Integer;
  * untrusted data.
  *}
 (*#ifdef DOXYGEN
-AP_DECLARE(void) ap_log_rerror(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_rerror(const AnsiChar *file, int line, int module_index,
                                int level, apr_status_t status,
-                               const request_rec *r, const char *fmt, ...);
+                               const request_rec *r, const AnsiChar *fmt, ...);
 #else
 #ifdef AP_HAVE_C99
 /* need additional step to expand APLOG_MARK first */
@@ -445,15 +445,15 @@ AP_DECLARE(void) ap_log_rerror(const char *file, int line, int module_index,
 #else
 #define ap_log_rerror ap_log_rerror_
 #endif
-AP_DECLARE(void) ap_log_rerror_(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_rerror_(const AnsiChar *file, int line, int module_index,
                                 int level, apr_status_t status,
-                                const request_rec *r, const char *fmt, ...)
+                                const request_rec *r, const AnsiChar *fmt, ...)
                                 __attribute__((format(printf,7,8)));
 #endif
 *)
-procedure ap_log_rerror(const file_: PChar; line, module_index, level: Integer;
+procedure ap_log_rerror(const file_: PAnsiChar; line, module_index, level: Integer;
                         status: apr_status_t; const r: Prequest_rec;
-                        const fmt: PChar; fmt_args: array of const);
+                        const fmt: PAnsiChar; fmt_args: array of const);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name 'ap_log_rerror_' + LibSuff_;
 
@@ -481,9 +481,9 @@ procedure ap_log_rerror(const file_: PChar; line, module_index, level: Integer;
  * untrusted data.
  *}
 (*#ifdef DOXYGEN
-AP_DECLARE(void) ap_log_cerror(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_cerror(const AnsiChar *file, int line, int module_index,
                                int level, apr_status_t status,
-                               const conn_rec *c, const char *fmt, ...);
+                               const conn_rec *c, const AnsiChar *fmt, ...);
 #else
 #ifdef AP_HAVE_C99
 /* need additional step to expand APLOG_MARK first */
@@ -495,15 +495,15 @@ AP_DECLARE(void) ap_log_cerror(const char *file, int line, int module_index,
 #else
 #define ap_log_cerror ap_log_cerror_
 #endif
-AP_DECLARE(void) ap_log_cerror_(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_cerror_(const AnsiChar *file, int line, int module_index,
                                 int level, apr_status_t status,
-                                const conn_rec *c, const char *fmt, ...)
+                                const conn_rec *c, const AnsiChar *fmt, ...)
                                 __attribute__((format(printf,7,8)));
 #endif
 *)
-procedure ap_log_cerror(const file_: PChar; line, module_index, level: Integer;
+procedure ap_log_cerror(const file_: PAnsiChar; line, module_index, level: Integer;
                         status: apr_status_t; const c: Pconn_rec;
-                        const fmt: PChar; fmt_args: array of const);
+                        const fmt: PAnsiChar; fmt_args: array of const);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name 'ap_log_cerror' + LibSuff_;
 
@@ -533,10 +533,10 @@ procedure ap_log_cerror(const file_: PChar; line, module_index, level: Integer;
  * untrusted data.
  *}
 (*#ifdef DOXYGEN
-AP_DECLARE(void) ap_log_cserror(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_cserror(const AnsiChar *file, int line, int module_index,
                                 int level, apr_status_t status,
                                 const conn_rec *c, const server_rec *s,
-                                const char *fmt, ...);
+                                const AnsiChar *fmt, ...);
 #else
 #ifdef AP_HAVE_C99
 /* need additional step to expand APLOG_MARK first */
@@ -549,16 +549,16 @@ AP_DECLARE(void) ap_log_cserror(const char *file, int line, int module_index,
 #else
 #define ap_log_cserror ap_log_cserror_
 #endif
-AP_DECLARE(void) ap_log_cserror_(const char *file, int line, int module_index,
+AP_DECLARE(void) ap_log_cserror_(const AnsiChar *file, int line, int module_index,
                                  int level, apr_status_t status,
                                  const conn_rec *c, const server_rec *s,
-                                 const char *fmt, ...)
+                                 const AnsiChar *fmt, ...)
                              __attribute__((format(printf,8,9)));
 #endif
 *)
-procedure ap_log_cserror(const file_: PChar; line, module_index, level: Integer;
+procedure ap_log_cserror(const file_: PAnsiChar; line, module_index, level: Integer;
                          status: apr_status_t; const c: Pconn_rec;
-                         const s: Pserver_rec; const fmt: PChar; fmt_args: array of const);
+                         const s: Pserver_rec; const fmt: PAnsiChar; fmt_args: array of const);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name 'ap_log_cserror' + LibSuff_;
 
@@ -588,8 +588,8 @@ procedure ap_log_command_line(p: Papr_pool_t; s: Pserver_rec);
  * @param fname The name of the file to log to.  If the filename is not
  * absolute then it is assumed to be relative to ServerRoot.
  *}
-//AP_DECLARE(void) ap_log_pid(apr_pool_t *p, const char *fname);
-procedure ap_log_pid(p: Papr_pool_t; const fname: PChar);
+//AP_DECLARE(void) ap_log_pid(apr_pool_t *p, const AnsiChar *fname);
+procedure ap_log_pid(p: Papr_pool_t; const fname: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_log_pid' + LibSuff8;
 
@@ -599,8 +599,8 @@ procedure ap_log_pid(p: Papr_pool_t; const fname: PChar);
  * @param fname The name of the pid file to remove.  If the filename is not
  * absolute then it is assumed to be relative to ServerRoot.
  *}
-//AP_DECLARE(void) ap_remove_pid(apr_pool_t *p, const char *fname);
-procedure ap_remove_pid(p: Papr_pool_t; const fname: PChar);
+//AP_DECLARE(void) ap_remove_pid(apr_pool_t *p, const AnsiChar *fname);
+procedure ap_remove_pid(p: Papr_pool_t; const fname: PAnsiChar);
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_remove_pid' + LibSuff8;
 
@@ -611,8 +611,8 @@ procedure ap_remove_pid(p: Papr_pool_t; const fname: PChar);
  * absolute then it is assumed to be relative to ServerRoot.
  * @param mypid Pointer to pid_t (valid only if return APR_SUCCESS)
  *}
-//AP_DECLARE(apr_status_t) ap_read_pid(apr_pool_t *p, const char *filename, pid_t *mypid);
-function ap_read_pid(p: Papr_pool_t; const filename: PChar; mypid: Ppid_t): apr_status_t;
+//AP_DECLARE(apr_status_t) ap_read_pid(apr_pool_t *p, const AnsiChar *filename, pid_t *mypid);
+function ap_read_pid(p: Papr_pool_t; const filename: PAnsiChar; mypid: Ppid_t): apr_status_t;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_read_pid' + LibSuff12;
 
@@ -634,7 +634,7 @@ type
       read_fd, write_fd: Papr_file_t;
   {$ifdef AP_HAVE_RELIABLE_PIPED_LOGS}
       //** The name of the program the logging process is running */
-      program_: PChar;
+      program_: PAnsiChar;
       //** The pid of the logging process */
       pid: Papr_proc_t;
       //** How to reinvoke program when it must be replaced */
@@ -651,8 +651,8 @@ type
  * @note The log program is invoked as @p APR_PROGRAM_ENV,
  *      @see ap_open_piped_log_ex to modify this behavior
  *}
-//AP_DECLARE(piped_log *) ap_open_piped_log(apr_pool_t *p, const char *program);
-function ap_open_piped_log(p: Papr_pool_t; const program_: PChar): Ppiped_log;
+//AP_DECLARE(piped_log *) ap_open_piped_log(apr_pool_t *p, const AnsiChar *program);
+function ap_open_piped_log(p: Papr_pool_t; const program_: PAnsiChar): Ppiped_log;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_open_piped_log' + LibSuff8;
 
@@ -664,10 +664,10 @@ function ap_open_piped_log(p: Papr_pool_t; const program_: PChar): Ppiped_log;
  * @return The piped log structure
  *}
 //AP_DECLARE(piped_log *) ap_open_piped_log_ex(apr_pool_t *p,
-//                                             const char *program,
+//                                             const AnsiChar *program,
 //                                             apr_cmdtype_e cmdtype);
 function ap_open_piped_log_ex(p: Papr_pool_t;
-                              const program_: PChar;
+                              const program_: PAnsiChar;
                               cmdtype: apr_cmdtype_e): Ppiped_log;
   {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
   external LibHTTPD name LibNamePrefix + 'ap_open_piped_log_ex' + LibSuff12;
@@ -710,26 +710,26 @@ procedure ap_piped_log_write_fd(pl: Ppiped_log);
  * @return OK or DECLINE
  *}
 //AP_DECLARE_HOOK(int, generate_log_id,
-//                (const conn_rec *c, const request_rec *r, const char **id))
+//                (const conn_rec *c, const request_rec *r, const AnsiChar **id))
 (*macro expanded:
-  int ap_HOOK_generate_log_id_t (const conn_rec *c, const request_rec *r, const char **id);
+  int ap_HOOK_generate_log_id_t (const conn_rec *c, const request_rec *r, const AnsiChar **id);
 
-  void ap_hook_generate_log_id(ap_HOOK_generate_log_id_t *pf, const char * const *aszPre, const char * const *aszSucc, int nOrder);
-  int ap_run_generate_log_id (const conn_rec *c, const request_rec *r, const char **id);
+  void ap_hook_generate_log_id(ap_HOOK_generate_log_id_t *pf, const AnsiChar * const *aszPre, const AnsiChar * const *aszSucc, int nOrder);
+  int ap_run_generate_log_id (const conn_rec *c, const request_rec *r, const AnsiChar **id);
   apr_array_header_t * ap_hook_get_generate_log_id(void);
 
-  typedef struct ap_LINK_generate_log_id_t { ap_HOOK_generate_log_id_t *pFunc; const char *szName; const char * const *aszPredecessors; const char * const *aszSuccessors; int nOrder; } ap_LINK_generate_log_id_t;
+  typedef struct ap_LINK_generate_log_id_t { ap_HOOK_generate_log_id_t *pFunc; const AnsiChar *szName; const AnsiChar * const *aszPredecessors; const AnsiChar * const *aszSuccessors; int nOrder; } ap_LINK_generate_log_id_t;
 *)
 type
   ap_HOOK_generate_log_id_t = function(const c: Pconn_rec;
                                        const r: Prequest_rec;
-                                       const id: PPChar): Longint; cdecl;
+                                       const id: PPAnsiChar): Longint; cdecl;
 
-  procedure ap_hook_generate_log_id(pf: ap_hook_generate_log_id_t; const aszPre: PPChar; const aszSucc: PPChar; nOrder: Longint);
+  procedure ap_hook_generate_log_id(pf: ap_hook_generate_log_id_t; const aszPre: PPAnsiChar; const aszSucc: PPAnsiChar; nOrder: Longint);
     {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
     external LibHTTPD name LibNamePrefix + 'ap_hook_generate_log_id' + LibSuff16;
 
-  function ap_run_generate_log_id(const c: Pconn_rec; const r: Prequest_rec; const id: PPChar): Longint;
+  function ap_run_generate_log_id(const c: Pconn_rec; const r: Prequest_rec; const id: PPAnsiChar): Longint;
     {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
     external LibHTTPD name LibNamePrefix + 'ap_run_generate_log_id' + LibSuff12;
 

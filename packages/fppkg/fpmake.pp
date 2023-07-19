@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, sysutils;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit, sysutils;
 {$endif ALLPACKAGES}
 
 procedure add_fppkg(const ADirectory: string);
@@ -70,7 +70,7 @@ begin
     T:=P.Targets.AddUnit('pkgmkconv.pp');
     T:=P.Targets.AddUnit('pkgdownload.pp');
     T:=P.Targets.AddUnit('pkgfpmake.pp');
-    T.Dependencies.AddInclude('fpmkunitsrc.inc');
+    T.Dependencies.AddInclude('{$ifdef unix}cthreads,{$endif} fpmkunitsrc.inc');
     T:=P.Targets.AddUnit('pkgcommands.pp');
     T:=P.Targets.AddUnit('pkgpackagesstructure.pp');
     T:=P.Targets.AddUnit('pkguninstalledsrcsrepo.pp');
@@ -78,9 +78,9 @@ begin
     T:=P.Targets.AddUnit('pkgwget.pp', TargetsWithWGet);
     T:=P.Targets.AddUnit('pkgfphttp.pp', TargetsWithfpWeb);
 
-    // Do not re-generate fpmkunitsrc.inc by default so it is possible to control
-    // when we want to update the internal fpmkunitsrc
-    if GetCustomFpmakeCommandlineOptionValue('genfpmkunit') <> '' then
+    // Do not re-generate {$ifdef unix}cthreads,{$endif} fpmkunitsrc.inc by default so it is possible to control
+    // when we want to update the internal {$ifdef unix}cthreads,{$endif} fpmkunitsrc
+    if GetCustomFpmakeCommandlineOptionValue('gen{$ifdef unix}cthreads,{$endif} fpmkunit') <> '' then
       begin
       Data2Inc := GetCustomFpmakeCommandlineOptionValue('data2inc');
       if Data2Inc<>'' then
@@ -90,7 +90,7 @@ begin
         data2inc := ExeSearch(AddProgramExtension('data2inc', Defaults.BuildOS));
         end;
       if Data2Inc <> '' then
-        P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');
+        P.Commands.AddCommand(Data2Inc,'-b -s $(SOURCE) $(DEST) {$ifdef unix}cthreads,{$endif} fpmkunitsrc','src/fpmkunitsrc.inc','../fpmkunit/src/fpmkunit.pp');
       end;
     end;
 end;

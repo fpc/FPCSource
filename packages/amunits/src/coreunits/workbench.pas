@@ -15,7 +15,7 @@
  **********************************************************************}
 {
     History:
-    Added overlay functions for Pchar->Strings, functions
+    Added overlay functions for PAnsiChar->Strings, functions
     and procedures.
     14 Jul 2000.
 
@@ -845,29 +845,29 @@ type
     { Object is new or has changed.  }
        UPDATEWB_ObjectAdded = 1;
 
-    WORKBENCHNAME : PChar  = 'workbench.library';
+    WORKBENCHNAME : PAnsiChar  = 'workbench.library';
 
 VAR
     WorkbenchBase : pLibrary = nil;
 
-FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; lock : BPTR location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
-FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
+FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : PAnsiChar location 'a0'; msgport : pMsgPort location 'a1'; lock : BPTR location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
+FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : PAnsiChar location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
 FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 048;
 FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : longbool; syscall WorkbenchBase 066;
 FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : longbool; syscall WorkbenchBase 078;
 FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : longbool; syscall WorkbenchBase 054;
-PROCEDURE WBInfo(lock : BPTR location 'a0'; name : pCHAR location 'a1'; screen : pScreen location 'a2'); syscall WorkbenchBase 090;
+PROCEDURE WBInfo(lock : BPTR location 'a0'; name : PAnsiChar location 'a1'; screen : pScreen location 'a2'); syscall WorkbenchBase 090;
 
 FUNCTION AddAppWindowDropZoneA(aw : pAppWindow location 'a0'; id : longword location 'd0'; userdata : longword location 'd1'; const tags : pTagItem location 'a1') : pAppWindowDropZone; syscall WorkbenchBase 114;
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : longbool; syscall WorkbenchBase 126;
-FUNCTION CloseWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 102;
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 132;
-FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 096;
+FUNCTION ChangeWorkbenchSelectionA(name : PAnsiChar location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : longbool; syscall WorkbenchBase 126;
+FUNCTION CloseWorkbenchObjectA(name : PAnsiChar location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 102;
+FUNCTION MakeWorkbenchObjectVisibleA(name : PAnsiChar location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 132;
+FUNCTION OpenWorkbenchObjectA(name : PAnsiChar location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 096;
 FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : longbool; syscall WorkbenchBase 120;
-FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
+FUNCTION WorkbenchControlA(name : PAnsiChar location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
 
-function AddAppIcon(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
-function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
+function AddAppIcon(id : ULONG; userdata : ULONG; text_ : PAnsiChar; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : PAnsiChar; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
 function AddAppWindow(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppWindow;
 
 { overlays }
@@ -883,12 +883,12 @@ FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : B
 
 IMPLEMENTATION
 
-function AddAppIcon(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
+function AddAppIcon(id : ULONG; userdata : ULONG; text_ : PAnsiChar; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
 begin
   AddAppIcon := AddAppIconA(id, userdata, text_, msgport, lock, diskobj, @taglist);
 end;
 
-function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : PAnsiChar; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
 begin
     AddAppMenuItem := AddAppMenuItemA(id,userdata,text_,msgport,@argv);
 end;
@@ -900,47 +900,47 @@ end;
 
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : BPTR; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 begin
-       AddAppIconA := AddAppIconA(id,userdata,PChar(text_),msgport,lock,diskobj,taglist);
+       AddAppIconA := AddAppIconA(id,userdata,PAnsiChar(text_),msgport,lock,diskobj,taglist);
 end;
 
 FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
 begin
-       AddAppMenuItemA := AddAppMenuItemA(id,userdata,PChar(text_),msgport,taglist);
+       AddAppMenuItemA := AddAppMenuItemA(id,userdata,PAnsiChar(text_),msgport,taglist);
 end;
 
 PROCEDURE WBInfo(lock : BPTR; const name : RawByteString; screen : pScreen);
 begin
-       WBInfo(lock,PChar(name),screen);
+       WBInfo(lock,PAnsiChar(name),screen);
 end;
 
 FUNCTION ChangeWorkbenchSelectionA(const name : RawByteString; hook : pHook;const tags : pTagItem) : BOOLEAN;
 begin
-       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(PChar(name),hook,tags);
+       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(PAnsiChar(name),hook,tags);
 end;
 
 FUNCTION CloseWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       CloseWorkbenchObjectA := CloseWorkbenchObjectA(PChar(name),tags);
+       CloseWorkbenchObjectA := CloseWorkbenchObjectA(PAnsiChar(name),tags);
 end;
 
 FUNCTION MakeWorkbenchObjectVisibleA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(PChar(name),tags);
+       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(PAnsiChar(name),tags);
 end;
 
 FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       OpenWorkbenchObjectA := OpenWorkbenchObjectA(PChar(name),tags);
+       OpenWorkbenchObjectA := OpenWorkbenchObjectA(PAnsiChar(name),tags);
 end;
 
 FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       WorkbenchControlA := WorkbenchControlA(PChar(name),tags);
+       WorkbenchControlA := WorkbenchControlA(PAnsiChar(name),tags);
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : string[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization

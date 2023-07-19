@@ -16,7 +16,7 @@
 Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 Var
-  P : PPChar;
+  P : PPAnsiChar;
   S : String;
   I : Integer;
 

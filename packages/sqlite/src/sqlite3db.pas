@@ -14,9 +14,9 @@ uses  Classes,strings,sqlite3;
 {*************************************************************}
 {*************************************************************}
 type
-   TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: ppchar; ColumnNames: ppchar): integer of object; cdecl;
+   TSQLiteExecCallback = function(Sender: pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): integer of object; cdecl;
    TSQLiteBusyCallback = function(Sender: TObject; BusyCount: integer): longint of object; cdecl;
-   TOnData = Procedure(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String)  of object;
+   TOnData = Procedure(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: AnsiString)  of object;
    TOnBusy = Procedure(Sender: TObject; BusyCount: integer; var Cancel: Boolean) of object;
    TOnQueryComplete = Procedure(Sender: TObject) of object;
 
@@ -31,12 +31,12 @@ type
      end;
    var
    fSQLite:Psqlite3;
-   fMsg: String;
+   fMsg: AnsiString;
    fIsOpen: Boolean;
    fBusy: Boolean;
    fError: longint;
-   fVersion: String;
-   fEncoding: String;
+   fVersion: AnsiString;
+   fEncoding: AnsiString;
    fTable: TStrings;
    fLstName: TStringList;
    fLstVal: TStringList;
@@ -53,18 +53,18 @@ type
 {*************************************************************}
 {*************************************************************}   
    public
-   constructor Create(const DBFileName: String);
+   constructor Create(const DBFileName: AnsiString);
    destructor Destroy; override;
-   function Query(const Sql: String; Table: TStrings ): boolean;
-   function ErrorMessage(ErrNo: Integer): string;
-   function IsComplete(Sql: String): boolean;
+   function Query(const Sql: AnsiString; Table: TStrings ): boolean;
+   function ErrorMessage(ErrNo: Integer): AnsiString;
+   function IsComplete(Sql: AnsiString): boolean;
    function LastInsertRow: integer;
    function Cancel: boolean;
    function DatabaseDetails(Table: TStrings): boolean;
-   property LastErrorMessage: string read fMsg;
+   property LastErrorMessage: AnsiString read fMsg;
    property LastError: longint read fError;
-   property Version: String read fVersion;
-   property Encoding: String read fEncoding;
+   property Version: AnsiString read fVersion;
+   property Encoding: AnsiString read fEncoding;
    property OnData: TOnData read fOnData write fOnData;
    property OnBusy: TOnBusy read fOnBusy write fOnBusy;
    property OnQueryComplete: TOnQueryComplete read fOnQueryComplete write fOnQueryComplete;
@@ -73,37 +73,37 @@ type
    property List_FieldName: TStringList read fList_FieldName;
    property List_Field: TList read fList_Field;
    property Nb_Champ: integer read fNb_Champ write fNb_Champ;
-   procedure SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String);
+   procedure SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: AnsiString);
  end;
 
-function Pas2SQLStr(const PasString: string): string;
-function SQL2PasStr(const SQLString: string): string;
-function QuoteStr(const s: string; QuoteChar: Char ): string;
-function UnQuoteStr(const s: string; QuoteChar: Char ): string;
-procedure ValueList(const ColumnNames, ColumnValues: String; NameValuePairs: TStrings);
+function Pas2SQLStr(const PasString: AnsiString): AnsiString;
+function SQL2PasStr(const SQLString: AnsiString): AnsiString;
+function QuoteStr(const s: AnsiString; QuoteChar: AnsiChar ): AnsiString;
+function UnQuoteStr(const s: AnsiString; QuoteChar: AnsiChar ): AnsiString;
+procedure ValueList(const ColumnNames, ColumnValues: AnsiString; NameValuePairs: TStrings);
 {*************************************************************}
 {*************************************************************}
 implementation
 Const
-   DblQuote: Char      = '"';
-   SngQuote: Char      = #39;
-   DblSngQuote: String = #39#39;
-   Crlf: String	       = #13#10;
-   Tab: Char	       = #9;
+   DblQuote: AnsiChar      = '"';
+   SngQuote: AnsiChar      = #39;
+   DblSngQuote: AnsiString = #39#39;
+   Crlf: AnsiString	       = #13#10;
+   Tab: AnsiChar	       = #9;
 var
-   MsgNoError : String;
+   MsgNoError : AnsiString;
 {*************************************************************}
 {*************************************************************}
-function QuoteStr(const s: string; QuoteChar: Char ): string;
+function QuoteStr(const s: AnsiString; QuoteChar: AnsiChar ): AnsiString;
 {*************************************************************
-SQlite3 enclosing string with quotes
+SQlite3 enclosing AnsiString with quotes
 G. Marcou
 *************************************************************}
 begin
    Result := Concat(QuoteChar, s, QuoteChar);
 end;
 {*************************************************************}
-function UnQuoteStr(const s: string; QuoteChar: Char ): string;
+function UnQuoteStr(const s: AnsiString; QuoteChar: AnsiChar ): AnsiString;
 {*************************************************************
 SQlite3 Remove enclosing quotes from string
 G. Marcou
@@ -119,7 +119,7 @@ begin
    end;
 end;
 {*************************************************************}
-function Pas2SQLStr(const PasString: string): string;
+function Pas2SQLStr(const PasString: AnsiString): AnsiString;
 {*************************************************************
 SQlite3 SQL string are use double quotes, Pascal string use
 single quote.
@@ -139,7 +139,7 @@ begin
    Result := QuoteStr(Result,SngQuote);
 end;
 {*************************************************************}
-function SQL2PasStr(const SQLString: string): string;
+function SQL2PasStr(const SQLString: AnsiString): AnsiString;
 {*************************************************************
 SQlite3 SQL string are use double quotes, Pascal string use
 single quote.
@@ -158,7 +158,7 @@ begin
    Result := UnQuoteStr(Result,SngQuote);
 end;
 {*************************************************************}
-procedure ValueList(const ColumnNames, ColumnValues : String;
+procedure ValueList(const ColumnNames, ColumnValues : AnsiString;
 NameValuePairs					    : TStrings);
 {*************************************************************
 SQlite3 build (name=value) pair list
@@ -184,9 +184,9 @@ begin
    end;
 end;
 {*************************************************************}
-{function SystemErrorMsg(ErrNo: Integer ): String;
+{function SystemErrorMsg(ErrNo: Integer ): AnsiString;
 var
-  buf: PChar;
+  buf: PAnsiChar;
   size: Integer;
   MsgLen: Integer;
 begin}
@@ -225,16 +225,16 @@ end;
 {*************************************************************}
 function ExecCallback(Sender : Pointer;
 Columns			     : Integer;
-ColumnValues		     : PPChar;
-ColumnNames		     : PPchar): integer; cdecl;
+ColumnValues		     : PPAnsiChar;
+ColumnNames		     : PPAnsiChar): integer; cdecl;
 {*************************************************************
 SQlite3 Build table and data from callback
 G. Marcou
 *************************************************************}
 var
-   PVal, PName : ^PChar;
+   PVal, PName : ^PAnsiChar;
    n	       : integer;
-   sVal, sName : String;
+   sVal, sName : AnsiString;
 begin
    Result := 0;
    with TObject(Sender) as TSQLite do
@@ -271,16 +271,16 @@ end;
 {*************************************************************}
 procedure TSQLite.SQLOnData(Sender : TObject;
 Columns				   : Integer;
-ColumnNames, ColumnValues	   : String);
+ColumnNames, ColumnValues	   : AnsiString);
 {*************************************************************
 SQlite3 Fill up field list names and field list values
 G. Marcou
 *************************************************************}
 Var
-   InterS,val : String;
+   InterS,val : AnsiString;
    Field      : TStringList;
    {************************************************}
-   function Pos1(a: String ; s : char) : integer;
+   function Pos1(a: AnsiString ; s : AnsiChar) : integer;
    var i,j : Integer;
    begin
       j:=-1;
@@ -331,7 +331,7 @@ begin
 end;
 
 {*************************************************************}
-constructor TSQLite.Create(const DBFileName: String);
+constructor TSQLite.Create(const DBFileName: AnsiString);
 {*************************************************************
 SQlite3 constructor
 G. Marcou
@@ -383,14 +383,14 @@ begin
    inherited Destroy;
 end;
 {*************************************************************}
-function TSQLite.Query(const Sql: String; Table: TStrings ): boolean;
+function TSQLite.Query(const Sql: AnsiString; Table: TStrings ): boolean;
 {*************************************************************
 SQLite3 query the database
 G. Marcou
 *************************************************************}
 //var
-//  fPMsg: PChar;
-//var Psql : pchar;
+//  fPMsg: PAnsiChar;
+//var Psql : PAnsiChar;
 begin
    fError := SQLITE_ERROR;
    if fIsOpen then
@@ -459,7 +459,7 @@ begin
     Result := -1;
 end;
 {*************************************************************}
-function TSQLite.ErrorMessage(ErrNo: Integer): string;
+function TSQLite.ErrorMessage(ErrNo: Integer): AnsiString;
 {*************************************************************
 SQLite3 Return comprehensive error message
 G. Marcou
@@ -471,12 +471,12 @@ begin
     Result := sqlite3_errmsg(fSQLite);
 end;
 {*************************************************************}
-function TSQLite.IsComplete(Sql: String): boolean;
+function TSQLite.IsComplete(Sql: AnsiString): boolean;
 {*************************************************************
 SQLite3 Return true when complete
 G. Marcou
 *************************************************************}
-var Psql : pchar;
+var Psql : PAnsiChar;
 begin
    Psql:=StrAlloc (length(Sql)+1);
    strpcopy(Psql,Sql);

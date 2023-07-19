@@ -505,7 +505,7 @@ function TMBCSEncoding.GetCharCount(Bytes: PByte; ByteCount: Integer): Integer;
 var
   U: UnicodeString;
 begin
-  widestringmanager.Ansi2UnicodeMoveProc(PChar(Bytes), CodePage, U, ByteCount);
+  widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(Bytes), CodePage, U, ByteCount);
   Result := Length(U);
 end;
 
@@ -514,7 +514,7 @@ function TMBCSEncoding.GetChars(Bytes: PByte; ByteCount: Integer; Chars: PUnicod
 var
   U: UnicodeString;
 begin
-  widestringmanager.Ansi2UnicodeMoveProc(PChar(Bytes), CodePage, U, ByteCount);
+  widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(Bytes), CodePage, U, ByteCount);
   Result := Length(U);
   if CharCount < Result then
     Result := CharCount;
@@ -560,7 +560,7 @@ begin
   Result := TMBCSEncoding.Create(FCodePage, FMBToWCharFlags, FWCharToMBFlags);
 end;
 
-function TMBCSEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer): TBytes;
+function TMBCSEncoding.GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer): TBytes;
 var
   S: RawByteString;
 begin
@@ -723,7 +723,7 @@ begin
   Result := TUnicodeEncoding.Create;
 end;
 
-function TUnicodeEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer
+function TUnicodeEncoding.GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer
   ): TBytes;
 var
   U: UnicodeString;
@@ -811,7 +811,7 @@ begin
   Result := TBigEndianUnicodeEncoding.Create;
 end;
 
-function TBigEndianUnicodeEncoding.GetAnsiBytes(Chars: PChar; CharCount: Integer
+function TBigEndianUnicodeEncoding.GetAnsiBytes(Chars: PAnsiChar; CharCount: Integer
   ): TBytes;
 begin
   Result := TEncoding.Unicode.GetAnsiBytes(Chars, CharCount);

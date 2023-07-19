@@ -317,7 +317,7 @@ begin
       // Ignore the first argument, it is already copied
       if argc <> 0 then
         begin
-          // Copy the argument's char
+          // Copy the argument's AnsiChar
           pw^:=c;
           Inc(pw);
         end;
@@ -376,7 +376,7 @@ begin
   Result:=AnsiString(ParamStrU(l));
 end;
 
-Function ParamStr(l:Longint): string;
+Function ParamStr(l:Longint): shortstring;
 begin
   if (l >= 0) and (l < argc) then
     Result:=argv[l]
@@ -486,7 +486,7 @@ function MessageBox(w1:THandle;l1,l2:pointer;w2:longint):longint;
 const
   ErrorBufferLength = 1024;
 var
-  ErrorBuf : array[0..ErrorBufferLength] of char;
+  ErrorBuf : array[0..ErrorBufferLength] of AnsiChar;
   ErrorLen : SizeInt;
 
 procedure ErrorWrite(Var F: TextRec);
@@ -510,7 +510,7 @@ Begin
       if ErrorLen=ErrorBufferLength then
         begin
           if not NoErrMsg then
-            MessageBox(0,@ErrorBuf,pchar('Error'),0);
+            MessageBox(0,@ErrorBuf,PAnsiChar('Error'),0);
           ErrorLen:=0;
         end;
       Dec(F.BufPos,i);
@@ -522,7 +522,7 @@ procedure ErrorClose(Var F: TextRec);
 begin
   if ErrorLen>0 then
    begin
-     MessageBox(0,@ErrorBuf,pchar('Error'),0);
+     MessageBox(0,@ErrorBuf,PAnsiChar('Error'),0);
      ErrorLen:=0;
    end;
   ErrorLen:=0;
@@ -596,9 +596,9 @@ const
   MB_PRECOMPOSED = 1;
   WC_NO_BEST_FIT_CHARS = $400;
 
-function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
+function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PAnsiChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
     stdcall; external 'kernel32' name 'MultiByteToWideChar';
-function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PAnsiChar;cchMultiByte:longint; lpDefaultChar:PAnsiChar; lpUsedDefaultChar:pointer):longint;
     stdcall; external 'kernel32' name 'WideCharToMultiByte';
 function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
     stdcall; external 'user32' name 'CharUpperBuffW';
@@ -621,7 +621,7 @@ procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : 
       end;
   end;
 
-procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
+procedure Win32Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
   var
     destlen: SizeInt;
     dwflags: DWORD;
@@ -675,7 +675,7 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
                               Widestring
  ******************************************************************************}
 
-procedure Win32Ansi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
+procedure Win32Ansi2WideMove(source:PAnsiChar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
     dwFlags: DWORD;

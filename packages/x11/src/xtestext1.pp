@@ -95,7 +95,7 @@ type
     window: TWindow;
   end;
 
-function XTestFakeInput({register} dpy: PDisplay; action_list_addr: Pchar; action_list_size, ack_flag: cint): cint; cdecl; external libXext;
+function XTestFakeInput({register} dpy: PDisplay; action_list_addr: PAnsiChar; action_list_size, ack_flag: cint): cint; cdecl; external libXext;
 function XTestGetInput({register} dpy: PDisplay; action_handling: cint): cint; cdecl; external libXext;
 function XTestQueryInputSize({register} dpy: PDisplay; size_return: Pculong): cint; cdecl; external libXext;
 function XTestPressKey(display: PDisplay; device_id: cint; delay: culong; keycode, key_action: cuint): cint; cdecl; external libXext;

@@ -1539,7 +1539,7 @@ const
 	kRTPMPMaxPartialSampleSizeInfo = FourCharCode('mpss'); { UInt32* in bytes }
 	kRTPMPPreferredBufferDelayInfo = FourCharCode('prbd'); { UInt32* in milliseconds }
 	kRTPMPPayloadNameInfo = FourCharCode('name'); { StringPtr }
-	kRTPInfo_FormatString = FourCharCode('fmtp'); { char **, caller allocates ptr, callee disposes }
+	kRTPInfo_FormatString = FourCharCode('fmtp'); { AnsiChar **, caller allocates ptr, callee disposes }
 
 {-----------------------------------------
     RTP Media Packetizer Characteristics

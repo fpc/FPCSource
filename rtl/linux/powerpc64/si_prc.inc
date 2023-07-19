@@ -634,7 +634,7 @@ _restvr_31: addi r12,r0,-16
 
 
 
-procedure save_argc_argv_envp_stkptr(argc: longint; argv: ppchar; stkptr: pointer);
+procedure save_argc_argv_envp_stkptr(argc: longint; argv: PPAnsiChar; stkptr: pointer);
   begin
     operatingsystem_parameter_argc:=argc;
     operatingsystem_parameter_argv:=argv;
@@ -694,7 +694,7 @@ procedure _start; cdecl; public; assembler; nostackframe;
 procedure _dynamic_start(r3,r4,r5,r6: pointer; r7: tdlfiniproc); cdecl; public;
   begin
     dlexitproc:=r7;
-    save_argc_argv_envp_stkptr(ptrint(r3),ppchar(r4),sptr);
+    save_argc_argv_envp_stkptr(ptrint(r3),PPAnsiChar(r4),sptr);
     PASCALMAIN;
   end;
 

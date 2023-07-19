@@ -374,7 +374,7 @@ begin
 end;
 
 
-procedure fillchar(var x;count : {$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value : char);
+procedure fillchar(var x;count : {$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value : AnsiChar);
 begin
   fillchar(x,count,byte(value));
 end;
@@ -386,9 +386,16 @@ begin
 end;
 
 
-function IndexChar(Const buf;len:SizeInt;b:char):SizeInt;
+function IndexChar(Const buf;len:SizeInt;b:AnsiChar):SizeInt;
 begin
   IndexChar:=IndexByte(Buf,Len,byte(B));
+end;
+
+
+function IndexChar(const buf; len: SizeInt; b: widechar): SizeInt;
+
+begin
+  IndexChar:=IndexWord(buf,len,Word(b));
 end;
 
 
@@ -661,7 +668,7 @@ type
     procedure Setup(const seed: uint64);
     function Next: uint32; inline; // inlined as it is actually internal and called only through xsr128_32_u32rand
   private
-    state: array[0 .. 3] of uint32;
+    state: array[0 .. 3] of longword;
   end;
 
   procedure Xoshiro128ss_32.Setup(const seed: uint64);
@@ -1562,21 +1569,21 @@ End;
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppansichar; // const ?
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(217);
 end;
 {$else EXCLUDE_COMPLEX_PROCS}
-// Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
+// Extra allocate reserveentries pansichar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
 
-var p   : ppchar;
+var p   : ppansichar;
     i   : ObjpasInt;
 begin
   if High(s)<Low(s) Then Exit(NIL);
-  Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
+  Getmem(p,sizeof(pansichar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
                                               // for cmd
   if p=nil then
     begin
@@ -1586,31 +1593,31 @@ begin
       exit(NIL);
     end;
   for i:=low(s) to high(s) do
-     p[i+Reserveentries]:=pchar(s[i]);
+     p[i+Reserveentries]:=pansichar(s[i]);
   p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
 
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppansichar;
 {
-  Create a PPChar to structure of pchars which are the arguments specified
+  Create a PPAnsiChar to structure of pchars which are the arguments specified
   in the string S. Especially useful for creating an ArgV for Exec-calls
 }
 
 begin
-  StringToPPChar:=StringToPPChar(PChar(S),ReserveEntries);
+  StringToPPChar:=StringToPPChar(PAnsiChar(S),ReserveEntries);
 end;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
-Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+Function StringToPPChar(S: PAnsiChar;ReserveEntries:integer):ppansichar;
 
 var
   i,nr  : ObjpasInt;
-  Buf : ^char;
-  p   : ppchar;
+  Buf : ^ansichar;
+  p   : ppansichar;
 
 begin
   buf:=s;
@@ -1634,7 +1641,7 @@ begin
            inc(buf);
        end;
    end;
-  getmem(p,(ReserveEntries+nr)*sizeof(pchar));
+  getmem(p,(ReserveEntries+nr)*sizeof(pansichar));
   StringToPPChar:=p;
   if p=nil then
    begin
@@ -1709,7 +1716,7 @@ end;
 Procedure SysAssert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);
 begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-  If msg='' then
+  If Length(msg)=0 then
     write(stderr,'Assertion failed')
   else
     write(stderr,msg);
@@ -1777,11 +1784,11 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
-procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
+procedure DoDirSeparators(var p: pansichar; inplace: boolean = true);
 var
   i : ObjpasInt;
   len : sizeint;
-  newp : pchar;
+  newp : pansichar;
 begin
   len:=length(p);
   newp:=nil;
@@ -1836,7 +1843,7 @@ end;
 procedure DoDirSeparators(var ps:RawByteString);
 var
   i : ObjpasInt;
-  p : pchar;
+  p : pansichar;
   unique : boolean;
 begin
   unique:=false;
@@ -1846,7 +1853,7 @@ begin
         if not unique then
           begin
             uniquestring(ps);
-            p:=pchar(ps);
+            p:=pansichar(ps);
             unique:=true;
           end;
         p[i-1]:=DirectorySeparator;
@@ -2007,7 +2014,7 @@ end;
 
 Procedure MkDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_mkdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2019,7 +2026,7 @@ end;
 
 Procedure RmDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_rmdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2031,7 +2038,7 @@ End;
 
 Procedure ChDir(Const s: RawByteString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
   Do_chdir(ToSingleByteFileSystemEncodedFileName(S));
@@ -2068,7 +2075,7 @@ end;
 
 Procedure MkDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_mkdir(GetDirStrFromShortstring(S));
 End;
@@ -2076,7 +2083,7 @@ End;
 
 Procedure RmDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_rmdir(GetDirStrFromShortstring(S));
 End;
@@ -2084,7 +2091,7 @@ End;
 
 Procedure ChDir(Const s: shortstring);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If (Length(S)=0) or (InOutRes <> 0) then
    exit;
   Do_chdir(GetDirStrFromShortstring(S));
 End;
@@ -2137,7 +2144,7 @@ end;
 
 Procedure MkDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_mkdir(S);
 End;
@@ -2145,7 +2152,7 @@ End;
 
 Procedure RmDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_rmdir(S);
 End;
@@ -2153,7 +2160,7 @@ End;
 
 Procedure ChDir(Const s: UnicodeString);[IOCheck];
 Begin
-  if (s='') or (InOutRes <> 0) then
+  if (Length(s)=0) or (InOutRes <> 0) then
    exit;
   Do_chdir(S);
 End;
@@ -2306,6 +2313,8 @@ end;
 
 { Pointer overloads }
 
+{$ifndef FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
+
 function AtomicIncrement (var Target: pointer) : pointer; {$ifdef SYSTEMINLINE}inline{$endif};
 
 begin
@@ -2364,6 +2373,8 @@ begin
 {$ENDIF}
 {$ENDIF}
 end;
+
+{$endif FPC_SYSTEM_DISABLE_INTERLOCK_POINTER_OVERLOAD}
 
 function AtomicIncrement (var Target: Cardinal) : Cardinal; {$ifdef SYSTEMINLINE}inline{$endif};
 

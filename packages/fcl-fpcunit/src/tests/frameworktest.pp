@@ -17,6 +17,9 @@
 program frameworktest;
 
 uses
+{$IFDEF UNIX}
+  cwstring,
+{$endif}
   consoletestrunner, classes, SysUtils, fpcunit, testreport, asserttest,
   suitetest;
 

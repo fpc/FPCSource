@@ -21,7 +21,7 @@ uses
   exec, workbench, utility, amigados, agraphics, intuition;
 
 const
-  ICONNAME: PChar = 'icon.library';
+  ICONNAME: PAnsiChar = 'icon.library';
 
   ICONA_Dummy                   = TAG_USER + $9000; // Start of icon.library tags
   ICONA_ErrorCode               = ICONA_Dummy + 1;  // (PLongInt) Errorcode
@@ -58,13 +58,13 @@ const
 
 // Tags for use with GetIconTagList()
   ICONGETA_GetDefaultType       = ICONA_Dummy + 45; // Default icon type to retrieve (LongInt)
-  ICONGETA_GetDefaultName       = ICONA_Dummy + 46; // Retrieve default icon for the given name (PChar)
+  ICONGETA_GetDefaultName       = ICONA_Dummy + 46; // Retrieve default icon for the given name (PAnsiChar)
   ICONGETA_FailIfUnavailable    = ICONA_Dummy + 47; // Return a default icon if the requested icon file cannot be found (BOOL).
   ICONGETA_GetPaletteMappedIcon = ICONA_Dummy + 48; // If possible, retrieve a palette mapped icon (BOOL).
   ICONGETA_IsDefaultIcon        = ICONA_Dummy + 49; // Set if the icon returned is a default icon (PLongBool).
   ICONGETA_RemapIcon            = ICONA_Dummy + 50; // Remap the icon to the default screen, if possible (BOOL).
   ICONGETA_GenerateImageMasks   = ICONA_Dummy + 51; // Generate icon image masks (BOOL).
-  ICONGETA_Label                = ICONA_Dummy + 52; // Label text to be assigned to the icon (PChar).
+  ICONGETA_Label                = ICONA_Dummy + 52; // Label text to be assigned to the icon (PAnsiChar).
   ICONGETA_Screen               = ICONA_Dummy + 69; // Screen to remap the icon to (PScreen).
   ICONGETA_UseFriendBitMap      = ICONA_Dummy + 90; // Allocate a bitmap for the icon images instead of the traditional planar icon images (LongBool). (V50)
   ICONGETA_FileFormat           = ICONA_Dummy + 112; // Returns the format of the file the icon is loaded from. If the file is in native Amiga format, the returned name will be "Amiga" (^STRPTR). (V51)
@@ -129,7 +129,7 @@ const
 
   ICONPUTA_NotifyWorkbench       = ICONA_Dummy + 53; // Notify Workbench of the icon being written (BOOL)
   ICONPUTA_PutDefaultType        = ICONA_Dummy + 54; // Store icon as the default for this type (LongInt)
-  ICONPUTA_PutDefaultName        = ICONA_Dummy + 55; // Store icon as a default for the given name (PChar)
+  ICONPUTA_PutDefaultName        = ICONA_Dummy + 55; // Store icon as a default for the given name (PAnsiChar)
   ICONPUTA_DropPlanarIconImage   = ICONA_Dummy + 56; // When storing a palette mapped icon, don't save the the original planar icon image with the file. Replace it with a tiny replacement image.
   ICONPUTA_DropChunkyIconImage   = ICONA_Dummy + 57; // Don't write the chunky icon image data to disk.
   ICONPUTA_DropNewIconToolTypes  = ICONA_Dummy + 58; // Don't write the NewIcons tool types to disk.
@@ -234,9 +234,9 @@ function AddFreeList(FreeList: PFreeList; const Mem: APTR; Size: LongWord): Long
 function GetDiskObject(const Name: STRPTR): PDiskObject; syscall IIcon 108;
 function PutDiskObject(const Name: STRPTR; const Icon: PDiskObject): LongBool; syscall IIcon 112;
 procedure FreeDiskObject(DiskObj: PDiskObject); syscall IIcon 116;
-function FindToolType(const ToolTypeArray: PPChar; const TypeName: STRPTR): STRPTR; syscall IIcon 120;
+function FindToolType(const ToolTypeArray: PPAnsiChar; const TypeName: STRPTR): STRPTR; syscall IIcon 120;
 function MatchToolValue(const TypeString: STRPTR; const Value: STRPTR): BOOL; syscall IIcon 124;
-function BumpRevision(NewName: PChar; const OldName: PChar): PChar; syscall IIcon 128;
+function BumpRevision(NewName: PAnsiChar; const OldName: PAnsiChar): PAnsiChar; syscall IIcon 128;
 function FreeAlloc(FreeList: PFreeList; Len, Type_: LongWord): APTR; syscall IIcon 132;
 function GetDefDiskObject(Typ: LongInt): PDiskObject; syscall IIcon 136;
 function PutDefDiskObject(const Icon: PDiskObject): LongBool; syscall IIcon 140;
@@ -276,11 +276,11 @@ implementation
 function GetToolTypes(Filename: AnsiString): TToolTypeArray;
 var
   DObj: PDiskObject;
-  Tooltype: PPChar;
+  Tooltype: PPAnsiChar;
   Idx: Integer;
 begin
   SetLength(GetToolTypes, 0);
-  DObj := GetDiskObject(PChar(FileName));
+  DObj := GetDiskObject(PAnsiChar(FileName));
   if not Assigned(Dobj) then
     Exit;
   Tooltype := DObj^.do_Tooltypes;

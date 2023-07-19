@@ -1197,8 +1197,6 @@ begin
 end;
 
 
-
-
 procedure TTestRTTI.TestInterface;
 var
   context: TRttiContext;

@@ -96,7 +96,7 @@ type
   protected
     procedure WriteIFDs; virtual;
     procedure InternalWrite(Stream: TStream; Img: TFPCustomImage); override;
-    procedure AddEntryString(Tag: word; const s: string);
+    procedure AddEntryString(Tag: word; const s: AnsiString);
     procedure AddEntryShort(Tag: word; Value: Word);
     procedure AddEntryLong(Tag: word; Value: DWord);
     procedure AddEntryShortOrLong(Tag: word; Value: DWord);
@@ -252,7 +252,7 @@ end;
 
 procedure TFPWriterTiff.WriteHeader;
 var
-  EndianMark: String;
+  EndianMark: AnsiString;
 begin
   EndianMark:={$IFDEF FPC_BIG_ENDIAN}'MM'{$ELSE}'II'{$ENDIF};
   WriteBuf(EndianMark[1],2);
@@ -751,7 +751,7 @@ begin
   SaveToStream(Stream);
 end;
 
-procedure TFPWriterTiff.AddEntryString(Tag: word; const s: string);
+procedure TFPWriterTiff.AddEntryString(Tag: word; const s: AnsiString);
 begin
   if s<>'' then
     AddEntry(Tag,2,length(s)+1,@s[1],length(s)+1)

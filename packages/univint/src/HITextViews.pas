@@ -862,7 +862,7 @@ const
 
 const
 	kControlEditTextSingleLineTag = FourCharCode('sglc'); { data is a Boolean; indicates whether the control should always be single-line}
-	kControlEditTextInsertTextBufferTag = FourCharCode('intx'); { data is an array of char; get or set the control's text as WorldScript-encoded text}
+	kControlEditTextInsertTextBufferTag = FourCharCode('intx'); { data is an array of AnsiChar; get or set the control's text as WorldScript-encoded text}
 	kControlEditTextInsertCFStringRefTag = FourCharCode('incf'); { data is a CFStringRef; get or set the control's text as a CFStringRef. Caller should release CFString if getting.}
 	kControlEditUnicodeTextPostUpdateProcTag = FourCharCode('upup'); { data is a UnicodePostUpdateUPP; get or set the post-update proc}
 	kControlEditTextSpellCheckingTag = FourCharCode('spck'); { data is a Boolean; indicates whether the control wants to have spell checking support. Available in Leopard and later.}

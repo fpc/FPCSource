@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2002 by Florian Klaempfl
@@ -44,19 +45,19 @@ begin
   Result:=Pos(Substr,S); // No MBCS yet.
 end;
 
-Function AnsiStrPos(Str, SubStr: PChar): PChar;
+Function AnsiStrPos(Str, SubStr: PAnsiChar): PAnsiChar;
 
 begin
   Result:=StrPos(Str,Substr);
 end;
 
-Function AnsiStrRScan(Str: PChar; Chr: Char): PChar;
+Function AnsiStrRScan(Str: PAnsiChar; Chr: AnsiChar): PAnsiChar;
 
 begin
   Result:=StrRScan(Str,Chr);
 end;
 
-Function AnsiStrScan(Str: PChar; Chr: Char): PChar;
+Function AnsiStrScan(Str: PAnsiChar; Chr: AnsiChar): PAnsiChar;
 
 begin
   Result:=StrScan(Str,Chr);

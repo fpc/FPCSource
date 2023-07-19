@@ -17,6 +17,7 @@ unit VESA;
 {$ifdef DEBUG}
 {$define TESTGRAPHIC}
 {$endif DEBUG}
+{$H-}
 
 interface
 
@@ -248,7 +249,7 @@ end;
 function VESAGetOemString: string;
 var OK: boolean;
     VI: TVESAInfoBlock;
-    S: array[0..256] of char;
+    S: array[0..256] of AnsiChar;
 begin
   if disableVESA then
     begin
@@ -574,7 +575,7 @@ var
   w, prevcolor,
   prevbkcolor, StoreCursorType : word;
   Color,BkCol,Col : byte;
-  Ch : char;
+  Ch : AnsiChar;
 {$endif TESTGRAPHIC}
 begin
 {$ifdef TESTGRAPHIC}

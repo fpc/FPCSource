@@ -252,7 +252,7 @@ operator :=(const source : wordbool) dest : variant;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : longbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : char) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : AnsiChar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
@@ -311,7 +311,7 @@ operator :=(const source : variant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : variant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : variant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
@@ -400,7 +400,7 @@ operator :=(const source : olevariant) dest : wordbool;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : olevariant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : olevariant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : AnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
@@ -455,7 +455,7 @@ operator :=(const source : wordbool) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : longbool) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Chars }
-operator :=(const source : char) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : AnsiChar) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : widechar) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Strings }
@@ -491,14 +491,14 @@ operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inl
 operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { silly, but how else should the compiler know what to do with pos(<string type>,<variant>)? (FK) }
-Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (c : AnsiChar; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (s : ShortString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (const a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (const w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Function Pos (const w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-Function Pos (const v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (const v : Variant; Const c : AnsiChar) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (const v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (const v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (const v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}

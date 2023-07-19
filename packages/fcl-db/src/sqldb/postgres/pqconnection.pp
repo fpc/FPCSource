@@ -1,4 +1,4 @@
-unit PQConnection;
+ unit PQConnection;
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2022 by Michael van Canney and other members of the
@@ -23,7 +23,7 @@ unit PQConnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, dbconst,bufdataset,
+  Classes, Types, SysUtils, sqldb, db, dbconst,bufdataset,
 {$IfDef LinkDynamically}
   postgres3dyn;
 {$Else}
@@ -108,8 +108,8 @@ type
   private
     procedure SetHandle(AValue: TPGhandle);
   protected
-    Statement    : string;
-    StmtName     : string;
+    Statement    : RawByteString;
+    StmtName     : RawByteString;
     Fhandle       : TPGHandle;
     res          : PPGresult;
     CurTuple     : integer;
@@ -146,6 +146,7 @@ type
     FCursorCount         : dword;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
+    function PGexec(aConnection: PPGconn; query: String): PPGresult;
   protected
     // Protected so they can be used by descendents.
    function GetConnectionString(const aDBName : String) : string;
@@ -481,6 +482,20 @@ begin
 {$EndIf}
 end;
 
+function TPQConnection.PGexec(aConnection : PPGconn; query:String):PPGresult;
+
+Var
+  SQL : RawByteString;
+
+begin
+{$IF SIZEOF(CHAR)=2}
+  SQL:=UTF8Encode(Query);
+{$ELSE}
+  SQL:=Query;
+{$ENDIF}
+  Result:=PQexec(aConnection,PAnsiChar(SQL));
+end;
+
 procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor;
   Bindings: TFieldBindings);
 
@@ -491,7 +506,7 @@ Var
   toid : oid;
 
 begin
-s:='';
+  s:='';
   For I:=0 to Length(Bindings)-1 do
     if (Bindings[i].TypeOID>0) then
       begin
@@ -635,7 +650,6 @@ begin
     {$IFDEF PQDEBUG}
     Writeln('>>> ',T.FHandleID,' [',TThread.CurrentThread.ThreadID, '] Reusing connection ');
     {$ENDIF}
-
     end;
 
   if (Not T.Connected) then
@@ -884,7 +898,7 @@ var
   COLUMN_NAME: string;
   DATATYPE_NAME: string;
   CONSTRAINT_NAME: string;
-  P : Pchar;
+  P : PAnsiChar;
   haveError : Boolean;
   lMessage : String;
 
@@ -986,7 +1000,10 @@ begin
   case AOID of
     Oid_varchar,Oid_bpchar,
     Oid_name               : begin
-                             Result := ftString;
+                             if aOID=Oid_bpchar then
+                               Result:=ftFixedChar
+                             else
+                               Result := ftString;
                              size := PQfsize(Res, Tuple);
                              if (size = -1) then
                                begin
@@ -1231,7 +1248,7 @@ var ar  : array of PAnsiChar;
     bd : TBlobData;
     lengths,formats : array of integer;
     ParamNames,
-    ParamValues : array of string;
+    ParamValues : tansistringdynarray;
     cash: int64;
     PQCurs : TPQCursor;
 
@@ -1362,6 +1379,7 @@ var
   Q : TPQCursor;
   FD : TSQLDBFieldDef;
   FB : PFieldBinding;
+  FN: String;
 
 begin
   B:=False;
@@ -1372,8 +1390,9 @@ begin
     setlength(FieldBinding,nFields);
     for i := 0 to nFields-1 do
       begin
+      FN:=PQfname(Res, i);
       fieldtype := TranslateFldType(Res, i, asize, aoid );
-      FD := AddFieldDef(FieldDefs, i+1, PQfname(Res, i), fieldtype, asize, -1, False, False, False) as TSQLDBFieldDef;
+      FD := AddFieldDef(FieldDefs, i+1, FN, fieldtype, asize, -1, False, False, False) as TSQLDBFieldDef;
       With FD do
         begin
         SQLDBData:=@FieldBinding[i];
@@ -1494,7 +1513,7 @@ var
   x,i           : integer;
   s             : string;
   li            : Longint;
-  CurrBuff      : pchar;
+  CurrBuff      : PAnsiChar;
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
@@ -1569,7 +1588,7 @@ begin
               Move(CurrBuff^, Buffer^, li);
             end;
           end;
-          pchar(Buffer + li)^ := #0;
+          PAnsiChar(Buffer + li)^ := #0;
           end;
         ftBlob, ftMemo, ftVarBytes :
           CreateBlob := True;
@@ -1637,7 +1656,7 @@ begin
           dbl^ := BEtoN(PInt64(CurrBuff)^) / 100;
           end;
         ftBoolean:
-          pchar(buffer)[0] := CurrBuff[0];
+          PAnsiChar(buffer)[0] := CurrBuff[0];
         ftGuid:
           begin
           Move(CurrBuff^, guid, sizeof(guid));
@@ -1645,7 +1664,7 @@ begin
           guid.D2:=BEtoN(guid.D2);
           guid.D3:=BEtoN(guid.D3);
           s:=GUIDToString(guid);
-          StrPLCopy(PChar(Buffer), s, FieldDef.Size);
+          StrPLCopy(PAnsiChar(Buffer), s, FieldDef.Size);
           end
         else
           result := false;

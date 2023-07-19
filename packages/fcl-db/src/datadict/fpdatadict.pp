@@ -754,12 +754,6 @@ Resourcestring
   SErrGetTableIndexDefsNotSupported = 'Getting index definitions of a table is not supported by the "%s" engine.';
   SSavingFieldsFrom           = 'Saving fields from %s';
   SLoadingFieldsFrom          = 'Loading fields from %s';
-  SIndexOptionPrimary         = 'Primary key';
-  SIndexOptionUnique          = 'Unique';
-  SIndexOptionDescending      = 'Descending';
-  SIndexOptionCaseInsensitive = 'Case insensitive';
-  SIndexOptionExpression      = 'Expression';
-  SIndexOptionNonMaintained   = 'Not maintained';
   SWarnFieldNotFound          = 'Could not find field "%s".';
   SLogFieldFoundIn            = 'Field "%s" found in table "%s".';
   SErrSequenceNotFound        = 'Sequence "%s" not found.';
@@ -768,6 +762,14 @@ Resourcestring
   SErrDomainNotFound          = 'Domain "%s" not found.';
   SErrNoDataDict              = '%s : No data dictionary available';
   SErrResolveDomain           = 'Cannot resolve domain';
+  
+Const
+  SIndexOptionPrimary         = 'Primary key';
+  SIndexOptionUnique          = 'Unique';
+  SIndexOptionDescending      = 'Descending';
+  SIndexOptionCaseInsensitive = 'Case insensitive';
+  SIndexOptionExpression      = 'Expression';
+  SIndexOptionNonMaintained   = 'Not maintained';
 
 Const
   IndexOptionNames : Array [TIndexOption] of String

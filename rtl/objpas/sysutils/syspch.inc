@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -14,7 +15,7 @@
     System Utilities For Free Pascal
 }
 
-{  PChar functions  }
+{  PAnsiChar functions  }
 
 { Processor dependent part, shared withs strings unit }
 {$ifdef FPC_USE_LIBC}
@@ -28,18 +29,20 @@
 { Processor independent part, shared with strings unit }
 {$i stringsi.inc }
 
-{  StrPas converts a PChar to a pascal string  }
+{  StrPas converts a PAnsiChar to a pascal string  }
 
-function StrPas(Str: PChar): string;
+function StrPas(Str: PAnsiChar): string;
 begin
   Result:=Str;
 end ;
+
+
 
 {  StrAlloc allocates a buffer of Size + 4
    the size of the allocated buffer is stored at result - 4
    StrDispose should be used to destroy the buffer  }
 
-function StrAlloc(Size: cardinal): PChar;
+function StrAlloc(Size: cardinal): PAnsiChar;
 begin
   inc(size,sizeof(cardinal));
   getmem(result,size);
@@ -51,7 +54,7 @@ end;
 { Allocates a new string using StrAlloc, you need StrDispose to dispose the
   string }
 
-function strnew(p : pchar) : pchar;
+function strnew(p : PAnsiChar) : PAnsiChar;
 var
   len : longint;
 begin
@@ -67,15 +70,15 @@ end;
 
 {  StrPCopy copies the pascal string Source to Dest and returns Dest  }
 
-function StrPCopy(Dest: PChar; Const Source: string): PChar;overload;
+function StrPCopy(Dest: PAnsiChar; Const Source: RawByteString): PAnsiChar;overload;
 begin
-  result := StrMove(Dest, PChar(Source), length(Source)+1);
+  result := StrMove(Dest, PAnsiChar(Source), length(Source)+1);
 end ;
 
 {  StrPLCopy copies MaxLen or less characters from the pascal string
    Source to Dest and returns Dest  }
 
-function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
+function StrPLCopy(Dest: PAnsiChar; Const Source: RawByteString; MaxLen: SizeUInt): PAnsiChar;overload;
 var Count: SizeUInt;
 begin
 Result := Dest;
@@ -84,14 +87,14 @@ if Result <> Nil then
     Count := Length(Source);
     if Count > MaxLen then
       Count := MaxLen;
-    StrMove(Result, PChar(Source), Count);
+    StrMove(Result, PAnsiChar(Source), Count);
     Result[Count] := #0;  { terminate ! }
   end;
 end;
 
 {   StrDispose clears the memory allocated with StrAlloc   }
 
-procedure StrDispose(Str: PChar);
+procedure StrDispose(Str: PAnsiChar);
 begin
   if (Str <> Nil) then
    begin
@@ -100,9 +103,9 @@ begin
    end;
 end;
 
-{  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
+{  StrBufSize returns the amount of memory allocated for pansichar Str allocated with StrAlloc  }
 
-function StrBufSize(Str: PChar): Cardinal;
+function StrBufSize(Str: PAnsiChar): Cardinal;
 begin
   if Str <> Nil then
    result := cardinal(pointer(Str - SizeOf(cardinal))^)-sizeof(cardinal)

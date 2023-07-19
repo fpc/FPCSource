@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
@@ -129,7 +130,7 @@ Var
   Mode : TMode;
   S : String;
   I,L : Longint;
-  c : char;
+  c : AnsiChar;
 
    Procedure Add (A : String);
 

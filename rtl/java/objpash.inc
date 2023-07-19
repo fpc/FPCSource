@@ -64,7 +64,7 @@ type
        procedure init(const s: shortstring);
        // pointer = object -> use constref to get different signature
        procedure init(constref p: pointer);
-       procedure init(p: pchar);
+       procedure init(p: PAnsiChar);
        procedure init(p: JLObject);
        procedure init(c: TJClass);
        procedure init(p: pwidechar);
@@ -88,7 +88,7 @@ type
        function VDouble: double;
        function VString: PShortString;
        function VPointer: pointer;
-       function VPChar: PChar;
+       function VPChar: PAnsiChar;
        function VObject: JLObject;
        function VClass: TJClass;
        function VPWideChar: PWideChar;

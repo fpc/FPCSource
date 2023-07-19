@@ -30,7 +30,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
-function ptc_error_create(message: string): TPTC_ERROR;
+function ptc_error_create(message: AnsiString): TPTC_ERROR;
 begin
   try
     ptc_error_create := TPTC_ERROR(TPTCError.Create(message));
@@ -43,7 +43,7 @@ begin
   end;
 end;
 
-function ptc_error_create_composite(message: string; error: TPTC_ERROR): TPTC_ERROR;
+function ptc_error_create_composite(message: AnsiString; error: TPTC_ERROR): TPTC_ERROR;
 begin
   try
     ptc_error_create_composite := TPTC_ERROR(TPTCError.Create(message, TPTCError(error)));
@@ -78,7 +78,7 @@ begin
   end;
 end;
 
-function ptc_error_message(obj: TPTC_ERROR): string;
+function ptc_error_message(obj: TPTC_ERROR): AnsiString;
 begin
   try
     ptc_error_message := TPTCError(obj).message;

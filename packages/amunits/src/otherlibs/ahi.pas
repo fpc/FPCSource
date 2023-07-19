@@ -363,7 +363,7 @@ VAR AHIBase : pLibrary = nil;
   { Function to filter mode id's  }
      AHIR_FilterFunc = AHI_TagBase + 271;
   {   DEFS  }
-     AHINAME : PChar = 'ahi.device';
+     AHINAME : PAnsiChar = 'ahi.device';
   { Invalid Audio ID  }
      AHI_INVALID_ID =  not (0);
   { Only for AHI_AllocAudioA()!  }
@@ -508,7 +508,7 @@ PROCEDURE AHI_FreeAudio(AudioCtrl : pAHIAudioCtrl location 'a2'); syscall AHIBas
 PROCEDURE AHI_FreeAudioRequest(Requester : pAHIAudioModeRequester location 'a0'); syscall AHIBase 132;
 FUNCTION AHI_GetAudioAttrsA(ID : longword location 'd0'; Audioctrl : pAHIAudioCtrl location 'a2'; tagList : pTagItem location 'a1') : wordbool; syscall AHIBase 108;
 PROCEDURE AHI_KillAudio; syscall AHIBase 54;
-FUNCTION AHI_LoadModeFile(a0arg : pCHAR location 'a0') : longword; syscall AHIBase 162;
+FUNCTION AHI_LoadModeFile(a0arg : PAnsiChar location 'a0') : longword; syscall AHIBase 162;
 FUNCTION AHI_LoadSound(Sound : WORD location 'd0'; _Type : longword location 'd1'; Info : POINTER location 'a0'; AudioCtrl : pAHIAudioCtrl location 'a2') : longword; syscall AHIBase 90;
 FUNCTION AHI_NextAudioID(Last_ID : longword location 'd0') : longword; syscall AHIBase 102;
 PROCEDURE AHI_PlayA(Audioctrl : pAHIAudioCtrl location 'a2'; tagList : pTagItem location 'a1'); syscall AHIBase 138;
@@ -573,7 +573,7 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-    VERSION : string[2] = '0';
+    VERSION : String[2] = '0';
     LIBVERSION : longword = 0;
 
 initialization

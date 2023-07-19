@@ -35,8 +35,8 @@ type
   {$define HAS_ENTRYINFORMATION_OS}
   TEntryInformationOS = record
     argc: longint;
-    argv: ppchar;
-    envp: ppchar;
+    argv: PPAnsiChar;
+    envp: PPAnsiChar;
     stkptr: pointer;
     stklen: sizeuint;
     haltproc: procedure(e:longint);cdecl;

@@ -216,12 +216,12 @@ end;
 Function UpdateCrc32(InitCrc:longword;var InBuf;InLen:ptruint):longword;
 var
   i : ptruint;
-  p : pchar;
+  p : pbyte;
 begin
   p:=@InBuf;
   for i:=1 to InLen do
    begin
-     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
+     InitCrc:=Crc32Tbl[byte(InitCrc) xor p^] xor (InitCrc shr 8);
      inc(p);
    end;
   UpdateCrc32:=InitCrc;
@@ -297,10 +297,10 @@ begin
     writeln(ptext, ' - ');
 
   for i:=0 to s-1 do
-    if pchar(p + sizeof(theap_mem_info) + i)^ < ' ' then
+    if pansichar(p + sizeof(theap_mem_info) + i)^ < ' ' then
       write(ptext, ' ')
     else
-      write(ptext, pchar(p + i)^);
+      write(ptext, pansichar(p + i)^);
 
   if size > maxprintedblocklength then
     writeln(ptext,'..')
@@ -407,7 +407,7 @@ end;
 
 {$ifdef EXTRA}
 procedure dump_change_after(p : pheap_mem_info;var ptext : text);
- var pp : pchar;
+ var pp : pansichar;
      i : ptruint;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
@@ -1254,9 +1254,9 @@ const
 type
   Pdl_info = ^dl_info;
   dl_info = record
-    dli_fname      : Pchar;
+    dli_fname      : Pansichar;
     dli_fbase      : pointer;
-    dli_sname      : Pchar;
+    dli_sname      : Pansichar;
     dli_saddr      : pointer;
   end;
 
@@ -1274,7 +1274,7 @@ function GetModuleName:string;
 {$ifdef MSWINDOWS}
 var
   sz:cardinal;
-  buf:array[0..8191] of char;
+  buf:array[0..8191] of ansichar;
 {$endif}
 {$if defined(LINUX) or defined(BSD)}
 var
@@ -1295,7 +1295,7 @@ begin
   else
     GetModuleName:=ParamStr(0);
 {$elseif defined(MSWINDOWS)}
-  sz:=_GetModuleFileNameA(hInstance,PChar(@buf),sizeof(buf));
+  sz:=_GetModuleFileNameA(hInstance,PAnsiChar(@buf),sizeof(buf));
   if sz>0 then
     setstring(GetModuleName,PAnsiChar(@buf),sz)
 {$else}
@@ -1657,15 +1657,15 @@ begin
 end;
 
 {$if defined(win32) or defined(win64)}
-   function GetEnvironmentStrings : pchar; stdcall;
+   function GetEnvironmentStrings : pansichar; stdcall;
      external 'kernel32' name 'GetEnvironmentStringsA';
-   function FreeEnvironmentStrings(p : pchar) : longbool; stdcall;
+   function FreeEnvironmentStrings(p : pansichar) : longbool; stdcall;
      external 'kernel32' name 'FreeEnvironmentStringsA';
-Function  GetEnv(envvar: string): string;
+Function  GetEnv(envvar: ansistring): ansistring;
 var
-   s : string;
+   s : ansistring;
    i : ptruint;
-   hp,p : pchar;
+   hp,p : pansichar;
 begin
    getenv:='';
    p:=GetEnvironmentStrings;
@@ -1685,7 +1685,7 @@ begin
    FreeEnvironmentStrings(p);
 end;
 {$elseif defined(wince)}
-Function GetEnv(P:string):Pchar;
+Function GetEnv(P:string):PAnsichar;
 begin
   { WinCE does not have environment strings.
     Add some way to specify heaptrc options? }
@@ -1693,11 +1693,11 @@ begin
 end;
 {$elseif defined(msdos) or defined(msxdos)}
    type
-     PFarChar=^Char;far;
+     PFarChar=^AnsiChar;far;
      PPFarChar=^PFarChar;
    var
      envp: PPFarChar;external name '__fpc_envp';
-Function GetEnv(P:string):string;
+Function GetEnv(P:ansistring):ansistring;
 var
   ep    : ppfarchar;
   pc    : pfarchar;
@@ -1734,14 +1734,14 @@ Begin
     end;
 end;
 {$else}
-Function GetEnv(P:string):Pchar;
+Function GetEnv(P:ansistring):Pansichar;
 {
   Searches the environment for a string with name p and
-  returns a pchar to it's value.
-  A pchar is used to accomodate for strings of length > 255
+  returns a pansichar to it's value.
+  A pansichar is used to accomodate for strings of length > 255
 }
 var
-  ep    : ppchar;
+  ep    : ppansichar;
   i     : ptruint;
   found : boolean;
 Begin
@@ -1773,7 +1773,7 @@ end;
 procedure LoadEnvironment;
 var
   i,j : ptruint;
-  s,s2   : string;
+  s,s2   : ansistring;
   err : word;
 begin
   s:=Getenv('HEAPTRC');

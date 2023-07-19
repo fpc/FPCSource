@@ -47,7 +47,7 @@ type
     version: UInt16;
     error: Err;
     ioFlags: UInt32;
-    messageP: PChar;
+    messageP: PAnsiChar;
   end;
 
   TelNotifyErrorDetailsTag = TelNotifyErrorDetailsType;

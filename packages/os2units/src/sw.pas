@@ -54,7 +54,7 @@ Const
 
 Type
   TSMBD=record
-    achText: Array[0..MAX_SMBDTEXT + 1] of Char; // Text of the button. eg. "~Cancel"
+    achText: Array[0..MAX_SMBDTEXT + 1] of AnsiChar; // Text of the button. eg. "~Cancel"
     idButton: Cardinal;        // Button ID returned when user chooses
     flStyle: Longint;          // Button style or'ed with internal
   end;
@@ -88,7 +88,7 @@ function WinCreateSecondaryWindow(hwndParent: hwnd; hwndOwner: hwnd;
 
 function WinDefaultSize(Wnd: hwnd): Longbool; cdecl;
 
-function WinInsertDefaultSize(Wnd: hwnd; pszDefaultSize: pChar): Longbool; cdecl;
+function WinInsertDefaultSize(Wnd: hwnd; pszDefaultSize: PAnsiChar): Longbool; cdecl;
 
 function WinQuerySecondaryhwnd(Wnd: hwnd; ulFlag: Cardinal): hwnd; cdecl;
 
@@ -103,7 +103,7 @@ function WinQuerySecondaryhwnd(Wnd: hwnd; ulFlag: Cardinal): hwnd; cdecl;
 //*             PSMBINFO psmbinfo   - pointer to button/icon info        */
 //************************************************************************/
 function WinSecondaryMessageBox(hwndParent: hwnd; hwndOwner: hwnd;
-  pszText: pChar; pszCaption: pChar; idWindow: Cardinal; smb: psmbinfo): Cardinal; cdecl;
+  pszText: PAnsiChar; pszCaption: PAnsiChar; idWindow: Cardinal; smb: psmbinfo): Cardinal; cdecl;
 
 //************************************************************************/
 //* WinDismissSecondaryWindow                                            */
@@ -186,7 +186,7 @@ function WinDefSecondaryWindowProc(Wnd: hwnd; msg: Cardinal;
 Function WinRegisterGraphicButton: Longbool; cdecl;
 
 Const
-  WC_GRAPHICBUTTON=PChar($ffff0040);
+  WC_GRAPHICBUTTON=PAnsiChar($ffff0040);
 
 //************************************************************************/
 //*             GraphicButton Animation/TwoState constants               */
@@ -252,7 +252,7 @@ Const
 type
   TgbtnCdata = packed record
     usReserved: Word;
-    pszText: PChar;
+    pszText: PAnsiChar;
     hmod: Cardinal;
     cBitmaps: Word;
     aidBitmap: Array[0..1] of Word;
@@ -493,14 +493,14 @@ function WinCreateSecondaryWindow(hwndParent: hwnd; hwndOwner: hwnd;
 function WinDefaultSize(Wnd: hwnd): Longbool; cdecl;
     external 'SW' index 11;
 
-function WinInsertDefaultSize(Wnd: hwnd; pszDefaultSize: pChar): Longbool; cdecl;
+function WinInsertDefaultSize(Wnd: hwnd; pszDefaultSize: PAnsiChar): Longbool; cdecl;
     external 'SW' index 12;
 
 function WinQuerySecondaryhwnd(Wnd: hwnd; ulFlag: Cardinal): hwnd; cdecl;
     external 'SW' index 52;
 
 function WinSecondaryMessageBox(hwndParent: hwnd; hwndOwner: hwnd;
-  pszText: pChar; pszCaption: pChar; idWindow: Cardinal; smb: psmbinfo): Cardinal; cdecl;
+  pszText: PAnsiChar; pszCaption: PAnsiChar; idWindow: Cardinal; smb: psmbinfo): Cardinal; cdecl;
     external 'SW' index 5;
 
 function WinDismissSecondaryWindow(hwndDlg: hwnd; ulResult: Cardinal): Longbool; cdecl;

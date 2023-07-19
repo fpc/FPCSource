@@ -404,7 +404,7 @@ end;
 function ThreadFunc(parameter: Pointer): LongInt; // cdecl;
 var
   LThread: TThread;
-  c: char;
+  c: AnsiChar;
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);

@@ -2151,7 +2151,7 @@ begin
         Exit;
       end;
     // Name validity has already been checked by IsXmlName() call above.
-    // So just check that colon isn't first or last char, and that it is follwed by NameStartChar.
+    // So just check that colon isn't first or last AnsiChar, and that it is follwed by NameStartChar.
     if ((Result = 1) or (Result = L) or not IsXmlName(@QName[Result+1], 1)) then
     begin
       Result := -NAMESPACE_ERR;

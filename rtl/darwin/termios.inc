@@ -562,7 +562,7 @@ Type
 {
  *        TTYDEFCHARS to include an array of default control characters.
 }
-    ttydefchars : array[0..NCCS-1] OF char =(
+    ttydefchars : array[0..NCCS-1] OF AnsiChar =(
         CEOF,   CEOL,   CEOL,   CERASE, CWERASE, CKILL, CREPRINT,
         chr(_POSIX_VDISABLE), CINTR,  CQUIT,  CSUSP,  CDSUSP, CSTART, CSTOP,  CLNEXT,
         CDISCARD, CMIN, CTIME,  CSTATUS, chr(_POSIX_VDISABLE));

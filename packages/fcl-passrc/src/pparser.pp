@@ -635,7 +635,7 @@ Function SplitCommandLine(S: String) : TStringDynArray;
   Var
     Wstart,wend : Integer;
     InLiteral : Boolean;
-    LastLiteral : Char;
+    LastLiteral : AnsiChar;
 
     Procedure AppendToResult;
 
@@ -779,7 +779,7 @@ end;
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 var
-  FPCParams: TStringDynArray;
+  FPCParams: TRTLStringDynArray;
 begin
   FPCParams:=SplitCommandLine(FPCCommandLine);
   Result:=ParseSource(AEngine, FPCParams, OSTarget, CPUTarget,[]);
@@ -789,7 +789,7 @@ end;
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String; UseStreams : Boolean): TPasModule;
 var
-  FPCParams: TStringDynArray;
+  FPCParams: TRTLStringDynArray;
 begin
   FPCParams:=SplitCommandLine(FPCCommandLine);
   if UseStreams then
@@ -1727,10 +1727,10 @@ Function IsSimpleTypeToken(Var AName : String) : Boolean;
 Const
    SimpleTypeCount = 15;
    SimpleTypeNames : Array[1..SimpleTypeCount] of string =
-     ('byte','boolean','AnsiChar','integer','int64','longint','longword','double',
+     ('byte','boolean','char','integer','int64','longint','longword','double',
       'shortint','smallint','string','word','qword','cardinal','widechar');
    SimpleTypeCaseNames : Array[1..SimpleTypeCount] of string =
-     ('Byte','Boolean','AnsiChar','Integer','Int64','LongInt','LongWord','Double',
+     ('Byte','Boolean','char','Integer','Int64','LongInt','LongWord','Double',
      'ShortInt','SmallInt','String','Word','QWord','Cardinal','WideChar');
 
 Var
@@ -3425,7 +3425,7 @@ Var
 begin
   StartPos:=CurTokenPos;
   if SkipHeader then
-    N:=ChangeFileExt(Scanner.CurFilename,'')
+    N:=ChangeFileExt(Scanner.CurFilename,RTLString(''))
   else
     begin
     N:=ExpectIdentifier;

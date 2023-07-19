@@ -19,7 +19,8 @@
 
 unit OldRegExpr;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}
+{$H-}
 
 interface
 
@@ -39,18 +40,18 @@ type
 
    TRegExprEngine = TRegexEngine;
 
-function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
-function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
+function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
+function GenerateRegExprEngine(regexpr : PAnsiChar;flags : tregexprflags): TREGExprEngine;
 procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
-function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : integer) : boolean;
+function RegExprPos(RegExprEngine : TRegExprEngine;p : PAnsiChar;var index,len : integer) : boolean;
 function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
 
-function RegExprEscapeStr (const S : string) : string;
+function RegExprEscapeStr (const S : AnsiString) : AnsiString;
 
 implementation
 
-function GenerateRegExprEngine(regexpr: pchar; flags: tregexprflags;
+function GenerateRegExprEngine(regexpr: PAnsiChar; flags: tregexprflags;
   var RegExprEngine: TRegExprEngine): boolean;
 var ErrorPos  : Integer;
     ErrorCode : TRegexError;
@@ -62,7 +63,7 @@ begin
   Result := RegExprEngine.Parse(ErrorPos,ErrorCode);
 end;
 
-function GenerateRegExprEngine(regexpr: pchar; flags: tregexprflags
+function GenerateRegExprEngine(regexpr: PAnsiChar; flags: tregexprflags
   ): TREGExprEngine;
 
 var r: TRegExprEngine;
@@ -79,7 +80,7 @@ begin
   regexpr := nil;
 end;
 
-function RegExprPos(RegExprEngine: TRegExprEngine; p: pchar; var index,
+function RegExprPos(RegExprEngine: TRegExprEngine; p: PAnsiChar; var index,
   len: integer): boolean;
 begin
   Len := 1;
@@ -99,10 +100,10 @@ begin
   result := RegExprEngine.ReplaceAllString(src,newstr,Dest);
 end;
 
-function RegExprEscapeStr(const S: string): string;
+function RegExprEscapeStr(const S: AnsiString): AnsiString;
 var
   i, len   : integer;
-  s1: string;
+  s1: AnsiString;
 begin
   RegExprEscapeStr:= '';
   s1:='';

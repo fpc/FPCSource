@@ -256,13 +256,13 @@
      SQLT_UIN = 68;     
   { Display sign leading separate  }
      SQLT_SLS = 91;     
-  { Longer longs (char)  }
+  { Longer longs (AnsiChar)  }
      SQLT_LVC = 94;     
   { Longer long binary  }
      SQLT_LVB = 95;     
-  { Ansi fixed char  }
+  { Ansi fixed AnsiChar  }
      SQLT_AFC = 96;     
-  { Ansi Var char  }
+  { Ansi Var AnsiChar  }
      SQLT_AVC = 97;     
   { binary float canonical  }
      SQLT_IBFLOAT = 100;     
@@ -321,12 +321,12 @@
      SQLT_FILE = SQLT_BFILEE;     
      SQLT_CFILE = SQLT_CFILEE;     
      SQLT_BFILE = SQLT_BFILEE;     
-  { CHAR/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB char set "form" information  }
-  { for CHAR, VARCHAR2, CLOB w/o a specified set  }
+  { AnsiChar/NCHAR/VARCHAR2/NVARCHAR2/CLOB/NCLOB AnsiChar set "form" information  }
+  { for AnsiChar, VARCHAR2, CLOB w/o a specified set  }
      SQLCS_IMPLICIT = 1;     
   { for NCHAR, NCHAR VARYING, NCLOB  }
      SQLCS_NCHAR = 2;     
-  { for CHAR, etc, with "CHARACTER SET ..." syntax  }
+  { for AnsiChar, etc, with "CHARACTER SET ..." syntax  }
      SQLCS_EXPLICIT = 3;     
   { for PL/SQL "flexible" parameters  }
      SQLCS_FLEXIBLE = 4;     

@@ -7,7 +7,7 @@ var
   b64decoder: TBase64DecodingStream;
   BaseStream: TStream;
   i, j: Integer;
-  buf: array[1..23] of Char;
+  buf: array[1..23] of AnsiChar;
 begin
   BaseStream := TMemoryStream.Create;
 

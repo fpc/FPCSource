@@ -111,7 +111,7 @@ end;
 {
  * Respond to a callback to create a config record for a specific directory.
  }
-function create_mconfig_for_directory(p: Papr_pool_t; dir: PChar): Pointer; cdecl;
+function create_mconfig_for_directory(p: Papr_pool_t; dir: PAnsiChar): Pointer; cdecl;
 begin
   Result := mkconfig(p);
 end;
@@ -119,7 +119,7 @@ end;
 {
  * Handler for the CheckSpelling directive, which is FLAG.
  }
-function set_speling(cmd: Pcmd_parms; mconfig: Pointer; arg: Integer): PChar; cdecl;
+function set_speling(cmd: Pcmd_parms; mconfig: Pointer; arg: Integer): PAnsiChar; cdecl;
 var
   cfg: Pspconfig;
 begin
@@ -146,7 +146,7 @@ type
   );
 
 const
-  sp_reason_str: array [0..7] of PChar =
+  sp_reason_str: array [0..7] of PAnsiChar =
   (
     'identical',
     'miscapitalized',
@@ -160,7 +160,7 @@ const
 
 type
   misspelled_file = record
-    name: PChar;
+    name: PAnsiChar;
     quality: sp_reason;
   end;
   
@@ -178,8 +178,8 @@ type
  * thus, it was exactly backwards in the old version. -- PWP
  *
  * This routine was taken out of tcsh's spelling correction code
- * (tcsh-6.07.04) and re-converted to apache data types ("char" type
- * instead of tcsh's NLS'ed "Char"). Plus it now ignores the case
+ * (tcsh-6.07.04) and re-converted to apache data types ("AnsiChar" type
+ * instead of tcsh's NLS'ed "AnsiChar"). Plus it now ignores the case
  * during comparisons, so is a "approximate strcasecmp()".
  * NOTE that is still allows only _one_ real "typo",
  * it does NOT try to correct multiple errors.
@@ -191,9 +191,9 @@ type
   
   * s
 }
-function spdist(const cs, ct: PChar): sp_reason;
+function spdist(const cs, ct: PAnsiChar): sp_reason;
 var
-  s, t, i, j: PChar;
+  s, t, i, j: PAnsiChar;
 begin
   s := cs;
   t := ct;
@@ -237,7 +237,7 @@ begin
       
       if (stricomp(i, j) = 0) then
       begin
-        Result := SP_SIMPLETYPO;   { 1 char mismatch }
+        Result := SP_SIMPLETYPO;   { 1 AnsiChar mismatch }
         Exit;
       end;
     end;
@@ -267,14 +267,14 @@ end;
 function check_speling(r: Prequest_rec): Integer; cdecl;
 var
   cfg: Pspconfig;
-  good, bad, postgood, url: PChar;
+  good, bad, postgood, url: PAnsiChar;
   dirent: apr_finfo_t;
   filoc, dotloc, urlen, pglen: Integer;
   candidates: Papr_array_header_t = nil;
   dir: Papr_dir_t;
   q: sp_reason;
   sp_new, variant_, nvariant_: Pmisspelled_file;
-  nuri, ref, vuri, reason: PChar;
+  nuri, ref, vuri, reason: PAnsiChar;
   i, entloc: Integer;
   p, sub_pool: Papr_pool_t;
   notes: Papr_table_t;
@@ -396,7 +396,7 @@ begin
 
     {
      * simple typing errors are checked next (like, e.g.,
-     * missing/extra/transposed char)
+     * missing/extra/transposed AnsiChar)
      }
     else if (spdist(bad, dirent.name) <> SP_VERYDIFFERENT) then
     begin
@@ -494,7 +494,7 @@ begin
 						     variant_^.name,
 						     r^.path_info, nil]));
       if (r^.parsed_uri.query^ <> #0) then
-       nuri := apr_pstrcat(r^.pool, [nuri, PChar('?'), r^.parsed_uri.query, nil]);
+       nuri := apr_pstrcat(r^.pool, [nuri, PAnsiChar('?'), r^.parsed_uri.query, nil]);
 
       apr_table_setn(r^.headers_out, 'Location',
 			  ap_construct_url(r^.pool, nuri, r));
@@ -532,14 +532,14 @@ begin
         Exit;
       end;
           
-      t := apr_array_make(sub_pool, candidates^.nelts * 8 + 8, sizeof(PChar));
-      v := apr_array_make(sub_pool, candidates^.nelts * 5, sizeof(PChar));
+      t := apr_array_make(sub_pool, candidates^.nelts * 8 + 8, sizeof(PAnsiChar));
+      v := apr_array_make(sub_pool, candidates^.nelts * 5, sizeof(PAnsiChar));
 
        { Generate the response text. }
 
-      PPChar(apr_array_push(t))^ := 'The document name you requested (<code>';
-      PPChar(apr_array_push(t))^ := ap_escape_html(sub_pool, r^.uri);
-      PPChar(apr_array_push(t))^ :=
+      PPAnsiChar(apr_array_push(t))^ := 'The document name you requested (<code>';
+      PPAnsiChar(apr_array_push(t))^ := ap_escape_html(sub_pool, r^.uri);
+      PPAnsiChar(apr_array_push(t))^ :=
 		   '</code>) could not be found on this server.' + LineEnding +
 		   'However, we found documents with names similar ' +
 		   'to the one you requested.<p>' +
@@ -553,21 +553,21 @@ begin
                  vuri := apr_pstrcat(sub_pool, [url, variant_[i].name, r^.path_info,
                   '?', r^.parsed_uri.query, nil])
                 else vuri := apr_pstrcat(sub_pool, [url, variant_[i].name, r^.path_info,
-		 PChar(''), PChar(''), nil]);
+		 PAnsiChar(''), PAnsiChar(''), nil]);
    
-		PPChar(apr_array_push(v))^ := '"';
-		PPChar(apr_array_push(v))^ := ap_escape_uri(sub_pool, vuri);
-		PPChar(apr_array_push(v))^ := '";"';
-		PPChar(apr_array_push(v))^ := reason;
-		PPChar(apr_array_push(v))^ := '"';
+		PPAnsiChar(apr_array_push(v))^ := '"';
+		PPAnsiChar(apr_array_push(v))^ := ap_escape_uri(sub_pool, vuri);
+		PPAnsiChar(apr_array_push(v))^ := '";"';
+		PPAnsiChar(apr_array_push(v))^ := reason;
+		PPAnsiChar(apr_array_push(v))^ := '"';
 
-		PPChar(apr_array_push(t))^ := '<li><a href="';
-		PPChar(apr_array_push(t))^ := ap_escape_uri(sub_pool, vuri);
-		PPChar(apr_array_push(t))^ := '">';
-		PPChar(apr_array_push(t))^ := ap_escape_html(sub_pool, vuri);
-		PPChar(apr_array_push(t))^ := '</a> (';
-		PPChar(apr_array_push(t))^ := reason;
-		PPChar(apr_array_push(t))^ := ')' + LineEnding;
+		PPAnsiChar(apr_array_push(t))^ := '<li><a href="';
+		PPAnsiChar(apr_array_push(t))^ := ap_escape_uri(sub_pool, vuri);
+		PPAnsiChar(apr_array_push(t))^ := '">';
+		PPAnsiChar(apr_array_push(t))^ := ap_escape_html(sub_pool, vuri);
+		PPAnsiChar(apr_array_push(t))^ := '</a> (';
+		PPAnsiChar(apr_array_push(t))^ := reason;
+		PPAnsiChar(apr_array_push(t))^ := ')' + LineEnding;
 
                 {
                  * when we have printed the "close matches" and there are
@@ -579,20 +579,20 @@ begin
                 if (i > 0) and (i < candidates^.nelts - 1)
                     and (variant_[i].quality <> SP_VERYDIFFERENT)
                     and (variant_[i + 1].quality = SP_VERYDIFFERENT) then
-                 PPChar(apr_array_push(t))^ :=
+                 PPAnsiChar(apr_array_push(t))^ :=
 		  '</ul>' + LineEnding + 'Furthermore, the following related ' +
                   'documents were found:' + LineEnding + '<ul>' + LineEnding;
             end;
             
-	    PPChar(apr_array_push(t))^ := '</ul>' + LineEnding;
+	    PPAnsiChar(apr_array_push(t))^ := '</ul>' + LineEnding;
 
             { If we know there was a referring page, add a note: }
             if (ref <> nil) then
             begin
-              PPChar(apr_array_push(t))^ :=
+              PPAnsiChar(apr_array_push(t))^ :=
 	       'Please consider informing the owner of the <a href="';
-	      PPChar(apr_array_push(t))^ := ap_escape_uri(sub_pool, ref);
-              PPChar(apr_array_push(t))^ := '">referring page</a> about the broken link.' + LineEnding;
+	      PPAnsiChar(apr_array_push(t))^ := ap_escape_uri(sub_pool, ref);
+              PPAnsiChar(apr_array_push(t))^ := '">referring page</a> about the broken link.' + LineEnding;
             end;
 
             { Pass our apr_table_t to http_protocol.c (see mod_negotiation): }

@@ -686,10 +686,10 @@ function WTSVirtualChannelClose(hChannelHandle: HANDLE): BOOL; stdcall;
 {$EXTERNALSYM WTSVirtualChannelClose}
 
 function WTSVirtualChannelRead(hChannelHandle: HANDLE; TimeOut: ULONG;
-  Buffer: PCHAR; BufferSize: ULONG; var pBytesRead: ULONG): BOOL; stdcall;
+  Buffer: PAnsiChar; BufferSize: ULONG; var pBytesRead: ULONG): BOOL; stdcall;
 {$EXTERNALSYM WTSVirtualChannelRead}
 
-function WTSVirtualChannelWrite(hChannelHandle: HANDLE; Buffer: PCHAR;
+function WTSVirtualChannelWrite(hChannelHandle: HANDLE; Buffer: PAnsiChar;
   Length: ULONG; var pBytesWritten: ULONG): BOOL; stdcall;
 {$EXTERNALSYM WTSVirtualChannelWrite}
 

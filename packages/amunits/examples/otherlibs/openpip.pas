@@ -21,12 +21,12 @@ uses exec, amigados, agraphics, intuition, picasso96api, utility,strings;
 
 
 Const
-    WB          :   Pchar = 'Workbench';
-    template    :   Pchar = 'Width=W/N,Height=H/N,Pubscreen=PS/K';
+    WB          :   PAnsiChar = 'Workbench';
+    template    :   PAnsiChar = 'Width=W/N,Height=H/N,Pubscreen=PS/K';
     vecarray    :   Array[0..2] of long = (0,0,0);
     ltrue       :   longint = 1;
 Var
-    PubScreenName   :   Array [0..80] Of Char;
+    PubScreenName   :   Array [0..80] Of AnsiChar;
     height,
     width           :   longint;
     wd              :   pWindow;

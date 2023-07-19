@@ -267,7 +267,7 @@ const
 const
 { Date equates }
 	smallDateBit = 31;   {Restrict valid date/time to range of Time global}
-	togChar12HourBit = 30;   {If toggling hour by char, accept hours 1..12 only}
+	togChar12HourBit = 30;   {If toggling hour by AnsiChar, accept hours 1..12 only}
 	togCharZCycleBit = 29;   {Modifier for togChar12HourBit: accept hours 0..11 only}
 	togDelta12HourBit = 28;   {If toggling hour up/down, restrict to 12-hour range (am/pm)}
 	genCdevRangeBit = 27;   {Restrict date/time to range used by genl CDEV}

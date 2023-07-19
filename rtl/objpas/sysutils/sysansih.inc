@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 2002 by Florian Klaempfl
@@ -16,9 +17,9 @@ Function SameFileName(const S1, S2: string): Boolean;
 function AnsiLowerCaseFileName(const s : string) : string;
 function AnsiUpperCaseFileName(const s : string) : string;
 function AnsiPos(const substr,s : string) : SizeInt;
-function AnsiStrPos(str,substr : PChar) : PChar;
-function AnsiStrRScan(Str : PChar;Chr : Char) : PChar;
-function AnsiStrScan(Str : PChar;Chr: Char) : PChar;
+function AnsiStrPos(str,substr : PAnsiChar) : PAnsiChar;
+function AnsiStrRScan(Str : PAnsiChar;Chr : AnsiChar) : PAnsiChar;
+function AnsiStrScan(Str : PAnsiChar;Chr: AnsiChar) : PAnsiChar;
 function HashName(Name: PAnsiChar): LongWord;
 
 function BytesOf(const Val: RawByteString): TBytes;

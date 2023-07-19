@@ -88,9 +88,9 @@ begin
   SetLength(Result,l);
   for i := 1 to l do begin
     case j of
-      1 : Result[i] := Char(RandomRange(Ord('a'),Ord('z')));
-      2 : Result[i] := Char(RandomRange(Ord('0'),Ord('9')));
-      3 : Result[i] := Char(RandomRange(Ord('A'),Ord('Z')));
+      1 : Result[i] := AnsiChar(RandomRange(Ord('a'),Ord('z')));
+      2 : Result[i] := AnsiChar(RandomRange(Ord('0'),Ord('9')));
+      3 : Result[i] := AnsiChar(RandomRange(Ord('A'),Ord('Z')));
     end;
     j := ( j + 1 );
     if ( j > 3 ) then

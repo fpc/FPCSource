@@ -20,7 +20,7 @@ const
   gray50_width  = 2;
   gray50_height = 2;
 
-  gray50_bits: array [0..1] of char = (#2, #1);
+  gray50_bits: array [0..1] of AnsiChar = (#2, #1);
 
 procedure create_tags (buffer : PGtkTextBuffer);
 var
@@ -154,7 +154,7 @@ var
   text_end     : TGtkTextIter;
   pixbuf,
   scaled       : PGdkPixbuf;
-  filename     : pchar;
+  filename     : PAnsiChar;
 
 begin
   (* demo_find_file() looks in the the current directory first,
@@ -333,7 +333,7 @@ begin
             + 'blah blah blah blah blah blah blah blah blah'#13#10#13#10, -1,
                                             'char_wrap', [NULL]);
 
-  gtk_text_buffer_insert_with_tags_by_name (buffer, @iter, PChar(
+  gtk_text_buffer_insert_with_tags_by_name (buffer, @iter, PAnsiChar(
               'This line has all wrapping turned off, so it makes the horizontal '
             + 'scrollbar appear.'#13#10#13#10#13#10), -1,
                                             'no_wrap', [NULL]);

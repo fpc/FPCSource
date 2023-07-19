@@ -32,9 +32,10 @@ Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
 Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
 Procedure BytesToVar(const aBytes : TBytes; Out aLocation : Pointer);
 
-Procedure HexStrToBytes(Const aHexStr : String; out aBytes : TBytes); overload;
+Procedure HexStrToBytes(Const aHexStr : UnicodeString; out aBytes : TBytes); overload;
+Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
 Function HexStrToBytes(Const aHexStr : String) : TBytes; overload;
-Function HexStrToString(Const aHexStr : String) : String; overload;
+Function HexStrToString(Const aHexStr :  String) : AnsiString; overload;
 
 Function BytesToHexStr(Const aSource : AnsiString) : Ansistring; overload;
 Procedure BytesToHexStr(out aHexStr : AnsiString;Const aSource : AnsiString); overload;
@@ -42,7 +43,7 @@ Procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : PByte; aSize : Intege
 Procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : TBytes); overload;
 Function BytesToHexStr(aBytes : TBytes) : AnsiString; overload;
 Procedure BytesToHexStrAppend(aBytes : TBytes;var aHexStr : AnsiString);
-Function StringToHex(const s: string): string; overload;
+Function StringToHex(const s: ansistring): ansistring; overload;
 
 Procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, MultiLines, Padding: Boolean);
 Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
@@ -99,7 +100,7 @@ begin
   HexStrToBytes(aHexStr,Result);
 end;
 
-function HexStrToString(const aHexStr: String): String;
+function HexStrToString(const aHexStr: String): AnsiString;
 var
   aBytes: TBytes;
   l: SizeInt;
@@ -112,7 +113,7 @@ begin
   Move(aBytes[0],Result[1],l);
 end;
 
-procedure HexStrToBytes(const aHexStr: String; out aBytes: TBytes);
+Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
 
 const
   Convert: array['0'..'f'] of SmallInt =
@@ -142,6 +143,37 @@ begin
   end;
 end;
 
+
+procedure HexStrToBytes(const aHexStr: UnicodeString; out aBytes: TBytes);
+
+const
+  Convert: array['0'..'f'] of SmallInt =
+    ( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
+     -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+     -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+     -1,10,11,12,13,14,15);
+
+Var
+  Len : LongInt;
+  P: PChar;
+  PResult: PByte;
+
+begin
+  Len:=Length(aHexStr);
+  aBytes:=[];
+  SetLength(aBytes, (Len+1) div 2);
+  if Len=0 then Exit;
+  P := PChar(aHexStr);
+  PResult := PByte(aBytes);
+  while Len > 0 do
+  begin
+    PResult^ := (Convert[P[0]] shl 4) + Convert[P[1]];
+    Inc(PResult);
+    Inc(P, 2);
+    Dec(Len, 2);
+  end;
+end;
+
 function BytesToHexStr(const aSource: AnsiString): Ansistring;
 
 begin
@@ -151,7 +183,7 @@ end;
 procedure BytesToHexStr(out aHexStr: AnsiString; const aSource: AnsiString);
 
 begin
-  BytesToHexStr(aHexStr,PByte(PChar(aSource)),Length(aSource))
+  BytesToHexStr(aHexStr,PByte(PAnsiChar(aSource)),Length(aSource))
 end;
 
 procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : PByte; aSize : Integer);
@@ -166,7 +198,7 @@ begin
     exit;
   SetLength(aHexStr,aSize*2);
   PB:=aBytes;
-  PC:=PChar(aHexStr);
+  PC:=PAnsiChar(aHexStr);
   for I:=0 to aSize-1 do
     begin
     PC^:=HexDigits[PB^ shr 4];
@@ -195,7 +227,7 @@ begin
   aHexStr:=aHexStr+BytesToHexStr(aBytes);
 end;
 
-function StringToHex(const s: string): string;
+function StringToHex(const s: ansistring): ansistring;
 begin
   if s='' then exit;
   BytesToHexStr(Result,@s[1],length(s));
@@ -325,7 +357,7 @@ begin
       DestBuf[0] := Ord('=');
       Inc(DestSize);
     end;
-  end else if Index = BufSize-1 then // Last remaining char
+  end else if Index = BufSize-1 then // Last remaining AnsiChar
   begin
     Ch1 := Source[Index];
     XBufferEncode64_1(DestBuf, Ch1, IsURL);

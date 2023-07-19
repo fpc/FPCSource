@@ -12,7 +12,7 @@ const
 var
   n, t: ArbInt;
   x: ArbFloat;
-  h: string;
+  h: ShortString;
   a: array[n1..n2] of ArbFloat;
 begin
   Write('program results spepolte');

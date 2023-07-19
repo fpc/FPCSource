@@ -83,7 +83,7 @@ const
  * Use the definitions in ShortcutLib.h instead!
  *-----------------------------------------------------------------------------*)
 
-  // Char indicating a seqeunce of characters to expand.
+  // AnsiChar indicating a seqeunce of characters to expand.
   grfExpansionSequence   = '@';
 
   // Chars indicating what to expand into
@@ -151,9 +151,9 @@ function GrfCleanState: Err; syscall sysTrapGrfCleanState;
 function GrfMatch(var flagsP: UInt16; dataPtrP: Pointer; var dataLenP, uncertainLenP: UInt16;
                   matchInfoP: GrfMatchInfoPtr): Err; syscall sysTrapGrfMatch;
 
-function GrfGetMacro(nameP: PChar; var macroDataP: UInt8; var dataLenP: UInt16): Err; syscall sysTrapGrfGetMacro;
+function GrfGetMacro(nameP: PAnsiChar; var macroDataP: UInt8; var dataLenP: UInt16): Err; syscall sysTrapGrfGetMacro;
 
-function GrfGetAndExpandMacro(nameP: PChar; var macroDataP: UInt8; var dataLenP: UInt16): Err; syscall sysTrapGrfGetAndExpandMacro;
+function GrfGetAndExpandMacro(nameP: PAnsiChar; var macroDataP: UInt8; var dataLenP: UInt16): Err; syscall sysTrapGrfGetAndExpandMacro;
 
 //-----------------------------------------------------------------
 // Low Level Calls
@@ -172,11 +172,11 @@ function GrfMatchGlyph(matchInfoP: GrfMatchInfoPtr; maxUnCertainty: Int16; maxMa
 function GrfGetGlyphMapping(glyphID: UInt16; var flagsP: UInt16; dataPtrP: Pointer;
                             var dataLenP, uncertainLenP: UInt16): Err; syscall sysTrapGrfGetGlyphMapping;
 
-function GrfGetMacroName(index: UInt16; nameP: PChar): Err; syscall sysTrapGrfGetMacroName;
+function GrfGetMacroName(index: UInt16; nameP: PAnsiChar): Err; syscall sysTrapGrfGetMacroName;
 
 function GrfDeleteMacro(index: UInt16): Err; syscall sysTrapGrfDeleteMacro;
 
-function GrfAddMacro(const nameP: PChar; var macroDataP: UInt8; dataLen: UInt16): Err; syscall sysTrapGrfAddMacro;
+function GrfAddMacro(const nameP: PAnsiChar; var macroDataP: UInt8; dataLen: UInt16): Err; syscall sysTrapGrfAddMacro;
 
 implementation
 

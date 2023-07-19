@@ -126,8 +126,8 @@ function LocateCatalogsW(pwszScope: PWCHAR; iBmk: ULONG; pwszMachine: PWCHAR;
 // For calling from VB
 //
 
-function LocateCatalogsA(pwszScope: PCHAR; iBmk: ULONG; pwszMachine: PCHAR;
-  var pccMachine: ULONG; pwszCat: PCHAR; var pccCat: ULONG): HRESULT; stdcall;
+function LocateCatalogsA(pwszScope: PAnsiChar; iBmk: ULONG; pwszMachine: PAnsiChar;
+  var pccMachine: ULONG; pwszCat: PAnsiChar; var pccCat: ULONG): HRESULT; stdcall;
 {$EXTERNALSYM LocateCatalogsA}
 
 function LocateCatalogs(pwszScope: PTCHAR; iBmk: ULONG; pwszMachine: PTCHAR;

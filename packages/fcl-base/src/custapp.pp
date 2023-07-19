@@ -176,22 +176,20 @@ Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 var
    s : string;
-   i,l,j,count : longint;
+   i,j,count : longint;
 
 begin
   count:=GetEnvironmentVariableCount;
-  if count>0 then
-    for j:=1 to count  do
-     begin
-       s:=GetEnvironmentString(j);
-       l:=Length(s);
-       If NamesOnly then
-          begin
-            I:=pos('=',s);
-            If (I>0) then
-              S:=Copy(S,1,I-1);
-          end;
-       List.Add(S);
+  for j:=1 to count  do
+    begin
+    s:=GetEnvironmentString(j);
+    If NamesOnly then
+      begin
+      I:=pos('=',s);
+      If (I>1) then
+        S:=Copy(S,1,I-1);
+      end;
+    List.Add(S);
     end;
 end;
 

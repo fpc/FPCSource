@@ -48,7 +48,7 @@ type
 var
   sector1: TSECTOR;     // Our Model Goes Here:
 
-  MyFile: pchar;
+  MyFile: PAnsiChar;
 
 
 
@@ -109,7 +109,7 @@ begin
 end;
 
 
-procedure myGetStr(buff: pchar; size: integer);
+procedure myGetStr(buff: PAnsiChar; size: integer);
 begin
   buff^ := Myfile^;
   inc(MyFile);
@@ -126,7 +126,7 @@ begin
 end;
 
 
-procedure readstr(str: pchar);
+procedure readstr(str: PAnsiChar);
 begin
   repeat
     myGetStr(str, 255);
@@ -138,7 +138,7 @@ var
   x, y, z: cfloat;
   u, v: cfloat;
   numtriangles: integer;
-  oneline: array [0..254] of char;
+  oneline: array [0..254] of AnsiChar;
   loop, vert: integer;
 begin
   readstr(oneline);
@@ -186,7 +186,7 @@ var
   held: integer;
 
 begin
-  MyFile := pchar(@World_txt);
+  MyFile := PAnsiChar(@World_txt);
 
   // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);

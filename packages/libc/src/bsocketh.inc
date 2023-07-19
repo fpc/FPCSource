@@ -104,20 +104,20 @@ type
     // Why borland decided to change it is a mystery to me :/
    sockaddr = record
      sa_family : sa_family_t ;
-     sa_data : array [0..13] of char;
+     sa_data : array [0..13] of AnsiChar;
    end;
  }
    // redefined as osockaddr.
    osockaddr = record
      sa_family : sa_family_t ;
-     sa_data : array [0..13] of char;
+     sa_data : array [0..13] of AnsiChar;
    end;
 
    Psockaddr_storage = ^sockaddr_storage;
    sockaddr_storage = record
       __ss__family : sa_family_t;
       __ss_align   : __ss_aligntype;
-      __ss_padding : array[0..(_SS_PADSIZE)-1] of char;
+      __ss_padding : array[0..(_SS_PADSIZE)-1] of AnsiChar;
    end;
 
 

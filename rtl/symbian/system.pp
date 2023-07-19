@@ -35,8 +35,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   { FileNameCaseSensitive and FileNameCasePreserving are defined separately below }
   maxExitCode = 65535;
   MaxPathLen = 260;
@@ -90,7 +90,7 @@ type
 var
 { C compatible arguments }
   argc : longint;
-  argv : ppchar;
+  argv : PPAnsiChar;
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
@@ -125,9 +125,9 @@ const KErrNone=0;
 *****************************************************************************}
 
 var
-  ModuleName : array[0..255] of char;
+  ModuleName : array[0..255] of AnsiChar;
 
-function GetCommandFile:pchar;
+function GetCommandFile:PAnsiChar;
 begin
 
 end;
@@ -144,7 +144,7 @@ begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l<argc) then
     paramstr:=strpas(argv[l])

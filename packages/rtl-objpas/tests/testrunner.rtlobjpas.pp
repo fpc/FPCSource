@@ -20,6 +20,9 @@ program testrunner.rtlobjpas;
 {$endif}
 
 uses
+{$ifdef unix} 
+  cwstring,
+{$endif}
 {$ifdef useffi}
   ffi.manager,
 {$endif}

@@ -25,8 +25,8 @@ uses exec, amigados, agraphics, intuition, picasso96api, utility;
 Const
 
     Pens        :   Array [0..0] Of integer = (NOT(0));
-    template    :   pchar  =   'Width=W/N,Height=H/N,Depth=D/N';
-    ScreenTitle :   pchar  =   'Picasso96 API Test';
+    template    :   PAnsiChar  =   'Width=W/N,Height=H/N,Depth=D/N';
+    ScreenTitle :   PAnsiChar  =   'Picasso96 API Test';
     vecarray    :   Array[0..2] of longint = (0,0,0);
     ltrue       :   longint = 1;
 
@@ -51,7 +51,7 @@ Var
     Depth       :   longint;
     rda         :   pRDArgs;
 
-procedure CleanUp(str : string);
+procedure CleanUp(str : ShortString);
 begin
     if assigned(wdp) then CloseWindow(wdp);
     if assigned(wdf) then CloseWindow(wdf);
@@ -121,7 +121,7 @@ BEGIN
     If wdp = Nil Then CleanUp('Unable to open window 1.');
 
     wdf:=OpenWindowTags(NIL,[WA_CustomScreen, PtrUInt(sc),
-                             WA_Title, PtrUInt(PChar('FillRect')),
+                             WA_Title, PtrUInt(PAnsiChar('FillRect')),
                              WA_Left,(sc^.Width div 2-200) div 2,
                              WA_Top,(sc^.Height-sc^.BarHeight-300)div 2,
                              WA_Zoom, PtrUInt(@Dimensions),
@@ -140,7 +140,7 @@ BEGIN
                              WA_SizeGadget, lTRUE,
                              WA_SizeBBottom, lTRUE,
                              WA_GimmeZeroZero, lTRUE,
-                             WA_ScreenTitle, PtrUInt(PChar(ScreenTitle)),
+                             WA_ScreenTitle, PtrUInt(PAnsiChar(ScreenTitle)),
                              WA_IDCMP, IDCMP_RAWKEY or IDCMP_CLOSEWINDOW,
                              TAG_DONE]);
 

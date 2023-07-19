@@ -390,7 +390,7 @@ type
     function GetSiblingOfIndex(SiblingIDs: TIntegerDynArray; Index: integer): integer; virtual;
     function ComputeValue(El: TCSSElement): TCSSString; virtual;
     function SameValueText(const A, B: TCSSString): boolean; virtual;
-    function SameValueText(A: PChar; ALen: integer; B: PChar; BLen: integer): boolean; virtual;
+    function SameValueText(A: PAnsiChar; ALen: integer; B: PAnsiChar; BLen: integer): boolean; virtual;
     function PosSubString(const SearchStr, Str: TCSSString): integer; virtual;
     function PosWord(const SearchWord, Words: TCSSString): integer; virtual;
     function GetSiblingCount(aNode: ICSSNode): integer; virtual;
@@ -1538,10 +1538,10 @@ begin
     Result:=A=B;
 end;
 
-function TCSSResolver.SameValueText(A: PChar; ALen: integer; B: PChar;
+function TCSSResolver.SameValueText(A: PAnsiChar; ALen: integer; B: PAnsiChar;
   BLen: integer): boolean;
 var
-  AC, BC: Char;
+  AC, BC: AnsiChar;
   i: Integer;
 begin
   if ALen<>BLen then exit(false);
@@ -1566,16 +1566,16 @@ function TCSSResolver.PosSubString(const SearchStr, Str: TCSSString): integer;
 var
   SearchLen: SizeInt;
   i: Integer;
-  SearchP, StrP: PChar;
-  AC, BC: Char;
+  SearchP, StrP: PAnsiChar;
+  AC, BC: AnsiChar;
 begin
   Result:=0;
   if SearchStr='' then exit;
   if Str='' then exit;
   if StringComparison=crscCaseInsensitive then
   begin
-    SearchP:=PChar(SearchStr);
-    StrP:=PChar(Str);
+    SearchP:=PAnsiChar(SearchStr);
+    StrP:=PAnsiChar(Str);
     SearchLen:=length(SearchStr);
     AC:=SearchP^;
     for i:=0 to length(Str)-SearchLen do

@@ -6,16 +6,16 @@ uses
   mysql57dyn;
 
 Const
-  CHost     : string = 'localhost';
-  CDataBase : string = 'test';
-  CQuery1   : string = 'select * from FPDEV';
-  CQuery2   : string = 'select * from FPDEV where ID between ? and ?';
+  CHost     : AnsiString = 'localhost';
+  CDataBase : AnsiString = 'test';
+  CQuery1   : AnsiString = 'select * from FPDEV';
+  CQuery2   : AnsiString = 'select * from FPDEV where ID between ? and ?';
 
 var
-  Database : string;
+  Database : AnsiString;
   MySQL : PMYSQL;
   i, real_length : integer;
-  s : string;
+  s : AnsiString;
   Res : PMYSQL_RES;
   Field: PMYSQL_FIELD;
   Row : MYSQL_ROW;
@@ -37,13 +37,13 @@ var
     error: my_bool;
   end;
 
-procedure MySQLError(const Msg: string);
+procedure MySQLError(const Msg: AnsiString);
 begin
   Writeln (stderr, Msg, ' (', mysql_errno(MySQL), ': ', mysql_error(MySQL), ')');
   halt(1);
 end;
 
-procedure MySQLStmtError(const Msg: string);
+procedure MySQLStmtError(const Msg: AnsiString);
 begin
   Writeln (stderr, Msg, ' (', mysql_stmt_errno(Stmt), ': ', mysql_stmt_error(Stmt), ')');
   halt(1);

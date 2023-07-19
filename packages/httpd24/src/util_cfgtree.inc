@@ -44,10 +44,10 @@ type
  *}
 ap_directive_t = record
     {** The current directive *}
-    directive: PChar;
+    directive: PAnsiChar;
     {** The arguments for the current directive, stored as a space
      *  separated list *}
-    args: PChar;
+    args: PAnsiChar;
     {** The next directive node in the tree *}
     next: Pap_directive_t;
     {** The first child node of this directive *}
@@ -60,7 +60,7 @@ ap_directive_t = record
 
     {* ### these may go away in the future, but are needed for now *}
     {** The name of the file this directive was found in *}
-    filename: PChar;
+    filename: PAnsiChar;
     {** The line number the directive was on *}
     line_num: Integer;
 

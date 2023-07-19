@@ -12,7 +12,7 @@ const
 Var F : TGZfileStream;
     S : String;
     i :longint;
-    c : char;
+    c : AnsiChar;
 begin
   Writeln ('Creating file.');
   S:='This is a sentence'+eol;

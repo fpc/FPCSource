@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
@@ -40,65 +44,55 @@
             </Debugging>
             <LinkSmart Value="True"/>
           </Linking>
-          <Other>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="--skiptiming --format=plain --all"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--skiptiming --format=plain --suite=TTestSQLScanner.TestAction"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="--skiptiming --format=plain --suite=TTestSQLScanner.TestAction"/>
+            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="FCL"/>
-      </Item1>
-    </RequiredPackages>
     <Units Count="7">
       <Unit0>
         <Filename Value="testsqlscanner.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testsqlscanner"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcsqlscanner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcsqlscanner"/>
       </Unit1>
       <Unit2>
         <Filename Value="../src/sql/fpsqltree.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpsqltree"/>
       </Unit2>
       <Unit3>
         <Filename Value="../src/sql/fpsqlscanner.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpsqlscanner"/>
       </Unit3>
       <Unit4>
         <Filename Value="../src/sql/fpsqlparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpsqlparser"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcparser"/>
       </Unit5>
       <Unit6>
         <Filename Value="tcgensql.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcgensql"/>
       </Unit6>
     </Units>
   </ProjectOptions>
@@ -130,7 +124,7 @@
       </Optimizations>
     </CodeGeneration>
     <Other>
-      <CompilerPath Value="$(CompPath)"/>
+      <CustomOptions Value="-tunicodertl"/>
     </Other>
   </CompilerOptions>
   <Debugging>

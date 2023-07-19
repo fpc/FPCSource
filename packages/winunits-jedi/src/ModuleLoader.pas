@@ -74,17 +74,17 @@ const
 
 
 {$IFNDEF JWA_INCLUDEMODE}
-function LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function LoadModule(var Module: TModuleHandle; FileName: Ansistring): Boolean;
 {$ELSE}
-function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: Ansistring): Boolean;
 {$ENDIF JWA_INCLUDEMODE}
 
-function LoadModuleEx(var Module: TModuleHandle; FileName: string; Flags: Cardinal): Boolean;
+function LoadModuleEx(var Module: TModuleHandle; FileName: Ansistring; Flags: Cardinal): Boolean;
 procedure UnloadModule(var Module: TModuleHandle);
-function GetModuleSymbol(Module: TModuleHandle; SymbolName: string): Pointer;
-function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: string; var Accu: Boolean): Pointer;
-function ReadModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
-function WriteModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
+function GetModuleSymbol(Module: TModuleHandle; SymbolName: Ansistring): Pointer;
+function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: Ansistring; var Accu: Boolean): Pointer;
+function ReadModuleData(Module: TModuleHandle; SymbolName: Ansistring; var Buffer; Size: Cardinal): Boolean;
+function WriteModuleData(Module: TModuleHandle; SymbolName: Ansistring; var Buffer; Size: Cardinal): Boolean;
 
 // (p3)
 // Simple DLL loading class. The idea is to use it to dynamically load
@@ -106,7 +106,7 @@ type
   TModuleLoader = class(TObject)
   private
     FHandle: TModuleHandle;
-    FDLLName: string;
+    FDLLName: ansistring;
     function GetLoaded: Boolean;
   protected
     procedure Load(LoadMethods: TModuleLoadMethods); virtual;
@@ -115,22 +115,22 @@ type
   public
     // Check whether a DLL (and optionally a function) is available on the system
     // To only check the DLL, leave ProcName empty
-    class function IsAvaliable(const ADLLName: string; const AProcName: string = ''): Boolean;
-    constructor Create(const ADLLName: string; LoadMethods: TModuleLoadMethods = []);
+    class function IsAvaliable(const ADLLName: ansistring; const AProcName: AnsiString = ''): Boolean;
+    constructor Create(const ADLLName: ansistring; LoadMethods: TModuleLoadMethods = []);
     destructor Destroy; override;
     // Get a pointer to a function in the DLL. Should be called as GetProcedure('Name',@FuncPointer);
     // Returns True if the function was found. Note that a call to GetProcAddress is only executed if AProc = nil
-    function GetProcedure(const AName: string; var AProc: Pointer): Boolean;
+    function GetProcedure(const AName: ansistring; var AProc: Pointer): Boolean;
     // Returns a symbol exported from the DLL and puts it in Buffer.
     // Make sure AName is actually a symbol and not a function or this will crash horribly!
-    function GetExportedSymbol(const AName: string; var Buffer; Size: Integer): Boolean;
+    function GetExportedSymbol(const AName: ansistring; var Buffer; Size: Integer): Boolean;
     // Changes a symbol exported from the DLL into the value in Buffer.
     // The change is not persistent (it will get lost when the DLL is unloaded)
     // Make sure AName is actually a symbol and not a function or this will crash horribly!
-    function SetExportedSymbol(const AName: string; var Buffer; Size: Integer): Boolean;
+    function SetExportedSymbol(const AName: ansistring; var Buffer; Size: Integer): Boolean;
 
     property Loaded: Boolean read GetLoaded;
-    property DLLName: string read FDLLName;
+    property DLLName: ansistring read FDLLName;
     property Handle: TModuleHandle read FHandle;
   end;
 
@@ -157,13 +157,13 @@ implementation
 // on entry the function will do nothing but returning success.
 
 {$IFNDEF JWA_INCLUDEMODE}
-function LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function LoadModule(var Module: TModuleHandle; FileName: AnsiString): Boolean;
 {$ELSE}
-function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: AnsiString): Boolean;
 {$ENDIF JWA_INCLUDEMODE}
 begin
   if Module = INVALID_MODULEHANDLE_VALUE then
-    Module := LoadLibraryA(PChar(FileName));
+    Module := LoadLibraryA(PAnsiChar(FileName));
   Result := Module <> INVALID_MODULEHANDLE_VALUE;
 end;
 
@@ -171,10 +171,10 @@ end;
 // LoadLibraryEx is used to get better control of the loading
 // for the allowed values for flags see LoadLibraryEx documentation.
 
-function LoadModuleEx(var Module: TModuleHandle; FileName: string; Flags: Cardinal): Boolean;
+function LoadModuleEx(var Module: TModuleHandle; FileName: AnsiString; Flags: Cardinal): Boolean;
 begin
   if Module = INVALID_MODULEHANDLE_VALUE then
-    Module := LoadLibraryExA(PChar(FileName), 0, Flags);
+    Module := LoadLibraryExA(PAnsiChar(FileName), 0, Flags);
   Result := Module <> INVALID_MODULEHANDLE_VALUE;
 end;
 
@@ -194,11 +194,11 @@ end;
 // if it is exported from the DLL Module
 // nil is returned if the symbol is not available
 
-function GetModuleSymbol(Module: TModuleHandle; SymbolName: string): Pointer;
+function GetModuleSymbol(Module: TModuleHandle; SymbolName: AnsiString): Pointer;
 begin
   Result := nil;
   if Module <> INVALID_MODULEHANDLE_VALUE then
-    Result := GetProcAddress(Module, PChar(SymbolName));
+    Result := GetProcAddress(Module, PAnsiChar(SymbolName));
 end;
 
 // returns the pointer to the symbol named SymbolName
@@ -209,11 +209,11 @@ end;
 // This is very handy for rendering a global result
 // when accessing a long list of symbols.
 
-function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: string; var Accu: Boolean): Pointer;
+function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: AnsiString; var Accu: Boolean): Pointer;
 begin
   Result := nil;
   if Module <> INVALID_MODULEHANDLE_VALUE then
-    Result := GetProcAddress(Module, PChar(SymbolName));
+    Result := GetProcAddress(Module, PAnsiChar(SymbolName));
   Accu := Accu and (Result <> nil);
 end;
 
@@ -224,7 +224,7 @@ end;
 // Be sure to access a variable not a function and be sure
 // to read the correct amount of data.
 
-function ReadModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
+function ReadModuleData(Module: TModuleHandle; SymbolName: AnsiString; var Buffer; Size: Cardinal): Boolean;
 var
   Sym: Pointer;
 begin
@@ -243,7 +243,7 @@ end;
 // The changes are not persistent. They get lost when the
 // DLL is unloaded.
 
-function WriteModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
+function WriteModuleData(Module: TModuleHandle; SymbolName: AnsiString; var Buffer; Size: Cardinal): Boolean;
 var
   Sym: Pointer;
 begin
@@ -268,13 +268,13 @@ const
 // on entry the function will do nothing but returning success.
 
 {$IFNDEF JWA_INCLUDEMODE}
-function LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function LoadModule(var Module: TModuleHandle; FileName: AnsiString): Boolean;
 {$ELSE}
-function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: string): Boolean;
+function ModuleLoader_LoadModule(var Module: TModuleHandle; FileName: AnsiString): Boolean;
 {$ENDIF JWA_INCLUDEMODE}
 begin
   if Module = INVALID_MODULEHANDLE_VALUE then
-    Module := dlopen(PChar(FileName), RTLD_NOW);
+    Module := dlopen(PAnsiChar(FileName), RTLD_NOW);
   Result := Module <> INVALID_MODULEHANDLE_VALUE;
 end;
 
@@ -282,10 +282,10 @@ end;
 // dlopen() with flags is used to get better control of the loading
 // for the allowed values for flags see "man dlopen".
 
-function LoadModuleEx(var Module: TModuleHandle; FileName: string; Flags: Cardinal): Boolean;
+function LoadModuleEx(var Module: TModuleHandle; FileName: AnsiString; Flags: Cardinal): Boolean;
 begin
   if Module = INVALID_MODULEHANDLE_VALUE then
-    Module := dlopen(PChar(FileName), Flags);
+    Module := dlopen(PAnsiChar(FileName), Flags);
   Result := Module <> INVALID_MODULEHANDLE_VALUE;
 end;
 
@@ -305,11 +305,11 @@ end;
 // if it is exported from the .so Module
 // nil is returned if the symbol is not available
 
-function GetModuleSymbol(Module: TModuleHandle; SymbolName: string): Pointer;
+function GetModuleSymbol(Module: TModuleHandle; SymbolName: AnsiString): Pointer;
 begin
   Result := nil;
   if Module <> INVALID_MODULEHANDLE_VALUE then
-    Result := dlsym(Module, PChar(SymbolName));
+    Result := dlsym(Module, PAnsiChar(SymbolName));
 end;
 
 // returns the pointer to the symbol named SymbolName
@@ -320,11 +320,11 @@ end;
 // This is very handy for rendering a global result
 // when accessing a long list of symbols.
 
-function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: string; var Accu: Boolean): Pointer;
+function GetModuleSymbolEx(Module: TModuleHandle; SymbolName: AnsiString; var Accu: Boolean): Pointer;
 begin
   Result := nil;
   if Module <> INVALID_MODULEHANDLE_VALUE then
-    Result := dlsym(Module, PChar(SymbolName));
+    Result := dlsym(Module, PAnsiChar(SymbolName));
   Accu := Accu and (Result <> nil);
 end;
 
@@ -335,7 +335,7 @@ end;
 // Be sure to access a variable not a function and be sure
 // to read the correct amount of data.
 
-function ReadModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
+function ReadModuleData(Module: TModuleHandle; SymbolName: AnsiString; var Buffer; Size: Cardinal): Boolean;
 var
   Sym: Pointer;
 begin
@@ -354,7 +354,7 @@ end;
 // The changes are not persistent. They get lost when the
 // .so is unloaded.
 
-function WriteModuleData(Module: TModuleHandle; SymbolName: string; var Buffer; Size: Cardinal): Boolean;
+function WriteModuleData(Module: TModuleHandle; SymbolName: AnsiString; var Buffer; Size: Cardinal): Boolean;
 var
   Sym: Pointer;
 begin
@@ -368,7 +368,7 @@ end;
 
 //=== { TModuleLoader } ======================================================
 
-constructor TModuleLoader.Create(const ADLLName: string; LoadMethods: TModuleLoadMethods = []);
+constructor TModuleLoader.Create(const ADLLName: AnsiString; LoadMethods: TModuleLoadMethods = []);
 begin
   inherited Create;
   FHandle := INVALID_MODULEHANDLE_VALUE;
@@ -387,7 +387,7 @@ begin
   // overridden classes should handle this
 end;
 
-function TModuleLoader.GetExportedSymbol(const AName: string; var Buffer;
+function TModuleLoader.GetExportedSymbol(const AName: AnsiString; var Buffer;
   Size: Integer): Boolean;
 var
   ASymbol: Pointer;
@@ -402,7 +402,7 @@ begin
   Result := Handle <> INVALID_MODULEHANDLE_VALUE;
 end;
 
-function TModuleLoader.GetProcedure(const AName: string; var AProc: Pointer): Boolean;
+function TModuleLoader.GetProcedure(const AName: AnsiString; var AProc: Pointer): Boolean;
 begin
   Result := Loaded;
   if Result and not Assigned(AProc) then
@@ -417,7 +417,7 @@ begin
   end;
 end;
 
-class function TModuleLoader.IsAvaliable(const ADLLName: string; const AProcName: string = ''): Boolean;
+class function TModuleLoader.IsAvaliable(const ADLLName: AnsiString; const AProcName: AnsiString = ''): Boolean;
 var
   Module: TModuleHandle;
   P: Pointer;
@@ -462,7 +462,7 @@ begin
     Error(GetLastError);
 end;
 
-function TModuleLoader.SetExportedSymbol(const AName: string; var Buffer;
+function TModuleLoader.SetExportedSymbol(const AName: AnsiString; var Buffer;
   Size: Integer): Boolean;
 var
   ASymbol: Pointer;

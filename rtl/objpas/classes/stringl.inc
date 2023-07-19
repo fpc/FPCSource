@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -104,7 +105,7 @@ begin
   FLBS:=AValue;
 end;
 
-procedure TStrings.SetDelimiter(c:Char);
+procedure TStrings.SetDelimiter(c:AnsiChar);
 begin
   CheckSpecialChars;
   FDelimiter:=c;
@@ -123,7 +124,7 @@ begin
     FEncoding:=nil;
 end;
 
-Function TStrings.GetDelimiter : Char;
+Function TStrings.GetDelimiter : AnsiChar;
 begin
   CheckSpecialChars;
   Result:=FDelimiter;
@@ -142,19 +143,19 @@ begin
 end;
 
 
-procedure TStrings.SetQuoteChar(c:Char);
+procedure TStrings.SetQuoteChar(c:AnsiChar);
 begin
   CheckSpecialChars;
   FQuoteChar:=c;
 end;
 
-Function TStrings.GetQuoteChar :Char;
+Function TStrings.GetQuoteChar :AnsiChar;
 begin
   CheckSpecialChars;
   Result:=FQuoteChar;
 end;
 
-procedure TStrings.SetNameValueSeparator(c:Char);
+procedure TStrings.SetNameValueSeparator(c:AnsiChar);
 begin
   CheckSpecialChars;
   FNameValueSeparator:=c;
@@ -162,7 +163,7 @@ end;
 
 
 
-Function TStrings.GetNameValueSeparator :Char;
+Function TStrings.GetNameValueSeparator :AnsiChar;
 begin
   CheckSpecialChars;
   Result:=FNameValueSeparator;
@@ -172,7 +173,7 @@ end;
 function TStrings.GetCommaText: string;
 
 Var
-  C1,C2 : Char;
+  C1,C2 : AnsiChar;
   FSD : Boolean;
 
 begin
@@ -216,8 +217,8 @@ Function TStrings.GetDelimitedText: string;
 
 Var
   I : integer;
-  p : pchar;
-  BreakChars : set of char;
+  p : PAnsiChar;
+  BreakChars : set of AnsiChar;
   S : String;
   doQuote : Boolean;
     
@@ -235,11 +236,11 @@ begin
     doQuote:=FAlwaysQuote;
     If not DoQuote then
       begin
-      p:=pchar(S);
+      p:=PAnsiChar(S);
       //Quote strings that include BreakChars:
       while not(p^ in BreakChars) do
         inc(p);
-      DoQuote:=(p<>pchar(S)+length(S));  
+      DoQuote:=(p<>PAnsiChar(S)+length(S));  
       end;
     if DoQuote and (QuoteChar<>#0) then
       Result:=Result+QuoteString(S,QuoteChar)
@@ -534,7 +535,7 @@ begin
   DoSetDelimitedText(aValue,True,StrictDelimiter,FQuoteChar,FDelimiter);
 end;
 
-Procedure TStrings.DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : Char);
+Procedure TStrings.DoSetDelimitedText(const AValue: string; DoClear,aStrictDelimiter : Boolean; aQuoteChar,aDelimiter : AnsiChar);
 
 var
   len,i,j: SizeInt;
@@ -772,7 +773,7 @@ end;
 
 Function TStrings.GetTextStr: string;
 
-Var P : Pchar;
+Var P : PAnsiChar;
     I,L,NLS : SizeInt;
     S,NL : String;
 
@@ -966,7 +967,7 @@ begin
   DoSetDelimitedText(S,False,StrictDelimiter,'"',',');
 end;
 
-procedure TStrings.AddDelimitedText(const S: String; ADelimiter: Char; AStrictDelimiter: Boolean);
+procedure TStrings.AddDelimitedText(const S: String; ADelimiter: AnsiChar; AStrictDelimiter: Boolean);
 
 begin
   CheckSpecialChars;
@@ -1252,9 +1253,9 @@ begin
 end;
 
 
-Function TStrings.GetText: PChar;
+Function TStrings.GetText: PAnsiChar;
 begin
-  Result:=StrNew(Pchar(Self.Text));
+  Result:=StrNew(PAnsiChar(Self.Text));
 end;
 
 
@@ -1580,13 +1581,13 @@ begin
     Exit;
     end;
   NL:=GetLineBreakCharLBS;
-  NLS:=Length(NL)*SizeOf(Char);
+  NLS:=Length(NL)*SizeOf(AnsiChar);
   For i:=0 To count-1 do
     begin
     S:=Strings[I];
     L:=Length(S);
     if L<>0 then
-      Stream.WriteBuffer(S[1], L*SizeOf(Char));
+      Stream.WriteBuffer(S[1], L*SizeOf(AnsiChar));
     if (I<Count-1) or Not SkipLastLineBreak then
       Stream.WriteBuffer(NL[1], NLS);
     end;
@@ -1630,7 +1631,7 @@ end;
 
 
 
-Procedure TStrings.SetText(TheText: PChar);
+Procedure TStrings.SetText(TheText: PAnsiChar);
 
 Var S : String;
 
@@ -1848,7 +1849,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
+      FillWord (PAnsiChar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;

@@ -35,7 +35,7 @@
 interface
 
 uses
-  Classes, SysUtils,bufdataset,sqldb,db,ctypes,fmtbcd,
+  Classes,Types, SysUtils,bufdataset,sqldb,db,ctypes,fmtbcd,
 {$IFDEF mysql80}
   mysql80dyn;
 {$ELSE}
@@ -148,25 +148,26 @@ Type
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL: PMySQL);
     procedure ExecuteDirectMySQL(const query : string);
-    function InternalStrToBCD(C: pchar; Len: integer): tBCD;
-    function InternalStrToCurrency(C: pchar; Len: integer): Currency;
-    function InternalStrToDate(C: pchar; Len: integer): TDateTime;
-    function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
-    function InternalStrToFloat(C: pchar; Len: integer): Extended;
-    function InternalStrToInt(C: pchar; Len: integer): integer;
-    function InternalStrToDWord(C: pchar; Len: integer): DWord;
-    function InternalStrToInt64(C: pchar; Len: integer): Int64;
-    function InternalStrToTime(C: pchar; Len: integer): TDateTime;
-    function StrToMSecs(C: pchar; Len: integer): Word;
+    function InternalStrToBCD(C: PAnsiChar; Len: integer): tBCD;
+    function InternalStrToCurrency(C: PAnsiChar; Len: integer): Currency;
+    function InternalStrToDate(C: PAnsiChar; Len: integer): TDateTime;
+    function InternalStrToDateTime(C: PAnsiChar; Len: integer): TDateTime;
+    function InternalStrToFloat(C: PAnsiChar; Len: integer): Extended;
+    function InternalStrToInt(C: PAnsiChar; Len: integer): integer;
+    function InternalStrToDWord(C: PAnsiChar; Len: integer): DWord;
+    function InternalStrToInt64(C: PAnsiChar; Len: integer): Int64;
+    function InternalStrToTime(C: PAnsiChar; Len: integer): TDateTime;
+    function StrToMSecs(C: PAnsiChar; Len: integer): Word;
 {$IFDEF MYSQL40}
-    function InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
+    function InternalStrToTimeStamp(C: PAnsiChar; Len: integer): TDateTime;
 {$ENDIF}
   protected
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
-    function EscapeString(const Str : string) : string;
+    function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PAnsiChar; Len: integer; out CreateBlob : boolean): Boolean;
+    function EscapeString(const Str : UnicodeString) : UnicodeString;
+    function EscapeString(const Str : AnsiString) : AnsiString;
 
     // SQLConnection methods
     procedure DoInternalConnect; override;
@@ -469,9 +470,10 @@ Var
   APort : Cardinal;
   i,e: integer;
   AMysql_Option: mysql_option;
-  OptStr: string;
+  OptStr: ansistring;
   OptInt: cuint;
   Opt: pointer;
+  CS,H,U,P : AnsiString;
 
 begin
   HMySQL := mysql_init(HMySQL);
@@ -486,26 +488,32 @@ begin
       if e=0 then
         Opt := @OptInt
       else
-        Opt := pchar(OptStr);
+        Opt := PAnsiChar(OptStr);
       if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
           MySQLError(HMySQL,Format(SErrSettingParameter,[Params.Names[i]]),Self);
       end;
     end;
-
-  if mysql_real_connect(HMySQL,PChar(HostName),PChar(UserName),PChar(Password),Nil,APort,Nil,CLIENT_MULTI_RESULTS) = nil then //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
+  H:=HostName;
+  U:=UserName;
+  P:=Password;
+  if mysql_real_connect(HMySQL,PAnsiChar(H),PAnsiChar(U),PAnsiChar(P),Nil,APort,Nil,CLIENT_MULTI_RESULTS) = nil then //CLIENT_MULTI_RESULTS is required by CALL SQL statement(executes stored procedure), that produces result sets
     MySQLError(HMySQL,SErrServerConnectFailed,Self);
 
   if (trim(CharSet) <> '') then
     // major_version*10000 + minor_version *100 + sub_version
     if (50007 <= mysql_get_server_version(HMySQL)) then
       begin
+      CS:=CharSet;
       // Only available for MySQL 5.0.7 and later...
-      if mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0 then
+      if mysql_set_character_set(HMySQL, PAnsiChar(CS)) <> 0 then
         MySQLError(HMySQL,SErrSetCharsetFailed,Self);
       end
     else
-      if mysql_query(HMySQL,PChar('SET NAMES ''' + EscapeString(CharSet) +'''')) <> 0 then
+      begin
+      CS:='SET NAMES ''' + EscapeString(CharSet) +'''';
+      if mysql_query(HMySQL,PAnsiChar(CS)) <> 0 then
         MySQLError(HMySQL,SErrExecuting,Self);
+      end;  
 end;
 
 function TConnectionName.GetAsSQLText(Param: TParam) : string;
@@ -534,8 +542,13 @@ end;
 
 
 Procedure TConnectionName.SelectDatabase;
+
+Var
+  DN : AnsiString;
+
 begin
-  if mysql_select_db(FMySQL,pchar(DatabaseName))<>0 then
+  DN:=DatabaseName;
+  if mysql_select_db(FMySQL,PAnsiChar(DN))<>0 then
     MySQLError(FMySQL,SErrDatabaseSelectFailed,Self);
 end;
 
@@ -554,8 +567,9 @@ end;
 
 procedure TConnectionName.ExecuteDirectMySQL(const query : string);
 
-var AMySQL      : PMySQL;
-
+var 
+  AMySQL      : PMySQL;
+  Qry : AnsiString;
 begin
   CheckDisConnected;
 
@@ -565,7 +579,12 @@ begin
     AMySQL := nil;
     ConnectMySQL(AMySQL);
     try
-      if mysql_query(AMySQL,pchar(query))<>0 then
+      {$if SIZEOF(CHAR)=2}
+      Qry:=UTF8Encode(Query);
+      {$ELSE}
+      Qry:=Query;
+      {$ENDIF}
+      if mysql_query(AMySQL,PAnsiChar(Qry))<>0 then
         MySQLError(AMySQL,SErrExecuting,Self);
     finally
       mysql_close(AMySQL);
@@ -575,14 +594,20 @@ begin
   end;
 end;
 
-function TConnectionName.EscapeString(const Str: string): string;
+function TConnectionName.EscapeString(const Str: ansistring): ansistring;
 
-var Len : integer;
-
+var 
+  Len : integer;
 begin
   SetLength(result,length(str)*2+1);
-  Len := mysql_real_escape_string(FMySQL,pchar(Result),pchar(Str),length(Str));
+  Len := mysql_real_escape_string(FMySQL,PAnsiChar(Result),PAnsiChar(Str),length(Str));
   SetLength(result,Len);
+end;
+
+function TConnectionName.EscapeString(const Str: Unicodestring): Unicodestring;
+
+begin
+  Result:=UTF8Decode(EscapeString(UTF8Encode(Str)));
 end;
 
 procedure TConnectionName.DoInternalConnect;
@@ -718,9 +743,10 @@ procedure TConnectionName.Execute(cursor: TSQLCursor;
 Var
   C : TCursorName;
   i : integer;
-  ParamNames,ParamValues : array of string;
+  ParamNames,ParamValues : TAnsiStringDynArray;
   Res: PMYSQL_RES;
   Status : Integer;
+  FStat : AnsiString;
 
 begin
   C:=Cursor as TCursorName;
@@ -746,8 +772,12 @@ begin
       Log(detExecute, C.FPreparedStatement);
     if LogEvent(detActualSQL) then
       Log(detActualSQL,C.FActualStatement);
-
-    if mysql_query(FMySQL,Pchar(C.FActualStatement))<>0 then
+    {$IF SIZEOF(CHAR)=2}
+    FStat:=UTF8Encode(C.FActualStatement);  
+    {$ELSE}
+    FStat:=C.FActualStatement;
+    {$ENDIF}
+    if mysql_query(FMySQL,PAnsiChar(FStat))<>0 then
       begin
       if not ForcedClose then
         MySQLError(FMYSQL,SErrExecuting,Self)
@@ -867,7 +897,7 @@ begin
       else
         NewType := ftString;
 {$IFDEF MYSQL50_UP}
-      if AField^.charsetnr = 63 then begin //BINARY vs. CHAR, VARBINARY vs. VARCHAR
+      if AField^.charsetnr = 63 then begin //BINARY vs. AnsiChar, VARBINARY vs. VARCHAR
         if NewType = ftFixedChar then
           NewType := ftBytes
         else
@@ -996,7 +1026,7 @@ begin
   ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
-function TConnectionName.InternalStrToInt(C: pchar; Len: integer): integer;
+function TConnectionName.InternalStrToInt(C: PAnsiChar; Len: integer): integer;
 
 Var
   S : String;
@@ -1009,7 +1039,7 @@ begin
   Result:=StrToInt(S);
 end;
 
-function TConnectionName.InternalStrToDWord(C: pchar; Len: integer): DWord;
+function TConnectionName.InternalStrToDWord(C: PAnsiChar; Len: integer): DWord;
 Var
   S : String;
 begin
@@ -1020,7 +1050,7 @@ begin
   Result:=StrToDWord(S);
 end;
 
-function TConnectionName.InternalStrToInt64(C: pchar; Len: integer): Int64;
+function TConnectionName.InternalStrToInt64(C: PAnsiChar; Len: integer): Int64;
 
 Var
   S : String;
@@ -1033,7 +1063,7 @@ begin
   Result:=StrToInt64(S);
 end;
 
-function TConnectionName.InternalStrToFloat(C: pchar; Len: integer): Extended;
+function TConnectionName.InternalStrToFloat(C: PAnsiChar; Len: integer): Extended;
 
 var
   Tmp: string;
@@ -1045,7 +1075,7 @@ begin
   Result := StrToFloat(Tmp, FSQLFormatSettings);
 end;
 
-function TConnectionName.InternalStrToCurrency(C: pchar; Len: integer): Currency;
+function TConnectionName.InternalStrToCurrency(C: PAnsiChar; Len: integer): Currency;
 
 var
   Tmp: string;
@@ -1057,7 +1087,7 @@ begin
   Result := StrToCurr(Tmp, FSQLFormatSettings);
 end;
 
-function TConnectionName.InternalStrToBCD(C: pchar; Len: integer): tBCD;
+function TConnectionName.InternalStrToBCD(C: PAnsiChar; Len: integer): tBCD;
 
 var
   Tmp: string;
@@ -1069,7 +1099,7 @@ begin
   Result := StrToBCD(Tmp, FSQLFormatSettings);
 end;
 
-function TConnectionName.InternalStrToDate(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToDate(C: PAnsiChar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -1088,7 +1118,7 @@ begin
     Result:=EncodeDate(EY, EM, ED);
 end;
 
-function TConnectionName.StrToMSecs(C: pchar; Len: integer): Word;
+function TConnectionName.StrToMSecs(C: PAnsiChar; Len: integer): Word;
 {$IFDEF MYSQL56_UP}
 var I: Integer;
     d, MSecs: double;
@@ -1113,7 +1143,7 @@ begin
 {$ENDIF}
 end;
 
-function TConnectionName.InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToDateTime(C: PAnsiChar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -1141,11 +1171,11 @@ begin
   Result := ComposeDateTime(Result, EncodeTimeInterval(EH, EN, ES, EMS));
 end;
 
-function TConnectionName.InternalStrToTime(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToTime(C: PAnsiChar; Len: integer): TDateTime;
 
 var
   EH, EM, ES, EMS: Word;
-  M: PChar;
+  M: PAnsiChar;
   I: Integer;
 
 begin
@@ -1174,7 +1204,7 @@ begin
 end;
 
 {$IFDEF mysql40}
-function TConnectionName.InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToTimeStamp(C: PAnsiChar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -1199,7 +1229,7 @@ begin
 end;
 {$ENDIF}
 
-function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
+function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PAnsiChar; Len: integer; out CreateBlob : boolean): Boolean;
 
 var
   VI: Integer;

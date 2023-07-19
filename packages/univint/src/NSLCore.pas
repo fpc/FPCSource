@@ -460,7 +460,7 @@ type
 		serviceListOffset: UInt16;
 		protocolListOffset: UInt16;
 		commentStringOffset: UInt16;
-{  char*                           startOfData; }
+{  AnsiChar*                           startOfData; }
                                               { protocol data is first on the list}
 	end;
 	NSLPluginDataPtr = ^NSLPluginData;

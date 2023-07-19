@@ -37,9 +37,9 @@ type
     FCalcIconFunc : TCalcIconFunc;
     FSelectIndex : integer;
     FNeedFocus : boolean;
-    FTitle : string;
+    FTitle : AnsiString;
     AccelGroup : PGtkAccelGroup;
-    procedure SetTitle (Value : string);
+    procedure SetTitle (Value : AnsiString);
     procedure CreatePixmaps;
     procedure NewSelection (Sender : TFPgtkObject; row,column:integer;
                             event:PGdkEventButton; data : pointer);
@@ -65,7 +65,7 @@ type
     procedure ChangeCollection (ACollection : TCollection);
     function CurrentItem : TCollectionItem;
     property SelectedRow : integer read FSelectIndex;
-    property Title : string read FTitle write SetTitle;
+    property Title : AnsiString read FTitle write SetTitle;
 
   end;
 
@@ -79,7 +79,7 @@ var
 
 { TButtonRow }
 
-procedure TButtonRow.SetTitle (Value : string);
+procedure TButtonRow.SetTitle (Value : AnsiString);
 begin
   FTitle := Value + ': ';
 end;

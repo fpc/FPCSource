@@ -66,7 +66,7 @@ Type
     Function Write(Const Args : Array of const) : Integer;
     Function WriteLn(Const Args : Array of const) : Integer;
     Property CurLine: integer read FCurLine write FCurLine;
-    Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
+    Property CurColumn: integer read FCurColumn write FCurColumn;// AnsiChar index, not codepoint
     Property CurElement: TJSElement read FCurElement write SetCurElement;
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
     Property LineBreak: string read FLineBreak write FLineBreak;
@@ -164,7 +164,7 @@ Type
   private
     FCurIndent : Integer;
     FFreeWriter : Boolean;
-    FIndentChar : Char;
+    FIndentChar : AnsiChar;
     FIndentSize: Byte;
     FLastChar: WideChar;
     FLinePos : Integer;
@@ -246,7 +246,7 @@ Type
   EJSWriter = Class(Exception);
 
 {$ifdef FPC_HAS_CPSTRING}
-Function UTF16ToUTF8(const S: UnicodeString): string;
+Function UTF16ToUTF8(const S: UnicodeString): ansistring;
 {$endif}
 Function QuoteJSString(const S: TJSString; Quote: TJSChar = #0): TJSString;
 
@@ -257,7 +257,7 @@ Resourcestring
   SErrNilNode = 'Nil node in Javascript';
 
 {$ifdef FPC_HAS_CPSTRING}
-function HexDump(p: PChar; Count: integer): string;
+function HexDump(p: PAnsiChar; Count: integer): string;
 var
   i: Integer;
 begin
@@ -266,7 +266,7 @@ begin
     Result:=Result+HexStr(ord(p[i]),2);
 end;
 
-function UTF16ToUTF8(const S: UnicodeString): string;
+function UTF16ToUTF8(const S: UnicodeString): ansistring;
 begin
   Result:=UTF8Encode(S);
   // prevent UTF8 codepage appear in the strings - we don't need codepage
@@ -501,7 +501,7 @@ end;
 procedure TJSWriter.Write(const U: UnicodeString);
 
 Var
-  S : String;
+  S : UTF8String;
 
 begin
   //system.writeln('TJSWriter.Write unicodestring=',U);
@@ -511,7 +511,7 @@ begin
     S:=UTF16ToUTF8(U);
     if S='' then exit;
     FLinePos:=FLinePos+Writer.Write(S);
-    FLastChar:=WideChar(S[length(S)]);
+    FLastChar:=AnsiChar(S[length(S)]);
     end
   else if U<>'' then
     begin
@@ -533,7 +533,7 @@ begin
     WriteIndent;
     if s='' then exit;
     FLinePos:=FLinePos+Writer.Write(S);
-    FLastChar:=WideChar(S[length(S)]);
+    FLastChar:=Char(S[length(S)]);
     end;
 end;
 
@@ -547,7 +547,7 @@ begin
     begin
     WriteIndent;
     Writer.WriteLn(S);
-    FLastChar:=WideChar(#10);
+    FLastChar:=Char(#10);
     FLinePos:=0;
     end;
 end;
@@ -555,7 +555,7 @@ end;
 {$ifdef FPC_HAS_CPSTRING}
 procedure TJSWriter.WriteLn(const U: UnicodeString);
 Var
-  S : String;
+  S : AnsiString;
 
 begin
   if UseUTF8 then
@@ -611,7 +611,7 @@ begin
             c:=S[I+1];
             if (c>=#$D000) and (c<=#$DFFF) then
               begin
-              inc(I,2); // surrogate, two char codepoint
+              inc(I,2); // surrogate, two AnsiChar codepoint
               continue;
               end;
             // invalid UTF-16, cannot be encoded as UTF-8 -> encode as hex
@@ -687,7 +687,7 @@ const
   end;
 
 Var
-  S , S2: String;
+  S , S2: TJSString;
   JS: TJSString;
   p, StartP: Integer;
   MinIndent, CurLineIndent, j, Exp, Code: Integer;
@@ -2190,18 +2190,20 @@ end;
 {$ifdef FPC_HAS_CPSTRING}
 function TTextWriter.Write(const S: UnicodeString): Integer;
 var
-  p: PWideChar;
+  p,pend: PWideChar;
   c: WideChar;
 begin
   if S='' then exit;
   Writing;
   Result:=DoWrite(S);
   p:=PWideChar(S);
+  pend:=p;
+  inc(PEnd,Length(S));
   repeat
     c:=p^;
     case c of
     #0:
-      if p-PWideChar(S)=length(S)*2 then
+      if p>=pend then
         break
       else
         inc(FCurColumn);
@@ -2214,7 +2216,7 @@ begin
       continue;
       end;
     else
-      // ignore low/high surrogate, CurColumn is char index, not codepoint
+      // ignore low/high surrogate, CurColumn is AnsiChar index, not codepoint
       inc(FCurColumn);
     end;
     inc(p);
@@ -2224,7 +2226,7 @@ end;
 
 function TTextWriter.Write(const S: TJSWriterString): Integer;
 var
-  c: Char;
+  c: AnsiChar;
   l, p: Integer;
 begin
   if S='' then exit;
@@ -2244,7 +2246,7 @@ begin
       if (p<=l) and (S[p] in [#10,#13]) and (c<>S[p]) then inc(p);
       end;
     else
-      // Note about UTF-8 multibyte chars: CurColumn is char index, not codepoint
+      // Note about UTF-8 multibyte chars: CurColumn is AnsiChar index, not codepoint
       inc(FCurColumn);
       inc(p);
     end;
@@ -2253,7 +2255,12 @@ end;
 
 function TTextWriter.WriteLn(const S: TJSWriterString): Integer;
 begin
-  Result:=Write(S)+Write(LineBreak);
+  Result:=Write(S);
+{$IF SIZEOF(Char)=1}
+  Result:=Result+Write(LineBreak);
+{$else}
+  Result:=Result+Write(UTF8Encode(LineBreak));
+{$ENDIF}
 end;
 
 function TTextWriter.Write(const Fmt: TJSWriterString;
@@ -2313,7 +2320,7 @@ begin
        vtString        : S:=V.VString^;
        vtPChar         : S:=V.VPChar;
        vtPWideChar     : U:=V.VPWideChar;
-       vtAnsiString    : S:=PChar(V.VAnsiString);
+       vtAnsiString    : S:=PAnsiChar(V.VAnsiString);
        vtCurrency      : Str(V.VCurrency^,S);
        vtVariant       : S:=V.VVariant^;
        vtWideString    : U:=PWideChar(V.VWideString);

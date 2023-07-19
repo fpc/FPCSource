@@ -60,7 +60,7 @@ type  Tconsole_type=(ttyNetwork
         exit_am_mode,
         ena_acs
       );
-      Ttermcodes=array[Ttermcode] of Pchar;
+      Ttermcodes=array[Ttermcode] of PAnsiChar;
       Ptermcodes=^Ttermcodes;
 
 const term_codes_ansi:Ttermcodes=
@@ -199,9 +199,9 @@ var
   f: file;
 
 const
-  logstart: string = '';
-  nl: char = #10;
-  logend: string = #10#10;
+  logstart: shortstring = '';
+  nl: AnsiChar = #10;
+  logend: shortstring = #10#10;
 {$endif logging}
 
 {$ifdef cpui386}
@@ -211,8 +211,8 @@ const
 const
 
 {  can_delete_term : boolean = false;}
-  ACSIn : string = '';
-  ACSOut : string = '';
+  ACSIn : shortstring = '';
+  ACSOut : shortstring = '';
   in_ACS : boolean =false;
 
   TerminalSupportsHighIntensityColors: boolean = false;
@@ -231,7 +231,7 @@ begin
   end;
 end;
 
-function Unicode2DecSpecialGraphics(Ch: WideChar): Char;
+function Unicode2DecSpecialGraphics(Ch: WideChar): AnsiChar;
 begin
   case Ch of
     #$25C6:
@@ -301,7 +301,7 @@ begin
   end;
 end;
 
-function convert_vga_to_acs(ch:char):word;
+function convert_vga_to_acs(ch:AnsiChar):word;
 
 {Ch contains a character in the VGA character set (i.e. codepage 437).
  This routine tries to convert some VGA symbols as well as possible to the
@@ -359,7 +359,7 @@ end;
 
 procedure SendEscapeSeqNdx(ndx:Ttermcode);
 
-var p:PChar;
+var p:PAnsiChar;
 
 begin
 { Always true because of vt100 default.
@@ -371,20 +371,20 @@ begin
 end;
 
 
-procedure SendEscapeSeq(const S: String);
+procedure SendEscapeSeq(const S: shortstring);
 begin
   fpWrite(stdoutputhandle, S[1], Length(S));
 end;
 
 
-function IntStr(l:longint):string;
+function IntStr(l:longint):shortstring;
 
 begin
   Str(l,intstr);
 end;
 
 
-Function XY2Ansi(x,y,ox,oy:longint):String;
+Function XY2Ansi(x,y,ox,oy:longint):shortstring;
 {
   Returns a string with the escape sequences to go to X,Y on the screen.
 
@@ -394,7 +394,7 @@ Function XY2Ansi(x,y,ox,oy:longint):String;
 }
 
 var delta:longint;
-    direction:char;
+    direction:AnsiChar;
     movement:string[32];
 
 begin
@@ -417,12 +417,12 @@ begin
         exit;
       end;
      delta:=ox-x;
-     direction:=char(byte('C')+byte(x<=ox));
+     direction:=AnsiChar(byte('C')+byte(x<=ox));
    end;
   if x=ox then
    begin
      delta:=oy-y;
-     direction:=char(byte('A')+byte(y>oy));
+     direction:=AnsiChar(byte('A')+byte(y>oy));
    end;
 
   if direction='H' then
@@ -433,11 +433,11 @@ begin
   xy2ansi:=#27'['+movement+direction;
 end;
 
-const  ansitbl:array[0..7] of char='04261537';
+const  ansitbl:array[0..7] of AnsiChar='04261537';
 
-function attr2ansi(Fg,Bg:byte;Attr:TEnhancedVideoAttributes;OFg,OBg:byte;OAttr:TEnhancedVideoAttributes):string;
+function attr2ansi(Fg,Bg:byte;Attr:TEnhancedVideoAttributes;OFg,OBg:byte;OAttr:TEnhancedVideoAttributes):shortstring;
 const
-  AttrOnOffStr: array [TEnhancedVideoAttribute, Boolean] of string = (
+  AttrOnOffStr: array [TEnhancedVideoAttribute, Boolean] of shortstring = (
     ('22;','1;'),
     ('22;','2;'),
     ('23;','3;'),
@@ -449,7 +449,7 @@ const
     ('29;','9;'),
     ('24;','21;'));
 var
-  tmpS: string;
+  tmpS: shortstring;
   A: TEnhancedVideoAttribute;
 begin
   attr2ansi:=#27'[';
@@ -531,7 +531,7 @@ end;
 
 procedure UpdateTTY(Force:boolean);
 var
-  outbuf   : array[0..1023+255] of char;
+  outbuf   : array[0..1023+255] of AnsiChar;
   chattr   : tenhancedvideocell;
   skipped  : boolean;
   outptr,
@@ -550,7 +550,7 @@ var
 
   function transform(const hstr:UnicodeString):RawByteString;
   var
-    DecSpecialGraphicsCharacter: Char;
+    DecSpecialGraphicsCharacter: AnsiChar;
   begin
     if external_codepage=CP_UTF8 then
       result:=Utf8Encode(hstr)
@@ -649,9 +649,9 @@ var
   end;
 
 (*
-function GetTermString(ndx:Ttermcode):String;
+function GetTermString(ndx:Ttermcode):shortstring;
 var
-   P{,pdelay}: PChar;
+   P{,pdelay}: PAnsiChar;
 begin
   GetTermString:='';
   if not assigned(cur_term_Strings) then
@@ -783,7 +783,7 @@ begin
    begin
     OutData(XY2Ansi(ScreenWidth,ScreenHeight,LastX,LastY));
     OutData(#8);
-    {Output last char}
+    {Output last AnsiChar}
     chattr:=p[1];
     if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) or (LastAttr<>chattr.EnhancedVideoAttributes) then
      OutClr(chattr.ForegroundColor,chattr.BackgroundColor,chattr.EnhancedVideoAttributes);
@@ -918,7 +918,7 @@ end;
 
 procedure decide_codepages;
 
-var s:string;
+var s:shortstring;
 
 begin
   if is_vga_code_page(external_codepage) then
@@ -980,14 +980,14 @@ end;
 procedure SysInitVideo;
 var
 {$ifdef linux}
-  FName: String;
+  FName: shortstring;
 {$endif linux}
   WS: packed record
     ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
   end;
 {  Err: Longint;}
 {  prev_term : TerminalCommon_ptr1;}
-  term:string;
+  term:shortstring;
   i:word;
 {$ifdef Linux}
   s:string[15];
@@ -996,8 +996,8 @@ var
   ThisTTY: String[30];
 {$endif}
 
-const font_vga:array[0..11] of char=#15#27'%@'#27'(U'#27'[3h';
-      font_lat1:array[0..5] of char=#27'%@'#27'(B';
+const font_vga:array[0..11] of AnsiChar=#15#27'%@'#27'(U'#27'[3h';
+      font_lat1:array[0..5] of AnsiChar=#27'%@'#27'(B';
 
 begin
   { check for tty }
@@ -1158,7 +1158,7 @@ end;
 
 procedure SysDoneVideo;
 
-var font_custom:array[0..2] of char=#27'(K';
+var font_custom:array[0..2] of AnsiChar=#27'(K';
 
 begin
   prepareDoneVideo;

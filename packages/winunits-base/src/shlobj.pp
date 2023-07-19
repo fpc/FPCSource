@@ -1040,7 +1040,7 @@ Type
      SHELLVIEWID = TGUID;
      TSHELLVIEWID = TGUID;
      PSHELLVIEWID = ^TGUID;
-     LPVIEWSETTINGS = Pchar;
+     LPVIEWSETTINGS = PAnsiChar;
 
      _CMInvokeCommandInfoEx = record
           cbSize : DWORD;                 { must be sizeof(CMINVOKECOMMANDINFOEX) }
@@ -1127,7 +1127,7 @@ Type
      PEXP_DARWIN_LINK = ^EXP_DARWIN_LINK;
      EXP_DARWIN_LINK = record
           dbh : DATABLOCK_HEADER;
-          szDarwinID : array[0..(MAX_PATH)-1] of CHAR;    { ANSI darwin ID associated with link }
+          szDarwinID : array[0..(MAX_PATH)-1] of AnsiChar;    { ANSI darwin ID associated with link }
           szwDarwinID : array[0..(MAX_PATH)-1] of WCHAR;  { UNICODE darwin ID associated with link }
        end;
      TEXP_DARWIN_LINK = EXP_DARWIN_LINK;
@@ -1149,7 +1149,7 @@ Type
      EXP_SZ_LINK = record
           cbSize : DWORD;                                 { Size of this extra data block }
           dwSignature : DWORD;                            { signature of this extra data block }
-          szTarget : array[0..(MAX_PATH)-1] of CHAR;      { ANSI target name w/EXP_SZ in it }
+          szTarget : array[0..(MAX_PATH)-1] of AnsiChar;      { ANSI target name w/EXP_SZ in it }
           swzTarget : array[0..(MAX_PATH)-1] of WCHAR;    { UNICODE target name w/EXP_SZ in it }
        end;
      LPEXP_SZ_LINK = PEXP_SZ_LINK;
@@ -1501,7 +1501,7 @@ Type
           ftLastWriteTime : FILETIME;
           nFileSizeHigh : DWORD;
           nFileSizeLow : DWORD;
-          cFileName : array[0..(MAX_PATH)-1] of CHAR;
+          cFileName : array[0..(MAX_PATH)-1] of AnsiChar;
        end;
      FILEDESCRIPTORA = _FILEDESCRIPTORA;
      TFILEDESCRIPTORA = _FILEDESCRIPTORA;
@@ -1731,16 +1731,16 @@ Type
      PROPPRG = record
           flPrg : WORD;
           flPrgInit : WORD;
-          achTitle : array[0..(PIFNAMESIZE)-1] of CHAR;
-          achCmdLine : array[0..((PIFSTARTLOCSIZE+PIFPARAMSSIZE)+1)-1] of CHAR;
-          achWorkDir : array[0..(PIFDEFPATHSIZE)-1] of CHAR;
+          achTitle : array[0..(PIFNAMESIZE)-1] of AnsiChar;
+          achCmdLine : array[0..((PIFSTARTLOCSIZE+PIFPARAMSSIZE)+1)-1] of AnsiChar;
+          achWorkDir : array[0..(PIFDEFPATHSIZE)-1] of AnsiChar;
           wHotKey : WORD;
-          achIconFile : array[0..(PIFDEFFILESIZE)-1] of CHAR;
+          achIconFile : array[0..(PIFDEFFILESIZE)-1] of AnsiChar;
           wIconIndex : WORD;
           dwEnhModeFlags : DWORD;
           dwRealModeFlags : DWORD;
-          achOtherFile : array[0..(PIFDEFFILESIZE)-1] of CHAR;
-          achPIFFile : array[0..(PIFMAXFILEPATH)-1] of CHAR;
+          achOtherFile : array[0..(PIFDEFFILESIZE)-1] of AnsiChar;
+          achPIFFile : array[0..(PIFMAXFILEPATH)-1] of AnsiChar;
        end;
      TPROPPRG = PROPPRG;
      PPPROPPRG = ^PPROPPRG;

@@ -90,7 +90,7 @@ end;
 
 var
   window_title_property: TXTextProperty;
-  title: String;
+  title: ansiString;
   FBConfig: TGLXFBConfig;
   FBConfigs: PGLXFBConfig;
   FBConfigsCount: Integer;

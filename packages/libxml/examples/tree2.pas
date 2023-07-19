@@ -22,7 +22,7 @@ var
   doc: xmlDocPtr;
   root_node, node, node1: xmlNodePtr;
   dtd: xmlDtdPtr;
-  buff: array[0..255] of char;
+  buff: array[0..255] of AnsiChar;
   i, j: cint;
 
 begin

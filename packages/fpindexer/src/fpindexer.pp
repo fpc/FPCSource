@@ -41,7 +41,7 @@ type
   TWordParser = class
   private
     FCount: integer;
-    FWildCardChar: char;
+    FWildCardChar: AnsiChar;
     WordList: array of TWordToken;
     procedure AddToken(AValue: UTF8String; ATokenType: TWordTokenType);
     function GetSearchWordQuery: UTF8String;
@@ -50,7 +50,7 @@ type
   public
     constructor Create(ASearchWords: UTF8String);
     property Count: integer read FCount write SetCount;
-    property WildCardChar: char read FWildCardChar write FWildCardChar;
+    property WildCardChar: AnsiChar read FWildCardChar write FWildCardChar;
     property SearchWordQuery: UTF8String read GetSearchWordQuery;
     property Token[index: integer]: TWordToken read GetToken;
   end;
@@ -945,7 +945,7 @@ Const
 
 var
   s: UTF8String;
-  c: char;
+  c: AnsiChar;
 
 begin
   if not Assigned(Stream) then

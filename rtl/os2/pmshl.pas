@@ -53,9 +53,9 @@ type
   PPrfProfile=^PrfProfile;
   PrfProfile=record      // prfpro
     cchUserName: Cardinal;
-    pszUserName: PChar;
+    pszUserName: PAnsiChar;
     cchSysName: Cardinal;
-    pszSysName: PChar;
+    pszSysName: PAnsiChar;
   end;
 
 // program list section
@@ -134,12 +134,12 @@ type
   PROGDETAILS=record    // progde
     Length: Cardinal;         // set this to sizeof(PROGDETAILS)
     progt: ProgType;
-    pszTitle: PChar;       // any of the pointers can be NULL
-    pszExecutable: PChar;
-    pszParameters: PChar;
-    pszStartupDir: PChar;
-    pszIcon: PChar;
-    pszEnvironment: PChar; // this is terminated by  /0/0
+    pszTitle: PAnsiChar;       // any of the pointers can be NULL
+    pszExecutable: PAnsiChar;
+    pszParameters: PAnsiChar;
+    pszStartupDir: PAnsiChar;
+    pszIcon: PAnsiChar;
+    pszEnvironment: PAnsiChar; // this is terminated by  /0/0
     swpInitial: SWP;     // this replaces XYWINSIZE
   end;
 
@@ -147,7 +147,7 @@ type
   PROGTITLE=record             // progti
     hprog: HProgram;
     progt: ProgType;
-    pszTitle: PChar;
+    pszTitle: PAnsiChar;
   End;
 
 // Program List API Function Definitions
@@ -212,22 +212,22 @@ Function PrfQueryDefinition(ahini: HINI; hprog: HProgram;
 Function PrfRemoveProgram(ahini: HINI; hprog: HProgram): Longbool; cdecl;
     external 'PMSHAPI' index 104;
 
-Function PrfQueryProgramHandle(ahini: HINI; const pszExe: PChar;
+Function PrfQueryProgramHandle(ahini: HINI; const pszExe: PAnsiChar;
                                aphprogArray: HPROGARRAY; cchBufferMax: Cardinal;
                                var pulCount: Cardinal): Longbool; cdecl;
     external 'PMSHAPI' index 58;
 
-Function PrfCreateGroup(ahini: HINI; const pszTitle: PChar;
+Function PrfCreateGroup(ahini: HINI; const pszTitle: PAnsiChar;
                         chVisibility: Byte): HProgram; cdecl;
     external 'PMSHAPI' index 55;
 
 Function PrfDestroyGroup(ahini: HINI; hprogGroup: HProgram): Longbool; cdecl;
     external 'PMSHAPI' index 106;
 
-Function PrfQueryProgramCategory(ahini: HINI; const pszExe: PChar): PROGCATEGORY; cdecl;
+Function PrfQueryProgramCategory(ahini: HINI; const pszExe: PAnsiChar): PROGCATEGORY; cdecl;
     external 'PMSHAPI' index 59;
 
-Function WinStartApp(hwndNotify: HWND; var pDetails: PROGDETAILS; const pszParams: PChar;
+Function WinStartApp(hwndNotify: HWND; var pDetails: PROGDETAILS; const pszParams: PAnsiChar;
                      Reserved: Pointer; fbOptions: Cardinal): HAPP; cdecl;
     external 'PMSHAPI' index 119;
 
@@ -261,7 +261,7 @@ type
     idSession: Cardinal;
     uchVisibility: Cardinal;
     fbJump: Cardinal;
-    szSwtitle: Array[1..MaxNameL+4] of Char;
+    szSwtitle: Array[1..MaxNameL+4] of AnsiChar;
     bProgType: Cardinal;
   end;
 
@@ -304,7 +304,7 @@ Function WinCreateSwitchEntry(ahab: HAB; var pswctlSwitchData: SWCNTRL): HSWITCH
     external 'PMSHAPI' index 121;
 
 Function WinQuerySessionTitle(ahab: HAB; usSession: Cardinal;
-                              var pszTitle: PChar;
+                              var pszTitle: PAnsiChar;
                               usTitlelen: Cardinal): Cardinal; cdecl;
     external 'PMSHAPI' index 122;
 
@@ -324,7 +324,7 @@ Function WinQueryTaskSizePos(ahab: HAB; usScreenGroup: Cardinal;
                              var pswpPositionData: SWP): Cardinal; cdecl;
     external 'PMSHAPI' index 127;
 
-Function WinQueryTaskTitle(usSession: Cardinal; var pszTitle: PChar;
+Function WinQueryTaskTitle(usSession: Cardinal; var pszTitle: PAnsiChar;
                            usTitlelen: Cardinal): Cardinal; cdecl;
    external 'PMSHAPI' index 128;
 
@@ -333,30 +333,30 @@ Function WinSwitchToProgram(hswitchSwHandle: HSWITCH): Cardinal; cdecl;
 
 // OS2.INI Access functions
 
-Function PrfQueryProfileInt(ahini: HINI; const pszApp, pszKey: PChar;
+Function PrfQueryProfileInt(ahini: HINI; const pszApp, pszKey: PAnsiChar;
                             sDefault: Longint): Longint; cdecl;
     external 'PMSHAPI' index 114;
 
-Function PrfQueryProfileString(ahini: HINI; const pszApp, pszKey, pszDefault: PChar;
+Function PrfQueryProfileString(ahini: HINI; const pszApp, pszKey, pszDefault: PAnsiChar;
                                var pBuffer; cchBufferMax: Cardinal): Cardinal; cdecl;
     external 'PMSHAPI' index 115;
 
-Function PrfWriteProfileString(ahini: HINI; const pszApp, pszKey, pszData: PChar): Longbool; cdecl;
+Function PrfWriteProfileString(ahini: HINI; const pszApp, pszKey, pszData: PAnsiChar): Longbool; cdecl;
     external 'PMSHAPI' index 116;
 
-Function PrfQueryProfileSize(ahini: HINI; const pszApp, pszKey: PChar;
+Function PrfQueryProfileSize(ahini: HINI; const pszApp, pszKey: PAnsiChar;
                              var pulReqLen: Cardinal): Longbool; cdecl;
     external 'PMSHAPI' index 101;
 
-Function PrfQueryProfileData(ahini: HINI; const pszApp, pszKey: PChar; var pBuffer;
+Function PrfQueryProfileData(ahini: HINI; const pszApp, pszKey: PAnsiChar; var pBuffer;
                              var pulBuffLen: Cardinal): Longbool; cdecl;
     external 'PMSHAPI' index 117;
 
-Function PrfWriteProfileData(ahini: HINI; const pszApp, pszKey: PChar; var pData;
+Function PrfWriteProfileData(ahini: HINI; const pszApp, pszKey: PAnsiChar; var pData;
                              cchDataLen: Cardinal): Longbool; cdecl;
     external 'PMSHAPI' index 118;
 
-Function PrfOpenProfile(ahab: HAB;const pszFileName: PChar): HINI; cdecl;
+Function PrfOpenProfile(ahab: HAB;const pszFileName: PAnsiChar): HINI; cdecl;
     external 'PMSHAPI' index 102;
 
 Function PrfCloseProfile(ahini: HINI): Longbool; cdecl;

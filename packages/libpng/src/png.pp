@@ -62,8 +62,8 @@ type
    ppng_uint_16p = ^png_uint_16p;
    png_int_16p = Ppng_int_16;
 (* Const before type ignored *)
-   png_const_charp = Pchar;
-   png_charp = Pchar;
+   png_const_charp = PAnsiChar;
+   png_charp = PAnsiChar;
    ppng_charp = ^png_charp;
    png_fixed_point_p = Ppng_fixed_point;
    TFile = Pointer;
@@ -75,13 +75,13 @@ type
    png_uint_16pp = PPpng_uint_16;
    png_int_16pp = PPpng_int_16;
  (* Const before type ignored *)
-   png_const_charpp = PPchar;
-   png_charpp = PPchar;
+   png_const_charpp = PPAnsiChar;
+   png_charpp = PPAnsiChar;
    ppng_charpp = ^png_charpp;
    png_fixed_point_pp = PPpng_fixed_point;
    png_doublepp = PPdouble;
-   png_charppp = PPPchar;
-   Pcharf = Pchar;
+   png_charppp = PPPAnsiChar;
+   Pcharf = PAnsiChar;
    PPcharf = ^Pcharf;
    png_zcharp = Pcharf;
    png_zcharpp = PPcharf;
@@ -90,7 +90,7 @@ type
 
 var
 {$ifndef darwin}
-  png_libpng_ver    : array[0..11] of char;   cvar; external;
+  png_libpng_ver    : array[0..11] of AnsiChar;   cvar; external;
   png_pass_start    : array[0..6] of longint; cvar; external;
   png_pass_inc      : array[0..6] of longint; cvar; external;
   png_pass_ystart   : array[0..6] of longint; cvar; external;
@@ -98,7 +98,7 @@ var
   png_pass_mask     : array[0..6] of longint; cvar; external;
   png_pass_dsp_mask : array[0..6] of longint; cvar; external;
 {$else darwin}
-  png_libpng_ver    : array[0..11] of char;   external LibPng name 'png_libpng_ver';
+  png_libpng_ver    : array[0..11] of AnsiChar;   external LibPng name 'png_libpng_ver';
   png_pass_start    : array[0..6] of longint; external LibPng name 'png_pass_start';
   png_pass_inc      : array[0..6] of longint; external LibPng name 'png_pass_inc';
   png_pass_ystart   : array[0..6] of longint; external LibPng name 'png_pass_ystart';

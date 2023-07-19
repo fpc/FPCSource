@@ -25,8 +25,8 @@ procedure xmlCleanupGlobals; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$IFDEF TYPE}
-  xmlParserInputBufferCreateFilenameFunc = function(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL;
-  xmlOutputBufferCreateFilenameFunc = function(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL;
+  xmlParserInputBufferCreateFilenameFunc = function(URI: PAnsiChar; enc: xmlCharEncoding): xmlParserInputBufferPtr; EXTDECL;
+  xmlOutputBufferCreateFilenameFunc = function(URI: PAnsiChar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -44,7 +44,7 @@ function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenam
   xmlDeregisterNodeFunc = procedure(node: xmlNodePtr); EXTDECL;
 
   xmlGlobalState = record
-    xmlParserVersion                        : pchar;
+    xmlParserVersion                        : PAnsiChar;
 
     xmlDefaultSAXLocator                    : xmlSAXLocator;
     xmlDefaultSAXHandler                    : xmlSAXHandlerV1;
@@ -76,7 +76,7 @@ function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenam
 
     xmlSaveNoEmptyTags                      : cint;
     xmlIndentTreeOutput                     : cint;
-    xmlTreeIndentString                     : pchar;
+    xmlTreeIndentString                     : PAnsiChar;
 
     xmlRegisterNodeDefaultValue             : xmlRegisterNodeFunc;
     xmlDeregisterNodeDefaultValue           : xmlDeregisterNodeFunc;
@@ -345,16 +345,16 @@ var
 {$ENDIF}
 function xmlThrDefIndentTreeOutput(v: cint): cint; EXTDECL; external xml2lib;
 
-function __xmlTreeIndentString: ppchar; EXTDECL; external xml2lib;
+function __xmlTreeIndentString: PPAnsiChar; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlTreeIndentString := __xmlTreeIndentString()^ }
 {$ELSE}
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlTreeIndentString: pchar; cvar; external;
+  xmlTreeIndentString: PAnsiChar; cvar; external;
 {$ENDIF}
 {$ENDIF}
-function xmlThrDefTreeIndentString(v: pchar): pchar; EXTDECL; external xml2lib;
+function xmlThrDefTreeIndentString(v: PAnsiChar): PAnsiChar; EXTDECL; external xml2lib;
 
 function __xmlKeepBlanksDefaultValue: pcint; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_THREAD_ENABLED}
@@ -400,13 +400,13 @@ var
 {$ENDIF}
 function xmlThrDefParserDebugEntities(v: cint): cint; EXTDECL; external xml2lib;
 
-function __xmlParserVersion: ppchar; EXTDECL; external xml2lib;
+function __xmlParserVersion: PPAnsiChar; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlParserVersion := __xmlParserVersion()^ }
 {$ELSE}
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlParserVersion: pchar; cvar; external;
+  xmlParserVersion: PAnsiChar; cvar; external;
 {$ENDIF}
 {$ENDIF}
 

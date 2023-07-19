@@ -19,6 +19,9 @@
 program fpmake;
 
 uses
+{$ifdef unix}
+  cthreads,
+{$endif}
   fpmkunit,
 {$IFDEF HAS_UNIT_PROCESS}
   process,

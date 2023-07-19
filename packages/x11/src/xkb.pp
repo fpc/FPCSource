@@ -260,7 +260,7 @@ type
         TXkbMessageAction = record
                              _type   : Byte;
                              flags   : Byte;
-                             message : array [0..5] of char;
+                             message : array [0..5] of AnsiChar;
                             end;
 
 type
@@ -1109,14 +1109,14 @@ type
 type
         PXkbKeyNamePtr = ^TXkbKeyNameRec;
         TXkbKeyNameRec = record
-                          name : array [0..XkbKeyNameLength -1] of Char;
+                          name : array [0..XkbKeyNameLength -1] of AnsiChar;
                          end;
 
 type
         PXkbKeyAliasPtr = ^TXkbKeyAliasRec;
         TXkbKeyAliasRec = record
-                                                                                 real  : array [0..XkbKeyNameLength -1] of Char;
-                           alias : array [0..XkbKeyNameLength -1] of Char;
+                                                                                 real  : array [0..XkbKeyNameLength -1] of AnsiChar;
+                           alias : array [0..XkbKeyNameLength -1] of AnsiChar;
                           end;
 
         {
@@ -1321,15 +1321,15 @@ const
 type
         PXkbPropertyPtr = ^TXkbPropertyRec;
         TXkbPropertyRec = record
-                           name  : PChar;
-                           value : PChar;
+                           name  : PAnsiChar;
+                           value : PAnsiChar;
                           end;
 
 type
         PXkbColorPtr = ^TXkbColorRec;
         TXkbColorRec = record
                         pixel : Word;
-                        spec  : PChar;
+                        spec  : PAnsiChar;
                        end;
 
 type
@@ -1399,8 +1399,8 @@ type
                              width     : SmallInt;
                              height    : SmallInt;
                              color_ndx : Word;
-                             text      : PChar;
-                             font      : PChar;
+                             text      : PAnsiChar;
+                             font      : PAnsiChar;
                             end;
 
 type
@@ -1428,7 +1428,7 @@ type
                              angle     : SmallInt;
                              color_ndx : Word;
                              shape_ndx : Word;
-                             logo_name : PChar;
+                             logo_name : PAnsiChar;
                             end;
 
 type
@@ -1536,7 +1536,7 @@ type
                            name            : TAtom;
                            width_mm        : Word;
                                                                                  height_mm       : Word;
-                           label_font      : PChar;
+                           label_font      : PAnsiChar;
                            label_color     : PXkbColorPtr;
                            base_color      : PXkbColorPtr;
                            sz_properties   : Word;
@@ -1717,7 +1717,7 @@ type
         PXkbComponentNamePtr = ^TXkbComponentNameRec;
         TXkbComponentNameRec = record
                                 flags : Word;
-                                name  : PChar;
+                                name  : PAnsiChar;
                                end;
 
 type
@@ -1757,7 +1757,7 @@ type
 type
         PXkbDeviceInfoPtr = ^TXkbDeviceInfoRec;
         TXkbDeviceInfoRec = record
-                             name          : PChar;
+                             name          : PAnsiChar;
                              _type         : TAtom;
                              device_spec   : Word;
                              has_own_state : Boolean;
@@ -1825,13 +1825,13 @@ procedure XkbSetKeyColor (g : PXkbGeometryPtr; k : PXkbKeyPtr; c : PXkbColorPtr)
 
 function XkbGeomColorIndex (g : PXkbGeometryPtr; c : PXkbColorPtr) : longint;
 
-function XkbAddGeomProperty (geom : PXkbGeometryPtr; name : PChar; value : PChar) : PXkbPropertyPtr;
+function XkbAddGeomProperty (geom : PXkbGeometryPtr; name : PAnsiChar; value : PAnsiChar) : PXkbPropertyPtr;
         cdecl; external libX11 name 'XkbAddGeomProperty';
 
-function XkbAddGeomKeyAlias (geom : PXkbGeometryPtr; alias : PChar; real : PChar) : PXkbKeyAliasPtr;
+function XkbAddGeomKeyAlias (geom : PXkbGeometryPtr; alias : PAnsiChar; real : PAnsiChar) : PXkbKeyAliasPtr;
         cdecl; external libX11 name 'XkbAddGeomKeyAlias';
 
-function XkbAddGeomColor (geom : PXkbGeometryPtr; spec : PChar; pixel : Word) : PXkbColorPtr;
+function XkbAddGeomColor (geom : PXkbGeometryPtr; spec : PAnsiChar; pixel : Word) : PXkbColorPtr;
         cdecl; external libX11 name 'XkbAddGeomColor';
 
 function XkbAddGeomOutline (shape : PXkbShapePtr; sz_points : SmallInt) : PXkbOutlinePtr;
@@ -1859,7 +1859,7 @@ function XkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt;
         cdecl; external libX11 name 'XkbAddGeomOverlayRow';
 
 function XkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PChar;          under : PChar)              : PXkbOverlayKeyPtr;
+                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
 function XkbAddGeomDoodad (geom : PXkbGeometryPtr; section : PXkbSectionPtr; name : TAtom) : PXkbDoodadPtr;
@@ -1977,7 +1977,7 @@ function XkbComputeRowBounds (geom : PXkbGeometryPtr; section : PXkbSectionPtr; 
 function XkbComputeSectionBounds (geom : PXkbGeometryPtr; section : PXkbSectionPtr) : Boolean;
         cdecl; external libX11 name 'XkbComputeSectionBounds';
 
-function XkbFindOverlayForKey (geom : PXkbGeometryPtr; wanted : PXkbSectionPtr; under : PChar) : PChar;
+function XkbFindOverlayForKey (geom : PXkbGeometryPtr; wanted : PXkbSectionPtr; under : PAnsiChar) : PAnsiChar;
         cdecl; external libX11 name 'XkbFindOverlayForKey';
 
 function XkbGetGeometry (dpy : PDisplay; xkb : PXkbDescPtr) : TStatus;
@@ -1988,24 +1988,24 @@ function XkbGetNamedGeometry (dpy : PDisplay; xkb : PXkbDescPtr; name : TAtom) :
 
 
 {$ifdef XKB_IN_SERVER}
-function SrvXkbAddGeomKeyAlias (geom : PXkbGeometryPtr; alias : PChar; real : PChar) : PXkbKeyAliasPtr;
+function SrvXkbAddGeomKeyAlias (geom : PXkbGeometryPtr; alias : PAnsiChar; real : PAnsiChar) : PXkbKeyAliasPtr;
         cdecl; external libX11 name 'XkbAddGeomKeyAlias';
 
-function SrvXkbAddGeomColor (geom : PXkbGeometryPtr; spec : PChar; pixel : Word) : PXkbColorPtr;
+function SrvXkbAddGeomColor (geom : PXkbGeometryPtr; spec : PAnsiChar; pixel : Word) : PXkbColorPtr;
         cdecl; external libX11 name 'XkbAddGeomColor';
 
 function SrvXkbAddGeomDoodad (geom : PXkbGeometryPtr; section : PXkbSectionPtr;
                               name : TAtom)                                     : PXkbDoodadPtr;
         cdecl; external libX11 name 'XkbAddGeomDoodad';
 
-function SrvXkbAddGeomKey (geom : PXkbGeometryPtr; alias : PChar; real : PChar) : PXkbKeyAliasPtr;
+function SrvXkbAddGeomKey (geom : PXkbGeometryPtr; alias : PAnsiChar; real : PAnsiChar) : PXkbKeyAliasPtr;
         cdecl; external libX11 name 'XkbAddGeomKeyAlias';
 
 function SrvXkbAddGeomOutline (shape : PXkbShapePtr; sz_points : SmallInt) : PXkbOutlinePtr;
         cdecl; external libX11 name 'XkbAddGeomOutline';
 
 function SrvXkbAddGeomOverlay (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PChar;          under : PChar)              : PXkbOverlayKeyPtr;
+                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
 function SrvXkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt;
@@ -2013,10 +2013,10 @@ function SrvXkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt
         cdecl; external libX11 name 'XkbAddGeomOverlayRow';
 
 function SrvXkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PChar;          under : PChar)              : PXkbOverlayKeyPtr;
+                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
-function SrvXkbAddGeomProperty (geom : PXkbGeometryPtr; name : PChar; value : PChar) : PXkbPropertyPtr;
+function SrvXkbAddGeomProperty (geom : PXkbGeometryPtr; name : PAnsiChar; value : PAnsiChar) : PXkbPropertyPtr;
         cdecl; external libX11 name 'XkbAddGeomProperty';
 
 function SrvXkbAddGeomRow (section : PXkbSectionPtr; sz_keys : SmallInt) : PXkbRowPtr;

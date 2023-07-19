@@ -3,7 +3,7 @@
     Copyright (c) 2008 Michael Van Canneyt.
 
     Expression parser, supports variables, functions and
-    float/integer/string/boolean/datetime operations.
+    float/integer//boolean/datetime operations.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -52,35 +52,35 @@ Type
   { TFPExpressionScanner }
 
   TFPExpressionScanner = Class(TObject)
-    FSource : String;
+    FSource : AnsiString;
     LSource,
     FPos : Integer;
-    FChar : PChar;
-    FToken : String;
+    FChar : PAnsiChar;
+    FToken : AnsiString;
     FTokenType : TTokenType;
   private
-    function GetCurrentChar: Char;
-    procedure ScanError(const Msg: String);
+    function GetCurrentChar: AnsiChar;
+    procedure ScanError(const Msg: AnsiString);
   protected
-    procedure SetSource(const AValue: String); virtual;
+    procedure SetSource(const AValue: AnsiString ); virtual;
     function DoIdentifier: TTokenType;
     function DoNumber(AKind: TNumberKind): TTokenType;
     function DoDelimiter: TTokenType;
     function DoString: TTokenType;
-    Function NextPos : Char; // inline;
+    Function NextPos : AnsiChar; // inline;
     procedure SkipWhiteSpace; // inline;
-    function IsWordDelim(C : Char) : Boolean; // inline;
-    function IsDelim(C : Char) : Boolean; // inline;
-    function IsDigit(C : Char; AKind: TNumberKind) : Boolean; // inline;
-    function IsAlpha(C : Char) : Boolean; // inline;
+    function IsWordDelim(C : AnsiChar) : Boolean; // inline;
+    function IsDelim(C : AnsiChar) : Boolean; // inline;
+    function IsDigit(C : AnsiChar; AKind: TNumberKind) : Boolean; // inline;
+    function IsAlpha(C : AnsiChar) : Boolean; // inline;
   public
     Constructor Create;
     Function GetToken : TTokenType;
-    Property Token : String Read FToken;
+    Property Token : AnsiString Read FToken;
     Property TokenType : TTokenType Read FTokenType;
-    Property Source : String Read FSource Write SetSource;
+    Property Source : AnsiString Read FSource Write SetSource;
     Property Pos : Integer Read FPos;
-    Property CurrentChar : Char Read GetCurrentChar;
+    Property CurrentChar : AnsiChar Read GetCurrentChar;
   end;
 
   EExprScanner = Class(Exception);
@@ -89,7 +89,7 @@ Type
   TResultTypes = set of TResultType;
 
   TFPExpressionResult = record
-    ResString   : String;
+    ResString   : AnsiString;
     Case ResultType : TResultType of
       rtBoolean  : (ResBoolean  : Boolean);
       rtInteger  : (ResInteger  : Int64);
@@ -117,7 +117,7 @@ Type
     Function HasAggregate : Boolean; virtual;
     Function NodeType : TResultType; virtual; abstract;
     Function NodeValue : TFPExpressionResult;
-    Function AsString : string; virtual; abstract;
+    Function AsString : AnsiString; virtual; abstract;
   end;
   TExprArgumentArray = Array of TFPExprNode;
 
@@ -155,7 +155,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPBinaryOrOperation }
@@ -164,7 +164,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPBinaryXOrOperation }
@@ -173,7 +173,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPBooleanResultOperation }
@@ -192,7 +192,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPUnequalOperation }
@@ -201,7 +201,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPOrderingOperation }
@@ -217,7 +217,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPGreaterThanOperation }
@@ -226,7 +226,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPLessThanEqualOperation }
@@ -235,7 +235,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
 
@@ -245,7 +245,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TIfOperation }
@@ -263,7 +263,7 @@ Type
     Function NodeType : TResultType; override;
     Constructor Create(ACondition,ALeft,ARight : TFPExprNode);
     Destructor destroy; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Property Condition : TFPExprNode Read FCondition;
   end;
 
@@ -283,7 +283,7 @@ Type
     Function NodeType : TResultType; override;
     Constructor Create(Args : TExprArgumentArray);
     Destructor destroy; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Property Condition : TFPExprNode Read FCondition;
   end;
 
@@ -301,7 +301,7 @@ Type
   Protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPSubtractOperation }
@@ -310,7 +310,7 @@ Type
   Public
     Procedure Check; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPMultiplyOperation }
@@ -318,7 +318,7 @@ Type
   TFPMultiplyOperation = Class(TMathOperation)
   Public
     Procedure check; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
 
@@ -327,7 +327,7 @@ Type
   TFPDivideOperation = Class(TMathOperation)
   Public
     Procedure Check; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Function NodeType : TResultType; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
@@ -337,7 +337,7 @@ Type
   TFPModuloOperation = Class(TMathOperation)
   Public
     Procedure Check; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Function NodeType : TResultType; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
@@ -347,7 +347,7 @@ Type
   TFPPowerOperation = class(TMathOperation)
   public
     Procedure Check; override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
     Function NodeType : TResultType; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
@@ -371,7 +371,7 @@ Type
   { TFPConvertNode }
 
   TFPConvertNode = Class(TFPUnaryOperator)
-    Function AsString : String; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPNotNode }
@@ -381,7 +381,7 @@ Type
     Procedure Check; override;
     Function NodeType : TResultType;  override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
-    Function AsString : String; override;
+    Function AsString :  AnsiString; override;
   end;
 
   TIntConvertNode = Class(TFPConvertNode)
@@ -457,7 +457,7 @@ Type
     Procedure Check; override;
     Function NodeType : TResultType;  override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
-    Function AsString : String; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TFPConstExpression }
@@ -466,7 +466,7 @@ Type
   private
     FValue : TFPExpressionResult;
   public
-    Constructor CreateString(const AValue : String);
+    Constructor CreateString(const AValue : AnsiString);
     Constructor CreateInteger(AValue : Int64);
     Constructor CreateDateTime(AValue : TDateTime);
     Constructor CreateFloat(AValue : TExprFloat);
@@ -475,7 +475,7 @@ Type
     Procedure Check; override;
     Function NodeType : TResultType;  override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
-    Function AsString : string ; override;
+    Function AsString :  AnsiString; override;
    // For inspection
     Property ConstValue : TFPExpressionResult read FValue;
   end;
@@ -494,9 +494,9 @@ Type
     FNodeType: TFPExprFunctionClass;
     FOnGetVarValue: TFPExprVariableEvent;
     FOnGetVarValueCB: TFPExprVariableCallBack;
-    FStringValue : String;
+    FStringValue : AnsiString;
     FValue : TFPExpressionResult;
-    FArgumentTypes: String;
+    FArgumentTypes: AnsiString;
     FIDType: TIdentifierType;
     FName: ShortString;
     FVariableArgumentCount: Boolean;
@@ -507,19 +507,19 @@ Type
     function GetAsFloat: TExprFloat;
     function GetAsCurrency : Currency;
     function GetAsInteger: Int64;
-    function GetAsString: String;
+    function GetAsString:  AnsiString;
     function GetResultType: TResultType;
-    function GetValue: String;
-    procedure SetArgumentTypes(const AValue: String);
+    function GetValue:  AnsiString;
+    procedure SetArgumentTypes(const AValue:  AnsiString);
     procedure SetAsBoolean(const AValue: Boolean);
     procedure SetAsDateTime(const AValue: TDateTime);
     procedure SetAsFloat(const AValue: TExprFloat);
     procedure SetAsCurrency(const AValue: Currency);
     procedure SetAsInteger(const AValue: Int64);
-    procedure SetAsString(const AValue: String);
+    procedure SetAsString(const AValue:  AnsiString);
     procedure SetName(const AValue: ShortString);
     procedure SetResultType(const AValue: TResultType);
-    procedure SetValue(const AValue: String);
+    procedure SetValue(const AValue:  AnsiString);
   Protected
     Procedure CheckResultType(Const AType : TResultType);
     Procedure CheckVariable;
@@ -531,7 +531,7 @@ Type
     Property AsFloat : TExprFloat Read GetAsFloat Write SetAsFloat;
     Property AsCurrency : Currency Read GetAsCurrency Write SetAsCurrency;
     Property AsInteger : Int64 Read GetAsInteger Write SetAsInteger;
-    Property AsString : String Read GetAsString Write SetAsString;
+    Property AsString : AnsiString Read GetAsString Write SetAsString;
     Property AsBoolean : Boolean Read GetAsBoolean Write SetAsBoolean;
     Property AsDateTime : TDateTime Read GetAsDateTime Write SetAsDateTime;
     Property OnGetFunctionValueCallBack : TFPExprFunctionCallBack Read FOnGetValueCB Write FOnGetValueCB;
@@ -539,8 +539,8 @@ Type
   Published
     Property IdentifierType : TIdentifierType Read FIDType Write FIDType;
     Property Name : ShortString Read FName Write SetName;
-    Property Value : String Read GetValue Write SetValue;
-    Property ParameterTypes : String Read FArgumentTypes Write SetArgumentTypes;
+    Property Value : AnsiString Read GetValue Write SetValue;
+    Property ParameterTypes : AnsiString Read FArgumentTypes Write SetArgumentTypes;
     Property ResultType : TResultType Read GetResultType Write SetResultType;
     Property OnGetFunctionValue : TFPExprFunctionEvent Read FOnGetValue Write FOnGetValue;
     Property OnGetVariableValue : TFPExprVariableEvent Read FOnGetVarValue Write FOnGetVarValue;
@@ -579,16 +579,16 @@ Type
     Function IdentifierByName(Const AName : ShortString) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableCallBack) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableEvent) : TFPExprIdentifierDef;
-    Function AddVariable(Const AName : ShortString; AResultType : TResultType; const AValue : String) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; const AValue :  AnsiString) : TFPExprIdentifierDef;
     Function AddBooleanVariable(Const AName : ShortString; AValue : Boolean) : TFPExprIdentifierDef;
     Function AddIntegerVariable(Const AName : ShortString; AValue : Integer) : TFPExprIdentifierDef;
     Function AddFloatVariable(Const AName : ShortString; AValue : TExprFloat) : TFPExprIdentifierDef;
     Function AddCurrencyVariable(Const AName : ShortString; AValue : Currency) : TFPExprIdentifierDef;
-    Function AddStringVariable(Const AName : ShortString; const AValue : String) : TFPExprIdentifierDef;
+    Function AddStringVariable(Const AName : ShortString; const AValue :  AnsiString) : TFPExprIdentifierDef;
     Function AddDateTimeVariable(Const AName : ShortString; AValue : TDateTime) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
-    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ANodeClass : TFPExprFunctionClass) : TFPExprIdentifierDef;
     property Identifiers[AIndex : Integer] : TFPExprIdentifierDef Read GetI Write SetI; Default;
   end;
 
@@ -610,7 +610,7 @@ Type
 
   TFPExprVariable = Class(TFPExprIdentifierNode)
     Procedure Check; override;
-    function AsString: string; override;
+    function AsString:  AnsiString; override;
   end;
 
   { TFPExprFunction }
@@ -631,7 +631,7 @@ Type
     Function HasAggregate : Boolean; override;
     Property ArgumentNodes : TExprArgumentArray Read FArgumentNodes;
     Property ArgumentParams : TExprParameterArray Read FArgumentParams;
-    Function AsString : String; override;
+    Function AsString :  AnsiString; override;
   end;
 
   { TAggregateExpr }
@@ -715,11 +715,11 @@ Type
   end;
 
   { TFPExpressionParser }
-  TIdentifierEvent = Procedure (Sender : TObject; Const aIdentifier : String; var aIdent : TFPExprIdentifierDef) of object;
+  TIdentifierEvent = Procedure (Sender : TObject; Const aIdentifier :  AnsiString; var aIdent : TFPExprIdentifierDef) of object;
   TFPExpressionParser = class(TComponent)
   private
     FBuiltIns: TBuiltInCategories;
-    FExpression: String;
+    FExpression:  AnsiString;
     FScanner : TFPExpressionScanner;
     FExprNode : TFPExprNode;
     FIdentifiers : TFPExprIdentifierDefs;
@@ -734,16 +734,16 @@ Type
     function GetAsFloat: TExprFloat;
     function GetAsCurrency: Currency;
     function GetAsInteger: Int64;
-    function GetAsString: String;
+    function GetAsString:  AnsiString;
     function GetExtractingIdentifiers: Boolean;
     function MatchNodes(Todo, Match: TFPExprNode): TFPExprNode;
     procedure CheckNodes(var Left, Right: TFPExprNode);
     procedure SetBuiltIns(const AValue: TBuiltInCategories);
     procedure SetIdentifiers(const AValue: TFPExprIdentifierDefs);
-    procedure AddIdentifierToStrings(Sender : TObject; Const aIdentifier : String; var ID : TFPExprIdentifierDef);
+    procedure AddIdentifierToStrings(Sender : TObject; Const aIdentifier :  AnsiString; var ID : TFPExprIdentifierDef);
   Protected
-    procedure ParserError(const Msg: String);
-    procedure SetExpression(const AValue: String); virtual;
+    procedure ParserError(const Msg:  AnsiString);
+    procedure SetExpression(const AValue:  AnsiString); virtual;
     Procedure CheckResultType(Const Res :TFPExpressionResult; AType : TResultType); inline;
     Procedure CheckResultTypes(Const Res :TFPExpressionResult; ATypes : TResultTypes); inline;
     Class function ConvertNode(Todo: TFPExprNode; ToType: TResultType): TFPExprNode;
@@ -758,7 +758,7 @@ Type
     Function Primitive : TFPExprNode;
     function GetToken: TTokenType;
     Function TokenType : TTokenType;
-    Function CurrentToken : String;
+    Function CurrentToken :  AnsiString;
     Procedure CreateHashList;
     Property Scanner : TFPExpressionScanner Read FScanner;
     Property ExprNode : TFPExprNode Read FExprNode;
@@ -770,8 +770,8 @@ Type
     Function IdentifierByName(const AName : ShortString) : TFPExprIdentifierDef; virtual;
     Procedure Clear;
     Procedure EvaluateExpression(Out Result : TFPExpressionResult);
-    Procedure ExtractIdentifierNames(Const aExpression : String; aList : TStringList); overload;
-    Procedure ExtractIdentifierNames(Const aExpression : String; aCallback : TIdentifierEvent); overload;
+    Procedure ExtractIdentifierNames(Const aExpression :  AnsiString; aList : TStringList); overload;
+    Procedure ExtractIdentifierNames(Const aExpression :  AnsiString; aCallback : TIdentifierEvent); overload;
     function ExtractNode(var N: TFPExprNode): Boolean;
     Function Evaluate : TFPExpressionResult;
     Function ResultType : TResultType;
@@ -781,12 +781,12 @@ Type
     Property AsFloat : TExprFloat Read GetAsFloat;
     Property AsCurrency : Currency Read GetAsCurrency;
     Property AsInteger : Int64 Read GetAsInteger;
-    Property AsString : String Read GetAsString;
+    Property AsString : AnsiString  Read GetAsString;
     Property AsBoolean : Boolean Read GetAsBoolean;
     Property AsDateTime : TDateTime Read GetAsDateTime;
   Published
     // The Expression to parse
-    property Expression : String read FExpression write SetExpression;
+    property Expression : Ansistring read FExpression write SetExpression;
     Property Identifiers : TFPExprIdentifierDefs Read FIdentifiers Write SetIdentifiers;
     Property BuiltIns : TBuiltInCategories Read FBuiltIns Write SetBuiltIns;
   end;
@@ -807,18 +807,18 @@ Type
     Function IndexOfIdentifier(Const AName : ShortString) : Integer;
     Function FindIdentifier(Const AName : ShortString) : TFPBuiltinExprIdentifierDef;
     Function IdentifierByName(Const AName : ShortString) : TFPBuiltinExprIdentifierDef;
-    Function AddVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AResultType : TResultType; const AValue : String) : TFPBuiltInExprIdentifierDef;
+    Function AddVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AResultType : TResultType; const AValue :  AnsiString) : TFPBuiltInExprIdentifierDef;
     Function AddBooleanVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Boolean) : TFPBuiltInExprIdentifierDef;
     Function AddIntegerVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Integer) : TFPBuiltInExprIdentifierDef;
     Function AddFloatVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TExprFloat) : TFPBuiltInExprIdentifierDef;
     Function AddCurrencyVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Currency) : TFPBuiltInExprIdentifierDef;
-    Function AddStringVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; const AValue : String) : TFPBuiltInExprIdentifierDef;
+    Function AddStringVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; const AValue :  AnsiString) : TFPBuiltInExprIdentifierDef;
     Function AddDateTimeVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TDateTime) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
-    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : AnsiChar; Const AParamTypes :  AnsiString; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
     Procedure Delete(AIndex: Integer);
-    Function Remove(const aIdentifier : String) : Integer;
+    Function Remove(const aIdentifier :  AnsiString) : Integer;
     Property IdentifierCount : Integer Read GetCount;
     Property Identifiers[AIndex : Integer] :TFPBuiltInExprIdentifierDef Read GetI;
   end;
@@ -828,9 +828,9 @@ Type
 Const
   AllBuiltIns = [bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser,bcAggregate];
 
-Function TokenName (AToken : TTokenType) : String;
-Function ResultTypeName (AResult : TResultType) : String;
-Function CharToResultType(C : Char) : TResultType;
+Function TokenName (AToken : TTokenType) :  AnsiString;
+Function ResultTypeName (AResult : TResultType) :  AnsiString;
+Function CharToResultType(C : AnsiChar) : TResultType;
 Function BuiltinIdentifiers : TExprBuiltInManager;
 Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager; Categories : TBuiltInCategories = AllBuiltIns);
 function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
@@ -865,7 +865,7 @@ var
 
 Resourcestring
   SErrCannotRecursivelyExtractIdentifiers = 'Cannot recursively extract identifiers';
-  SBadQuotes        = 'Unterminated string';
+  SBadQuotes        = 'Unterminated ';
   SUnknownDelimiter = 'Unknown delimiter character: "%s"';
   SErrUnknownCharacter = 'Unknown character at pos %d: "%s"';
   SErrUnexpectedEndOfExpression = 'Unexpected end of expression';
@@ -909,29 +909,31 @@ Resourcestring
   Auxiliary functions
   ---------------------------------------------------------------------}
 
-Procedure RaiseParserError(const Msg : String);
+Procedure RaiseParserError(const Msg :  AnsiString);
+
 begin
   Raise EExprParser.Create(Msg);
 end;
 
-Procedure RaiseParserError(const Fmt : String; const Args : Array of const);
+Procedure RaiseParserError(const Fmt :  AnsiString; Args : Array of const);
+
 begin
   Raise EExprParser.CreateFmt(Fmt,Args);
 end;
 
-function TokenName(AToken: TTokenType): String;
+function TokenName(AToken: TTokenType):  AnsiString;
 
 begin
   Result:=GetEnumName(TypeInfo(TTokenType),Ord(AToken));
 end;
 
-function ResultTypeName(AResult: TResultType): String;
+function ResultTypeName(AResult: TResultType):  AnsiString;
 
 begin
   Result:=GetEnumName(TypeInfo(TResultType),Ord(AResult));
 end;
 
-function CharToResultType(C: Char): TResultType;
+function CharToResultType(C: AnsiChar): TResultType;
 begin
   Case Upcase(C) of
     'S' : Result:=rtString;
@@ -1004,7 +1006,7 @@ begin
   inherited Check;
 end;
 
-function TFPModuloOperation.AsString: string;
+function TFPModuloOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' mod '+Right.asString;
 end;
@@ -1216,7 +1218,7 @@ end;
   TFPExpressionScanner
   ---------------------------------------------------------------------}
 
-function TFPExpressionScanner.IsAlpha(C: Char): Boolean;
+function TFPExpressionScanner.IsAlpha(C: AnsiChar): Boolean;
 begin
   Result := C in ['A'..'Z', 'a'..'z'];
 end;
@@ -1227,7 +1229,7 @@ begin
 end;
 
 
-procedure TFPExpressionScanner.SetSource(const AValue: String);
+procedure TFPExpressionScanner.SetSource(const AValue:  AnsiString);
 begin
   FSource:=AValue;
   LSource:=Length(FSource);
@@ -1236,11 +1238,11 @@ begin
     FPos:=0
   else
     FPos:=1;
-  FChar:=Pchar(FSource);
+  FChar:=PAnsiChar(FSource);
   FToken:='';
 end;
 
-function TFPExpressionScanner.NextPos: Char;
+function TFPExpressionScanner.NextPos: AnsiChar;
 begin
   Inc(FPos);
   Inc(FChar);
@@ -1248,17 +1250,17 @@ begin
 end;
 
 
-function TFPExpressionScanner.IsWordDelim(C: Char): Boolean;
+function TFPExpressionScanner.IsWordDelim(C: AnsiChar): Boolean;
 begin
   Result:=C in WordDelimiters;
 end;
 
-function TFPExpressionScanner.IsDelim(C: Char): Boolean;
+function TFPExpressionScanner.IsDelim(C: AnsiChar): Boolean;
 begin
   Result:=C in Delimiters;
 end;
 
-function TFPExpressionScanner.IsDigit(C: Char; AKind: TNumberKind): Boolean;
+function TFPExpressionScanner.IsDigit(C: AnsiChar; AKind: TNumberKind): Boolean;
 begin
   case AKind of
     nkDecimal: Result := C in Digits;
@@ -1279,7 +1281,7 @@ Function TFPExpressionScanner.DoDelimiter : TTokenType;
 
 Var
   B : Boolean;
-  C,D : Char;
+  C,D : AnsiChar;
 
 begin
   C:=FChar^;
@@ -1318,7 +1320,7 @@ begin
 
 end;
 
-Procedure TFPExpressionScanner.ScanError(const Msg : String);
+Procedure TFPExpressionScanner.ScanError(const Msg :  AnsiString);
 
 begin
   Raise EExprScanner.Create(Msg)
@@ -1326,7 +1328,7 @@ end;
 
 Function TFPExpressionScanner.DoString : TTokenType;
 
-  Function TerminatingChar(C : Char) : boolean;
+  Function TerminatingChar(C : AnsiChar) : boolean;
 
   begin
     Result:=(C=cNull) or
@@ -1336,7 +1338,7 @@ Function TFPExpressionScanner.DoString : TTokenType;
 
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   FToken := '';
@@ -1355,7 +1357,7 @@ begin
   NextPos;
 end;
 
-function TFPExpressionScanner.GetCurrentChar: Char;
+function TFPExpressionScanner.GetCurrentChar: AnsiChar;
 begin
   If FChar<>Nil then
     Result:=FChar^
@@ -1363,7 +1365,7 @@ begin
     Result:=#0;
 end;
 
-procedure Val(const S: string; out V: TExprFloat; out Code: Integer);
+procedure Val(const S:  AnsiString; out V: TExprFloat; out Code: Integer);
 var
   L64: Int64;
 begin
@@ -1380,12 +1382,12 @@ end;
 Function TFPExpressionScanner.DoNumber(AKind: TNumberKind) : TTokenType;
 
 Var
-  C : Char;
+  C : AnsiChar;
   X : TExprFloat;
   I : Integer;
-  prevC: Char;
+  prevC: AnsiChar;
 
-  function ValidDigit(C: Char; AKind: TNumberKind): Boolean;
+  function ValidDigit(C: AnsiChar; AKind: TNumberKind): Boolean;
   begin
     Result := IsDigit(C, AKind);
     if (not Result) then
@@ -1414,7 +1416,7 @@ begin
         nkHex, nkOctal:
           break;
         nkBinary:
-          if (prevC <> #0) then break;   // allow '%' as first char
+          if (prevC <> #0) then break;   // allow '%' as first AnsiChar
       end;
     if not ValidDigit(C, AKind) then
       ScanError(Format(SErrInvalidNumberChar,[C]));
@@ -1431,8 +1433,8 @@ end;
 Function TFPExpressionScanner.DoIdentifier : TTokenType;
 
 Var
-  C : Char;
-  S : String;
+  C : AnsiChar;
+  S :  AnsiString;
 begin
   C:=CurrentChar;
   while (not IsWordDelim(C)) and (C<>cNull) do
@@ -1478,7 +1480,7 @@ end;
 Function TFPExpressionScanner.GetToken : TTokenType;
 
 Var
-  C : Char;
+  C : AnsiChar;
 
 begin
   FToken := '';
@@ -1515,7 +1517,7 @@ begin
   Result:=FScanner.TokenType;
 end;
 
-function TFPExpressionParser.CurrentToken: String;
+function TFPExpressionParser.CurrentToken:  AnsiString;
 begin
   Result:=FScanner.Token;
 end;
@@ -1599,7 +1601,7 @@ begin
   FIdentifiers.Assign(AValue)
 end;
 
-procedure TFPExpressionParser.AddIdentifierToStrings(Sender: TObject; const aIdentifier: String; var ID : TFPExprIdentifierDef);
+procedure TFPExpressionParser.AddIdentifierToStrings(Sender: TObject; const aIdentifier:  AnsiString; var ID : TFPExprIdentifierDef);
 begin
   ID:=Nil;
   If Assigned(FExtractIdentifiers) then
@@ -1616,12 +1618,12 @@ begin
 end;
 
 
-Procedure TFPExpressionParser.ExtractIdentifierNames(Const aExpression : String; aCallback : TIdentifierEvent); overload;
+Procedure TFPExpressionParser.ExtractIdentifierNames(Const aExpression :  AnsiString; aCallback : TIdentifierEvent); overload;
 
 
 Var
   N : TFPExprNode;
-  OldExpr : String;
+  OldExpr :  AnsiString;
 
 begin
   if Assigned(Self.FOnExtractIdentifier) then
@@ -1644,7 +1646,7 @@ begin
   end;
 end;
 
-procedure TFPExpressionParser.ExtractIdentifierNames(const aExpression: String; aList: TStringList);
+procedure TFPExpressionParser.ExtractIdentifierNames(const aExpression:  AnsiString; aList: TStringList);
 
 begin
    if Assigned(FExtractIdentifiers) then
@@ -1668,7 +1670,8 @@ begin
     end;
 end;
 
-procedure TFPExpressionParser.ParserError(const Msg: String);
+procedure TFPExpressionParser.ParserError(const Msg:  AnsiString);
+
 begin
   Raise EExprParser.Create(Msg);
 end;
@@ -1757,7 +1760,7 @@ begin
   Result:=Res.ResInteger;
 end;
 
-function TFPExpressionParser.GetAsString: String;
+function TFPExpressionParser.GetAsString:  AnsiString;
 
 var
   Res: TFPExpressionResult;
@@ -2025,7 +2028,7 @@ Var
   ID : TFPExprIdentifierDef;
   Args : TExprArgumentArray;
   AI : Integer;
-  S : String;
+  S :  AnsiString;
 
 begin
 {$ifdef debugexpr}  Writeln('Primitive : ',TokenName(TokenType),': ',CurrentToken);{$endif debugexpr}
@@ -2139,7 +2142,7 @@ begin
 end;
 
 
-procedure TFPExpressionParser.SetExpression(const AValue: String);
+procedure TFPExpressionParser.SetExpression(const AValue:  AnsiString);
 begin
   if FExpression=AValue then exit;
   FExpression:=AValue;
@@ -2279,7 +2282,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
-  AResultType: TResultType; const AValue: String): TFPExprIdentifierDef;
+  AResultType: TResultType; const AValue:  AnsiString): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -2328,7 +2331,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddStringVariable(const AName: ShortString;
-  const AValue: String): TFPExprIdentifierDef;
+  const AValue:  AnsiString): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -2348,7 +2351,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ACallBack: TFPExprFunctionCallBack): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2364,7 +2367,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ACallBack: TFPExprFunctionEvent): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2380,7 +2383,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
-  const AResultType: Char; const AParamTypes: String;
+  const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ANodeClass: TFPExprFunctionClass): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -2419,7 +2422,7 @@ begin
     end;
 end;
 
-procedure TFPExprIdentifierDef.SetValue(const AValue: String);
+procedure TFPExprIdentifierDef.SetValue(const AValue:  AnsiString);
 begin
   FStringValue:=AValue;
   If (AValue<>'') then
@@ -2488,7 +2491,7 @@ begin
     inherited Assign(Source);
 end;
 
-procedure TFPExprIdentifierDef.SetArgumentTypes(const AValue: String);
+procedure TFPExprIdentifierDef.SetArgumentTypes(const AValue:  AnsiString);
 
 Var
   I : integer;
@@ -2535,14 +2538,14 @@ begin
   FValue.ResInteger:=AValue;
 end;
 
-procedure TFPExprIdentifierDef.SetAsString(const AValue: String);
+procedure TFPExprIdentifierDef.SetAsString(const AValue:  AnsiString);
 begin
   CheckVariable;
   CheckResultType(rtString);
   FValue.resString:=AValue;
 end;
 
-function TFPExprIdentifierDef.GetValue: String;
+function TFPExprIdentifierDef.GetValue:  AnsiString;
 begin
   Case FValue.ResultType of
     rtBoolean  : If FValue.ResBoolean then
@@ -2637,7 +2640,7 @@ begin
   Result:=FValue.ResInteger;
 end;
 
-function TFPExprIdentifierDef.GetAsString: String;
+function TFPExprIdentifierDef.GetAsString:  AnsiString;
 begin
   CheckResultType(rtString);
   CheckVariable;
@@ -2690,7 +2693,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddVariable(const ACategory: TBuiltInCategory;
-  const AName: ShortString; AResultType: TResultType; const AValue: String
+  const AName: ShortString; AResultType: TResultType; const AValue: AnsiString
   ): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.Addvariable(AName,AResultType,AValue));
@@ -2729,7 +2732,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddStringVariable(
-  const ACategory: TBuiltInCategory; const AName: ShortString; const AValue: String
+  const ACategory: TBuiltInCategory; const AName: ShortString; const AValue:AnsiString
   ): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddStringVariable(AName,AValue));
@@ -2745,7 +2748,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ACallBack: TFPExprFunctionCallBack): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ACallBack));
@@ -2753,7 +2756,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ACallBack: TFPExprFunctionEvent): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ACallBack));
@@ -2761,7 +2764,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
-  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  const AName: ShortString; const AResultType: AnsiChar; const AParamTypes:  AnsiString;
   ANodeClass: TFPExprFunctionClass): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ANodeClass));
@@ -2773,7 +2776,7 @@ begin
   FDefs.Delete(AIndex);
 end;
 
-function TExprBuiltInManager.Remove(const aIdentifier: String): Integer;
+function TExprBuiltInManager.Remove(const aIdentifier:  AnsiString): Integer;
 begin
   Result:=IndexOfIdentifier(aIdentifier);
   if Result<>-1 then
@@ -2891,7 +2894,7 @@ end;
 
 { TFPConstExpression }
 
-constructor TFPConstExpression.CreateString(const AValue: String);
+constructor TFPConstExpression.CreateString(const AValue:  AnsiString);
 begin
   FValue.ResultType:=rtString;
   FValue.ResString:=AValue;
@@ -2944,7 +2947,7 @@ begin
   Result:=FValue;
 end;
 
-function TFPConstExpression.AsString: string ;
+function TFPConstExpression.AsString:  AnsiString;
 begin
   Case NodeType of
     rtString  : Result:=''''+FValue.resString+'''';
@@ -2981,7 +2984,7 @@ begin
   end;
 end;
 
-function TFPNegateOperation.AsString: String;
+function TFPNegateOperation.AsString:  AnsiString;
 begin
   Result:='-'+TrimLeft(Operand.AsString);
 end;
@@ -3015,7 +3018,7 @@ begin
   end;
 end;
 
-function TFPBinaryAndOperation.AsString: string;
+function TFPBinaryAndOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' and '+Right.AsString;
 end;
@@ -3025,7 +3028,7 @@ end;
 procedure TFPExprNode.CheckNodeType(Anode: TFPExprNode; Allowed: TResultTypes);
 
 Var
-  S : String;
+  S :  AnsiString;
   A : TResultType;
 
 begin
@@ -3072,7 +3075,7 @@ end;
 
 { TFPBinaryOrOperation }
 
-function TFPBinaryOrOperation.AsString: string;
+function TFPBinaryOrOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' or '+Right.AsString;
 end;
@@ -3093,7 +3096,7 @@ end;
 
 { TFPBinaryXOrOperation }
 
-function TFPBinaryXOrOperation.AsString: string;
+function TFPBinaryXOrOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' xor '+Right.AsString;
 end;
@@ -3133,7 +3136,7 @@ begin
   end
 end;
 
-function TFPNotNode.AsString: String;
+function TFPNotNode.AsString:  AnsiString;
 begin
   Result:='not '+Operand.AsString;
 end;
@@ -3196,7 +3199,7 @@ begin
   Result:=Left.NodeType;
 end;
 
-function TIfOperation.AsString: string;
+function TIfOperation.AsString:  AnsiString;
 begin
   Result:=Format('if(%s , %s , %s)',[Condition.AsString,Left.AsString,Right.AsString]);
 end;
@@ -3330,7 +3333,7 @@ begin
   inherited destroy;
 end;
 
-function TCaseOperation.AsString: string;
+function TCaseOperation.AsString:  AnsiString;
 
 Var
   I : integer;
@@ -3361,7 +3364,7 @@ end;
 
 { TFPEqualOperation }
 
-function TFPEqualOperation.AsString: string;
+function TFPEqualOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' = '+Right.AsString;
 end;
@@ -3387,7 +3390,7 @@ end;
 
 { TFPUnequalOperation }
 
-function TFPUnequalOperation.AsString: string;
+function TFPUnequalOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' <> '+Right.AsString;
 end;
@@ -3401,7 +3404,7 @@ end;
 
 { TFPLessThanOperation }
 
-function TFPLessThanOperation.AsString: string;
+function TFPLessThanOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' < '+Right.AsString;
 end;
@@ -3425,7 +3428,7 @@ end;
 
 { TFPGreaterThanOperation }
 
-function TFPGreaterThanOperation.AsString: string;
+function TFPGreaterThanOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' > '+Right.AsString;
 end;
@@ -3462,7 +3465,7 @@ end;
 
 { TFPGreaterThanEqualOperation }
 
-function TFPGreaterThanEqualOperation.AsString: string;
+function TFPGreaterThanEqualOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' >= '+Right.AsString;
 end;
@@ -3475,7 +3478,7 @@ end;
 
 { TFPLessThanEqualOperation }
 
-function TFPLessThanEqualOperation.AsString: string;
+function TFPLessThanEqualOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' <= '+Right.AsString;
 end;
@@ -3520,7 +3523,7 @@ end;
 
 { TFPAddOperation }
 
-function TFPAddOperation.AsString: string;
+function TFPAddOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' + '+Right.asString;
 end;
@@ -3556,7 +3559,7 @@ begin
   inherited check;
 end;
 
-function TFPSubtractOperation.AsString: string;
+function TFPSubtractOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' - '+Right.asString;
 end;
@@ -3590,7 +3593,7 @@ begin
   Inherited;
 end;
 
-function TFPMultiplyOperation.AsString: string;
+function TFPMultiplyOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' * '+Right.asString;
 end;
@@ -3621,7 +3624,7 @@ begin
   inherited check;
 end;
 
-function TFPDivideOperation.AsString: string;
+function TFPDivideOperation.AsString:  AnsiString;
 begin
   Result:=Left.AsString+' / '+Right.asString;
 end;
@@ -3679,7 +3682,7 @@ begin
   CheckNodeType(Right, AllowedTypes);
 end;
 
-function TFPPowerOperation.AsString: String;
+function TFPPowerOperation.AsString:  AnsiString;
 begin
   Result := Left.AsString + '^' + Right.AsString;
 end;
@@ -3720,7 +3723,7 @@ end;
 
 { TFPConvertNode }
 
-function TFPConvertNode.AsString: String;
+function TFPConvertNode.AsString:  AnsiString;
 begin
   Result:=Operand.AsString;
 end;
@@ -3850,7 +3853,7 @@ begin
   // Do nothing;
 end;
 
-function TFPExprVariable.AsString: string;
+function TFPExprVariable.AsString:  AnsiString;
 begin
   Result:=FID.Name;
 end;
@@ -3952,10 +3955,10 @@ begin
     FArgumentNodes[i].UpdateAggregate;
 end;
 
-function TFPExprFunction.AsString: String;
+function TFPExprFunction.AsString:  AnsiString;
 
 Var
-  S : String;
+  S :  AnsiString;
   I : Integer;
 
 begin
@@ -4101,7 +4104,7 @@ begin
   Result.resFloat:=frac(ArgToFloat(Args[0]));
 end;
 
-// String builtins
+//  builtins
 
 Procedure BuiltInLength(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 begin
@@ -4476,7 +4479,7 @@ begin
       end;
     if bcStrings in Categories then
       begin
-      // String
+      //
       AddFunction(bcStrings,'length','I','S',@BuiltinLength);
       AddFunction(bcStrings,'copy','S','SII',@BuiltinCopy);
       AddFunction(bcStrings,'delete','S','SII',@BuiltinDelete);

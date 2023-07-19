@@ -491,7 +491,7 @@ type
  * below.
  *
  * User String:
- *   1 byte type,  1 byte Char set, 1 byte length, length byte string
+ *   1 byte type,  1 byte AnsiChar set, 1 byte length, length byte string
  *
  * Example of an user string "Hello World" in ASCII
  *

@@ -85,11 +85,11 @@ CONST                		// OS specific parameters for general<fd,sig>set behaviou
 TYPE
    { system information services }
    utsname = record
-              sysname : Array[0..SYS_NMLN-1] OF Char;   // Name of this OS
-              nodename: Array[0..SYS_NMLN-1] OF Char;   // Name of this network node.
-              release : Array[0..SYS_NMLN-1] OF Char;   // Release level.
-              version : Array[0..SYS_NMLN-1] OF Char;   // Version level.
-              machine : Array[0..SYS_NMLN-1] OF Char;   // Hardware type.
+              sysname : Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this OS
+              nodename: Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this network node.
+              release : Array[0..SYS_NMLN-1] OF AnsiChar;   // Release level.
+              version : Array[0..SYS_NMLN-1] OF AnsiChar;   // Version level.
+              machine : Array[0..SYS_NMLN-1] OF AnsiChar;   // Hardware type.
              end;
   TUtsName= utsname;
   pUtsName= ^utsname;
@@ -152,7 +152,7 @@ TYPE
         d_ino:int64;
         d_pino:int64;
         d_reclen:word;
-        d_name:array[0..255] of char;
+        d_name:array[0..255] of AnsiChar;
    end;
 (*   dirent  = record
      d_dev : dev_t;
@@ -160,12 +160,12 @@ TYPE
      d_ino : ino_t;
      d_pino : ino_t;
      d_reclen : word;
-     d_name : Char;
+     d_name : AnsiChar;
 //        d_fileno      : cuint32;                        // file number of entry
 //        d_reclen      : cuint16;                        // length of this record
 //        d_type        : cuint8;                         // file type, see below
 //        d_namlen      : cuint8;                         // length of string in d_name
-//        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+//        d_name        : array[0..(255 + 1)-1] of AnsiChar;  // name must be no longer than this
    end;*)
    TDirent = dirent;
    pDirent = ^dirent;
@@ -175,7 +175,7 @@ TYPE
         ent : dirent;
 //        dd_loc    : clong;        // offset in current buffer
 //        dd_size   : clong;        // amount of data returned by getdirentries
-//        dd_buf    : pchar;        // data buffer
+//        dd_buf    : PAnsiChar;        // data buffer
 //        dd_len    : cint;         // size of data buffer
 {$ifdef netbsdpowerpc}
 //	dd_pad1   : cint;
@@ -342,7 +342,7 @@ type
      term_routine: pointer;
      device: dev_t;
      node: ino_t;
-     name: array[0..1024{MAXPATHLEN}-1] of char;
+     name: array[0..1024{MAXPATHLEN}-1] of AnsiChar;
 {     name: string[255];
      name2: string[255];
      name3: string[255];

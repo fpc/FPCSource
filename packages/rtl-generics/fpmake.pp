@@ -3,7 +3,7 @@ program fpmake;
 
 {$mode objfpc}{$h+}
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif}
 
 Procedure add_rtl_generics(ADirectory : string);

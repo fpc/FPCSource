@@ -1304,7 +1304,7 @@ begin
     SetLength(B2,(aSrc.Size div 2));
     aSrc.ReadBuffer(B[0],aSrc.Size);
     end;
-  HexToBin(PChar(B),PChar(B2),Length(B2));
+  HexToBin(PAnsiChar(B),PAnsiChar(B2),Length(B2));
   if not Direct then
     aDest.WriteBuffer(B2[0],Length(B2));
 end;

@@ -42,7 +42,7 @@ uses Exec, Intuition, AGraphics, Utility, GadTools, amsgbox;
 
 
 CONST
-      vers : string = '$VER: SortDemo 1.3 ' + {$I %DATE%} + ' ' + {$I %TIME%}#0;
+      vers : ShortString = '$VER: SortDemo 1.3 ' + {$I %DATE%} + ' ' + {$I %TIME%}#0;
 
       nmax=2000;
 
@@ -67,7 +67,7 @@ CONST
 
       { The easiest way to use gadtoolsmenus in FPC is
         to have them as const types. No need to cast
-        strings to PChar. That we have to use recordmembers
+        strings to PAnsiChar. That we have to use recordmembers
         name is a pain.
       }
 
@@ -131,7 +131,7 @@ VAR sort: ARRAY[1..nmax] OF Real;
     wintitle        : string[80];
     scrtitle        : string[80];
 
-Procedure CleanUp(s : string; err : Integer);
+Procedure CleanUp(s : ShortString; err : Integer);
 begin
     if assigned(MenuStrip) then begin
        ClearMenuStrip(w);
@@ -227,9 +227,9 @@ BEGIN
   descending := sort[i]>sort[j];
 END;
 
-Function IntToStr (I : Longint) : String;
+Function IntToStr (I : Longint) : ShortString;
 
-     Var S : String;
+     Var S : ShortString;
 
      begin
       Str (I,S);
@@ -523,7 +523,7 @@ begin
     Rast := w^.RPort;
 
     { Here we set the barlabel }
-    nm[3].nm_Label := PChar(NM_BARLABEL);
+    nm[3].nm_Label := PAnsiChar(NM_BARLABEL);
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
         MenuStrip := CreateMenus(@nm,[
                      GTMN_FrontPen, 1, TAG_END]);

@@ -11,13 +11,13 @@ uses
 type
   Demo = record
     go: fp;
-    name: pchar;
-    description: pchar;
+    name: PAnsiChar;
+    description: PAnsiChar;
   end;
   PDemo = ^Demo;
 
   Category = record
-    name: pchar;
+    name: PAnsiChar;
     demos: PDemo;
     count: integer;
   end;

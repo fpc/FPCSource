@@ -337,7 +337,7 @@
  * an xmlXPathContext, and the stack of objects.
  *)
   xmlXPathParserContext = record
-    cur           : xmlCharPtr;			(* the current char being parsed *)
+    cur           : xmlCharPtr;			(* the current AnsiChar being parsed *)
     base          : xmlCharPtr;			(* the full expression *)
 
     error         : cint;				(* error code *)

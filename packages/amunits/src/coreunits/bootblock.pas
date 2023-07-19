@@ -29,8 +29,8 @@ type
 const
     BOOTSECTS   = 2;    { 1K bootstrap }
 
-    BBID_DOS    : PChar = 'DOS';
-    BBID_KICK   : PChar = 'KICK';
+    BBID_DOS    : PAnsiChar = 'DOS';
+    BBID_KICK   : PAnsiChar = 'KICK';
 
     BBNAME_DOS  = $444F5300;    { DOS\0 as an Integer }
     BBNAME_KICK = $4B49434B;    { KICK as an Integer }

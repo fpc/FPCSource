@@ -31,8 +31,8 @@ unit raspiuart;
 interface
 
 procedure UARTInit(BaseAddr: DWord); public name 'UARTInit';
-procedure UARTPuts(BaseAddr: DWord; C: Char);
-function UARTGet(BaseAddr: DWord): Char;
+procedure UARTPuts(BaseAddr: DWord; C: AnsiChar);
+function UARTGet(BaseAddr: DWord): AnsiChar;
 procedure UARTFlush(BaseAddr: DWord);
 
 implementation
@@ -108,7 +108,7 @@ begin
     PUT32(BaseAddr + UART0_CR, $301);
 end;
 
-procedure UARTPuts(BaseAddr: DWord; C: Char);
+procedure UARTPuts(BaseAddr: DWord; C: AnsiChar);
 begin
     while True do
     begin
@@ -119,7 +119,7 @@ begin
     PUT32(BaseAddr + UART0_DR, DWord(C));
 end;
 
-function UARTGet(BaseAddr: DWord): Char;
+function UARTGet(BaseAddr: DWord): AnsiChar;
 begin
     while True do
     begin
@@ -127,7 +127,7 @@ begin
         if (GET32(BaseAddr + UART0_FR) and $10) = 0 then break;
     end;
 
-    UARTGet := Char(GET32(BaseAddr + UART0_DR));
+    UARTGet := AnsiChar(GET32(BaseAddr + UART0_DR));
 end;
 
 procedure UARTFlush(BaseAddr: DWord);

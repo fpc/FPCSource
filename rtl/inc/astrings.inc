@@ -23,15 +23,15 @@
 {
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
-  AnsiString is defined as a 'silent' pchar :
-  a pchar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
+  AnsiString is defined as a 'silent' pansichar :
+  a pansichar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
 
   @-S-R-4 : Code page indicator.
   @-S-R-2 : Character size (2 bytes)
   @-S-R   : Reference count (R bytes)
   @-S  : SizeInt for size;
   @    : String + Terminating #0;
-  Pchar(Ansistring) is a valid typecast.
+  PAnsiChar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
 
   Constants should be assigned a reference count of -1
@@ -83,7 +83,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pansichar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
 end;
@@ -92,7 +92,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
-procedure fpc_pchar_pchar_intern_charmove(const src: pchar; const srcindex: sizeint; const dst: pchar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_pchar_intern_charmove(const src: pansichar; const srcindex: sizeint; const dst: pansichar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],dst[dstindex],len);
 end;
@@ -120,7 +120,7 @@ Var
   P : Pointer;
 begin
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  GetMem(P,Len+(AnsiFirstOff+sizeof(char)));
+  GetMem(P,Len+(AnsiFirstOff+sizeof(AnsiChar)));
   If P<>Nil then
    begin
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
@@ -232,12 +232,12 @@ begin
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
     DefaultSystemCodePage in that case, which may differ from other addend/dest) }
-  if S1='' then
+  if Length(S1)=0 then
     S1CP:=DestCP
   else
     S1CP:=StringCodePage(S1);
   S1CP:=TranslatePlaceholderCP(S1CP);
-  if S2='' then
+  if Length(S2)=0 then
     S2CP:=DestCP
   else
     S2CP:=StringCodePage(S2);
@@ -247,24 +247,24 @@ begin
     keep that code page or keep the code page if the other string is empty }
   if cp=CP_NONE then
     begin
-     if (S1CP=S2CP) or (S2='') then
+     if (S1CP=S2CP) or (Length(S2)=0) then
        DestCP:=S1CP
-     else if S1='' then
+     else if Length(S1)=0 then
        DestCP:=S2CP;
     end;
 {$endif FPC_HAS_CPSTRING}
-  if ((S1CP<>DestCP) and (s1<>'')) or ((S2CP<>DestCP) and (s2<>'')) then
+  if ((S1CP<>DestCP) and (Length(s1)>0)) or ((S2CP<>DestCP) and (Length(s2)>0)) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
       exit;
     end;
   { only assign if s1 or s2 is empty }
-  if (S1='') then
+  if (Length(S1)=0) then
     begin
       DestS:=s2;
       exit;
     end;
-  if (S2='') then
+  if (Length(S2)=0) then
     begin
       DestS:=s1;
       exit;
@@ -329,7 +329,7 @@ begin
   lowstart:=low(sarr);
   { skip empty strings }
   while (lowstart<=high(sarr)) and
-        (sarr[lowstart]='') do
+        (Length(sarr[lowstart])=0) do
     inc(lowstart);
   if lowstart>high(sarr) then
     begin
@@ -343,7 +343,7 @@ begin
     begin
       { ignore the code page of empty strings, it will always be
         DefaultSystemCodePage but it doesn't matter for the outcome }
-      if (sarr[i]<>'') and
+      if (length(sarr[i])<>0) and
          (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
         begin
           sameCP:=false;
@@ -354,7 +354,7 @@ begin
     begin
       U:='';
       for i:=lowstart to high(sarr) do
-        if sarr[i]<>'' then
+        if (Length(sarr[i])<>0) then
           U:=U+UnicodeString(sarr[i]);
 
       DestS:='';
@@ -371,7 +371,7 @@ begin
   nonemptystart:=lowstart;
   { Check for another reuse, then we can't use
     the append optimization }
-  if DestS<>'' then
+  if Length(DestS)<>0 then
     begin
       if Pointer(DestS)=Pointer(sarr[lowstart]) then
         inc(lowstart);
@@ -486,7 +486,7 @@ procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : RawByteStrin
 Var
   Size : SizeInt;
 begin
-  if S2='' then
+  if Length(S2)=0 then
    res:=''
   else
    begin
@@ -533,7 +533,7 @@ end;
 {$define FPC_HAS_CHAR_TO_ANSISTR}
 Function fpc_Char_To_AnsiStr(const c : AnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 {
-  Converts a Char to a AnsiString;
+  Converts a AnsiChar to a AnsiString;
 }
 {$ifndef FPC_HAS_CPSTRING}
 var
@@ -1001,9 +1001,9 @@ end;
 
 {$ifndef FPC_HAS_POS_ANSICHAR_ANSISTR}
 {$define FPC_HAS_POS_ANSICHAR_ANSISTR}
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
+{ Faster version for a AnsiChar alone. Must be implemented because   }
+{ pos(c: AnsiChar; const s: shortstring) also exists, so otherwise   }
+{ using pos(AnsiChar,pansichar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
@@ -1024,7 +1024,7 @@ end;
 {$ifndef FPUNONE}
 Function fpc_Val_Real_AnsiStr(Const S : RawByteString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
 Var
-  SS : String;
+  SS : ShortString;
 begin
   fpc_Val_Real_AnsiStr := 0;
   if length(S) > 255 then
@@ -1040,7 +1040,7 @@ end;
 
 Function fpc_Val_Currency_AnsiStr(Const S : RawByteString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
 Var
-  SS : String;
+  SS : ShortString;
 begin
   if length(S) > 255 then
     begin
@@ -1383,7 +1383,7 @@ begin
   If (Size<=LS-Index) then
     begin
       Dec(Index);
-      fpc_pchar_ansistr_intern_charmove(pchar(S),Index+Size,S,Index,LS-Index-Size+1);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index+Size,S,Index,LS-Index-Size+1);
     end;
   Setlength(S,LS-Size);
 end;
@@ -1410,10 +1410,10 @@ begin
     cp:=TranslatePlaceholderCP(StringCodePage(Source));
   SetCodePage(Temp,cp,false);
   If Index>0 then
-    fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
-  fpc_pchar_ansistr_intern_charmove(pchar(Source),0,Temp,Index,Length(Source));
+    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),0,Temp,0,Index);
+  fpc_pchar_ansistr_intern_charmove(PAnsiChar(Source),0,Temp,Index,Length(Source));
   If (LS-Index)>0 then
-    fpc_pchar_ansistr_intern_charmove(pchar(S),Index,Temp,Length(Source)+Index,LS-Index);
+    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index,Temp,Length(Source)+Index,LS-Index);
   S:=Temp;
 end;
 
@@ -1557,7 +1557,7 @@ procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert
     TranslatedCodePage,
     TranslatedCurrentCodePage: TSystemCodePage;
   begin
-    if (S='') then
+    if Length(S)=0 then
       exit;
     { if the codepage are identical, we don't have to do anything (even if the
       string has multiple references) }

@@ -14,13 +14,14 @@ unit dbf_fields;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-interface
-
 {$I dbf_common.inc}
 
+interface
+
+
 uses
-  Classes,
   SysUtils,
+  Classes,
   db,
   dbf_common,
   dbf_str;
@@ -38,9 +39,9 @@ type
     FIsSystemField: Boolean;
     FVarLengthPosition: integer;
     FNativeFieldType: TDbfFieldType;
-    FDefaultBuf: PChar;
-    FMinBuf: PChar;
-    FMaxBuf: PChar;
+    FDefaultBuf: PAnsiChar;
+    FMinBuf: PAnsiChar;
+    FMaxBuf: PAnsiChar;
     FSize: Integer;
     FPrecision: Integer;
     FHasDefault: Boolean;
@@ -65,7 +66,7 @@ type
     procedure NativeToVCL;
     procedure FreeBuffers;
   protected
-    function  GetDisplayName: string; override;
+    function  GetDisplayName: String; override;
     procedure AssignTo(Dest: TPersistent); override;
     // File is compatible with this database product
     property DbfVersion: TXBaseVersion read GetDbfVersion;
@@ -83,9 +84,9 @@ type
     // Yes if field is a blob/memo type field (storage in external file)
     function  IsBlob: Boolean;
 
-    property DefaultBuf: PChar read FDefaultBuf;
-    property MinBuf: PChar read FMinBuf;
-    property MaxBuf: PChar read FMaxBuf;
+    property DefaultBuf: PAnsiChar read FDefaultBuf;
+    property MinBuf: PAnsiChar read FMinBuf;
+    property MaxBuf: PAnsiChar read FMaxBuf;
     property HasDefault: Boolean read FHasDefault write FHasDefault;
     property HasMin: Boolean read FHasMin write FHasMin;
     property HasMax: Boolean read FHasMax write FHasMax;

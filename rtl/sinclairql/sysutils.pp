@@ -75,7 +75,7 @@ begin
     fmOpenWrite: QLMode :=  Q_OPEN_OVER;
     fmOpenReadWrite: QLMode := Q_OPEN;
   end;
-  FileOpen := io_open(pchar(Filename), QLMode);
+  FileOpen := io_open(PAnsiChar(Filename), QLMode);
   if FileOpen < 0 then
     FileOpen:=-1;
 end;
@@ -109,7 +109,7 @@ end;
 function FileCreate(const FileName: RawByteString) : THandle;
 begin
   DeleteFile(FileName);
-  FileCreate := io_open(pchar(FileName), Q_OPEN_NEW);
+  FileCreate := io_open(PAnsiChar(FileName), Q_OPEN_NEW);
   if FileCreate < 0 then
     FileCreate:=-1;
 end;
@@ -215,7 +215,7 @@ end;
 function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
   DeleteFile:=false;
-  if io_delet(pchar(Filename)) < 0 then
+  if io_delet(PAnsiChar(Filename)) < 0 then
     exit;
   DeleteFile := True;
 end;
@@ -231,7 +231,7 @@ begin
   if Handle = -1 then
     exit;
 
-  QLerr := fs_rename(Handle, pchar(NewName));
+  QLerr := fs_rename(Handle, PAnsiChar(NewName));
   FileClose(Handle);
   if QLerr >= 0 then
     RenameFile := true; 

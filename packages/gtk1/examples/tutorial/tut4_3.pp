@@ -29,7 +29,7 @@ function make_box(homogeneous: boolean;
 var
   box, button :  pGtkWidget;   //GtkWidget is the storage type for widgets
   padstr : string;
-  ppadstr : Pchar;
+  ppadstr : PAnsiChar;
 begin
 
         //* Create a new hbox with the appropriate homogeneous

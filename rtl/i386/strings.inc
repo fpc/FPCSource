@@ -18,7 +18,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
-function strcopy(dest,source : pchar) : pchar;assembler;
+function strcopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
@@ -85,7 +85,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRECOPY}
 {$define FPC_UNIT_HAS_STRECOPY}
-function strecopy(dest,source : pchar) : pchar;assembler;
+function strecopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -121,7 +121,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
-function strlcopy(dest,source : pchar;maxlen : sizeint) : pchar;assembler;
+function strlcopy(dest,source : PAnsiChar;maxlen : sizeint) : PAnsiChar;assembler;
 var
   savedest,
   saveesi,saveedi : longint;
@@ -158,7 +158,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
-function strend(p : pchar) : pchar;assembler;
+function strend(p : PAnsiChar) : PAnsiChar;assembler;
 var
   saveedi : longint;
 asm
@@ -184,7 +184,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
-function strcomp(str1,str2 : pchar) : longint;assembler;
+function strcomp(str1,str2 : pansichar) : longint;assembler;
 var
   saveeax,saveedx,saveesi,saveedi : longint;
 asm
@@ -217,7 +217,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
-function strlcomp(str1,str2 : pchar;l : sizeint) : longint;assembler;
+function strlcomp(str1,str2 : PAnsiChar;l : sizeint) : longint;assembler;
 var
   saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
@@ -255,7 +255,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
 {$define FPC_UNIT_HAS_STRICOMP}
-function stricomp(str1,str2 : pchar) : longint;assembler;
+function stricomp(str1,str2 : PAnsiChar) : longint;assembler;
 var
   saveeax,saveedx,saveesi,saveedi : longint;
 asm
@@ -304,7 +304,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
-function strlicomp(str1,str2 : pchar;l : sizeint) : longint;assembler;
+function strlicomp(str1,str2 : PAnsiChar;l : sizeint) : longint;assembler;
 var
   saveeax,saveedx,saveecx,saveesi,saveedi : longint;
 asm
@@ -358,7 +358,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRSCAN}
 {$define FPC_UNIT_HAS_STRSCAN}
-function strscan(p : pchar;c : char) : pchar;assembler;
+function strscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -484,7 +484,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
 {$define FPC_UNIT_HAS_STRRSCAN}
-function strrscan(p : pchar;c : char) : pchar;assembler;
+function strrscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;assembler;
 var
   saveeax,
   saveedi : longint;
@@ -523,7 +523,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
-function strupper(p : pchar) : pchar;assembler;
+function strupper(p : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
@@ -558,7 +558,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
-function strlower(p : pchar) : pchar;assembler;
+function strlower(p : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm

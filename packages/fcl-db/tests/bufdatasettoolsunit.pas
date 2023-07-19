@@ -35,13 +35,6 @@ type
     function GetTestUniDirectional: boolean; override;
   end;
 
-implementation
-
-uses
-  StrUtils, FmtBCD;
-
-type
-
   { TPersistentBufDataSet }
 
   TPersistentBufDataSet=class(TBufDataset)
@@ -52,6 +45,13 @@ type
     public
       destructor Destroy; override;
   end;
+
+
+implementation
+
+uses
+  StrUtils, FmtBCD;
+
 
 { TPersistentBufDataSet }
 
@@ -112,7 +112,9 @@ begin
     MergeChangeLog;
     TempFileName:=GetTempFileName;
     FileName:=TempFileName;
+    // Writeln(FileName);
     Close; // Save data into file
+    Fields.Clear;
     end;
   Result := BufDataset;
 end;
@@ -144,7 +146,7 @@ begin
     FieldDefs.Add('FDATE',ftDate);
     FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
-    FieldDefs.Add('FVARBYTES',ftVarBytes,10);
+    FieldDefs.Add('FVARBYTES',ftVarBytes,20);
     FieldDefs.Add('FBLOB',ftBlob);
     FieldDefs.Add('FMEMO',ftMemo);
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
@@ -178,6 +180,9 @@ begin
       FieldByName('FTIME').AsDateTime := StrToTime(testTimeValues[i], Self.FormatSettings);
       FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
       FieldByName('FVARBYTES').AsString := testStringValues[i];
+{      if not (FieldByName('FVARBYTES').AsString = testStringValues[i]) then
+        Writeln('Error');
+        }
       FieldByName('FBLOB').AsString := testStringValues[i];
       FieldByName('FMEMO').AsString := testStringValues[i];
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);

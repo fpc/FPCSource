@@ -119,7 +119,7 @@ type
   public
     IFDStart: DWord; // tiff position
     IFDNext: DWord; // tiff position
-    Artist: String;
+    Artist: AnsiString;
     BitsPerSample: DWord; // tiff position of entry
     BitsPerSampleArray: array of Word;
     CellLength: DWord;
@@ -127,30 +127,30 @@ type
     ColorMap: DWord;// tiff position of entry
     Compression: DWord;
     Predictor: Word;
-    Copyright: string;
-    DateAndTime: string;
-    DocumentName: string;
+    Copyright: AnsiString;
+    DateAndTime: AnsiString;
+    DocumentName: AnsiString;
     ExtraSamples: DWord;// tiff position of entry
     FillOrder: DWord;
-    HostComputer: string;
-    ImageDescription: string;
+    HostComputer: AnsiString;
+    ImageDescription: AnsiString;
     ImageHeight: DWord;
     ImageIsMask: Boolean;
     ImageIsPage: Boolean;
     ImageIsThumbNail: Boolean;
     ImageWidth: DWord;
-    Make_ScannerManufacturer: string;
-    Model_Scanner: string;
+    Make_ScannerManufacturer: AnsiString;
+    Model_Scanner: AnsiString;
     Orientation: DWord;
     PageNumber: word; // the page number starting at 0, the total number of pages is PageCount
     PageCount: word; // see PageNumber
-    PageName: string;
+    PageName: AnsiString;
     PhotoMetricInterpretation: DWord;
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
     RowsPerStrip: DWord;
     SamplesPerPixel: DWord;
-    Software: string;
+    Software: AnsiString;
     StripByteCounts: DWord;// tiff position of entry
     StripOffsets: DWord; // tiff position of entry
     TileWidth: DWord;
@@ -177,24 +177,24 @@ type
     destructor Destroy; override;
   end;
 
-function TiffRationalToStr(const r: TTiffRational): string;
-function StrToTiffRationalDef(const s: string; const Def: TTiffRational): TTiffRational;
+function TiffRationalToStr(const r: TTiffRational): AnsiString;
+function StrToTiffRationalDef(const s: AnsiString; const Def: TTiffRational): TTiffRational;
 procedure ClearTiffExtras(Img: TFPCustomImage);
 procedure CopyTiffExtras(SrcImg, DestImg: TFPCustomImage);
-procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
-function TiffCompressionName(c: Word): string;
+procedure WriteTiffExtras(Msg: AnsiString; Img: TFPCustomImage);
+function TiffCompressionName(c: Word): AnsiString;
 
 function TifResolutionUnitToResolutionUnit(ATifResolutionUnit: DWord): TResolutionUnit;
 function ResolutionUnitToTifResolutionUnit(AResolutionUnit: TResolutionUnit): DWord;
 
 implementation
 
-function TiffRationalToStr(const r: TTiffRational): string;
+function TiffRationalToStr(const r: TTiffRational): AnsiString;
 begin
   Result:=IntToStr(r.Numerator)+'/'+IntToStr(r.Denominator);
 end;
 
-function StrToTiffRationalDef(const s: string; const Def: TTiffRational
+function StrToTiffRationalDef(const s: AnsiString; const Def: TTiffRational
   ): TTiffRational;
 var
   p: LongInt;
@@ -225,7 +225,7 @@ begin
       DestImg.Extra[SrcImg.ExtraKey[i]]:=SrcImg.ExtraValue[i];
 end;
 
-procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
+procedure WriteTiffExtras(Msg: AnsiString; Img: TFPCustomImage);
 var
   i: Integer;
 begin
@@ -235,7 +235,7 @@ begin
       writeln('  ',i,' ',Img.ExtraKey[i],'=',Img.ExtraValue[i]);
 end;
 
-function TiffCompressionName(c: Word): string;
+function TiffCompressionName(c: Word): AnsiString;
 begin
   case c of
   1: Result:='no compression';

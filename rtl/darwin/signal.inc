@@ -176,7 +176,7 @@
     PSigSet = ^TSigSet;
 
     tdarwin_stack_t = record
-        ss_sp    : pchar;        { signal stack base }
+        ss_sp    : PAnsiChar;        { signal stack base }
         ss_size  : clong;         { signal stack length }
         ss_flags : cint;         { SA_DISABLE and/or SA_ONSTACK }
     end;
@@ -253,7 +253,7 @@ const
   type
      sigaltstack = record
   { signal stack base  }
-          ss_sp : pchar;
+          ss_sp : PAnsiChar;
   { signal stack length  }
           ss_size : clong;
   { SA_DISABLE and/or SA_ONSTACK  }

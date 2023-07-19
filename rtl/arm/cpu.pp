@@ -57,7 +57,7 @@ unit cpu;
 
     procedure InitHWCaps;
       var
-        ep: PPChar;
+        ep: PPAnsiChar;
         auxv: PElf32AuxiliaryVector;
       begin
         psysinfo := 0;

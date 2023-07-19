@@ -49,7 +49,7 @@ begin
         vtboolean : TagList[ii].ti_data := IPTR(byte(Args[i].vboolean));
         vtpchar   : TagList[ii].ti_data := IPTR(Args[i].vpchar);
         vtchar    : TagList[ii].ti_data := IPTR(Args[i].vchar);
-        vtstring  : TagList[ii].ti_data := IPTR(PChar(string(Args[i].vstring^)));
+        vtstring  : TagList[ii].ti_data := IPTR(PAnsiChar(AnsiString(Args[i].vstring^)));
         vtpointer : TagList[ii].ti_data := IPTR(Args[i].vpointer);
       end;
       inc(ii);

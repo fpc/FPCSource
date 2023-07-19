@@ -35,8 +35,8 @@ type
    piconv_t = ^iconv_t;
    iconv_t = pointer;
 
-   Ticonv_open = function(__tocode: pchar; __fromcode: pchar): iconv_t; cdecl;
-   Ticonv = function(__cd: iconv_t; __inbuf: ppchar; __inbytesleft: psize_t; __outbuf: ppchar; __outbytesleft: psize_t): size_t; cdecl;
+   Ticonv_open = function(__tocode: PAnsiChar; __fromcode: PAnsiChar): iconv_t; cdecl;
+   Ticonv = function(__cd: iconv_t; __inbuf: PPAnsiChar; __inbytesleft: psize_t; __outbuf: PPAnsiChar; __outbytesleft: psize_t): size_t; cdecl;
    Ticonv_close = function(__cd: iconv_t): cint; cdecl;
 
 var
@@ -46,17 +46,17 @@ var
   iconv_close: Ticonv_close;
   IconvLibFound: boolean = False;
 
-function TryLoadLib(LibName: string; var error: string): boolean; // can be used to load non standard libname
-function Iconvert(s: string; var res: string; const FromEncoding, ToEncoding: string): cint;
-function InitIconv(var error: string): boolean;
+function TryLoadLib(LibName: string; var error: String): boolean; // can be used to load non standard libname
+function Iconvert(s: AnsiString; var res: AnsiString; const FromEncoding, ToEncoding: AnsiString): cint;
+function InitIconv(var error: AnsiString): boolean;
 
 implementation
 
-function TryLoadLib(LibName: string; var error: string): boolean;
+function TryLoadLib(LibName: string; var error: String): boolean;
 
     function resolvesymbol (var funcptr; symbol: string): Boolean;
     begin
-      pointer(funcptr) := pointer(dlsym(iconv_lib, pchar(symbol)));
+      pointer(funcptr) := pointer(dlsym(iconv_lib, PAnsiChar(symbol)));
       result := assigned(pointer(funcptr));
       if not result then
         error := error+#13#10+dlerror();
@@ -67,7 +67,7 @@ var
 begin
   result := false;
   Error := Error+#13#10'Trying '+LibName;
-  iconv_lib := dlopen(pchar(libname), RTLD_NOW);
+  iconv_lib := dlopen(PAnsiChar(libname), RTLD_NOW);
   if Assigned(iconv_lib) then
   begin
     result := true;

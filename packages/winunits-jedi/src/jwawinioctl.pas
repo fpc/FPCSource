@@ -5013,7 +5013,7 @@ var
   Partition: PDiskPartitionInfo;
 begin
   Partition := DiskGeometryGetPartition(Geometry);
-  Result := PDiskDetectionInfo(PChar(Partition) + Partition^.SizeOfPartitionInfo*SizeOf(DWORD));
+  Result := PDiskDetectionInfo(PAnsiChar(Partition) + Partition^.SizeOfPartitionInfo*SizeOf(DWORD));
 end;
 
 {$ENDIF JWA_INTERFACESECTION}

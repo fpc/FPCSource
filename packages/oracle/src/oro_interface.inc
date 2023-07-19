@@ -114,7 +114,7 @@
       cxcheng    10/02/96 -  move oronsp to ko.h as konsp
       cxcheng    10/01/96 -  add long names for readability
       cxcheng    10/01/96 -  remove orotty and orotal
-      rjenkins   09/28/96 -  2k char 4k varchar2
+      rjenkins   09/28/96 -  2k AnsiChar 4k varchar2
       jboonleu   09/27/96 -  add macro used only in beta2
       cxcheng    09/27/96 -  move oroenv to oroenv.h
       cxcheng    09/24/96 -  remove unnecessary orotyp
@@ -712,7 +712,7 @@
      OCI_TYPECODE_PTR = 32;
      OCI_TYPECODE_VARCHAR2 = SQLT_VCS;
   { SQL VARCHAR2(N)  OTS SQL_VARCHAR2(N)  }
-  { SQL CHAR(N)  OTS SQL_CHAR(N)  }
+  { SQL AnsiChar(N)  OTS SQL_CHAR(N)  }
      OCI_TYPECODE_CHAR = SQLT_AFC;
      OCI_TYPECODE_VARCHAR = SQLT_CHR;
   { SQL VARCHAR(N)  OTS SQL_VARCHAR(N)  }

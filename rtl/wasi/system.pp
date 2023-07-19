@@ -33,8 +33,8 @@ const
   DriveSeparator = '';
   ExtensionSeparator = '.';
   PathSeparator = ':';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [];
 {  FileNameCaseSensitive and FileNameCasePreserving are defined below! }
   maxExitCode = 65535;
   MaxPathLen = 4096;
@@ -55,8 +55,8 @@ const
 
 var
   argc: longint;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
 
 function __fpc_get_wasm_suspender: WasmExternRef;
@@ -98,7 +98,7 @@ function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd
 
 function fpc_wasi_path_readlink_ansistring(
                  fd: __wasi_fd_t;
-                 const path: PChar;
+                 const path: PAnsiChar;
                  path_len: size_t;
                  out link: rawbytestring): __wasi_errno_t;[Public, Alias : 'FPC_WASI_PATH_READLINK_ANSISTRING'];
 const
@@ -323,7 +323,7 @@ begin
     envp:=nil;
     exit;
   end;
-  envp_size:=(environc+1)*SizeOf(PChar);
+  envp_size:=(environc+1)*SizeOf(PAnsiChar);
   GetMem(envp, envp_size);
   GetMem(environ_buf, environ_buf_size);
   envp[environc]:=nil;
@@ -345,7 +345,7 @@ begin
     argv:=nil;
     exit;
   end;
-  argv_size:=(argc+1)*SizeOf(PChar);
+  argv_size:=(argc+1)*SizeOf(PAnsiChar);
   GetMem(argv, argv_size);
   GetMem(argv_buf, argv_buf_size);
   if __wasi_args_get(Pointer(argv), argv_buf)<>__WASI_ERRNO_SUCCESS then
@@ -364,7 +364,7 @@ Begin
   paramcount := argc - 1;
 End;
 
-function paramstr(l: longint) : string;
+function paramstr(l: longint) : shortstring;
 begin
   if argv=nil then
     setup_arguments;

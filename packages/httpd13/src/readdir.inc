@@ -40,7 +40,7 @@ type
     d_ino: clong;                         { inode (always 1 in WIN32) }
     d_off: off_t;                         { offset to this dirent }
     d_reclen: cushort;                    { length of d_name }
-    d_name: array[0.._MAX_FNAME] of Char;    { filename (null terminated) }
+    d_name: array[0.._MAX_FNAME] of AnsiChar;    { filename (null terminated) }
   end;
 
 { typedef DIR - not the same as Unix }
@@ -50,14 +50,14 @@ type
     finished: cshort;              { 1 if there are not more files }
 //    struct _finddata_t fileinfo; { from _findfirst/_findnext }
     fileinfo: Pointer;             { from _findfirst/_findnext }
-    dir: PChar;                    { the dir we are reading }
+    dir: PAnsiChar;                    { the dir we are reading }
     dent: dirent;                  { the dirent to return }
   end;
 
   PDIR = ^DIR;
   
 { Function prototypes }
-{API_EXPORT(DIR *) opendir(const char *);
+{API_EXPORT(DIR *) opendir(const AnsiChar *);
 API_EXPORT(struct dirent *) readdir(DIR *);
 API_EXPORT(int) closedir(DIR *);}
 

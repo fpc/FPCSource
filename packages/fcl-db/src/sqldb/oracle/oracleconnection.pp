@@ -334,12 +334,12 @@ procedure TOracleConnection.HandleError;
 
 var
     errcode : sb4;
-    buf     : array[0..1023] of char;
+    buf     : array[0..1023] of AnsiChar;
 
 begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
 
-  raise EOraDatabaseError.CreateFmt(pchar(buf), [], Self, errcode, '')
+  raise EOraDatabaseError.CreateFmt(PAnsiChar(buf), [], Self, errcode, '')
 end;
 
 procedure TOracleConnection.GetParameters(cursor: TSQLCursor; ATransaction : TSQLTransaction; AParams: TParams);
@@ -673,12 +673,12 @@ begin
 
         if AParams[i].ParamType=ptInput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[i].Name),length(AParams[i].Name),OBuffer,OFieldSize,OFieldType,@ParamBuffers[i].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,PAnsiChar(AParams[i].Name),length(AParams[i].Name),OBuffer,OFieldSize,OFieldType,@ParamBuffers[i].ind,nil,nil,0,nil,OCI_DEFAULT )= OCI_ERROR then
             HandleError;
           end
         else if AParams[i].ParamType=ptOutput then
           begin
-          if OCIBindByName(FOciStmt,FOcibind,FOciError,pchar(AParams[i].Name),length(AParams[i].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
+          if OCIBindByName(FOciStmt,FOcibind,FOciError,PAnsiChar(AParams[i].Name),length(AParams[i].Name),nil,OFieldSize,OFieldType,nil,nil,nil,0,nil,OCI_DATA_AT_EXEC )= OCI_ERROR then
             HandleError;
           if OCIBindDynamic(FOcibind, FOciError, nil, @cbf_no_data, @parambuffers[i], @cbf_get_data) <> OCI_SUCCESS then
             HandleError;
@@ -873,7 +873,7 @@ var Param      : POCIParam;
     FieldSize  : cardinal;
 
     OFieldType   : ub2;
-    OFieldName   : Pchar;
+    OFieldName   : PAnsiChar;
     OFieldSize   : ub4;
     OFNameLength : ub4;
     NumCols      : ub4;

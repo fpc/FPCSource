@@ -674,7 +674,7 @@ type
 		typeDescriptor: OSType;         { 'data' = cmSigDataType}
 		reserved: UInt32;               { fill with 0x00 }
 		dataFlag: UInt32;               { 0 = ASCII, 1 = binary }
-		data: array [0..0] of char;                { variable size, determined by tag element size }
+		data: array [0..0] of AnsiChar;                { variable size, determined by tag element size }
 	end;
 
 type
@@ -1048,8 +1048,8 @@ type
 type
 	CMMultiLocalizedUniCodeEntryRecPtr = ^CMMultiLocalizedUniCodeEntryRec;
 	CMMultiLocalizedUniCodeEntryRec = record
-		languageCode: packed array [0..1] of char;        { language code from ISO-639 }
-		regionCode: packed array [0..1] of char;          { region code from ISO-3166 }
+		languageCode: packed array [0..1] of AnsiChar;        { language code from ISO-639 }
+		regionCode: packed array [0..1] of AnsiChar;          { region code from ISO-3166 }
 		textLength: UInt32;             { the length in bytes of the string }
 		textOffset: UInt32;             { the offset from the start of tag in bytes }
 	end;
@@ -1729,7 +1729,7 @@ type
 		profileHeader: CM2Header;
 		calibrationDate: CMDateTime;
 		ASCIIProfileDescriptionLen: UInt32;
-		ASCIIProfileDescription: array [0..0] of char; { variable length }
+		ASCIIProfileDescription: array [0..0] of AnsiChar; { variable length }
 end;
 {$endc} {not TARGET_CPU_64}
 
@@ -1930,7 +1930,7 @@ type
 type
 	CMPathLocationPtr = ^CMPathLocation;
 	CMPathLocation = record
-		path: packed array [0..CS_MAX_PATH] of char;
+		path: packed array [0..CS_MAX_PATH] of AnsiChar;
 	end;
 
 type

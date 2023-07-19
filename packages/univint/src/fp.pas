@@ -922,7 +922,7 @@ function remquo( x: double_t; y: double_t; var quo: SInt32 ): double_t; external
 *                   floating point standard,  which is opposite from the SANE   *
 *                   copysign function.                                          *
 *                                                                               *
-*   nan             The call 'nan("n-char-sequence")' returns a quiet NaN       *
+*   nan             The call 'nan("n-AnsiChar-sequence")' returns a quiet NaN       *
 *                   with content indicated through tagp in the selected         *
 *                   data type format.                                           *
 *                                                                               *
@@ -1354,7 +1354,7 @@ function dec2num( const (*var*) d: decimal ): double_t; external name '_dec2num'
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in MathLib 1.0 and later
  }
-procedure dec2str( const (*var*) f: decform; const (*var*) d: decimal; var s: char ); external name '_dec2str';
+procedure dec2str( const (*var*) f: decform; const (*var*) d: decimal; var s: AnsiChar ); external name '_dec2str';
 (* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_8, __IPHONE_NA, __IPHONE_NA) *)
 
 

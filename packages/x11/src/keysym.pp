@@ -54,7 +54,7 @@ Const
  * tables in client code.
  *}
 
-  XK_BackSpace          = $FF08;        { back space, back char }
+  XK_BackSpace          = $FF08;        { back space, back AnsiChar }
   XK_Tab                = $FF09;
   XK_Linefeed           = $FF0A;        { Linefeed, LF }
   XK_Clear              = $FF0B;
@@ -1878,7 +1878,7 @@ Const
   XK_Georgian_can  = $10010ea;  { U+10EA GEORGIAN LETTER CAN }
   XK_Georgian_jil  = $10010eb;  { U+10EB GEORGIAN LETTER JIL }
   XK_Georgian_cil  = $10010ec;  { U+10EC GEORGIAN LETTER CIL }
-  XK_Georgian_char = $10010ed;  { U+10ED GEORGIAN LETTER CHAR }
+  XK_Georgian_char = $10010ed;  { U+10ED GEORGIAN LETTER AnsiChar }
   XK_Georgian_xan  = $10010ee;  { U+10EE GEORGIAN LETTER XAN }
   XK_Georgian_jhan = $10010ef;  { U+10EF GEORGIAN LETTER JHAN }
   XK_Georgian_hae  = $10010f0;  { U+10F0 GEORGIAN LETTER HAE }

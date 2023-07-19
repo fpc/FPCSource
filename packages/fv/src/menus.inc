@@ -191,7 +191,7 @@ TYPE
       FUNCTION Execute: Word; Virtual;
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION FindItem (Ch: Char): PMenuItem;
+      FUNCTION FindItem (Ch: AnsiChar): PMenuItem;
       FUNCTION HotKey (KeyCode: Word): PMenuItem;
       FUNCTION NewSubView (Var Bounds: TRect; AMenu: PMenu;
         AParentMenu: PMenuView): PMenuView; Virtual;
@@ -426,7 +426,7 @@ CONST
 {$ifdef FV_UNICODE}
   SubMenuChar : array[boolean] of WideChar = ('>',#$25BA);
 {$else FV_UNICODE}
-  SubMenuChar : array[boolean] of char = ('>',#16);
+  SubMenuChar : array[boolean] of AnsiChar = ('>',#16);
 {$endif FV_UNICODE}
   { SubMenuChar is the character displayed at right of submenu }
 
@@ -505,7 +505,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TMenuView.Execute: Word;
 TYPE MenuAction = (DoNothing, DoSelect, DoReturn);
-VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
+VAR AutoSelect: Boolean; Action: MenuAction; Ch: AnsiChar; Res: Word; R: TRect;
   ItemShown, P: PMenuItem; Target: PMenuView; E: TEvent; MouseActive: Boolean;
 
    PROCEDURE TrackMouse;
@@ -738,16 +738,16 @@ END;
 {--TMenuView----------------------------------------------------------------}
 {  FindItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TMenuView.FindItem (Ch: Char): PMenuItem;
+FUNCTION TMenuView.FindItem (Ch: AnsiChar): PMenuItem;
 VAR I: SmallInt; P: PMenuItem;
 BEGIN
-   Ch := UpCase(Ch);                                  { Upper case of char }
+   Ch := UpCase(Ch);                                  { Upper case of AnsiChar }
    P := Menu^.Items;                                  { First menu item }
    While (P <> Nil) Do Begin                          { While item valid }
      If (P^.Name <> Sw_PString_Empty) AND (NOT P^.Disabled)  { Valid enabled cmd }
      Then Begin
        I := Pos('~', P^.Name Sw_PString_Deref);  { Scan for highlight }
-       If (I <> 0) AND (Ch = UpCase(P^.Name Sw_PString_Deref[I+1]))   { Hotkey char found }
+       If (I <> 0) AND (Ch = UpCase(P^.Name Sw_PString_Deref[I+1]))   { Hotkey AnsiChar found }
        Then Begin
          FindItem := P;                               { Return item }
          Exit;                                        { Now exit }
@@ -1055,7 +1055,7 @@ Type
 {$ifdef FV_UNICODE}
    FrameLineChars = Array[0..2] of WideChar;
 {$else FV_UNICODE}
-   FrameLineChars = Array[0..2] of char;
+   FrameLineChars = Array[0..2] of AnsiChar;
 {$endif FV_UNICODE}
 Const
    FrameLines : Array[FrameLineType] of FrameLineChars =
@@ -1512,12 +1512,12 @@ BEGIN
    HintBuf := Hint(HelpCtx);                          { Get hint string }
    If (HintBuf <> '') Then Begin                      { Hint present }
 {$ifdef FV_UNICODE}
-     MoveChar(B[I], #$2502, Byte(CNormal), 1);        { '|' char to buffer }
+     MoveChar(B[I], #$2502, Byte(CNormal), 1);        { '|' AnsiChar to buffer }
 {$else FV_UNICODE}
      {$IFNDEF OS_WINDOWS}
-     MoveChar(B[I], #179, Byte(CNormal), 1);          { '|' char to buffer }
+     MoveChar(B[I], #179, Byte(CNormal), 1);          { '|' AnsiChar to buffer }
      {$ELSE}
-     MoveChar(B[I], #124, Byte(CNormal), 1);          { '|' char to buffer }
+     MoveChar(B[I], #124, Byte(CNormal), 1);          { '|' AnsiChar to buffer }
      {$ENDIF}
 {$endif FV_UNICODE}
      Inc(I, 2);                                       { Move along }

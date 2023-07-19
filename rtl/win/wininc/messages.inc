@@ -1411,7 +1411,7 @@
     TWMMenuChar = record
       Msg: UINT;
       MsgFiller : TDwordFiller;
-      User: Char;
+      User: AnsiChar;
       MenuFlag: Word;
       WParamFiller : TDwordFiller;
       Menu: HMENU;
@@ -1441,7 +1441,7 @@
       Msg : UINT;
       MsgFiller : TDwordFiller;
       TextMax : WPARAM;
-      Text : PChar;
+      Text : PAnsiChar;
       Result : LRESULT;
     end;
 
@@ -1603,7 +1603,7 @@
       Msg : UINT;
       MsgFiller : TDwordFiller;
       Unused : WParam;
-      Section : PChar;
+      Section : PAnsiChar;
       Result : LRESULT;
     end;
 
@@ -1796,7 +1796,7 @@
       MsgFiller : TDwordFiller;
       Flag : Integer;
       WParamFiller : TDwordFiller;
-      Section : PChar;
+      Section : PAnsiChar;
       Result : LRESULT;
     end;
 
@@ -1845,7 +1845,7 @@
       Msg : UINT;
       MsgFiller : TDwordFiller;
       Unused : WParam;
-      Text : PChar;
+      Text : PAnsiChar;
       Result : LRESULT;
     end;
 

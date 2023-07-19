@@ -7,7 +7,7 @@ function killpg(__pgrp:__pid_t; __sig:longint):longint;cdecl;external clib name 
 function __raise(__sig:longint):longint;cdecl;external clib name 'raise';
 function ssignal(__sig:longint; __handler:__sighandler_t):__sighandler_t;cdecl;external clib name 'ssignal';
 function gsignal(__sig:longint):longint;cdecl;external clib name 'gsignal';
-procedure psignal(__sig:longint; __s:Pchar);cdecl;external clib name 'psignal';
+procedure psignal(__sig:longint; __s:PAnsiChar);cdecl;external clib name 'psignal';
 function __sigpause(__sig_or_mask:longint; __is_sig:longint):longint;cdecl;external clib name '__sigpause';
 function sigpause(__mask:longint):longint;cdecl;external clib name 'sigpause';
 function sigblock(__mask:longint):longint;cdecl;external clib name 'sigblock';
@@ -26,8 +26,8 @@ Type
 
 
 var
-  _sys_siglist : array[0..(_NSIG)-1] of Pchar;cvar;external;
-  sys_siglist : array[0..(_NSIG)-1] of Pchar;cvar;external;
+  _sys_siglist : array[0..(_NSIG)-1] of PAnsiChar;cvar;external;
+  sys_siglist : array[0..(_NSIG)-1] of PAnsiChar;cvar;external;
 
 Type
   P_sigvec = ^_sigvec;

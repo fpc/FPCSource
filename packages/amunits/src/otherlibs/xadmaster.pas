@@ -29,7 +29,7 @@ INTERFACE
 USES Exec,utility,amigados;
 
 const
-    XADMASTERNAME : PChar = 'xadmaster.library';
+    XADMASTERNAME : PAnsiChar = 'xadmaster.library';
 
 
   {
@@ -1184,10 +1184,10 @@ FUNCTION xadAddDiskEntryA(di : pxadDiskInfo location 'a0'; ai : pxadArchiveInfo 
 FUNCTION xadAddFileEntryA(fi : pxadFileInfo location 'a0'; ai : pxadArchiveInfo location 'a1'; CONST tags : pTagItem location 'a2') : LONGINT; syscall xadMasterBase 156;
 FUNCTION xadAllocObjectA(_type : LONGINT location 'd0'; CONST tags : pTagItem location 'a0') : POINTER; syscall xadMasterBase 30;
 FUNCTION xadAllocVec(size : longword location 'd0'; flags : longword location 'd1') : POINTER; syscall xadMasterBase 108;
-FUNCTION xadCalcCRC16(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : pCHAR location 'a0') : WORD; syscall xadMasterBase 96;
-FUNCTION xadCalcCRC32(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : pCHAR location 'a0') : longword; syscall xadMasterBase 102;
+FUNCTION xadCalcCRC16(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : PAnsiChar location 'a0') : WORD; syscall xadMasterBase 96;
+FUNCTION xadCalcCRC32(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : PAnsiChar location 'a0') : longword; syscall xadMasterBase 102;
 FUNCTION xadConvertDatesA(CONST tags : pTagItem location 'a0') : LONGINT; syscall xadMasterBase 90;
-FUNCTION xadConvertNameA(charset : longword location 'd0'; CONST tags : pTagItem location 'a0') : pCHAR; syscall xadMasterBase 174;
+FUNCTION xadConvertNameA(charset : longword location 'd0'; CONST tags : pTagItem location 'a0') : PAnsiChar; syscall xadMasterBase 174;
 FUNCTION xadConvertProtectionA(CONST tags : pTagItem location 'a0') : LONGINT; syscall xadMasterBase 126;
 PROCEDURE xadCopyMem(src : POINTER location 'a0'; dest : POINTER location 'a1'; size : longword location 'd0'); syscall xadMasterBase 114;
 FUNCTION xadDiskFileUnArcA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 138;
@@ -1198,8 +1198,8 @@ PROCEDURE xadFreeInfo(ai : pxadArchiveInfo location 'a0'); syscall xadMasterBase
 PROCEDURE xadFreeObjectA(obj : POINTER location 'a0'; CONST tags : pTagItem location 'a1'); syscall xadMasterBase 36;
 FUNCTION xadGetClientInfo : pxadClient; syscall xadMasterBase 78;
 FUNCTION xadGetDiskInfoA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 132;
-FUNCTION xadGetErrorText(errnum : longword location 'd0') : pCHAR; syscall xadMasterBase 72;
-FUNCTION xadGetFilenameA(buffersize : longword location 'd0'; buffer : pCHAR location 'a0'; path : pCHAR location 'a1'; name : pCHAR location 'a2'; CONST tags : pTagItem location 'a3') : LONGINT; syscall xadMasterBase 168;
+FUNCTION xadGetErrorText(errnum : longword location 'd0') : PAnsiChar; syscall xadMasterBase 72;
+FUNCTION xadGetFilenameA(buffersize : longword location 'd0'; buffer : PAnsiChar location 'a0'; path : PAnsiChar location 'a1'; name : PAnsiChar location 'a2'; CONST tags : pTagItem location 'a3') : LONGINT; syscall xadMasterBase 168;
 FUNCTION xadGetHookAccessA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 144;
 FUNCTION xadGetInfoA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 48;
 FUNCTION xadHookAccess(command : longword location 'd0'; data : LONGINT location 'd1'; buffer : POINTER location 'a0'; ai : pxadArchiveInfo location 'a1') : LONGINT; syscall xadMasterBase 84;
@@ -1212,7 +1212,7 @@ FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : a
 FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadAllocObject(_type : LONGINT; const tags : array of PtrUInt) : POINTER;
 FUNCTION xadConvertDates(const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
+FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : PAnsiChar;
 FUNCTION xadConvertProtection(const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
@@ -1220,7 +1220,7 @@ FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LON
 FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 PROCEDURE xadFreeObject(obj : POINTER; const tags : array of PtrUInt);
 FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : PAnsiChar; path : PAnsiChar; name : PAnsiChar; const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
@@ -1251,7 +1251,7 @@ begin
     xadConvertDates := xadConvertDatesA(@tags);
 end;
 
-FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
+FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : PAnsiChar;
 begin
     xadConvertName := xadConvertNameA(charset , @tags);
 end;
@@ -1291,7 +1291,7 @@ begin
     xadGetDiskInfo := xadGetDiskInfoA(ai , @tags);
 end;
 
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : PAnsiChar; path : PAnsiChar; name : PAnsiChar; const tags : array of PtrUInt) : LONGINT;
 begin
     xadGetFilename := xadGetFilenameA(buffersize , buffer , path , name , @tags);
 end;

@@ -135,15 +135,15 @@ begin
 end;
 
 
-procedure ShortstringClass.setChar(index: jint; char: ansichar);
+procedure ShortstringClass.setChar(index: jint; AnsiChar: ansichar);
 begin
   { index is 1-based here }
 
   { support accessing the length byte }
   if index=0 then
-    curlen:=ord(char)
+    curlen:=ord(AnsiChar)
   else
-    fdata[index-1]:=char;
+    fdata[index-1]:=AnsiChar;
 end;
 
 
@@ -212,7 +212,7 @@ begin
 end;
 
 {$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of AnsiChar; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   JLSystem.arraycopy(JLObject(ShortstringClass(@src).fdata),0,JLObject(@dst),0,len);
 end;
@@ -264,8 +264,8 @@ end;
 
 
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
-{Faster when looking for a single char...}
-function pos(c:char;const s:shortstring; Offset: Sizeint = 1):SizeInt;
+{Faster when looking for a single AnsiChar...}
+function pos(c:AnsiChar;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 var
   i : SizeInt;
 begin
@@ -292,7 +292,7 @@ end;
 
 
 {$define FPC_UPCASE_CHAR}
-Function  upCase(c:Char):Char;
+Function  upCase(c:AnsiChar):AnsiChar;
 var
   u : unicodestring;
   s: ansistring;
@@ -314,7 +314,7 @@ end;
 
 
 {$define FPC_LOWERCASE_CHAR}
-Function  lowerCase(c:Char):Char; overload;
+Function  lowerCase(c:AnsiChar):AnsiChar; overload;
 var
   u : unicodestring;
   s: ansistring;
@@ -363,7 +363,7 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure fpc_setstring_shortstr(Out S : Shortstring; Buf : PChar; Len : SizeInt); compilerproc;
+Procedure fpc_setstring_shortstr(Out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); compilerproc;
 begin
   If Len > High(S) then
     Len := High(S);
@@ -381,7 +381,7 @@ var
   c1, c2: Byte;
   i: Integer;
   L1, L2, Count: SizeInt;
-  P1, P2: PChar;
+  P1, P2: PAnsiChar;
 begin
   L1 := Length(S1);
   L2 := Length(S2);

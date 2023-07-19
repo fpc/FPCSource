@@ -18,8 +18,8 @@ VAR
      Project  : pTR_Project;
      mylist   : pList;
      llist    : pList;
-     pdummy   : ARRAY [0..108] OF Char;
-     path     : PChar;
+     pdummy   : ARRAY [0..108] OF AnsiChar;
+     path     : PAnsiChar;
      Triton_App : pTR_App;
 
 const
@@ -96,8 +96,8 @@ PROCEDURE removelib;
 VAR
    num : Longint;
    mynode : pFPCNode;
-   strbuf : ARRAY [0..255] OF Char;
-   buffer : PChar;
+   strbuf : ARRAY [0..255] OF AnsiChar;
+   buffer : PAnsiChar;
    dummy : Longint;
 BEGIN
    buffer := @strbuf;

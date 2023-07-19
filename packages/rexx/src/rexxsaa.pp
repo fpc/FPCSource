@@ -38,7 +38,7 @@ Unit RexxSAA;
 Interface
 
 {$Mode ObjFpc}
-
+{$h-}
 Const
 {$IFDEF OS2}
   REXX='REXX';
@@ -66,7 +66,7 @@ Const
 Type
   RxString=record
     StrLength: Cardinal; // Length of string
-    StrPtr: PChar;       // Pointer to a string
+    StrPtr: PAnsiChar;       // Pointer to a string
   end;
   PRxString=^RxString;   // pointer to a RXSTRING
 
@@ -80,7 +80,7 @@ Type
 
 Type
   RxSysExit=record
-    sysexit_name: PChar;                 // subcom enviro for sysexit
+    sysexit_name: PAnsiChar;                 // subcom enviro for sysexit
     sysexit_code: Longint;               // sysexit function code
   end;
   PRxSysExit=^RxSysExit;        // pointer to a RXSYSEXIT
@@ -90,8 +90,8 @@ Function RXNULLSTRING(CONST r:RXSTRING):BOOLEAN;
 Function RXZEROLENSTRING(CONST r:RXSTRING):BOOLEAN;
 Function RXVALIDSTRING(CONST r:RXSTRING):BOOLEAN;
 Function RXSTRLEN(CONST r:RXSTRING):LONGINT;
-Function RXSTRPTR(CONST r:RXSTRING):PChar;
-Procedure MAKERXSTRING(VAR r:RXSTRING;p:PChar;l:LONGINT);
+Function RXSTRPTR(CONST r:RXSTRING):PAnsiChar;
+Procedure MAKERXSTRING(VAR r:RXSTRING;p:PAnsiChar;l:LONGINT);
 
 //Call type codes for use on interpreter startup
 Const
@@ -236,8 +236,8 @@ Const
   RXSIO       = 5;                 // Session I/O.
     RXSIOSAY  = 1;                 // SAY a line to STDOUT
     RXSIOTRC  = 2;                 // Trace output
-    RXSIOTRD  = 3;                 // Read from char stream
-    RXSIODTR  = 4;                 // DEBUG read from char stream
+    RXSIOTRD  = 3;                 // Read from AnsiChar stream
+    RXSIODTR  = 4;                 // DEBUG read from AnsiChar stream
     RXSIOTLL  = 5;                 // Return linelength(N/A OS/2)
   RXHLT       = 7;                 // Halt processing.
     RXHLTCLR  = 1;                 // Clear HALT indicator
@@ -291,9 +291,9 @@ Const
 
 Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          ArgV: PRXSTRING;              // Array of args passed to rex
-         Filename: PChar;              // [d:][path] filename[.ext]
+         Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
-         Env: PChar;                   // ASCIIZ initial environment.
+         Env: PAnsiChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
          Ret: PInteger;                   // Ret code from if numeric
@@ -301,9 +301,9 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
 
 Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          ArgV: PRXSTRING;              // Array of args passed to rex
-         Filename: PChar;              // [d:][path] filename[.ext]
+         Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
-         Env: PChar;                   // ASCIIZ initial environment.
+         Env: PAnsiChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
      var Ret: Integer;                    // Ret code from if numeric
@@ -319,9 +319,9 @@ Type
 // as a Subcommand handler
 
 Function RexxRegisterSubcomDll(
-         HName:    PChar;       // Name of subcom handler
-         DllName:  PChar;       // Name of DLL
-         ProcName: PChar;       // Name of procedure in DLL
+         HName:    PAnsiChar;       // Name of subcom handler
+         DllName:  PAnsiChar;       // Name of DLL
+         ProcName: PAnsiChar;       // Name of procedure in DLL
          UserArea: PWord;       // User area
          Drop: Cardinal): Cardinal; cdecl;  // Drop authority.
 
@@ -329,21 +329,21 @@ Function RexxRegisterSubcomDll(
 // as a Subcommand handler
 
 Function RexxRegisterSubcomExe(
-         HName:       PChar;            // Name of subcom handler
+         HName:       PAnsiChar;            // Name of subcom handler
          HandlerAddr: PFn;              // address of handler in EXE
          UserArea:    PWord): Cardinal; cdecl; // User area
 
 // RexxQuerySubcom - Query an environment for Existance
 
 Function RexxQuerySubcom(
-         EnvName: PChar;                // Name of the Environment
-         DllName: PChar;                // DLL Module Name
+         EnvName: PAnsiChar;                // Name of the Environment
+         DllName: PAnsiChar;                // DLL Module Name
          ExCode:  PWord;                // Stor for existance code
          User:    PWord): Cardinal; cdecl;       // Stor for user word
 
 Function RexxQuerySubcom(
-         EnvName: PChar;                // Name of the Environment
-         DllName: PChar;                // DLL Module Name
+         EnvName: PAnsiChar;                // Name of the Environment
+         DllName: PAnsiChar;                // DLL Module Name
      var ExCode:  Word;                 // Stor for existance code
      var User:    Word): Cardinal; cdecl;        // Stor for user word
 
@@ -351,8 +351,8 @@ Function RexxQuerySubcom(
 // environment
 
 Function RexxDeregisterSubcom(
-         EnvName: PChar;                   // Name of the Environment
-         DllName: PChar): Cardinal; cdecl; // DLL Module Name
+         EnvName: PAnsiChar;                   // Name of the Environment
+         DllName: PAnsiChar): Cardinal; cdecl; // DLL Module Name
 
 // Shared Variable Pool Interface
 
@@ -368,29 +368,29 @@ Type
   RexxFunctionHandler=Function(a: PByte;
                                 b: Cardinal;
                              var c: RXSTRING;
-                                 d: PChar;
+                                 d: PAnsiChar;
                              var e: RXSTRING): Cardinal; cdecl;
 
 // RexxRegisterFunctionDll - Register a function in the AFT
 
 Function RexxRegisterFunctionDll(
-        FnName:  PChar;                   // Name of function to add
-        DllName: PChar;                   // Dll file name (if in dll)
-        Entry:   PChar): Cardinal; cdecl; // Entry in dll
+        FnName:  PAnsiChar;                   // Name of function to add
+        DllName: PAnsiChar;                   // Dll file name (if in dll)
+        Entry:   PAnsiChar): Cardinal; cdecl; // Entry in dll
 
 // RexxRegisterFunctionExe - Register a function in the AFT
 
 Function RexxRegisterFunctionExe(
-        FnName: PChar;                  // Name of function to add
+        FnName: PAnsiChar;                  // Name of function to add
         Entry:  PFn): Cardinal; cdecl;  // Entry point in EXE
 
 // RexxDeregisterFunction - Delete a function from the AFT
 
-Function RexxDeregisterFunction(FnName: PChar): Cardinal; cdecl; // Name of function to remove
+Function RexxDeregisterFunction(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to remove
 
 // RexxQueryFunction - Scan the AFT for a function
 
-Function RexxQueryFunction(FnName: PChar): Cardinal; cdecl; // Name of function to find
+Function RexxQueryFunction(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to find
 
 // System Exits
 
@@ -405,9 +405,9 @@ const
 type
   RxFnCCal_Parm = record
     rxfnc_flags: Byte;          // function flags
-    rxfnc_name:  PChar;         // Pointer to function name.
+    rxfnc_name:  PAnsiChar;         // Pointer to function name.
     rxfnc_namel: Word;          // Length of function name.
-    rxfnc_que:   PChar;         // Current queue name.
+    rxfnc_que:   PAnsiChar;         // Current queue name.
     rxfnc_quel:  Word;          // Length of queue name.
     rxfnc_argc:  Word;          // Number of args in list.
     rxfnc_argv:  PRxString;     // Pointer to argument list.
@@ -424,9 +424,9 @@ const
 type
   RxCmdHst_Parm = record
     rxcmd_flags:    Byte;               // error/failure flags
-    rxcmd_address:  PChar;              // Pointer to address name.
+    rxcmd_address:  PAnsiChar;              // Pointer to address name.
     rxcmd_addressl: Word;               // Length of address name.
-    rxcmd_dll:      PChar;              // dll name for command.
+    rxcmd_dll:      PAnsiChar;              // dll name for command.
     rxcmd_dll_len:  Word;               // Length of dll name.
     rxcmd_command:  RxString;           // The command string.
     rxcmd_retc:     RxString;           // Pointer to return buffer
@@ -523,9 +523,9 @@ Type
 // RexxRegisterExitDll - Register a system exit.
 
 Function RexxRegisterExitDll(
-         HExit:    PChar;               // Name of the exit handler
-         DllName:  PChar;               // Name of the DLL
-         ProcName: PChar;               // Name of the procedure
+         HExit:    PAnsiChar;               // Name of the exit handler
+         DllName:  PAnsiChar;               // Name of the DLL
+         ProcName: PAnsiChar;               // Name of the procedure
          UserArea: PByte;               // User area
          Drop:     Cardinal): Cardinal; cdecl;  // Drop authority
 
@@ -533,39 +533,39 @@ Function RexxRegisterExitDll(
 // RexxRegisterExitExe - Register a system exit.
 
 Function RexxRegisterExitExe(
-         HExit: PChar;                         // Name of the exit handler
+         HExit: PAnsiChar;                         // Name of the exit handler
          HandlerAddr: PFn;                     // Address of exit handler
          UserArea: PByte): Cardinal; cdecl;    // User area
 
 // RexxDeregisterExit - Drop registration of a system exit.
 
 Function RexxDeregisterExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar): Cardinal; cdecl; // DLL module name
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar): Cardinal; cdecl; // DLL module name
 
 // RexxQueryExit - Query an exit for existance.
 
 Function RexxQueryExit(
-         ExitName: PChar;               // Exit name
-         DllName:  PChar;               // DLL Module name.
+         ExitName: PAnsiChar;               // Exit name
+         DllName:  PAnsiChar;               // DLL Module name.
      var ExFlag:   Word;                // Existance flag.
          UserArea: Pointer): Cardinal; cdecl;    // User data.
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
      var ExFlag:   Word;                    // Existance flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
          ExFlag:   PWord;                   // Existance flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
          ExFlag:   PWord;                   // Existance flag.
          UserArea: Pointer): Cardinal; cdecl; // User data.
 
@@ -594,39 +594,39 @@ Function RexxResetTrace(
 // RexxAddMacro - Register a function in the Macro Space
 
 Function RexxAddMacro(
-         FnName:   PChar;                      // Function to add or change
-         FileName: PChar;                      // Name of file to get function
+         FnName:   PAnsiChar;                      // Function to add or change
+         FileName: PAnsiChar;                      // Name of file to get function
          SrchPos:  Cardinal): Cardinal; cdecl; // Flag indicating search pos
 
 // RexxDropMacro - Remove a function from the Macro Space
 
-Function RexxDropMacro(FnName: PChar): Cardinal; cdecl; // Name of function to remove
+Function RexxDropMacro(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to remove
 
 // RexxSaveMacroSpace - Save Macro Space functions to a file
 
 Function RexxSaveMacroSpace(
          ArgC: Cardinal;                  // Argument count (0==save all)
-     var NameLst: PChar;                  // List of funct names to save
-         FileName: PChar): Cardinal; cdecl; // File to save functions in
+     var NameLst: PAnsiChar;                  // List of funct names to save
+         FileName: PAnsiChar): Cardinal; cdecl; // File to save functions in
 
 // RexxLoadMacroSpace - Load Macro Space functions from a file
 
 Function RexxLoadMacroSpace(
          ArgC:     Cardinal;                // Argument count (0==load all)
-     var NameLst:  PChar;                   // List of funct names to load
-         FileName: PChar): Cardinal; cdecl; // File to load functions from
+     var NameLst:  PAnsiChar;                   // List of funct names to load
+         FileName: PAnsiChar): Cardinal; cdecl; // File to load functions from
 
 // RexxQueryMacro - Find a function's search-order position
 
 Function RexxQueryMacro(
-         FnName: PChar;                  // Function to search for
+         FnName: PAnsiChar;                  // Function to search for
      var PtrPos: Word): Cardinal; cdecl; // Ptr for position flag return
 
 // RexxReorderMacro - Change a function's search-order
 //                          position
 
 Function RexxReorderMacro(
-         FnName: PChar;                      // Name of funct change order
+         FnName: PAnsiChar;                      // Name of funct change order
          NewPos: Cardinal): Cardinal; cdecl; // New position for function
 
 // RexxClearMacroSpace - Remove all functions from a MacroSpace
@@ -664,9 +664,9 @@ Implementation
 
 Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          ArgV: PRXSTRING;              // Array of args passed to rex
-         Filename: PChar;              // [d:][path] filename[.ext]
+         Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
-         Env: PChar;                   // ASCIIZ initial environment.
+         Env: PAnsiChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
          Ret: PInteger;                // Ret code from if numeric
@@ -675,9 +675,9 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
 
 Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          ArgV: PRXSTRING;              // Array of args passed to rex
-         Filename: PChar;              // [d:][path] filename[.ext]
+         Filename: PAnsiChar;              // [d:][path] filename[.ext]
          Proc: PRXSTRING;              // Loc of rexx proc in memory
-         Env: PChar;                   // ASCIIZ initial environment.
+         Env: PAnsiChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;            // SysExit env. names &  codes
      var Ret: integer;                 // Ret code from if numeric
@@ -685,36 +685,36 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
     external REXX name 'RexxStart';
 
 Function RexxRegisterSubcomDll(
-         HName:    PChar;       // Name of subcom handler
-         DllName:  PChar;       // Name of DLL
-         ProcName: PChar;       // Name of procedure in DLL
+         HName:    PAnsiChar;       // Name of subcom handler
+         DllName:  PAnsiChar;       // Name of DLL
+         ProcName: PAnsiChar;       // Name of procedure in DLL
          UserArea: PWord;       // User area
          Drop: Cardinal): Cardinal; cdecl;  // Drop authority.
     external REXXAPI name 'RexxRegisterSubcomDll';
 
 Function RexxRegisterSubcomExe(
-         HName:       PChar;            // Name of subcom handler
+         HName:       PAnsiChar;            // Name of subcom handler
          HandlerAddr: PFn;              // address of handler in EXE
          UserArea:    PWord): Cardinal; cdecl; // User area
     external REXXAPI name 'RexxRegisterSubcomExe';
 
 Function RexxQuerySubcom(
-         EnvName: PChar;                // Name of the Environment
-         DllName: PChar;                // DLL Module Name
+         EnvName: PAnsiChar;                // Name of the Environment
+         DllName: PAnsiChar;                // DLL Module Name
          ExCode:  PWord;                // Stor for existance code
          User:    PWord): Cardinal; cdecl;       // Stor for user word
     external REXXAPI name 'RexxQuerySubcom';
 
 Function RexxQuerySubcom(
-         EnvName: PChar;                // Name of the Environment
-         DllName: PChar;                // DLL Module Name
+         EnvName: PAnsiChar;                // Name of the Environment
+         DllName: PAnsiChar;                // DLL Module Name
      var ExCode:  Word;                 // Stor for existance code
      var User:    Word): Cardinal; cdecl;        // Stor for user word
     external REXXAPI name 'RexxQuerySubcom';
 
 Function RexxDeregisterSubcom(
-         EnvName: PChar;                   // Name of the Environment
-         DllName: PChar): Cardinal; cdecl; // DLL Module Name
+         EnvName: PAnsiChar;                   // Name of the Environment
+         DllName: PAnsiChar): Cardinal; cdecl; // DLL Module Name
     external REXXAPI name 'RexxDeregisterSubcom';
 
 Function RexxVariablePool(Pool: PShvBlock): Cardinal; cdecl;
@@ -723,65 +723,65 @@ Function RexxVariablePool(var Pool: ShvBlock): Cardinal; cdecl; // Pointer to li
     external REXX name 'RexxVariablePool';
 
 Function RexxRegisterFunctionDll(
-        FnName:  PChar;                   // Name of function to add
-        DllName: PChar;                   // Dll file name (if in dll)
-        Entry:   PChar): Cardinal; cdecl; // Entry in dll
+        FnName:  PAnsiChar;                   // Name of function to add
+        DllName: PAnsiChar;                   // Dll file name (if in dll)
+        Entry:   PAnsiChar): Cardinal; cdecl; // Entry in dll
     external REXXAPI name 'RexxRegisterFunctionDll';
 
 Function RexxRegisterFunctionExe(
-        FnName: PChar;                  // Name of function to add
+        FnName: PAnsiChar;                  // Name of function to add
         Entry:  PFn): Cardinal; cdecl;  // Entry point in EXE
     external REXXAPI name 'RexxRegisterFunctionExe';
 
-Function RexxDeregisterFunction(FnName: PChar): Cardinal; cdecl; // Name of function to remove
+Function RexxDeregisterFunction(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to remove
     external REXXAPI name 'RexxDeregisterFunction';
 
-Function RexxQueryFunction(FnName: PChar): Cardinal; cdecl; // Name of function to find
+Function RexxQueryFunction(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to find
     external REXXAPI name 'RexxQueryFunction';
 
 Function RexxRegisterExitDll(
-         HExit:    PChar;               // Name of the exit handler
-         DllName:  PChar;               // Name of the DLL
-         ProcName: PChar;               // Name of the procedure
+         HExit:    PAnsiChar;               // Name of the exit handler
+         DllName:  PAnsiChar;               // Name of the DLL
+         ProcName: PAnsiChar;               // Name of the procedure
          UserArea: PByte;               // User area
          Drop:     Cardinal): Cardinal; cdecl;  // Drop authority
     external REXXAPI name 'RexxRegisterExitDll';
 
 Function RexxRegisterExitExe(
-         HExit: PChar;                         // Name of the exit handler
+         HExit: PAnsiChar;                         // Name of the exit handler
          HandlerAddr: PFn;                     // Address of exit handler
          UserArea: PByte): Cardinal; cdecl;    // User area
     external REXXAPI name 'RexxRegisterExitExe';
 
 Function RexxDeregisterExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar): Cardinal; cdecl; // DLL module name
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar): Cardinal; cdecl; // DLL module name
     external REXXAPI name 'RexxDeregisterExit';
 
 Function RexxQueryExit(
-         ExitName: PChar;               // Exit name
-         DllName:  PChar;               // DLL Module name.
+         ExitName: PAnsiChar;               // Exit name
+         DllName:  PAnsiChar;               // DLL Module name.
      var ExFlag:   Word;                // Existance flag.
          UserArea: Pointer): Cardinal; cdecl;    // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
      var ExFlag:   Word;                    // Existance flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
          ExFlag:   PWord;                   // Existance flag.
          UserArea: PByte): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
 
 Function RexxQueryExit(
-         ExitName: PChar;                   // Exit name
-         DllName:  PChar;                   // DLL Module name.
+         ExitName: PAnsiChar;                   // Exit name
+         DllName:  PAnsiChar;                   // DLL Module name.
          ExFlag:   PWord;                   // Existance flag.
          UserArea: Pointer): Cardinal; cdecl; // User data.
     external REXXAPI name 'RexxQueryExit';
@@ -802,33 +802,33 @@ Function RexxResetTrace(
     external REXX name 'RexxResetTrace';
 
 Function RexxAddMacro(
-         FnName:   PChar;                      // Function to add or change
-         FileName: PChar;                      // Name of file to get function
+         FnName:   PAnsiChar;                      // Function to add or change
+         FileName: PAnsiChar;                      // Name of file to get function
          SrchPos:  Cardinal): Cardinal; cdecl; // Flag indicating search pos
     external REXXAPI name 'RexxAddMacro';
 
-Function RexxDropMacro(FnName: PChar): Cardinal; cdecl; // Name of function to remove
+Function RexxDropMacro(FnName: PAnsiChar): Cardinal; cdecl; // Name of function to remove
     external REXXAPI name 'RexxDropMacro';
 
 Function RexxSaveMacroSpace(
          ArgC: Cardinal;                  // Argument count (0==save all)
-     var NameLst: PChar;                  // List of funct names to save
-         FileName: PChar): Cardinal; cdecl; // File to save functions in
+     var NameLst: PAnsiChar;                  // List of funct names to save
+         FileName: PAnsiChar): Cardinal; cdecl; // File to save functions in
     external REXXAPI name 'RexxSaveMacroSpace';
 
 Function RexxLoadMacroSpace(
          ArgC:     Cardinal;                // Argument count (0==load all)
-     var NameLst:  PChar;                   // List of funct names to load
-         FileName: PChar): Cardinal; cdecl; // File to load functions from
+     var NameLst:  PAnsiChar;                   // List of funct names to load
+         FileName: PAnsiChar): Cardinal; cdecl; // File to load functions from
     external REXXAPI name 'RexxLoadMacroSpace';
 
 Function RexxQueryMacro(
-         FnName: PChar;                  // Function to search for
+         FnName: PAnsiChar;                  // Function to search for
      var PtrPos: Word): Cardinal; cdecl; // Ptr for position flag return
     external REXXAPI name 'RexxQueryLoadMacro';
 
 Function RexxReorderMacro(
-         FnName: PChar;                      // Name of funct change order
+         FnName: PAnsiChar;                      // Name of funct change order
          NewPos: Cardinal): Cardinal; cdecl; // New position for function
     external REXXAPI name 'RexxReorderMacro';
 
@@ -858,12 +858,12 @@ Begin
     RxStrLen:=r.strlength;
 End;
 
-Function RxStrPtr(Const r: RxString): PChar;
+Function RxStrPtr(Const r: RxString): PAnsiChar;
 Begin
   RxStrPtr:=r.strptr;
 End;
 
-Procedure MakeRxString(Var r: RxString; p: PChar; l: Longint);
+Procedure MakeRxString(Var r: RxString; p: PAnsiChar; l: Longint);
 Begin
   r.strptr:=p;
   r.strlength:=l;

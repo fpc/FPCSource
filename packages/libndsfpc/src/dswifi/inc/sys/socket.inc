@@ -102,7 +102,7 @@ const
 type
   sockaddr = record
     _sa_family: cushort;
-    sa_data: array [0..13] of char;
+    sa_data: array [0..13] of AnsiChar;
   end;
   psockaddr = ^sockaddr;
 

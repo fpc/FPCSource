@@ -11,10 +11,10 @@ uses
   SysUtils, Classes, Aspell;
 
 type
-  TSuggestionArray = array of string;
+  TSuggestionArray = array of AnsiString;
   
   TWordError = record
-    Word: string; // the word itself
+    Word: AnsiString; // the word itself
     Pos: LongWord; // word position in line
     Length: LongWord; // word length
     Suggestions: TSuggestionArray; // suggestions for the given word
@@ -27,21 +27,21 @@ type
 
   TSpeller = class // abstract class, basis for all checkers
    protected
-    FMode: string;
-    FEncoding: string;
-    FLanguage: string;
-    procedure SetEncoding(const AValue: string);
-    procedure SetLanguage(const AValue: string);
-    procedure SetMode(const AValue: string);
+    FMode: AnsiString;
+    FEncoding: AnsiString;
+    FLanguage: AnsiString;
+    procedure SetEncoding(const AValue: AnsiString);
+    procedure SetLanguage(const AValue: AnsiString);
+    procedure SetMode(const AValue: AnsiString);
     procedure CreateSpeller; virtual; abstract;
     procedure FreeSpeller; virtual; abstract;
    public
     constructor Create;
     destructor Destroy; override;
    public
-    property Mode: string read FMode write SetMode;
-    property Encoding: string read FEncoding write SetEncoding;
-    property Language: string read FLanguage write SetLanguage;
+    property Mode: AnsiString read FMode write SetMode;
+    property Encoding: AnsiString read FEncoding write SetEncoding;
+    property Language: AnsiString read FLanguage write SetLanguage;
   end;
   
   { TWordSpeller }
@@ -49,13 +49,13 @@ type
   TWordSpeller = class(TSpeller) // class for simple per-word checking
    private
     FSpeller: PAspellSpeller;
-    FLastError: string;
-    function DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
+    FLastError: AnsiString;
+    function DoCreateSpeller(Lang, Enc, aMode: PAnsiChar): PAspellSpeller;
    protected
     procedure CreateSpeller; override;
     procedure FreeSpeller; override;
    public
-    function SpellCheck(const Word: string): TSuggestionArray; // use to check single words, parsed out by you
+    function SpellCheck(const Word: AnsiString): TSuggestionArray; // use to check single words, parsed out by you
   end;
   
   { TDocumentSpeller }
@@ -70,11 +70,11 @@ type
    protected
     procedure CreateSpeller; override;
     procedure FreeSpeller; override;
-    procedure DoNameSuggestions(const Word: string; var aWordError: TWordError);
+    procedure DoNameSuggestions(const Word: AnsiString; var aWordError: TWordError);
    public
     constructor Create;
-    function CheckLine(const aLine: string): TLineErrors;
-    function CheckDocument(const FileName: string): Integer; // returns number of spelling errors found or -1 for error
+    function CheckLine(const aLine: AnsiString): TLineErrors;
+    function CheckDocument(const FileName: AnsiString): Integer; // returns number of spelling errors found or -1 for error
     function CheckDocument(aStringList: TStringList): Integer; // returns number of spelling errors found or -1 for error
     procedure Reset;
    public
@@ -90,7 +90,7 @@ const
   DEFAULT_LANGUAGE = 'en';
   DEFAULT_MODE     = '';
 
-function GetDefaultLanguage: string;
+function GetDefaultLanguage: AnsiString;
 begin
   Result := GetEnvironmentVariable('LANG');
   if Length(Result) = 0 then
@@ -99,19 +99,19 @@ end;
 
 { TSpeller }
 
-procedure TSpeller.SetEncoding(const AValue: string);
+procedure TSpeller.SetEncoding(const AValue: AnsiString);
 begin
   FEncoding := aValue;
   CreateSpeller;
 end;
 
-procedure TSpeller.SetLanguage(const AValue: string);
+procedure TSpeller.SetLanguage(const AValue: AnsiString);
 begin
   FLanguage := aValue;
   CreateSpeller;
 end;
 
-procedure TSpeller.SetMode(const AValue: string);
+procedure TSpeller.SetMode(const AValue: AnsiString);
 begin
   FMode := aValue;
   CreateSpeller;
@@ -133,7 +133,7 @@ end;
 
 { TWordSpeller }
 
-function TWordSpeller.DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
+function TWordSpeller.DoCreateSpeller(Lang, Enc, aMode: PAnsiChar): PAspellSpeller;
 var
   Error: Paspellcanhaveerror;
 begin
@@ -163,13 +163,13 @@ begin
   FLastError := '';
   FreeSpeller;
 
-  FSpeller := DoCreateSpeller(pChar(FLanguage), pChar(FEncoding), pChar(FMode));
+  FSpeller := DoCreateSpeller(PAnsiChar(FLanguage), PAnsiChar(FEncoding), PAnsiChar(FMode));
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), pChar(FMode));
+    FSpeller := DoCreateSpeller(nil, PAnsiChar(FEncoding), PAnsiChar(FMode));
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), nil);
+    FSpeller := DoCreateSpeller(nil, PAnsiChar(FEncoding), nil);
   if not Assigned(FSpeller) then
-    FSpeller := DoCreateSpeller(nil, nil, pChar(FMode));
+    FSpeller := DoCreateSpeller(nil, nil, PAnsiChar(FMode));
   if not Assigned(FSpeller) then
     FSpeller := DoCreateSpeller(nil, nil, nil);
 
@@ -185,17 +185,17 @@ begin
   end;
 end;
 
-function TWordSpeller.SpellCheck(const Word: string): TSuggestionArray;
+function TWordSpeller.SpellCheck(const Word: AnsiString): TSuggestionArray;
 var
   sgs: Paspellwordlist;
   elm: Paspellstringenumeration;
-  tmp: pChar;
+  tmp: PAnsiChar;
   i: Integer = 0;
 begin
   SetLength(Result, 0);
 
-  if aspell_speller_check(FSpeller, pChar(Word), Length(Word)) = 0 then begin
-    sgs := aspell_speller_suggest(FSpeller, pChar(Word), Length(Word));
+  if aspell_speller_check(FSpeller, PAnsiChar(Word), Length(Word)) = 0 then begin
+    sgs := aspell_speller_suggest(FSpeller, PAnsiChar(Word), Length(Word));
     elm := aspell_word_list_elements(sgs);
 
     repeat
@@ -252,7 +252,7 @@ begin
   inherited FreeSpeller;
 end;
 
-procedure TDocumentSpeller.DoNameSuggestions(const Word: string;
+procedure TDocumentSpeller.DoNameSuggestions(const Word: AnsiString;
   var aWordError: TWordError);
 begin
   aWordError.Suggestions := SpellCheck(Word);
@@ -265,14 +265,14 @@ begin
   FNameSuggestions := True;
 end;
 
-function TDocumentSpeller.CheckLine(const aLine: string): TLineErrors;
+function TDocumentSpeller.CheckLine(const aLine: AnsiString): TLineErrors;
 const
   CHUNK_SIZE = 10;
 var
   i, Count: Integer;
   Token: AspellToken;
 begin
-  aspell_document_checker_process(FChecker, pChar(aLine), Length(aLine));
+  aspell_document_checker_process(FChecker, PAnsiChar(aLine), Length(aLine));
 
   SetLength(Result, CHUNK_SIZE);
   i := 0;
@@ -300,7 +300,7 @@ begin
   SetLength(Result, Count);
 end;
 
-function TDocumentSpeller.CheckDocument(const FileName: string): Integer;
+function TDocumentSpeller.CheckDocument(const FileName: AnsiString): Integer;
 var
   s: TStringList;
 begin

@@ -30,7 +30,7 @@ uses
 
 var
   progname,             { program name for error messages }
-  outfilename : string; { for -outfile switch }
+  outfilename : ansistring; { for -outfile switch }
   copyoption : JCOPY_OPTION;                  { -copy switch }
   transformoption : jpeg_transform_info; { image transformation options }
 
@@ -125,14 +125,14 @@ const
 var
   argn,
   argc : int;
-  arg : string;
+  arg : ansistring;
 
   simple_progressive : boolean;
-const
-  scansarg : string = '';       { saves -scans parm if any }
+var
+  scansarg : ansistring = '';       { saves -scans parm if any }
 var
   lval : long;
-  ch : char;
+  ch : AnsiChar;
   code : integer;
 begin
   { Set up default JPEG parameters. }
@@ -212,7 +212,7 @@ begin
         if keymatch(arg, '-cut', 2) then
         begin
         { Cut out a region of the image specified by an X geometry-like string }
-        p : PChar;
+        p : PAnsiChar;
 
           Inc(argn);
           if (argn >= argc) then
@@ -450,7 +450,7 @@ end;
 
 { The main program. }
 
-{main (int argc, char **argv)}
+{main (int argc, AnsiChar **argv)}
 var
   srcinfo : jpeg_decompress_struct;
   dstinfo : jpeg_compress_struct;

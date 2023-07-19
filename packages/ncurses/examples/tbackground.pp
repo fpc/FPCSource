@@ -15,7 +15,7 @@ begin
 	start_color();
 
 	pair_content(0, @f, @b);
-	printw(PChar('pair 0 contains (%d,%d)'#10), f, b);
+	printw(PAnsiChar('pair 0 contains (%d,%d)'#10), f, b);
 	getch();
 
 	printw('Initializing pair 1 to red/black'#10);

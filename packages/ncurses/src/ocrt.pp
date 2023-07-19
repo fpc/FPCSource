@@ -137,7 +137,7 @@ Unit oCrt;
           | 08/18/2000 | kjw |
           | 1) Added nkXXX constants for all(?) extended keys.
           | 2) Changed all uses of extended keys to use new nkXXX's.
-          | 3) Edit overloaded to return a nkXXX in ch rather that a char.
+          | 3) Edit overloaded to return a nkXXX in ch rather that a AnsiChar.
           | 4) Resize method added to tnWindow.
           | 5) AddChMap overloaded for preferred (easier) use with nkXXX's.
           | 08/24/2000 | kjw |
@@ -292,8 +292,8 @@ Const
 Type
    {*** structures to save a screen via nGrabScreen ***}
    pnOneRow = pchtype;
-   { a buffer for a max of 256 chtype items accessed via pchar }
-   tnOneRow = array [0..1023] of char;
+   { a buffer for a max of 256 chtype items accessed via PAnsiChar }
+   tnOneRow = array [0..1023] of AnsiChar;
    { a one way linked list of screen rows }
    pnRowBuf = ^tnRowBuf;
    tnRowBuf = Record
@@ -345,12 +345,12 @@ Type
       InsMode,
       ExitMode,
       AppendMode : boolean;
-      Special : string;
-      Picture : string;
+      Special : shortstring;
+      Picture : shortstring;
       CtrlColor : integer;
       ChMap : nChMap;
       Constructor Init(ft,ih,im,em,ap : boolean;
-                                  s,p : string;
+                                  s,p : shortstring;
                                    cc : integer;
                                    mp : nChMap);
       Destructor Done;
@@ -397,12 +397,12 @@ Type
          Procedure GotoXY(x,y : integer);
           Function WhereX : integer;
           Function WhereY : integer;
-          Function ReadKey : char;
+          Function ReadKey : AnsiChar;
          Procedure WriteAC(x,y,att,c : longint);
-         Procedure FWrite(x,y,att,z : integer; s : string);
+         Procedure FWrite(x,y,att,z : integer; s : shortstring);
          Procedure DrawBox(LineStyle,x1,y1,x2,y2,att : Integer);
-          Function GetHeader : string;
-         Procedure PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+          Function GetHeader : shortstring;
+         Procedure PutHeader(hdr : shortstring; hcolor : integer; hpos : tnJustify);
          Procedure SetColor(att : integer);
           Function GetColor : integer;
           Function GetFrameColor : integer;
@@ -417,19 +417,19 @@ Type
           Function GetY : integer;
           Function IsFramed : boolean;
           Function IsVisible : Boolean;
-          Function Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+          Function Edit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : integer) : shortstring;
           Function Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
           Function Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
-          Function Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
-          Function Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
-          Function Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
-          Function EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
-          Function EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
-          Function EditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
+          Function Edit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : AnsiChar) : shortstring;
+          Function Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : AnsiChar) : LongInt;
+          Function Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : AnsiChar) : Real;
+          Function EditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : real;var esc : boolean) : real;
+          Function EditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : longint;var esc : boolean) : longint;
+          Function EditDate(x,y,att : integer;initv : shortstring;var esc : boolean) : shortstring;
    End;
 
    pnMenuStr = ^tnMenuStr;
-   tnMenuStr = array [0..79] of char; { storage for menu item text }
+   tnMenuStr = array [0..79] of AnsiChar; { storage for menu item text }
    pnMenu = ^tnMenu;
    tnMenu = Object
       Private
@@ -454,7 +454,7 @@ Type
          win : pnWindow;
          Procedure InitWin;
          Procedure ClearItem(idx : integer);
-         Procedure AddItem(i : integer; s : string);
+         Procedure AddItem(i : integer; s : shortstring);
          Function Selectable(idx : integer) : boolean;
          Function IsValid(idx : integer) : boolean;
       Public
@@ -470,12 +470,12 @@ Type
           Function Wind : pnWindow; { pointer to the window object }
          Procedure Move(_x,_y : integer);       { shortcut window move }
          Procedure Align(hpos,vpos : tnJustify);{ shortcut window align }
-         Procedure PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+         Procedure PutHeader(hdr : shortstring; hcolor : integer; hpos : tnJustify);
          Procedure Clear;           { unpost and clear the menu item list }
-          Function Add(s : string) : integer; { append a menu item }
-         Procedure Insert(idx : integer; s : string); { insert a menu item }
+          Function Add(s : shortstring) : integer; { append a menu item }
+         Procedure Insert(idx : integer; s : shortstring); { insert a menu item }
          Procedure Remove(idx : integer);     { delete a menu item }
-         Procedure Change(idx : integer; s : string); { change an item }
+         Procedure Change(idx : integer; s : shortstring); { change an item }
          Procedure Active(idx : integer; b : boolean); { toggle gray }
           Function IsActive(idx : integer) : boolean; { item active ? }
          Procedure Spin(b : boolean);{ toggle item looping }
@@ -486,8 +486,8 @@ Type
           Function Rows(_r : integer) : integer; {get/set menu rows }
           Function Cols(_c : integer) : integer; {get/set menu columns }
           Function IsAssigned(idx : integer) : boolean; { valid & assigned }
-          Function GetMark : string; { return the item mark string }
-         Procedure SetMark(ms : string); { set the mark string }
+          Function GetMark : shortstring; { return the item mark shortstring }
+         Procedure SetMark(ms : shortstring); { set the mark string }
          Procedure Refresh;
          Procedure SetColor(att : byte);       { change text color }
          Procedure SetCursorColor(att : byte); { change cursor color }
@@ -516,11 +516,11 @@ Procedure nDelLine(win : pWindow);
 Procedure nGotoXY(win : pWindow; x,y : integer);
  Function nWhereX(win : pWindow) : integer;
  Function nWhereY(win :  pWindow) : integer;
- Function nReadkey(win : pWindow) : char;
- Function nReadln(win : pWindow) : string;
-Procedure nWrite(win : pWindow; s : string);
-Procedure nWriteln(win : pWindow; s : string);
-Procedure nWriteScr(win : pWindow; x,y,att : integer; s : string);
+ Function nReadkey(win : pWindow) : AnsiChar;
+ Function nReadln(win : pWindow) : shortstring;
+Procedure nWrite(win : pWindow; s : shortstring);
+Procedure nWriteln(win : pWindow; s : shortstring);
+Procedure nWriteScr(win : pWindow; x,y,att : integer; s : shortstring);
 Procedure nRefresh(win : pWindow);
 Procedure nScroll(win : pWindow; lines : integer; dir : tnUpDown);
 Procedure nDrawBox(win : pWindow; LineStyle,x1,y1,x2,y2,att : Integer);
@@ -552,34 +552,34 @@ Procedure nVLine(win : pwindow; col,row,attr,y : integer);
 Procedure nWriteAC(win : pwindow; x,y : integer; att,acs_char : longint);
  Function nIsBold(att : integer) : boolean;
  Function nSetColorPair(att : integer) : integer;
-Procedure nFWrite(win : pwindow; col,row,attrib : integer; clear : integer; s : string);
-Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
- Function nSEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
- Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
- Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
- Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
- Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
- Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
- Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
- Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var chv : integer) : String;
+Procedure nFWrite(win : pwindow; col,row,attrib : integer; clear : integer; s : shortstring);
+Procedure nFWrite(col,row,attrib : integer; clear : integer; s : shortstring);
+ Function nSEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:shortstring;Var ch : AnsiChar) : shortstring;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:shortstring;Var ch : AnsiChar) : shortstring;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:LongInt;Var ch : AnsiChar) : LongInt;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:Real;Var ch : AnsiChar) : Real;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : AnsiChar) : shortstring;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : AnsiChar) : LongInt;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : AnsiChar) : Real;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:shortstring;Var chv : integer) : shortstring;
  Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
  Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
- Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : integer) : shortstring;
  Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
  Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
- Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
- Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
- Function nEditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
- Function nEditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
- Function nEditDate(win : pwindow; x,y,att : integer;initv : string;var esc : boolean) : string;
- Function nEditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
-Procedure nMakeWindow(var win : tnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
-Procedure nMakeWindow(var win : pnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
-Procedure nMakeMenu(var mnu : tnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
-Procedure nMakeMenu(var mnu : pnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
- Function nShowMessage(msg : string;matt : byte;hdr : string;hatt : byte;ack : boolean) : pnWindow;
- Function nReadScr(win : pWindow; x,y,n : integer) : string;
- Function nReadScr(x,y,n : integer) : string;
+ Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : real;var esc : boolean) : real;
+ Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : longint;var esc : boolean) : longint;
+ Function nEditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : real;var esc : boolean) : real;
+ Function nEditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : longint;var esc : boolean) : longint;
+ Function nEditDate(win : pwindow; x,y,att : integer;initv : shortstring;var esc : boolean) : shortstring;
+ Function nEditDate(x,y,att : integer;initv : shortstring;var esc : boolean) : shortstring;
+Procedure nMakeWindow(var win : tnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : shortstring);
+Procedure nMakeWindow(var win : pnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : shortstring);
+Procedure nMakeMenu(var mnu : tnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : shortstring);
+Procedure nMakeMenu(var mnu : pnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : shortstring);
+ Function nShowMessage(msg : shortstring;matt : byte;hdr : shortstring;hatt : byte;ack : boolean) : pnWindow;
+ Function nReadScr(win : pWindow; x,y,n : integer) : shortstring;
+ Function nReadScr(x,y,n : integer) : shortstring;
  Function nReadScrStr(win : pWindow; x,y,n : integer; buf : pchtype) : pchtype;
  Function nReadScrStr(x,y,n : integer; buf : pchtype) : pchtype;
  Function nReadScrColor(win : pWindow; x,y : integer) : integer;
@@ -593,7 +593,7 @@ Procedure nPopScreen(p : pnScreenBuf; x,y : integer; win : pWindow);
 Procedure nPopScreen(p : pnScreenBuf; x,y : integer);
 Procedure nPopScreen(p : pnScreenBuf);
 Procedure nReleaseScreen(p : pnScreenBuf);
- Function nCheckPxPicture(var s, Pic : string; var CPos : integer) : word;
+ Function nCheckPxPicture(var s, Pic : shortstring; var CPos : integer) : word;
 
 {$i ncrt.inc}
 {$i pxpic.inc}
@@ -781,20 +781,20 @@ Begin
    dorefresh := tmp_b;
 End;
 
-{ return the window border header string }
-Function tnWindow.GetHeader : string;
+{ return the window border header shortstring }
+Function tnWindow.GetHeader : shortstring;
 Begin
    GetHeader := header;
 End;
 
 {----------------------------------------------------------------------
-  put/replace a header string at the top of a bordered window
+  put/replace a header shortstring at the top of a bordered window
 
-     hdr = header string (top line of window, only if hasframe = true)
+     hdr = header shortstring (top line of window, only if hasframe = true)
   hcolor = header line color
-    hpos = justfication of header string, left, center, or right
+    hpos = justfication of header shortstring, left, center, or right
  ----------------------------------------------------------------------}
-Procedure tnWindow.PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+Procedure tnWindow.PutHeader(hdr : shortstring; hcolor : integer; hpos : tnJustify);
 Var
    cp,
    hx,
@@ -951,7 +951,7 @@ Begin
    WhereY := nWhereY(wn);
 End;
 
-Function tnWindow.ReadKey : char;
+Function tnWindow.ReadKey : AnsiChar;
 Begin
    ReadKey := nReadKey(wn);
 End;
@@ -964,7 +964,7 @@ Begin
    dorefresh := tmp_b;
 End;
 
-Procedure tnWindow.FWrite(x,y,att,z : integer; s : string);
+Procedure tnWindow.FWrite(x,y,att,z : integer; s : shortstring);
 Begin
    tmp_b := dorefresh;
    dorefresh := visible;
@@ -1016,7 +1016,7 @@ Begin
    IsVisible := visible;
 End;
 
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : integer) : shortstring;
 var
    tmp_ec : tnec;
 Begin
@@ -1032,7 +1032,7 @@ Begin
    nEC := tmp_ec;
 End;
 
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:shortstring;Var ch : AnsiChar) : shortstring;
 var
    i : integer;
 Begin
@@ -1053,7 +1053,7 @@ Begin
    nEC := tmp_ec;
 End;
 
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : AnsiChar) : LongInt;
 var
    i : integer;
 Begin
@@ -1074,7 +1074,7 @@ Begin
    nEC := tmp_ec;
 End;
 
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : AnsiChar) : Real;
 var
    i : integer;
 Begin
@@ -1082,7 +1082,7 @@ Begin
    ch := chr(abs(i));
 End;
 
-Function tnWindow.EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
+Function tnWindow.EditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : real;var esc : boolean) : real;
 var
    tmp_ec : tnec;
 Begin
@@ -1094,7 +1094,7 @@ Begin
    nEC := tmp_ec;
 End;
 
-Function tnWindow.EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
+Function tnWindow.EditNumber(x,y,att,wid,decm : integer;bgd : shortstring;initv,minv,maxv : longint;var esc : boolean) : longint;
 var
    tmp_ec : tnec;
 Begin
@@ -1106,7 +1106,7 @@ Begin
    nEC := tmp_ec;
 End;
 
-Function tnWindow.EditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
+Function tnWindow.EditDate(x,y,att : integer;initv : shortstring;var esc : boolean) : shortstring;
 var
    tmp_ec : tnec;
 Begin
@@ -1121,7 +1121,7 @@ End;
 {--------------------------- tnEC -------------------------------}
 
 Constructor tnEC.Init(ft,ih,im,em,ap : boolean;
-                                 s,p : string;
+                                 s,p : shortstring;
                                   cc : integer;
                                   mp : nChMap);
 Begin
@@ -1275,17 +1275,17 @@ Begin
 End;
 
 {---------------------------------
-  read input string from a window
+  read input shortstring from a window
  ---------------------------------}
-Function nReadln(win : pWindow) : string;
+Function nReadln(win : pWindow) : shortstring;
 Begin
    wgetstr(win,ps);
    nReadln := StrPas(ps);
 End;
 
-{ write a string to a window without refreshing screen }
+{ write a shortstring to a window without refreshing screen }
 { DON'T update PrevWn! }
-Procedure nWriteScr(win : pWindow; x,y,att : integer; s : string);
+Procedure nWriteScr(win : pWindow; x,y,att : integer; s : shortstring);
 Var
    tmp : pwindow;
 Begin
@@ -1345,7 +1345,7 @@ End;
   write a string to a window at the current cursor position
   followed by a newline
  -----------------------------------------------------------}
-Procedure nWriteln(win : pWindow; s : string);
+Procedure nWriteln(win : pWindow; s : shortstring);
 Begin
    waddstr(win,StrPCopy(ps,s+#10));
    If doRefresh Then wrefresh(win);
@@ -1585,10 +1585,10 @@ End;
    Clear  = clear line up to x position
    s      = string to write
  -------------------------------------------------------------------}
-Procedure nFWrite(win : pwindow; col,row,attrib : integer; clear : integer; s : string);
+Procedure nFWrite(win : pwindow; col,row,attrib : integer; clear : integer; s : shortstring);
 var
-   clr : array [0..255] of char;
-   cs : string;
+   clr : array [0..255] of AnsiChar;
+   cs : shortstring;
    sub : pWindow;
    x,y,
    mx,my,
@@ -1647,16 +1647,16 @@ Begin
 End;
 
 { overload - no pointer }
-Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
+Procedure nFWrite(col,row,attrib : integer; clear : integer; s : shortstring);
 Begin
    nFWrite(ActiveWn,col,row,attrib,clear,s);
 End;
 
 { compatibility for the old function name }
 Function nSEdit(win : pwindow; x,y,att,z,CursPos:integer;
-                es:string;var ch : char) : string;
+                es:shortstring;var ch : AnsiChar) : shortstring;
 Var
-   s : string;
+   s : shortstring;
 Begin
    s := nEdit(win,x,y,att,z,CursPos,es,ch);
    nSEdit := s;
@@ -1669,10 +1669,10 @@ Function nEdit(win : pwindow;     { window to work in }
                att,               { color attribute }
                z,                 { right-most column of edit region }
                CursPos:integer;   { place cursor on this column at start }
-               es:string;         { initial value of string }
+               es:shortstring;         { initial value of shortstring }
                var chv : integer  { ordinal value of character typed, }
                                   { negative for extended keys }
-               ) : string;
+               ) : shortstring;
 Var
    ZMode,
    AppendMode,
@@ -1683,9 +1683,9 @@ Var
    pres,
    Index : integer;
    ts,
-   hes : string;
+   hes : shortstring;
    isextended : boolean;
-   ch : char;
+   ch : AnsiChar;
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 Procedure NewString;
@@ -1716,7 +1716,7 @@ End;
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 Procedure WriteChar;
-var s : string;
+var s : shortstring;
 Begin
    ts := es;
    If AppendMode Then Begin
@@ -2006,7 +2006,7 @@ begin
                     ch := ReadKey;
                     { make it a function key }
                     If ch in ['1'..'9'] Then Begin
-                       ch := Char(Ord(ch)+10);
+                       ch := AnsiChar(Ord(ch)+10);
                        chv := ord(ch) * (-1);
                     End Else ch := #27;
                     SEditExit := true;
@@ -2015,12 +2015,12 @@ begin
          Exit;
       End;
       #16 : Begin
-               { embed control characters in the string }
+               { embed control characters in the shortstring }
                ch := UpCase(ReadKey);
                If ch in ['@','2','A'..'Z'] Then Begin
                   ctrl := true;
                   If ch = '2' Then ch := '@';
-                  ch := Char(Ord(ch)-64);
+                  ch := AnsiChar(Ord(ch)-64);
                   chv := ord(ch);
                End;
             End;
@@ -2036,11 +2036,11 @@ end;
   The maps are 4 character strings interpreted as 2 sets of character
   pairs that represent the following:
 
-  1st char - If it is #0 then it is an extended char. Use the 2nd
+  1st AnsiChar - If it is #0 then it is an extended AnsiChar. Use the 2nd
              character to identify.
-  2nd char - Only used if 1st char is #0.
+  2nd AnsiChar - Only used if 1st AnsiChar is #0.
 
-  The first pair of the string is the actual key pressed.
+  The first pair of the shortstring is the actual key pressed.
   The second pair is what that key should be become.
 
   #0#59 = F1, extended key
@@ -2058,7 +2058,7 @@ end;
      #0#0#0#59  = map ^@ to F1
      #97#0#65#0 = map a to A
 }
-Procedure MapKey(var ch : char;var eflag : boolean);
+Procedure MapKey(var ch : AnsiChar;var eflag : boolean);
 Var
    i,
    cv : integer;
@@ -2135,7 +2135,7 @@ End;{ of nEdit }
 
 { compatibility for old ch type }
 Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-                es:string;var ch : char) : string;
+                es:shortstring;var ch : AnsiChar) : shortstring;
 Var i : integer;
 Begin
    nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
@@ -2144,13 +2144,13 @@ End;
 
 { nEdit using currently active window }
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:string;var ch : integer) : string;
+               es:shortstring;var ch : integer) : shortstring;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
 
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:string;var ch : char) : string;
+               es:shortstring;var ch : AnsiChar) : shortstring;
 Var i : integer;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,i);
@@ -2165,7 +2165,7 @@ Begin
 End;
 
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:longint;var ch : char) : longint;
+               es:longint;var ch : AnsiChar) : longint;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
@@ -2189,7 +2189,7 @@ Begin
 End;
 
 Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-               es:longint;var ch : char) : longint;
+               es:longint;var ch : AnsiChar) : longint;
 Var i : integer;
 Begin
    nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
@@ -2204,7 +2204,7 @@ Begin
 End;
 
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:real;var ch : char) : real;
+               es:real;var ch : AnsiChar) : real;
 Var i : integer;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,i);
@@ -2242,7 +2242,7 @@ Begin
 End;
 
 Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-               es:real;var ch : char) : real;
+               es:real;var ch : AnsiChar) : real;
 Var i : integer;
 Begin
    nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
@@ -2264,7 +2264,7 @@ Function nEditNumber(
        att,              { edit field color attribute }
        wid,              { edit field width }
       decm : integer;    { number of decimal columns }
-       bgd : string;     { background string -
+       bgd : shortstring;     { background string -
                            if bgd = '', then no background
                            if bgd = a single character, then is used as the
                            background fill character.
@@ -2278,24 +2278,24 @@ Function nEditNumber(
 
 Const
    { up to 12 decimal places }
-   decs : string = '[#][#][#][#][#][#][#][#][#][#][#][#]';
+   decs : shortstring = '[#][#][#][#][#][#][#][#][#][#][#][#]';
 Var
    r : real;
-   s,s1,s2 : string;
+   s,s1,s2 : shortstring;
    i,
    e,
    bc,
    bx : integer;
-   ch : char;
-   fill : array [0..255] of char;
+   ch : AnsiChar;
+   fill : array [0..255] of AnsiChar;
    tmp_ec : tnEC;
 Begin
    tmp_ec := nEC;
    nEC.ExitMode := true;
    nEC.AppendMode := true;
    nEC.ClrChMap(0);
-   nEC.AddChMap(#7#0#0+Char(nKeyDel));
-   nEC.AddChMap(#8#0#0+Char(nKeyDel));
+   nEC.AddChMap(#7#0#0+AnsiChar(nKeyDel));
+   nEC.AddChMap(#8#0#0+AnsiChar(nKeyDel));
    If decm > (Length(decs) div 3) Then
       decm := (Length(decs) div 3);
    If decm >= wid Then decm := (wid - 1);
@@ -2355,7 +2355,7 @@ End;
 { overload - real, no pointer }
 Function nEditNumber(
    x,y,att,wid,decm : integer;
-                bgd : string;
+                bgd : shortstring;
               initv,
                minv,
                maxv : real;
@@ -2368,7 +2368,7 @@ End;
 Function nEditNumber(
                 win : pwindow;
    x,y,att,wid,decm : integer;
-                bgd : string;
+                bgd : shortstring;
               initv,
                minv,
                maxv : longint;
@@ -2383,7 +2383,7 @@ End;
 { overload - longint, no pointer }
 Function nEditNumber(
    x,y,att,wid,decm : integer;
-                bgd : string;
+                bgd : shortstring;
               initv,
                minv,
                maxv : longint;
@@ -2404,14 +2404,14 @@ Function nEditDate(
          x,           { edit field start column }
          y,           { edit field start row }
        att : integer; { edit field color attribute }
-     initv : string;     { initial value }
+     initv : shortstring;     { initial value }
    var esc : boolean     { if Esc key pressed = true, else = false }
-) : string;
+) : shortstring;
 
 Var
-   s : string;
+   s : shortstring;
    i : integer;
-   ch : char;
+   ch : AnsiChar;
    tmp_ec : tnEC;
 
 Begin
@@ -2432,9 +2432,9 @@ Begin
    End;
    If nCheckPxPicture(initv,nEC.Picture,i) <> 0 Then
       system.move(initv[1],s[1],Length(initv));
-   nEC.AddChMap(#7#0#0+Char(nKeyLeft));
-   nEC.AddChMap(#8#0#0+Char(nKeyLeft));
-   nEC.AddChMap(#0+Char(nKeyDel)+#0+Char(nKeyLeft));
+   nEC.AddChMap(#7#0#0+AnsiChar(nKeyLeft));
+   nEC.AddChMap(#8#0#0+AnsiChar(nKeyLeft));
+   nEC.AddChMap(#0+AnsiChar(nKeyDel)+#0+AnsiChar(nKeyLeft));
    Repeat
       s := nEdit(win,x,y,att,x+9,x,s,ch);
       If ch = #13 Then Begin
@@ -2448,7 +2448,7 @@ Begin
 End;
 
 { overload - no pointer }
-Function nEditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
+Function nEditDate(x,y,att : integer;initv : shortstring;var esc : boolean) : shortstring;
 Begin
    nEditDate := nEditDate(ActiveWn,x,y,att,initv,esc);
 End;
@@ -2461,7 +2461,7 @@ Procedure nMakeWindow(
     ta,ba,ha : integer;
     hasframe : boolean;
     hdrpos : tnJustify;
-    hdrtxt : string);
+    hdrtxt : shortstring);
 Begin
    win.init(x1,y1,x2,y2,ta,hasframe,ba);
    If hdrtxt <> '' Then win.PutHeader(hdrtxt,ha,hdrpos);
@@ -2475,7 +2475,7 @@ Procedure nMakeWindow(
     ta,ba,ha : integer;
     hasframe : boolean;
     hdrpos : tnJustify;
-    hdrtxt : string);
+    hdrtxt : shortstring);
 Begin
    New(win,init(x1,y1,x2,y2,ta,hasframe,ba));
    If hdrtxt <> '' Then win^.PutHeader(hdrtxt,ha,hdrpos);
@@ -2498,9 +2498,9 @@ End;
      a nil pointer if ack = true,
      a pointer to the tnWindow object if ack = false
  --------------------------------------------------------------------}
-Function nShowMessage(msg : string;
+Function nShowMessage(msg : shortstring;
                      matt : byte;
-                      hdr : string;
+                      hdr : shortstring;
                      hatt : byte;
                       ack : boolean) : pnWindow;
 const
@@ -2586,13 +2586,13 @@ End;
     y - starting row.
     n - number of characters to read.
  ---------------------------------------}
-Function nReadScr(win : pWindow; x,y,n : integer) : string;
+Function nReadScr(win : pWindow; x,y,n : integer) : shortstring;
 Var
    i,idx : integer;
-   s : string;
+   s : shortstring;
    c : longint;
-   { array of char/attr values, 4 bytes each, max 256 }
-   buf : array[0..1023] of char;
+   { array of AnsiChar/attr values, 4 bytes each, max 256 }
+   buf : array[0..1023] of AnsiChar;
    p : pchtype;
 Begin
    s := '';
@@ -2609,7 +2609,7 @@ Begin
 End;
 
 { overload for current window }
-Function nReadScr(x,y,n : integer) : string;
+Function nReadScr(x,y,n : integer) : shortstring;
 Begin
    nReadScr := nReadScr(ActiveWn,x,y,n);
 End;
@@ -2672,7 +2672,7 @@ Begin
    nReadScrColor := nReadScrColor(ActiveWn,x,y);
 End;
 
-{ write a string with attributes, previously saved with nReadScrStr }
+{ write a shortstring with attributes, previously saved with nReadScrStr }
 Procedure nWriteScrStr(win : pWindow; x,y : integer; s : pchtype);
 Begin
    mvwaddchstr(win,y-1,x-1,s);
@@ -2814,7 +2814,7 @@ Procedure nMakeMenu(
     ta,ca,ga,ba,ha : integer;
     hasframe : boolean;
     hdrpos : tnJustify;
-    hdrtxt : string);
+    hdrtxt : shortstring);
 Begin
    mnu.init(x,y,_w,_r,_c,ta,ca,ga,hasframe,ba);
    If hdrtxt <> '' Then mnu.PutHeader(hdrtxt,ha,hdrpos);
@@ -2828,7 +2828,7 @@ Procedure nMakeMenu(
     ta,ca,ga,ba,ha : integer;
     hasframe : boolean;
     hdrpos : tnJustify;
-    hdrtxt : string);
+    hdrtxt : shortstring);
 Begin
    New(mnu,init(x,y,_w,_r,_c,ta,ca,ga,hasframe,ba));
    If hdrtxt <> '' Then mnu^.PutHeader(hdrtxt,ha,hdrpos);
@@ -2875,8 +2875,8 @@ Procedure tnMenu.Post;
 Var
    bx,by,
    mx,my : longint;
-   p : pchar;
-   a : array[0..SizeOf(tnS10)-1] of char;
+   p : PAnsiChar;
+   a : array[0..SizeOf(tnS10)-1] of AnsiChar;
 Begin
    { could already be posted }
    UnPost;
@@ -2929,7 +2929,7 @@ Const
    select = #13;
    cancel = #27;
 Var
-   key : char;
+   key : AnsiChar;
    i,cnt,
    prev,
    savecurs,
@@ -3016,7 +3016,7 @@ Begin
    win^.Move(_x,_y);
 End;
 
-Procedure tnMenu.PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+Procedure tnMenu.PutHeader(hdr : shortstring; hcolor : integer; hpos : tnJustify);
 Begin
    win^.PutHeader(hdr,hcolor,hpos);
 End;
@@ -3060,7 +3060,7 @@ Begin
    End Else merr := E_BAD_ARGUMENT;
 End;
 
-Procedure tnMenu.AddItem(i : integer; s : string);
+Procedure tnMenu.AddItem(i : integer; s : shortstring);
 Const
    fwid : shortint = 0;
    iwid : shortint = 1;
@@ -3073,7 +3073,7 @@ Begin
       ClearItem(i);
       GetMem(items[i],Length(s)+1);
       StrPCopy(items[i]^,s);
-      pi[i] := new_item(pchar(items[i]),nil);
+      pi[i] := new_item(PAnsiChar(items[i]),nil);
       If pi[i] <> Nil Then Begin
          merr := E_OK;
          { Expand the window width if necessary. Limit to screen width.
@@ -3098,7 +3098,7 @@ Begin
    End Else merr := E_BAD_ARGUMENT;
 End;
 
-Function tnMenu.Add(s : string) : integer;
+Function tnMenu.Add(s : shortstring) : integer;
 Var
    i : integer;
 Begin
@@ -3111,7 +3111,7 @@ Begin
    If merr = E_OK Then Add := i;
 End;
 
-Procedure tnMenu.Insert(idx : integer; s : string);
+Procedure tnMenu.Insert(idx : integer; s : shortstring);
 Begin
    If IsValid(idx) Then Begin
       ClearItem(nMAXMENUITEMS);
@@ -3138,7 +3138,7 @@ Begin
    End Else merr := E_BAD_ARGUMENT;
 End;
 
-Procedure tnMenu.Change(idx : integer; s : string);
+Procedure tnMenu.Change(idx : integer; s : shortstring);
 Begin
    AddItem(idx,s);
 End;
@@ -3205,8 +3205,8 @@ Begin
    If _c > 0 Then c := _c;
 End;
 
-{ get the item indicator prefix string }
-Function tnMenu.GetMark : string;
+{ get the item indicator prefix shortstring }
+Function tnMenu.GetMark : shortstring;
 Begin
    If posted Then
       GetMark := StrPas(menu_mark(pm))
@@ -3214,8 +3214,8 @@ Begin
       GetMark := mark;
 End;
 
-{ set the item indicator prefix string }
-Procedure tnMenu.SetMark(ms : string);
+{ set the item indicator prefix shortstring }
+Procedure tnMenu.SetMark(ms : shortstring);
 Begin
    mark := ms;
 End;

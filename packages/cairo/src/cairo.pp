@@ -405,7 +405,7 @@ type
   cairo_read_func_t                              = function (closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
   cairo_user_scaled_font_init_func_t             = function (scaled_font: Pcairo_scaled_font_t; cr: Pcairo_t; extents: Pcairo_font_extents_t): cairo_status_t; cdecl;
   cairo_user_scaled_font_render_glyph_func_t     = function (scaled_font: Pcairo_scaled_font_t; glyph: LongWord; cr: Pcairo_t; extents: Pcairo_font_extents_t): cairo_status_t; cdecl;
-  cairo_user_scaled_font_text_to_glyphs_func_t   = function (scaled_font: Pcairo_scaled_font_t; utf8: PChar; utf8_len: LongInt; glyphs: PPcairo_glyph_t; num_glyphs: PLongint; clusters: PPcairo_text_cluster_t; num_clusters: PLongint; cluster_flags: Pcairo_text_cluster_flags_t): cairo_status_t; cdecl;
+  cairo_user_scaled_font_text_to_glyphs_func_t   = function (scaled_font: Pcairo_scaled_font_t; utf8: PAnsiChar; utf8_len: LongInt; glyphs: PPcairo_glyph_t; num_glyphs: PLongint; clusters: PPcairo_text_cluster_t; num_clusters: PLongint; cluster_flags: Pcairo_text_cluster_flags_t): cairo_status_t; cdecl;
   cairo_user_scaled_font_unicode_to_glyph_func_t = function (scaled_font: Pcairo_scaled_font_t; unicode: LongWord; glyph_index: PLongWord): cairo_status_t; cdecl;
   cairo_surface_observer_callback_t              = procedure (observer, target: Pcairo_surface_t; data: Pointer); cdecl;
   cairo_raster_source_acquire_func_t             = function (pattern: Pcairo_pattern_t; callback_data: Pointer; target: Pcairo_surface_t; const extents: Pcairo_rectangle_int_t): Pcairo_surface_t;
@@ -512,7 +512,7 @@ type
   end;
   
 function cairo_version: LongInt; cdecl; external LIB_CAIRO;
-function cairo_version_string: PChar; cdecl; external LIB_CAIRO;
+function cairo_version_string: PAnsiChar; cdecl; external LIB_CAIRO;
 //Helper function to retrieve decoded version
 procedure cairo_version(out major, minor, micro: LongInt);
 
@@ -631,7 +631,7 @@ function  cairo_font_options_get_hint_metrics(options: Pcairo_font_options_t): c
 (* This interface is for dealing with text as text, not caring about the
    font object inside the the cairo_t. *)
 
-procedure cairo_select_font_face(cr: Pcairo_t; family: Pchar; slant: cairo_font_slant_t; weight: cairo_font_weight_t); cdecl; external LIB_CAIRO;
+procedure cairo_select_font_face(cr: Pcairo_t; family: PAnsiChar; slant: cairo_font_slant_t; weight: cairo_font_weight_t); cdecl; external LIB_CAIRO;
 procedure cairo_set_font_size(cr: Pcairo_t; size: Double); cdecl; external LIB_CAIRO;
 procedure cairo_set_font_matrix(cr: Pcairo_t; matrix: Pcairo_matrix_t); cdecl; external LIB_CAIRO;
 procedure cairo_get_font_matrix(cr: Pcairo_t; matrix: Pcairo_matrix_t); cdecl; external LIB_CAIRO;
@@ -641,11 +641,11 @@ procedure cairo_set_font_face(cr: Pcairo_t; font_face: Pcairo_font_face_t); cdec
 function  cairo_get_font_face(cr: Pcairo_t): Pcairo_font_face_t; cdecl; external LIB_CAIRO;
 procedure cairo_set_scaled_font(cr: PCairo_t; scaled_font:Pcairo_scaled_font_t); cdecl; external LIB_CAIRO;
 function  cairo_get_scaled_font(cr: Pcairo_t): Pcairo_scaled_font_t; cdecl; external LIB_CAIRO;
-procedure cairo_show_text(cr: Pcairo_t; utf8: Pchar); cdecl; external LIB_CAIRO;
+procedure cairo_show_text(cr: Pcairo_t; utf8: PAnsiChar); cdecl; external LIB_CAIRO;
 procedure cairo_show_glyphs(cr: Pcairo_t; glyphs: Pcairo_glyph_t; num_glyphs: LongInt); cdecl; external LIB_CAIRO;
-procedure cairo_text_path(cr: Pcairo_t; utf8: Pchar); cdecl; external LIB_CAIRO;
+procedure cairo_text_path(cr: Pcairo_t; utf8: PAnsiChar); cdecl; external LIB_CAIRO;
 procedure cairo_glyph_path(cr: Pcairo_t; glyphs: Pcairo_glyph_t; num_glyphs: LongInt); cdecl; external LIB_CAIRO;
-procedure cairo_text_extents(cr: Pcairo_t; utf8: Pchar; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
+procedure cairo_text_extents(cr: Pcairo_t; utf8: PAnsiChar; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
 procedure cairo_glyph_extents(cr: Pcairo_t; glyphs: Pcairo_glyph_t; num_glyphs: LongInt; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
 procedure cairo_font_extents(cr: Pcairo_t; extents: Pcairo_font_extents_t); cdecl; external LIB_CAIRO;
 
@@ -670,9 +670,9 @@ function  cairo_scaled_font_get_type(scaled_font: Pcairo_scaled_font_t): cairo_f
 function  cairo_scaled_font_get_user_data (scaled_font: Pcairo_scaled_font_t; key: Pcairo_user_data_key_t): Pointer; cdecl; external LIB_CAIRO;
 function  cairo_scaled_font_set_user_data (scaled_font: Pcairo_scaled_font_t; key: Pcairo_user_data_key_t; user_data: Pointer; destroy: cairo_destroy_func_t): cairo_status_t; cdecl; external LIB_CAIRO;
 procedure cairo_scaled_font_extents(scaled_font: Pcairo_scaled_font_t; extents: Pcairo_font_extents_t); cdecl; external LIB_CAIRO;
-procedure cairo_scaled_font_text_extents(scaled_font: Pcairo_scaled_font_t; utf8: PChar; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
+procedure cairo_scaled_font_text_extents(scaled_font: Pcairo_scaled_font_t; utf8: PAnsiChar; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
 procedure cairo_scaled_font_glyph_extents(scaled_font: Pcairo_scaled_font_t; glyphs: Pcairo_glyph_t; num_glyphs: LongInt; extents: Pcairo_text_extents_t); cdecl; external LIB_CAIRO;
-function  cairo_scaled_font_text_to_glyphs(scaled_font: Pcairo_scaled_font_t; x, y: Double; const utf8: PChar; utf8_len: LongInt; glyphs: PPcairo_glyph_t; num_glyphs: PLongInt; clusters: PPcairo_text_cluster_t; num_clusters: PLongInt; cluster_flags: Pcairo_text_cluster_flags_t): cairo_status_t; cdecl; external LIB_CAIRO;
+function  cairo_scaled_font_text_to_glyphs(scaled_font: Pcairo_scaled_font_t; x, y: Double; const utf8: PAnsiChar; utf8_len: LongInt; glyphs: PPcairo_glyph_t; num_glyphs: PLongInt; clusters: PPcairo_text_cluster_t; num_clusters: PLongInt; cluster_flags: Pcairo_text_cluster_flags_t): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_scaled_font_get_font_face(scaled_font: Pcairo_scaled_font_t): Pcairo_font_face_t; cdecl; external LIB_CAIRO;
 procedure cairo_scaled_font_get_font_matrix(scaled_font: Pcairo_scaled_font_t;	font_matrix: Pcairo_matrix_t); cdecl; external LIB_CAIRO;
 procedure cairo_scaled_font_get_ctm(scaled_font: Pcairo_scaled_font_t;	ctm: Pcairo_matrix_t); cdecl; external LIB_CAIRO;
@@ -681,8 +681,8 @@ procedure cairo_scaled_font_get_font_options(scaled_font: Pcairo_scaled_font_t; 
 
 (* Toy fonts *)
 
-function cairo_toy_font_face_create(const family: PChar; slant: cairo_font_slant_t; weight: cairo_font_weight_t): Pcairo_font_face_t; cdecl; external LIB_CAIRO;
-function cairo_toy_font_face_get_family(font_face: Pcairo_font_face_t): PChar; cdecl; external LIB_CAIRO;
+function cairo_toy_font_face_create(const family: PAnsiChar; slant: cairo_font_slant_t; weight: cairo_font_weight_t): Pcairo_font_face_t; cdecl; external LIB_CAIRO;
+function cairo_toy_font_face_get_family(font_face: Pcairo_font_face_t): PAnsiChar; cdecl; external LIB_CAIRO;
 function cairo_toy_font_face_get_slant(font_face: Pcairo_font_face_t): cairo_font_slant_t; cdecl; external LIB_CAIRO;
 function cairo_toy_font_face_get_weight(font_face: Pcairo_font_face_t): cairo_font_weight_t; cdecl; external LIB_CAIRO;
 
@@ -730,7 +730,7 @@ procedure cairo_path_destroy(path: Pcairo_path_t); cdecl; external LIB_CAIRO;
 (* Error status queries *)
 
 function  cairo_status(cr: Pcairo_t): cairo_status_t; cdecl; external LIB_CAIRO;
-function  cairo_status_to_string(status: cairo_status_t): Pchar; cdecl; external LIB_CAIRO;
+function  cairo_status_to_string(status: cairo_status_t): PAnsiChar; cdecl; external LIB_CAIRO;
 
 (* Surface manipulation *)
 
@@ -764,13 +764,13 @@ function  cairo_surface_get_reference_count(surface: Pcairo_surface_t): LongWord
 function  cairo_surface_status(surface: Pcairo_surface_t): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_surface_get_type(surface: Pcairo_surface_t): cairo_surface_type_t; cdecl; external LIB_CAIRO;
 function  cairo_surface_get_content(surface: Pcairo_surface_t): cairo_content_t; cdecl; external LIB_CAIRO;
-function  cairo_surface_write_to_png(surface: Pcairo_surface_t; filename: Pchar): cairo_status_t; cdecl; external LIB_CAIRO;
+function  cairo_surface_write_to_png(surface: Pcairo_surface_t; filename: PAnsiChar): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_surface_write_to_png_stream(surface: Pcairo_surface_t; write_func: cairo_write_func_t; closure: pointer): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_surface_get_user_data(surface: Pcairo_surface_t; key: Pcairo_user_data_key_t): pointer; cdecl; external LIB_CAIRO;
 function  cairo_surface_set_user_data(surface: Pcairo_surface_t; key: Pcairo_user_data_key_t; user_data: pointer; destroy: cairo_destroy_func_t): cairo_status_t; cdecl; external LIB_CAIRO;
-procedure cairo_surface_get_mime_data(surface: Pcairo_surface_t; const mime_type: PChar; const data: PPChar; length: LongWord); cdecl; external LIB_CAIRO;
-function  cairo_surface_set_mime_data(surface: Pcairo_surface_t; const mime_type: PChar; const data: PChar; length: LongWord; destroy: cairo_destroy_func_t; closure: Pointer): cairo_status_t; cdecl; external LIB_CAIRO;
-function  cairo_surface_supports_mime_type(surface: Pcairo_surface_t; const mime_type: PChar): cairo_bool_t; cdecl; external LIB_CAIRO;
+procedure cairo_surface_get_mime_data(surface: Pcairo_surface_t; const mime_type: PAnsiChar; const data: PPAnsiChar; length: LongWord); cdecl; external LIB_CAIRO;
+function  cairo_surface_set_mime_data(surface: Pcairo_surface_t; const mime_type: PAnsiChar; const data: PAnsiChar; length: LongWord; destroy: cairo_destroy_func_t; closure: Pointer): cairo_status_t; cdecl; external LIB_CAIRO;
+function  cairo_surface_supports_mime_type(surface: Pcairo_surface_t; const mime_type: PAnsiChar): cairo_bool_t; cdecl; external LIB_CAIRO;
 procedure cairo_surface_get_font_options(surface: Pcairo_surface_t; options: Pcairo_font_options_t); cdecl; external LIB_CAIRO;
 procedure cairo_surface_flush(surface: Pcairo_surface_t); cdecl; external LIB_CAIRO;
 procedure cairo_surface_mark_dirty(surface: Pcairo_surface_t); cdecl; external LIB_CAIRO;
@@ -788,12 +788,12 @@ function  cairo_surface_has_show_text_glyphs(surface: Pcairo_surface_t): cairo_b
 function  cairo_image_surface_create(format: cairo_format_t; width, height: LongInt): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_format_stride_for_width(format: cairo_format_t; width: LongInt): LongInt; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_create_for_data(data: Pbyte; format: cairo_format_t; width, height, stride: LongInt): Pcairo_surface_t; cdecl; external LIB_CAIRO;
-function  cairo_image_surface_get_data(surface: Pcairo_surface_t): PChar; cdecl; external LIB_CAIRO;
+function  cairo_image_surface_get_data(surface: Pcairo_surface_t): PAnsiChar; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_get_format(surface: Pcairo_surface_t): cairo_format_t; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_get_width(surface: Pcairo_surface_t): LongInt; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_get_height(surface: Pcairo_surface_t): LongInt; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_get_stride(surface: Pcairo_surface_t): LongInt; cdecl; external LIB_CAIRO;
-function  cairo_image_surface_create_from_png(filename: Pchar): Pcairo_surface_t; cdecl; external LIB_CAIRO;
+function  cairo_image_surface_create_from_png(filename: PAnsiChar): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_image_surface_create_from_png_stream(read_func: cairo_read_func_t; closure: pointer): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 
 (* Recording-surface functions *)
@@ -901,34 +901,34 @@ function  cairo_region_xor_rectangle(dst: Pcairo_region_t; const rectangle: Pcai
 
 (* PDF functions *)
 
-function  cairo_pdf_surface_create(filename: PChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
+function  cairo_pdf_surface_create(filename: PAnsiChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_pdf_surface_create_for_stream(write_func: cairo_write_func_t; closure: Pointer; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 procedure cairo_pdf_surface_restrict_to_version(surface: Pcairo_surface_t; version: cairo_pdf_version_t); cdecl; external LIB_CAIRO;
 procedure cairo_pdf_get_versions(const versions: PPcairo_pdf_version_t; num_versions: PLongInt); cdecl; external LIB_CAIRO;
-function  cairo_pdf_version_to_string(version: cairo_pdf_version_t): PChar; cdecl; external LIB_CAIRO;
+function  cairo_pdf_version_to_string(version: cairo_pdf_version_t): PAnsiChar; cdecl; external LIB_CAIRO;
 procedure cairo_pdf_surface_set_size(surface: Pcairo_surface_t; width_in_points, height_in_points: Double); cdecl; external LIB_CAIRO;
 
 (* PS functions *)
 
-function  cairo_ps_surface_create(filename: PChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
+function  cairo_ps_surface_create(filename: PAnsiChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_ps_surface_create_for_stream(write_func: cairo_write_func_t; closure: Pointer; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 procedure cairo_ps_surface_restrict_to_level(surface: Pcairo_surface_t; level: cairo_ps_level_t); cdecl; external LIB_CAIRO;
 procedure cairo_ps_get_levels(const levels: PPcairo_ps_level_t; num_levels: PLongInt); cdecl; external LIB_CAIRO;
-function  cairo_ps_level_to_string(level: cairo_ps_level_t): PChar; cdecl; external LIB_CAIRO;
+function  cairo_ps_level_to_string(level: cairo_ps_level_t): PAnsiChar; cdecl; external LIB_CAIRO;
 procedure cairo_ps_surface_set_eps(surface: Pcairo_surface_t; eps: cairo_bool_t); cdecl; external LIB_CAIRO;
 function  cairo_ps_surface_get_eps (surface: Pcairo_surface_t): cairo_bool_t; cdecl; external LIB_CAIRO;
 procedure cairo_ps_surface_set_size(surface: Pcairo_surface_t; width_in_points, height_in_points: Double); cdecl; external LIB_CAIRO;
-procedure cairo_ps_surface_dsc_comment(surface: Pcairo_surface_t; comment: PChar); cdecl; external LIB_CAIRO;
+procedure cairo_ps_surface_dsc_comment(surface: Pcairo_surface_t; comment: PAnsiChar); cdecl; external LIB_CAIRO;
 procedure cairo_ps_surface_dsc_begin_setup(surface: Pcairo_surface_t); cdecl; external LIB_CAIRO;
 procedure cairo_ps_surface_dsc_begin_page_setup(surface: Pcairo_surface_t); cdecl; external LIB_CAIRO;
 
 (* SVG functions *)
 
-function  cairo_svg_surface_create(filename: PChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
+function  cairo_svg_surface_create(filename: PAnsiChar; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 function  cairo_svg_surface_create_for_stream(write_func: cairo_write_func_t; closure: Pointer; width_in_points, height_in_points: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
 procedure cairo_svg_surface_restrict_to_version(surface: Pcairo_surface_t; version: cairo_svg_version_t); cdecl; external LIB_CAIRO;
 procedure cairo_svg_get_versions(versions: ppcairo_svg_version_t;num_versions:pcint);cdecl; external LIB_CAIRO;
-function  cairo_svg_version_to_string(version: cairo_svg_version_t): PChar; cdecl; external LIB_CAIRO;
+function  cairo_svg_version_to_string(version: cairo_svg_version_t): PAnsiChar; cdecl; external LIB_CAIRO;
 
 (* TEE functions *)
 
@@ -953,9 +953,9 @@ function cairo_device_set_user_data (device: Pcairo_device_t; const key: pcairo_
 
 (* Script functions *)
 
-function  cairo_script_create(const filename: PChar): Pcairo_device_t; cdecl; external LIB_CAIRO;
+function  cairo_script_create(const filename: PAnsiChar): Pcairo_device_t; cdecl; external LIB_CAIRO;
 function  cairo_script_create_for_stream(write_func: cairo_write_func_t; closure: Pointer): Pcairo_device_t; cdecl; external LIB_CAIRO;
-procedure cairo_script_write_comment(script: Pcairo_device_t; const comment:PChar; len: LongInt); cdecl; external LIB_CAIRO;
+procedure cairo_script_write_comment(script: Pcairo_device_t; const comment:PAnsiChar; len: LongInt); cdecl; external LIB_CAIRO;
 procedure cairo_script_set_mode(script: Pcairo_device_t; mode: cairo_script_mode_t); cdecl; external LIB_CAIRO;
 function  cairo_script_get_mode(script: Pcairo_device_t): cairo_script_mode_t; cdecl; external LIB_CAIRO;
 function  cairo_script_surface_create(script: Pcairo_device_t; content: cairo_content_t; width, height: Double): Pcairo_surface_t; cdecl; external LIB_CAIRO;
@@ -966,9 +966,9 @@ function  cairo_script_from_recording_surface(script: Pcairo_device_t; recording
 
 function  cairo_script_interpreter_create: Pcairo_script_interpreter_t; cdecl; external LIB_CAIRO;
 procedure cairo_script_interpreter_install_hooks(ctx: Pcairo_script_interpreter_t; const hooks: Pcairo_script_interpreter_hooks_t); cdecl; external LIB_CAIRO;
-function  cairo_script_interpreter_run(ctx: Pcairo_script_interpreter_t; filename: PChar): cairo_status_t; cdecl; external LIB_CAIRO;
+function  cairo_script_interpreter_run(ctx: Pcairo_script_interpreter_t; filename: PAnsiChar): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_script_interpreter_feed_stream(ctx: Pcairo_script_interpreter_t; var stream: File): cairo_status_t; cdecl; external LIB_CAIRO;
-function  cairo_script_interpreter_feed_string(ctx: Pcairo_script_interpreter_t; const line: PChar; len: LongInt): cairo_status_t; cdecl; external LIB_CAIRO;
+function  cairo_script_interpreter_feed_string(ctx: Pcairo_script_interpreter_t; const line: PAnsiChar; len: LongInt): cairo_status_t; cdecl; external LIB_CAIRO;
 function  cairo_script_interpreter_get_line_number(ctx: Pcairo_script_interpreter_t): LongWord; cdecl; external LIB_CAIRO;
 function  cairo_script_interpreter_reference(ctx: Pcairo_script_interpreter_t): Pcairo_script_interpreter_t; cdecl; external LIB_CAIRO;
 function  cairo_script_interpreter_finish(ctx: Pcairo_script_interpreter_t): cairo_status_t; cdecl; external LIB_CAIRO;

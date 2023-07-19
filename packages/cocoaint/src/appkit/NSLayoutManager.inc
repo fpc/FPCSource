@@ -118,7 +118,7 @@ type
     _firstTextView: NSTextView;
     _cachedRectArray: NSRectPtr;
     _cachedRectArrayCapacity: NSUInteger;
-    _glyphBuffer: PChar;
+    _glyphBuffer: PAnsiChar;
     _glyphBufferSize: NSUInteger;
     _cachedLocationNominalGlyphRange: NSRange;
     _cachedLocationGlyphIndex: NSUInteger;
@@ -201,7 +201,7 @@ type
     function glyphIndexForCharacterAtIndex (charIndex: NSUInteger): NSUInteger; message 'glyphIndexForCharacterAtIndex:'; { available in 10_5 }
     function intAttribute_forGlyphAtIndex (attributeTag: NSInteger; glyphIndex: NSUInteger): NSInteger; message 'intAttribute:forGlyphAtIndex:';
     function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits (glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pObjCBOOL): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
-    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels (glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pObjCBOOL; bidiLevelBuffer: PChar): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
+    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels (glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pObjCBOOL; bidiLevelBuffer: PAnsiChar): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
     function getGlyphs_range (glyphArray: NSGlyphPtr; glyphRange: NSRange): NSUInteger; message 'getGlyphs:range:';
     procedure setTextContainer_forGlyphRange (container: NSTextContainer; glyphRange: NSRange); message 'setTextContainer:forGlyphRange:';
     procedure setLineFragmentRect_forGlyphRange_usedRect (fragmentRect: NSRect; glyphRange: NSRange; usedRect: NSRect); message 'setLineFragmentRect:forGlyphRange:usedRect:';
@@ -278,7 +278,7 @@ type
     procedure drawBackgroundForGlyphRange_atPoint (glyphsToShow: NSRange; origin: NSPoint); message 'drawBackgroundForGlyphRange:atPoint:';
     procedure drawGlyphsForGlyphRange_atPoint (glyphsToShow: NSRange; origin: NSPoint); message 'drawGlyphsForGlyphRange:atPoint:';
     procedure showCGGlyphs_positions_count_font_matrix_attributes_inContext (glyphs: CGGlyphPtr; positions: NSPointPtr; glyphCount: NSUInteger; font: NSFont; textMatrix: NSAffineTransform; attributes: NSDictionary; graphicsContext: NSGraphicsContext); message 'showCGGlyphs:positions:count:font:matrix:attributes:inContext:'; { available in 10_7 }
-    procedure showPackedGlyphs_length_glyphRange_atPoint_font_color_printingAdjustment (glyphs: PChar; glyphLen: NSUInteger; glyphRange: NSRange; point: NSPoint; font: NSFont; color: NSColor; printingAdjustment: NSSize); message 'showPackedGlyphs:length:glyphRange:atPoint:font:color:printingAdjustment:'; deprecated 'in 10_0, 10_7';
+    procedure showPackedGlyphs_length_glyphRange_atPoint_font_color_printingAdjustment (glyphs: PAnsiChar; glyphLen: NSUInteger; glyphRange: NSRange; point: NSPoint; font: NSFont; color: NSColor; printingAdjustment: NSSize); message 'showPackedGlyphs:length:glyphRange:atPoint:font:color:printingAdjustment:'; deprecated 'in 10_0, 10_7';
     procedure showAttachmentCell_inRect_characterIndex (cell: NSCell; rect: NSRect; attachmentIndex: NSUInteger); message 'showAttachmentCell:inRect:characterIndex:';
     procedure fillBackgroundRectArray_count_forCharacterRange_color (rectArray: NSRectArray; rectCount: NSUInteger; charRange: NSRange; color: NSColor); message 'fillBackgroundRectArray:count:forCharacterRange:color:'; { available in 10_6 }
     procedure drawUnderlineForGlyphRange_underlineType_baselineOffset_lineFragmentRect_lineFragmentGlyphRange_containerOrigin (glyphRange: NSRange; underlineVal: NSInteger; baselineOffset: CGFloat; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'drawUnderlineForGlyphRange:underlineType:baselineOffset:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';

@@ -122,12 +122,12 @@ end;
 Function GetScreen: pScreen;
 begin
   GetScreen:=_OpenScreenTags(nil,[
-    SA_Title          , PtrUInt(PChar(VIDEOSCREENNAME)),
+    SA_Title          , PtrUInt(PAnsiChar(VIDEOSCREENNAME)),
     SA_Left           , 0,
     SA_Top            , 0,
     SA_ShowTitle      , 0,    // Do not show the screen's TitleBar
     SA_Type           , PUBLICSCREEN_F, // pubscreen
-    SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
+    SA_PubName        , PtrUInt(PAnsiChar(VIDEOSCREENNAME)),
     SA_Draggable      , 1,
     SA_Quiet          , 1,
     SA_LikeWorkbench  , 1,     // Let OS
@@ -175,7 +175,7 @@ const
 
 Function GetWindow: PWindow;
 var
-  envBuf: array[0..15] of char;
+  envBuf: array[0..15] of AnsiChar;
   videoDefaultFlags: PtrUInt;
 begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
@@ -216,7 +216,7 @@ begin
       WA_InnerHeight, LastH*VideoFontHeight,
       WA_MaxWidth   , 32768,
       WA_MaxHeight  , 32768,
-      WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
+      WA_Title      , PtrUInt(PAnsiChar('FPC Video Window Output')),
       WA_Activate   , 1,
       WA_FLAGS      , (videoDefaultFlags or
                        WFLG_DRAGBAR       or WFLG_DEPTHGADGET   or WFLG_SIZEGADGET or
@@ -253,7 +253,7 @@ var
   P: PWord;
   flags: DWord;
   i: LongInt;
-  envBuf: array[0..15] of char;
+  envBuf: array[0..15] of AnsiChar;
 begin
 {$IFDEF MORPHOS}
   InitGraphicsLibrary;
@@ -552,7 +552,7 @@ begin
 
   if crType = crUnderLine then
   begin
-    { draw two lines at the bottom of the char, in case of underline cursor }
+    { draw two lines at the bottom of the AnsiChar, in case of underline cursor }
     if videoFontHeight = 8 then
       begin
         GfxMove(rp, sX, sY + 7); Draw(rp, sX + 7, sY + 7);
@@ -649,7 +649,7 @@ begin
     end;
     {$ifdef VideoSpeedTest}
     if NumChanged > 100 then
-      writeln('redraw time: ', floattoStrF((Now-t)* 24 * 60 * 60 * 1000000 / NumChanged, fffixed, 8,3), ' us/char' ); // ms
+      writeln('redraw time: ', floattoStrF((Now-t)* 24 * 60 * 60 * 1000000 / NumChanged, fffixed, 8,3), ' us/AnsiChar' ); // ms
     {$endif}
   end;
 
@@ -817,21 +817,21 @@ var
 
 procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 var
-  winT: PChar;
-  screenT: PChar;
+  winT: PAnsiChar;
+  screenT: PAnsiChar;
 begin
   globWinT:=winTitle;
   globScreenT:=screenTitle;
   if VideoWindow <> nil then
   begin
     if globWinT = '' then
-      winT:=PChar(PtrInt(-1))
+      winT:=PAnsiChar(PtrInt(-1))
     else
-      winT:=PChar(globWinT);
+      winT:=PAnsiChar(globWinT);
     if globScreenT = '' then
-      screenT:=PChar(PtrInt(-1))
+      screenT:=PAnsiChar(PtrInt(-1))
     else
-      screenT:=PChar(globScreenT);
+      screenT:=PAnsiChar(globScreenT);
     SetWindowTitles(VideoWindow, winT, screenT);
   end;
 end;

@@ -348,7 +348,7 @@ begin
   RegisterPropertyEditor(TypeInfo(string), TDbf, 'IndexName', TIndexNameProperty);
   RegisterPropertyEditor(TypeInfo(string), TDbfIndexDef, 'IndexFile', TIndexFileNameProperty);
   RegisterPropertyEditor(TypeInfo(string), TDbfIndexDef, 'SortField', TSortFieldProperty);
-  RegisterPropertyEditor(TypeInfo(char), TDbfFieldDef, 'NativeFieldType', TNativeFieldTypeProperty);
+  RegisterPropertyEditor(TypeInfo(AnsiChar), TDbfFieldDef, 'NativeFieldType', TNativeFieldTypeProperty);
 end;
 
 {$ifdef FPC}

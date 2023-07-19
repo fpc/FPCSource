@@ -615,16 +615,16 @@ type
     procedure WriteHelpLine(S: String);
     function LoadFile(Filename: string; Binary: boolean = false): TPas2jsFile;
     // Override these for PCU format
-    procedure HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String; var Handled: boolean);
+    procedure HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: TPasScannerString; var Handled: boolean);
     function CreateCompilerFile(const PasFileName, PCUFilename: String): TPas2jsCompilerFile; virtual;
     // Command-line option handling
     procedure HandleOptionPCUFormat(aValue: String); virtual;
-    function HandleOptionPaths(C: Char; aValue: String; FromCmdLine: Boolean): Boolean; virtual;
-    function HandleOptionJ(C: Char; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
+    function HandleOptionPaths(C: AnsiChar; aValue: String; FromCmdLine: Boolean): Boolean; virtual;
+    function HandleOptionJ(C: AnsiChar; aValue: String; Quick,FromCmdLine: Boolean): Boolean; virtual;
     function HandleOptionM(aValue: String; Quick: Boolean): Boolean; virtual;
     procedure HandleOptionConfigFile(aPos: Integer; const aFileName: string); virtual;
     procedure HandleOptionInfo(aValue: string);
-    function HandleOptionOptimization(C: Char; aValue: String): Boolean;
+    function HandleOptionOptimization(C: AnsiChar; aValue: String): Boolean;
     // DoWriteJSFile: return false to use the default write function.
     function DoWriteJSFile(const DestFilename, MapFilename: String; aWriter: TPas2JSMapper): Boolean; virtual;
     procedure Compile(StartTime: TDateTime);
@@ -2393,7 +2393,7 @@ begin
   end;
 end;
 
-procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: String;
+procedure TPas2jsCompiler.HandleLinkLibStatement(Sender: TObject; const aLibName, aLibAlias, aLibOptions: TPasScannerString;
   var Handled: boolean);
 Var
   Imp : TJSImportStatement;
@@ -2482,7 +2482,7 @@ begin
     {$ENDIF}
     try
       WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
-      aFileWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),buf);
+      aFileWriter.SaveJSToStream(WithUTF8BOM, TJSWriterString(ExtractFilename(MapFilename)), buf);
       {$IFDEF Pas2js}
       {$ELSE}
       buf.Position:=0;
@@ -3400,7 +3400,7 @@ begin
   ParamFatal('No support in this compiler for precompiled format '+aValue);
 end;
 
-function TPas2jsCompiler.HandleOptionPaths(C: Char; aValue: String;
+function TPas2jsCompiler.HandleOptionPaths(C: AnsiChar; aValue: String;
   FromCmdLine: Boolean): Boolean;
 Var
   ErrorMsg: String;
@@ -3417,7 +3417,7 @@ begin
   end;
 end;
 
-function TPas2jsCompiler.HandleOptionJ(C: Char; aValue: String;
+function TPas2jsCompiler.HandleOptionJ(C: AnsiChar; aValue: String;
   Quick, FromCmdLine: Boolean): Boolean;
 
 Var
@@ -3702,7 +3702,7 @@ Var
 
 Var
   P,L: integer;
-  C,c2: Char;
+  C,c2: AnsiChar;
   pr: TPasToJsProcessor;
   pl: TPasToJsPlatform;
   s: string;
@@ -3801,7 +3801,7 @@ begin
     Log.LogPlain(InfoMsg);
 end;
 
-function TPas2jsCompiler.HandleOptionOptimization(C: Char; aValue: String): Boolean;
+function TPas2jsCompiler.HandleOptionOptimization(C: AnsiChar; aValue: String): Boolean;
 Var
   Enable: Boolean;
 begin
@@ -3850,7 +3850,7 @@ procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
 var
   EnabledFlags, DisabledFlags, Identifier, aValue: string;
   p, l, i: Integer;
-  c: Char;
+  c: AnsiChar;
   aProc: TPasToJsProcessor;
   aPlatform: TPasToJsPlatform;
 
@@ -4065,7 +4065,7 @@ procedure TPas2jsCompiler.ReadSingleLetterOptions(const Param: string;
   p: integer; const Allowed: string; out Enabled, Disabled: string);
 // e.g. 'B' 'lB' 'l-' 'l+B-'
 var
-  Letter: Char;
+  Letter: AnsiChar;
   i, l: Integer;
 begin
   l:=length(Param);
@@ -4679,7 +4679,7 @@ begin
   begin
     case s[p] of
     'a'..'z','A'..'Z','0'..'9','_','-','.',',','"','''','`',
-    #128..high(char) :
+    #128..high(AnsiChar) :
       begin
       LastCharStart:=p;
       {$IFDEF FPC_HAS_CPSTRING}

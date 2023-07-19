@@ -2,7 +2,7 @@ program crtkeys;
 uses
   crt;
 var
-  Ch, Ex: Char;
+  Ch, Ex: AnsiChar;
   Done: Boolean;
 begin
   Done := False;

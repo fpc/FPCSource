@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
@@ -549,7 +550,7 @@ begin
     CopyNow := FBufEnd - FBufPos;
     if CopyNow > Count then
       CopyNow := Count;
-    Move(PChar(FBuffer)[FBufPos], Dest^, CopyNow);
+    Move(PAnsiChar(FBuffer)[FBufPos], Dest^, CopyNow);
     Inc(FBufPos, CopyNow);
     Inc(Dest, CopyNow);
     Dec(Count, CopyNow);
@@ -867,7 +868,7 @@ begin
     raise EReadError.Create(SInvalidPropertyValue);
 end;
 
-function TReader.ReadChar: Char;
+function TReader.ReadChar: AnsiChar;
 var
   s: String;
 begin
@@ -1286,7 +1287,7 @@ procedure TReader.ReadProperty(AInstance: TPersistent);
 var
   Path: String;
   Instance: TPersistent;
-  DotPos, NextPos: PChar;
+  DotPos, NextPos: PAnsiChar;
   PropInfo: PPropInfo;
   Obj: TObject;
   Name: String;
@@ -1320,7 +1321,7 @@ begin
     try
       Instance := AInstance;
       FCanHandleExcepts := True;
-      DotPos := PChar(Path);
+      DotPos := PAnsiChar(Path);
       while True do
       begin
         NextPos := StrScan(DotPos, '.');

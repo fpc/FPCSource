@@ -83,7 +83,7 @@ type
   EJwaLoadLibraryError = class(EJwaError);
   EJwaGetProcAddressError = class(EJwaError);
 
-procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: string);
+procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: Ansistring);
 
 type
   // (rom) moved from JwaRpc.pas
@@ -210,24 +210,24 @@ type
 // ANSI (Multi-byte Character) types
 //
 
-  LPCH = ^Char;
+  LPCH = ^AnsiChar;
   {$EXTERNALSYM LPCH}
-  PCH = ^Char;
+  PCH = ^AnsiChar;
   {$EXTERNALSYM PCH}
 
-  LPCCH = ^Char;
+  LPCCH = ^AnsiChar;
   {$EXTERNALSYM LPCCH}
-  PCCH = ^Char;
+  PCCH = ^AnsiChar;
   {$EXTERNALSYM PCCH}
-  NPSTR = ^Char;
+  NPSTR = ^AnsiChar;
   {$EXTERNALSYM NPSTR}
   LPSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPSTR {$ELSE} PAnsiChar {$ENDIF};
   {$EXTERNALSYM LPSTR}
-  PSTR = PChar;
+  PSTR = PAnsiChar;
   {$EXTERNALSYM PSTR}
   LPCSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPCSTR {$ELSE} PAnsiChar {$ENDIF};
   {$EXTERNALSYM LPCSTR}
-  PCSTR = PChar;
+  PCSTR = PAnsiChar;
   {$EXTERNALSYM PCSTR}
 
 // (rom) moved down to have LPSTR etc always declared
@@ -248,8 +248,6 @@ type
   PPWCHAR = ^PWCHAR;
 
   PPTSTR = ^PTSTR;
-  PPChar = ^PChar;
-  PPWideChar = ^PWideChar;
   PPointer = ^Pointer;
 
   GUID = TGUID;
@@ -302,9 +300,9 @@ type
 
   {$ELSE}
 
-  TCHAR = Char;
+  TCHAR = AnsiChar;
   {$EXTERNALSYM TCHAR}
-  PTCHAR = PChar;
+  PTCHAR = PAnsiChar;
   {$EXTERNALSYM PTCHAR}
   TUCHAR = Byte;
   {$EXTERNALSYM TUCHAR}
@@ -414,7 +412,7 @@ const
 //
 
 type
-  CCHAR = Char;
+  CCHAR = AnsiChar;
   {$EXTERNALSYM CCHAR}
   CSHORT = Shortint;
   {$EXTERNALSYM CSHORT}
@@ -704,9 +702,9 @@ type
 // Pointer to an Asciiz string
 //
 
-  PSZ = ^CHAR;
+  PSZ = ^AnsiChar;
   {$EXTERNALSYM PSZ}
-  PCSZ = ^CHAR;
+  PCSZ = ^AnsiChar;
   {$EXTERNALSYM PCSZ}
 
 //
@@ -717,7 +715,7 @@ type
   _STRING = record
     Length: USHORT;
     MaximumLength: USHORT;
-    Buffer: PCHAR;
+    Buffer: PAnsiChar;
   end;
   {$EXTERNALSYM _STRING}
   TString = _STRING;
@@ -740,7 +738,7 @@ type
   _CSTRING = record
     Length: USHORT;
     MaximumLength: USHORT;
-    Buffer: PCHAR;
+    Buffer: PAnsiChar;
   end;
   {$EXTERNALSYM _CSTRING}
   CSTRING = _CSTRING;
@@ -748,7 +746,7 @@ type
   TCString = CSTRING;
 
 const
-  ANSI_NULL = CHAR(0);
+  ANSI_NULL = AnsiChar(0);
   {$EXTERNALSYM ANSI_NULL}
   UNICODE_NULL = WCHAR(0);
   {$EXTERNALSYM UNICODE_NULL}
@@ -1180,7 +1178,7 @@ const
 
 type
 
-//unsigned char       BYTE;
+//unsigned AnsiChar       BYTE;
 //unsigned short      WORD;
 
   FLOAT = Single;
@@ -1849,7 +1847,7 @@ const
   RsELibraryNotFound = 'Library not found: %s';
   RsEFunctionNotFound = 'Function not found: %s.%s';
 
-procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: string);
+procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: Ansistring);
 var
   ModuleHandle: HMODULE;
 begin
@@ -1858,18 +1856,18 @@ begin
     ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
                     {$ELSE}GetModuleHandle
                     {$ENDIF JWA_INCLUDEMODE}
-                    (PChar(ModuleName));
+                    (PAnsiChar(ModuleName));
     if ModuleHandle = 0 then
     begin
       ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
                     {$ELSE}LoadLibrary
-                    {$ENDIF JWA_INCLUDEMODE}(PChar(ModuleName));
+                    {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
       if ModuleHandle = 0 then
         raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
     end;
     P := Pointer({$IFDEF JWA_INCLUDEMODE}jwaWinType_GetProcAddress
                     {$ELSE}GetProcAddress
-                    {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PChar(ProcName)));
+                    {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PAnsiChar(ProcName)));
     if not Assigned(P) then
       raise EJwaGetProcAddressError.CreateFmt(RsEFunctionNotFound, [ModuleName, ProcName]);
   end;

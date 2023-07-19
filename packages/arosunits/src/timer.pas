@@ -42,7 +42,7 @@ const
   UNIT_WAITUNTIL      = 3;
   UNIT_WAITECLOCK     = 4;
 
-  TIMERNAME: PChar = 'timer.device';
+  TIMERNAME: PAnsiChar = 'timer.device';
 
 type
   PTimeval = ^TTimeval;

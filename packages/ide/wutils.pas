@@ -15,6 +15,7 @@ unit WUtils;
 {$ifdef cpullvm}
 {$modeswitch nestedprocvars}
 {$endif}
+{$H-}
 
 interface
 
@@ -47,7 +48,7 @@ const
 
   { Get DirSep and EOL from System unit, instead of redefining 
     here with tons of $ifdefs (KB) }
-  DirSep : char = System.DirectorySeparator;
+  DirSep : AnsiChar = System.DirectorySeparator;
   EOL : String[2] = System.LineEnding;
 
 
@@ -127,9 +128,9 @@ procedure ReadlnFromFile(var f : file; var S:string;
 function Min(A,B: longint): longint;
 function Max(A,B: longint): longint;
 
-function CharStr(C: char; Count: integer): string;
+function CharStr(C: AnsiChar; Count: integer): string;
 function UpcaseStr(const S: string): string;
-function LowCase(C: char): char;
+function LowCase(C: AnsiChar): AnsiChar;
 function LowcaseStr(S: string): string;
 function RExpand(const S: string; MinLen: byte): string;
 function LExpand(const S: string; MinLen: byte): string;
@@ -144,7 +145,7 @@ function StrToCard(const S: string): cardinal;
 function FloatToStr(D: Double; Decimals: byte): string;
 function FloatToStrL(D: Double; Decimals: byte; MinLen: byte): string;
 function GetStr(P: PString): string;
-function GetPChar(P: PChar): string;
+function GetPChar(P: PAnsiChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
 function LExtendString(S: string; MinLen: byte): string;
 
@@ -233,7 +234,7 @@ end;
 
 procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR : boolean);
   var
-    c : char;
+    c : AnsiChar;
     i,pos : longint;
   begin
     linecomplete:=false;
@@ -280,7 +281,7 @@ procedure ReadlnFromFile(var f : file; var S:string;
            var linecomplete,hasCR : boolean;
            BreakOnSpacesOnly : boolean);
   var
-    c : char;
+    c : AnsiChar;
     i,pos,
     lastspacepos,LastSpaceFilePos : longint;
 {$ifdef DEBUG}
@@ -371,7 +372,7 @@ begin
   if A<B then Min:=A else Min:=B;
 end;
 
-function CharStr(C: char; Count: integer): string;
+function CharStr(C: AnsiChar; Count: integer): string;
 begin
   if Count<=0 then
     begin
@@ -509,7 +510,7 @@ begin
   if P=nil then GetStr:='' else GetStr:=P^;
 end;
 
-function GetPChar(P: PChar): string;
+function GetPChar(P: PAnsiChar): string;
 begin
   if P=nil then GetPChar:='' else GetPChar:=StrPas(P);
 end;
@@ -617,9 +618,9 @@ function GetLongName(const n:string):string;
 {$ifdef Windows}
 var
   hs : string;
-  hs2 : Array [0..255] of char;
+  hs2 : Array [0..255] of AnsiChar;
   i : longint;
-  j : pchar;
+  j : PAnsiChar;
 {$endif}
 {$ifdef go32v2}
 var
@@ -650,7 +651,7 @@ begin
 end;
 
 
-function LowCase(C: char): char;
+function LowCase(C: AnsiChar): AnsiChar;
 begin
   if ('A'<=C) and (C<='Z') then C:=chr(ord(C)+32);
   LowCase:=C;
@@ -850,7 +851,7 @@ end;
 
 procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean);
   var
-    c : char;
+    c : AnsiChar;
     i,pos,StartPos : longint;
     charsInS : boolean;
   begin
@@ -993,7 +994,7 @@ end;
 
 function FormatPath(Path: string): string;
 var P: sw_integer;
-    SC: char;
+    SC: AnsiChar;
 begin
   if ord(DirSep)=ord('/') then
     SC:='\'
@@ -1129,10 +1130,10 @@ end;
 function FormatDateTime(const D: DateTime; const Format: string): string;
 var I: sw_integer;
     CurCharStart: sw_integer;
-    CurChar: char;
+    CurChar: AnsiChar;
     CurCharCount: integer;
     DateS: string;
-    C: char;
+    C: AnsiChar;
 procedure FlushChars;
 var S: string;
     I: sw_integer;

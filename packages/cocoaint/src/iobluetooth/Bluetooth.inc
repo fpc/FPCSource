@@ -1280,8 +1280,8 @@ type
     productID: cuint32;
     vendorID: cuint32;
     type_: cuint32;
-    productName:array[0..(kInfoStringMaxLength)-1] of char;
-    vendorName:array[0..(kInfoStringMaxLength)-1] of char;
+    productName:array[0..(kInfoStringMaxLength)-1] of AnsiChar;
+    vendorName:array[0..(kInfoStringMaxLength)-1] of AnsiChar;
     totalDataBytesSent: cuint64;
     totalSCOBytesSent: cuint64;
     totalDataBytesReceived: cuint64;

@@ -9,7 +9,7 @@ Var
   RexxRetVal: RxString;                // return value from REXX
   RC: Cardinal;                        // return code from REXX
 Const
-  Str: PChar = 'These words will be swapped'; // text to swap
+  Str: PAnsiChar = 'These words will be swapped'; // text to swap
   RexxRc: Integer = 0;                // return code from function
 Begin
   Write('This program will call the REXX interpreter ');

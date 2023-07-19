@@ -41,8 +41,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
@@ -77,13 +77,13 @@ const
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
 { ANSI <-> Wide }
-function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
-function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
-function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
+function AnsiToWideBuf(AnsiBuf: PAnsiChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
+function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PAnsiChar; AnsiBufLen: longint): longint;
+function PCharToPWideChar(str: PAnsiChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 
 { Wrappers for some WinAPI calls }
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle;
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PAnsiChar): THandle;
 function ResetEvent(h: THandle): LONGBOOL;
 function SetEvent(h: THandle): LONGBOOL;
 function GetCurrentProcessId:DWORD;
@@ -197,10 +197,10 @@ function muls(s1,s2 : single) : single; compilerproc;
 function divs(s1,s2 : single) : single; compilerproc;
 {$endif CPUARM}
 
-function CmdLine: PChar;
+function CmdLine: PAnsiChar;
 { C compatible arguments }
 function argc: longint;
-function argv: ppchar;
+function argv: PPAnsiChar;
 
 implementation
 
@@ -315,14 +315,14 @@ const
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
 
-function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
+function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PAnsiChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
-function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PAnsiChar;cchMultiByte:longint; lpDefaultChar:PAnsiChar; lpUsedDefaultChar:pointer):longint;
      cdecl; external 'coredll' name 'WideCharToMultiByte';
 function GetACP:UINT; cdecl; external 'coredll' name 'GetACP';
 
 { Returns number of characters stored to WideBuf, including null-terminator. }
-function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
+function AnsiToWideBuf(AnsiBuf: PAnsiChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 begin
   Result := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, AnsiBuf, AnsiBufLen, WideBuf, WideBufLen div SizeOf(WideChar));
   if ((AnsiBufLen <> -1) or (Result = 0)) and (WideBuf <> nil) then
@@ -340,7 +340,7 @@ begin
 end;
 
 { Returns number of characters stored to AnsiBuf, including null-terminator. }
-function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+function WideToAnsiBuf(WideBuf: PWideChar; WideCharsLen: longint; AnsiBuf: PAnsiChar; AnsiBufLen: longint): longint;
 begin
   Result := WideCharToMultiByte(CP_ACP, 0, WideBuf, WideCharsLen, AnsiBuf, AnsiBufLen, nil, nil);
   if ((WideCharsLen <> -1) or (Result = 0)) and (AnsiBuf <> nil) then
@@ -359,7 +359,7 @@ end;
 
 { Returns dynamic memory block, which contains wide string. This memory should be freed using FreeMem. }
 { outlen will contain number of wide characters stored to result buffer, including null-terminator. }
-function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
+function PCharToPWideChar(str: PAnsiChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
 var
   len: longint;
 begin
@@ -400,14 +400,14 @@ begin
   len:=Length(s);
   wlen:=(len + 1)*SizeOf(WideChar);
   GetMem(Result, wlen);
-  wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen)*SizeOf(WideChar);
+  wlen:=AnsiToWideBuf(PAnsiChar(s), len, Result, wlen)*SizeOf(WideChar);
   if wlen = 0 then
   begin
-    wlen:=AnsiToWideBuf(PChar(s), len, nil, 0)*SizeOf(WideChar);
+    wlen:=AnsiToWideBuf(PAnsiChar(s), len, nil, 0)*SizeOf(WideChar);
     if wlen > 0 then
     begin
       ReAllocMem(Result, wlen);
-      wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen)*SizeOf(WideChar);
+      wlen:=AnsiToWideBuf(PAnsiChar(s), len, Result, wlen)*SizeOf(WideChar);
     end
     else
     begin
@@ -445,7 +445,7 @@ const
 function CreateEventW(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PWideChar): THandle;
     cdecl; external KernelDLL name 'CreateEventW';
 
-function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle;
+function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PAnsiChar): THandle;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -510,9 +510,9 @@ function GetCommandLine : pwidechar;
     cdecl; external KernelDLL name 'GetCommandLineW';
 
 var
-  ModuleName : array[0..255] of char;
+  ModuleName : array[0..255] of AnsiChar;
 
-function GetCommandFile:pchar;
+function GetCommandFile:PAnsiChar;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -525,16 +525,16 @@ end;
 
 var
   Fargc: longint;
-  Fargv: ppchar;
-  FCmdLine: PChar;
+  Fargv: PPAnsiChar;
+  FCmdLine: PAnsiChar;
 
 procedure setup_arguments;
 var
   arglen,
   count   : longint;
   argstart,
-  pc,arg  : pchar;
-  quote   : char;
+  pc,arg  : PAnsiChar;
+  quote   : AnsiChar;
   argvlen : longint;
 
   procedure allocarg(idx,len:longint);
@@ -566,7 +566,7 @@ begin
   allocarg(0,arglen);
   move(pc^,Fargv[0]^,arglen+1);
   { Setup FCmdLine variable }
-  arg:=PChar(GetCommandLine);
+  arg:=PAnsiChar(GetCommandLine);
   count:=WideToAnsiBuf(PWideChar(arg), -1, nil, 0);
   FCmdLine:=SysGetMem(arglen + count + 3);
   FCmdLine^:='"';
@@ -605,7 +605,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -622,7 +622,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -665,7 +665,7 @@ begin
                begin
                  if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                      begin
                        if quote='"' then
                         quote:=' '
@@ -685,7 +685,7 @@ begin
                begin
                  if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                      begin
                        if quote=''''  then
                         quote:=' '
@@ -723,7 +723,7 @@ begin
   sysreallocmem(Fargv,(argc+1)*sizeof(pointer));
 end;
 
-function CmdLine: PChar;
+function CmdLine: PAnsiChar;
 begin
   setup_arguments;
   Result:=FCmdLine;
@@ -735,7 +735,7 @@ begin
   Result:=Fargc;
 end;
 
-function argv: ppchar;
+function argv: PPAnsiChar;
 begin
   setup_arguments;
   Result:=Fargv;
@@ -746,7 +746,7 @@ begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   setup_arguments;
   if (l>=0) and (l<Fargc) then
@@ -1440,7 +1440,7 @@ procedure WinCEWide2AnsiMove(source:pwidechar;var dest:RawByteString;cp:TSystemC
       end;
   end;
 
-procedure WinCEAnsi2WideMove(source:pchar;cp:TSystemCodePage;var dest:widestring;len:SizeInt);
+procedure WinCEAnsi2WideMove(source:PAnsiChar;cp:TSystemCodePage;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
     dwFlags: DWORD;
@@ -1489,7 +1489,7 @@ procedure WinCEUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp:TS
       end;
   end;
 
-procedure WinCEAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
+procedure WinCEAnsi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:UnicodeString;len:SizeInt);
   var
     destlen: SizeInt;
     dwflags: DWORD;
@@ -1629,7 +1629,7 @@ end;
 const
   ErrorBufferLength = 1024;
 var
-  ErrorBuf : array[0..ErrorBufferLength] of char;
+  ErrorBuf : array[0..ErrorBufferLength] of AnsiChar;
   ErrorBufW : array[0..ErrorBufferLength] of widechar;
   ErrorLen : longint;
 

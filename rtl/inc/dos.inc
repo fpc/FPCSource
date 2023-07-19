@@ -25,7 +25,7 @@ begin
       p[i]:=DirectorySeparator;
 end;
 
-procedure DoDirSeparators(p:Pchar);
+procedure DoDirSeparators(p:PAnsiChar);
 var
   i : longint;
 begin
@@ -173,7 +173,7 @@ end;
 
 
 {$IFNDEF HAS_GETSHORTNAME}
-function GetShortName (var P: String): boolean;
+function GetShortName (var P: ShortString): boolean;
 begin
   GetShortName := true;
 end;
@@ -181,7 +181,7 @@ end;
 
 
 {$IFNDEF HAS_GETLONGNAME}
-function GetLongName (var P: String): boolean;
+function GetLongName (var P: ShortString): boolean;
 begin
   GetLongName := true;
 end;

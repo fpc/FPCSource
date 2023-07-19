@@ -703,7 +703,7 @@ begin
     CheckResult(
       SQLDriverConnect(FDBCHandle,               // the ODBC connection handle
                        nil,                      // no parent window (would be required for prompts)
-                       PChar(ConnectionString),  // the connection string
+                       PAnsiChar(ConnectionString),  // the connection string
                        Length(ConnectionString), // connection string length
                        @(OutConnectionString[1]),// buffer for storing the completed connection string
                        BufferLength,             // length of the buffer
@@ -944,7 +944,7 @@ begin
   Result := false;
   if SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, STMTHandle) = SQL_SUCCESS then
     begin
-    if SQLExecDirect(STMTHandle, PChar(FDBMSInfo.GetLastInsertIDSQL), Length(FDBMSInfo.GetLastInsertIDSQL)) = SQL_SUCCESS then
+    if SQLExecDirect(STMTHandle, PAnsiChar(FDBMSInfo.GetLastInsertIDSQL), Length(FDBMSInfo.GetLastInsertIDSQL)) = SQL_SUCCESS then
       if SQLFetch(STMTHandle) = SQL_SUCCESS then
         if SQLGetData(STMTHandle, 1, SQL_C_SBIGINT, @LastInsertID, SizeOf(LargeInt), @StrLenOrInd) = SQL_SUCCESS then
           Field.AsLargeInt := LastInsertID;
@@ -1443,7 +1443,7 @@ var
   _Type     :SQLSMALLINT; _TypeIndOrLen     :SQLLEN;
   OrdinalPos:SQLSMALLINT; OrdinalPosIndOrLen:SQLLEN;
   ColName   :string;      ColNameIndOrLen   :SQLLEN;
-  AscOrDesc :char;        AscOrDescIndOrLen :SQLLEN;
+  AscOrDesc :AnsiChar;        AscOrDescIndOrLen :SQLLEN;
   PKName    :string;      PKNameIndOrLen    :SQLLEN;
 const
   DEFAULT_NAME_LEN = 255;
@@ -1482,7 +1482,7 @@ begin
         StmtHandle,
         nil, 0, // any catalog
         nil, 0, // any schema
-        PChar(TableName), Length(TableName)
+        PAnsiChar(TableName), Length(TableName)
       ),
       SQL_HANDLE_STMT, StmtHandle, 'Could not retrieve primary key metadata for table %s using SQLPrimaryKeys.', [TableName]
     );
@@ -1507,13 +1507,13 @@ begin
           if OrdinalPos=1 then begin
             // create new IndexDef if OrdinalPos=1
             IndexDef:=IndexDefs.AddIndexDef;
-            IndexDef.Name:=PChar(@PKName[1]);
-            IndexDef.Fields:=PChar(@ColName[1]);
+            IndexDef.Name:=PAnsiChar(@PKName[1]);
+            IndexDef.Fields:=PAnsiChar(@ColName[1]);
             IndexDef.Options:=IndexDef.Options+[ixUnique]+[ixPrimary]; // Primary key is always unique
             KeyName:=IndexDef.Name;
           end else begin
             assert(Assigned(IndexDef));
-            IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
+            IndexDef.Fields:=IndexDef.Fields+';'+PAnsiChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
           CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
@@ -1533,7 +1533,7 @@ begin
         StmtHandle,
         nil, 0, // catalog unknown; request for all catalogs
         nil, 0, // schema unknown; request for all schemas
-        PChar(TableName), Length(TableName), // request information for TableName
+        PAnsiChar(TableName), Length(TableName), // request information for TableName
         SQL_INDEX_ALL,
         SQL_QUICK
       ),
@@ -1563,7 +1563,7 @@ begin
         if ODBCSuccess(Res) then begin
           // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
           if _Type<>SQL_TABLE_STAT then begin
-            if PChar(@IndexName[1])=KeyName then begin
+            if PAnsiChar(@IndexName[1])=KeyName then begin
               // The indexdef is already made as the primary key
               // Only if the index is descending is not known yet.
               if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then begin
@@ -1573,8 +1573,8 @@ begin
             end else if (OrdinalPos=1) or not Assigned(IndexDef) then begin
               // create new IndexDef if OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
               IndexDef:=IndexDefs.AddIndexDef;
-              IndexDef.Name:=PChar(@IndexName[1]); // treat ansistring as zero terminated string
-              IndexDef.Fields:=PChar(@ColName[1]);
+              IndexDef.Name:=PAnsiChar(@IndexName[1]); // treat ansistring as zero terminated string
+              IndexDef.Fields:=PAnsiChar(@ColName[1]);
               if NonUnique=SQL_FALSE then
                 IndexDef.Options:=IndexDef.Options+[ixUnique];
               if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then
@@ -1582,7 +1582,7 @@ begin
               // TODO: figure out how we can tell whether COLUMN_NAME is an expression or not
               //       if it is an expression, we should include ixExpression in Options and set Expression to ColName
             end else // NB we re-use the last IndexDef
-              IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
+              IndexDef.Fields:=IndexDef.Fields+';'+PAnsiChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
           CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch index metadata row.');

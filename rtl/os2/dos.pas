@@ -67,7 +67,7 @@ threadvar
 
 {OS/2 specific functions}
 
-function GetEnvPChar (EnvVar: string): PChar;
+function GetEnvPChar (EnvVar: string): PAnsiChar;
 
 function DosErrorModuleName: string;
 (* In case of an error in Dos.Exec returns the name of the module *)
@@ -254,7 +254,7 @@ var
   SR: SearchRec;
   MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
   MaxArgsSizeInc: word;
-  PathZ: array [0..255] of char;
+  PathZ: array [0..255] of AnsiChar;
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -310,7 +310,7 @@ begin
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
-    RC := DosQueryAppType (PChar (Args), ExecAppType);
+    RC := DosQueryAppType (PAnsiChar (Args), ExecAppType);
    end;
 
   if RC <> 0 then
@@ -393,8 +393,8 @@ begin
         Args^ [Length (QName)] := 0;
        end
       else
-       SD.PgmInputs := PChar (@Args^ [Length (QName) + 1]);
-      SD.PgmName := PChar (Args);
+       SD.PgmInputs := PAnsiChar (@Args^ [Length (QName) + 1]);
+      SD.PgmName := PAnsiChar (Args);
       SD.InheritOpt := ssf_InhertOpt_Parent;
       SD.ObjectBuffer := @ObjName [1];
       SD.ObjectBuffLen := SizeOf (ObjName) - 1;
@@ -628,7 +628,7 @@ end;
 
 function envstr (index : longint) : string;
 
-var hp:Pchar;
+var hp:PAnsiChar;
 
 begin
     if (index<=0) or (index>envcount) then
@@ -641,10 +641,10 @@ begin
 end;
 
 
-function GetEnvPChar (EnvVar: string): PChar;
+function GetEnvPChar (EnvVar: string): PAnsiChar;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
- P: PChar;
+ P: PAnsiChar;
 begin
  EnvVar := UpCase (EnvVar);
 {$ASMMODE INTEL}
@@ -715,14 +715,14 @@ var
 {$ifndef FPC_ANSI_TEXTFILEREC}
   R: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
-  P: pchar;
+  P: PAnsiChar;
 begin
   Attr := 0;
 {$ifdef FPC_ANSI_TEXTFILEREC}
   P := @FileRec (F).Name;
 {$else FPC_ANSI_TEXTFILEREC}
   R := ToSingleByteFileSystemEncodedFileName (FileRec (F).Name);
-  P := PChar (R);
+  P := PAnsiChar (R);
 {$endif FPC_ANSI_TEXTFILEREC}
   RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   DosError := integer (RC);
@@ -744,13 +744,13 @@ var
 {$ifndef FPC_ANSI_TEXTFILEREC}
   R: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
-  P: pchar;
+  P: PAnsiChar;
 begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   P := @FileRec (F).Name;
 {$else FPC_ANSI_TEXTFILEREC}
   R := ToSingleByteFileSystemEncodedFileName (FileRec (F).Name);
-  P := PChar (R);
+  P := PAnsiChar (R);
 {$endif FPC_ANSI_TEXTFILEREC}
   RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   if RC = 0 then

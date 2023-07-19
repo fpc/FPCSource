@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Strings unit for PChar (asciiz/C compatible strings) handling
+    Strings unit for PAnsiChar (asciiz/C compatible strings) handling
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,86 +18,86 @@ unit Strings;
 interface
 
     { Implemented in System Unit }
-    function strpas(p:pchar):shortstring;inline;
+    function strpas(p:PAnsiChar):shortstring;inline;
 
-    function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
+    function strlen(p:PAnsiChar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
     { Converts a Pascal string to a null-terminated string }
-    function strpcopy(d : pchar;const s : string) : pchar;
+    function strpcopy(d : PAnsiChar;const s : shortstring) : PAnsiChar;
 
     { Copies source to dest, returns a pointer to dest }
-    function strcopy(dest,source : pchar) : pchar; overload;
+    function strcopy(dest,source : PAnsiChar) : PAnsiChar; overload;
 
     { Copies at most maxlen bytes from source to dest. }
     { Returns a pointer to dest }
-    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar; overload;
+    function strlcopy(dest,source : PAnsiChar;maxlen : SizeInt) : PAnsiChar; overload;
 
     { Copies source to dest and returns a pointer to the terminating }
     { null character.    }
-    function strecopy(dest,source : pchar) : pchar;
+    function strecopy(dest,source : PAnsiChar) : PAnsiChar;
 
     { Returns a pointer tro the terminating null character of p }
-    function strend(p : pchar) : pchar;
+    function strend(p : PAnsiChar) : PAnsiChar;
 
     { Appends source to dest, returns a pointer do dest}
-    function strcat(dest,source : pchar) : pchar;
+    function strcat(dest,source : PAnsiChar) : PAnsiChar;
 
     { Compares str1 und str2, returns }
     { a value <0 if str1<str2;        }
     {  0 when str1=str2               }
     { and a value >0 if str1>str2     }
-    function strcomp(str1,str2 : pchar) : SizeInt;
+    function strcomp(str1,str2 : PAnsiChar) : SizeInt;
 
     { The same as strcomp, but at most l characters are compared  }
-    function strlcomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
+    function strlcomp(str1,str2 : PAnsiChar;l : SizeInt) : SizeInt;
 
     { The same as strcomp but case insensitive }
-    function stricomp(str1,str2 : pchar) : SizeInt;
+    function stricomp(str1,str2 : PAnsiChar) : SizeInt;
 
     { The same as stricomp, but at most l characters are compared }
-    function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
+    function strlicomp(str1,str2 : PAnsiChar;l : SizeInt) : SizeInt;
 
     { Copies l characters from source to dest, returns dest. }
-    function strmove(dest,source : pchar;l : SizeInt) : pchar;
+    function strmove(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar;
 
     { Appends at most l characters from source to dest }
-    function strlcat(dest,source : pchar;l : SizeInt) : pchar;
+    function strlcat(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar;
 
     { Returns a pointer to the first occurrence of c in p }
     { If c doesn't occur, nil is returned }
-    function strscan(p : pchar;c : char) : pchar;
+    function strscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;
 
     { The same as strscan but case insensitive }
-    function striscan(p : pchar;c : char) : pchar;
+    function striscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;
 
     { Returns a pointer to the last occurrence of c in p }
     { If c doesn't occur, nil is returned }
-    function strrscan(p : pchar;c : char) : pchar;
+    function strrscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;
 
     { The same as strrscan but case insensitive }
-    function strriscan(p : pchar;c : char) : pchar;
+    function strriscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;
 
     { converts p to all-lowercase, returns p }
-    function strlower(p : pchar) : pchar;
+    function strlower(p : PAnsiChar) : PAnsiChar;
 
     { converts p to all-uppercase, returns p }
-    function strupper(p : pchar) : pchar;
+    function strupper(p : PAnsiChar) : PAnsiChar;
 
     { Returns a pointer to the first occurrence of str2 in }
     { str1 Otherwise returns nil }
-    function strpos(str1,str2 : pchar) : pchar;
+    function strpos(str1,str2 : PAnsiChar) : PAnsiChar;
 
     { The same as strpos but case insensitive       }
-    function stripos(str1,str2 : pchar) : pchar;
+    function stripos(str1,str2 : PAnsiChar) : PAnsiChar;
 
     { Makes a copy of p on the heap, and returns a pointer to this copy  }
-    function strnew(p : pchar) : pchar;
+    function strnew(p : PAnsiChar) : PAnsiChar;
 
-    { Allocates L bytes on the heap, returns a pchar pointer to it }
-    function stralloc(L : SizeInt) : pchar;
+    { Allocates L bytes on the heap, returns a PAnsiChar pointer to it }
+    function stralloc(L : SizeInt) : PAnsiChar;
 
     { Releases a null-terminated string from the heap }
-    procedure strdispose(p : pchar);
+    procedure strdispose(p : PAnsiChar);
 
 implementation
 
@@ -121,22 +121,22 @@ implementation
 { Functions, different from the one in sysutils }
 
 
-    procedure fpc_pchar_to_shortstr(var res : openstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
+    procedure fpc_pchar_to_shortstr(var res : openstring;p:PAnsiChar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
 
 
-    function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+    function strpas(p:PAnsiChar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
       begin
         fpc_pchar_to_shortstr(strpas,p);
       end;
 
-    function stralloc(L : SizeInt) : pchar;
+    function stralloc(L : SizeInt) : PAnsiChar;
 
       begin
          StrAlloc:=Nil;
          GetMem (Stralloc,l);
       end;
 
-    function strnew(p : pchar) : pchar;
+    function strnew(p : PAnsiChar) : PAnsiChar;
 
       var
          len : SizeInt;
@@ -151,7 +151,7 @@ implementation
            move(p^,strnew^,len);
       end;
 
-    procedure strdispose(p : pchar);
+    procedure strdispose(p : PAnsiChar);
 
       begin
          if p<>nil then

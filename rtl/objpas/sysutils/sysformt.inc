@@ -1,3 +1,4 @@
+{%MainUnit sysutils.pp}
 {
     *********************************************************************
     Copyright (C) 1997, 1998 Gertjan Schouten
@@ -41,7 +42,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Index : SizeInt;
     Width,Prec : Longint;
     Left : Boolean;
-    Fchar : char;
+    Fchar : TFormatChar;
     vq : qword;
 
   {
@@ -51,7 +52,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     In case of an error, DoFormatError is called.
   }
 
-  Function ReadFormat : Char;
+  Function ReadFormat : TFormatChar;
 
   Var Value : longint;
 
@@ -208,7 +209,7 @@ end;
 
 
 {$ifdef fmtdebug}
-Procedure DumpFormat (C : char);
+Procedure DumpFormat (C : TFormatChar);
 begin
   Write ('Fmt : ',fmt:10);
   Write (' Index : ',Index:3);

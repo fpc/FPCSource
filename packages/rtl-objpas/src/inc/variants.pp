@@ -83,8 +83,8 @@ function VarIsNumeric(const V: Variant): Boolean; inline;
 function VarIsStr(const V: Variant): Boolean;
 function VarIsBool(const V: Variant): Boolean; inline;
 
-function VarToStr(const V: Variant): string;
-function VarToStrDef(const V: Variant; const ADefault: string): string;
+function VarToStr(const V: Variant): AnsiString;
+function VarToStrDef(const V: Variant; const ADefault: AnsiString): AnsiString;
 function VarToWideStr(const V: Variant): WideString;
 function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
 function VarToUnicodeStr(const V: Variant): UnicodeString;
@@ -182,9 +182,9 @@ type
     procedure VarDataCastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType); overload;
     procedure VarDataCastTo(var Dest: TVarData; const aVarType: TVarType); overload;
     procedure VarDataCastToOleStr(var Dest: TVarData);
-    procedure VarDataFromStr(var V: TVarData; const Value: string);
+    procedure VarDataFromStr(var V: TVarData; const Value: AnsiString);
     procedure VarDataFromOleStr(var V: TVarData; const Value: WideString);
-    function VarDataToStr(const V: TVarData): string;
+    function VarDataToStr(const V: TVarData): AnsiString;
     function VarDataIsEmptyParam(const V: TVarData): Boolean;
     function VarDataIsByRef(const V: TVarData): Boolean;
     function VarDataIsArray(const V: TVarData): Boolean;
@@ -214,12 +214,12 @@ type
   IVarInvokeable = interface
     ['{1CB65C52-BBCB-41A6-9E58-7FB916BEEB2D}']
     function DoFunction(var Dest: TVarData; const V: TVarData;
-      const Name: string; const Arguments: TVarDataArray): Boolean;
-    function DoProcedure(const V: TVarData; const Name: string;
+      const Name: AnsiString; const Arguments: TVarDataArray): Boolean;
+    function DoProcedure(const V: TVarData; const Name: AnsiString;
       const Arguments: TVarDataArray): Boolean;
     function GetProperty(var Dest: TVarData; const V: TVarData;
-      const Name: string): Boolean;
-    function SetProperty(var V: TVarData; const Name: string;
+      const Name: AnsiString): Boolean;
+    function SetProperty(var V: TVarData; const Name: AnsiString;
       const Value: TVarData): Boolean;
   end;
 
@@ -230,12 +230,12 @@ type
   public
     { IVarInvokeable }
     function DoFunction(var Dest: TVarData; const V: TVarData;
-      const Name: string; const Arguments: TVarDataArray): Boolean; virtual;
-    function DoProcedure(const V: TVarData; const Name: string;
+      const Name: AnsiString; const Arguments: TVarDataArray): Boolean; virtual;
+    function DoProcedure(const V: TVarData; const Name: AnsiString;
       const Arguments: TVarDataArray): Boolean; virtual;
     function GetProperty(var Dest: TVarData; const V: TVarData;
-      const Name: string): Boolean; virtual;
-    function SetProperty(var V: TVarData; const Name: string;
+      const Name: AnsiString): Boolean; virtual;
+    function SetProperty(var V: TVarData; const Name: AnsiString;
       const Value: TVarData): Boolean; virtual;
   end;
 
@@ -250,14 +250,14 @@ type
     function GetInstance(const V: TVarData): TObject; virtual; abstract;
   public
     function GetProperty(var Dest: TVarData; const V: TVarData;
-      const Name: string): Boolean; override;
-    function SetProperty(var V: TVarData; const Name: string;
+      const Name: AnsiString): Boolean; override;
+    function SetProperty(var V: TVarData; const Name: AnsiString;
       const Value: TVarData): Boolean; override;
   end;
 
   function FindCustomVariantType(const aVarType: TVarType;
     out CustomVariantType: TCustomVariantType): Boolean; overload;
-  function FindCustomVariantType(const TypeName: string;
+  function FindCustomVariantType(const TypeName: AnsiString;
     out CustomVariantType: TCustomVariantType): Boolean; overload;
 
 type
@@ -276,7 +276,7 @@ var
   NullEqualityRule: TNullCompareRule = ncrLoose;
   NullMagnitudeRule: TNullCompareRule = ncrLoose;
   NullStrictConvert: Boolean = true;
-  NullAsStringValue: string = '';
+  NullAsStringValue: AnsiString = '';
   PackVarCreation: Boolean = True;
 {$ifndef FPUNONE}
   OleVariantInt64AsDouble: Boolean = False;
@@ -312,11 +312,11 @@ procedure VarArrayCreateError;
 procedure VarResultCheck(AResult: HRESULT);{$IFDEF VARIANTINLINE}inline;{$ENDIF VARIANTINLINE}
 procedure VarResultCheck(AResult: HRESULT; ASourceType, ADestType: TVarType);
 procedure HandleConversionException(const ASourceType, ADestType: TVarType);
-function VarTypeAsText(const AType: TVarType): string;
+function VarTypeAsText(const AType: TVarType): AnsiString;
 function FindVarData(const V: Variant): PVarData;
 
 const
-  VarOpAsText : array[TVarOp] of string = (
+  VarOpAsText : array[TVarOp] of AnsiString = (
     '+',   {opAdd}
     '-',   {opSubtract}
     '*',   {opMultiply}
@@ -345,8 +345,8 @@ const
 Function  GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant; overload;
 Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant); overload;
 Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
-Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
-Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
+Function  GetVariantProp(Instance: TObject; const PropName: AnsiString): Variant;
+Procedure SetVariantProp(Instance: TObject; const PropName: AnsiString; const Value: Variant);
 Procedure SetVariantProp(Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
 
 
@@ -390,7 +390,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-    String Messages
+    AnsiString Messages
   ---------------------------------------------------------------------}
 
 ResourceString
@@ -401,12 +401,12 @@ ResourceString
     Auxiliary routines
   ---------------------------------------------------------------------}
 
-Procedure VariantError (Const Msg : String); inline;
+Procedure VariantError (Const Msg : AnsiString); inline;
 begin
   Raise EVariantError.Create(Msg);
 end;
 
-Procedure NotSupported(Meth: String);
+Procedure NotSupported(Meth: AnsiString);
 begin
   Raise EVariantError.CreateFmt('Method %s not yet supported.',[Meth]);
 end;
@@ -1235,7 +1235,7 @@ end;
 
 function DoVarCmpWStrDirect(const Left, Right: Pointer; const OpCode: TVarOp): ShortInt; inline;
 begin
-  { we can do this without ever copying the string }
+  { we can do this without ever copying the AnsiString }
   if OpCode in [opCmpEq, opCmpNe] then
     if Length(WideString(Left)) <> Length(WideString(Right)) then
       Exit(-1);
@@ -1256,7 +1256,7 @@ end;
 
 function DoVarCmpLStrDirect(const Left, Right: Pointer; const OpCode: TVarOp): ShortInt; inline;
 begin
-  { we can do this without ever copying the string }
+  { we can do this without ever copying the AnsiString }
   if OpCode in [opCmpEq, opCmpNe] then
     if Length(AnsiString(Left)) <> Length(AnsiString(Right)) then
       Exit(-1);
@@ -2763,7 +2763,7 @@ begin
       if arrayelementtype=varVariant then
         begin
           VarResultCheck(SafeArrayPtrOfIndex(p,PVarArrayCoorArray(indices),arraydest));
-          { we can't store ansistrings in Variant arrays so we convert the string to
+          { we can't store ansistrings in Variant arrays so we convert the AnsiString to
             an olestring }
           if valuevtype=varString then
             begin
@@ -3048,14 +3048,14 @@ begin
 end;
 
 
-function VarToStr(const V: Variant): string;
+function VarToStr(const V: Variant): AnsiString;
 
 begin
   Result:=VarToStrDef(V,'');
 end;
 
 
-function VarToStrDef(const V: Variant; const ADefault: string): string;
+function VarToStrDef(const V: Variant; const ADefault: AnsiString): AnsiString;
 
 begin
   If TVarData(V).vType<>varNull then
@@ -3675,7 +3675,7 @@ function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: 
   end;
 
 
-function FindCustomVariantType(const TypeName: string;  out CustomVariantType: TCustomVariantType): Boolean; overload;
+function FindCustomVariantType(const TypeName: AnsiString;  out CustomVariantType: TCustomVariantType): Boolean; overload;
   var
     i: Integer;
     tmp: TCustomVariantType;
@@ -3869,7 +3869,7 @@ end;
 
 
 
-procedure TCustomVariantType.VarDataFromStr(var V: TVarData; const Value: string);
+procedure TCustomVariantType.VarDataFromStr(var V: TVarData; const Value: AnsiString);
 
 begin
   sysvarfromlstr(Variant(V),Value);
@@ -3883,7 +3883,7 @@ begin
 end;
 
 
-function TCustomVariantType.VarDataToStr(const V: TVarData): string;
+function TCustomVariantType.VarDataToStr(const V: TVarData): AnsiString;
 
 begin
   sysvartolstr(Result,Variant(V));
@@ -4094,7 +4094,7 @@ const
   argref_mask = $80;
 begin
   arg_count := CallDesc^.ArgCount;
-  method_name := ansistring(pchar(@CallDesc^.ArgTypes[arg_count]));
+  method_name := ansistring(PAnsiChar(@CallDesc^.ArgTypes[arg_count]));
   setLength(args, arg_count);
   if arg_count > 0 then
   begin
@@ -4214,25 +4214,25 @@ begin
   end;
 end;
 
-function TInvokeableVariantType.DoFunction(var Dest: TVarData; const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
+function TInvokeableVariantType.DoFunction(var Dest: TVarData; const V: TVarData; const Name: AnsiString; const Arguments: TVarDataArray): Boolean;
 
 begin
   result := False;
 end;
 
-function TInvokeableVariantType.DoProcedure(const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
+function TInvokeableVariantType.DoProcedure(const V: TVarData; const Name: AnsiString; const Arguments: TVarDataArray): Boolean;
 begin
   result := False
 end;
 
 
-function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
+function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: AnsiString): Boolean;
   begin
     result := False;
   end;
 
 
-function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: AnsiString; const Value: TVarData): Boolean;
   begin
     result := False;
   end;
@@ -4242,14 +4242,14 @@ function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: string;
     TPublishableVariantType implementation
   ---------------------------------------------------------------------}
 
-function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
+function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: AnsiString): Boolean;
   begin
     Result:=true;
     Variant(Dest):=TypInfo.GetPropValue(getinstance(v),name);
   end;
 
 
-function TPublishableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TPublishableVariantType.SetProperty(var V: TVarData; const Name: AnsiString; const Value: TVarData): Boolean;
   begin
     Result:=true;
     TypInfo.SetPropValue(getinstance(v),name,Variant(value));
@@ -4458,11 +4458,11 @@ procedure HandleConversionException(const ASourceType, ADestType: TVarType);
   end;
 
 
-function VarTypeAsText(const AType: TVarType): string;
+function VarTypeAsText(const AType: TVarType): AnsiString;
   var
     customvarianttype : TCustomVariantType;
   const
-    names : array[varEmpty..varQWord] of string[8] = (
+    names : array[varEmpty..varQWord] of String[8] = (
     'Empty','Null','Smallint','Integer','Single','Double','Currency','Date','OleStr','Dispatch','Error','Boolean','Variant',
     'Unknown','Decimal','???','ShortInt','Byte','Word','DWord','Int64','QWord');
   begin
@@ -4471,7 +4471,7 @@ function VarTypeAsText(const AType: TVarType): string;
     else
       case AType and varTypeMask of
         varString:
-          Result:='String';
+          Result:='AnsiString';
         varAny:
           Result:='Any';
         else
@@ -4556,13 +4556,13 @@ begin
 end;
 
 
-Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
+Function GetVariantProp(Instance: TObject; const PropName: AnsiString): Variant;
 begin
   Result:=GetVariantProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetVariantProp(Instance: TObject; const PropName: string;  const Value: Variant);
+Procedure SetVariantProp(Instance: TObject; const PropName: AnsiString;  const Value: Variant);
 begin
   SetVariantprop(instance,FindpropInfo(Instance,PropName),Value);
 end;
@@ -4571,7 +4571,7 @@ end;
   All properties through Variant.
   ---------------------------------------------------------------------}
 
-Function GetPropValue(Instance: TObject; const PropName: string): Variant;
+Function GetPropValue(Instance: TObject; const PropName: AnsiString): Variant;
 begin
   Result:=TypInfo.GetPropValue(Instance,PropName,True);
 end;
@@ -4627,7 +4627,7 @@ var
  O: Integer;
  I64: Int64;
  Qw: QWord;
- S: String;
+ S: AnsiString;
  B: Boolean;
  dynarr: Pointer;
 

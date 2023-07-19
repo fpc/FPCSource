@@ -235,7 +235,7 @@ type
     th32ParentProcessID: DWORD;    // this process's parent process
     pcPriClassBase: LONG;          // Base priority of process's threads
     dwFlags: DWORD;
-    szExeFile: array [0..MAX_PATH - 1] of Char;    // Path
+    szExeFile: array [0..MAX_PATH - 1] of AnsiChar;    // Path
   end;
   {$EXTERNALSYM tagPROCESSENTRY32}
   PROCESSENTRY32 = tagPROCESSENTRY32;
@@ -329,8 +329,8 @@ type
     modBaseAddr: LPBYTE;       // Base address of module in th32ProcessID's context
     modBaseSize: DWORD;        // Size in bytes of module starting at modBaseAddr
     hModule: HMODULE;          // The hModule of this module in th32ProcessID's context
-    szModule: array [0..MAX_MODULE_NAME32] of Char;
-    szExePath: array [0..MAX_PATH - 1] of Char;
+    szModule: array [0..MAX_MODULE_NAME32] of AnsiChar;
+    szExePath: array [0..MAX_PATH - 1] of AnsiChar;
   end;
   {$EXTERNALSYM tagMODULEENTRY32}
   MODULEENTRY32 = tagMODULEENTRY32;

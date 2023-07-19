@@ -55,7 +55,7 @@ type
     procedure Write(const Buffer; Count: LongInt); override;
     procedure WriteBinary(const Buffer; Count: Longint); override;
     procedure WriteBoolean(Value: Boolean); override;
-    // procedure WriteChar(Value: Char);
+    // procedure WriteChar(Value: AnsiChar);
     procedure WriteFloat(const Value: Extended); override;
     procedure WriteSingle(const Value: Single); override;
     procedure WriteCurrency(const Value: Currency); override;

@@ -15,7 +15,7 @@
 
        FNM_NOSYS = -(1);
 
-function fnmatch(__pattern:Pchar; __name:Pchar; __flags:longint):longint;cdecl;external clib name 'fnmatch';
+function fnmatch(__pattern:PAnsiChar; __name:PAnsiChar; __flags:longint):longint;cdecl;external clib name 'fnmatch';
 
 { ---------------------------------------------------------------------
     Borland compatibility types

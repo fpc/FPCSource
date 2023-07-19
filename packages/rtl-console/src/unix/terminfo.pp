@@ -544,18 +544,18 @@ type
   TermIOS = record
     c_iflag, c_oflag, c_cflag, c_lflag: TCFlag_t;
     c_line: Byte;
-    c_cc: array [0..NCCS-1] of Char;
+    c_cc: array [0..NCCS-1] of AnsiChar;
     c_ispeed, c_ospeed: Speed_t;
     Pad: word;
   end;
 
   TT_BoolArray = array [0..BoolCount - 1] of Boolean;
   TT_WordArray = array [0..NumCount - 1] of Word;
-  TT_PCharArray = array [0..StrCount - 1] of PChar;
+  TT_PCharArray = array [0..StrCount - 1] of PAnsiChar;
 
   TermType4 = record
-    Term_Names: PChar;
-    Str_Table: PChar;
+    Term_Names: PAnsiChar;
+    Str_Table: PAnsiChar;
     Booleans: TT_BoolArray;
     Numbers: TT_WordArray;
     Strings: TT_PCharArray;
@@ -570,8 +570,8 @@ type
   end;
 
   TermType5 = record
-    Term_Names: PChar;
-    Str_Table: PChar;
+    Term_Names: PAnsiChar;
+    Str_Table: PAnsiChar;
     Booleans: ^TT_BoolArray;
     Numbers: ^TT_WordArray;
     Strings: ^TT_PCharArray;
@@ -587,8 +587,8 @@ type
 
   TerminalCommon_ptr1 = ^TerminalCommon1;
   TerminalCommon1 = record
-    Term_Names: PChar;
-    Str_Table: PChar;
+    Term_Names: PAnsiChar;
+    Str_Table: PAnsiChar;
   end;
 
   TerminalCommon_ptr2 = ^TerminalCommon2;
@@ -598,7 +598,7 @@ type
     Pad: longint;
   end;
 
-  WriterFunc = function (P: PChar): Longint;
+  WriterFunc = function (P: PAnsiChar): Longint;
 
 var
 {$ifndef darwin}
@@ -627,21 +627,21 @@ procedure use_env(B: Longint); cdecl; external curseslib name 'use_env';
 function putp(Ndx: Longint): Longint;
 
 { this function must be called before any terminal properties are accessed }
-function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
+function setupterm(Term: PAnsiChar; fd: Longint; var ErrCode: Longint): Longint;
 
 { reinitialize lib }
-function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'restartterm';
+function restartterm(Term: PAnsiChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'restartterm';
 
-{function tgetent(P1, P2: PChar): Longint;
-function tgetflag(P: PChar): Longint;
-function tgetnum(P: PChar): Longint;
-function tgoto(P: PChar; L1, L2: Longint): PChar;
-function tgetstr(P: PChar; var R: PChar): PChar;
-function tigetflag(P: PChar): Longint;
-function tigetnum(P: PChar): Longint;
-function tigetstr(P: PChar): PChar;
-function tparm(P: PChar, ...): PChar;
-function tparam(const char *, char *, int, ...): PChar;}
+{function tgetent(P1, P2: PAnsiChar): Longint;
+function tgetflag(P: PAnsiChar): Longint;
+function tgetnum(P: PAnsiChar): Longint;
+function tgoto(P: PAnsiChar; L1, L2: Longint): PAnsiChar;
+function tgetstr(P: PAnsiChar; var R: PAnsiChar): PAnsiChar;
+function tigetflag(P: PAnsiChar): Longint;
+function tigetnum(P: PAnsiChar): Longint;
+function tigetstr(P: PAnsiChar): PAnsiChar;
+function tparm(P: PAnsiChar, ...): PAnsiChar;
+function tparam(const AnsiChar *, AnsiChar *, int, ...): PAnsiChar;}
 function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
 
 implementation
@@ -651,7 +651,7 @@ uses
 
 function putp(Ndx: Longint): Longint;
 var
-  P: PChar;
+  P: PAnsiChar;
 begin
   if not assigned(cur_term) then
     RunError(219);
@@ -661,7 +661,7 @@ end;
 
 function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
 var
-  P: PChar;
+  P: PAnsiChar;
 begin
   if not assigned(cur_term) then
     RunError(219);
@@ -672,11 +672,11 @@ end;
 
 //function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external curseslib;
 
-// function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib;
+// function restartterm(Term: PAnsiChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib;
 
-function setuptermC(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'setupterm';
+function setuptermC(Term: PAnsiChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'setupterm';
 
-function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
+function setupterm(Term: PAnsiChar; fd: Longint; var ErrCode: Longint): Longint;
 var
   versioncheck: longint;
 begin
@@ -730,15 +730,15 @@ begin
     cur_term_valid := false;
 end;
 
-{function tgetent(P1, P2: PChar): Longint; cdecl; external;
-function tgetflag(P: PChar): Longint; cdecl; external;
-function tgetnum(P: PChar): Longint; cdecl; external;
-function tgoto(P: PChar; L1, L2: Longint): PChar; cdecl; external;
-function tgetstr(P: PChar; var R: PChar): PChar; cdecl; external;
-function tigetflag(P: PChar): Longint; cdecl; external;
-function tigetnum(P: PChar): Longint; cdecl; external;
-function tigetstr(P: PChar): PChar; cdecl; external;
-function tparm(P: PChar; ...): PChar; cdecl; external;
-function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
+{function tgetent(P1, P2: PAnsiChar): Longint; cdecl; external;
+function tgetflag(P: PAnsiChar): Longint; cdecl; external;
+function tgetnum(P: PAnsiChar): Longint; cdecl; external;
+function tgoto(P: PAnsiChar; L1, L2: Longint): PAnsiChar; cdecl; external;
+function tgetstr(P: PAnsiChar; var R: PAnsiChar): PAnsiChar; cdecl; external;
+function tigetflag(P: PAnsiChar): Longint; cdecl; external;
+function tigetnum(P: PAnsiChar): Longint; cdecl; external;
+function tigetstr(P: PAnsiChar): PAnsiChar; cdecl; external;
+function tparm(P: PAnsiChar; ...): PAnsiChar; cdecl; external;
+function tparam(const AnsiChar *, AnsiChar *, int, ...): PAnsiChar; cdecl; external;}
 
 end.

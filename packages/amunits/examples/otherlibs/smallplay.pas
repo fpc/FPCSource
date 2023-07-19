@@ -11,14 +11,14 @@ program smallplay;
 uses exec, amigados, ptreplay;
 
 const
-    vstr : pchar = '$VER: SmallPlay 2.0 (23.12.93)';
+    vstr : PAnsiChar = '$VER: SmallPlay 2.0 (23.12.93)';
 
 var
     module : pModule;
     SigBit : shortint;
     SigMask : longint;
 
-procedure CleanUp(why : string; err : integer);
+procedure CleanUp(why : ShortString; err : integer);
 begin
     if why <> '' then writeln(why);
     halt(err);

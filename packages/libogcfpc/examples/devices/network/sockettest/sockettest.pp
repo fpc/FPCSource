@@ -7,7 +7,7 @@ program sockettest;
 uses
   cmem, ctypes, network, gccore;
 
-function strncmp(__s1:Pchar; __s2:Pchar; __n:cardinal):longint;cdecl;external;
+function strncmp(__s1:PAnsiChar; __s2:PAnsiChar; __n:cardinal):longint;cdecl;external;
 
 
 var
@@ -17,15 +17,15 @@ var
 	hits: cint = 0; 
 
 var 
-  http_200: pchar = 'HTTP/1.1 200 OK\r\n';
-  indexdata: pchar = '<html> \' +
+  http_200: PAnsiChar = 'HTTP/1.1 200 OK\r\n';
+  indexdata: PAnsiChar = '<html> \' +
               '  <head><title>A test page</title></head> \' +
               '  <body> \' +
               '    This small test page has had %d hits. \' +
               '  </body> \' +
               '</html>';
-  http_html_hdr: pchar = 'Content-type: text/html\r\n\r\n';
-  http_get_index: pchar = 'GET / HTTP/1.1\r\n';
+  http_html_hdr: PAnsiChar = 'Content-type: text/html\r\n\r\n';
+  http_get_index: PAnsiChar = 'GET / HTTP/1.1\r\n';
 
 function httpd(arg: pointer): pointer; cdecl;
 var

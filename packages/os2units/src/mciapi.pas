@@ -63,9 +63,9 @@ hwndViewport is handle of window for displaying video. If none, then default
              window displayed.
 }
 Function mciPlayFile(hwndOwner: Cardinal;               // Ownerwindow
-                     pszFile: PChar;                    // File
+                     pszFile: PAnsiChar;                    // File
                      ulFlags: Cardinal;                 // Flags
-                     pszTitle: PChar;                   // Title
+                     pszTitle: PAnsiChar;                   // Title
                      hwndViewport: Cardinal):           // Viewport Window
                        Cardinal; cdecl;
 
@@ -74,13 +74,13 @@ Function mciPlayResource(hwndOwner: Cardinal;           // Owner Window
                          resType: LongInt;              // Resource Type
                          resID: LongInt;                // Resource ID
                          ulFlags: Cardinal;             // Flags
-                         pszTitle: PChar;               // Title
+                         pszTitle: PAnsiChar;               // Title
                          hwndViewport: Cardinal):       // Viewport Window
                            Cardinal; cdecl;
 
 Function mciRecordAudioFile(hwndOwner: Cardinal;
                             pszFile,
-                            pszTitle: PChar;
+                            pszTitle: PAnsiChar;
                             ulFlags: Cardinal):
                               Cardinal; cdecl;
 
@@ -94,14 +94,14 @@ Const
 
   MMIO_RE_COMPACT          = 1;
 
-Function mmioRemoveElement(pszFileElement: pChar;
+Function mmioRemoveElement(pszFileElement: PAnsiChar;
                            ulFlag: LongInt):
                              Cardinal; cdecl;
 
 Function mmioFindElement(ulCode: LongInt;              // Find Code
-                         pszElement: PChar;            // Element
+                         pszElement: PAnsiChar;            // Element
                          ulElementLen: LongInt;        // Element Buffer Length
-                         pszFile: PChar;
+                         pszFile: PAnsiChar;
                          ulReserved: LongInt):         // Compound File
                            Cardinal; cdecl;
 
@@ -109,15 +109,15 @@ Function mmioFindElement(ulCode: LongInt;              // Find Code
 
 Implementation
 
-Function mciPlayFile(hwndOwner: Cardinal; pszFile: PChar; ulFlags: Cardinal; pszTitle: PChar; hwndViewport: Cardinal): Cardinal; cdecl;
+Function mciPlayFile(hwndOwner: Cardinal; pszFile: PAnsiChar; ulFlags: Cardinal; pszTitle: PAnsiChar; hwndViewport: Cardinal): Cardinal; cdecl;
     external 'MCIAPI' index 10;
-Function mciPlayResource(hwndOwner: Cardinal; hmod: LongInt; resType: LongInt; resID: LongInt; ulFlags: Cardinal; pszTitle: PChar; hwndViewport: Cardinal): Cardinal;  cdecl;
+Function mciPlayResource(hwndOwner: Cardinal; hmod: LongInt; resType: LongInt; resID: LongInt; ulFlags: Cardinal; pszTitle: PAnsiChar; hwndViewport: Cardinal): Cardinal;  cdecl;
     external 'MCIAPI' index 11;
-Function mciRecordAudioFile(hwndOwner: Cardinal; pszFile, pszTitle: PChar; ulFlags: Cardinal): Cardinal; cdecl;
+Function mciRecordAudioFile(hwndOwner: Cardinal; pszFile, pszTitle: PAnsiChar; ulFlags: Cardinal): Cardinal; cdecl;
     external 'MCIAPI' index 12;
-Function mmioRemoveElement(pszFileElement: PChar; ulFlag: LongInt): Cardinal; cdecl;
+Function mmioRemoveElement(pszFileElement: PAnsiChar; ulFlag: LongInt): Cardinal; cdecl;
     external 'MCIAPI' index 16;
-Function mmioFindElement(ulCode: LongInt; pszElement: PChar; ulElementLen: LongInt; pszFile: PChar; ulReserved: LongInt): Cardinal; cdecl;
+Function mmioFindElement(ulCode: LongInt; pszElement: PAnsiChar; ulElementLen: LongInt; pszFile: PAnsiChar; ulReserved: LongInt): Cardinal; cdecl;
     external 'MCIAPI' index 18;
 
 end.

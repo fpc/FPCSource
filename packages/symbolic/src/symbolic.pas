@@ -87,7 +87,7 @@ TYPE
                          function CopyTree(p :pnode):pnode;
                          function NewFunc(fun:funcop;son:pnode):pnode; overload;
                          function NewFunc(fun:funcop;son,son2:pnode):pnode; overload;
-                         function NewVar(variable:string):pnode;
+                         function NewVar(variable:shortString):pnode;
                          procedure DisposeExpr(p:pnode);
                          end;
 
@@ -96,9 +96,9 @@ TYPE
 
     TBaseExprParser= class(TBaseExpression)
                     public
-                     function InFixToParseTree(Expr : String;VAR RPNexpr: String):pnode; virtual;
-                     function ParseTreeToRPN  (expr:pnode):string; virtual;
-                     function ParseTreeToInfix(expr:pnode):string; virtual;
+                     function InFixToParseTree(Expr : ShortString;VAR RPNexpr: ShortString):pnode; virtual;
+                     function ParseTreeToRPN  (expr:pnode):ShortString; virtual;
+                     function ParseTreeToInfix(expr:pnode):ShortString; virtual;
                     end;
 
     TEvaluator= CLASS;
@@ -111,14 +111,14 @@ TYPE
     TExpression = class(TBaseExprParser)
                     protected
                      InfixClean     : Boolean;
-                     InfixCache     : String;
+                     InfixCache     : ShortString;
                      Evaluator      : TEvaluator;
                      EvaluatorUpToDate : Boolean;
-                     function    GetInfix:String;
-                     function    GetRPN:String;
+                     function    GetInfix:ShortString;
+                     function    GetRPN:ShortString;
                      procedure Simpleop(expr:TExpression;oper:calcop);
                      function  Simpleopwithresult(expr:TExpression;oper:calcop):TExpression;
-                     Function  IntDerive(const derivvariable:String;theexpr:pnode):pnode;
+                     Function  IntDerive(const derivvariable:ShortString;theexpr:pnode):pnode;
                      Function  GetIntValue:LongInt;
                      Procedure SetIntValue(val:Longint);
                      Function  GetFloatValue:ArbFloat;
@@ -126,16 +126,16 @@ TYPE
                      Procedure UpdateConstants; {Kind of integrity check}
                     public
                      SimplificationLevel : Longint;
-                     CONSTRUCTOR Create(Infix:String);
+                     CONSTRUCTOR Create(Infix:ShortString);
                      CONSTRUCTOR EmptyCreate;
                      DESTRUCTOR Destroy; override;
 
-                     Procedure   SetNewInfix(Infix:String);
-                     Function    Derive(derivvariable:String):TExpression;
-                     procedure   SymbolSubst(ToSubst,SubstWith:String);
+                     Procedure   SetNewInfix(Infix:ShortString);
+                     Function    Derive(derivvariable:ShortString):TExpression;
+                     procedure   SymbolSubst(ToSubst,SubstWith:ShortString);
                      function    SymbolicValueNames:TStringList;
-                     function    Taylor(Degree:ArbInt;const x,x0:String):TExpression;
-                     function    Newton(x:String):TExpression;
+                     function    Taylor(Degree:ArbInt;const x,x0:ShortString):TExpression;
+                     function    Newton(x:ShortString):TExpression;
 
                      procedure   SimplifyConstants;
 
@@ -150,8 +150,8 @@ TYPE
                      procedure RaiseTo(Expr:TExpression);
                      procedure SubFrom(Expr:TExpression);
                      procedure Times(Expr:texpression);
-                     property  InfixExpr: string read GetInfix write SetNewInfix;
-                     property  RpnExpr: string read GetRPN;
+                     property  InfixExpr: ShortString read GetInfix write SetNewInfix;
+                     property  RpnExpr: ShortString read GetRPN;
                      property  ValueAsInteger:longint read GetIntValue write SetIntvalue; {Default?}
                      property  ValueAsFloat:arbfloat   read GetFloatValue write SetFloatValue;
                     end;
@@ -199,7 +199,7 @@ TYPE
                        VLIWRPNExpr      : pVLIWArr;
                       public
                        function    Evaldepth:longint;
-                       PROCEDURE   SetConstant(Name:String;Value:ArbFloat);
+                       PROCEDURE   SetConstant(Name:ShortString;Value:ArbFloat);
                        CONSTRUCTOR Create(VariableList:TStringList;Expression:pnode);
                        CONSTRUCTOR Create(VariableList:TStringList;Expression:TExpression);
                        DESTRUCTOR  Destroy; override;
@@ -226,7 +226,7 @@ TYPE
                  Terms: Array[0..499] of PtermNode;
                 end;
 }
-const InfixOperatorName   : array[addo..powo] of char= ('+','-','*','/','^');
+const InfixOperatorName   : array[addo..powo] of AnsiChar= ('+','-','*','/','^');
       FunctionNames    : array[cosx..lognx] of string[8]=(
              'cos','sin','tan','sqr','sqrt','exp','ln','inv','-',
              'cotan','arcsin','arccos','arctan','sinh',
@@ -469,7 +469,7 @@ end;}
 
 
 
-function TBaseExpression.NewVar(variable:string):pnode;
+function TBaseExpression.NewVar(variable:ShortString):pnode;
 
 var p :pnode;
 

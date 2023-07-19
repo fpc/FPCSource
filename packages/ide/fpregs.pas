@@ -13,6 +13,7 @@
 
  **********************************************************************}
 unit FPRegs;
+{$H-}
 {$ifdef NODEBUG}
 interface
 implementation
@@ -290,9 +291,9 @@ const
   function GetIntRegs(var rs : TIntRegs) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
-       buffer : array[0..255] of char;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
+       buffer : array[0..255] of AnsiChar;
        i : byte;
 
     begin
@@ -857,11 +858,11 @@ const
              ) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
     {$ifndef NODEBUG}
        reg,value : string;
-       buffer : array[0..255] of char;
+       buffer : array[0..255] of AnsiChar;
        v : string;
        res : cardinal;
        i : longint;
@@ -1287,11 +1288,11 @@ const
              ) : boolean;
 
     var
-       p,po : pchar;
-       p1 : pchar;
+       p,po : PAnsiChar;
+       p1 : PAnsiChar;
     {$ifndef NODEBUG}
        reg,value : string;
-       buffer : array[0..255] of char;
+       buffer : array[0..255] of AnsiChar;
        v : string;
        res : cardinal;
        i : longint;

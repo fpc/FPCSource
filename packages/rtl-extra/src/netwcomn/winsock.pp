@@ -43,7 +43,7 @@ unit winsock;
        ptOS_INT = ^tOS_INT;
        ptOS_UINT = ^tOS_UINT;
 
-       u_char = char;
+       u_char = AnsiChar;
        u_short = word;
        u_int = tOS_UINT;
        u_long = dword;
@@ -114,17 +114,17 @@ unit winsock;
     type
        hostent = record
           { official name of host  }
-          h_name: pchar;
+          h_name: PAnsiChar;
           { alias list  }
-          h_aliases: ^pchar;
+          h_aliases: ^PAnsiChar;
           { host address type  }
           h_addrtype: SmallInt;
           { length of address  }
           h_length: SmallInt;
           { list of addresses  }
           case byte of
-             0: (h_addr_list: ^pchar);
-             1: (h_addr: ^pchar)
+             0: (h_addr_list: ^PAnsiChar);
+             1: (h_addr: ^PAnsiChar)
        end;
        THostEnt = hostent;
        PHostEnt = ^THostEnt;
@@ -134,8 +134,8 @@ unit winsock;
          fits in an unsigned long -- someday that won't be true!
        }
        netent = record
-          n_name : ^char;        // official name of net
-          n_aliases : ^pchar;    // alias list
+          n_name : ^AnsiChar;        // official name of net
+          n_aliases : ^PAnsiChar;    // alias list
           n_addrtype : SmallInt; // net address type
           n_pad1 : SmallInt;     // ensure right packaging
           n_net : u_long;        // network #
@@ -145,23 +145,23 @@ unit winsock;
 
        servent = record
           { official service name  }
-          s_name : ^char;
+          s_name : ^AnsiChar;
           { alias list  }
-          s_aliases : ^pchar;
+          s_aliases : ^PAnsiChar;
           { port #  }
           s_port : SmallInt;
           n_pad1 : SmallInt;    { ensure right packaging }
           { protocol to use  }
-          s_proto : ^char;
+          s_proto : ^AnsiChar;
        end;
        TServEnt = servent;
        PServEnt = ^TServEnt;
 
        protoent = record
           { official protocol name  }
-          p_name : ^char;
+          p_name : ^AnsiChar;
           { alias list  }
-          p_aliases : ^pchar;
+          p_aliases : ^PAnsiChar;
           { protocol #  }
           p_proto : SmallInt;
           p_pad1 : SmallInt;    { ensure packaging }
@@ -240,11 +240,11 @@ unit winsock;
                   sin_family : SmallInt;                      (* 2 byte *)
                   sin_port : u_short;                         (* 2 byte *)
                   sin_addr : TInAddr;                         (* 4 byte *)
-                  sin_zero : array[0..7] of char;             (* 8 byte *)
+                  sin_zero : array[0..7] of AnsiChar;             (* 8 byte *)
                  );
              1 : ( (* equals to sockaddr, size is 16 byte *)
                   sa_family : SmallInt;                       (* 2 byte *)
-                  sa_data : array[0..13] of char;             (* 14 byte *)
+                  sa_data : array[0..13] of AnsiChar;             (* 14 byte *)
                  );
 
          end;
@@ -279,12 +279,12 @@ unit winsock;
        WSADATA = record
           wVersion : WORD;              { 2 byte, ofs 0 }
           wHighVersion : WORD;          { 2 byte, ofs 2 }
-          szDescription : array[0..(WSADESCRIPTION_LEN+1)-1] of char; { 257 byte, ofs 4 }
-          szSystemStatus : array[0..(WSASYS_STATUS_LEN+1)-1] of char; { 129 byte, ofs 261 }
+          szDescription : array[0..(WSADESCRIPTION_LEN+1)-1] of AnsiChar; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..(WSASYS_STATUS_LEN+1)-1] of AnsiChar; { 129 byte, ofs 261 }
           iMaxSockets : word;           { 2 byte, ofs 390 }
           iMaxUdpDg : word;             { 2 byte, ofs 392 }
           pad1 : SmallInt;              { 2 byte, ofs 394 } { ensure right packaging }
-          lpVendorInfo : pchar;         { 4 byte, ofs 396 }
+          lpVendorInfo : PAnsiChar;         { 4 byte, ofs 396 }
        end;                             { total size 400 }
        TWSAData = WSADATA;
        PWSAData = TWSAData;
@@ -752,7 +752,7 @@ unit winsock;
 
     TWSABUF = record
             len : u_long;
-            buf : ^char;
+            buf : ^AnsiChar;
          end;
     _WSABUF = TWSABUF;
     LPWSABUF = ^TWSABUF;
@@ -866,7 +866,7 @@ unit winsock;
             iSecurityScheme    : longint;
             dwMessageSize      : DWORD;
             dwProviderReserved : DWORD;
-            szProtocol         : array[0..(WSAPROTOCOL_LEN + 1)-1] of CHAR;
+            szProtocol         : array[0..(WSAPROTOCOL_LEN + 1)-1] of AnsiChar;
          end;
        LPWSAPROTOCOL_INFOA = ^TWSAPROTOCOL_INFOA;
        PWSAPROTOCOL_INFOA  = ^TWSAPROTOCOL_INFOA;
@@ -1102,16 +1102,16 @@ unit winsock;
 
        TWSAQuerySetA = record
             dwSize : DWORD;
-            lpszServiceInstanceName : PChar;
+            lpszServiceInstanceName : PAnsiChar;
             lpServiceClassId : LPGUID;
             lpVersion : LPWSAVERSION;
-            lpszComment : PChar;
+            lpszComment : PAnsiChar;
             dwNameSpace : DWORD;
             lpNSProviderId : LPGUID;
-            lpszContext : PChar;
+            lpszContext : PAnsiChar;
             dwNumberOfProtocols : DWORD;
             lpafpProtocols : LPAFPROTOCOLS;
-            lpszQueryString : PChar;
+            lpszQueryString : PAnsiChar;
             dwNumberOfCsAddrs : DWORD;
             lpcsaBuffer : LPCSADDR_INFO;
             dwOutputFlags : DWORD;
@@ -1186,7 +1186,7 @@ unit winsock;
     { Service Installation/Removal Data Types. }
 
        TWSANSClassInfoA = record
-            lpszName    : PChar;
+            lpszName    : PAnsiChar;
             dwNameSpace : DWORD;
             dwValueType : DWORD;
             dwValueSize : DWORD;
@@ -1219,7 +1219,7 @@ unit winsock;
     type
        TWSAServiceClassInfoA = record
             lpServiceClassId     : LPGUID;
-            lpszServiceClassName : PChar;
+            lpszServiceClassName : PAnsiChar;
             dwCount              : DWORD;
             lpClassInfos         : LPWSANSCLASSINFOA;
          end;
@@ -1253,7 +1253,7 @@ unit winsock;
             dwNameSpace   : DWORD;
             fActive       : BOOL;
             dwVersion     : DWORD;
-            lpszIdentifier: PChar;
+            lpszIdentifier: PAnsiChar;
          end;
        PWSANAMESPACE_INFOA = ^TWSANAMESPACE_INFOA;
        LPWSANAMESPACE_INFOA = ^TWSANAMESPACE_INFOA;
@@ -1442,29 +1442,29 @@ unit winsock;
 
      Tsslcipheropts = record
           n : longint;
-          specs : array[0..2] of char;
+          specs : array[0..2] of AnsiChar;
        end;
 
      Tsslclientopts = record
-          cert : PChar;
+          cert : PAnsiChar;
           certlen : longint;
           sidtimeout : time_t;
           sidentries : longint;
-          siddir : PChar;
+          siddir : PAnsiChar;
        end;
 
      Tsslserveropts = record
-          cert : PChar;
+          cert : PAnsiChar;
           certlen : longint;
           sidtimeout : time_t;
           sidentries : longint;
-          siddir : PChar;
+          siddir : PAnsiChar;
        end;
 
   {not suppported }
      {Tsslauthcertopts = record
           _type : longint;
-          func : function (arg:pointer; cert:Pchar; len:longint):longint;cdecl;
+          func : function (arg:pointer; cert:PAnsiChar; len:longint):longint;cdecl;
           arg : pointer;
        end;}
 
@@ -1486,7 +1486,7 @@ unit winsock;
 
   type
      sslrsaencrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
+          func : function (arg:pointer; blockType:longint; dest:PAnsiChar; destlen:Plongint; src:PAnsiChar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1503,7 +1503,7 @@ unit winsock;
 
   type
      Tsslrsadecrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
+          func : function (arg:pointer; blockType:longint; dest:PAnsiChar; destlen:Plongint; src:PAnsiChar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1582,7 +1582,7 @@ unit winsock;
   type
      Ttlscipheropts = record
           n : longint;
-          specs : array[0..2] of char;
+          specs : array[0..2] of AnsiChar;
        end;
      Ptlscipheropts = ^Ttlscipheropts;
 
@@ -1591,7 +1591,7 @@ unit winsock;
           walletlen : longint;
           sidtimeout : time_t;
           sidentries : longint;
-          siddir : PChar;  // ^char;
+          siddir : PAnsiChar;  // ^AnsiChar;
           options : pointer;
        end;
      Ptlsclientopts = ^Ttlsclientopts;
@@ -1601,7 +1601,7 @@ unit winsock;
           walletlen : longint;
           sidtimeout : time_t;
           sidentries : longint;
-          siddir : PChar;  // ^char;
+          siddir : PAnsiChar;  // ^AnsiChar;
           options : pointer;
        end;
      Ptlsserveropts = ^Ttlsserveropts;
@@ -1633,7 +1633,7 @@ unit winsock;
   {not suppported }
      {tlsauthcertopts = record
           _type : longint;
-          func : function (arg:pointer; cert:Pchar; len:longint):longint; cdecl;
+          func : function (arg:pointer; cert:PAnsiChar; len:longint):longint; cdecl;
           arg : pointer;
        end;}
 
@@ -1655,7 +1655,7 @@ unit winsock;
 
   type
      Ttlsrsaencrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
+          func : function (arg:pointer; blockType:longint; dest:PAnsiChar; destlen:Plongint; src:PAnsiChar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1673,7 +1673,7 @@ unit winsock;
 
   type
      Ttlsrsadecrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
+          func : function (arg:pointer; blockType:longint; dest:PAnsiChar; destlen:Plongint; src:PAnsiChar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1689,7 +1689,7 @@ unit winsock;
 
   type
      Ttlscert = record
-          cert : PChar;
+          cert : PAnsiChar;
           certlen : longint;
        end;
      Ptlscert = ^Ttlscert;
@@ -1820,14 +1820,14 @@ unit winsock;
     {$endif}
 
 {
-Winsock types all buffers as pchar (char *), modern POSIX does it the ANSI
+Winsock types all buffers as PAnsiChar (AnsiChar *), modern POSIX does it the ANSI
 C way with pointer (void *). If the pointer overloaded version doesn't exist,
 a "pointer" will be passed to the "var" version. (bug 3142).
 So if there are var/const versions:
 - To keep ported unix code working, there must be "pointer" variants (ANSI)
-- To keep Delphi/ported C Winsock code working there must be pchar variants
+- To keep Delphi/ported C Winsock code working there must be PAnsiChar variants
         (K&R)
-IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
+IOW, there _must_ be 3 versions then: var/const, PAnsiChar and pointer}
 
     {$ifdef netware}
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;
@@ -1852,13 +1852,13 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket;
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getpeername;
     function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getpeername;
-    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
+    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:PAnsiChar;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pointer;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;var optval;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
     function htonl(hostlong:u_long):u_long;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_htonl;
     function htons(hostshort:u_short):u_short;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_htons;
-    function inet_addr(cp:pchar):cardinal;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_inet_addr;
-    function inet_ntoa(i : TInAddr):pchar;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_inet_ntoa;
+    function inet_addr(cp:PAnsiChar):cardinal;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_inet_addr;
+    function inet_ntoa(i : TInAddr):PAnsiChar;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_inet_ntoa;
     function listen(s:TSocket; backlog:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_listen;
     { are ntohl and ntohs macros or bsd-functions (for netware) ?? }
     {$ifndef netware}
@@ -1866,35 +1866,35 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function ntohs(netshort:u_short):u_short;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'ntohs';
     {$endif}
 
-    function recv(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
+    function recv(s:TSocket;buf:PAnsiChar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
     function recv(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
-    function recvfrom(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
+    function recvfrom(s:TSocket;buf:PAnsiChar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
     function recvfrom(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
     function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; var fromlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
     function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_select;
     function send(s:TSocket;const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
-    function send(s:TSocket;buf : pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
+    function send(s:TSocket;buf : PAnsiChar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
     function send(s:TSocket;buf : pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_sendto;
+    function sendto(s:TSocket; buf:PAnsiChar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_sendto;
     function sendto(s:TSocket; buf:pointer; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_sendto;
     function sendto(s:TSocket; const buf; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
       external winsockdll name _fn_sendto;
 
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:PAnsiChar; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pointer; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
     function shutdown(s:TSocket; how:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_shutdown;
     function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_socket;
 
     { Database function prototypes  }
-    function gethostbyaddr(addr:pchar; len:tOS_INT; t:tOS_INT): PHostEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostbyaddr;
-    function gethostbyname(name:pchar):PHostEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostbyname;
-    function gethostname(name:pchar; namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostname;
-    function getservbyport(port:tOS_INT; proto:pchar):PServEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getservbyport;
-    function getservbyname(name:pchar; proto:pchar):PServEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getservbyname;
+    function gethostbyaddr(addr:PAnsiChar; len:tOS_INT; t:tOS_INT): PHostEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostbyaddr;
+    function gethostbyname(name:PAnsiChar):PHostEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostbyname;
+    function gethostname(name:PAnsiChar; namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostname;
+    function getservbyport(port:tOS_INT; proto:PAnsiChar):PServEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getservbyport;
+    function getservbyname(name:PAnsiChar; proto:PAnsiChar):PServEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getservbyname;
     function getprotobynumber(proto:tOS_INT):PProtoEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getprotobynumber;
-    function getprotobyname(name:pchar):PProtoEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getprotobyname;
+    function getprotobyname(name:PAnsiChar):PProtoEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_getprotobyname;
 
     { Microsoft Windows Extension function prototypes  }
     function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):tOS_INT;
@@ -1908,18 +1908,18 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     {$endif}
     function WSACancelBlockingCall:tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSACancelBlockingCall';
     {$ifndef netware}
-    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar;
+    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; proto:PAnsiChar; buf:PAnsiChar;
                                    buflen:tOS_INT):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByName';
-    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:tOS_INT; proto:pchar; buf:pchar;
+    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:tOS_INT; proto:PAnsiChar; buf:PAnsiChar;
                                    buflen:tOS_INT):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByPort';
-    function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetProtoByName';
-    function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:tOS_INT; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:tOS_INT; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetProtoByNumber';
-    function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:PAnsiChar; buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetHostByName';
-    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:tOS_INT; t:tOS_INT;
-                                   buf:pchar; buflen:tOS_INT):THandle;stdcall;
+    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:PAnsiChar; len:tOS_INT; t:tOS_INT;
+                                   buf:PAnsiChar; buflen:tOS_INT):THandle;stdcall;
                                    external winsockdll name 'WSAAsyncGetHostByAddr';
     function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):tOS_INT;stdcall;
       external winsockdll name 'WSACancelAsyncRequest';
@@ -2062,7 +2062,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSANtohs(s:TSocket;netshort:u_short;var hostshort:u_short):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSANtohs';
 
-    function WSARecv(s:TSocket;buf:pchar; dwBufferCount:dword;
+    function WSARecv(s:TSocket;buf:PAnsiChar; dwBufferCount:dword;
                      lpNumberOfBytesRecvd,lpFlags : LPDWORD;
                      lpOverlapped:PWSAOVERLAPPED;
                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
@@ -2086,7 +2086,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSARecvDisconnect(s:TSocket;var InboundDisconnectData:TWSABUF):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvDisconnect';
 
-    function WSARecvFrom(s:TSocket;buf:pchar; dwBufferCount:dword;
+    function WSARecvFrom(s:TSocket;buf:PAnsiChar; dwBufferCount:dword;
                      lpNumberOfBytesRecvd,lpFlags : LPDWORD;
                      lpFrom: PSockaddr;
                      lpFromlen: PDWORD;
@@ -2113,7 +2113,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSAResetEvent(hEvent:TWSAEVENT):BOOL;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAResetEvent';
 
-    function WSASend(s:TSocket;buf:pchar;len:dword;
+    function WSASend(s:TSocket;buf:PAnsiChar;len:dword;
                      NumberOfBytesSent:PDWORD; Flags:dword;
                      lpOverlapped:PWSAOVERLAPPED;
                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
@@ -2134,7 +2134,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSASendDisconnect(s:TSocket;lpOutboundDisconnectData:PWSABUF):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendDisconnect';
 
-    function WSASendTo(s:TSocket;buf:pchar;len:dword;
+    function WSASendTo(s:TSocket;buf:PAnsiChar;len:dword;
                        NumberOfBytesSent:LPDWORD;
                        Flags:dword;
                        lpTo: PSockaddr;
@@ -2176,24 +2176,24 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 
     function WSAAddressToString(addr:PSockAddr; len:dword;
                                ProtocolInfo:PWSAPROTOCOL_INFO;
-                               lpszAddressString:pchar;
+                               lpszAddressString:PAnsiChar;
                                lpdwAddressStringLength:lpdword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAddressToStringA';
 
     function WSAAddressToString(var addr:TSockAddr; len:dword;
                                ProtocolInfo:PWSAPROTOCOL_INFO;
-                               lpszAddressString:pchar;
+                               lpszAddressString:PAnsiChar;
                                var lpdwAddressStringLength:dword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAddressToStringA';
 
-    function WSAStringToAddress (AddressString  : pchar;
+    function WSAStringToAddress (AddressString  : PAnsiChar;
                                  AddressFamily  : longint;
                                  lpProtocolInfo : PWSAPROTOCOL_INFOA;
                              VAR lpAddress      : TSOCKADDR;
                              VAR lpAddressLength: LONGINT) : longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAStringToAddressA';
 
-    function WSAStringToAddress (AddressString  : pchar;
+    function WSAStringToAddress (AddressString  : PAnsiChar;
                                  AddressFamily  : longint;
                                  lpProtocolInfo : PWSAPROTOCOL_INFOA;
                                  lpAddress      : PSOCKADDR;
@@ -2235,10 +2235,10 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
     function WSAEnumNameSpaceProviders(var BufferLength:DWORD;var Buffer:TWSANAMESPACE_INFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAEnumNameSpaceProvidersA';
 
-    function WSAGetServiceClassNameByClassId(lpServiceClassId:PGUID;lpszServiceClassName:pchar;buflen:PDWORD):longint;
+    function WSAGetServiceClassNameByClassId(lpServiceClassId:PGUID;lpszServiceClassName:PAnsiChar;buflen:PDWORD):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassNameByClassIdA';
 
-    function WSAGetServiceClassNameByClassId(var lpServiceClassId:TGUID;lpszServiceClassName:pchar;var buflen:DWORD):longint;
+    function WSAGetServiceClassNameByClassId(var lpServiceClassId:TGUID;lpszServiceClassName:PAnsiChar;var buflen:DWORD):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassNameByClassIdA';
 
     function WSASetService(lpqsRegInfo:PWSAQUERYSET;essoperation:TWSAESETSERVICEOP;flags:dword):longint;

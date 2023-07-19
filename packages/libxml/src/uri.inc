@@ -24,17 +24,17 @@
  * See: http://mail.gnome.org/archives/xml/2007-April/thread.html#00127
  *)
   xmlUri = record
-    scheme    : pchar;	(* the URI scheme *)
-    opaque    : pchar;	(* opaque part *)
-    authority : pchar;	(* the authority part *)
-    server    : pchar;	(* the server part *)
-    user      : pchar;		(* the user part *)
+    scheme    : PAnsiChar;	(* the URI scheme *)
+    opaque    : PAnsiChar;	(* opaque part *)
+    authority : PAnsiChar;	(* the authority part *)
+    server    : PAnsiChar;	(* the server part *)
+    user      : PAnsiChar;		(* the user part *)
     port      : cint;		(* the port number *)
-    path      : pchar;		(* the path string *)
-    query     : pchar;	(* the query string (deprecated - use with caution) *)
-    fragment  : pchar;	(* the fragment identifier *)
+    path      : PAnsiChar;		(* the path string *)
+    query     : PAnsiChar;	(* the query string (deprecated - use with caution) *)
+    fragment  : PAnsiChar;	(* the fragment identifier *)
     cleanup   : cint;	(* parsing potentially unclean URI *)
-    query_raw : pchar;	(* the query string (as it appears in the URI) *)
+    query_raw : PAnsiChar;	(* the query string (as it appears in the URI) *)
   end;
 {$ENDIF}
 
@@ -47,14 +47,14 @@
 function xmlCreateURI(): xmlURIPtr; EXTDECL; external xml2lib;
 function xmlBuildURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlBuildRelativeURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
-function xmlParseURI(str: pchar): xmlURIPtr; EXTDECL; external xml2lib;
-function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; EXTDECL; external xml2lib;
-function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; EXTDECL; external xml2lib;
-function xmlSaveUri(uri: xmlURIPtr): pchar; EXTDECL; external xml2lib;
+function xmlParseURI(str: PAnsiChar): xmlURIPtr; EXTDECL; external xml2lib;
+function xmlParseURI(str: PAnsiChar; raw: cint): xmlURIPtr; EXTDECL; external xml2lib;
+function xmlParseURIReference(uri: xmlURIPtr; str: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlSaveUri(uri: xmlURIPtr): PAnsiChar; EXTDECL; external xml2lib;
 procedure xmlPrintURI(stream: PFILE; uri: xmlURIPtr); EXTDECL; external xml2lib;
 function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
-function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; EXTDECL; external xml2lib;
-function xmlNormalizeURIPath(path: pchar): cint; EXTDECL; external xml2lib;
+function xmlURIUnescapeString(str: PAnsiChar; len: cint; target: PAnsiChar): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlNormalizeURIPath(path: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlURIEscape(str: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 procedure xmlPrintURI(uri: xmlURIPtr); EXTDECL; external xml2lib;
 function xmlCanonicPath(path: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;

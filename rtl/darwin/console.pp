@@ -32,7 +32,7 @@ interface
 to longint because INT is a standard function in TP/FPC}
 
 TYPE
-     uchar = char;
+     uchar = AnsiChar;
      uint  = dword;
      u_int = uint;
      ushort= word;
@@ -323,7 +323,7 @@ const
 type  video_adapter  = record
                         va_index                : longint;
                         va_type                 : longint;
-                        va_name                 : pchar;
+                        va_name                 : PAnsiChar;
                         va_unit                 : longint;
                         va_minor                : longint;
                         va_flags                : longint;
@@ -355,7 +355,7 @@ type  video_adapter  = record
        video_adapter_info = record
                         va_index                : longint;
                         va_type                 : longint;
-                        va_name                 : array[0..15] of char;
+                        va_name                 : array[0..15] of AnsiChar;
                         va_unit                 : longint;
                         va_flags                : longint;
                         va_io_base              : longint;
@@ -614,7 +614,7 @@ type
 { get/set screen char map }
 
         scrmap   = record
-                    _scrmap : array[0..255] of char;
+                    _scrmap : array[0..255] of AnsiChar;
                     end;
         scrmap_t =  scrmap;
 
@@ -643,7 +643,7 @@ Function CONS_BLANKTIME(fd:longint;var param1 : longint):boolean;
 CONST        maxsaver=16;
 
 type ssaver =record
-                name : array[0..maxsaver-1] of char;
+                name : array[0..maxsaver-1] of AnsiChar;
                 num  : Longint;
                 time : Long;
                 end;
@@ -738,19 +738,19 @@ Function CONS_SAVERSTART(fd:longint;var param1 : longint):boolean;
 TYPE
 { set/get font data }
         fnt8        = record
-                        fnt8x8 : array[0..8*256-1] of char;
+                        fnt8x8 : array[0..8*256-1] of AnsiChar;
                       end;
 
         fnt8_t      = fnt8;
 
         fnt14       = record
-                        fnt8x14: array[0..14*256-1] of char;
+                        fnt8x14: array[0..14*256-1] of AnsiChar;
                       end;
 
         fnt14_t     = fnt14;
 
         fnt16       = record
-                        fnt8x16: array[0..16*256-1] of char;
+                        fnt8x16: array[0..16*256-1] of AnsiChar;
                        end;
         fnt16_t     = fnt16;
 
@@ -764,8 +764,8 @@ Function GIO_FONT8x16(fd:longint;var param1 : fnt16_t):boolean;
 
 { get video mode information }
 type        colors = record
-                       fore : char;
-                       back : char;
+                       fore : AnsiChar;
+                       back : AnsiChar;
                       end;
 
             vid_info = record
@@ -846,8 +846,8 @@ const
 
 TYPE
         vt_mode    = record
-                       mode     :   Char;
-                       waitv    :   char;    { not implemented yet  SOS }
+                       mode     :   AnsiChar;
+                       waitv    :   AnsiChar;    { not implemented yet  SOS }
                        relsig   :   short;
                        acqsig   :   short;
                        frsig    :   short;   { not implemented yet  SOS }
@@ -1060,7 +1060,7 @@ TYPE
 { get keyboard information}
   keyboard_info = Record
                         kb_index : longint;     { kbdio index#}
-                        kb_name  : array[0..15] of char;        { driver name}
+                        kb_name  : array[0..15] of AnsiChar;        { driver name}
                         kb_unit  : longint;     { unit#}
                         kb_type  : longint;     { KB_84, KB_101, KB_OTHER,...}
                         kb_config: longint;     { device configuration flags}
@@ -1203,8 +1203,8 @@ type acc_t           = record
 
              fkeyarg =record
                         keynum : ushort;
-                        keydef : array[0..MAXFK-1] of char;
-                        flen :char;
+                        keydef : array[0..MAXFK-1] of AnsiChar;
+                        flen :AnsiChar;
                         end;
 
          fkeyarg_t       = fkeyarg;

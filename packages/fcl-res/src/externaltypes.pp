@@ -20,7 +20,7 @@ unit externaltypes;
 interface
 
 type
-  TExternalResMagic = array[1..6] of char;
+  TExternalResMagic = array[1..6] of AnsiChar;
 
 type
   TExtHeader = packed record

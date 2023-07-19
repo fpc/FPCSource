@@ -63,7 +63,7 @@ const
 
 { @see apr_md5_ctx_t }
 type
-  TDigestArray = array [0..APR_MD5_DIGESTSIZE] of Char;
+  TDigestArray = array [0..APR_MD5_DIGESTSIZE] of AnsiChar;
 
   Papr_md5_ctx_t = ^apr_md5_ctx_t;
 
@@ -74,7 +74,7 @@ type
     { number of bits, modulo 2^64 (lsb first) }
     count: array [1..2] of apr_uint32_t;
     { input buffer }
-    buffer: array [1..64] of Char;
+    buffer: array [1..64] of AnsiChar;
     { translation handle
      *  ignored if xlate is unsupported
      }
@@ -141,8 +141,8 @@ function apr_md5(digest: TDigestArray;
  * @param result The string to store the encoded password in
  * @param nbytes The length of the string
  }
-function apr_md5_encode(const password, salt: PChar;
- result: PChar; nbytes: apr_size_t): apr_status_t;
+function apr_md5_encode(const password, salt: PAnsiChar;
+ result: PAnsiChar; nbytes: apr_size_t): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_md5_encode' + LibSuff16;
 
@@ -156,7 +156,7 @@ function apr_md5_encode(const password, salt: PChar;
  * @param passwd The password to validate
  * @param hash The password to validate against
  }
-function apr_password_validate(const passwd, hash: PChar): apr_status_t;
+function apr_password_validate(const passwd, hash: PAnsiChar): apr_status_t;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}
  external LibAPRUtil name LibNamePrefix + 'apr_password_validate' + LibSuff8;
 

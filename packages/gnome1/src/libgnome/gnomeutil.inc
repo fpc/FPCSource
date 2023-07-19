@@ -4,16 +4,16 @@ const
    PATH_SEP = '/';
    PATH_SEP_STR = '/';
 
-function gnome_libdir_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_libdir_file';
-function gnome_datadir_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_datadir_file';
-function gnome_sound_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_sound_file';
-function gnome_pixmap_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_pixmap_file';
-function gnome_config_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_config_file';
-function gnome_unconditional_libdir_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_unconditional_libdir_file';
-function gnome_unconditional_datadir_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_unconditional_datadir_file';
-function gnome_unconditional_sound_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_unconditional_sound_file';
-function gnome_unconditional_pixmap_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_unconditional_pixmap_file';
-function gnome_unconditional_config_file(filename:Pchar):pchar;cdecl;external libgnomedll name 'gnome_unconditional_config_file';
+function gnome_libdir_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_libdir_file';
+function gnome_datadir_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_datadir_file';
+function gnome_sound_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_sound_file';
+function gnome_pixmap_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_pixmap_file';
+function gnome_config_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_config_file';
+function gnome_unconditional_libdir_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_unconditional_libdir_file';
+function gnome_unconditional_datadir_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_unconditional_datadir_file';
+function gnome_unconditional_sound_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_unconditional_sound_file';
+function gnome_unconditional_pixmap_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_unconditional_pixmap_file';
+function gnome_unconditional_config_file(filename:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'gnome_unconditional_config_file';
 
 const
   G_FILE_TEST_EXISTS = ((1 shl 0) or (1 shl 1)) or (1 shl 2);
@@ -21,18 +21,18 @@ const
   G_FILE_TEST_ISLINK = 1 shl 1;
   G_FILE_TEST_ISDIR = 1 shl 2;
 
-function g_file_test(filename:Pchar; test:longint):longint;cdecl;external libgnomedll name 'g_file_test';
-function g_file_exists(filename:Pchar):longint;cdecl;external libgnomedll name 'g_file_exists';
+function g_file_test(filename:PAnsiChar; test:longint):longint;cdecl;external libgnomedll name 'g_file_test';
+function g_file_exists(filename:PAnsiChar):longint;cdecl;external libgnomedll name 'g_file_exists';
 function gnome_is_program_in_path(aprogram:Pgchar):Pgchar;cdecl;external libgnomedll name 'gnome_is_program_in_path';
 
-function g_unix_error_string(error_num:longint):pchar;cdecl;external libgnomedll name 'g_unix_error_string';
-function g_concat_dir_and_file(dir:Pchar; afile:Pchar):pchar;cdecl;external libgnomedll name 'g_concat_dir_and_file';
+function g_unix_error_string(error_num:longint):PAnsiChar;cdecl;external libgnomedll name 'g_unix_error_string';
+function g_concat_dir_and_file(dir:PAnsiChar; afile:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'g_concat_dir_and_file';
 
-function g_extension_pointer(path:Pchar):pchar;cdecl;external libgnomedll name 'g_extension_pointer';
-function g_copy_vector(vec:PPchar):Ppchar;cdecl;external libgnomedll name 'g_copy_vector';
+function g_extension_pointer(path:PAnsiChar):PAnsiChar;cdecl;external libgnomedll name 'g_extension_pointer';
+function g_copy_vector(vec:PPAnsiChar):PPAnsiChar;cdecl;external libgnomedll name 'g_copy_vector';
 
-function gnome_util_user_shell:pchar;cdecl;external libgnomedll name 'gnome_util_user_shell';
-function g_is_image_filename(path:Pchar):gboolean;cdecl;external libgnomedll name 'g_is_image_filename';
+function gnome_util_user_shell:PAnsiChar;cdecl;external libgnomedll name 'gnome_util_user_shell';
+function g_is_image_filename(path:PAnsiChar):gboolean;cdecl;external libgnomedll name 'g_is_image_filename';
 
 //Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
 Function g_filename_index(path : Pgchar) : Pgchar;

@@ -62,7 +62,7 @@
         byte_count : longint;
         body : record
             case longint of
-               0 : ( chars : array[0..3] of char );
+               0 : ( chars : array[0..3] of AnsiChar );
                1 : ( toggle : TGtkTextToggleBody );
                2 : ( mark : TGtkTextMarkBody );
                3 : ( pixbuf : TGtkTextPixbuf );
@@ -126,7 +126,7 @@
                                           to check internal consistency of
                                           segment.  }
    TGtkTextLineSegmentClass = record
-        name : Pchar;
+        name : PAnsiChar;
         leftGravity : gboolean;
         splitFunc : TGtkTextSegSplitFunc;
         deleteFunc : TGtkTextSegDeleteFunc;

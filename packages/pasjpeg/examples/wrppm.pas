@@ -42,14 +42,14 @@ implementation
   implementation will be to ask for that instead.) }
 
 type
-  CharPtr = ^char;
+  CharPtr = ^AnsiChar;
 
 
 {$ifdef BITS_IN_JSAMPLE_IS_8}
 
 procedure PUTPPMSAMPLE(var ptr : CharPtr; v : byte);
 begin
-  ptr^ := char(v);
+  ptr^ := AnsiChar(v);
   Inc(ptr);
 end;
 
@@ -61,7 +61,7 @@ const
 
 procedure PUTPPMSAMPLE(var ptr : CharPtr; v : byte);
 begin
-  ptr^ := char (v shr (BITS_IN_JSAMPLE-8));
+  ptr^ := AnsiChar (v shr (BITS_IN_JSAMPLE-8));
   Inc(ptr);
 end;
 
@@ -77,9 +77,9 @@ var
   {register} val_ : int;
 begin
   val_ := v;
-  ptr^ := char (val_ and $FF);
+  ptr^ := AnsiChar (val_ and $FF);
   Inc(ptr);
-  ptr^ := char ((val_ shr 8) and $FF);
+  ptr^ := AnsiChar ((val_ shr 8) and $FF);
   Inc(ptr);
 end;
 const
@@ -89,7 +89,7 @@ const
 {$endif}
 
 
-{ When JSAMPLE is the same size as char, we can just fwrite() the
+{ When JSAMPLE is the same size as AnsiChar, we can just fwrite() the
   decompressed data to the PPM or PGM file.  On PCs, in order to make this
   work the output buffer must be allocated in near data space, because we are
   assuming small-data memory model wherein fwrite() can't reach far memory.
@@ -229,7 +229,7 @@ var
 var
   header : string[200];
 
-  function LongToStr(l : long) : string;
+  function LongToStr(l : long) : ansistring;
   var
     helpstr : string[20];
   begin
@@ -294,12 +294,12 @@ begin
 
   { Create physical I/O buffer.  Note we make this near on a PC. }
   dest^.samples_per_row := cinfo^.output_width * cinfo^.out_color_components;
-  dest^.buffer_width := dest^.samples_per_row * (BYTESPERSAMPLE * SIZEOF(char));
+  dest^.buffer_width := dest^.samples_per_row * (BYTESPERSAMPLE * SIZEOF(AnsiChar));
   dest^.iobuffer := CharPtr( cinfo^.mem^.alloc_small
     (j_common_ptr(cinfo), JPOOL_IMAGE, dest^.buffer_width) );
 
   if (cinfo^.quantize_colors) or (BITS_IN_JSAMPLE <> 8) or
-      (SIZEOF(JSAMPLE) <> SIZEOF(char)) then
+      (SIZEOF(JSAMPLE) <> SIZEOF(AnsiChar)) then
   begin
     { When quantizing, we need an output buffer for colormap indexes
       that's separate from the physical I/O buffer.  We also need a

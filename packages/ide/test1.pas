@@ -1,6 +1,7 @@
 unit test1;
 
 {$mode objfpc}
+{$H-}
 
 { dummy unit for test of dbx stabs info PM }
 

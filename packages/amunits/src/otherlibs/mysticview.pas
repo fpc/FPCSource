@@ -36,7 +36,7 @@ USES Exec,agraphics,utility,intuition;
 VAR MysticBase : pLibrary = nil;
 
 const
-    MYSTICVIEWNAME : PChar = 'mysticview.library';
+    MYSTICVIEWNAME : PAnsiChar = 'mysticview.library';
 
   {
         $VER: mysticview.h 4.2 (1.6.99)

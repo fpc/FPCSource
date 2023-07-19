@@ -53,7 +53,7 @@ begin
 end;
 
 
-function allocstr(const src: String): Pchar;
+function allocstr(const src: AnsiString): PAnsiChar;
 begin
   Result := ObjCAllocMem(length(src)+1);
   if src <> '' then System.Move(src[1], Result^, length(src));
@@ -126,7 +126,7 @@ type
   objc_class1 = packed record
 	  isa           : Pobjc_class1;
 	  super_class   : Pobjc_class1;
-	  name          : PChar;
+	  name          : PAnsiChar;
 	  version       : culong;
 	  info          : culong;
 	  instance_size : culong;
@@ -143,8 +143,8 @@ type
   //Category1 = Pobjc_category1;
 
   //objc_category1 = packed record
-  // 	category_name     : PChar;
-	//  class_name        : PChar;
+  // 	category_name     : PAnsiChar;
+	//  class_name        : PAnsiChar;
   //  instance_methods  : Pobjc_method_list1;
 	//  class_methods     : Pobjc_method_list1;
   //  protocols         : Pobjc_protocol_list1;
@@ -156,8 +156,8 @@ type
   Ivar1 = Pobjc_ivar1;
 
   objc_ivar1 = packed record
-  	ivar_name   : PChar;
-	  ivar_type   : PChar;
+  	ivar_name   : PAnsiChar;
+	  ivar_type   : PAnsiChar;
   	ivar_offset : cint;
     {$ifdef __alpha__}
   	space: cint;
@@ -178,7 +178,7 @@ type
 
   objc_method1 = packed record
     method_name   : SEL1;
-    method_types  : PChar;
+    method_types  : PAnsiChar;
     method_imp    : IMP1;
   end;
 
@@ -230,15 +230,15 @@ type
     methods : array of objc_method1;
     count   : Integer;
   public
-    procedure AddMethod(name:SEL; imp:IMP; types:pchar);
+    procedure AddMethod(name:SEL; imp:IMP; types:PAnsiChar);
     function AllocMethodList: Pobjc_method_list1;
   end;
   //PClassMethod1Reg = ^TClassMethod1Reg;
 
   TIVar1Reg = record
     size      : Integer;
-    types     : String;
-    name      : String;
+    types     : AnsiString;
+    name      : AnsiString;
     alignment : Uint8_t;
   end;
 
@@ -249,13 +249,13 @@ type
     ivarscount  : Integer;
     ivars       : array of TIVar1Reg;
   public
-    procedure AddIVar(name:pchar; size:size_t; alignment:uint8_t; types:pchar);
+    procedure AddIVar(name:PAnsiChar; size:size_t; alignment:uint8_t; types:PAnsiChar);
     function AllocIVarsList(ivarOffset: Integer; out ivarssize: Integer): Pobjc_ivar_list1;
   end;
 
 { TClassMethod1Reg }
 
-procedure TClassMethod1Reg.AddMethod(name: SEL; imp: IMP; types: pchar);
+procedure TClassMethod1Reg.AddMethod(name: SEL; imp: IMP; types: PAnsiChar);
 begin
   if length(methods) = count then begin
     if count = 0 then SetLength(methods, 4)
@@ -285,8 +285,8 @@ begin
   end;
 end;
 
-procedure TClassIVar1Reg.AddIVar(name: pchar; size: size_t; alignment: uint8_t;
-  types: pchar);
+procedure TClassIVar1Reg.AddIVar(name: PAnsiChar; size: size_t; alignment: uint8_t;
+  types: PAnsiChar);
 begin
   if ivarscount = length(ivars) then begin
     if ivarscount = 0 then SetLength(ivars, 4)
@@ -347,7 +347,7 @@ begin
   Pid1(PtrUInt(obj) + ivar_getOffset(_ivar))^ := value;
 end;
 
-function class_getName10(cls:_Class):PChar; cdecl;
+function class_getName10(cls:_Class):PAnsiChar; cdecl;
 begin
   Result := _Class1(cls)^.name;
 end;
@@ -404,7 +404,7 @@ begin
   Result := nil;
 end;
 
-function objc_allocateClassPair10(superclass:_Class; name:pchar; extraBytes:size_t):_Class; cdecl;
+function objc_allocateClassPair10(superclass:_Class; name:PAnsiChar; extraBytes:size_t):_Class; cdecl;
 var
   super  : _Class1;
   root_class   : _Class1;
@@ -519,7 +519,7 @@ begin
   if new_class <> nil then objc_addClass(new_class);
 end;
 
-function objc_duplicateClass10(original:_Class; name:pchar; extraBytes:size_t):_Class; cdecl;
+function objc_duplicateClass10(original:_Class; name:PAnsiChar; extraBytes:size_t):_Class; cdecl;
 begin
   //todo:
   Result := nil;
@@ -530,12 +530,12 @@ begin
   //todo:
 end;
 
-function class_addMethod10(cls:_Class; name:SEL; _imp:IMP; types:pchar):BOOL; cdecl;
+function class_addMethod10(cls:_Class; name:SEL; _imp:IMP; types:PAnsiChar):BOOL; cdecl;
 begin
   if not Assigned(cls) or not Assigned(name) or not Assigned(_imp) or not Assigned(types) then begin
     {$IFDEF DEBUG}
     write('* Bad params?: cls  = ', Integer(cls));
-    write(' name = ', PChar(name));
+    write(' name = ', PAnsiChar(name));
     write(' imp  = ', Integer(_imp));
     writeln(' type = ', types);
     {$ENDIF}
@@ -553,7 +553,7 @@ begin
   {$ENDIF}
   TClassMethod1Reg(_Class1(cls)^.methodLists).AddMethod(name, _imp, types);
   {$IFDEF DEBUG}
-    writeln('"',PChar(name), '" added successfully');
+    writeln('"',PAnsiChar(name), '" added successfully');
   except
     writeln('* exception while adding method');
   end;
@@ -561,7 +561,7 @@ begin
   Result := true;
 end;
 
-function class_addIvar10(cls:_Class; name:pchar; size:size_t; alignment:uint8_t; types:pchar):BOOL; cdecl;
+function class_addIvar10(cls:_Class; name:PAnsiChar; size:size_t; alignment:uint8_t; types:PAnsiChar):BOOL; cdecl;
 var
   cls1 : _Class1;
 begin
@@ -591,18 +591,18 @@ begin
   Result := IMP(Method1(m)^.method_imp);
 end;
 
-function method_getTypeEncoding10(m:Method):Pchar; cdecl;
+function method_getTypeEncoding10(m:Method):PAnsiChar; cdecl;
 begin
   Result := IMP(Method1(m)^.method_types);
 end;
 
-function method_copyReturnType10(m:Method):Pchar; cdecl;
+function method_copyReturnType10(m:Method):PAnsiChar; cdecl;
 begin
   //todo:
   Result := nil;
 end;
 
-function method_copyArgumentType10(m:Method; index:dword):Pchar; cdecl;
+function method_copyArgumentType10(m:Method; index:dword):PAnsiChar; cdecl;
 begin
   //todo:
   Result := nil;
@@ -615,12 +615,12 @@ begin
   Method1(m)^.method_imp := IMP1(_imp);
 end;
 
-function ivar_getName10(v:Ivar):Pchar; cdecl;
+function ivar_getName10(v:Ivar):PAnsiChar; cdecl;
 begin
   Result := IVar1(v)^.ivar_name;
 end;
 
-function ivar_getTypeEncoding10(v:Ivar):Pchar; cdecl;
+function ivar_getTypeEncoding10(v:Ivar):PAnsiChar; cdecl;
 begin
   Result := IVar1(v)^.ivar_type;
 end;
@@ -635,7 +635,7 @@ begin
   Result := lhs = rhs; //???
 end;
 
-function objc_getProtocol10(name:pchar): PProtocol; cdecl;
+function objc_getProtocol10(name:PAnsiChar): PProtocol; cdecl;
 begin
   //todo:
   Result := nil;

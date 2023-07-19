@@ -74,11 +74,11 @@ const
   serSettingsFlagXonXoffM     = $00000008; // (NOT IMPLEMENTED) mask for Xon/Xoff flow control
   serSettingsFlagRTSAutoM     = $00000010; // mask for RTS rcv flow control
   serSettingsFlagCTSAutoM     = $00000020; // mask for CTS xmit flow control
-  serSettingsFlagBitsPerCharM = $000000C0; // mask for bits/char
-  serSettingsFlagBitsPerChar5 = $00000000; //  5 bits/char
-  serSettingsFlagBitsPerChar6 = $00000040; //  6 bits/char
-  serSettingsFlagBitsPerChar7 = $00000080; //  7 bits/char
-  serSettingsFlagBitsPerChar8 = $000000C0; //  8 bits/char
+  serSettingsFlagBitsPerCharM = $000000C0; // mask for bits/AnsiChar
+  serSettingsFlagBitsPerChar5 = $00000000; //  5 bits/AnsiChar
+  serSettingsFlagBitsPerChar6 = $00000040; //  6 bits/AnsiChar
+  serSettingsFlagBitsPerChar7 = $00000080; //  7 bits/AnsiChar
+  serSettingsFlagBitsPerChar8 = $000000C0; //  8 bits/AnsiChar
 
 // Default settings
   serDefaultSettings = serSettingsFlagBitsPerChar8 or

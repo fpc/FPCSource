@@ -47,8 +47,8 @@ const
  DriveSeparator = '\';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\'];
- AllowDriveSeparators : set of char = [];
+ AllowDirectorySeparators : set of AnsiChar = ['\'];
+ AllowDriveSeparators : set of AnsiChar = [];
 
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = High(ErrorCode);
@@ -66,7 +66,7 @@ var
 { C compatible arguments }
   argc: LongWord;
   argvw: PPWideChar;
-  argv: PPChar;
+  argv: PPAnsiChar;
 
 const
 { Default filehandles }
@@ -112,7 +112,7 @@ var
   count   : longint;
   argstart,
   pc,arg  : pwidechar;
-  pc2     : pchar;
+  pc2     : PAnsiChar;
   quote   : Boolean;
   argvlen : longint;
   params  : PRTLUserProcessParameters;
@@ -145,7 +145,7 @@ begin
   allocarg(0,arglen);
   move(params^.ImagePathName.Buffer^,argvw[0]^,arglen*sizeof(widechar)+1);
   { Setup cmdline variable }
-  { cmdline is a PChar, but NT uses PWideChar... don't set cmdline for now }
+  { cmdline is a PAnsiChar, but NT uses PWideChar... don't set cmdline for now }
   {$message warning 'cmdline is not set'}
 //  cmdline:=GetCommandLine;
   { the first argument isn't the image file name, so start at 1 }
@@ -238,7 +238,7 @@ begin
     {$message warning 'Use UnicodeToUTF8 for argument conversion'}
     while Ord(pc^) > 0  do begin
       if word(pc^) < 127 then
-        pc2^ := Char(word(pc^))
+        pc2^ := AnsiChar(word(pc^))
       else
         pc2^ := '?';
       Inc(pc);
@@ -253,7 +253,7 @@ begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : shortstring;
 begin
   if (l>=0) and (l<argc) then
     paramstr:=strpas(argv[l])

@@ -395,7 +395,7 @@ const
 
 type
 	AuthorizationExternalForm = record
-		bytes: packed array[0..(kAuthorizationExternalFormLength)-1] of char;
+		bytes: packed array[0..(kAuthorizationExternalFormLength)-1] of AnsiChar;
 	end;
 
 

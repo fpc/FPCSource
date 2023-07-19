@@ -59,7 +59,7 @@ type
   TSetThreadDescription = function(threadHandle: THandle; lpThreadDescription: PWideChar): HResult; stdcall;
 var
   WinSetThreadDescription: TSetThreadDescription;
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PAnsiChar): THandle; stdcall; external KernelDLL name 'CreateEventA';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
 {$endif WINCE}
@@ -514,12 +514,12 @@ Const
 function intBasicEventCreate(EventAttributes : Pointer;
 AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 var
-  n : PChar;
+  n : PAnsiChar;
 begin
   if Length(Name) = 0 then
     n := Nil
   else
-    n := PChar(Name);
+    n := PAnsiChar(Name);
   Result := PEventState(CreateEvent(EventAttributes, AManualReset, InitialState,n));
 end;
 

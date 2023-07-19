@@ -44,8 +44,8 @@ Type
     FCanonical: Boolean;
     FIndent: XMLString;
     FNesting: Integer;
-    FBuffer: PChar;
-    FBufPos: PChar;
+    FBuffer: PAnsiChar;
+    FBufPos: PAnsiChar;
     FCapacity: Integer;
     FLineBreak: XMLString;
     FNSHelper: TNSSupport;
@@ -158,7 +158,7 @@ var
 begin
   if Count>0 then
   begin
-    SetString(s, PChar(@Buffer), Count);
+    SetString(s, PAnsiChar(@Buffer), Count);
     system.Write(f^, s);
   end;
   Result := Count;
@@ -177,7 +177,7 @@ const
   AmpStr = '&amp;';
   ltStr = '&lt;';
   gtStr = '&gt;';
-  IndentChars : Array[Boolean] of char = (' ',#9);
+  IndentChars : Array[Boolean] of AnsiChar = (' ',#9);
 
 procedure AttrSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
   var idx: Integer);
@@ -338,7 +338,7 @@ end;
 
 procedure TXMLWriter.wrtChars(Src: PWideChar; Length: Integer);
 var
-  pb: PChar;
+  pb: PAnsiChar;
   wc: Cardinal;
   SrcEnd: PWideChar;
 begin
@@ -357,12 +357,12 @@ begin
     wc := Cardinal(Src^);  Inc(Src);
     case wc of
       0..$7F:  begin
-        pb^ := char(wc); Inc(pb);
+        pb^ := AnsiChar(wc); Inc(pb);
       end;
 
       $80..$7FF: begin
-        pb^ := Char($C0 or (wc shr 6));
-        pb[1] := Char($80 or (wc and $3F));
+        pb^ := AnsiChar($C0 or (wc shr 6));
+        pb[1] := AnsiChar($80 or (wc and $3F));
         Inc(pb,2);
       end;
 
@@ -372,10 +372,10 @@ begin
           wc := ((LongInt(wc) - $D7C0) shl 10) + LongInt(word(Src^) xor $DC00);
           Inc(Src);
 
-          pb^ := Char($F0 or (wc shr 18));
-          pb[1] := Char($80 or ((wc shr 12) and $3F));
-          pb[2] := Char($80 or ((wc shr 6) and $3F));
-          pb[3] := Char($80 or (wc and $3F));
+          pb^ := AnsiChar($F0 or (wc shr 18));
+          pb[1] := AnsiChar($80 or ((wc shr 12) and $3F));
+          pb[2] := AnsiChar($80 or ((wc shr 6) and $3F));
+          pb[3] := AnsiChar($80 or (wc and $3F));
           Inc(pb,4);
         end
         else
@@ -385,9 +385,9 @@ begin
         raise EConvertError.Create('Low surrogate without high one');
       else   // $800 >= wc > $FFFF, excluding surrogates
       begin
-        pb^ := Char($E0 or (wc shr 12));
-        pb[1] := Char($80 or ((wc shr 6) and $3F));
-        pb[2] := Char($80 or (wc and $3F));
+        pb^ := AnsiChar($E0 or (wc shr 12));
+        pb[1] := AnsiChar($80 or ((wc shr 6) and $3F));
+        pb[2] := AnsiChar($80 or (wc and $3F));
         Inc(pb,3);
       end;
     end;
@@ -403,7 +403,7 @@ end;
 { No checks here - buffer always has 32 extra bytes }
 procedure TXMLWriter.wrtChr(c: WideChar); { inline }
 begin
-  FBufPos^ := char(ord(c));
+  FBufPos^ := AnsiChar(ord(c));
   Inc(FBufPos);
 end;
 
@@ -449,7 +449,7 @@ begin
   EndPos := 1;
   while EndPos <= Length(s) do
   begin
-    if (s[EndPos] < #128) and (Char(ord(s[EndPos])) in SpecialChars) then
+    if (s[EndPos] < #128) and (AnsiChar(ord(s[EndPos])) in SpecialChars) then
     begin
       wrtChars(@s[StartPos], EndPos - StartPos);
       SpecialCharCallback(Self, s, EndPos);

@@ -492,7 +492,7 @@ begin
   If (BFN<>'') then
     begin
     //Writeln('opening blib file',bfn);
-    if PX_set_blob_file(FDoc,PChar(BFN))<>0 then
+    if PX_set_blob_file(FDoc,PAnsiChar(BFN))<>0 then
       RaiseError(SErrInvalidBlobFile,[BFN]);
     FBlobFileName:=BFN;
     end;
@@ -510,7 +510,7 @@ begin
   FN:=FFileName;
   FDoc:=PX_New();
   try
-    If (px_open_file(FDoc,PChar(FN))<>0) then
+    If (px_open_file(FDoc,PAnsiChar(FN))<>0) then
       RaiseError(SErrFailedToOpenFile,[FN]);
     SetOpenParams;
     OpenBlobFile;
@@ -640,11 +640,11 @@ var
   Buf          : TRecordbuffer;
   No,pft,flen : integer;
   pxf          : PPx_field;
-  Value        : Pchar;
+  Value        : PAnsiChar;
   D            : clong;
   longv        : Clong;
   R            : Double;
-  c            : Char;
+  c            : AnsiChar;
 
 begin
   No:=Field.FieldNo-1;
@@ -665,7 +665,7 @@ begin
           begin
           Move(Value^,Buffer^,flen);
           If (Flen<=Field.DataSize) then
-            Pchar(Buffer)[flen]:=#0;
+            PAnsiChar(Buffer)[flen]:=#0;
           FDoc^.free(FDoc,value);
           end;
         end;
@@ -788,7 +788,7 @@ function TParadox.CreateBlobStream(Field: TField; Mode: TBlobStreamMode
 TYpe
   PGraphicHeader = ^TGraphicHeader;
 Var
-  FBuf,Value,V2 : Pchar;
+  FBuf,Value,V2 : PAnsiChar;
   FLen,Res : Integer;
   M,D : Cint;
   H : PGraphicHeader;
@@ -944,12 +944,12 @@ end;
 function TParadox.GetParam(const ParamName: String): String;
 
 Var
-  V : Pchar;
+  V : PAnsiChar;
 
 begin
   If Not Assigned(FDoc) then
     RaiseError(SErrParadoxNotOpen,[]);
-  if (PX_Get_parameter(FDoc,Pchar(ParamName),@V)<>0) then
+  if (PX_Get_parameter(FDoc,PAnsiChar(ParamName),@V)<>0) then
     RaiseError(SErrGetParamFailed,[ParamName]);
   If (V<>Nil) then
     Result:=strpas(V);
@@ -959,7 +959,7 @@ procedure TParadox.SetParam(const ParamName, ParamValue: String);
 begin
   If Not Assigned(FDoc) then
     RaiseError(SErrParadoxNotOpen,[]);
-  if (PX_Set_parameter(FDoc,Pchar(ParamName),PChar(ParamValue))<>0) then
+  if (PX_Set_parameter(FDoc,PAnsiChar(ParamName),PAnsiChar(ParamValue))<>0) then
     RaiseError(SErrSetParamFailed,[ParamName]);
 end;
 

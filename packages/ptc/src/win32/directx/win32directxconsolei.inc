@@ -45,10 +45,10 @@
 {$DEFINE CHECK_LOCK:=//}
 {$ENDIF}
 
-function PChar2String(Q: PChar): string;
+function PChar2String(Q: PAnsiChar): AnsiString;
 var
   I: Integer;
-  S: string;
+  S: AnsiString;
 begin
   S := '';
   I := 0;
@@ -120,10 +120,10 @@ begin
   inherited Destroy;
 end;
 
-procedure TDirectXConsole.Configure(const AFileName: String);
+procedure TDirectXConsole.Configure(const AFileName: AnsiString);
 var
   F: TextFile;
-  S: string;
+  S: AnsiString;
 begin
   AssignFile(F, AFileName);
   {$push}{$I-}
@@ -143,7 +143,7 @@ begin
   CloseFile(F);
 end;
 
-function TDirectXConsole.Option(const AOption: String): Boolean;
+function TDirectXConsole.Option(const AOption: AnsiString): Boolean;
 var
   tmp, tmp2: Integer;
 begin
@@ -370,18 +370,18 @@ begin
   Result := FDisplay.Modes;
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; APages: Integer = 0);
+procedure TDirectXConsole.Open(const ATitle: AnsiString; APages: Integer = 0);
 begin
   Open(ATitle, FDefaultFormat, APages);
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; AFormat: IPTCFormat;
+procedure TDirectXConsole.Open(const ATitle: AnsiString; AFormat: IPTCFormat;
                            APages: Integer = 0);
 begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+procedure TDirectXConsole.Open(const ATitle: AnsiString; AWidth, AHeight: Integer;
                            AFormat: IPTCFormat; APages: Integer = 0);
 var
   mode: IPTCMode;
@@ -391,7 +391,7 @@ begin
   internal_open(ATitle, 0, mode, APages, False);
 end;
 
-procedure TDirectXConsole.Open(const ATitle: string; AMode: IPTCMode;
+procedure TDirectXConsole.Open(const ATitle: AnsiString; AMode: IPTCMode;
                            APages: Integer = 0);
 begin
   { internal open exact mode }
@@ -803,24 +803,24 @@ begin
   Result := FPrimary.format;
 end;
 
-function TDirectXConsole.GetName: string;
+function TDirectXConsole.GetName: AnsiString;
 begin
   Result := 'DirectX';
 end;
 
-function TDirectXConsole.GetTitle: string;
+function TDirectXConsole.GetTitle: AnsiString;
 begin
   CHECK_OPEN('TDirectXConsole.GetTitle');
   Result := FTitle;
 end;
 
-function TDirectXConsole.GetInformation: string;
+function TDirectXConsole.GetInformation: AnsiString;
 begin
   CHECK_OPEN('TDirectXConsole.GetInformation');
   Result := FDisplay.information;
 end;
 
-procedure TDirectXConsole.internal_open(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_open(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 var
   _width, _height: Integer;
   _format: IPTCFormat;
@@ -912,7 +912,7 @@ begin
   internal_open_finish;
 end;
 
-procedure TDirectXConsole.internal_recycle(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   { Check if the console is open }
   if not FOpen then
@@ -962,9 +962,9 @@ begin
   FLibrary.Close;
 end;
 
-procedure TDirectXConsole.internal_open_start(const _title: string; window: HWND);
+procedure TDirectXConsole.internal_open_start(const _title: AnsiString; window: HWND);
 var
-  tmp: array [0..1023] of Char;
+  tmp: array [0..1023] of AnsiChar;
 begin
   { close_down }
   internal_close;
@@ -1183,7 +1183,7 @@ begin
   FHook := TDirectXHook.Create(Self, FWindow.handle, GetCurrentThreadId, FCursor, FWindow.managed, False);
 end;
 
-procedure TDirectXConsole.internal_recycle_fullscreen(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle_fullscreen(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   LOG('fullscreen open recycle');
   FPrimary.close;
@@ -1191,7 +1191,7 @@ begin
   internal_open_fullscreen_surface(mode, _pages);
 end;
 
-procedure TDirectXConsole.internal_recycle_windowed(const _title: string; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
+procedure TDirectXConsole.internal_recycle_windowed(const _title: AnsiString; window: HWND; const mode: IPTCMode; _pages: Integer; exact: Boolean);
 begin
   LOG('windowed open recycle');
   FPrimary.close;
@@ -1250,7 +1250,7 @@ begin
 end;
 
 {$IFDEF DEBUG}
-procedure TDirectXConsole.CHECK_OPEN(AMsg: String);
+procedure TDirectXConsole.CHECK_OPEN(AMsg: AnsiString);
 begin
   if not FOpen then
   try
@@ -1261,7 +1261,7 @@ begin
   end;
 end;
 
-procedure TDirectXConsole.CHECK_LOCK(AMsg: String);
+procedure TDirectXConsole.CHECK_LOCK(AMsg: AnsiString);
 begin
   if FLocked then
   try

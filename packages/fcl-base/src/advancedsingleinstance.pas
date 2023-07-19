@@ -35,12 +35,12 @@ type
   TAdvancedSingleInstance = class(TBaseSingleInstance)
   private
     FGlobal: Boolean;
-    FID: string;
+    FID: Ansistring;
     FServer: TIPCServer;
     FClient: TIPCClient;
     FOnServerReceivedCustomRequest: TSingleInstanceReceivedCustomMessage;
     procedure SetGlobal(const aGlobal: Boolean);
-    procedure SetID(const aID: string);
+    procedure SetID(const aID: Ansistring);
   protected
     procedure DoServerReceivedCustomRequest(const aMsgID: Integer; const aMsgType: Integer; const aStream: TStream);
     function GetIsClient: Boolean; override;
@@ -60,7 +60,7 @@ type
     procedure ServerPostCustomResponse(const aRequestID: Integer; const aMsgType: Integer; const aStream: TStream);
     function ClientPeekCustomResponse(const aStream: TStream; out outMsgType: Integer): Boolean;
   public
-    property ID: string read FID write SetID;
+    property ID: AnsiString  read FID write SetID;
     property Global: Boolean read FGlobal write SetGlobal;
 
     property OnServerReceivedCustomRequest: TSingleInstanceReceivedCustomMessage read FOnServerReceivedCustomRequest write FOnServerReceivedCustomRequest;
@@ -249,7 +249,7 @@ begin
   FGlobal := aGlobal;
 end;
 
-procedure TAdvancedSingleInstance.SetID(const aID: string);
+procedure TAdvancedSingleInstance.SetID(const aID: Ansistring);
 begin
   if FID = aID then Exit;
   if Assigned(FServer) or Assigned(FClient) then

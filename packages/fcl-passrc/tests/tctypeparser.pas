@@ -3091,17 +3091,17 @@ end;
 
 procedure TTestTypeParser.TestSimpleTypeChar;
 begin
-  DoTestAliasType('CHAR','');
+  DoTestAliasType('AnsiChar','');
 end;
 
 procedure TTestTypeParser.TestSimpleTypeCharDeprecated;
 begin
-  DoTestAliasType('CHAR','deprecated');
+  DoTestAliasType('AnsiChar','deprecated');
 end;
 
 procedure TTestTypeParser.TestSimpleTypeCharPlatform;
 begin
-  DoTestAliasType('CHAR','platform');
+  DoTestAliasType('AnsiChar','platform');
 end;
 
 procedure TTestTypeParser.TestSimpleTypeInteger;

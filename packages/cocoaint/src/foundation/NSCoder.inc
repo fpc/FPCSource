@@ -17,9 +17,9 @@ type
 type
   NSCoder = objcclass external (NSObject)
   public
-    procedure encodeValueOfObjCType_at (type_: PChar; addr: pointer); message 'encodeValueOfObjCType:at:';
+    procedure encodeValueOfObjCType_at (type_: PAnsiChar; addr: pointer); message 'encodeValueOfObjCType:at:';
     procedure encodeDataObject (data: NSData); message 'encodeDataObject:';
-    procedure decodeValueOfObjCType_at (type_: PChar; data: pointer); message 'decodeValueOfObjCType:at:';
+    procedure decodeValueOfObjCType_at (type_: PAnsiChar; data: pointer); message 'decodeValueOfObjCType:at:';
     function decodeDataObject: NSData; message 'decodeDataObject';
     function versionForClassName (className: NSString): NSInteger; message 'versionForClassName:';
   end;
@@ -32,12 +32,12 @@ type
     procedure encodeBycopyObject (anObject: id); message 'encodeBycopyObject:';
     procedure encodeByrefObject (anObject: id); message 'encodeByrefObject:';
     procedure encodeConditionalObject (object_: id); message 'encodeConditionalObject:';
-    procedure encodeValuesOfObjCTypes (types: PChar); varargs; message 'encodeValuesOfObjCTypes:';
-    procedure encodeArrayOfObjCType_count_at (type_: PChar; count: NSUInteger; array_: pointer); message 'encodeArrayOfObjCType:count:at:';
+    procedure encodeValuesOfObjCTypes (types: PAnsiChar); varargs; message 'encodeValuesOfObjCTypes:';
+    procedure encodeArrayOfObjCType_count_at (type_: PAnsiChar; count: NSUInteger; array_: pointer); message 'encodeArrayOfObjCType:count:at:';
     procedure encodeBytes_length (byteaddr: pointer; length: NSUInteger); message 'encodeBytes:length:';
     function decodeObject: id; message 'decodeObject';
-    procedure decodeValuesOfObjCTypes (types: PChar); varargs; message 'decodeValuesOfObjCTypes:';
-    procedure decodeArrayOfObjCType_count_at (itemType: PChar; count: NSUInteger; array_: pointer); message 'decodeArrayOfObjCType:count:at:';
+    procedure decodeValuesOfObjCTypes (types: PAnsiChar); varargs; message 'decodeValuesOfObjCTypes:';
+    procedure decodeArrayOfObjCType_count_at (itemType: PAnsiChar; count: NSUInteger; array_: pointer); message 'decodeArrayOfObjCType:count:at:';
     function decodeBytesWithReturnedLength (lengthp: NSUIntegerPtr): pointer; message 'decodeBytesWithReturnedLength:';
     {$if (defined(TARGET_OS_MAC) and not (defined(TARGET_OS_EMBEDDED) or defined(TARGET_OS_IPHONE)))}
     procedure encodePropertyList (aPropertyList: id); message 'encodePropertyList:';

@@ -19,7 +19,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
-function strcopy(dest,source : pchar) : pchar;assembler;
+function strcopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 { in: dest in r3, source in r4 }
 { out: result (dest) in r3     }
 asm
@@ -97,7 +97,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRECOPY}
 {$define FPC_UNIT_HAS_STRECOPY}
-function strecopy(dest,source : pchar) : pchar;assembler;
+function strecopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 { in: dest in r3, source in r4        }
 { out: result (end of new dest) in r3 }
 asm
@@ -169,7 +169,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
-function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
+function strlcopy(dest,source : PAnsiChar;maxlen : longint) : PAnsiChar;assembler;
 { in: dest in r3, source in r4, maxlen in r5 }
 { out: result (dest) in r3                   }
 asm
@@ -195,7 +195,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
-function strend(p : pchar) : pchar;assembler;
+function strend(p : PAnsiChar) : PAnsiChar;assembler;
 { in: p in r3                  }
 { out: result (end of p) in r3 }
 asm
@@ -217,7 +217,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
-function strcomp(str1,str2 : pchar) : longint;assembler;
+function strcomp(str1,str2 : pansichar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                                }
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
 {      in r3                                                                }
@@ -246,7 +246,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
-function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
+function strlcomp(str1,str2 : PAnsiChar;l : longint) : longint;assembler;
 { (same as strcomp, but maximally compare until l'th character)             }
 { in: str1 in r3, str2 in r4, l in r5                                       }
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
@@ -282,7 +282,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
 {$define FPC_UNIT_HAS_STRICOMP}
-function stricomp(str1,str2 : pchar) : longint;assembler;
+function stricomp(str1,str2 : PAnsiChar) : longint;assembler;
 { in: str1 in r3, str2 in r4                                 }
 { out: result of case insensitive comparison (< 0, = 0, > 0) }
 asm
@@ -346,7 +346,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
-function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
+function strlicomp(str1,str2 : PAnsiChar;l : longint) : longint;assembler;
 { (same as stricomp, but maximally compare until l'th character) }
 { in: str1 in r3, str2 in r4, l in r5                            }
 { out: result of case insensitive comparison (< 0, = 0, > 0)     }
@@ -405,7 +405,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRSCAN}
 {$define FPC_UNIT_HAS_STRSCAN}
-function strscan(p : pchar;c : char) : pchar;assembler;
+function strscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;assembler;
 asm
         { empty/invalid string? }
         cmplwi  r3,0
@@ -426,7 +426,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
 {$define FPC_UNIT_HAS_STRRSCAN}
-function strrscan(p : pchar;c : char) : pchar;assembler;
+function strrscan(p : PAnsiChar;c : AnsiChar) : PAnsiChar;assembler;
 asm
         { empty/invalid string? }
         cmplwi  r3,0
@@ -452,7 +452,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
-function strupper(p : pchar) : pchar;assembler;
+function strupper(p : PAnsiChar) : PAnsiChar;assembler;
 asm
         cmplwi  r3,0
         beq     .LStrUpperNil
@@ -475,7 +475,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
-function strlower(p : pchar) : pchar;assembler;
+function strlower(p : PAnsiChar) : PAnsiChar;assembler;
 asm
         cmplwi  r3,0
         beq     .LStrLowerNil
