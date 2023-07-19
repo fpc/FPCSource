@@ -530,13 +530,9 @@ end;
 Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
-  Result:=False;
   Result:=fpkill(Handle,SIGTERM)=0;
-  If Result then
-    begin
-    If Running then
-      Result:=fpkill(Handle,SIGKILL)=0;
-    end;
+  If Result and Running then
+    Result:=fpkill(Handle,SIGKILL)=0;
   { the fact that the signal has been sent does not
     mean that the process has already handled the
     signal -> wait instead of calling getexitstatus }
