@@ -3,7 +3,7 @@
 program fpmake;
 
 uses
-  fpmkunit,
+  {$ifdef unix}cthreads,{$endif} fpmkunit,
   sysutils;
 {$endif ALLPACKAGES}
 

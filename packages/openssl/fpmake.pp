@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses {$ifdef unix}cthreads,{$endif}fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 Var
   P : TPackage;

@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 {$endif ALLPACKAGES}
 
 procedure add_rtl_extra(const ADirectory: string);
