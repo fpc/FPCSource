@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit;
+uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 
 {$endif ALLPACKAGES}
 
@@ -13,6 +13,8 @@ Const
 
 Var
   P : TPackage;
+  T : TTarget;
+  
 begin
   With Installer do
     begin
