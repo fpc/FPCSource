@@ -95,11 +95,6 @@ uses
 {$ifdef WINDOWS}
   windows,
 {$endif WINDOWS}
-{$ifndef NO_THREADING}
-{$ifdef UNIX}
-  cthreads,
-{$endif UNIX}
-{$endif NO_THREADING}
   SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
   ,process
