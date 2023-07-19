@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('{$ifdef unix}cthreads,{$endif} fpmkunit');
+    P:=AddPackage('fpmkunit');
     P.ShortName:='fpmk';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
@@ -37,7 +37,7 @@ begin
     D:=P.Dependencies.Add('fcl-process',AllOSes-[morphos,aros,amiga,go32v2,os2]);
     D:=P.Dependencies.Add('libtar');
 
-    with P.Targets.AddUnit('src/{$ifdef unix}cthreads,{$endif} fpmkunit.pp') do
+    with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;
 
 {$ifndef ALLPACKAGES}

@@ -17,7 +17,7 @@ Var
   Data2Inc : string;
 begin
   AddCustomFpmakeCommandlineOption('data2inc', 'Use indicated data2inc executable.');
-  AddCustomFpmakeCommandlineOption('gen{$ifdef unix}cthreads,{$endif} fpmkunit', 'Regenerate the fpmkunitsrc.inc file (fppkg).');
+  AddCustomFpmakeCommandlineOption('genfpmkunit', 'Regenerate the fpmkunitsrc.inc file (fppkg).');
 
   With Installer do
     begin
@@ -31,7 +31,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process',AllOSes-[go32v2,os2]);
     P.Dependencies.Add('paszlib');
-    P.Dependencies.Add('{$ifdef unix}cthreads,{$endif} fpmkunit');
+    P.Dependencies.Add('fpmkunit');
 
     P.Dependencies.Add('univint',[MacOSX,iphonesim,ios]);
     P.Dependencies.Add('fcl-net', TargetsWithfpWeb);
