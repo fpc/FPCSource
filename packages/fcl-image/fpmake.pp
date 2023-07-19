@@ -317,6 +317,12 @@ begin
           AddUnit('fpimage');
           AddUnit('qoicomn');
         end;
+    T:=P.Targets.AddUnit('fpcolorspace.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('fpspectraldata.inc');
+          AddUnit('fpimage');
+        end;
       
 
     P.ExamplePath.Add('examples');
