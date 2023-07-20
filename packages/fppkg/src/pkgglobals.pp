@@ -377,12 +377,15 @@ begin
   Close (TmpFile);
 {$ELSE USE_SHELL}
   S:=TProcess.Create(Nil);
-  S.Commandline:=ACompiler+' '+AOptions;
-  S.ShowWindow:=swoHIDE;
-  S.Options:=[poUsePipes];
-  S.execute;
-  Count:=s.output.read(buf,BufSize);
-  S.Free;
+  try
+    S.Commandline:=ACompiler+' '+AOptions;
+    S.ShowWindow:=swoHIDE;
+    S.Options:=[poUsePipes];
+    S.execute;
+    Count:=s.output.read(buf,BufSize);
+  finally
+    S.Free;
+  end;
 {$ENDIF USE_SHELL}
   SetLength(Result,Count);
   Move(Buf,Result[1],Count);
