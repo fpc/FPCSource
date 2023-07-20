@@ -27,11 +27,12 @@ interface
 uses FPImage;
 
 type
+  TIlluminant = string[10];
   PXYZReferenceWhite = ^TXYZReferenceWhite;
   TXYZReferenceWhite = packed record
     X, Y, Z: single;
     ObserverAngle: integer;
-    Illuminant: string;
+    Illuminant: TIlluminant;
     L,M,S: single;
   end;
 
@@ -406,12 +407,12 @@ function FPHueGSBAToHSLA(ghue: word): word;
 function FPHueHSLAToGSBA(hue: word): word;
 
 
-procedure FPReferenceWhiteSet(AObserverAngle: integer; AIlluminant: string); overload;
+procedure FPReferenceWhiteSet(AObserverAngle: integer; AIlluminant: TIlluminant); overload;
 procedure FPReferenceWhiteSet(AReferenceWhite: TXYZReferenceWhite); overload;
-function FPReferenceWhiteGet(AObserverAngle: integer; AIlluminant: string): PXYZReferenceWhite;
+function FPReferenceWhiteGet(AObserverAngle: integer; AIlluminant: TIlluminant): PXYZReferenceWhite;
 
 function FPReferenceWhiteAdd(const AReferenceWhite: TXYZReferenceWhite):PXYZReferenceWhite; overload;
-function FPReferenceWhiteAdd(AObserverAngle: integer; AIlluminant: string; AX, AY, AZ: single):PXYZReferenceWhite; overload;
+function FPReferenceWhiteAdd(AObserverAngle: integer; AIlluminant: TIlluminant; AX, AY, AZ: single):PXYZReferenceWhite; overload;
 
 procedure FPChromaticAdaptXYZ(var X,Y,Z: single; const AFrom, ATo: TXYZReferenceWhite); inline;
 procedure FPChromaticAdaptWordXYZ(var X,Y,Z: word; const AFrom, ATo: TXYZReferenceWhite); inline;
@@ -2396,7 +2397,7 @@ begin
   FPReferenceWhiteAdd(10, 'F11', 1.03866, 1.00, 0.65627);
 end;
 
-procedure FPReferenceWhiteSet(AObserverAngle: integer; AIlluminant: string);
+procedure FPReferenceWhiteSet(AObserverAngle: integer; AIlluminant: TIlluminant);
 var
   i: integer;
 begin
@@ -2417,7 +2418,7 @@ begin
   then FPReferenceWhite^ :=AReferenceWhite;
 end;
 
-function FPReferenceWhiteGet(AObserverAngle: integer; AIlluminant: string): PXYZReferenceWhite;
+function FPReferenceWhiteGet(AObserverAngle: integer; AIlluminant: TIlluminant): PXYZReferenceWhite;
 begin
   result := FPReferenceWhiteGet(AObserverAngle, AIlluminant);
   if result = nil then raise FPImageException.Create('Reference white not found');
@@ -2438,7 +2439,7 @@ begin
   Result :=@FPReferenceWhiteArray[Length(FPReferenceWhiteArray) - 1];
 end;
 
-function FPReferenceWhiteAdd(AObserverAngle: integer; AIlluminant: string; AX, AY, AZ: single):PXYZReferenceWhite;
+function FPReferenceWhiteAdd(AObserverAngle: integer; AIlluminant: TIlluminant; AX, AY, AZ: single):PXYZReferenceWhite;
 var
   rp: TXYZReferenceWhite;
 begin
