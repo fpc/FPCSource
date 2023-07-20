@@ -549,11 +549,31 @@ begin
   SetEvent(plocaleventrec(state)^.FHandle);
 end;
 
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; forward;
 
-type 
-      PWOHandleArray = ^THandle;
+var
+  Ole32Dll: THandle = 0; { Unloaded at win32 & win64 system_exit. }
+  CoWaitForMultipleHandlesImpl: function(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+    = @FirstCoWaitForMultipleHandles;
 
-function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; external 'ole32.dll' name 'CoWaitForMultipleHandles';
+function FirstCoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall;
+var
+  LocalOle32Dll: THandle;
+begin
+  if Ole32Dll = 0 then
+  begin
+    LocalOle32Dll := WinLoadLibraryW('ole32.dll');
+    if InterlockedCompareExchange(Pointer(Ole32Dll), Pointer(LocalOle32Dll), nil) <> nil then
+      WinFreeLibrary(LocalOle32Dll);
+  end;
+  CodePointer(CoWaitForMultipleHandlesImpl) := WinGetProcAddress(Ole32Dll, 'CoWaitForMultipleHandles');
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
+
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT;
+begin
+  Result := CoWaitForMultipleHandlesImpl(dwFlags, dwTimeout, cHandles, pHandles, lpdwindex);
+end;
 
 function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate;UseCOMWait: Boolean = False) : longint;
 const COWAIT_DEFAULT = 0;

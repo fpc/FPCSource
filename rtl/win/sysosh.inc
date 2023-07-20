@@ -77,6 +77,12 @@ procedure OleStrToStrVar(source : PWideChar;var dest : AnsiString);inline;
 function StringToOleStr(const source : ansistring) : PWideChar;inline;
 function StringToOleStr(const source : UnicodeString) : PWideChar;inline;
 
+{ To reuse the delayed loading of CoWaitForMultipleHandles in SyncObjs... }
+type
+  PWOHandleArray = ^TWOHandleArray;
+  TWOHandleArray = array[0 .. 63] of THandle;
+function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: uint32; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; inline;
+
 type
   TStartupInfo = record
     cb : DWord;
