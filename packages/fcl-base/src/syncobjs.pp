@@ -151,8 +151,6 @@ implementation
 
 {$ifdef MSWindows}
 uses Windows;
-
-function CoWaitForMultipleHandles(dwFlags, dwTimeout: DWORD; cHandles: ULONG; pHandles: PWOHandleArray; out lpdwindex: DWORD): HRESULT; stdcall; external 'ole32.dll' name 'CoWaitForMultipleHandles';
 {$endif}
 
 
