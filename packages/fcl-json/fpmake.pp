@@ -20,6 +20,7 @@ begin
     P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
+    P.Dependencies.Add('fcl-fpcunit');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -41,6 +42,12 @@ begin
       begin
       AddUnit('fpjson');
       AddUnit('jsonparser');
+     end;
+    T:=P.Targets.AddUnit('jsonfpcunit.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
      end;
         
     T:=P.Targets.AddUnit('jsonparser.pp');
