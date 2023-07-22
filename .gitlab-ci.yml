@@ -3,6 +3,7 @@ stages:
   - build
   - test
 
+
 # Template for Linux builds
 .linux: &linux
   before_script:
@@ -10,10 +11,23 @@ stages:
   tags:
     - saas-linux-medium-amd64
 
+# Template for multiarch execution by QEMU and binfmt_misc
+#.setup_multiarch:
+#  services:
+#    - docker:24.0-dind # necessary for docker run
+#  script:
+#    # script to register binfmt_misc entries and the static qemu binary files
+#    - docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes
+
 # Template for Alpine Linux builds
 .alpine_linux: &alpine_linux_configuration
   <<: *linux
   image: freepascal/fpc:3.2.2-minimal
+
+# Template for Debian builds
+.debian_linux: &debian_linux_configuration
+  <<: *linux
+  image: freepascal/fpc:3.2.2-buster-full
 
 # Template for Ubuntu builds
 .ubuntu_linux: &ubuntu_linux_configuration
@@ -21,27 +35,16 @@ stages:
   image: freepascal/fpc:3.2.2-focal-full
 
 
-# Templates for compiling
+# Templates for compiling compiler
 .full_cycle_of_compiler: &full_cycle_of_compiler
   stage: build compiler
   script:
     - cd compiler
     - make fullcycle -j $AVAILABLE_CPU_CORES "OPT=-Oodfa"
 
-
-
-
-Full Cycle of Compiler on Alpine Linux:
-  <<: [*full_cycle_of_compiler, *alpine_linux_configuration]
-
-
-Full Cycle of Compiler on Ubuntu Linux:
-  <<: [*full_cycle_of_compiler, *ubuntu_linux_configuration]
-
-
-Build FPC on Ubuntu Linux:
+# Templates for creating installation
+.creating_full_x86_64_installation: &creating_full_x86_64_installation
   stage: build
-  <<: *ubuntu_linux_configuration
   script:
     - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T $AVAILABLE_CPU_CORES" "OPT=-Oodfa"
   artifacts:
@@ -50,10 +53,9 @@ Build FPC on Ubuntu Linux:
     paths:
       - fpc-*.tar.gz
 
-
-Run FPC Tests on Ubuntu Linux:
+# Templates for running tests
+.run_tests: &run_tests
   stage: test
-  <<: *ubuntu_linux_configuration
   script:
     # extract installer from previous stage
     - tar -xzf fpc-*.tar.gz
@@ -74,3 +76,27 @@ Run FPC Tests on Ubuntu Linux:
       - testresult.xml
     reports:
       junit: testresult.xml
+
+
+Full Cycle of x86_64 Compiler on Alpine Linux:
+  <<: [*full_cycle_of_compiler, *alpine_linux_configuration]
+
+Full Cycle of x86_64 Compiler on Debian Linux:
+  <<: [*full_cycle_of_compiler, *debian_linux_configuration]
+
+Full Cycle of x86_64 Compiler on Ubuntu Linux:
+  <<: [*full_cycle_of_compiler, *ubuntu_linux_configuration]
+
+
+Build FPC x86_64 on Debian Linux:
+  <<: [*creating_full_x86_64_installation, *debian_linux_configuration]
+
+Build FPC x86_64 on Ubuntu Linux:
+  <<: [*creating_full_x86_64_installation, *ubuntu_linux_configuration]
+
+
+Run FPC x86_64 Tests on Debian Linux:
+  <<: [*run_tests, *debian_linux_configuration]
+
+Run FPC x86_64 Tests on Ubuntu Linux:
+  <<: [*run_tests, *ubuntu_linux_configuration]
