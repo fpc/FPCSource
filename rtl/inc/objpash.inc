@@ -639,6 +639,9 @@ Type
     property Value: Pointer read FValue write FValue;
   end;
 
+  { Generic array type. 
+    Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
+    But still useful for generic methods and of course Delphi compatibility}
   generic TArray<T> = array of T;
   
   TMarshal = class sealed

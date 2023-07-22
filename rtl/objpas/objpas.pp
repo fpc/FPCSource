@@ -68,11 +68,7 @@ interface
        
 {$if FPC_FULLVERSION >= 20701}
 
-      { Generic array type. 
-        Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
-        But still useful for generic methods and of course Delphi compatibility}
-      
-      Generic TArray<T> = Array of T;
+     
       
       { Generic support for enumerator interfaces. These are added here, because
         mode (Obj)FPC does currently not allow the overloading of types with
