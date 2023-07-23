@@ -294,13 +294,8 @@ const
     (CSIDL: CSIDL_PROFILES;                 FOLDERID: @FOLDERID_UserProfiles)
   );
 
-// CoTaskMemFree is required for the use of SHGetKnownFolderPath function.
-// CoTaskMemFree function signature was copied from ActiveX unit.
-procedure CoTaskMemFree(_para1:PVOID); stdcall; external 'ole32.dll' name 'CoTaskMemFree';
-
 type
   KNOWNFOLDERID = TGUID;
-  PWSTR = PWideChar;
 
 type
   // HRESULT SHGetFolderPath(
@@ -324,17 +319,16 @@ type
   // DLL: Shell32.dll (version 6.0.6000 or later)
   // OS: Windows Vista / Server 2008 and newer
   TSHGetKnownFolderPathW = function(const rfid: KNOWNFOLDERID; dwFlags: DWORD;
-    hToken: THandle; out ppszPath: PWSTR): HRESULT; stdcall;
-
-const
-  SSHGetFolderPathW = 'SHGetFolderPathW';
-  SSHGetKnownFolderPathW = 'SHGetKnownFolderPath';
-  SLibName = 'shell32.dll';
+    hToken: THandle; out ppszPath: LPWSTR): HRESULT; stdcall;
 
 var
   _SHGetFolderPathW : TSHGetFolderPathW = nil;
   _SHGetKnownFolderPathW: TSHGetKnownFolderPathW = nil;
-  DLLHandle: THandle = 0;
+  // CoTaskMemFree is required for the use of SHGetKnownFolderPath function.
+  // CoTaskMemFree function signature was copied from ActiveX unit.
+  _CoTaskMemFree: procedure(_para1:PVOID); stdcall; = nil;
+  Shell32DLLHandle: THandle = 0;
+  Ole32DLLHandle: THandle = 0;
 
 {
   Taken from sysutils
@@ -371,36 +365,17 @@ end;
 }
 
 procedure InitDLL;
-var
-  DLLPath: UnicodeString;
 begin
-  if DLLHandle = 0 then
-  begin
-    // Load DLL using a full path, in order to prevent spoofing (Mantis #18185)
-    DLLPath := GetWindowsSystemDirectoryUnicode;
-    if Length(DLLPath) > 0 then
-    begin
-      DLLPath := IncludeTrailingPathDelimiter(DLLPath) + SLibName;
-      DLLHandle := LoadLibraryW(PWideChar(DLLPath));
-      if DLLHandle <> 0 then
-      begin
-        Pointer(_SHGetFolderPathW) := GetProcAddress(DLLHandle, SSHGetFolderPathW);
-        Pointer(_SHGetKnownFolderPathW) := GetProcAddress(DLLHandle, SSHGetKnownFolderPathW);
-      end;
-    end;
-  end;
-  // At least one of SHGetFolderPath or SHGetKnownFolderPath functions is required
-  if (@_SHGetFolderPathW = nil) and (@_SHGetKnownFolderPathW = nil) then
-    runError(6); // raise Exception.Create('Could not locate '+SSHGetFolderPathW+' / '+SSHGetKnownFolderPathW+' functions');
-end;
+  if Shell32DLLHandle <> 0 then
+    exit;
+  { Btw, contrary to Mantis #18185 these DLLs are “Known DLLs” so relative paths won’t check the app folder.
+    (And even if they did, so what: wrong app.exe can be spoofed just as well as wrong shell32.dll). }
+  Shell32DLLHandle := LoadLibraryW('shell32.dll');
+  Pointer(_SHGetFolderPathW) := GetProcAddress(Shell32DLLHandle, 'SHGetFolderPathW');
+  Pointer(_SHGetKnownFolderPathW) := GetProcAddress(Shell32DLLHandle, 'SHGetKnownFolderPath');
 
-procedure FinitDLL;
-begin
-  if DLLHandle <> 0 then
-  begin
-    FreeLibrary(DLLHandle);
-    DLLHandle := 0;
-  end;
+  Ole32DLLHandle := LoadLibraryW('ole32.dll');
+  Pointer(_CoTaskMemFree) := GetProcAddress(Ole32DLLHandle, 'CoTaskMemFree');
 end;
 
 function GetWindowsSystemDirectoryUnicode: UnicodeString;
@@ -408,13 +383,12 @@ var
   Buffer: array [0..MAX_PATH] of WideChar;
   CharCount: Integer;
 begin
-  CharCount := GetSystemDirectoryW(@Buffer[0], MAX_PATH);
+  CharCount := GetSystemDirectoryW(@Buffer[0], Length(Buffer));
   // CharCount is length in TCHARs not including the terminating null character.
   // If result did not fit, CharCount will be bigger than buffer size.
-  if (CharCount > 0) and (CharCount < MAX_PATH) then
-    Result := StrPas(Buffer)
-  else
-    Result := '';
+  if CharCount > High(Buffer) then
+    CharCount := 0;
+  SetString(Result, PWideChar(Buffer), CharCount);
 end;
 
 function GetWindowsSystemDirectory: String;
@@ -429,29 +403,21 @@ var
 begin
   InitDLL;
   Result := '';
-  if @_SHGetFolderPathW = nil then
-  begin
-    if ConvertCSIDLtoFOLDERID(ID, FOLDERID) then
-      Result := GetWindowsSpecialDirUnicode(FOLDERID, CreateIfNotExists);
-  end
-  else
-  begin
-    if CreateIfNotExists then
-      ID := ID or CSIDL_FLAG_CREATE;
-    if _SHGetFolderPathW(0, ID, 0, 0, @Buffer[0]) = S_OK then
-      Result := IncludeTrailingPathDelimiter(StrPas(Buffer));
-  end;
+  if CreateIfNotExists then
+    ID := ID or CSIDL_FLAG_CREATE;
+  if _SHGetFolderPathW(0, ID, 0, 0, @Buffer[0]) = S_OK then
+    Result := IncludeTrailingPathDelimiter(StrPas(Buffer));
 end;
 
 function GetWindowsSpecialDirUnicode(const GUID: TGUID; CreateIfNotExists: Boolean = True): UnicodeString;
 var
   Flags: DWORD;
-  Path: PWSTR;
+  Path: LPWSTR;
   CSIDL: Integer;
 begin
   InitDLL;
   Result := '';
-  if @_SHGetKnownFolderPathW = nil then
+  if _SHGetKnownFolderPathW = nil then
   begin
     if ConvertFOLDERIDtoCSIDL(GUID, CSIDL) then
       Result := GetWindowsSpecialDirUnicode(CSIDL, CreateIfNotExists);
@@ -465,7 +431,7 @@ begin
     if _SHGetKnownFolderPathW(GUID, Flags, 0, Path) = S_OK then
     begin
       Result := StrPas(Path);
-      CoTaskMemFree(Path);
+      _CoTaskMemFree(Path);
     end;
   end;
 end;
@@ -486,19 +452,11 @@ var
 begin
   Result := False;
   for I := Low(CSIDLtoFOLDERID) to High(CSIDLtoFOLDERID) do
-  begin
     if CSIDLtoFOLDERID[I].CSIDL = CSIDL then
     begin
-      if CSIDLtoFOLDERID[I].FOLDERID <> nil then
-      begin
-        FOLDERID := CSIDLtoFOLDERID[I].FOLDERID^;
-        Result := True;
-        Break;
-      end
-      else
-        Break;
+      FOLDERID := CSIDLtoFOLDERID[I].FOLDERID^;
+      Exit(True);
     end;
-  end;
 end;
 
 function ConvertFOLDERIDtoCSIDL(const FOLDERID: TGUID; out CSIDL: Integer): Boolean;
@@ -507,21 +465,18 @@ var
 begin
   Result := False;
   for I := Low(CSIDLtoFOLDERID) to High(CSIDLtoFOLDERID) do
-  begin
-    if CSIDLtoFOLDERID[I].FOLDERID <> nil then
+    if IsEqualGUID(CSIDLtoFOLDERID[I].FOLDERID^, FOLDERID) then
     begin
-      if IsEqualGUID(CSIDLtoFOLDERID[I].FOLDERID^, FOLDERID) then
-      begin
-        CSIDL := CSIDLtoFOLDERID[I].CSIDL;
-        Result := True;
-        Break;
-      end;
+      CSIDL := CSIDLtoFOLDERID[I].CSIDL;
+      Exit(True);
     end;
-  end;
 end;
 
 finalization
-  FinitDLL;
+  if Shell32DLLHandle <> 0 then
+    FreeLibrary(Shell32DLLHandle);
+  if Ole32DLLHandle <> 0 then
+    FreeLibrary(Ole32DLLHandle);
 
 end.
 
