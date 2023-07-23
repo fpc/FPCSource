@@ -12,6 +12,9 @@
 {-$define test_things_broken_in_xe3}
 
 uses
+{$ifdef unix }
+cwstring,
+{$endif}
 	SysUtils;
 
 var
