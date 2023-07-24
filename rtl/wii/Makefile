@@ -9,6 +9,7 @@ LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
 ifneq ($(findstring darwin,$(OSTYPE)),)
 inUnix=1 #darwin
@@ -167,8 +168,20 @@ endif
 ifndef OS_TARGET
 OS_TARGET:=$(word 5,$(FPC_COMPILERINFO))
 endif
-FULL_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+CPU_OS_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+ifdef SUB_TARGET
+L_SUB_TARGET=$(call lc,$(SUB_TARGET))
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)-$(L_SUB_TARGET)
+else
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)
+endif
+CPU_OS_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+ifdef SUB_SOURCE
+L_SUB_SOURCE=$(call lc,$(SUB_SOURCE))
+FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)-$(L_SUB_SOURCE)
+else
 FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+endif
 ifeq ($(CPU_TARGET),armeb)
 ARCH=arm
 override FPCOPT+=-Cb
@@ -181,6 +194,10 @@ ARCH=$(CPU_TARGET)
 endif
 endif
 ifeq ($(FULL_TARGET),aarch64-embedded)
+endif
+ifdef SUB_TARGET 
+FPCOPT+=-t$(SUB_TARGET)
+FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
@@ -229,11 +246,11 @@ TARGETSUFFIX=$(FULL_TARGET)
 endif
 SOURCESUFFIX=$(FULL_SOURCE)
 endif
-ifneq ($(FULL_TARGET),$(FULL_SOURCE))
+ifneq ($(CPU_OS_TARGET),$(CPU_OS_SOURCE))
 CROSSCOMPILE=1
 endif
 ifeq ($(findstring makefile,$(MAKECMDGOALS)),)
-ifeq ($(filter $(FULL_TARGET),$(MAKEFILETARGETS)),)
+ifeq ($(filter $(CPU_OS_TARGET),$(MAKEFILETARGETS)),)
 $(error The Makefile doesn't support target $(FULL_TARGET), please run fpcmake first)
 endif
 endif
@@ -251,7 +268,7 @@ ifdef BUILDFULLNATIVE
 BUILDNATIVE=1
 export BUILDNATIVE
 endif
-export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
+export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE SUB_TARGET SUB_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE CPU_OS_TARGET CPU_OS_SOURCE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
 ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
@@ -365,1337 +382,1337 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings dos sortbase sysutils classes math typinfo ctypes charset cpall getopts character fpwidestring unicodedata types rtlconsts sysconst lineinfo fgl cmem
 endif
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
 override INSTALL_FPCPACKAGE=y
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON)
 endif
 ifdef REQUIRE_UNITSDIR
