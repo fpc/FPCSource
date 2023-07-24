@@ -1346,172 +1346,79 @@ begin
   System.Move(Src.Value^, Dest.Value^, Count);
 end;
 
-class function TMarshal.AsAnsi(const S: UnicodeString): AnsiString;
-begin
-  Result := AnsiString(S);
-end;
-
-class function TMarshal.AsAnsi(S: PUnicodeChar): AnsiString;
-begin
-  result := AnsiString(S);
-end;
-
-class function TMarshal.InOutString(const S: UnicodeString): PUnicodeChar;
-begin
-  Result := PUnicodeChar(S);
-end;
-
-class function TMarshal.InString(const S: UnicodeString): PUnicodeChar;
-begin
-  Result := PUnicodeChar(S);
-end;
-
-class function TMarshal.OutString(const S: UnicodeString): PUnicodeChar;
-begin
-  Result := PUnicodeChar(S);
-end;
 
 class function TMarshal.UnsafeAddrOf(var Value): TPtrWrapper;
 begin
   Result.Value := @Value;
 end;
 
-class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), DefaultSystemCodePage);
-end;
 
-class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString; CodePage: Word): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CodePage);
-end;
-
-class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(S, Length(S), DefaultSystemCodePage);
-end;
-
-class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; CodePage: Word): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(S, Length(S), CodePage);
-end;
-
-class function TMarshal.AllocStringAsUnicode(const Str: UnicodeString): TPtrWrapper;
-var
-  NBytes: SizeUint;
-begin
-  NBytes := (Length(Str) + 1) * SizeOf(UnicodeChar);
-  Result.Value := System.GetMem(NBytes);
-  System.Move(PUnicodeChar(Str)^, Result.Value^, NBytes);
-end;
-
-class function TMarshal.AllocStringAsUtf8(const Str: UnicodeString): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CP_UTF8);
-end;
-
-class function TMarshal.AllocStringAsUtf8(S: PUnicodeChar): TPtrWrapper;
-begin
-  Result := AllocStringAsAnsi(S, Length(S), CP_UTF8);
-end;
-
-class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; Len: SizeInt; CodePage: Word): TPtrWrapper;
-var
-  U2ARes: AnsiString;
-  NBytes: SizeInt;
-begin
-  U2ARes := ''; { Suppress warning. }
-  WideStringManager.Unicode2AnsiMoveProc(S, U2ARes, CodePage, Len);
-  if Length(U2ARes) = 0 then
-  begin
-    Result.Value := nil;
-    Exit;
-  end;
-  { Could instead avoid the second allocation, assuming U2ARes.RefCount = 1:
-    System.Move(Pointer(U2ARes)^, (Pointer(U2ARes) - AnsiStringHeaderSize)^, (Length(U2ARes) + 1) * SizeOf(AnsiChar));
-    Result.FValue := Pointer(U2ARes) - AnsiStringHeaderSize;
-    Pointer(U2ARes) := nil; }
-  NBytes := (Length(U2ARes) + 1) * SizeOf(AnsiChar);
-  Result.Value := System.GetMem(NBytes);
-  System.Move(PAnsiChar(U2ARes)^, Result.Value^, NBytes);
-end;
-
-class procedure TMarshal.Copy(const Src: specialize TArray<UnicodeChar>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
-begin
-  System.Move(PUnicodeChar(Src)[StartIndex], Dest.Value^, Count * SizeOf(UnicodeChar));
-end;
-
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<UnicodeChar>; StartIndex: SizeInt; Count: SizeInt);
-begin
-  System.Move(Src.Value^, PUnicodeChar(Dest)[StartIndex], Count * SizeOf(UnicodeChar));
-end;
-
-class procedure TMarshal.Copy(const Src: specialize TArray<UInt8>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TUint8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PUInt8(Src)[StartIndex], Dest.Value^, Count * SizeOf(UInt8));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<UInt8>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUint8Array; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PUInt8(Dest)[StartIndex], Count * SizeOf(UInt8));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<Int8>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TInt8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PInt8(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int8));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int8>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt8Array ; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PInt8(Dest)[StartIndex], Count * SizeOf(Int8));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<UInt16>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TUInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PUInt16(Src)[StartIndex], Dest.Value^, Count * SizeOf(UInt16));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<UInt16>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUint16Array; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PUInt16(Dest)[StartIndex], Count * SizeOf(UInt16));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<Int16>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PInt16(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int16));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int16>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt16Array; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PInt16(Dest)[StartIndex], Count * SizeOf(Int16));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<Int32>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TInt32Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PInt32(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int32));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int32>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt32Array; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PInt32(Dest)[StartIndex], Count * SizeOf(Int32));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<Int64>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TInt64Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PInt64(Src)[StartIndex], Dest.Value^, Count * SizeOf(Int64));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int64>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TInt64Array; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PInt64(Dest)[StartIndex], Count * SizeOf(Int64));
 end;
 
-class procedure TMarshal.Copy(const Src: specialize TArray<TPtrWrapper>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+class procedure TMarshal.Copy(const Src: TPtrWrapperArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
 begin
   System.Move(PPointer(Src)[StartIndex], Dest.Value^, Count * SizeOf(TPtrWrapper));
 end;
 
-class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: specialize TArray<TPtrWrapper>; StartIndex: SizeInt; Count: SizeInt);
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TPtrWrapperArray; StartIndex: SizeInt; Count: SizeInt);
 begin
   System.Move(Src.Value^, PPointer(Dest)[StartIndex], Count * SizeOf(TPtrWrapper));
 end;
@@ -1527,28 +1434,6 @@ begin
   Finalize(specialize TArray<T>(ArrPtr));
 end;
 
-class function TMarshal.FixString(var Str: UnicodeString): TPtrWrapper;
-begin
-  UniqueString(Str);
-  Result := UnsafeFixString(Str);
-end;
-
-class procedure TMarshal.UnfixString(Ptr: TPtrWrapper);
-begin
-  if Ptr.Value <> PUnicodeChar('') then
-    Finalize(UnicodeString(Ptr));
-end;
-
-class function TMarshal.UnsafeFixString(const Str: UnicodeString): TPtrWrapper;
-begin
-  if Length(Str) = 0 then
-  begin
-    Result.Value := PUnicodeChar('');
-    Exit;
-  end;
-  Result.Value := nil;
-  UnicodeString(Result) := Str;
-end;
 
 class function TMarshal.ReadByte(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Byte;
 begin
@@ -1623,6 +1508,126 @@ end;
 class procedure TMarshal.WritePtr(Ptr, Value: TPtrWrapper);
 begin
   PPointer(Ptr.Value)^ := Value.Value;
+end;
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
+
+class function TMarshal.AsAnsi(const S: UnicodeString): AnsiString;
+begin
+  Result := AnsiString(S);
+end;
+
+class function TMarshal.AsAnsi(S: PUnicodeChar): AnsiString;
+begin
+  result := AnsiString(S);
+end;
+
+class function TMarshal.InOutString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.InString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.OutString(const S: UnicodeString): PUnicodeChar;
+begin
+  Result := PUnicodeChar(S);
+end;
+
+class function TMarshal.FixString(var Str: UnicodeString): TPtrWrapper;
+begin
+  UniqueString(Str);
+  Result := UnsafeFixString(Str);
+end;
+
+class procedure TMarshal.UnfixString(Ptr: TPtrWrapper);
+begin
+  if Ptr.Value <> PUnicodeChar('') then
+    Finalize(UnicodeString(Ptr));
+end;
+
+class function TMarshal.UnsafeFixString(const Str: UnicodeString): TPtrWrapper;
+begin
+  if Length(Str) = 0 then
+  begin
+    Result.Value := PUnicodeChar('');
+    Exit;
+  end;
+  Result.Value := nil;
+  UnicodeString(Result) := Str;
+end;
+
+class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), DefaultSystemCodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(const Str: UnicodeString; CodePage: Word): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), DefaultSystemCodePage);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; CodePage: Word): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), CodePage);
+end;
+
+class function TMarshal.AllocStringAsUnicode(const Str: UnicodeString): TPtrWrapper;
+var
+  NBytes: SizeUint;
+begin
+  NBytes := (Length(Str) + 1) * SizeOf(UnicodeChar);
+  Result.Value := System.GetMem(NBytes);
+  System.Move(PUnicodeChar(Str)^, Result.Value^, NBytes);
+end;
+
+class function TMarshal.AllocStringAsUtf8(const Str: UnicodeString): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(PUnicodeChar(Pointer(Str)), Length(Str), CP_UTF8);
+end;
+
+class function TMarshal.AllocStringAsUtf8(S: PUnicodeChar): TPtrWrapper;
+begin
+  Result := AllocStringAsAnsi(S, Length(S), CP_UTF8);
+end;
+
+class function TMarshal.AllocStringAsAnsi(S: PUnicodeChar; Len: SizeInt; CodePage: Word): TPtrWrapper;
+var
+  U2ARes: AnsiString;
+  NBytes: SizeInt;
+begin
+  U2ARes := ''; { Suppress warning. }
+  WideStringManager.Unicode2AnsiMoveProc(S, U2ARes, CodePage, Len);
+  if Length(U2ARes) = 0 then
+  begin
+    Result.Value := nil;
+    Exit;
+  end;
+  { Could instead avoid the second allocation, assuming U2ARes.RefCount = 1:
+    System.Move(Pointer(U2ARes)^, (Pointer(U2ARes) - AnsiStringHeaderSize)^, (Length(U2ARes) + 1) * SizeOf(AnsiChar));
+    Result.FValue := Pointer(U2ARes) - AnsiStringHeaderSize;
+    Pointer(U2ARes) := nil; }
+  NBytes := (Length(U2ARes) + 1) * SizeOf(AnsiChar);
+  Result.Value := System.GetMem(NBytes);
+  System.Move(PAnsiChar(U2ARes)^, Result.Value^, NBytes);
+end;
+
+class procedure TMarshal.Copy(const Src: TUnicodeCharArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt);
+begin
+  System.Move(PUnicodeChar(Src)[StartIndex], Dest.Value^, Count * SizeOf(UnicodeChar));
+end;
+
+class procedure TMarshal.Copy(Src: TPtrWrapper; var Dest: TUnicodeCharArray; StartIndex: SizeInt; Count: SizeInt);
+begin
+  System.Move(Src.Value^, PUnicodeChar(Dest)[StartIndex], Count * SizeOf(UnicodeChar));
 end;
 
 class function TMarshal.ReadStringAsAnsi(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString;
@@ -1742,3 +1747,5 @@ class procedure TMarshal.WriteStringAsUtf8(Ptr: TPtrWrapper; Ofs: SizeInt; const
 begin
   WriteStringAsAnsi(Ptr, Ofs, Value, MaxCharsIncNull, CP_UTF8);
 end;
+
+{$ENDIF}
