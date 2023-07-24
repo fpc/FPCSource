@@ -205,6 +205,8 @@ Type
     property Chars[AIndex: SizeInt]: AnsiChar read GetChar;
     property Length: SizeInt read GetLength;
   end;
+  
+  
 
   TCurrencyHelper = type helper for Currency
   private
@@ -655,7 +657,13 @@ Type
       property Length: SizeInt read GetLength;
     end;
 
-
+{$IF SIZEOF(CHAR)=2}
+  TStringHelper = Type helper(TUnicodeStringHelper) for UnicodeString
+  end;
+{$ELSE}
+  TStringHelper = Type helper(TAnsiStringHelper) for ansistring
+  end;  
+{$ENDIF}
 
 {$IFDEF FPC_HAS_TYPE_SINGLE}
   TSingleHelper = Type Helper for Single
