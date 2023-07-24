@@ -520,7 +520,7 @@ type
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
-    Function ToString: ansistring; override;
+    Function ToString: RTLString; override;
     Property RequestID : String Read FRequestID;
     Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
@@ -576,7 +576,7 @@ type
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
     Procedure SendRedirect(const TargetURL:String);
-    Function ToString: ansistring; override;
+    Function ToString: RTLstring; override;
     // Set Code and CodeText. Send content if aSend=True
     Procedure SetStatus(aStatus : Cardinal; aSend : Boolean = False);
     Property Request : TRequest Read FRequest;
@@ -2253,7 +2253,7 @@ begin
  {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s" : %s',[P,FReturnedPathInfo,Result]));{$ENDIF}
 end;
 
-function TRequest.ToString: ansistring;
+function TRequest.ToString: rtlstring;
 begin
   Result:='['+RequestID+'] : '+URL;
 end;
@@ -2964,7 +2964,7 @@ begin
     end;
 end;
 
-function TResponse.ToString: ansistring;
+function TResponse.ToString: rtlstring;
 begin
   if assigned(Request) then
     Result:=Request.ToString

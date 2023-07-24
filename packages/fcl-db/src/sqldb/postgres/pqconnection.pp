@@ -68,7 +68,7 @@ type
     Function CheckConnectionStatus(doRaise : Boolean = True) : Boolean;
     Function DescribePrepared(StmtName : String): PPGresult;
     Function Exec(aSQL : String; aClearResult : Boolean; aError : String = '') : PPGresult;
-    function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPchar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
+    function ExecPrepared(stmtName: AnsiString; nParams:longint; paramValues:PPAnsichar; paramLengths:Plongint;paramFormats:Plongint; aClearResult : Boolean) : PPGresult;
     procedure CheckResultError(var res: PPGresult; Actions : TCheckResultActions; const ErrMsg: string);
     Property Connection : TPQConnection Read FCOnnection;
     Property NativeConn : PPGConn Read FNativeConn;
@@ -831,7 +831,7 @@ Var
 
 begin
   S:=StmtName;
-  Result:=PQdescribePrepared(FNativeConn,pchar(S));
+  Result:=PQdescribePrepared(FNativeConn,pansichar(S));
 end;
 
 function TPGHandle.Exec(aSQL: String; aClearResult: Boolean; aError: String): PPGresult;
@@ -856,7 +856,7 @@ begin
 end;
 
 function TPGHandle.ExecPrepared(stmtName: AnsiString; nParams: longint;
-  paramValues: PPchar; paramLengths: Plongint; paramFormats: Plongint;
+  paramValues: PPAnsichar; paramLengths: Plongint; paramFormats: Plongint;
   aClearResult: Boolean): PPGresult;
 
 var
