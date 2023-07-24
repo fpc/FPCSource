@@ -44,8 +44,10 @@
   { Type helpers}
   {$i syshelp.inc}
 
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
   { strange Delphi thing }
   {$i sysmarshal.inc}
+{$ENDIF}  
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;

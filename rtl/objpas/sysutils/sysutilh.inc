@@ -336,8 +336,10 @@ Type
   { interface handling }
   {$i intfh.inc}
 
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
   { strange Delphi thing }
   {$i sysmarshalh.inc}
+{$ENDIF}  
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
