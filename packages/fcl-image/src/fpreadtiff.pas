@@ -105,7 +105,7 @@ type
     function ReadEntryUnsigned: DWord;
     function ReadEntrySigned: Cint32;
     function ReadEntryRational: TTiffRational;
-    function ReadEntryString: string;
+    function ReadEntryString: AnsiString;
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
     procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
