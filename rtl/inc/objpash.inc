@@ -638,13 +638,29 @@ Type
     { ...to allow convenient and direct reading without relying on inline... and convenient writing from SysUtils until TMarshal is moved here... }
     property Value: Pointer read FValue write FValue;
   end;
+  TPtrWrapperArray = Array of TPtrWrapper;
 
   { Generic array type. 
     Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
     But still useful for generic methods and of course Delphi compatibility}
   generic TArray<T> = array of T;
   
+  
+  
   TMarshal = class sealed
+  public
+    Type 
+      TUnicodeCharArray = Array of UnicodeChar;
+      Tint8Array = Array of int8;
+      Tint16Array = Array of int16;
+      Tint32Array = Array of int32;
+      Tint64Array = Array of int64;
+      TUint8Array = Array of Uint8;
+      TUint16Array = Array of Uint16;
+      TUint32Array = Array of Uint32;
+      TUint64Array = Array of Uint64;
+      
+  Public
     constructor Create;
 
     class function AllocMem(Size: SizeInt): TPtrWrapper; static; inline;
@@ -652,14 +668,15 @@ Type
     class procedure FreeMem(Ptr: TPtrWrapper); static; inline;
     class procedure Move(Src, Dest: TPtrWrapper; Count: SizeInt); static; inline;
 
+    class function UnsafeAddrOf(var Value): TPtrWrapper; static; inline;
+
+{$IFDEF FPC_HAS_FEATURE_UNICODESTRINGS}
     class function AsAnsi(const S: UnicodeString): AnsiString; static; inline;
     class function AsAnsi(S: PUnicodeChar): AnsiString; static; inline;
 
     class function InOutString(const S: UnicodeString): PUnicodeChar; static; inline;
     class function InString(const S: UnicodeString): PUnicodeChar; static; inline;
     class function OutString(const S: UnicodeString): PUnicodeChar; static; inline;
-
-    class function UnsafeAddrOf(var Value): TPtrWrapper; static; inline;
 
     class function AllocStringAsAnsi(const Str: UnicodeString): TPtrWrapper; static; inline;
     class function AllocStringAsAnsi(const Str: UnicodeString; CodePage: Word): TPtrWrapper; static; inline;
@@ -672,29 +689,51 @@ Type
     { Generalization of all AllocStringAsAnsi* above, public because used in TMarshaller. }
     class function AllocStringAsAnsi(S: PUnicodeChar; Len: SizeInt; CodePage: Word): TPtrWrapper; static;
 
-    class procedure Copy(const Src: specialize TArray<UnicodeChar>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<UnicodeChar>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<UInt8>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<UInt8>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<Int8>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int8>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<UInt16>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<UInt16>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<Int16>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int16>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<Int32>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int32>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<Int64>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<Int64>; StartIndex: SizeInt; Count: SizeInt); static; inline;
-    class procedure Copy(const Src: specialize TArray<TPtrWrapper>; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
-    class procedure Copy(Src: TPtrWrapper; var Dest: specialize TArray<TPtrWrapper>; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TUnicodeCharArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class function FixString(var Str: UnicodeString): TPtrWrapper; static;
+    class function UnsafeFixString(const Str: UnicodeString): TPtrWrapper; static;
+    class procedure UnfixString(Ptr: TPtrWrapper); static;
+
+    class function ReadStringAsAnsi(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
+    class function ReadStringAsAnsi(CodePage: Word; Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
+    class function ReadStringAsAnsiUpTo(CodePage: Word; Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
+
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static;
+
+    class function ReadStringAsUnicode(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
+    class function ReadStringAsUnicodeUpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
+    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
+    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
+
+    class function ReadStringAsUtf8(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
+    class function ReadStringAsUtf8UpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static; inline;
+    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUnicodeCharArray; StartIndex: SizeInt; Count: SizeInt); static; inline;
+{$ENDIF}
+
+    class procedure Copy(const Src: TUint8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUint8Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt8Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt8Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TUInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TUInt16Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt16Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt16Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt32Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt32Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TInt64Array; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TInt64Array; StartIndex: SizeInt; Count: SizeInt); static; inline;
+    class procedure Copy(const Src: TPtrWrapperArray; StartIndex: SizeInt; Dest: TPtrWrapper; Count: SizeInt); static; inline;
+    class procedure Copy(Src: TPtrWrapper; var Dest: TPtrWrapperArray; StartIndex: SizeInt; Count: SizeInt); static; inline;
 
     generic class function FixArray<T>(const Arr: specialize TArray<T>): TPtrWrapper; static;
     generic class procedure UnfixArray<T>(ArrPtr: TPtrWrapper); static;
 
-    class function FixString(var Str: UnicodeString): TPtrWrapper; static;
-    class procedure UnfixString(Ptr: TPtrWrapper); static;
-    class function UnsafeFixString(const Str: UnicodeString): TPtrWrapper; static;
+
 
     class function ReadByte(Ptr: TPtrWrapper; Ofs: SizeInt = 0): Byte; static; inline;
     class procedure WriteByte(Ptr: TPtrWrapper; Ofs: SizeInt; Value: Byte); static; inline;
@@ -716,21 +755,5 @@ Type
     class procedure WritePtr(Ptr: TPtrWrapper; Ofs: SizeInt; Value: TPtrWrapper); static; inline;
     class procedure WritePtr(Ptr, Value: TPtrWrapper); static; inline;
 
-    class function ReadStringAsAnsi(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
-    class function ReadStringAsAnsi(CodePage: Word; Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
-    class function ReadStringAsAnsiUpTo(CodePage: Word; Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
-    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
-    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static; inline;
-    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
-    class procedure WriteStringAsAnsi(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt; CodePage: Word); static;
 
-    class function ReadStringAsUnicode(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static;
-    class function ReadStringAsUnicodeUpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static;
-    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
-    class procedure WriteStringAsUnicode(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static;
-
-    class function ReadStringAsUtf8(Ptr: TPtrWrapper; Len: SizeInt = -1): UnicodeString; static; inline;
-    class function ReadStringAsUtf8UpTo(Ptr: TPtrWrapper; MaxLen: SizeInt): UnicodeString; static; inline;
-    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
-    class procedure WriteStringAsUtf8(Ptr: TPtrWrapper; Ofs: SizeInt; const Value: UnicodeString; MaxCharsIncNull: SizeInt); static; inline;
   end;
