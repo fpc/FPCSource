@@ -153,7 +153,7 @@ const
 			Expect(IntToHex(LEtoN(TMarshal.ReadInt16(pw2, 5)), 4), '2345', 'ReadInt16');
 			Expect(IntToHex(LEtoN(TMarshal.ReadInt32(pw2, 7)), 8), '6789ABCD', 'ReadInt32');
 			Expect(IntToHex(LEtoN(TMarshal.ReadInt64(pw2, 11)), 16), 'EF00112233445566', 'ReadInt64');
-			Expect(IntToHex(LEtoN(TMarshal.ReadPtr(pw2, 19).ToInteger), sizeof(pointer) * 2), IntToHex(NativeUint(ptrVal), sizeof(pointer) * 2), 'ReadPtr');
+			Expect(IntToHex(TMarshal.ReadPtr(pw2, 19).ToInteger, sizeof(pointer) * 2), IntToHex(NativeUint(ptrVal), sizeof(pointer) * 2), 'ReadPtr');
 
 			pw := TMarshal.AllocMem(19);
 			TMarshal.Move(pw2, pw, 19);
