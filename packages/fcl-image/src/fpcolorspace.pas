@@ -28,6 +28,7 @@ uses FPImage;
 
 type
   TIlluminant = string[10];
+
   PXYZReferenceWhite = ^TXYZReferenceWhite;
   TXYZReferenceWhite = packed record
     X, Y, Z: single;
@@ -298,6 +299,7 @@ type
   TStdHSLAHelper = record helper for TStdHSLA
     function ToStdRGBA: TStdRGBA;
     function ToStdHSVA: TStdHSVA;
+    function ToExpandedPixel: TExpandedPixel;
   end;
 
   { TStdHSVAHelper }
@@ -311,6 +313,8 @@ type
 
   TStdCMYKHelper = record helper for TStdCMYK
     function ToStdRGBA(AAlpha: Single = 1): TStdRGBA;
+    function ToExpandedPixel: TExpandedPixel;overload;
+    function ToExpandedPixel(AAlpha: word): TExpandedPixel;overload;
   end;
 
   { TByteMaskHelper }
@@ -357,6 +361,8 @@ type
     function ToXYZA: TXYZA; overload;
     function ToXYZA(const AReferenceWhite: TXYZReferenceWhite): TXYZA; overload;
     function ToLChA: TLChA;
+    function ToExpandedPixel: TExpandedPixel; overload;
+    function ToExpandedPixel(const AReferenceWhite: TXYZReferenceWhite): TExpandedPixel; overload;
   end;
 
   { TLChAHelper }
@@ -1630,6 +1636,11 @@ begin
   Result.value := v;
 end;
 
+function TStdHSLAHelper.ToExpandedPixel: TExpandedPixel;
+begin
+  result :=self.ToStdRGBA.ToExpandedPixel;
+end;
+
 { TStdHSVAHelper }
 
 function TStdHSVAHelper.ToStdRGBA: TStdRGBA;
@@ -1718,7 +1729,27 @@ begin
   end;
 end;
 
+function TStdCMYKHelper.ToExpandedPixel: TExpandedPixel;
+begin
+  self.ToStdRGBA.ToExpandedPixel;
+end;
+
+function TStdCMYKHelper.ToExpandedPixel(AAlpha: word): TExpandedPixel;
+begin
+  self.ToStdRGBA(AAlpha).ToExpandedPixel;
+end;
+
 { TLabAHelper }
+
+function TLabAHelper.ToExpandedPixel: TExpandedPixel;
+begin
+  self.ToXYZA.ToLinearRGBA.ToExpandedPixel;
+end;
+
+function TLabAHelper.ToExpandedPixel(const AReferenceWhite: TXYZReferenceWhite): TExpandedPixel;
+begin
+  self.ToXYZA(AReferenceWhite).ToLinearRGBA(AReferenceWhite).ToExpandedPixel;
+end;
 
 function TLabAHelper.ToXYZA: TXYZA;
 begin
@@ -2419,9 +2450,21 @@ begin
 end;
 
 function FPReferenceWhiteGet(AObserverAngle: integer; AIlluminant: TIlluminant): PXYZReferenceWhite;
+var
+   rp: PXYZReferenceWhite;
+   i: integer;
+
 begin
-  result := FPReferenceWhiteGet(AObserverAngle, AIlluminant);
-  if result = nil then raise FPImageException.Create('Reference white not found');
+  for i := 0 to Length(FPReferenceWhiteArray) - 1 do
+  begin
+    rp := @FPReferenceWhiteArray[i];
+    if (rp^.ObserverAngle = AObserverAngle) and (rp^.Illuminant = AIlluminant) then
+    begin
+      result := rp;
+      exit;
+    end;
+  end;
+  result := nil;
 end;
 
 function FPReferenceWhiteAdd(const AReferenceWhite: TXYZReferenceWhite):PXYZReferenceWhite;
