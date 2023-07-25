@@ -101,6 +101,17 @@ const
   TiffPlanarConfigurationChunky = 1; //Chunky format
   TiffPlanarConfigurationPlanar = 2; //Planar format
 
+  GEOTIFF_MODELPIXELSCALE = 33550;
+  GEOTIFF_MODELTIEPOINT = 33922;
+  GEOTIFF_MODELTRANSFORMATION = 34264;
+  GEOTIFF_KEYDIRECTORY = 34735;
+  GEOTIFF_DOUBLEPARAMS = 34736;
+  GEOTIFF_ASCIIPARAMS = 34737;
+
+  TIFF_ByteOrderBIG = $4D4D;   //'MM';
+  TIFF_ByteOrderNOBIG = $4949; //'II';
+
+
 type
   TTiffChunkType = (
     tctStrip,
@@ -113,24 +124,31 @@ type
     tcioNever
     );
 
+  TTiffHeader = packed record
+    ByteOrder: Word;
+    case Version:Word of
+    42 : (IFDStart:DWord);
+    43 : (BigTIFF_padA, BigTiff_padB:Word) //Follow a 64 Bit IFDStart
+  end;
+
   { TTiffIFD - Image File Directory }
 
   TTiffIFD = class
   public
-    IFDStart: DWord; // tiff position
-    IFDNext: DWord; // tiff position
-    Artist: String;
-    BitsPerSample: DWord; // tiff position of entry
+    IFDStart: SizeUInt; // tiff position
+    IFDNext: SizeUInt; // tiff position
+    Artist: AnsiString;
+    BitsPerSample: SizeUInt; // tiff position of entry
     BitsPerSampleArray: array of Word;
     CellLength: DWord;
     CellWidth: DWord;
-    ColorMap: DWord;// tiff position of entry
+    ColorMap: SizeUInt;// tiff position of entry
     Compression: DWord;
     Predictor: Word;
-    Copyright: string;
-    DateAndTime: string;
-    DocumentName: string;
-    ExtraSamples: DWord;// tiff position of entry
+    Copyright: AnsiString;
+    DateAndTime: AnsiString;
+    DocumentName: AnsiString;
+    ExtraSamples: SizeUInt;// tiff position of entry
     FillOrder: DWord;
     HostComputer: string;
     ImageDescription: string;
@@ -150,13 +168,13 @@ type
     ResolutionUnit: DWord;
     RowsPerStrip: DWord;
     SamplesPerPixel: DWord;
-    Software: string;
-    StripByteCounts: DWord;// tiff position of entry
-    StripOffsets: DWord; // tiff position of entry
+    Software: AnsiString;
+    StripByteCounts: SizeUInt;// tiff position of entry
+    StripOffsets: SizeUInt; // tiff position of entry
     TileWidth: DWord;
     TileLength: DWord; // = Height
-    TileOffsets: DWord; // tiff position of entry
-    TileByteCounts: DWord; // tiff position of entry
+    TileOffsets: SizeUInt; // tiff position of entry
+    TileByteCounts: SizeUInt; // tiff position of entry
     Tresholding: DWord;
     XResolution: TTiffRational;
     YResolution: TTiffRational;
