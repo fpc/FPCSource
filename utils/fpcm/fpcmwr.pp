@@ -75,6 +75,7 @@ interface
         FOutput : TStringList;
         FPhony  : string;
         FHasSection : array[tsections] of boolean;
+        FSkipPackageInfo: Boolean;
         procedure LoadFPCMakeIni;
         procedure AddIniSection(const s:string);
         procedure AddCustomSection(const s:string);
@@ -96,6 +97,7 @@ interface
         constructor Create(AFPCMake:TFPCMake;const AFileName:string);
         destructor  Destroy;override;
         procedure WriteGenericMakefile;
+        property SkipPackageInfo : Boolean Read FSkipPackageInfo Write FSkipPackageInfo;
       end;
 
 
@@ -758,8 +760,9 @@ implementation
            AddIniSection('fpcdircheckenv');
            AddIniSection('fpcdirdetect');
            AddIniSection('fpmakefpcdetect');
-           { Package }
-           AddVariable('package_name');
+           { Package info }
+           if not SkipPackageInfo then
+             AddVariable('package_name');
            AddVariable('package_version');
            AddVariable('package_targets');
            { Directory of main package }
@@ -888,7 +891,7 @@ implementation
             AddStrings(TFPCMakeSection(FInput['rules']).List);
          end;
         { write to disk }
-        FInput.Verbose(FPCMakeInfo,'Writing Makefile');
+        FInput.Verbose(FPCMakeInfo,'Writing '+FFileName);
         Fixtab(FOutput);
         FOutput.SaveToFile(FFileName);
       end;
