@@ -1386,7 +1386,7 @@ Type
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(APackage: TPackage;const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
-    Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
+    Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; const AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
     procedure AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
@@ -1416,7 +1416,7 @@ Type
     Procedure CmdDeleteFiles(List : TStrings);
     procedure CmdDeleteDestFiles(List: TStrings; const DestDir: String);
     Procedure CmdArchiveFiles(List : TStrings; Const ArchiveFile : String);
-    Procedure CmdRenameFile(SourceName, DestName : String);
+    Procedure CmdRenameFile(const SourceName, DestName : String);
     Procedure CmdRemoveDirs(List: TStrings);
     Procedure CmdRemoveTrees(List: TStrings);
     Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt; APackage: TPackage = nil);
@@ -7350,7 +7350,7 @@ begin
     end;
 end;
 
-procedure TBuildEngine.CmdRenameFile(SourceName, DestName: String);
+procedure TBuildEngine.CmdRenameFile(const SourceName, DestName: String);
 
 var
   Args: TStrings;
@@ -7519,7 +7519,7 @@ end;
 
 
 function TBuildEngine.FindFileInPath(APackage: TPackage;
-  Path: TConditionalStrings; AFileName: String; var FoundPath: String;
+  Path: TConditionalStrings; const AFileName: String; var FoundPath: String;
   ACPU: TCPU; AOS: TOS): Boolean;
 var
   I : Integer;
