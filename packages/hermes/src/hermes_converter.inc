@@ -45,8 +45,8 @@ begin
   newinstance^.dither := nil;
   newinstance^.ditherstretch := nil;
   newinstance^.flags := flags;
-  FillChar(newinstance^.source, 0, SizeOf(THermesFormat));
-  FillChar(newinstance^.dest, 0, SizeOf(THermesFormat));
+  FillChar(newinstance^.source, SizeOf(THermesFormat), 0);
+  FillChar(newinstance^.dest, SizeOf(THermesFormat), 0);
 
   Result := THermesConverterHandle(newinstance);
 end;
