@@ -201,15 +201,29 @@ program fpcmake;
 
 
     procedure ProcessFile(const fn:string; const aOutputFile : string);
+
+    var
+      ofn : String;
+
       begin
         Show(V_Verbose,TitleDate);
         case ParaMode of
           m_None :
             Error('No operation specified, see -h for help');
           m_Makefile :
-            ProcessFile_Makefile(fn,aOutputFile);
+            begin
+            ofn:=aOutputFile;
+            if ofn='' then
+              ofn:='Makefile';
+            ProcessFile_Makefile(fn,ofn);
+            end;
           m_PackageFpc :
-            ProcessFile_PackageFpc(fn,aOutputFile);
+            begin
+            ofn:=aOutputFile;
+            if ofn='' then
+              ofn:='Package.fpc';
+            ProcessFile_PackageFpc(fn,ofn);
+            end;
         end;
       end;
 

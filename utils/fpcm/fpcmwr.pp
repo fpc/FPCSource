@@ -538,6 +538,14 @@ implementation
           unitfpmakedirvar:='UNITDIR_FPMAKE_'+VarName(pack);
           { Search packagedir by looking for Makefile.fpc }
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
+          { Packages may no longer have a Makefile.fpc . Check existance of Makefile + fpmake.pp to be sure }
+          FOutput.Add('ifeq ($('+packdirvar+'),)');
+          FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile,$(PACKAGESDIR))))))');
+          FOutput.Add('ifneq ($('+packdirvar+'),)');
+          FOutput.Add(packdirvar+':=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /'+pack+'/fpmake.pp,$(PACKAGESDIR))))))');
+          FOutput.Add('endif');
+          FOutput.Add('endif');
+
           FOutput.Add('ifneq ($('+packdirvar+'),)');
           { Create unit dir, check if os dependent dir exists }
           FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(TARGETSUFFIX)),)');

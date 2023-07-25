@@ -985,6 +985,12 @@ implementation
         s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
+        { Check for Makefile }
+        s:=SubstVariables('$(addsuffix /'+ReqName+'/Makefile,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile,$(REQUIRE_PACKAGESDIR))');
+        Verbose(FPCMakeDebug,'Package "'+ReqName+'": Looking for Makefile+fpmake: "'+s+'"');
+        s:=SubstVariables('$(firstword $(wildcard '+s+'))');
+        if FileExists(s) then
+         exit;
         Raise Exception.Create(Format(s_package_not_found,[OSStr[t],Reqname]));
       end;
 
@@ -1002,8 +1008,12 @@ implementation
              { give better error what is wrong }
              if not PathExists(s) then
               Raise Exception.Create(Format(s_directory_not_found,[s]))
+             // packages may no longer have 'Makefile.fpc', but they will have a Makefile.
+             // for such cases, the top Makefile.fpc must simply specify all dependencies recursively.
+             else if not FileExists(s+'/Makefile') then
+               Raise Exception.Create(Format(s_makefilefpc_not_found,[s]))
              else
-              Raise Exception.Create(Format(s_makefilefpc_not_found,[s]));
+              exit;
            end;
           { Process Makefile.fpc }
           ReqFPCMake:=TFPCMake.Create(currdir+subdir+'/Makefile.fpc');
