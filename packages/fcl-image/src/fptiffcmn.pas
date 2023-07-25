@@ -137,7 +137,7 @@ type
   public
     IFDStart: SizeUInt; // tiff position
     IFDNext: SizeUInt; // tiff position
-    Artist: AnsiString;
+    Artist: String;
     BitsPerSample: SizeUInt; // tiff position of entry
     BitsPerSampleArray: array of Word;
     CellLength: DWord;
@@ -145,9 +145,9 @@ type
     ColorMap: SizeUInt;// tiff position of entry
     Compression: DWord;
     Predictor: Word;
-    Copyright: AnsiString;
-    DateAndTime: AnsiString;
-    DocumentName: AnsiString;
+    Copyright: string;
+    DateAndTime: string;
+    DocumentName: string;
     ExtraSamples: SizeUInt;// tiff position of entry
     FillOrder: DWord;
     HostComputer: string;
@@ -168,7 +168,7 @@ type
     ResolutionUnit: DWord;
     RowsPerStrip: DWord;
     SamplesPerPixel: DWord;
-    Software: AnsiString;
+    Software: string;
     StripByteCounts: SizeUInt;// tiff position of entry
     StripOffsets: SizeUInt; // tiff position of entry
     TileWidth: DWord;
