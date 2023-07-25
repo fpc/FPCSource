@@ -38,7 +38,9 @@ program fpcmake;
       ParaMode : TMode;
       ParaVerboseLevel : TVerboseLevel;
       ParaTargets : string;
+      ParaOutputFileName : string;
       ParaRecursive : boolean;
+      ParaSkipPackageInfo : Boolean;
 
 
 {*****************************************************************************
@@ -81,7 +83,7 @@ program fpcmake;
                              Makefile output
 *****************************************************************************}
 
-    procedure ProcessFile_Makefile(const fn:string);
+    procedure ProcessFile_Makefile(const fn:string; const aOutputfile : string);
       var
         CurrFPCMake : TFPCMakeConsole;
         CurrMakefile : TMakefileWriter;
@@ -129,7 +131,8 @@ program fpcmake;
              end;
 
           { Write Makefile }
-          CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Makefile');
+          CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+aOutputFile);
+          CurrMakefile.SkipPackageInfo:=ParaSkipPackageInfo;
           CurrMakefile.WriteGenericMakefile;
           CurrMakefile.Free;
 
@@ -153,7 +156,7 @@ program fpcmake;
              s:=GetToken(subdirs,' ');
              if s='' then
               break;
-             ProcessFile_Makefile(ExtractFilePath(fn)+s+'/Makefile.fpc');
+             ProcessFile_Makefile(ExtractFilePath(fn)+s+'/Makefile.fpc',aOutputFile);
            until false;
          end;
 
@@ -163,7 +166,7 @@ program fpcmake;
                              Package.fpc output
 *****************************************************************************}
 
-    procedure ProcessFile_PackageFpc(const fn:string);
+    procedure ProcessFile_PackageFpc(const fn:string; const aOutputFile : string);
       var
         CurrFPCMake : TFPCMakeConsole;
         CurrPackageFpc : TPackageFpcWriter;
@@ -181,7 +184,7 @@ program fpcmake;
 //          CurrFPCMake.Print;
 
           { Write Package.fpc }
-          CurrPackageFpc:=TPackageFpcWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Package.fpc');
+          CurrPackageFpc:=TPackageFpcWriter.Create(CurrFPCMake,ExtractFilePath(fn)+aOutputFile);
           CurrPackageFpc.WritePackageFpc;
           CurrPackageFpc.Free;
 
@@ -197,16 +200,16 @@ program fpcmake;
       end;
 
 
-    procedure ProcessFile(const fn:string);
+    procedure ProcessFile(const fn:string; const aOutputFile : string);
       begin
         Show(V_Verbose,TitleDate);
         case ParaMode of
           m_None :
             Error('No operation specified, see -h for help');
           m_Makefile :
-            ProcessFile_Makefile(fn);
+            ProcessFile_Makefile(fn,aOutputFile);
           m_PackageFpc :
-            ProcessFile_PackageFpc(fn);
+            ProcessFile_PackageFpc(fn,aOutputFile);
         end;
       end;
 
@@ -219,7 +222,7 @@ begin
    fn:='Makefile.fpc'
   else
    fn:='makefile.fpc';
-  ProcessFile(fn);
+  ProcessFile(fn,ParaOutputFilename);
 end;
 
 
@@ -228,7 +231,7 @@ var
   i : integer;
 begin
   for i:=OptInd to ParamCount do
-   ProcessFile(ParamStr(i));
+   ProcessFile(ParamStr(i),ParaOutputFilename);
 end;
 
 
@@ -248,6 +251,8 @@ begin
   writeln('                     supported. If omitted only default target is supported');
   writeln(' -r                  Recursively process target directories from Makefile.fpc');
   writeln(' -v                  Be more verbose');
+  writeln(' -ooutputfile        Use outputfile as filename instead of the default Makefile or Package.fpc');
+  writeln(' -s                  Skip writing package name');
   writeln(' -q                  Be quiet');
   writeln(' -h                  This help screen');
   Halt(0);
@@ -266,11 +271,12 @@ Procedure ProcessOpts;
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqrvh?VT:';
+  ShortOpts = 'pwqrvh?VsT:o:';
 var
   C : char;
 begin
 { Reset }
+  ParaSkipPackageInfo:=False;
   ParaMode:=m_Makefile;
   ParaVerboseLevel:=v_default;
   ParaTargets:=LowerCase({$I %FPCTARGETCPU})+'-'+LowerCase({$I %FPCTARGETOS});
@@ -281,8 +287,10 @@ begin
       EndOfOptions : break;
       'p' : ParaMode:=m_PackageFpc;
       'w' : ParaMode:=m_Makefile;
+      'o' : ParaOutputFileName:=OptArg;
       'q' : ParaVerboseLevel:=v_quiet;
       'r' : ParaRecursive:=true;
+      's' : ParaSkipPackageInfo:=True;
       'v' : ParaVerboseLevel:=v_verbose;
       'T' : ParaTargets:=OptArg;
       '?' : Usage;
