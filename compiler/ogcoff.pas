@@ -571,6 +571,20 @@ implementation
          zero_fill_size : dword;
          flags : dword;
        end;
+
+       TPECoffExpDir=packed record
+         flag,
+         stamp      : cardinal;
+         Major,
+         Minor      : word;
+         Name,
+         Base,
+         NumFuncs,
+         NumNames,
+         AddrFuncs,
+         AddrNames,
+         AddrOrds   : cardinal;
+       end;
        { MaybeSwap procedures 
        tcoffpedatadir = packed record
          vaddr : longword;
@@ -882,7 +896,39 @@ implementation
             v.flags:=SwapEndian(v.flags);
           end;
       end;
-
+(*
+      TPECoffExpDir=packed record
+         flag,
+         stamp      : cardinal;
+         Major,
+         Minor      : word;
+         Name,
+         Base,
+         NumFuncs,
+         NumNames,
+         AddrFuncs,
+         AddrNames,
+         AddrOrds   : cardinal;
+       end;
+     *)
+    procedure MaybeSwap(var v : TPECoffExpDir);
+      begin
+        if source_info.endian<>target_info.endian then
+          begin
+            v.flag:=SwapEndian(v.flag);
+            v.stamp:=SwapEndian(v.stamp);
+            v.Major:=SwapEndian(v.Major);
+            v.Minor:=SwapEndian(v.Minor);
+            v.Name:=SwapEndian(v.Name);
+            v.Base:=SwapEndian(v.Base);
+            v.NumFuncs:=SwapEndian(v.NumFuncs);
+            v.NumNames:=SwapEndian(v.NumNames);
+            v.AddrFuncs:=SwapEndian(v.AddrFuncs);
+            v.AddrNames:=SwapEndian(v.AddrNames);
+            v.AddrOrds:=SwapEndian(v.AddrOrds);
+          end;
+     end;
+  
      const
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
@@ -3744,20 +3790,6 @@ const pemagic : array[0..3] of byte = (
 {$endif win32}
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
-      type
-       TPECoffExpDir=packed record
-         flag,
-         stamp      : cardinal;
-         Major,
-         Minor      : word;
-         Name,
-         Base,
-         NumFuncs,
-         NumNames,
-         AddrFuncs,
-         AddrNames,
-         AddrOrds   : cardinal;
-       end;
       var
         DLLReader : TObjectReader;
         DosHeader : array[0..$7f] of byte;
