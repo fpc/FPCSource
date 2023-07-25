@@ -22541,7 +22541,7 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
   var
     FormerDeclEl: TPasElement;
   begin
-    {AllowWriteln}
+    {$IFDEF VerbosePasResolver}
     writeln('RaiseAlreadySet RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
     writeln('  RefEl at ',GetElementSourcePosStr(RefEl));
     writeln('  RefEl.CustomData=',GetObjName(RefEl.CustomData));
@@ -22551,8 +22551,8 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
       writeln('  TResolvedReference(RefEl.CustomData).Declaration=',GetObjName(FormerDeclEl),
        ' IsSame=',FormerDeclEl=DeclEl);
       end;
-    {AllowWriteln-}
-    RaiseInternalError(20160922163554,'customdata<>nil');
+    {$ENDIF}
+    RaiseInternalError(20160922163554, 'customdata=' + GetObjName(DeclEl));
   end;
 
 begin
