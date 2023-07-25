@@ -3,7 +3,8 @@
 #
 
 [package]
-name=xforms
+# Will be ignored.
+name=fcl
 version=3.3.1
 
 [require]
