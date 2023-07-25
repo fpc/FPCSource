@@ -1260,6 +1260,7 @@ begin
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
+  FillChar(ResultBuffer,SizeOf(ResultBuffer),0);
   ResultCurrent := @ResultBuffer[0];
   if FormatStr <> '' then
     StoreFormat(FormatStr, 0, False)
