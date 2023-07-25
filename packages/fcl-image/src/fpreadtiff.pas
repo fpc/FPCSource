@@ -183,12 +183,14 @@ begin
     Result:= SwapEndian(d);
 end;
 
+{$ifdef CPU64}
 function TFPReaderTiff.FixEndian(q: QWord): QWord;
 begin
   Result:=q;
   if FReverseEndian
   then Result:= SwapEndian(q);
 end;
+{$endif}
 
 procedure TFPReaderTiff.TiffError(Msg: string);
 begin
