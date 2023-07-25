@@ -3,7 +3,7 @@
 #
 
 [package]
-name=json2pas
+name=utils
 version=3.3.1
 
 [require]
