@@ -1789,7 +1789,7 @@ implementation
           idtxt  : 'CLANG-LLVM';
           asmbin : 'clang';
           asmcmd: '-x ir $OPT -target $TRIPLET -c -o $OBJ $ASM $EXTRAOPT';
-          supported_targets : [system_x86_64_linux,system_aarch64_linux,system_arm_linux];
+          supported_targets : [system_x86_64_linux,system_aarch64_linux,system_arm_linux,system_x86_64_openbsd];
           flags : [af_smartlink_sections,af_llvm];
           labelprefix : '.L';
           labelmaxlen : -1;

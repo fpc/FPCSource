@@ -386,7 +386,7 @@ ifeq ($(findstring $(PPC_TARGET),x86_64 aarch64 arm),)
 $(error The $(PPC_TARGET) architecture is not (yet) supported by the FPC/LLVM code generator)
 endif
 
-ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux),)
+ifeq ($(findstring $(OS_TARGET),darwin iphonesim linux openbsd),)
 $(error The $(OS_TARGET) target OS is not (yet) supported by the FPC/LLVM code generator)
 endif
 
