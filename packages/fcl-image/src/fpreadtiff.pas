@@ -63,7 +63,6 @@ type
     FCheckIFDOrder: TTiffCheckIFDOrder;
     FFirstIFDStart: SizeUInt;
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
-    FReverserEndian: boolean;
     {$ifdef FPC_Debug_Image}
     FDebug: boolean;
     {$endif}
@@ -83,6 +82,7 @@ type
     function ReadWord: Word;
     function ReadDWord: DWord;
     function ReadQWord: SizeUInt;
+    function ReadBuffer(var Buffer; Count: Longint): Longint;
     procedure ReadValues(StreamPos: SizeUInt;
                          out EntryType: word; out EntryCount: SizeUInt;
                          out Buffer: Pointer; out ByteCount: PtrUInt);
@@ -135,11 +135,11 @@ type
     ImageList: TFPList; // list of TTiffIFD
     procedure LoadHeaderFromStream(aStream: TStream);
     procedure LoadIFDsFromStream;                  // call LoadHeaderFromStream before
-    procedure LoadImageFromStream(Index: integer); // call LoadIFDsFromStream before
-    procedure LoadImageFromStream(IFD: TTiffIFD);  // call LoadIFDsFromStream before
+    procedure LoadImageFromStream(Index: integer); virtual; // call LoadIFDsFromStream before
+    procedure LoadImageFromStream(IFD: TTiffIFD); virtual;  // call LoadIFDsFromStream before
     procedure ReleaseStream;
     property StartPos: SizeUInt read fStartPos;
-    property ReverserEndian: boolean read FReverserEndian;
+    property ReverseEndian: boolean read FReverseEndian;
     property TheStream: TStream read s;
     property FirstIFDStart: SizeUInt read FFirstIFDStart;
     property BigTiff: Boolean read FBigTiff;
@@ -1634,6 +1634,11 @@ begin
   {$else}
    Result:=FixEndian(s.ReadDWord);
   {$endif}
+end;
+
+function TFPReaderTiff.ReadBuffer(var Buffer; Count: Longint): Longint;
+begin
+  Result :=s.Read(Buffer, Count);
 end;
 
 procedure TFPReaderTiff.ReadValues(StreamPos: SizeUInt; out EntryType: word; out
