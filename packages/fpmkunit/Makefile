@@ -1984,6 +1984,12 @@ REQUIRE_PACKAGES_LIBTAR=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
@@ -2022,6 +2028,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_PASZLIB
 PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /paszlib/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /paszlib/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_PASZLIB),)
 ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)),)
 UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)
@@ -2060,6 +2072,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_FCL-PROCESS
 PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fcl-process/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_FCL-PROCESS),)
 ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)),)
 UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)
@@ -2098,6 +2116,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_HASH
 PACKAGEDIR_HASH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /hash/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /hash/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /hash/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_HASH),)
 ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)),)
 UNITDIR_HASH=$(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)
@@ -2136,6 +2160,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_LIBTAR
 PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libtar/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /libtar/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /libtar/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_LIBTAR),)
 ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)),)
 UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)

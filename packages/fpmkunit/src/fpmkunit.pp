@@ -139,7 +139,7 @@ uses
 {$ENDIF}
 
 Type
-{$IFNDEF DECLARED(RTLString)}
+{$IF NOT DECLARED(RTLString)}
   RTLString = AnsiString;
 {$ENDIF}
 
@@ -4925,7 +4925,7 @@ begin
         InstalledChecksum:=Cardinal(StrToInt64Def(Values[KeyChecksum],$ffffffff));
         VCPU:=StringToCPU(Values[KeyCPU]);
         VOS:=StringToOS(Values[KeyOS]);
-        SubTargets:=Values[KeySubTargets].Split(RTLString(' '),TStringSplitOptions.ExcludeEmpty);
+        SubTargets:=Values[KeySubTargets].Split(RTLString(' '), TStringSplitOptions.ExcludeEmpty);
         OSes:=[VOS];
         CPUs:=[VCPU];
         L2:=TStringList.Create;
