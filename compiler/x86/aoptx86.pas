@@ -5313,7 +5313,6 @@ unit aoptx86;
         { Search for:
             test  $x,(reg/ref)
             jne   @lbl1
-            ...
             test  $y,(reg/ref) (same register or reference)
             jne   @lbl1
 
@@ -5481,6 +5480,16 @@ unit aoptx86;
                         (FirstValue = -1) or
                         (SecondValue = -1) or
                         MatchOperand(taicpu(hp1_dist).oper[0]^, taicpu(hp1).oper[0]^)
+                      ) and
+                      (
+                        { In this situation, the TEST/JNE pairs must be adjacent (fixes #40366) }
+
+                        { Always adjacent under -O2 and under }
+                        not(cs_opt_level3 in current_settings.optimizerswitches) or
+                        (
+                          GetNextInstruction(hp1, hp1_last) and
+                          (hp1_last = p_dist)
+                        )
                       ) then
                       begin
                         { Same jump location... can be a register since nothing's changed }
