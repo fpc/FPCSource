@@ -55,6 +55,7 @@ Type
        llvmver_xc_13_3,
        llvmver_xc_14_0,
        llvmver_14_0,
+       llvmver_xc_14_3,
        llvmver_15_0,
        llvmver_16_0
       );
@@ -99,12 +100,14 @@ Const
      'Xcode-13.3',
      'Xcode-14.0',
      '14.0',
+     'Xcode-14.3',
      '15.0',
      '16.0'
    );
 
    llvm_debuginfo_metadata_format : array[tllvmversion] of byte = (
      0,
+     3,
      3,
      3,
      3,
@@ -146,6 +149,7 @@ Const
        { llvmver_xc_13_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type, llvmflag_old_function_memory_attributes],
        { llvmver_xc_14_0 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_old_function_memory_attributes],
        { llvmver_14_0 }    [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_opaque_ptr_transition, llvmflag_old_function_memory_attributes],
+       { llvmver_xc_14_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_opaque_ptr,llvmflag_sanitizer_attributes, llvmflag_old_function_memory_attributes],
        { llvmver_15_0 }    [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_opaque_ptr,llvmflag_sanitizer_attributes, llvmflag_old_function_memory_attributes],
        { llvmver_16_0 }    [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_opaque_ptr,llvmflag_sanitizer_attributes]
      );
