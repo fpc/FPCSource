@@ -5501,15 +5501,29 @@ unit aoptx86;
                         if IsJumpToLabel(taicpu(hp1_dist)) then
                           TAsmLabel(taicpu(hp1_dist).oper[0]^.ref^.symbol).DecRefs;
 
-                        DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
-                        RemoveInstruction(hp1_dist);
-
                         { Only remove the second test if no jumps or other conditional instructions follow }
                         TransferUsedRegs(TmpUsedRegs);
                         UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
                         UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                        if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
-                          RemoveInstruction(p_dist);
+                        UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
+                        if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1_dist, TmpUsedRegs) then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged', p);
+                            RemoveInstruction(p_dist);
+
+                            { Remove the first jump, not the second, to keep
+                              any register deallocations between the second
+                              TEST/JNE pair in the same place.  Aids future
+                              optimisation. }
+                            RemoveInstruction(hp1);
+                          end
+                        else
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'TEST/JNE/TEST/JNE merged (second TEST preserved)', p);
+
+                            { Remove second jump in this instance }
+                            RemoveInstruction(hp1_dist);
+                          end;
 
                         Result := True;
                         Exit;
