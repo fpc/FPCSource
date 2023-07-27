@@ -191,43 +191,43 @@ else
 ARCH=$(CPU_TARGET)
 endif
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 endif
 ifdef SUB_TARGET 
 FPCOPT+=-t$(SUB_TARGET)
 FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t or SUBARCH=armv7m) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-freertos, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m or SUBARCH=armv7em) must be defined)
 endif
@@ -2054,6 +2054,12 @@ REQUIRE_PACKAGES_FPMKUNIT=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
@@ -2092,6 +2098,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_PASZLIB
 PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /paszlib/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /paszlib/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_PASZLIB),)
 ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)),)
 UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)
@@ -2130,6 +2142,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_FCL-PROCESS
 PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fcl-process/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_FCL-PROCESS),)
 ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)),)
 UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)
@@ -2168,6 +2186,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_HASH
 PACKAGEDIR_HASH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /hash/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /hash/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /hash/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_HASH),)
 ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)),)
 UNITDIR_HASH=$(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)
@@ -2206,6 +2230,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_LIBTAR
 PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libtar/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /libtar/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /libtar/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_LIBTAR),)
 ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)),)
 UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)
@@ -2244,6 +2274,12 @@ endif
 endif
 ifdef REQUIRE_PACKAGES_FPMKUNIT
 PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FPMKUNIT),)
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FPMKUNIT),)
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fpmkunit/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_FPMKUNIT),)
 ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)),)
 UNITDIR_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)
@@ -2843,6 +2879,10 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
+ifdef FPC_DOTTEDUNITS
+FPMAKE_OPT+=-ns
+FPMAKE_OPT+=-o -dFPC_DOTTEDUNITS
+endif
 .NOTPARALLEL:
 fpmake$(SRCEXEEXT): fpmake.pp
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)

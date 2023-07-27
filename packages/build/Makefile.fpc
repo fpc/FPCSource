@@ -42,6 +42,10 @@ FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
 FPMAKE_OPT+=-bu
+ifdef FPC_DOTTEDUNITS
+FPMAKE_OPT+=-ns
+FPMAKE_OPT+=-o -dFPC_DOTTEDUNITS
+endif
 .NOTPARALLEL:
 
 fpmake$(SRCEXEEXT): fpmake.pp
