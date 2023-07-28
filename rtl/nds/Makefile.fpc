@@ -10,7 +10,7 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) uuchar objpas macpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(SORTBASEUNIT)  $(SYSUTILSUNIT) \
       $(CLASSESUNIT)  $(MATHUNIT) $(TYPINFOUNIT) $(CTYPESUNIT)  \
-      $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(TYPESUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) $(LINEINFOUNIT) $(FGLUNIT) 
 #rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil fpmkunit
