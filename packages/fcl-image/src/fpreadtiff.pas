@@ -346,6 +346,17 @@ begin
       IFD.GrayBits:=SampleBits[3];  //black
       PremultipliedAlpha:= false;
     end;
+  6:
+    begin
+      if RegularSampleCnt<>3 then
+        TiffError('YCbCr images expect 3 samples per pixel, but found '+
+          IntToStr(SampleCnt));
+
+      IFD.GrayBits:=SampleBits[0];   //Y
+      IFD.BlueBits:=SampleBits[1];   //Cb
+      IFD.RedBits:=SampleBits[2];    //Cr
+      PremultipliedAlpha:= false;
+    end;
   8,9:
     begin
       if (RegularSampleCnt<>1) and (RegularSampleCnt<>3) then
@@ -707,6 +718,7 @@ var
   WordBuffer: PWord;
   Count: SizeUInt;
   i: Integer;
+  Value:TTiffRational;
 
   function GetPos: SizeUInt;
   begin
@@ -860,6 +872,7 @@ begin
         3: write('3=Palette color');
         4: write('4=Transparency Mask');
         5: write('5=CMYK 8bit');
+        5: write('6=YcbCr 8bit');
         8: write('8=L*a*b* with a and b [-128;127]');
         9: write('9=L*a*b* with a and b [0;255]');
         end;
@@ -1419,6 +1432,24 @@ begin
         writeln('TFPReaderTiff.ReadDirectoryEntry Tag 521: skipping JPEGACTables');
       {$endif}
     end;
+  529:
+    begin
+      //MaxM: is correct to Read 3 Rational in sequense??? TEST
+      Value:=ReadEntryRational;
+      if Value.Denominator>0
+      then IFD.YCbCr_LumaRed :=Value.Numerator/Value.Denominator
+      else IFD.YCbCr_LumaRed :=Value.Numerator;
+
+      Value:=ReadEntryRational;
+      if Value.Denominator>0
+      then IFD.YCbCr_LumaGreen :=Value.Numerator/Value.Denominator
+      else IFD.YCbCr_LumaGreen :=Value.Numerator;
+
+      Value:=ReadEntryRational;
+      if Value.Denominator>0
+      then IFD.YCbCr_LumaBlue :=Value.Numerator/Value.Denominator
+      else IFD.YCbCr_LumaBlue :=Value.Numerator;
+    end;
   530:
     begin
       // ToDo: YCbCrSubSampling alias ChromaSubSampling
@@ -1858,6 +1889,7 @@ var
     GrayValue: Word;
     lab: TLabA;
     cmyk: TStdCMYK;
+    ycbcr: TYCbCr;
   begin
     for Channel := 0 to SampleCnt-1 do
       ReadImgValue(SampleBits[Channel], Run,BitPos,IFD.FillOrder,
@@ -1899,7 +1931,15 @@ var
         result :=cmyk.ToExpandedPixel.ToFPColor(true); //MaxM: in Future we can use GammaCompression
       end;
 
-     //6: YCBCR: CCIR 601
+    6: // YCBCR: CCIR 601
+      begin
+        ycbcr :=TYCbCr.New(ChannelValues[0]/$ffff, ChannelValues[1]/$ffff, ChannelValues[2]/$ffff);
+
+        if IFD.YCbCr_LumaRed<>0
+        then result :=ycbcr.ToLinearRGBA(IFD.YCbCr_LumaRed, IFD.YCbCr_LumaGreen, IFD.YCbCr_LumaBlue).ToExpandedPixel.ToFPColor(false)
+        else result :=ycbcr.ToLinearRGBA(YCbCr_601).ToExpandedPixel.ToFPColor(false);
+      end;
+
      //8: CIELAB: 1976 CIE L*a*b*
      //9: ICCLAB: ICC L*a*b*. Introduced post TIFF rev 6.0 by Adobe TIFF Technote 4
      //10: ITULAB: ITU L*a*b*
@@ -1945,8 +1985,12 @@ var
   procedure ReadResolutionValues;
   begin
        CurFPImg.ResolutionUnit :=TifResolutionUnitToResolutionUnit(IFD.ResolutionUnit);
-       CurFPImg.ResolutionX :=IFD.XResolution.Numerator/IFD.XResolution.Denominator;
-       CurFPImg.ResolutionY :=IFD.YResolution.Numerator/IFD.YResolution.Denominator;
+       if (IFD.XResolution.Denominator>0)
+       then CurFPImg.ResolutionX :=IFD.XResolution.Numerator/IFD.XResolution.Denominator
+       else CurFPImg.ResolutionX :=IFD.XResolution.Numerator;
+       if (IFD.YResolution.Denominator>0)
+       then CurFPImg.ResolutionY :=IFD.YResolution.Numerator/IFD.YResolution.Denominator
+       else CurFPImg.ResolutionY :=IFD.YResolution.Numerator;
   end;
 
 begin

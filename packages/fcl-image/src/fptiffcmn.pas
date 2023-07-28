@@ -185,6 +185,7 @@ type
     Tresholding: DWord;
     XResolution: TTiffRational;
     YResolution: TTiffRational;
+    YCbCr_LumaRed, YCbCr_LumaGreen, YCbCr_LumaBlue :Single;
     // image
     Img: TFPCustomImage;
     FreeImg: boolean;
@@ -471,6 +472,11 @@ end;
 constructor TTiffIFD.Create;
 begin
   PlanarConfiguration:=TiffPlanarConfigurationChunky;
+
+  //Use the Standard 601 Constants
+  YCbCr_LumaRed:=0;
+  YCbCr_LumaGreen:=0;
+  YCbCr_LumaBlue:=0;
 end;
 
 destructor TTiffIFD.Destroy;
