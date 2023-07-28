@@ -362,12 +362,3 @@ SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT
 si_g$(PPUEXT) : $(SI_G_DEPS)
 	$(COMPILER) $<
 
-#
-# $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
-#
-
-SYSTEMUNIT_DEPS=$(SYSTEMUNIT).pp $(SYSDEPS) \
-                $(SYSTEMUNIT_DEPS_OS) $(SYSTEMUNIT_DEPS_CPU)
-
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT_DEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $<
