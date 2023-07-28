@@ -120,14 +120,14 @@ endif
 #
 
 
-SYSTEM_DEPS=system.pp $(SYSDEPS)\
+SYSTEM_DEPS=system.pp $(SYSDEPS) \
             $(SYSTEM_DEPS_OS) $(SYSTEM_DEPS_CPU)
 
 system$(PPUEXT) : $(SYSTEM_DEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $< -Fi../win
 
 
-BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)\
+BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) \
               $(BUILDRTL_DEPS_OS) $(BUILDRTL_DEPS_CPU)
 
 buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)

@@ -314,49 +314,49 @@ endif
 # $(SYSINIT_UNITS) Units
 #
 
-SI_PRC_DEPS=si_prc.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_PRC_DEPS=si_prc.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT) \
             $(SI_PRC_DEPS_OS) $(SI_PRC_DEPS_CPU)
 
 si_prc$(PPUEXT) : $(SI_PRC_DEPS)
 	$(COMPILER) $<
 
 
-SI_C21G_DEPS=si_c21g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C21G_DEPS=si_c21g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT) \
              $(SI_C21G_DEPS_OS) $(SI_C21G_DEPS_CPU)
 
 si_c21g$(PPUEXT) : $(SI_C21G_DEPS)
 	$(COMPILER) $<
 
 
-SI_C21_DEPS=si_c21.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C21_DEPS=si_c21.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT) \
             $(SI_C21_DEPS_OS) $(SI_C21_DEPS_CPU)
 
 si_c21$(PPUEXT) : $(SI_C21_DEPS)
 	$(COMPILER) $<
 
 
-SI_C_DEPS=si_c.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C_DEPS=si_c.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT) \
           $(SI_C_DEPS_OS) $(SI_C_DEPS_CPU)
 
 si_c$(PPUEXT) : $(SI_C_DEPS)
 	$(COMPILER) $<
 
 
-SI_DLL_DEPS=si_dll.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_DLL_DEPS=si_dll.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT) \
             $(SI_DLL_DEPS_OS) $(SI_DLL_DEPS_CPU)
 
 si_dll$(PPUEXT) : $(SI_DLL_DEPS)
 	$(COMPILER) $<
 
 
-SI_UC_DEPS=si_uc.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_UC_DEPS=si_uc.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT) \
            $(SI_UC_DEPS_OS) $(SI_UC_DEPS_CPU)
 
 si_uc$(PPUEXT) : $(SI_UC_DEPS)
 	$(COMPILER) $<
 
 
-SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT) \
           $(SI_G_DEPS_OS) $(SI_G_DEPS_CPU)
 
 si_g$(PPUEXT) : $(SI_G_DEPS)
@@ -366,7 +366,7 @@ si_g$(PPUEXT) : $(SI_G_DEPS)
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
-SYSTEMUNIT_DEPS=$(SYSTEMUNIT).pp $(SYSDEPS)\
+SYSTEMUNIT_DEPS=$(SYSTEMUNIT).pp $(SYSDEPS) \
                 $(SYSTEMUNIT_DEPS_OS) $(SYSTEMUNIT_DEPS_CPU)
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT_DEPS)
