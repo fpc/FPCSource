@@ -2938,7 +2938,7 @@ FPCYLIX_DEPS=fpcylix.pp \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
 fpcylix$(PPUEXT) : $(FPCYLIX_DEPS)
 	$(COMPILER) $(FPCYLIX_OPT) $<
-TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)\
+TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	    $(TERMIO_DEPS_OS) $(TERMIO_DEPS_CPU)
 termio$(PPUEXT) : $(TERMIO_DEPS)
 	$(COMPILER) $(TERMIO_OPT) $<
@@ -3140,14 +3140,14 @@ unix$(PPUEXT): $(UNIX_DEPS)
 UnixApi.Unix$(PPUEXT) : $(NSINC)/UnixApi.Unix.pp $(UNIX_DEPS)
 	$(COMPILER) $(UNIX_OPT) $<
 SYSCALL_DEPS=$(UNIXINC)/syscall.pp \
-	     $(SYSTEMUNIT)$(PPUEXT)\
+	     $(SYSTEMUNIT)$(PPUEXT) \
 	     $(SYSCALL_DEPS_OS) $(SYSCALL_DEPS_CPU)
 syscall$(PPUEXT) : $(SYSCALL_DEPS)
 	$(COMPILER) $(SYSCALL_OPT) $<
 UnixApi.SysCall$(PPUEXT) : $(NSINC)/UnixApi.SysCall.pp $(SYSCALL_DEPS) 
 	$(COMPILER) $(SYSCALL_OPT) $<
-UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc\
-	     $(SYSTEMUNIT)$(PPUEXT)\
+UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+	     $(SYSTEMUNIT)$(PPUEXT) \
 	     $(UNIXUTIL_DEPS_OS)
 unixutil$(PPUEXT) : $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
@@ -3348,35 +3348,35 @@ ifndef ARMTHUMB
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 endif
-SI_PRC_DEPS=si_prc.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_PRC_DEPS=si_prc.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT) \
 	    $(SI_PRC_DEPS_OS) $(SI_PRC_DEPS_CPU)
 si_prc$(PPUEXT) : $(SI_PRC_DEPS)
 	$(COMPILER) $<
-SI_C21G_DEPS=si_c21g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C21G_DEPS=si_c21g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT) \
 	     $(SI_C21G_DEPS_OS) $(SI_C21G_DEPS_CPU)
 si_c21g$(PPUEXT) : $(SI_C21G_DEPS)
 	$(COMPILER) $<
-SI_C21_DEPS=si_c21.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C21_DEPS=si_c21.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT) \
 	    $(SI_C21_DEPS_OS) $(SI_C21_DEPS_CPU)
 si_c21$(PPUEXT) : $(SI_C21_DEPS)
 	$(COMPILER) $<
-SI_C_DEPS=si_c.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_C_DEPS=si_c.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT) \
 	  $(SI_C_DEPS_OS) $(SI_C_DEPS_CPU)
 si_c$(PPUEXT) : $(SI_C_DEPS)
 	$(COMPILER) $<
-SI_DLL_DEPS=si_dll.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_DLL_DEPS=si_dll.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT) \
 	    $(SI_DLL_DEPS_OS) $(SI_DLL_DEPS_CPU)
 si_dll$(PPUEXT) : $(SI_DLL_DEPS)
 	$(COMPILER) $<
-SI_UC_DEPS=si_uc.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_UC_DEPS=si_uc.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT) \
 	   $(SI_UC_DEPS_OS) $(SI_UC_DEPS_CPU)
 si_uc$(PPUEXT) : $(SI_UC_DEPS)
 	$(COMPILER) $<
-SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)\
+SI_G_DEPS=si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT) \
 	  $(SI_G_DEPS_OS) $(SI_G_DEPS_CPU)
 si_g$(PPUEXT) : $(SI_G_DEPS)
 	$(COMPILER) $<
-SYSTEMUNIT_DEPS=$(SYSTEMUNIT).pp $(SYSDEPS)\
+SYSTEMUNIT_DEPS=$(SYSTEMUNIT).pp $(SYSDEPS) \
 		$(SYSTEMUNIT_DEPS_OS) $(SYSTEMUNIT_DEPS_CPU)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT_DEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $<

@@ -2471,7 +2471,7 @@ FPCYLIX_DEPS=fpcylix.pp \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
 fpcylix$(PPUEXT) : $(FPCYLIX_DEPS)
 	$(COMPILER) $(FPCYLIX_OPT) $<
-TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)\
+TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	    $(TERMIO_DEPS_OS) $(TERMIO_DEPS_CPU)
 termio$(PPUEXT) : $(TERMIO_DEPS)
 	$(COMPILER) $(TERMIO_OPT) $<
@@ -2673,14 +2673,14 @@ unix$(PPUEXT): $(UNIX_DEPS)
 UnixApi.Unix$(PPUEXT) : $(NSINC)/UnixApi.Unix.pp $(UNIX_DEPS)
 	$(COMPILER) $(UNIX_OPT) $<
 SYSCALL_DEPS=$(UNIXINC)/syscall.pp \
-	     $(SYSTEMUNIT)$(PPUEXT)\
+	     $(SYSTEMUNIT)$(PPUEXT) \
 	     $(SYSCALL_DEPS_OS) $(SYSCALL_DEPS_CPU)
 syscall$(PPUEXT) : $(SYSCALL_DEPS)
 	$(COMPILER) $(SYSCALL_OPT) $<
 UnixApi.SysCall$(PPUEXT) : $(NSINC)/UnixApi.SysCall.pp $(SYSCALL_DEPS) 
 	$(COMPILER) $(SYSCALL_OPT) $<
-UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc\
-	     $(SYSTEMUNIT)$(PPUEXT)\
+UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+	     $(SYSTEMUNIT)$(PPUEXT) \
 	     $(UNIXUTIL_DEPS_OS)
 unixutil$(PPUEXT) : $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
@@ -2775,7 +2775,7 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(OSPROCINC)/sighnd.inc $(OSPROCINC)/sig_cpu.inc
-SYSINIT_DEPS=sysinit.pas $(SYSTEMUNIT)$(PPUEXT)\
+SYSINIT_DEPS=sysinit.pas $(SYSTEMUNIT)$(PPUEXT) \
 	     $(SYSINIT_DEPS_OS) $(SYSINIT_DEPS_CPU)
 sysinit$(PPUEXT) : $(SYSINIT_DEPS)
 	$(COMPILER) $<

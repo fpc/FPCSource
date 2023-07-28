@@ -873,7 +873,7 @@ fpcylix$(PPUEXT) : $(FPCYLIX_DEPS)
 #
 # Termio
 #
-TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)\
+TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
             $(TERMIO_DEPS_OS) $(TERMIO_DEPS_CPU)
 
 termio$(PPUEXT) : $(TERMIO_DEPS)
@@ -1266,7 +1266,7 @@ UnixApi.Unix$(PPUEXT) : $(NSINC)/UnixApi.Unix.pp $(UNIX_DEPS)
 # SysCall
 #
 SYSCALL_DEPS=$(UNIXINC)/syscall.pp \
-             $(SYSTEMUNIT)$(PPUEXT)\
+             $(SYSTEMUNIT)$(PPUEXT) \
              $(SYSCALL_DEPS_OS) $(SYSCALL_DEPS_CPU)
 
 syscall$(PPUEXT) : $(SYSCALL_DEPS)
@@ -1279,8 +1279,8 @@ UnixApi.SysCall$(PPUEXT) : $(NSINC)/UnixApi.SysCall.pp $(SYSCALL_DEPS)
 # UnixUtil
 #
 
-UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc\
-             $(SYSTEMUNIT)$(PPUEXT)\
+UNIXUTIL_DEPS=$(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+             $(SYSTEMUNIT)$(PPUEXT) \
              $(UNIXUTIL_DEPS_OS)
 
 
