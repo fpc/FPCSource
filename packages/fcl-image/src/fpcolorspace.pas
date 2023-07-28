@@ -14,7 +14,7 @@
  **********************************************************************}
 {
  2023 Massimo Magnano
-     Code ported from bgrabitmap with some modifications and additions.
+     Code ported from bgrabitmap, gimp and imagemagick with some modifications and additions.
 }
 {$mode objfpc}{$h+}
 {$modeswitch ADVANCEDRECORDS}
@@ -142,6 +142,19 @@ type
     L,C,h,alpha: single;
     class function New(const ALightness,AChroma,AHue,AAlpha:single): TLChA;overload;static;
     class function New(const ALightness,AChroma,AHue:single): TLChA;overload;static;
+  end;
+
+  { TYCbCr }
+
+  TYCbCrSTD = (YCbCr_601, YCbCr_709, YCbCr_2020, YCbCr_JPG);
+  TYCbCrSTD_Factor= packed record
+    a, b, c, d, e :single;
+  end;
+
+  PYCbCr = ^TYCbCr;
+  TYCbCr = packed record
+    Y,Cb,Cr: single;
+    class function New(const AY, ACb, ACr:single): TYCbCr; static;
   end;
 
   PExpandedPixel = ^TExpandedPixel;
@@ -330,6 +343,9 @@ type
     function ToXYZA: TXYZA; overload;
     function ToXYZA(const AReferenceWhite: TXYZReferenceWhite): TXYZA; overload;
     function ToStdRGBA: TStdRGBA;
+    {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
+    function ToYCbCr(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TYCbCr; overload;
+    function ToYCbCr(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TYCbCr; overload;
   end;
 
   { TXYZAHelper }
@@ -369,6 +385,15 @@ type
 
   TLChAHelper = record helper for TLChA
     function ToLabA: TLabA;
+  end;
+
+
+  { TYCbCrHelper }
+
+  TYCbCrHelper = record helper for TYCbCr
+    {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
+    function ToLinearRGBA(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TLinearRGBA; overload;
+    function ToLinearRGBA(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TLinearRGBA; overload;
   end;
 
   {* How to handle overflow when converting from XYZ }
@@ -656,6 +681,15 @@ begin
   Result.C := AChroma;
   Result.h := AHue;
   Result.alpha := 1;
+end;
+
+{ TYCbCr }
+
+class function TYCbCr.New(const AY, ACb, ACr:single): TYCbCr;
+begin
+  Result.Y := AY;
+  Result.Cb := ACb;
+  Result.Cr := ACr;
 end;
 
 function FPGammaExpansion(ACompressed: word): word;
@@ -1814,6 +1848,28 @@ begin
   result.Alpha:= self.alpha;
 end;
 
+{ TYCbCrHelper }
+
+function TYCbCrHelper.ToLinearRGBA(const AStd: TYCbCrSTD; ASamplePrecision:Single): TLinearRGBA;
+begin
+  with self, YCbCrSTD_Factors[AStd]  do
+  begin
+    result.red := Y + e * (Cr-ASamplePrecision);
+    result.green := Y - (a * e / b) * (Cr-ASamplePrecision) - (c * d / b) * (Cb-ASamplePrecision);
+    result.blue := Y + d * (Cb-ASamplePrecision);
+  end;
+end;
+
+function TYCbCrHelper.ToLinearRGBA(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TLinearRGBA;
+begin
+  with self  do
+  begin
+    result.red := Cr * ( 2 - 2 * LumaRed ) + Y;
+    result.blue := Cb * ( 2 - 2 * LumaBlue ) + Y;
+    result.green :=  ( Y - LumaBlue * result.blue - LumaRed * result.red ) / LumaGreen;
+  end;
+end;
+
 { TByteMaskHelper }
 
 function TByteMaskHelper.ToExpandedPixel(AAlpha: byte): TExpandedPixel;
@@ -1871,6 +1927,26 @@ function TLinearRGBAHelper.ToStdRGBA: TStdRGBA;
 begin
   result := self.ToExpandedPixel.ToStdRGBA;
   result.alpha := self.alpha;
+end;
+
+function TLinearRGBAHelper.ToYCbCr(const AStd: TYCbCrSTD; ASamplePrecision:Single=0.5): TYCbCr;
+begin
+  with self, YCbCrSTD_Factors[AStd]  do
+  begin
+    result.Y := a * red + b * green + c * blue;
+    result.Cb := ((blue - result.Y) / d)+ASamplePrecision;
+    result.Cr := ((red - result.Y) / e)+ASamplePrecision;
+  end;
+end;
+
+function TLinearRGBAHelper.ToYCbCr(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TYCbCr;
+begin
+  with self  do
+  begin
+    result.Y :=  ( LumaRed * red + LumaGreen * green + LumaBlue * blue );
+    result.Cb := ( blue - result.Y ) / ( 2 - 2 * LumaBlue );
+    result.Cr := ( red - result.Y ) / ( 2 - 2 * LumaRed );
+  end;
 end;
 
 { TXYZAHelper }
