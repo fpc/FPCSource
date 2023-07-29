@@ -1640,11 +1640,11 @@ parser_e_section_directive_not_allowed_for_target=03362_E_Directive section not 
 % Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
 parser_e_absolute_sym_cannot_reference_itself=03363_E_Absolute variable cannot reference itself
 parser_e_syscall_format_not_support=03364_E_Syntax of syscall directive not supported by current target
-% Published property is ignored
-parser_w_ignoring_published_property=03365_W_This property will not be published
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
+parser_w_ignoring_published_property=03365_W_This property will not be published
+% Published property is ignored
 parser_e_wasm_ref_types_can_only_be_passed_by_value=03366_E_WebAssembly reference types can only be passed by value
 % WebAssembly reference types don't have an in-memory representation and can only be passed by value.
 parser_e_promising_exports_not_supported_on_current_platform=03367_E_Declaring exports as 'promising' is WebAssembly-specific and is not supported on the current platform
@@ -2448,7 +2448,7 @@ sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 sym_e_symbol_no_capture=05099_E_Symbol "$1" can not be captured
 % The specified symbol can not be captured to be used in a function reference.
 % For example \var{var} or \var{out} parameters can not be captured in that way.
-sym_f_systemunitnotloaded=05100_F_System unit not loaded.
+sym_f_systemunitnotloaded=05100_F_System unit not loaded
 % The compiler used a function that requires the system unit to be loaded,
 % but it was not yet loaded. This is an internal compiler error and must be reported.
 sym_e_wasm_ref_types_cannot_be_used_in_records=05101_E_WebAssembly reference types cannot be used inside records, objects, or classes
@@ -3149,7 +3149,7 @@ exec_f_controllertype_expected=09036_F_To generate the correct linker call, a co
 % Xtensa micro controller require a detailed specification linker command which depends on the target controller.
 % If no target controller is set, this command cannot be build and thus linking cannot be carried out.
 %
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3176,7 +3176,7 @@ execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % Informational message showing the stack size that the compiler committed for the executable.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3247,7 +3247,7 @@ link_e_undefined_symbol_in_obj=09221_E_Undefined symbol: $1 (first seen in $2)
 % The specified symbol is used, but not defined and was first seen in the specified object file.
 link_e_undefined_symbol=09222_E_Undefined symbol: $1
 % The specified symbol is used, but not defined.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3492,15 +3492,15 @@ unit_u_ppu_wasm_threads_mismatch=10070_U_PPU and program must both be compiled w
 #
 #  Options
 #
-# 11064 is the last used one
+# 11067 is the last used one
 #
-option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
 %
 % \section{Command line handling errors}
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
+option_usage=11000_O_$1 [options] <inputfile> [options]
 option_only_one_source_support=11001_W_Only one source file supported, changing source file to compile from "$1" into "$2"
 % You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
@@ -3659,7 +3659,7 @@ option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no correspo
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 #
@@ -3735,7 +3735,7 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness i
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
-%\end{description}
+% \end{description}
 # EndOfTeX
 
 
@@ -4453,7 +4453,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)
 6*3WQxtcc_Set metadata to XTcc style
 **2WX_Enable executable stack (Linux)
-**1x<suff>_Set suffix for compiler executable (fpc command only).
+**1x<suff>_Set suffix for compiler executable (fpc command only)
 **1X_Executable options:
 **2X9_Generate linkerscript for GNU Binutils ld older than version 2.19.1 (Linux)
 **2Xa_Generate code which allows to use more than 2 GB static data on 64 bit targets (Linux)
