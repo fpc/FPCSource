@@ -18,7 +18,7 @@ regenerateinc: regeninc$(EXEEXT)
 ifdef inUnix
 	./regeninc
 else
-        regeninc$(EXEEXT)
+	regeninc$(EXEEXT)
 endif	
 
 	
