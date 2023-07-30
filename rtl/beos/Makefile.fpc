@@ -33,7 +33,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=beos
 cpu=i386
 

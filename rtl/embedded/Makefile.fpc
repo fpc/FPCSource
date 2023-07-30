@@ -36,7 +36,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=embedded
 
 [compiler]

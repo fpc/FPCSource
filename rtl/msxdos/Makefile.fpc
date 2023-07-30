@@ -30,7 +30,6 @@ nortl=y
 [install]
 fpcpackage=y
 [default]
-fpcdir=../..
 target=msxdos
 cpu=z80
 [compiler]

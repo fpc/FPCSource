@@ -35,7 +35,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=darwin
 
 [compiler]

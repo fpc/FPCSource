@@ -42,7 +42,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=wince
 
 [compiler]

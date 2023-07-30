@@ -34,7 +34,6 @@ units=syslinux linux
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=android
 
 [compiler]

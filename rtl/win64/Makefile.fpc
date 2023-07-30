@@ -8,15 +8,14 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=system uuchar objpas macpas $(ISO7185UNIT) buildrtl $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
-implicitunits=sysinit $(CTYPESUNIT) $(STRINGSUNIT) \
-      extpas \
-      heaptrc \
+implicitunits=sysinit extpas heaptrc fpintres \
+      $(CTYPESUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) $(MESSAGESUNIT) \
       $(WINDOWSUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) \
       $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) \
-      $(SHAREMEMUNIT) $(EXEINFOUNIT) fpintres $(WINDIRSUNIT) \
+      $(SHAREMEMUNIT) $(EXEINFOUNIT) $(WINDIRSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
       $(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
       $(CP437UNIT) $(CP646UNIT) $(CP737UNIT) $(CP775UNIT) $(CP850UNIT) $(CP852UNIT) $(CP855UNIT) $(CP856UNIT) $(CP857UNIT) $(CP860UNIT) $(CP861UNIT) $(CP862UNIT) \
@@ -25,12 +24,6 @@ implicitunits=sysinit $(CTYPESUNIT) $(STRINGSUNIT) \
       $(CP8859_13UNIT) $(CP8859_14UNIT) $(CP8859_15UNIT) $(CP8859_16UNIT) $(CPKOI8_RUNIT) $(CPKOI8_UUNIT) \
       $(UNICODEDATAUNIT) \
       $(CPU_UNITS)
-
-# mmx
-#      fpcmemdll
-#     winsysut signals
-#     no cygwin so far
-#	initc
 
 rsts=math typinfo classes sysconst
 
@@ -46,7 +39,6 @@ fpcpackage=y
 buildunit= buildrtl
 
 [default]
-fpcdir=../..
 target=win64
 
 [compiler]
@@ -65,7 +57,7 @@ OSDIR=win64
 NSOSDIR=$(NSDIR)/windows
 SYSUTILSDIR=$(WINDIR)
 SYSUTILS_OPT=-Fi../win
-SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
+#SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
@@ -86,7 +78,7 @@ OBJPASDIR=$(RTL)/objpas
 #include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
-
+FPC_SYSTEM_OPT=-Fi../win
 
 [rules]
 SYSTEMPPU=$(addsuffix $(PPUEXT),system)
@@ -118,14 +110,6 @@ endif
 #
 # Unit specific rules
 #
-
-
-SYSTEM_DEPS=system.pp $(SYSDEPS) \
-            $(SYSTEM_DEPS_OS) $(SYSTEM_DEPS_CPU)
-
-system$(PPUEXT) : $(SYSTEM_DEPS)
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $< -Fi../win
-
 
 BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) \
               $(BUILDRTL_DEPS_OS) $(BUILDRTL_DEPS_CPU)

@@ -34,7 +34,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=haiku
 cpu=i386
 

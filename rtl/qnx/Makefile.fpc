@@ -19,7 +19,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=qnx
 cpu=i386
 

@@ -29,7 +29,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=nds
 cpu=arm
 

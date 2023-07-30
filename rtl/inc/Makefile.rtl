@@ -600,6 +600,13 @@ ifndef BASEUNIXDIR
 BASEUNIXDIR=$(UNIXINC)
 endif
 
+# On some platforms, the DOS unit is in the buildrtl target, 
+# and will be specified in EXTPAS_DEPS_OS. If it is not, then we add the dos
+# unit as a dependency here
+ifndef EXTPAS_DEPS_OS
+EXTPAS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
+endif
+
 #
 # Some units have the same name for dotted/non-dotted RTL. 
 # These units must be passed FPC_DOTTEDUNITS explicitly
@@ -675,7 +682,7 @@ iso7185$(PPUEXT) : $(ISO7185_DEPS)
 # extpas
 
 EXTPAS_DEPS=$(INC)/extpas.pp \
-            $(DOSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+            $(SYSTEMUNIT)$(PPUEXT) \
             $(EXTPAS_DEPS_OS) $(EXTPAS_DEPS_CPU)
 
 extpas$(PPUEXT) : $(EXTPAS_DEPS)
@@ -1452,7 +1459,7 @@ sysctl$(PPUEXT) : $(SYSCTL_DEPS)
 	$(COMPILER) $(SYSCTL_OPT) $<
 
 BsdApi.SysCtl$(PPUEXT) : $(NSBSDDIR)/BsdApi.SysCtl.pp $(SYSCTL_DEPS)
-	$(COMPILER) $(BSD_OPT) $<
+	$(COMPILER) $(SYSCTL_OPT) $<
 #
 # bsd unit
 #

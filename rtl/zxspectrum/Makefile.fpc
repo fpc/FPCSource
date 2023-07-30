@@ -12,7 +12,6 @@ nortl=y
 [install]
 fpcpackage=y
 [default]
-fpcdir=../..
 target=zxspectrum
 cpu=z80
 [compiler]

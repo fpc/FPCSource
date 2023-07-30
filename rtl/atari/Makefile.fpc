@@ -27,7 +27,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=atari
 cpu=m68k
 

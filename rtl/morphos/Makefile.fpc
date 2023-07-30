@@ -31,7 +31,6 @@ fpcpackage=y
 buildunit=buildrtl
 
 [default]
-fpcdir=../..
 target=morphos
 cpu=powerpc
 

@@ -33,7 +33,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=emx
 cpu=i386
 

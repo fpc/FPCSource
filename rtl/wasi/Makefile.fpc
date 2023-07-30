@@ -24,7 +24,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=wasi
 cpu=wasm32
 
