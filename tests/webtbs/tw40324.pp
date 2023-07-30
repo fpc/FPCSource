@@ -9,7 +9,7 @@ program tw40324;
 {$endif}
 // uses
 {$IFDEF UNIX}
-cthreads,
+// cthreads,
 {$ENDIF}
   // Classes, Sysutils { you can add units after this };
 
