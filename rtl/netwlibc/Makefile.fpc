@@ -32,7 +32,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=netwlibc
 
 [compiler]

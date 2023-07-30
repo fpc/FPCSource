@@ -26,7 +26,6 @@ nortl=y
 [install]
 fpcpackage=y
 [default]
-fpcdir=../..
 target=go32v2
 cpu=i386
 [compiler]

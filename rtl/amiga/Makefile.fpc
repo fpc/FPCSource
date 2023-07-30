@@ -28,7 +28,6 @@ nortl=y
 fpcpackage=y
 
 [default]
-fpcdir=../..
 target=amiga
 cpu=powerpc
 

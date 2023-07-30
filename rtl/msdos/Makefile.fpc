@@ -26,7 +26,6 @@ nortl=y
 [install]
 fpcpackage=y
 [default]
-fpcdir=../..
 target=msdos
 cpu=i8086
 [compiler]
