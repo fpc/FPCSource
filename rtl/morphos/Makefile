@@ -2397,8 +2397,8 @@ rtlconsts$(PPUEXT) : $(RTLCONSTS_DEPS)
 	$(COMPILER) $(RTLCONSTS_OPT) $<
 System.RtlConsts$(PPUEXT) : $(NSINC)/System.RtlConsts.pp $(RTLCONSTS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(RTLCONSTS_OPT) $<
-ifneq ($(findstring $(ARCH),x86_64 i386),)
-CPU_DEPS_OS:=$(CPU_DEPS_OS) $(SYSUTILSUNIT)$(PPUEXT)
+ifneq ($(findstring $(ARCH),x86_64 i386 i8086),)
+CPU_DEPS_CPU:=$(CPU_DEPS_CPU) $(SYSUTILSUNIT)$(PPUEXT)
 endif
 CPU_DEPS=$(PROCINC)/cpu.pp \
 	 $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
