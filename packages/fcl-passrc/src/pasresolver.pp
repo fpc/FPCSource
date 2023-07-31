@@ -2239,7 +2239,7 @@ type
     procedure WriteScopesShort(Title: string);
     // find value and type of an element
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
-      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); virtual;
     procedure ComputeResultElement(El: TPasResultElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); virtual;
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
@@ -14233,6 +14233,11 @@ begin
         // function call => return result
         ComputeResultElement(TPasFunctionType(Proc.ProcType).ResultEl,ResolvedEl,
           Flags+[rcCall],StartEl)
+      else if Proc.IsAsync then
+        begin
+        // async proc => return promise
+        ComputeElement(Proc,ResolvedEl,Flags+[rcCall],StartEl);
+        end
       else if (Proc.ClassType=TPasConstructor) then
         begin
         // constructor -> return value of type class
@@ -27827,6 +27832,12 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
             // function => return result
             ComputeResultElement(TPasFunction(ResolvedEl.IdentEl).FuncType.ResultEl,
               ResolvedEl,Flags+[rcCall],StartEl);
+            end
+          else if (ResolvedEl.IdentEl is TPasProcedure)
+              and TPasProcedure(ResolvedEl.IdentEl).IsAsync then
+            begin
+            // async proc => return promise
+            ComputeElement(ResolvedEl.IdentEl,ResolvedEl,Flags+[rcCall],StartEl);
             end
           else if (ResolvedEl.IdentEl.ClassType=TPasConstructor) then
             begin

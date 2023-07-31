@@ -1696,6 +1696,8 @@ type
     procedure CheckDispatchField(Proc: TPasProcedure; Switch: TValueSwitch);
     procedure AddMessageStr(var MsgToProc: TMessageIdToProc_List; const S: string; Proc: TPasProcedure);
     procedure AddMessageIdToClassScope(Proc: TPasProcedure; EmitHints: boolean); virtual;
+    procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); override;
     procedure ComputeResultElement(El: TPasResultElement; out
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement = nil); override;
@@ -7302,13 +7304,36 @@ begin
   end;
 end;
 
+procedure TPas2JSResolver.ComputeElement(El: TPasElement; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+var
+  Proc: TPasProcedure;
+  JSPromiseClass: TPasClassType;
+begin
+  if (rcCall in Flags) and (El is TPasProcedure) then
+    begin
+    Proc:=TPasProcedure(El);
+    if Proc.IsAsync then
+      begin
+      // an async function call returns a TJSPromise
+      JSPromiseClass:=FindTJSPromise(StartEl);
+
+      SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
+        JSPromiseClass, [rrfReadable, rrfWritable]);
+
+      Exit;
+      end;
+    end;
+  inherited ComputeElement(El,ResolvedEl,Flags,StartEl);
+end;
+
 procedure TPas2JSResolver.ComputeResultElement(El: TPasResultElement; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
 var
   FuncType: TPasFunctionType;
   Proc: TPasProcedure;
-  JSPromiseClass: TPasClassType;
 begin
   if (rcCall in Flags) and (El.Parent is TPasFunctionType) then
     begin
@@ -7318,11 +7343,8 @@ begin
       Proc:=TPasProcedure(FuncType.Parent);
       if Proc.IsAsync then
         begin
-        // an async function call returns a TJSPromise
-        JSPromiseClass:=FindTJSPromise(StartEl);
-        SetResolverIdentifier(ResolvedEl,btContext,El,
-                       JSPromiseClass,JSPromiseClass,[rrfReadable,rrfWritable]);
-        exit;
+        ComputeElement(Proc, ResolvedEl, Flags, StartEl);
+        Exit;
         end;
       end;
     end;
