@@ -7,9 +7,9 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) heaptrc uuchar objpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) buildrtl $(CPALLUNIT) 
+units=$(SYSTEMUNIT) heaptrc uuchar objpas $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
 implicitunits=$(SYSINITUNITS) athreads $(DOSUNIT) \
-      $(CTYPESUNIT)  $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(TYPESUNIT) $(CPALLUNIT) \
+      $(CTYPESUNIT)  $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(TYPESUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(CHARSETUNIT) $(GETOPTSUNIT)  \
       $(EXEINFOUNIT)  $(CPU_UNITS) \
