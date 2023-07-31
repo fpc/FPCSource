@@ -2655,7 +2655,3 @@ get9$(PPUEXT): get9.pas exec$(PPUEXT)
 	$(COMPILER) get9.pas
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
 	$(COMPILER) muihelper.pas
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ctypes.pp
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/cmem.pp
