@@ -879,11 +879,7 @@ DOSUNITEXT=pas
 PORTSUNITEXT=pas
 UNITPREFIX=rtl
 SYSUTILS_DEPS_OS=doscalls$(PPUEXT)
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-else
-SYSTEMUNIT=sysos2
-endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif

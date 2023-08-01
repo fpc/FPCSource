@@ -41,11 +41,7 @@ SYSTEMUNIT=system
 # that generates release PPU files
 # which will not be recompiled
 ifdef RELEASE
-ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
-ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)
 override FPCOPT+=-Ur
-endif
-endif
 endif
 
 # Paths

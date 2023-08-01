@@ -878,11 +878,7 @@ DOS_DEPS_OS=doscalls$(PPUEXT)
 SYSUTILS_DEPS_OS=dos$(PPUEXT)
 DYNLIBS_DEPS_OD=doscalls($PPUEXT)
 UNITPREFIX=rtl
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-else
-SYSTEMUNIT=sysemx
-endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
