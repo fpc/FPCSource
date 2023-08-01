@@ -187,9 +187,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
 	$(EXECPPAS)
 
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # Other system-independent RTL Units
 #

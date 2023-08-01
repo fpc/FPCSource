@@ -289,9 +289,6 @@ fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # Other system-dependent RTL Units
 #
