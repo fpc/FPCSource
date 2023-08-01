@@ -881,6 +881,8 @@ DLLS=fpcmemdll
 CPU_UNITS=cpu signals mmx
 OBJPASDIR=$(RTL)/objpas
 FPC_SYSTEM_OPT=-Fu../win
+SYSUTILSDIR=$(WINDIR)
+SYSUTILS_OPT=-Fi../win
 include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 EXTPAS_DEPS_OS=buildrtl$(PPUEXT)

@@ -59,6 +59,9 @@ CPU_UNITS=cpu signals mmx
 # Paths
 OBJPASDIR=$(RTL)/objpas
 FPC_SYSTEM_OPT=-Fu../win
+SYSUTILSDIR=$(WINDIR)
+SYSUTILS_OPT=-Fi../win
+#SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
 
 # Files used by windows.pp
 include $(WININC)/makefile.inc
