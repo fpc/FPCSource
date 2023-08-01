@@ -175,9 +175,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put $(SYSTEMUNIT) unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-DOS_DEPS_OS=$(UNIXUNIT)$(PPUEXT)
-DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT) 
-
 SYSNRINC=$(ARCH)/sysnr.inc
 
 # Set PIC_OPT to 1 if -Cg or -fPIC is used

@@ -3247,8 +3247,6 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-DOS_DEPS_OS=$(UNIXUNIT)$(PPUEXT)
-DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT) 
 SYSNRINC=$(ARCH)/sysnr.inc
 ifneq ($(findstring -Cg ,$(COMPILER)),)
   PIC_OPT=1
