@@ -205,9 +205,6 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT)
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # Other system-dependent RTL Units
 #

@@ -261,9 +261,6 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
 
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # Other system-dependent RTL Units
 #
