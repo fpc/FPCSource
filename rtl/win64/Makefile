@@ -881,9 +881,6 @@ SYSUTILSDIR=$(WINDIR)
 SYSUTILS_OPT=-Fi../win
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
-endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=cpu signals
 endif

@@ -878,11 +878,7 @@ ASMEXT=.s
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 ifdef RELEASE
-ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
-ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)
 override FPCOPT+=-Ur
-endif
-endif
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph

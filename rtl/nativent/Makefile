@@ -884,11 +884,7 @@ endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 cpu
 endif
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-DLLS=
-else
 DLLS=fpcmemdll
-endif
 OBJPASDIR=$(RTL)/objpas
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 ifeq ($(CPU_OS_TARGET),i386-nativent)

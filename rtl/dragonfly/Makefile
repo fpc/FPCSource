@@ -879,13 +879,8 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 CPU_UNITS=
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 loaders+=gprt0
-else
-SYSTEMUNIT=sysbsd
-override FPCOPT+=-dUNIX
-endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 endif

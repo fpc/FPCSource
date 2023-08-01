@@ -66,12 +66,7 @@ ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 cpu
 endif
 
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-#LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
-DLLS=
-else
 DLLS=fpcmemdll
-endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
