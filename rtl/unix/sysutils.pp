@@ -997,7 +997,7 @@ end;
 Function FindGetFileInfo(const s: RawByteString; var f: TAbstractSearchRec; var Name: RawByteString):boolean;
 Var
 {$ifdef USE_STATX}
-  stx : linux.tstatx;
+  stx : {$ifdef FPC_DOTTEDUNITS}LinuxApi.{$else}linux.{$endif}tstatx;
 {$endif USE_STATX}
   st : BU.stat;
   WinAttr : longint;
