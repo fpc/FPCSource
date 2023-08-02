@@ -3781,7 +3781,7 @@ end;
 function TPascalScanner.DoFetchTextToken:TToken;
 var
   TokenStart, StartP : {$ifdef UsePChar}PAnsiChar{$else}integer{$endif};
-  I,SectionLength : Integer;
+  SectionLength : Integer;
   {$ifndef UsePChar}
   s: TPasScannerString;
   l: integer;
@@ -3867,10 +3867,10 @@ begin
   SetLength(FCurTokenString, SectionLength);
   if SectionLength > 0 then
     Move(StartP^, FCurTokenString[1], SectionLength);
-  Writeln('String: ',UTF8String(FCurTokenString),length(FCurTokenString));
-  For I:=2 to Length(FCurTokenString)-1 do
-    Write(hexStr(Ord(FCurtokenString[I]),2));
-  Writeln;
+  //Writeln('String: ',UTF8String(FCurTokenString),length(FCurTokenString));
+  //For I:=2 to Length(FCurTokenString)-1 do
+  //  Write(hexStr(Ord(FCurtokenString[I]),2));
+  //Writeln;
   {$else}
   FCurTokenString:=FCurTokenString+copy(FCurLine,StartP,SectionLength);
   {$endif}
