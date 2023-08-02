@@ -22552,8 +22552,10 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
   Access: TResolvedRefAccess; FindData: PPRFindData): TResolvedReference;
 
   procedure RaiseAlreadySet;
+  {$IFDEF VerbosePasResolver}
   var
     FormerDeclEl: TPasElement;
+  {$ENDIF}
   begin
     {$IFDEF VerbosePasResolver}
     writeln('RaiseAlreadySet RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
