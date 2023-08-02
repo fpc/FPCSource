@@ -1420,9 +1420,9 @@ blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
 
 
 #
-# Windows
+# Windows, depends on objpas because of mode switch
 #
-WINDOWS_DEPS=windows.pp $(SYSTEMUNIT)$(PPUEXT) \
+WINDOWS_DEPS=windows.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
              $(WINDOWS_DEPS_OS) $(WINDOWS_DEPS_CPU)
 
 windows$(PPUEXT): $(WINDOWS_DEPS)
