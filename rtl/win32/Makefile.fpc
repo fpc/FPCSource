@@ -7,14 +7,14 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas $(ISO7185UNIT) buildrtl $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
-implicitunits=sysinitpas sysinitcyg sysinitgprof initc extpas heaptrc winsysut \
-      $(CTYPESUNIT) $(STRINGSUNIT) \
+units=system uuchar objpas macpas $(ISO7185UNIT) $(WINDOWSUNIT) $(SYSUTILSUNIT) buildrtl $(CHARSETUNIT) $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
+implicitunits=sysinitpas sysinitcyg sysinitgprof initc extpas heaptrc \
+      $(WINSYSUTUNIT) $(CTYPESUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) $(MESSAGESUNIT) \
-      $(WINDOWSUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) \
-      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) \
+      $(CMEMUNIT) $(DYNLIBSUNIT) \
+      $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(GETOPTSUNIT) \
-      $(CHARSETUNIT) $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) \
+      $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) \
       $(SHAREMEMUNIT) $(EXEINFOUNIT) fpintres $(WINDIRSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
       $(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
@@ -51,25 +51,27 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 WININC=../win/wininc
 WINDIR=../win
+OSDIR=win32
+NSOSDIR=$(NSDIR)/windows
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 DLLS=fpcmemdll
-CPU_UNITS=cpu signals mmx
+CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT) $(MMXUNIT)
 # Paths
 OBJPASDIR=$(RTL)/objpas
 FPC_SYSTEM_OPT=-Fu../win
 SYSUTILSDIR=$(WINDIR)
 SYSUTILS_OPT=-Fi../win
-#SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT) $(WINDIRSUNIT)$(PPUEXT)
 
 # Files used by windows.pp
 include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
+EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
 EXTPAS_DEPS_OS=buildrtl$(PPUEXT)
-
 
 [rules]
 .NOTPARALLEL:
@@ -91,7 +93,23 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
+BUILDINCLUDEPATHS= -Fi$(OBJPASDIR)/sysutils -Fi$(WINDIR) -Fi$(OBJPASDIR) \
+                   -Fi$(OBJPASDIR)/classes -Fi$(WININC) -Fi$(INC)
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+BUILDUNITPATHS=-Fu$(WININC) -Fu$(WINDIR) -Fu$(INC) -Fu$(OBJPASDIR) -Fu../$(ARCH)
+
+ifdef FPC_DOTTEDUNITS
+BUILDRTL_OPT:=$(BUILDRTL_OPT) -Fu$(NSINC) -Fu$(NSOSDIR) -dFPC_DOTTEDUNITS 
+endif
+
+#
+# Unit specific rules
+#
+
+BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) $(WINDOWSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
+              $(BUILDRTL_DEPS_OS) $(BUILDRTL_DEPS_CPU)
+
+buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)
+	$(COMPILER) $(BUILDUNITPATHS) $(BUILDINCLUDEPATHS) $(BUILDRTL_OPT) $<
+
 
