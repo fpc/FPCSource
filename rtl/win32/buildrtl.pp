@@ -5,20 +5,20 @@ unit buildrtl;
 {$IFDEF FPC_DOTTEDUNITS}
     uses
       sysinitpas, sysinitcyg, sysinitgprof,
-      extpas,
+      extpas, heaptrc,
       System.CTypes, System.Strings,
-      WinApi.Windows,  initc,  System.CMem, System.DynLibs, signals,
+      WinApi.Windows,  initc,  System.CMem, System.DynLibs, WinApi.Signals,
       TP.DOS, WinApi.Messages,
       System.RtlConsts, System.SysConst, System.SysUtils, System.Math, System.Types,
       System.TypInfo, System.FGL, System.Classes,    
-      System.Cpu, mmx, System.CharSet, System.Character, System.GetOpts,
-      System.fpwidestring,
-      System.Winsysut,  WinApi.ShareMem, fpintres, WinApi.WinDirs,
+      System.CPU, System.CPU.MMX, System.CharSet, System.Character, System.GetOpts,
+      System.FPWideString,
+      WinApi.WinSysUt, WinApi.ShareMem, fpintres, WinApi.WinDirs,
       System.SoftFPU, System.SoftFpuX80, System.SoftFpu128, System.UFloatX80, System.UFloat128;
 {$ELSE FPC_DOTTEDUNITS}
   uses
       sysinitpas, sysinitcyg, sysinitgprof,
-      extpas,
+      extpas, heaptrc,
       ctypes, strings,
       windows,  initc, cmem, dynlibs, signals,
       dos, messages,
