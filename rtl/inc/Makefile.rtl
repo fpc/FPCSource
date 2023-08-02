@@ -542,7 +542,9 @@ fpcdir=../..
 ifndef OSDIR
 OSDIR=.
 endif
-
+ifndef NSOSDIR
+NSOSDIR=$(NSDIR)/$(OS_TARGET)
+endif
 
 ifndef PORTSDIR
 PORTSDIR=$(OSDIR)
@@ -903,6 +905,14 @@ dos$(PPUEXT): $(DOS_DEPS)
 
 TP.DOS$(PPUEXT): $(NSINC)/TP.DOS.pp $(DOS_DEPS) 
 	$(COMPILER) $(DOS_OPTS) $<
+
+MSMOUSE_DEPS=msmouse.pp $(SYSTEMUNIT)$(PPUEXT)
+
+msmouse$(PPUEXT) : $(MSMOUSE_DEPS)
+	$(COMPILER) $(MSMOUSE_OPTS) $<
+
+DOSApi.MSMouse$(PPUEXT) : $(NSOSDIR)/DOSApi.MSMouse.pp $(MSMOUSE_DEPS)
+	$(COMPILER) $(MSMOUSE_OPTS) $<
 
 
 ###########################################
