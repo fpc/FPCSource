@@ -13,6 +13,8 @@
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit initc;
+{$ELSE FPC_DOTTEDUNITS}
+unit initc;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface
