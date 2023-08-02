@@ -472,7 +472,7 @@ begin
     jstObject: Result:='{:OBJECT:}';
     jstReference: Result:='{:REFERENCE:}';
     JSTCompletion: Result:='{:COMPLETION:}';
-    else Result:='{:Unknown ValueType '+IntToStr(ord(Element.ValueType))+':}';
+    else Result:='{:Unknown ValueType '+IntToStr(ord(Element.ValueType))+':}'{%H-};
     end;
   end;
   Result:=StringOfChar(' ',Indent)+Result;
@@ -1038,7 +1038,7 @@ begin
   mtHint: Result:='Hint';
   mtInfo: Result:='Info';
   mtDebug: Result:='Debug';
-  else Result:='Verbose';
+  else Result:='Verbose'{%H-};
   end;
 end;
 
