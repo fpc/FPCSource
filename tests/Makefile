@@ -9,6 +9,7 @@ LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
 ifneq ($(findstring darwin,$(OSTYPE)),)
 inUnix=1 #darwin
@@ -165,8 +166,20 @@ endif
 ifndef OS_TARGET
 OS_TARGET:=$(word 5,$(FPC_COMPILERINFO))
 endif
-FULL_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+CPU_OS_TARGET=$(CPU_TARGET)-$(OS_TARGET)
+ifdef SUB_TARGET
+L_SUB_TARGET=$(call lc,$(SUB_TARGET))
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)-$(L_SUB_TARGET)
+else
+FULL_TARGET:=$(CPU_TARGET)-$(OS_TARGET)
+endif
+CPU_OS_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+ifdef SUB_SOURCE
+L_SUB_SOURCE=$(call lc,$(SUB_SOURCE))
+FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)-$(L_SUB_SOURCE)
+else
 FULL_SOURCE=$(CPU_SOURCE)-$(OS_SOURCE)
+endif
 ifeq ($(CPU_TARGET),armeb)
 ARCH=arm
 override FPCOPT+=-Cb
@@ -178,39 +191,43 @@ else
 ARCH=$(CPU_TARGET)
 endif
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifdef SUB_TARGET 
+FPCOPT+=-t$(SUB_TARGET)
+FPMAKE_OPT+=--subtarget=$(SUB_TARGET)
+endif
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t or SUBARCH=armv7m) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for avr-embedded, a sub-architecture (e.g. SUBARCH=avr25 or SUBARCH=avr35) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for mipsel-embedded, a sub-architecture (e.g. SUBARCH=pic32mx) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-embedded, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for xtensa-freertos, a sub-architecture (e.g. SUBARCH=lx106 or SUBARCH=lx6) must be defined)
 endif
 override FPCOPT+=-Cp$(SUBARCH)
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-freertos, a sub-architecture (e.g. SUBARCH=armv6m or SUBARCH=armv7em) must be defined)
 endif
@@ -227,11 +244,11 @@ TARGETSUFFIX=$(FULL_TARGET)
 endif
 SOURCESUFFIX=$(FULL_SOURCE)
 endif
-ifneq ($(FULL_TARGET),$(FULL_SOURCE))
+ifneq ($(CPU_OS_TARGET),$(CPU_OS_SOURCE))
 CROSSCOMPILE=1
 endif
 ifeq ($(findstring makefile,$(MAKECMDGOALS)),)
-ifeq ($(filter $(FULL_TARGET),$(MAKEFILETARGETS)),)
+ifeq ($(filter $(CPU_OS_TARGET),$(MAKEFILETARGETS)),)
 $(error The Makefile doesn't support target $(FULL_TARGET), please run fpcmake first)
 endif
 endif
@@ -249,7 +266,7 @@ ifdef BUILDFULLNATIVE
 BUILDNATIVE=1
 export BUILDNATIVE
 endif
-export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE
+export OS_TARGET OS_SOURCE ARCH CPU_TARGET CPU_SOURCE SUB_TARGET SUB_SOURCE FULL_TARGET FULL_SOURCE TARGETSUFFIX SOURCESUFFIX CROSSCOMPILE CPU_OS_TARGET CPU_OS_SOURCE
 ifdef FPCDIR
 override FPCDIR:=$(subst \,/,$(FPCDIR))
 ifeq ($(wildcard $(addprefix $(FPCDIR)/,rtl)),)
@@ -349,337 +366,337 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override TARGET_PROGRAMS+=gparmake createlst
 endif
 override INSTALL_FPCPACKAGE=y
@@ -1471,341 +1488,347 @@ TAROPT=vz
 TAREXT=.tar.gz
 endif
 override REQUIRE_PACKAGES=rtl 
-ifeq ($(FULL_TARGET),i386-linux)
+ifeq ($(CPU_OS_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-win32)
+ifeq ($(CPU_OS_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-os2)
+ifeq ($(CPU_OS_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-freebsd)
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-beos)
+ifeq ($(CPU_OS_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-haiku)
+ifeq ($(CPU_OS_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-netbsd)
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-solaris)
+ifeq ($(CPU_OS_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-netware)
+ifeq ($(CPU_OS_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-openbsd)
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-wdosx)
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-darwin)
+ifeq ($(CPU_OS_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-emx)
+ifeq ($(CPU_OS_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-watcom)
+ifeq ($(CPU_OS_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-wince)
+ifeq ($(CPU_OS_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-embedded)
+ifeq ($(CPU_OS_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-symbian)
+ifeq ($(CPU_OS_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-nativent)
+ifeq ($(CPU_OS_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-iphonesim)
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-android)
+ifeq ($(CPU_OS_TARGET),i386-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i386-aros)
+ifeq ($(CPU_OS_TARGET),i386-aros)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-linux)
+ifeq ($(CPU_OS_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-atari)
+ifeq ($(CPU_OS_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-palmos)
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-macosclassic)
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-embedded)
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),m68k-sinclairql)
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-linux)
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-macosclassic)
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-wii)
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc-aix)
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),sparc-linux)
+ifeq ($(CPU_OS_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),sparc-solaris)
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),sparc-embedded)
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-linux)
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-haiku)
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-netbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-openbsd)
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-win64)
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-iphonesim)
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-android)
+ifeq ($(CPU_OS_TARGET),x86_64-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-aros)
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),x86_64-dragonfly)
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-linux)
+ifeq ($(CPU_OS_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-netbsd)
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-palmos)
+ifeq ($(CPU_OS_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-wince)
+ifeq ($(CPU_OS_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-gba)
+ifeq ($(CPU_OS_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-nds)
+ifeq ($(CPU_OS_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-embedded)
+ifeq ($(CPU_OS_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-symbian)
+ifeq ($(CPU_OS_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-android)
+ifeq ($(CPU_OS_TARGET),arm-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-aros)
+ifeq ($(CPU_OS_TARGET),arm-aros)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-freertos)
+ifeq ($(CPU_OS_TARGET),arm-freertos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),arm-ios)
+ifeq ($(CPU_OS_TARGET),arm-ios)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),powerpc64-aix)
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),avr-embedded)
+ifeq ($(CPU_OS_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),armeb-linux)
+ifeq ($(CPU_OS_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),armeb-embedded)
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mips-linux)
+ifeq ($(CPU_OS_TARGET),mips-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mipsel-linux)
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mipsel-embedded)
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mipsel-android)
+ifeq ($(CPU_OS_TARGET),mipsel-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mips64-linux)
+ifeq ($(CPU_OS_TARGET),mips64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),mips64el-linux)
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),jvm-java)
+ifeq ($(CPU_OS_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),jvm-android)
+ifeq ($(CPU_OS_TARGET),jvm-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i8086-embedded)
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i8086-msdos)
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),i8086-win16)
+ifeq ($(CPU_OS_TARGET),i8086-win16)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-linux)
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-freebsd)
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-darwin)
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-win64)
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-embedded)
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-iphonesim)
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-android)
+ifeq ($(CPU_OS_TARGET),aarch64-android)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),aarch64-ios)
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),wasm32-embedded)
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasi)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),sparc64-linux)
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),riscv32-linux)
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),riscv32-embedded)
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),riscv32-freertos)
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),riscv64-linux)
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),riscv64-embedded)
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),xtensa-linux)
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),xtensa-embedded)
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),xtensa-freertos)
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),z80-embedded)
+ifeq ($(CPU_OS_TARGET),z80-embedded)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),z80-zxspectrum)
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),z80-msxdos)
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),z80-amstradcpc)
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 REQUIRE_PACKAGES_RTL=1
 endif
-ifeq ($(FULL_TARGET),loongarch64-linux)
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /rtl/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+PACKAGEDIR_RTL:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /rtl/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
 ifneq ($(PACKAGEDIR_RTL),)
 ifneq ($(wildcard $(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)),)
 UNITDIR_RTL=$(PACKAGEDIR_RTL)/units/$(TARGETSUFFIX)
@@ -2564,7 +2587,7 @@ else
 endif
 .PHONY: create_c_objects delete_c_objects copyfiles test_c_objects
 C_SOURCE_DIR=test/cg/obj
-C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
+C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c tcext7.c
 CPP_SOURCES=cpptcl1.cpp cpptcl2.cpp
 TASM_SOURCES=ttasm1.asm
 ifneq ($(TEST_ABI),)
