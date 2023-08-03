@@ -18905,27 +18905,24 @@ var
   Call: TJSCallExpression;
   HasRTTIMembers: Boolean;
 begin
-  Call:=nil;
-  try
-    // module.$rtti.$Record("typename",{});
-    Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,FuncContext,ObjLit);
-    if ObjLit=nil then
-      RaiseInconsistency(20190105141430,El);
+  // module.$rtti.$Record("typename",{});
+  Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewRecord),false,FuncContext,ObjLit);
+  if ObjLit=nil then
+  begin
+    Call.Free;
 
-    HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,MembersSrc,MembersFuncContext,Call,false);
-    if not HasRTTIMembers then
-      begin
-      // no published members, add "module.$rtti.$Record..."
-      if Src=MembersSrc then
-        AddToSourceElements(Src,Call)
-      else
-        Src.Statements.InsertNode(0).Node:=Call;
-      end;
-
-    Call:=nil;
-  finally
-      Call.Free;
+    RaiseInconsistency(20190105141430,El);
   end;
+
+  HasRTTIMembers:=CreateRTTIMembers(El,Src,FuncContext,MembersSrc,MembersFuncContext,Call,false);
+  if not HasRTTIMembers then
+    begin
+    // no published members, add "module.$rtti.$Record..."
+    if Src=MembersSrc then
+      AddToSourceElements(Src,Call)
+    else
+      Src.Statements.InsertNode(0).Node:=Call;
+    end;
 end;
 
 function TPasToJSConverter.CreateDelayedInitMembersFunction(PosEl: TPasElement;
