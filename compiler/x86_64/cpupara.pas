@@ -1650,10 +1650,11 @@ unit cpupara;
         locidx,
         i,j,
         varalign,
+        procparaalign,
         paraalign  : longint;
         use_ms_abi : boolean;
       begin
-        paraalign:=get_para_align(p.proccalloption);
+        procparaalign:=get_para_align(p.proccalloption);
         use_ms_abi:=x86_64_use_ms_abi(p.proccalloption);
         { Register parameters are assigned from left to right }
         for i:=0 to paras.count-1 do
@@ -1695,6 +1696,7 @@ unit cpupara;
                 paralen:=sizeof(pint);
                 paradef:=cpointerdef.getreusable_no_free(paradef);
                 paralocdef:=paradef;
+                paraalign:=procparaalign;
                 loc[0].def:=paralocdef;
                 loc[1].def:=nil;
                 for j:=2 to high(loc) do
@@ -1707,7 +1709,7 @@ unit cpupara;
               begin
                 getvalueparaloc(p.proccalloption,hp.varspez,paralocdef,loc);
                 paralen:=push_size(hp.varspez,paralocdef,p.proccalloption);
-                paraalign:=max(paraalign,paradef.alignment);
+                paraalign:=max(procparaalign,paradef.alignment);
                 if p.proccalloption = pocall_vectorcall then
                   begin
                     { TODO: Can this set of instructions be put into 'defutil' without it relying on the argument classification? [Kit] }
@@ -1990,7 +1992,7 @@ unit cpupara;
                           else
                             paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                           varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
-                          paraloc^.reference.offset:=parasize;
+                          paraloc^.reference.offset:=align(parasize,varalign);
                           parasize:=align(parasize+paralen,varalign);
                           paralen:=0;
                         end;
