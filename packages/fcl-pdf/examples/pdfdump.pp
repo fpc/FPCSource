@@ -19,7 +19,10 @@ program pdfdump;
 {$h+}
 
 uses
-  cwString, sysutils, classes, contnrs, fppdfobjects, fppdfparser, fppdfpredict,
+{$ifdef unix}
+  cwString, 
+{$endif}  
+  sysutils, classes, contnrs, fppdfobjects, fppdfparser, fppdfpredict,
   custapp, fppdfconsts, fppdfcommands;
 
 type
