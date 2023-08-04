@@ -270,8 +270,6 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
 
-fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #
