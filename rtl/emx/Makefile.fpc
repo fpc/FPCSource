@@ -47,15 +47,18 @@ sourcedir=$(INC) $(PROCINC) $(OS2INC)
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
+OS2INC=$(RTL)/os2
 OS2DIR=$(RTL)/os2
-DOS_DEPS_OS=doscalls$(PPUEXT) 
-SYSUTILS_DEPS_OS=dos$(PPUEXT)
-DYNLIBS_DEPS_OD=doscalls($PPUEXT)
+DOS_DEPS_OS=$(DOSCALLSUNIT)$(PPUEXT)
+SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
+DYNLIBS_DEPS_OS=$(DOSCALLSUNIT)$(PPUEXT)
 
 UNITPREFIX=rtl
 
 SYSTEMUNIT=system
+ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
+endif
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
