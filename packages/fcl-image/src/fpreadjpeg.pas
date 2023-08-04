@@ -109,6 +109,25 @@ type
 
 implementation
 
+uses FPColorSpace;
+
+type
+  int_Color_Table = array[0..MAXJSAMPLE+1-1] of int;
+  int_table_ptr = ^int_Color_Table;
+  INT32_Color_Table = array[0..MAXJSAMPLE+1-1] of INT32;
+  INT32_table_ptr = ^INT32_Color_Table;
+  my_cconvert_ptr = ^my_color_deconverter;
+  my_color_deconverter = record
+    pub : jpeg_color_deconverter; { public fields }
+
+    { Private state for YCC^.RGB conversion }
+    Cr_r_tab : int_table_ptr;   { => table for Cr to R conversion }
+    Cb_b_tab : int_table_ptr;   { => table for Cb to B conversion }
+    Cr_g_tab : INT32_table_ptr; { => table for Cr to G conversion }
+    Cb_g_tab : INT32_table_ptr; { => table for Cb to G conversion }
+  end;
+
+
 procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
                                      StartSize: integer);
 var
@@ -353,24 +372,15 @@ var
     Result.alpha:=alphaOpaque;
   end;
 
-  function CorrectYCCK(const C: TFPColor): TFPColor;
-  var
-    MinColor: word;
-  begin
-    if C.red<C.green then MinColor:=C.red
-    else MinColor:= C.green;
-    if C.blue<MinColor then MinColor:= C.blue;
-    if MinColor+ C.alpha>$FF then MinColor:=$FF-C.alpha;
-    Result.red:=(C.red-MinColor) shl 8;
-    Result.green:=(C.green-MinColor) shl 8;
-    Result.blue:=(C.blue-MinColor) shl 8;
-    Result.alpha:=alphaOpaque;
-  end;
-
-
   procedure OutputScanLines();
   var
     x: integer;
+    //ycbcr:TYCbCr;
+    cmyk:TStdCMYK;
+    yy,cb,cr :Int;
+    shift_temp : INT32;
+    cconvert : my_cconvert_ptr;
+
   begin
     Color.Alpha:=alphaOpaque;
     y:=0;
@@ -381,41 +391,68 @@ var
         ReturnValue:=false;
         break;
       end;
-      if (FInfo.jpeg_color_space = JCS_CMYK) then
-      for x:=0 to FInfo.output_width-1 do begin
-        Color.Red:=SampRow^[x*4+0];
-        Color.Green:=SampRow^[x*4+1];
-        Color.Blue:=SampRow^[x*4+2];
-        Color.alpha:=SampRow^[x*4+3];
-        SetPixel(x, y, CorrectCMYK(Color));
-      end
+
+      Case FInfo.out_color_space of
+      JCS_GRAYSCALE :
+        for x:=0 to FInfo.output_width-1 do
+        begin
+          c:= SampRow^[x] shl 8;
+          Color.Red:=c;
+          Color.Green:=c;
+          Color.Blue:=c;
+          SetPixel(x, y, Color);
+        end;
+      JCS_YCbCr :
+        for x:=0 to FInfo.output_width-1 do
+        begin
+          //MaxM: YCbCr is defined per CCIR 601-1
+          //      Y (0 to 1.0) and Cb,Cr (-0.5 to 0.5) is normalized to the range 0..MAXJSAMPLE
+          //      We have two ways to convert them, the most accurate is to denormalize
+          //      the values like the following commented code, or as is and set SamplePrecision to CENTERJSAMPLE
+          //      ycbcr.Y :=SampRow^[x*3+0]/256;
+          //      ycbcr.Cb :=(SampRow^[x*3+1]-128)/256;
+          //      ycbcr.Cr :=(SampRow^[x*3+2]-128)/256;
+          //ycbcr :=TYCbCr.New(SampRow^[x*3+0], SampRow^[x*3+1], SampRow^[x*3+2]);
+          //SetPixel(x, y, ycbcr.ToStdRGBA(YCBCr_601, CENTERJSAMPLE).ToExpandedPixel.ToFPColor(false));
+
+          //Use the same Code of PasJPeg (ycc_rgb_convert function)
+          yy :=SampRow^[x*3+0];
+          cb :=SampRow^[x*3+1];
+          cr :=SampRow^[x*3+2];
+          cconvert :=my_cconvert_ptr(FInfo.cconvert);
+          Color.Red :=  (FInfo.sample_range_limit^[yy + cconvert^.Cr_r_tab^[cr]]);
+          shift_temp := cconvert^.Cb_g_tab^[cb] + cconvert^.Cr_g_tab^[cr];
+          if shift_temp < 0 then   { SHIFT arithmetic RIGHT }
+            Color.Green := (FInfo.sample_range_limit^[yy + int((shift_temp shr 16)
+                                  or ( (not INT32(0)) shl (32-16)))])
+          else
+            Color.Green := (FInfo.sample_range_limit^[yy + int(shift_temp shr 16)]);
+
+          Color.Blue :=  (FInfo.sample_range_limit^[yy + cconvert^.Cb_b_tab^[cb]]);
+
+          Color.Red:=Color.Red shl 8;
+          Color.Green:=Color.Green shl 8;
+          Color.Blue:=Color.Blue shl 8;
+
+          SetPixel(x, y, Color);
+        end;
+      JCS_CMYK, JCS_YCCK:
+        for x:=0 to FInfo.output_width-1 do
+        begin
+          //SetPixel(x, y, CorrectCMYK(TFPColor.New(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3])));
+
+          cmyk :=TStdCMYK.New(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3]);
+          SetPixel(x, y, cmyk.ToExpandedPixel.ToFPColor(false));
+        end;
       else
-      if (FInfo.jpeg_color_space = JCS_YCCK) then
-      for x:=0 to FInfo.output_width-1 do begin
-        Color.Red:=SampRow^[x*4+0];
-        Color.Green:=SampRow^[x*4+1];
-        Color.Blue:=SampRow^[x*4+2];
-        Color.alpha:=SampRow^[x*4+3];
-        SetPixel(x, y, CorrectYCCK(Color));
-      end
-      else
-      if fgrayscale then begin
-       for x:=0 to FInfo.output_width-1 do begin
-         c:= SampRow^[x] shl 8;
-         Color.Red:=c;
-         Color.Green:=c;
-         Color.Blue:=c;
-         SetPixel(x, y, Color);
-       end;
-      end
-      else begin
-       for x:=0 to FInfo.output_width-1 do begin
-         Color.Red:=SampRow^[x*3+0] shl 8;
-         Color.Green:=SampRow^[x*3+1] shl 8;
-         Color.Blue:=SampRow^[x*3+2] shl 8;
-         SetPixel(x, y, Color);
-       end;
+        for x:=0 to FInfo.output_width-1 do begin
+          Color.Red:=SampRow^[x*3+0] shl 8;
+          Color.Green:=SampRow^[x*3+1] shl 8;
+          Color.Blue:=SampRow^[x*3+2] shl 8;
+          SetPixel(x, y, Color);
+        end;
       end;
+
       inc(y);
     end;
   end;

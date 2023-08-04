@@ -1928,7 +1928,8 @@ var
         //MaxM: Test the difference
         //  result:=CMYKToFPColor(ChannelValues[0],ChannelValues[1],ChannelValues[2],ChannelValues[3]);
         cmyk :=TStdCMYK.New(ChannelValues[0]/$ffff, ChannelValues[1]/$ffff, ChannelValues[2]/$ffff, ChannelValues[3]/$ffff);
-        result :=cmyk.ToExpandedPixel.ToFPColor(true); //MaxM: in Future we can use GammaCompression
+        result :=cmyk.ToExpandedPixel.ToFPColor(true); //Use of GammaCompression or direct?
+        //result :=cmyk.ToFPColor;
       end;
 
     6: // YCBCR: CCIR 601
@@ -1936,8 +1937,8 @@ var
         ycbcr :=TYCbCr.New(ChannelValues[0]/$ffff, ChannelValues[1]/$ffff, ChannelValues[2]/$ffff);
 
         if IFD.YCbCr_LumaRed<>0
-        then result :=ycbcr.ToLinearRGBA(IFD.YCbCr_LumaRed, IFD.YCbCr_LumaGreen, IFD.YCbCr_LumaBlue).ToExpandedPixel.ToFPColor(false)
-        else result :=ycbcr.ToLinearRGBA(YCbCr_601).ToExpandedPixel.ToFPColor(false);
+        then result :=ycbcr.ToStdRGBA(IFD.YCbCr_LumaRed, IFD.YCbCr_LumaGreen, IFD.YCbCr_LumaBlue).ToFPColor
+        else result :=ycbcr.ToStdRGBA(YCbCr_601).ToFPColor;
       end;
 
      //8: CIELAB: 1976 CIE L*a*b*
