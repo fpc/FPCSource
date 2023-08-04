@@ -2906,5 +2906,3 @@ initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/initc.pp
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
 	$(COMPILER) $<
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/sortbase.pp
