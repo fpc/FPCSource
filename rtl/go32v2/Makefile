@@ -2926,8 +2926,6 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
 	$(EXECPPAS)

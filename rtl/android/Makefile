@@ -3065,5 +3065,3 @@ linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) u
 	$(COMPILER) $(LINUXINC)/linux.pp
 linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
 	$(COMPILER) $(LINUXINC)/linuxvcs.pp
-sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/sortbase.pp
