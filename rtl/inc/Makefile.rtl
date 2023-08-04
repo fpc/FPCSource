@@ -1510,7 +1510,7 @@ BsdApi$(PPUEXT): $(NSBSDDIR)/BsdApi.pp $(BSD_DEPS)
 # EMX/OS2 Units
 ###################
 
-DOSCALLS_DEPS = $(OS2DIR)/doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+DOSCALLS_DEPS = $(OS2DIR)/doscalls.pas $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(DOSCALLS_DEPS_OS) $(DOSCALLS_DEPS_CPU)
 
 doscalls$(PPUEXT) : $(DOSCALLS_DEPS)
@@ -1519,7 +1519,7 @@ doscalls$(PPUEXT) : $(DOSCALLS_DEPS)
 OS2Api.doscalls$(PPUEXT) : $(NSOS2DIR)/OS2Api.doscalls.pas $(DOSCALLS_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-VIOCALLS_DEPS = $(OS2INC)/viocalls.pas $(SYSTEMUNIT)$(PPUEXT) \
+VIOCALLS_DEPS = $(OS2DIR)/viocalls.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(VIOCALLS_DEPS_OS) $(VIOCALLS_DEPS_CPU)
 
 viocalls$(PPUEXT) : $(VIOCALLS_DEPS)
@@ -1528,7 +1528,7 @@ viocalls$(PPUEXT) : $(VIOCALLS_DEPS)
 OS2Api.viocalls$(PPUEXT) : $(NSOS2DIR)/OS2Api.viocalls.pas $(VIOCALLS_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-SO32DLL_DEPS = $(OS2INC)/so32dll.pas $(SYSTEMUNIT)$(PPUEXT) \
+SO32DLL_DEPS = $(OS2DIR)/so32dll.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(SO32DLL_DEPS_OS) $(SO32DLL_DEPS_CPU)
 
 so32dll$(PPUEXT) : $(SO32DLL_DEPS)
@@ -1537,7 +1537,7 @@ so32dll$(PPUEXT) : $(SO32DLL_DEPS)
 OS2Api.so32dll$(PPUEXT) : $(NSOS2DIR)/OS2Api.so32dll.pas $(SO32DLL_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-KBDCALLS_DEPS = $(OS2INC)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT) \
+KBDCALLS_DEPS = $(OS2DIR)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(KBDCALLS_DEPS_OS) $(KBDCALLS_DEPS_CPU)
 
 kbdcalls$(PPUEXT) : $(KBDCALLS_DEPS)
@@ -1546,7 +1546,7 @@ kbdcalls$(PPUEXT) : $(KBDCALLS_DEPS)
 OS2Api.kbdcalls$(PPUEXT) : $(NSOS2DIR)/OS2Api.kbdcalls.pas $(KBDCALLS_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-MOUCALLS_DEPS = $(OS2INC)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT) \
+MOUCALLS_DEPS = $(OS2DIR)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(MOUCALLS_DEPS_OS) $(MOUCALLS_DEPS_CPU)
 
 moucalls$(PPUEXT) : $(MOUCALLS_DEPS)
@@ -1555,7 +1555,7 @@ moucalls$(PPUEXT) : $(MOUCALLS_DEPS)
 OS2Api.moucalls$(PPUEXT) : $(NSOS2DIR)/OS2Api.moucalls.pas $(MOUCALLS_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-MONCALLS_DEPS = $(OS2INC)/moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+MONCALLS_DEPS = $(OS2DIR)/moncalls.pas $(STRINGSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(MONCALLS_DEPS_OS) $(MONCALLS_DEPS_CPU)
 
 moncalls$(PPUEXT) : $(MONCALLS_DEPS)
@@ -1564,7 +1564,7 @@ moncalls$(PPUEXT) : $(MONCALLS_DEPS)
 OS2Api.moncalls$(PPUEXT) : $(NSOS2DIR)/OS2Api.moncall.pas $(MONCALLS_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-OS2DEF_DEPS = $(OS2INC)/os2def.pas $(SYSTEMUNIT)$(PPUEXT) \
+OS2DEF_DEPS = $(OS2DIR)/os2def.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(OS2DEF_DEPS_OS) $(OS2DEF_DEPS_CPU)
 
 os2def$(PPUEXT) : $(OS2DEF_DEPS)
@@ -1573,7 +1573,7 @@ os2def$(PPUEXT) : $(OS2DEF_DEPS)
 OS2Api.$(PPUEXT) : $(NSOS2DIR)/OS2Api..pas $(OS2DEF_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-DOSCALL2_DEPS = $(OS2INC)/doscall2.pas doscalls$(PPUEXT) os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+DOSCALL2_DEPS = $(OS2DIR)/doscall2.pas $(DOSCALLSUNIT)$(PPUEXT) $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(DOSCALL2_DEPS_OS) $(DOSCALL2_DEPS_CPU)
 
 doscall2$(PPUEXT) : $(DOSCALL2_DEPS)
@@ -1582,7 +1582,7 @@ doscall2$(PPUEXT) : $(DOSCALL2_DEPS)
 OS2Api.doscall2$(PPUEXT) : $(NSOS2DIR)/OS2Api.doscall2.pas $(DOSCALL2_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMWIN_DEPS = $(OS2INC)/pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMWIN_DEPS = $(OS2DIR)/pmwin.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMWIN_DEPS_OS) $(PMWIN_DEPS_CPU)
 
 pmwin$(PPUEXT) : $(PMWIN_DEPS) 
@@ -1591,7 +1591,7 @@ pmwin$(PPUEXT) : $(PMWIN_DEPS)
 OS2Api.pmwin$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmwin.pas $(PMWIN_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMBITMAP_DEPS = $(OS2INC)/pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT) \
+PMBITMAP_DEPS = $(OS2DIR)/pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(PMBITMAP_DEPS_OS) $(PMBITMAP_DEPS_CPU)
 
 pmbitmap$(PPUEXT) : $(PMBITMAP_DEPS) 
@@ -1600,7 +1600,7 @@ pmbitmap$(PPUEXT) : $(PMBITMAP_DEPS)
 OS2Api.pmbitmap$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmbitmap.pas $(PMBITMAP_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMGPI_DEPS = $(OS2INC)/pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMGPI_DEPS = $(OS2DIR)/pmgpi.pas $(PMBITMAPUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMGPI_DEPS_OS) $(PMGPI_DEPS_CPU)
 
 pmgpi$(PPUEXT) : $(PMGPI_DEPS)
@@ -1609,8 +1609,9 @@ pmgpi$(PPUEXT) : $(PMGPI_DEPS)
 OS2Api.pmgpi$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmgpi.pas $(PMGPI_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMSTDDLG_DEPS = $(OS2INC)/pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-             $(PMSTDDLG_DEPS_OS) $(PMSTDDLG_DEPS_CPU)
+PMSTDDLG_DEPS = $(OS2DIR)/pmstddlg.pas $(OS2DEFUNIT)$(PPUEXT) $(DOSCALLSUNIT)$(PPUEXT) \
+	$(PMWINUNIT)$(PPUEXT) $(PMGPIUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+        $(PMSTDDLG_DEPS_OS) $(PMSTDDLG_DEPS_CPU)
 
 pmstddlg$(PPUEXT) : $(PMSTDDLG_DEPS)
         $(COMPILER) $<
@@ -1618,7 +1619,7 @@ pmstddlg$(PPUEXT) : $(PMSTDDLG_DEPS)
 OS2Api.pmstddlg$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmstddlg.pas $(PMSTDDLG_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMHELP_DEPS = $(OS2INC)/pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMHELP_DEPS = $(OS2DIR)/pmhelp.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMHELP_DEPS_OS) $(PMHELP_DEPS_CPU)
 
 pmhelp$(PPUEXT) : $(PMHELP_DEPS)
@@ -1627,7 +1628,7 @@ pmhelp$(PPUEXT) : $(PMHELP_DEPS)
 OS2Api.pmhelp$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmhelp.pas $(PMHELP_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMDEV_DEPS = $(OS2INC)/pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMDEV_DEPS = $(OS2DIR)/pmdev.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMDEV_DEPS_OS) $(PMDEV_DEPS_CPU)
 
 pmdev$(PPUEXT) : $(PMDEV_DEPS)
@@ -1636,7 +1637,7 @@ pmdev$(PPUEXT) : $(PMDEV_DEPS)
 OS2Api.pmdev$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmdev.pas $(PMDEV_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMSPL_DEPS = $(OS2INC)/pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMSPL_DEPS = $(OS2DIR)/pmspl.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMSPL_DEPS_OS) $(PMSPL_DEPS_CPU)
 
 pmspl$(PPUEXT) : $(PMSPL_DEPS)
@@ -1645,7 +1646,7 @@ pmspl$(PPUEXT) : $(PMSPL_DEPS)
 OS2Api.pmspl$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmspl.pas $(PMSPL_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMSHL_DEPS = $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMSHL_DEPS = $(OS2DIR)/pmshl.pas $(OS2DEFUNIT)$(PPUEXT) $(PMWINUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMSHL_DEPS_OS) $(PMSHL_DEPS_CPU)
 
 pmshl$(PPUEXT) : $(PMSHL_DEPS)
@@ -1654,7 +1655,7 @@ pmshl$(PPUEXT) : $(PMSHL_DEPS)
 OS2Api.pmshl$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmshl.pas $(PMSHL_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMWP_DEPS = $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMWP_DEPS = $(OS2DIR)/pmwp.pas $(OS2DEFUNIT)$(PPUEXT) $(PMWINUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMWP_DEPS_OS) $(PMWP_DEPS_CPU)
 
 pmwp$(PPUEXT) : $(PMWP_DEPS)
@@ -1663,7 +1664,7 @@ pmwp$(PPUEXT) : $(PMWP_DEPS)
 OS2Api.pmwp$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmwp.pas $(PMWP_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMWSOCK_DEPS = $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMWSOCK_DEPS = $(OS2DIR)/pmwsock.pas $(OS2DEFUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMWSOCK_DEPS_OS) $(PMWSOCK_DEPS_CPU)
 
 pmwsock$(PPUEXT) : $(PMWSOCK_DEPS)
@@ -1672,7 +1673,7 @@ pmwsock$(PPUEXT) : $(PMWSOCK_DEPS)
 OS2Api.pmwsock$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmwsock.pas $(PMWSOCK_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-PMBIDI_DEPS = $(OS2INC)/pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+PMBIDI_DEPS = $(OS2DIR)/pmbidi.pas $(OS2DEFUNIT)$(PPUEXT) $(PMWIN)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(PMBIDI_DEPS_OS) $(PMBIDI_DEPS_CPU)
 
 pmbidi$(PPUEXT) : $(PMBIDI_DEPS)
@@ -1681,7 +1682,7 @@ pmbidi$(PPUEXT) : $(PMBIDI_DEPS)
 OS2Api.pmbidi$(PPUEXT) : $(NSOS2DIR)/OS2Api.pmbidi.pas $(PMBIDI_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-EXE_DEPS = $(OS2INC)/exe.pas $(SYSTEMUNIT)$(PPUEXT) \
+EXE_DEPS = $(OS2DIR)/exe.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(EXE_DEPS_OS) $(EXE_DEPS_CPU)
 
 exe$(PPUEXT) : $(EXE_DEPS)
@@ -1690,7 +1691,7 @@ exe$(PPUEXT) : $(EXE_DEPS)
 OS2Api.exe$(PPUEXT) : $(NSOS2DIR)/OS2Api.exe.pas $(EXE_DEPS)
         $(COMPILER) -Fi$(OS2DIR) $<
 
-NEWEXE_DEPS = $(OS2INC)/newexe.pas $(SYSTEMUNIT)$(PPUEXT) \
+NEWEXE_DEPS = $(OS2DIR)/newexe.pas $(SYSTEMUNIT)$(PPUEXT) \
              $(NEWEXE_DEPS_OS) $(NEWEXE_DEPS_CPU)
 
 newexe$(PPUEXT) : $(NEWEXE_DEPS)
