@@ -2526,6 +2526,13 @@ charset$(PPUEXT) : $(CHARSET_DEPS)
 	$(COMPILER) $(CHARSET_OPT) $<
 System.CharSet$(PPUEXT) : $(NSINC)/System.CharSet.pp $(CHARSET_DEPS)
 	$(COMPILER) $(CHARSET_OPT) $< 
+UNICODEDATA_DEPS = $(OBJPASDIR)/unicodedata.pas $(OBJPASDIR)/unicodedata.inc \
+		   $(OBJPASDIR)/unicodedata_le.inc $(OBJPASDIR)/unicodedata_be.inc \
+		   $(SYSTEMUNIT)$(PPUEXT)
+unicodedata$(PPUEXT) : $(UNICODEDATA_DEPS)
+	$(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
+System.CodePages.unicodedata$(PPUEXT) : $(NSINC)/System.CodePages.unicodedata.pas $(UNICODEDATA_DEPS)
+	$(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
 CPALL_DEPS=$(RTL)/charmaps/cpall.pas \
 	  system$(PPUEXT) $(CHARSETUNIT)$(PPUEXT) \
 	  $(CPALL_DEPS_OS) $(CPALL_DEPS_CPU)
@@ -2924,8 +2931,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPU
 	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
 	$(EXECPPAS)
