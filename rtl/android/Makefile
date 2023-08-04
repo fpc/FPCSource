@@ -2675,8 +2675,16 @@ cpall$(PPUEXT): $(CPALL_DEPS)
 	$(COMPILER) $(CPALL_OPT) -Fu$(INC) -Fi$(RTL)/charmaps $<
 System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
 	$(COMPILER) $(CPALL_OPT) -Fu$(INC) -Fi$(RTL)/charmaps $<
-FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp \
-		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+ifneq ($(UNIXINC),)
+  FPWIDESTRING_DEPS_OS:=$(FPWIDESTRING_DEPS_OS) $(UNIXCPUNIT)$(PPUEXT)
+endif
+ifeq ($(AMIINC),)
+  RTLDEFSINCDIR = $(OSDIR)
+else
+  RTLDEFSINCDIR=$(AMIINC)
+endif
+FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp $(RTLDEFSINCDIR)/rtldefs.inc \
+		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNICODEDATAUNIT)$(PPUEXT) \
 		  $(CHARACTERUNIT)$(PPUEXT) $(CPALLUNIT)$(PPUEXT) \
 		  $(FPWIDESTRING_DEPS_OS) $(FPWIDESTRING_DEPS_CPU)
 fpwidestring$(PPUEXT): $(FPWIDESTRING_DEPS)
@@ -3053,8 +3061,6 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/extpas.pp
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/fpintres.pp
-fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/errors.pp
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
