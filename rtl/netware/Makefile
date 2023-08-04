@@ -2540,7 +2540,7 @@ cpall$(PPUEXT): $(CPALL_DEPS)
 System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
 	$(COMPILER) $(CPALL_OPT) -Fu$(INC) -Fi$(RTL)/charmaps $<
 FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp \
-		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT \
+		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 		  $(CHARACTERUNIT)$(PPUEXT) $(CPALLUNIT)$(PPUEXT) \
 		  $(FPWIDESTRING_DEPS_OS) $(FPWIDESTRING_DEPS_CPU)
 fpwidestring$(PPUEXT): $(FPWIDESTRING_DEPS)
