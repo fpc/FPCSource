@@ -92,43 +92,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 # System Dependent Units
 #
-
-doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
-
-moucalls$(PPUEXT) : moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
-
-moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-os2def$(PPUEXT) : os2def.pas $(SYSTEMUNIT)$(PPUEXT)
-
-doscall2$(PPUEXT) : doscalls$(PPUEXT) os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
-
-pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmstddlg$(PPUEXT) : pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmhelp$(PPUEXT) : pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmdev$(PPUEXT) : pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmspl$(PPUEXT) : pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmshl$(PPUEXT) : pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmwp$(PPUEXT) : pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-pmwsock$(PPUEXT) : pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-so32dll$(PPUEXT) : so32dll.pas $(SYSTEMUNIT)$(PPUEXT)
-
-pmbidi$(PPUEXT) : pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
+#
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
