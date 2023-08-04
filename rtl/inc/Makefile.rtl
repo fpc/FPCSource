@@ -1217,7 +1217,8 @@ System.CodePages.All$(PPUEXT):  $(NSINC)/System.CodePages.All.pas $(CPALL_DEPS)
 # 
 
 FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp \
-                  $(CHARACTERUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(CPALLUNIT)$(PPUEXT) \
+		  $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT \
+                  $(CHARACTERUNIT)$(PPUEXT) $(CPALLUNIT)$(PPUEXT) \
                   $(FPWIDESTRING_DEPS_OS) $(FPWIDESTRING_DEPS_CPU)
 
 fpwidestring$(PPUEXT): $(FPWIDESTRING_DEPS)
