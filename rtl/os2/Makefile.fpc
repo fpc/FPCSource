@@ -98,17 +98,4 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 %$(OEXT) : %.as
         $(AS) -o $(UNITTARGETDIRPREFIX)$*$(OEXT) $*.as
 
-# System Dependent Units
-#
-#
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(DOSCALLSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# TP7 Compatible RTL Units
-#
-
-DOS_OS_DEPS = $(INC)/filerec.inc $(INC)/textrec.inc $(STRINGSUNIT)$(PPUEXT) \
-               $(DOSCALLSUNIT)$(PPUEXT)
-
-#graph$(PPUEXT) : graph.pp $(SYSTEMUNIT)$(PPUEXT)
 

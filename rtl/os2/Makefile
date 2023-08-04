@@ -2816,6 +2816,3 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 %$(OEXT) : %.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)$*$(OEXT) $*.as
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(DOSCALLSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-DOS_OS_DEPS = $(INC)/filerec.inc $(INC)/textrec.inc $(STRINGSUNIT)$(PPUEXT) \
-	       $(DOSCALLSUNIT)$(PPUEXT)
