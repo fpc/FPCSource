@@ -1064,7 +1064,6 @@ end;
 
 procedure TPDFPath.AddSegment(aSegment: TPDFPathSegment);
 begin
-  Writeln('Adding : ',aSegment.Description);
   if (FCount=Length(FSegments)) then
     SetLength(FSegments,Length(FSegments)+SegmentDelta);
 
@@ -1891,7 +1890,6 @@ Var
   S : String;
 
 begin
-  Writeln('Registering ',classname,' for command ',RegisterCommandName,' and type ',CommandType);
   S:=RegisterCommandName;
   If S<>'' then
     RegisterCommand(S,Self);
@@ -2126,10 +2124,6 @@ begin
         begin
         aParent:=TPDFIndirect(Obj);
         Obj:=TPDFIndirect(aParent).ObjectDict;
-        if assigned(Obj) then
-            Writeln('Indirect resource : ', TPDFDictionary(Obj).GetDescription)
-        else
-          Writeln('Indirect object ',aParent.ObjectID,'does not have a dict');
         end;
       end;
     if Obj is TPDFDictionary then
