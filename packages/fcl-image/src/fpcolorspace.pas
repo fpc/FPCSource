@@ -277,6 +277,10 @@ type
     function ToExpanded(AGammaExpansion: boolean = true): TExpandedPixel;
     function ToHSLAPixel(AGammaExpansion: boolean = true): THSLAPixel;
     function ToGSBAPixel(AGammaExpansion: boolean = true): TGSBAPixel;
+    function ToStdRGBA: TStdRGBA;
+    function ToStdHSLA: TStdHSLA;
+    function ToStdHSVA: TStdHSVA;
+    function ToStdCMYK: TStdCMYK;
   end;
 
   { TExpandedPixelHelper }
@@ -300,11 +304,15 @@ type
   { TStdRGBAHelper }
 
   TStdRGBAHelper = record helper for TStdRGBA
+    function ToFPColor: TFPColor;
     function ToExpandedPixel: TExpandedPixel;
     function ToLinearRGBA: TLinearRGBA;
     function ToStdHSLA: TStdHSLA;
     function ToStdHSVA: TStdHSVA;
     function ToStdCMYK: TStdCMYK;
+    {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
+    function ToYCbCr(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TYCbCr; overload;
+    function ToYCbCr(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TYCbCr; overload;
   end;
 
   { TAdobeRGBAHelper }
@@ -317,6 +325,7 @@ type
   { TStdHSLAHelper }
 
   TStdHSLAHelper = record helper for TStdHSLA
+    function ToFPColor: TFPColor;
     function ToStdRGBA: TStdRGBA;
     function ToStdHSVA: TStdHSVA;
     function ToExpandedPixel: TExpandedPixel;
@@ -325,6 +334,7 @@ type
   { TStdHSVAHelper }
 
   TStdHSVAHelper = record helper for TStdHSVA
+    function ToFPColor: TFPColor;
     function ToStdRGBA: TStdRGBA;
     function ToStdHSLA: TStdHSLA;
   end;
@@ -332,6 +342,7 @@ type
   { TStdCMYKHelper }
 
   TStdCMYKHelper = record helper for TStdCMYK
+    function ToFPColor(const AAlpha: Word=$ffff): TFPColor;
     function ToStdRGBA(AAlpha: Single = 1): TStdRGBA;
     function ToExpandedPixel: TExpandedPixel;overload;
     function ToExpandedPixel(AAlpha: word): TExpandedPixel;overload;
@@ -350,9 +361,6 @@ type
     function ToXYZA: TXYZA; overload;
     function ToXYZA(const AReferenceWhite: TXYZReferenceWhite): TXYZA; overload;
     function ToStdRGBA: TStdRGBA;
-    {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
-    function ToYCbCr(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TYCbCr; overload;
-    function ToYCbCr(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TYCbCr; overload;
   end;
 
   { TXYZAHelper }
@@ -399,8 +407,8 @@ type
 
   TYCbCrHelper = record helper for TYCbCr
     {** SamplePrecision = 2^(YCbCrSamplePrecision-1) }
-    function ToLinearRGBA(const AStd:TYCbCrSTD=YCbCr_JPG; ASamplePrecision:Single=0.5): TLinearRGBA; overload;
-    function ToLinearRGBA(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114): TLinearRGBA; overload;
+    function ToStdRGBA(const AStd:TYCbCrSTD=YCbCr_601; ASamplePrecision:Single=0.5): TStdRGBA; overload;
+    function ToStdRGBA(LumaRed:Single=0.299; LumaGreen:Single=0.587; LumaBlue:Single=0.114; ASamplePrecision:Single=0.5): TStdRGBA; overload;
   end;
 
   {* How to handle overflow when converting from XYZ }
@@ -1396,6 +1404,30 @@ begin
   result.FromFPColor(self, AGammaExpansion);
 end;
 
+function TFPColorHelper.ToStdRGBA: TStdRGBA;
+const oneOver65535 = 1/65535;
+begin
+    result.red := red * oneOver65535;
+    result.green := green * oneOver65535;
+    result.blue := blue * oneOver65535;
+    result.alpha := alpha * oneOver65535;
+end;
+
+function TFPColorHelper.ToStdHSLA: TStdHSLA;
+begin
+  result :=self.ToStdRGBA.ToStdHSLA;
+end;
+
+function TFPColorHelper.ToStdHSVA: TStdHSVA;
+begin
+  result :=self.ToStdRGBA.ToStdHSVA;
+end;
+
+function TFPColorHelper.ToStdCMYK: TStdCMYK;
+begin
+  result :=self.ToStdRGBA.ToStdCMYK;
+end;
+
 { TExpandedPixelHelper }
 
 function TExpandedPixelHelper.ToHSLAPixel: THSLAPixel;
@@ -1469,6 +1501,14 @@ begin
 end;
 
 { TStdRGBAHelper }
+
+function TStdRGBAHelper.ToFPColor: TFPColor;
+begin
+  result.red := ClampInt(round(red * 65535), 0, 65535);
+  result.green := ClampInt(round(green * 65535), 0, 65535);
+  result.blue := ClampInt(round(blue * 65535), 0, 65535);
+  result.alpha := ClampInt(round(alpha * 65535), 0, 65535);
+end;
 
 function TStdRGBAHelper.ToExpandedPixel: TExpandedPixel;
 begin
@@ -1576,6 +1616,26 @@ begin
   end;
 end;
 
+function TStdRGBAHelper.ToYCbCr(const AStd: TYCbCrSTD; ASamplePrecision:Single=0.5): TYCbCr;
+begin
+  with self, YCbCrSTD_Factors[AStd]  do
+  begin
+    result.Y := a * red + b * green + c * blue;
+    result.Cb := ((blue - result.Y) / d)+ASamplePrecision;
+    result.Cr := ((red - result.Y) / e)+ASamplePrecision;
+  end;
+end;
+
+function TStdRGBAHelper.ToYCbCr(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TYCbCr;
+begin
+  with self  do
+  begin
+    result.Y :=  ( LumaRed * red + LumaGreen * green + LumaBlue * blue );
+    result.Cb := ( blue - result.Y ) / ( 2 - 2 * LumaBlue );
+    result.Cr := ( red - result.Y ) / ( 2 - 2 * LumaRed );
+  end;
+end;
+
 { TAdobeRGBAHelper }
 
 function TAdobeRGBAHelper.ToXYZA: TXYZA;
@@ -1607,6 +1667,11 @@ begin
 end;
 
 { TStdHSLAHelper }
+
+function TStdHSLAHelper.ToFPColor: TFPColor;
+begin
+  result :=self.ToStdRGBA.ToFPColor;
+end;
 
 function TStdHSLAHelper.ToStdRGBA: TStdRGBA;
 var
@@ -1686,6 +1751,11 @@ begin
 end;
 
 { TStdHSVAHelper }
+
+function TStdHSVAHelper.ToFPColor: TFPColor;
+begin
+  result :=self.ToStdRGBA.ToFPColor;
+end;
 
 function TStdHSVAHelper.ToStdRGBA: TStdRGBA;
 var
@@ -1775,24 +1845,30 @@ end;
 
 function TStdCMYKHelper.ToExpandedPixel: TExpandedPixel;
 begin
-  self.ToStdRGBA.ToExpandedPixel;
+  result :=self.ToStdRGBA.ToExpandedPixel;
 end;
 
 function TStdCMYKHelper.ToExpandedPixel(AAlpha: word): TExpandedPixel;
 begin
-  self.ToStdRGBA(AAlpha).ToExpandedPixel;
+  result :=self.ToStdRGBA(AAlpha).ToExpandedPixel;
+end;
+
+function TStdCMYKHelper.ToFPColor(const AAlpha: Word): TFPColor;
+begin
+  result :=self.ToStdRGBA.ToFPColor;
+  result.alpha := AAlpha
 end;
 
 { TLabAHelper }
 
 function TLabAHelper.ToExpandedPixel: TExpandedPixel;
 begin
-  self.ToXYZA.ToLinearRGBA.ToExpandedPixel;
+  result :=self.ToXYZA.ToLinearRGBA.ToExpandedPixel;
 end;
 
 function TLabAHelper.ToExpandedPixel(const AReferenceWhite: TXYZReferenceWhite): TExpandedPixel;
 begin
-  self.ToXYZA(AReferenceWhite).ToLinearRGBA(AReferenceWhite).ToExpandedPixel;
+  result :=self.ToXYZA(AReferenceWhite).ToLinearRGBA(AReferenceWhite).ToExpandedPixel;
 end;
 
 function TLabAHelper.ToXYZA: TXYZA;
@@ -1854,22 +1930,25 @@ end;
 
 { TYCbCrHelper }
 
-function TYCbCrHelper.ToLinearRGBA(const AStd: TYCbCrSTD; ASamplePrecision:Single): TLinearRGBA;
+function TYCbCrHelper.ToStdRGBA(const AStd: TYCbCrSTD; ASamplePrecision:Single): TStdRGBA;
 begin
   with self, YCbCrSTD_Factors[AStd]  do
   begin
+    //"analog" Y is in the range 0 to 1 ; Cb and Cr in the range -0.5 to +0.5
+    //"digital" are normalized to 0..255; In 601 Standard values are between 16 and 235 for Y, 16 to 240 for Cb and Cr.
+
     result.red := Y + e * (Cr-ASamplePrecision);
     result.green := Y - (a * e / b) * (Cr-ASamplePrecision) - (c * d / b) * (Cb-ASamplePrecision);
     result.blue := Y + d * (Cb-ASamplePrecision);
   end;
 end;
 
-function TYCbCrHelper.ToLinearRGBA(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TLinearRGBA;
+function TYCbCrHelper.ToStdRGBA(LumaRed: Single; LumaGreen: Single; LumaBlue: Single; ASamplePrecision:Single): TStdRGBA;
 begin
   with self  do
   begin
-    result.red := Cr * ( 2 - 2 * LumaRed ) + Y;
-    result.blue := Cb * ( 2 - 2 * LumaBlue ) + Y;
+    result.red := (Cr-ASamplePrecision) * ( 2 - 2 * LumaRed ) + Y;
+    result.blue := (Cb-ASamplePrecision) * ( 2 - 2 * LumaBlue ) + Y;
     result.green :=  ( Y - LumaBlue * result.blue - LumaRed * result.red ) / LumaGreen;
   end;
 end;
@@ -1931,26 +2010,6 @@ function TLinearRGBAHelper.ToStdRGBA: TStdRGBA;
 begin
   result := self.ToExpandedPixel.ToStdRGBA;
   result.alpha := self.alpha;
-end;
-
-function TLinearRGBAHelper.ToYCbCr(const AStd: TYCbCrSTD; ASamplePrecision:Single=0.5): TYCbCr;
-begin
-  with self, YCbCrSTD_Factors[AStd]  do
-  begin
-    result.Y := a * red + b * green + c * blue;
-    result.Cb := ((blue - result.Y) / d)+ASamplePrecision;
-    result.Cr := ((red - result.Y) / e)+ASamplePrecision;
-  end;
-end;
-
-function TLinearRGBAHelper.ToYCbCr(LumaRed: Single; LumaGreen: Single; LumaBlue: Single): TYCbCr;
-begin
-  with self  do
-  begin
-    result.Y :=  ( LumaRed * red + LumaGreen * green + LumaBlue * blue );
-    result.Cb := ( blue - result.Y ) / ( 2 - 2 * LumaBlue );
-    result.Cr := ( red - result.Y ) / ( 2 - 2 * LumaRed );
-  end;
 end;
 
 { TXYZAHelper }
