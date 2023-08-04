@@ -9,7 +9,7 @@ main=rtl
 # macpas and iso7185 units rely on sysutils unit, not yet handled here
 # extpas unit relies on dos unit, not yet handled
 units=$(SYSTEMUNIT) iso7185 extpas uuchar objpas macpas \
-      $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(RTLCONSTUNIT) \
+      $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(RTLCONSTSUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(FGLUNIT) $(CPU_UNITS) \
       $(DOSUNIT) $(TYPEINFOUNIT) $(TYPESUNIT) $(SORTBASEUNIT) $(CLASSESUNIT) buildrtl
 implicitunits=$(CTYPESUNIT) $(STRINGSUNIT) $(SYMBIANUNIT) $(UNICODEDATAUNIT)
@@ -39,6 +39,7 @@ UIQINC=./uiqinc
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+RTLCONSTSUNIT=rtlconst
 
 OBJPASDIR=$(RTL)/objpas
 
