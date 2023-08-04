@@ -2334,7 +2334,7 @@ ports$(PPUEXT) : $(PORTS_DEPS)
 	$(COMPILER) $(PORTS_OPT) $<
 System.Ports$(PPUEXT) :  $(NSINC)/System.Ports.$(PORTSUNITEXT) $(PORTS_DEPS)
 	$(COMPILER) $(PORTS_OPT) $<
-DYNLIBS_DEPS=$(INC)/dynlibs.pas $(OSDIR)/dynlibs.inc \
+DYNLIBS_DEPS=$(INC)/dynlibs.pas $(DYNLIBSINCDIR)/dynlibs.inc \
 	     objpas$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
 	     $(DYNLIBS_DEPS_OS) $(DYNLIBS_DEPS_CPU)
 dynlibs$(PPUEXT) : $(DYNLIBS_DEPS)
