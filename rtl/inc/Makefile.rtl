@@ -941,7 +941,7 @@ SYSUTILS_UNIX_DEPS=$(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(
                    $(UNIXUTILUNIT)$(PPUEXT)  $(INITCUNIT)$(PPUEXT)
 
 SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/$(SYSUTILSUNIT)/*.inc) \
-              objpas$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
+              $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
               $(SYSUTILS_DEPS_OS) $(SYSUTILS_DEPS_CPU)
 
 sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
@@ -954,6 +954,7 @@ System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 # Classes
 #
 CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(wildcard $(OBJPASDIR)/$(CLASSESUNIT)/*.inc) \
+	     $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
              $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
              $(FGLUNIT)$(PPUEXT) $(TYPESUNIT)$(PPUEXT) \
              $(CLASSES_DEPS_OS) $(CLASSES_DEPS_CPU)
@@ -1375,7 +1376,7 @@ UnixApi.Errors$(PPUEXT) : $(NSINC)/UnixApi.Errors.pp $(ERRORS_DEPS)
 #
 
 CTHREADS_DEPS=$(UNIXINC)/cthreads.pp \
-              $(SYSTEMUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
+              $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
               $(BASEUNIXUNIT)$(PPUEXT) $(INITCUNIT)$(PPUEXT) $(DLUNIT)$(PPUEXT) \
               $(CTHREADS_DEPS_OS) $(CTHREADS_DEPS_CPU)
 
@@ -1389,7 +1390,7 @@ UnixApi.CThreads$(PPUEXT) : $(NSINC)/UnixApi.CThreads.pp $(CTHREADS_DEPS)
 # CWString
 #
 CWSTRING_DEPS=$(UNIXINC)/cwstring.pp \
-              $(SYSTEMUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
+              $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
               $(UNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT) \
               $(DYNLIBSUNIT)$(PPUEXT) $(UNIXCPUNIT)$(PPUEXT) \
               $(CWSTRING_DEPS_OS) $(CWSTRING_DEPS_CPU) 
