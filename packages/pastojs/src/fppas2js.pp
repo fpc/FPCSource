@@ -21239,6 +21239,8 @@ begin
         begin
         if aResolver.GetProcTemplateTypes(TPasProcedure(P))<>nil then
           continue; // parametrized functions cannot be published
+        if (P.CustomData as TPas2JSProcedureScope).SpecializedFromItem<>nil then
+          continue; // specialized function cannot be published
         NewEl:=CreateRTTIMemberMethod(Members,i,MembersFuncContext);
         end
       else if C=TPasProperty then
