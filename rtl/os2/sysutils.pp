@@ -568,7 +568,7 @@ var
 
 procedure InitTZ2; inline;
 var
-  DT: DosCalls.TDateTime;
+  DT: {$IFDEF FPC_DOTTEDUNITS}OS2Api.{$endif}DosCalls.TDateTime;
 begin
   DosGetDateTime (DT);
   TZAlwaysFromEnv := DT.TimeZone = -1;
@@ -577,7 +577,7 @@ end;
 
 procedure GetLocalTime (var SystemTime: TSystemTime);
 var
-  DT: DosCalls.TDateTime;
+  DT: {$IFDEF FPC_DOTTEDUNITS}OS2Api.{$endif}DosCalls.TDateTime;
 begin
   DosGetDateTime(DT);
   with SystemTime do
@@ -596,7 +596,7 @@ end;
 
 function GetUniversalTime (var SystemTime: TSystemTime): boolean;
 var
-  DT: DosCalls.TDateTime;
+  DT: {$IFDEF FPC_DOTTEDUNITS}OS2Api.{$endif}DosCalls.TDateTime;
   Offset: longint;
 begin
   if TZAlwaysFromEnv then
@@ -630,7 +630,7 @@ end;
 
 function GetLocalTimeOffset: integer;
 var
-  DT: DosCalls.TDateTime;
+  DT: {$IFDEF FPC_DOTTEDUNITS}OS2Api.{$endif}DosCalls.TDateTime;
 begin
   if TZAlwaysFromEnv then
    begin
@@ -854,7 +854,7 @@ function ExecuteProcess (const Path: RawByteString;
 var
  E: EOSError;
  CommandLine: RawByteString;
- Args0, Args: DosCalls.PByteArray;
+ Args0, Args: {$IFDEF FPC_DOTTEDUNITS}OS2Api.{$endif}DosCalls.PByteArray;
  ObjNameBuf: PAnsiChar;
  ArgSize: word;
  Res: TResultCodes;
