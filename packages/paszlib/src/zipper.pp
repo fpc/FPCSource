@@ -2315,6 +2315,15 @@ Begin
   With LocalHdr do
     begin
       Item.FBitFlags:=Bit_Flag;
+      // If bit 3 is set in the BitFlags, file size and CRC should be read from
+      // the DataDescriptor record. For simplicity, however, we copy them from
+      // the same fields of the zipfile entry.
+      if Item.FBitFlags and $0008 <> 0 then
+      begin
+        Uncompressed_Size := Item.Size;
+        Compressed_Size := Item.CompressedSize;
+        CRC32 := Item.CRC32;
+      end;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
       if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
@@ -2583,6 +2592,7 @@ Begin
       // Header position will be corrected later with zip64 version, if needed..
       NewNode.HdrPos := Local_Header_Offset;
       NewNode.FBitFlags:=Bit_Flag;
+      NewNode.FCompressMethod := Compress_Method;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
       if Bit_Flag and EFS_LANGUAGE_ENCODING_FLAG <> 0 then
