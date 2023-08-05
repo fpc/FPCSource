@@ -2538,7 +2538,7 @@ System.CharSet$(PPUEXT) : $(NSINC)/System.CharSet.pp $(CHARSET_DEPS)
 	$(COMPILER) $(CHARSET_OPT) $< 
 UNICODEDATA_DEPS = $(OBJPASDIR)/unicodedata.pas $(OBJPASDIR)/unicodedata.inc \
 		   $(OBJPASDIR)/unicodedata_le.inc $(OBJPASDIR)/unicodedata_be.inc \
-		   $(SYSTEMUNIT)$(PPUEXT)
+		   $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 unicodedata$(PPUEXT) : $(UNICODEDATA_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
 System.CodePages.unicodedata$(PPUEXT) : $(NSINC)/System.CodePages.unicodedata.pas $(UNICODEDATA_DEPS)
