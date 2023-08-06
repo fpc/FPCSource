@@ -300,7 +300,7 @@ begin
     SetLength(Authority, i - 1);
 
     // Extract username and password
-    if Authority <> '' then
+    if Length(Authority)>0 then
     begin
       i := Pos(':', Authority);
       if i = 0 then
