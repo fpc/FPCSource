@@ -40,7 +40,7 @@ Type
   TRestFilterPairArray = Array of TRestFilterPair;
 
   { TSQLDBRestDBHandler }
-  TSQLDBRestDBHandlerOption = (rhoLegacyPut,rhoCheckupdateCount,rhoAllowMultiUpdate);
+  TSQLDBRestDBHandlerOption = (rhoLegacyPut,rhoCheckupdateCount,rhoAllowMultiUpdate,rhoSingleEmptyOK);
   TSQLDBRestDBHandlerOptions = set of TSQLDBRestDBHandlerOption;
 
   TSQLDBRestDBHandler = Class(TComponent)
@@ -445,7 +445,7 @@ begin
     ftInteger : P.AsInteger:=StrToInt(S);
     ftWord : P.AsWord:=StrToInt(S);
     ftLargeint : P.AsLargeInt:=StrToInt64(S);
-    ftWideString : P.AsUnicodeString:=S;
+    ftWideString : P.AsUnicodeString:=UTF8Decode(S);
     ftBoolean : P.AsBoolean:=StrToBool(S);
     ftFloat,
     ftCurrency,
@@ -475,12 +475,12 @@ end;
 procedure TSQLDBRestDBHandler.SetParamFromData(P: TParam; F: TSQLDBRestField;
   D: TJSONData);
 
-  Procedure OtherParamValue(const S : String);
+  Procedure OtherParamValue(const S,N : String);
 
   var
     RP : TSQLDBRestParam;
   begin
-    RP:=Self.FResource.Parameters.Find(P.Name);
+    RP:=Self.FResource.Parameters.Find(N);
     if assigned(RP) then
       SetParamFromStringAndType(P,S,RP.DataType)
     else
@@ -493,11 +493,9 @@ Var
 
 begin
   N:=P.Name;
-  if N='ID' then
-    Writeln('Ah');
-  if Assigned(D) then
+  if Assigned(D) and not ((D.JSONType in StructuredJSONTypes) or D.IsNull) then
     S:=D.AsString;
-  if not Assigned(D) then
+  if (not Assigned(D)) or D.IsNull then
     P.Clear
   else if Assigned(F) then
     Case F.FieldType of
@@ -516,10 +514,10 @@ begin
          P.AsBlob:=DecodeStringBase64(S);
 {$ENDIF}
     else
-      OtherParamValue(S);
+      OtherParamValue(S,N);
     end
   else
-    OtherParamValue(S);
+    OtherParamValue(S,N);
 end;
 
 function TSQLDBRestDBHandler.FindFieldForParam(aOperation: TRestOperation;
@@ -769,6 +767,7 @@ begin
     aWhere:=GetIDWhere(WhereFilterList)
   else
     aWhere:=GetWhere(WhereFilterList);
+  aWhere:=IO.Resource.DoCompleteWhere(IO.RestContext,skSelect,aWhere);
   aOrderBy:=GetOrderBy;
   aLimit:=GetLimit;
   SQL:=FResource.GetResolvedSQl(skSelect,aWhere,aOrderBy,aLimit);
@@ -824,7 +823,7 @@ begin
       StreamDataset(IO.RESTOutput,D,FieldList)
     else
       begin
-      if Single then
+      if Single and not (rhoSingleEmptyOK in Self.Options) then
         DoNotFound
       else
         StreamDataset(IO.RESTOutput,D,FieldList)
@@ -1137,7 +1136,8 @@ const
 Var
   S : TSQLQuery;
   aRowsAffected: Integer;
-  SQl : String;
+  SQl : UTF8String;
+  aWhere : UTF8String;
   WhereFilterList : TRestFilterPairArray;
   RequestFields : TSQLDBRestFieldArray;
 
@@ -1165,7 +1165,9 @@ begin
       end;
     S:=TSQLQuery.Create(Self);
     try
-      SQL:=FResource.GetResolvedSQl(skUpdate,GetIDWhere(WhereFilterList) ,'','',RequestFields);
+      aWhere:=GetIDWhere(WhereFilterList);
+      aWhere:=IO.Resource.DoCompleteWhere(IO.RestContext,skUpdate,aWhere);
+      SQL:=FResource.GetResolvedSQl(skUpdate,aWhere ,'','',RequestFields);
       S.Database:=IO.Connection;
       S.Transaction:=IO.Transaction;
       S.SQL.Text:=SQL;
@@ -1274,6 +1276,7 @@ begin
   else
     begin
     aWhere:=GetIDWhere(FilteredFields);
+    aWhere:=IO.Resource.DoCompleteWhere(IO.RestContext,skDelete,aWhere);
     SQL:=FResource.GetResolvedSQl(skDelete,aWhere,'');
     Q:=CreateQuery(SQL);
     try

@@ -40,7 +40,8 @@ Type
                            // rdoServerInfo            // Enable querying server info through /_serverinfo  resource
                            rdoLegacyPut,               // Makes PUT simulate PATCH : Not all values are required, missing values will be gotten from previous record.
                            rdoAllowNoRecordUpdates,    // Check rows affected, rowsaffected = 0 is OK.
-                           rdoAllowMultiRecordUpdates  // Check rows affected, rowsaffected > 1 is OK.
+                           rdoAllowMultiRecordUpdates, // Check rows affected, rowsaffected > 1 is OK.
+                           rdoSingleEmptyOK            // When asking a single resource and it does not exist, an empty dataset is returned
                            );
 
   TRestDispatcherOptions = set of TRestDispatcherOption;
@@ -1414,6 +1415,8 @@ begin
     Include(opts,rhoCheckupdateCount);
   if (rdoAllowMultiRecordUpdates in DispatchOptions) then
     Include(opts,rhoAllowMultiUpdate);
+  if (rdoSingleEmptyOK in DispatchOptions) then
+    Include(opts,rhoSingleEmptyOK);
   // Options may have been set in handler class, make sure we don't unset any.
   Result.Options:=Result.Options+Opts;
   Result.UpdatedData:=IO.UpdatedData;
