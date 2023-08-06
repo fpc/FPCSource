@@ -640,7 +640,7 @@ ResourceString
   SErrFileChange = 'Changing output file name is not allowed while (un)zipping.';
   SErrInvalidCRC = 'Invalid CRC checksum while unzipping %s.';
   SErrCorruptZIP = 'Corrupt ZIP file %s.';
-  SErrUnsupportedCompressionFormat = 'Unsupported compression format %d';
+  SErrUnsupportedCompressionFormat = 'Unsupported compression format %d.';
   SErrUnsupportedMultipleDisksCD = 'A central directory split over multiple disks is unsupported.';
   SErrMaxEntries = 'Encountered %d file entries; maximum supported is %d.';
   SErrMissingFileName = 'Missing filename in entry %d.';
@@ -649,8 +649,13 @@ ResourceString
   SErrPosTooLarge = 'Position/offset %d is larger than maximum supported %d.';
   SErrNoFileName = 'No archive filename for examine operation.';
   SErrNoStream = 'No stream is opened.';
-  SErrEncryptionNotSupported = 'Cannot unzip item "%s" : encryption is not supported.';
-  SErrPatchSetNotSupported = 'Cannot unzip item "%s" : Patch sets are not supported.';
+  SErrEncryptionNotSupported = 'Cannot unzip item "%s": encryption is not supported.';
+  SErrPatchSetNotSupported = 'Cannot unzip item "%s": patch sets are not supported.';
+
+const
+  ZIPBITFLAG_ENCRYPTION       = 1;
+  ZIPBITFLAG_SIZE_IN_DATADESC = 1 shl 3;
+  ZIPBITFLAG_PATCH_SET        = 1 shl 5;  
 
 { ---------------------------------------------------------------------
     Auxiliary
@@ -2332,7 +2337,7 @@ Begin
       // If bit 3 is set in the BitFlags, file size and CRC should be read from
       // the DataDescriptor record. For simplicity, however, we copy them from
       // the same fields of the zipfile entry.
-      if Item.FBitFlags and $0008 <> 0 then
+      if Item.FBitFlags and ZIPBITFLAG_SIZE_IN_DATADESC <> 0 then
       begin
         Uncompressed_Size := Item.Size;
         Compressed_Size := Item.CompressedSize;
@@ -2812,9 +2817,9 @@ Var
 
 Begin
   ReadZipHeader(Item, ZMethod);
-  if (Item.BitFlags and 1)<>0 then
+  if (Item.BitFlags and ZIPBITFLAG_ENCRYPTION)<>0 then
     Raise EZipError.CreateFmt(SErrEncryptionNotSupported,[Item.ArchiveFileName]);
-  if (Item.BitFlags and (1 shl 5))<>0 then
+  if (Item.BitFlags and ZIPBITFLAG_PATCH_SET)<>0 then
     Raise EZipError.CreateFmt(SErrPatchSetNotSupported,[Item.ArchiveFileName]);
   // Normalize output filename to conventions of target platform.
   // Zip file always has / path separators
