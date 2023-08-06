@@ -60,7 +60,9 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 BASEUNIXDIR=.
+ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
+endif
 # Use new feature from 1.0.5 version
 # that generates release PPU files
 # which will not be recompiled
