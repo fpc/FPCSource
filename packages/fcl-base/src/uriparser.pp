@@ -201,7 +201,7 @@ begin
     Result.Bookmark := Copy(s, i + 1, MaxInt);
     if Decode then
       Result.Bookmark:=Unescape(Result.Bookmark);
-    s := Copy(s, 1, i - 1);
+    SetLength(s, i - 1);
   end;
 
   // Extract the params
@@ -212,7 +212,7 @@ begin
     Result.Params := Copy(s, i + 1, MaxInt);
     if Decode then
       Result.Params:=Unescape(Result.Params);
-    s := Copy(s, 1, i - 1);
+    SetLength(s, i - 1);
   end;
 
   // extract authority
@@ -242,7 +242,7 @@ begin
       if Decode then
         Result.Document:=Unescape(Result.Document);
       if (Result.Document <> '.') and (Result.Document <> '..') then
-        s := Copy(s, 1, i)
+        SetLength(s, i)
       else
         Result.Document := '';
       break;
@@ -281,7 +281,7 @@ begin
     if PortValid then
     begin
       Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
-      Authority := Copy(Authority, 1, i - 1);
+      SetLength(Authority, i - 1);
     end;
   end;
 
@@ -290,11 +290,11 @@ begin
   i := Pos('@', Authority);
   if i > 0 then
   begin
-    Result.Host := Copy(Authority, i+1, MaxInt);
-    Delete(Authority, i, MaxInt);
+    Result.Host := Copy(Authority, i + 1, MaxInt);
+    SetLength(Authority, i - 1);
 
     // Extract username and password
-    if Length(Authority) > 0 then
+    if Authority <> '' then
     begin
       i := Pos(':', Authority);
       if i = 0 then
