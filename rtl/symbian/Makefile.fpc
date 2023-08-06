@@ -31,7 +31,6 @@ sourcedir=$(INC) $(PROCINC) $(COMMON)
 [prerules]
 RTL=..
 INC=$(RTL)/inc
-UNIXINC=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 SYMBIANINC=./symbianinc
@@ -39,7 +38,9 @@ UIQINC=./uiqinc
 
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
+endif
 
 OBJPASDIR=$(RTL)/objpas
 
