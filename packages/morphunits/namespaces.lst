@@ -32,3 +32,4 @@ src/inputevent.pas=namespaced/MorphApi.Inputevent.pas
 src/amigados.pas=namespaced/MorphApi.Amigados.pas
 src/clipboard.pas=namespaced/MorphApi.Clipboard.pas
 src/amigalib.pas=namespaced/MorphApi.Amigalib.pas
+src/openssl3.pas=namespaced/MorphApi.OpenSSL3.pas
