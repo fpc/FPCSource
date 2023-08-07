@@ -891,14 +891,14 @@ override FPCOPT+=@rtl.cfg
 endif
 CPU_UNITS=
 SYSINIT_UNITS=
-CPU_SPECIFIC_COMMON_UNITS=
+CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
+			  $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) \
+			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(ARCH),aarch64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 sam3x8e xmc4500 cortexm3 cortexm4 # thumb2_bare
 CPU_UNITS_DEFINED=1
@@ -999,7 +999,6 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=multiboot
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1007,13 +1006,10 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),x86_64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 endif
 ifeq ($(ARCH),m68k)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 endif
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
 CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 CPU_UNITS_DEFINED=1
@@ -1023,7 +1019,6 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),rv32imac)
 override FPCOPT+=-Cprv32imac
 CPU_UNITS=fe310g000 fe310g002 gd32vf103xx
@@ -1039,7 +1034,6 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1047,7 +1041,6 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),xtensa)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),lx106)
 CPU_UNITS=esp8266
 CPU_UNITS_DEFINED=1
@@ -1057,7 +1050,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
+CPU_SPECIFIC_COMMON_UNITS=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
