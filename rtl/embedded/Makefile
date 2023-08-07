@@ -3183,11 +3183,10 @@ include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
+FPC_SYSTEM_OPT=@system.cfg
 startup$(OEXT) : $(CPU_TARGET)/startup.s
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @system.cfg $(REDIR)
 consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
