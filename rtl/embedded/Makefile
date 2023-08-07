@@ -3202,6 +3202,8 @@ endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g $<
+intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
 raspi2$(PPUEXT): $(ARCH)/raspi2.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

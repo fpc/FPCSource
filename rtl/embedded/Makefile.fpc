@@ -310,6 +310,9 @@ $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 
 # AVR specific units
 
+intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
 
