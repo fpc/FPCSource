@@ -131,6 +131,9 @@ Type
 {$ifdef llvm}
     procedure LLVMEnableSanitizers(sanitizers: TCmdStr);
 {$endif llvm}
+{$ifdef AVR}
+    function ParseLinkerDiscardOptions(const s:TCmdStr):boolean;
+{$endif AVR}
     procedure VerifyTargetProcessor;
   end;
 
@@ -1467,6 +1470,30 @@ procedure TOption.LLVMEnableSanitizers(sanitizers: TCmdStr);
   end;
 {$endif}
 
+{$ifdef AVR}
+function TOption.ParseLinkerDiscardOptions(const s: TCmdStr): boolean;
+var
+  i: Integer;
+  c: char;
+begin
+  i:=2;
+  while i<=length(s) do
+   begin
+     c:=upcase(s[i]);
+     case c of
+      'C' : include(init_settings.globalswitches,cs_link_discard_copydata);
+      'J' : include(init_settings.globalswitches,cs_link_discard_jmp_main);
+      'S' : include(init_settings.globalswitches,cs_link_discard_start);
+      'Z' : include(init_settings.globalswitches,cs_link_discard_zeroreg_sp);
+     else
+      exit(false);
+     end;
+     inc(i);
+   end;
+  result:=true;
+end;
+{$endif AVR}
+
 {$ifdef XTENSA}
 procedure TOption.MaybeSetIdfVersionMacro;
 begin
@@ -2449,6 +2476,14 @@ begin
              IllegalPara(opt);
             break;
           end;
+{$ifdef AVR}
+       'd' :
+          begin
+            if not ParseLinkerDiscardOptions(more) then
+              IllegalPara(opt);
+            break;
+          end;
+{$endif AVR}
 {$ifdef cpufpemu}
        'e' :
           begin
