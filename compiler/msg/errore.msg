@@ -4018,6 +4018,11 @@ Z*2Az80asm_Assemble using z80asm
 **2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
+V*2Cd<x>_Discard selected RTL startup sections (use with caution)
+V*3Cdc_Discard initializing data. Data defaults to noinit section
+V*3Cdj_Discard jump to PASCALMAIN. Use only if PASCALMAIN follows directly after startup code
+V*3Cds_Discard _START code. Use only if all interrupts are disabled
+V*3Cdz_Discard code initializing the zero register and stack pointer
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
 **2CE_Generate FPU code which can raise exceptions
