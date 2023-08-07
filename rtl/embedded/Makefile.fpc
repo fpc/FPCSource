@@ -12,7 +12,7 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) \
+units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
 # macpas iso7185 strings
        $(STRINGSUNIT) \
        $(SORTBASEUNIT) \
@@ -71,6 +71,7 @@ CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
 			  $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) \
 			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
 
+SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
 
 ifeq ($(ARCH),aarch64)
 CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
@@ -277,11 +278,24 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
+CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
+        $(CONSOLEIO_DEPS_OS) $(CONSOLEIO_DEPS_CPU)
 
-heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
+consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
+        $(COMPILER) $(CONSOLEIO_OPT) $<
+
+EmbeddedApi.ConsoleIO$(PPUEXT) : $(NS)/embedded/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
+	$(COMPILER) $(CONSOLEIO_OPT) $<
+
+HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
+        $(HEAPMGR_DEPS_OS) $(HEAPMGR_DEPS_CPU)
+
+heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
+        $(COMPILER) $(HEAPMGR_OPT) $<
+
+EmbeddedApi.HeapMGR$(PPUEXT) : $(NS)/embedded/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
+	$(COMPILER) $(HEAPMGR_OPT) $<
+
 
 #
 # Unit specific rules
