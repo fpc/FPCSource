@@ -1485,11 +1485,15 @@ blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
 #
 # Windows, depends on objpas because of mode switch
 #
+ifndef WININCDIR
+  WININCDIR = $(WINDIR)/wininc
+endif
+
 WINDOWS_DEPS=windows.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
              $(WINDOWS_DEPS_OS) $(WINDOWS_DEPS_CPU)
 
 windows$(PPUEXT): $(WINDOWS_DEPS)
-	$(COMPILER) $(WINDOWS_OPT) $<
+	$(COMPILER) -Fi$(WININC) $(WINDOWS_OPT) $<
 
 WinApi.Windows$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Windows.pp $(WINDOWS_DEPS)
         $(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDOWS_OPT) $<
@@ -1505,6 +1509,26 @@ windirs$(PPUEXT): $(WINDIRS_DEPS)
 
 WinApi.WinDirs$(PPUEXT): $(NSWINDOWSDIR)/WinApi.WinDirs.pp $(WINDIRS_DEPS)
         $(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDIRS_OPT) $<
+
+# messages unit
+ifndef WINMESSAGESDIR
+  WINMESSAGESDIR = $(WINDIR)
+endif
+ifndef WINMESSAGESINCDIR
+  WINMESSAGESINCDIR = $(WINDIR)/wininc
+endif
+
+
+MESSAGES_DEPS = $(WINMESSAGESDIR)/messages.pp $(WINMESSAGESINCDIR)/messages.inc $(WINDOWSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+		$(MESSAGES_DEPS_OS) $(MESSAGES_DEPS_CPU)
+
+messages$(PPUEXT): $(MESSAGES_DEPS)
+        $(COMPILER) -Fi$(WINMESSAGESINCDIR) $<
+
+
+WinApi.Messages$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Messages.pp $(MESSAGES_DEPS)
+        $(COMPILER) -Fi$(WINMESSAGESINCDIR) -Fi$(WINMMESSAGESDIR) $<
+
 
 ###################
 # BSD units
