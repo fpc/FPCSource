@@ -895,6 +895,7 @@ CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
 			  $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) \
 			  $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
 SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
+DOSDIR=.
 ifeq ($(ARCH),aarch64)
 CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
 CPU_UNITS_DEFINED=1
@@ -3181,18 +3182,18 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(INC)/softfpu.pp
 FPC_SYSTEM_OPT=@system.cfg
 startup$(OEXT) : $(CPU_TARGET)/startup.s
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
-CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
+CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(CONSOLEIO_DEPS_OS) $(CONSOLEIO_DEPS_CPU)
 consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
 	$(COMPILER) $(CONSOLEIO_OPT) $<
-EmbeddedApi.ConsoleIO$(PPUEXT) : $(NS)/embedded/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
-	$(COMPILER) $(CONSOLEIO_OPT) $<
-HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) \
+EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
+	$(COMPILER) $(CONSOLEIO_OPT) -Fi. $<
+HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(HEAPMGR_DEPS_OS) $(HEAPMGR_DEPS_CPU)
 heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
 	$(COMPILER) $(HEAPMGR_OPT) $<
-EmbeddedApi.HeapMGR$(PPUEXT) : $(NS)/embedded/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
-	$(COMPILER) $(HEAPMGR_OPT) $<
+EmbeddedApi.HeapMGR$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
+	$(COMPILER) $(HEAPMGR_OPT) -Fi. $<
 define CPU_UNITS_RULE
 ifeq ($(ARCH),avr)
 $(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -3205,13 +3206,43 @@ $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g $<
 intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
-raspi2$(PPUEXT): $(ARCH)/raspi2.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspi2.pp
-raspi3$(PPUEXT): $(ARCH)/raspi3.pp consoleio$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspi3.pp
-raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/raspiuart.pp
-mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(ARCH)/mailbox.pp
+RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(RASPI2_DEPS_OS) $(RASPI2_DEPS_CPU)
+raspi2$(PPUEXT) : $(RASPI2_DEPS)
+	$(COMPILER) $(RASPI2_OPT) $<
+EmbeddedApi.Raspi2$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
+	$(COMPILER) $(RASPI2_OPT) -Fi. -Fi$(ARCH) $<
+GPIO_DEPS = $(ARCH)/xxx.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(GPIO_DEPS_OS) $(GPIO_DEPS_CPU)
+xxx$(PPUEXT) : $(GPIO_DEPS)
+	$(COMPILER) $(GPIO_OPT) $<
+EmbeddedApi.gpio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
+	$(COMPILER) $(GPIO_OPT) -Fi. -Fi$(ARCH) $<
+MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(MMIO_DEPS_OS) $(MMIO_DEPS_CPU)
+mmio$(PPUEXT) : $(MMIO_DEPS)
+	$(COMPILER) $(MMIO_OPT) $<
+EmbeddedApi.Mmio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Mmio.pp $(MMIO_DEPS)
+	$(COMPILER) $(MMIO_OPT) -Fi. -Fi$(ARCH) $<
+MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
+	$(MAILBOX_DEPS_OS) $(MAILBOX_DEPS_CPU)
+mailbox$(PPUEXT) : $(MAILBOX_DEPS)
+	$(COMPILER) $(MAILBOX_OPT) $<
+EmbeddedApi.mailbox$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
+	$(COMPILER) $(MAILBOX_OPT) -Fi. -Fi$(ARCH) $<
+RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
+	$(RASPIUART_DEPS_OS) $(RASPIUART_DEPS_CPU)
+raspiuart$(PPUEXT) : $(RASPIUART_DEPS)
+	$(COMPILER) $(RASPIUART_OPT) $<
+EmbeddedApi.raspiuart$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
+	$(COMPILER) $(RASPIUART_OPT) -Fi. -Fi$(ARCH) $<
+RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
+	$(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)
+raspi3$(PPUEXT) : $(RASPI3_DEPS)
+	$(COMPILER) $(RASPI3_OPT) $<
+EmbeddedApi.raspi3$(PPUEXT) : $(NSDIR)/embedded/i$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
+	$(COMPILER) $(RASPI3_OPT) -Fi. -Fi$(ARCH) $<
