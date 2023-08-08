@@ -16693,11 +16693,11 @@ begin
     RaiseNotSupported(El,AContext,20181231112029);
 
   // module.$rtti.$Pointer("name",{...})
-  Call:=CreateRTTINewType(El,GetBIName(pbifnRTTIInherited),false,AContext,Obj);
+  Call:=CreateRTTINewType(El,GetBIName(pbifnRTTINewPointer),false,AContext,Obj);
   try
     // "comptype: ref"
     Prop:=Obj.Elements.AddElement;
-    Prop.Name:=TJSString(GetBIName(pbivnRTTISet_CompType));
+    Prop.Name:=TJSString(GetBIName(pbivnRTTIPointer_RefType));
     Prop.Expr:=CreateTypeInfoRef(El.DestType,AContext,El);
     Result:=Call;
   finally
@@ -26677,7 +26677,6 @@ begin
                 // COM:  $ir.ref(id,rtl.queryIntfT(Expr,IntfType))
                 Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfQueryIntfT)]);
                 Call.AddArg(Result);
-                Result:=Call;
                 Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
                 Call:=CreateIntfRef(Call,AContext,El);
                 Result:=Call;
