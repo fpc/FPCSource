@@ -54,8 +54,8 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
-WININC=./wininc
 WINDIR=../win
+WININC=$(WINDIR)/wininc
 
 UNITPREFIX=rtl
 
@@ -63,7 +63,9 @@ SYSTEMUNIT=system
 PRT0=wprt0
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
+CPU_DEPS_CPU=$(SYSUTILSUNIT)$(PPUEXT) 
+MMX_DEPS_CPU=$(CPUUNIT)$(PPUEXT) 
 endif
 
 # Use new feature from 1.0.5 version
@@ -97,6 +99,9 @@ SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Change WINDIR and WININC now
+WINDIR = .
+WININC = $(WINDIR)/wininc
 
 # Get the processor dependent include file names.
 # This will set the following variables :
@@ -111,12 +116,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 # System Units (System, Objpas, Strings)
 #
 
-
-
-$(MESSAGESUNIT)$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -I$(WININC) messages.pp
-
-
+WINMESSAGESDIR=$(OSDIR)
 
 sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
         $(COMPILER) $(WINDIR)/sharemem.pp
