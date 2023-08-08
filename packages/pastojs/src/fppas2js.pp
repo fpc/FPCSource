@@ -21219,7 +21219,7 @@ begin
       // check visibility
       case mt of
       mtClass:
-        if P.Visibility<>visPublished then continue;
+        if (P.Visibility<>visPublished) and (not P.InheritsFrom(TPasConstructor) or (P.Visibility <> visPublic)) then continue;
       mtInterface: ; // all members of an interface are published
       mtRecord:
         // a published record publishes all non private members
