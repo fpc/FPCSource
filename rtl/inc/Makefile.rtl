@@ -737,10 +737,10 @@ SOFTFPU_DEPS=$(INC)/softfpu.pp \
              $(SOFTFPU_DEPS_OS) $(SOFTFPU_DEPS_CPU)
 
 softfpu$(PPUEXT) : $(SOFTFPU_DEPS) 
-	$(COMPILER) $(SOFTFPU_OPT) $<
+	$(COMPILER) -Sg $(SOFTFPU_OPT) $<
 
 System.SoftFPU$(PPUEXT) : $(NSINC)/System.SoftFPU.pp $(SOFTFPU_DEPS) 
-        $(COMPILER) $(SOFTFPU_OPT) $<
+        $(COMPILER) -Sg $(SOFTFPU_OPT) $<
 
 # sfpux80
 SFPUX80_DEPS=$(INC)/sfpux80.pp $(INC)/softfpu.pp \
@@ -748,10 +748,10 @@ SFPUX80_DEPS=$(INC)/sfpux80.pp $(INC)/softfpu.pp \
              $(SFPUX80_DEPS_OS) $(SFPUX80_DEPS_CPU) 
  
 sfpux80$(PPUEXT) : $(SFPUX80_DEPS)
-	$(COMPILER) $(SFPUX80_OPT) $<
+	$(COMPILER) -Sg $(SFPUX80_OPT) $<
 
 System.SoftFpuX80$(PPUEXT) : $(NSINC)/System.SoftFpuX80.pp  $(SFPUX80_DEPS)
-	$(COMPILER) $(SFPUX80_OPT) $<
+	$(COMPILER) -Sg $(SFPUX80_OPT) $<
 
 # sfpu128
 SFPU128_DEPS=$(INC)/sfpu128.pp $(INC)/softfpu.pp \
@@ -760,10 +760,10 @@ SFPU128_DEPS=$(INC)/sfpu128.pp $(INC)/softfpu.pp \
  
 
 sfpu128$(PPUEXT) : $(SFPU128_DEPS)
-	$(COMPILER) $(SFPUX128_OPT) $<
+	$(COMPILER) -Sg $(SFPUX128_OPT) $<
 
 System.SoftFpu128$(PPUEXT) : $(NSINC)/System.SoftFpu128.pp $(SFPU128_DEPS)
-        $(COMPILER) $(SFPUX128_OPT) $<
+        $(COMPILER) -Sg $(SFPUX128_OPT) $<
 
 # ufloat80x
 UFLOATX80_DEPS=$(INC)/ufloatx80.pp \
