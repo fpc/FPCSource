@@ -1186,23 +1186,23 @@ const
 Type
 {$ifdef MESSAGESUNIT}
 
-    MSG                 = Windows.MSG;
-    TMessage            = Windows.TMessage;
-    TWMSize             = Windows.TWMSize;
-    TWMNoParams         = Windows.TWMNoParams;
-    TWMScroll           = Windows.TWMScroll;
-    TWMGetText          = Windows.TWMGetText;
-    TWMKillFocus        = Windows.TWMKillFocus;
-    TWMSetCursor        = Windows.TWMSetCursor;
-    TWMSetFocus         = Windows.TWMSetFocus;
-    TWMSetFont          = Windows.TWMSetFont;
-    TWMShowWindow       = Windows.TWMShowWindow;
-    TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
-    LPMSG               = ^Windows.MSG;
-    tagMSG              = Windows.tagMSG;
-    TMSG                = Windows.TMSG;
-    PMSG                = Windows.PMSG;
-    PMessage            = Windows.PMessage;
+    MSG                 = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.MSG;
+    TMessage            = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TMessage;
+    TWMSize             = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMSize;
+    TWMNoParams         = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMNoParams;
+    TWMScroll           = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMScroll;
+    TWMGetText          = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMGetText;
+    TWMKillFocus        = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMKillFocus;
+    TWMSetCursor        = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMSetCursor;
+    TWMSetFocus         = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMSetFocus;
+    TWMSetFont          = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMSetFont;
+    TWMShowWindow       = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMShowWindow;
+    TWMEraseBkgnd       = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TWMEraseBkgnd;
+    LPMSG               = ^{$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.MSG;
+    tagMSG              = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.tagMSG;
+    TMSG                = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.TMSG;
+    PMSG                = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.PMSG;
+    PMessage            = {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.PMessage;
     TWMGetDlgCode       = TWMNoParams;
     TWMFontChange       = TWMNoParams;
     TWMGetFont          = TWMNoParams;
