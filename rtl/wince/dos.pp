@@ -274,7 +274,7 @@ begin
           Inc(i);
         end;
       until (i > 24) or not FindNextFile(h, fd);
-      Windows.FindClose(h);
+      {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.FindClose(h);
     end;
   end;
   GetDriveName:=DriveNames[drive - 2];
@@ -405,7 +405,7 @@ end;
 Procedure FindClose(Var f: SearchRec);
 begin
   If F.FindHandle <> Invalid_Handle_value then
-    Windows.FindClose(F.FindHandle);
+    {$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.FindClose(F.FindHandle);
 end;
 
 

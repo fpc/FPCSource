@@ -42,7 +42,7 @@ function LoadLibraryA(lpLibFileName:LPCSTR):HINST;
 var  ws: PWideChar;
 begin
   ws:=PCharToPWideChar(lpLibFileName);
-  Result:=Windows.LoadLibrary(ws);
+  Result:={$ifdef FPC_DOTTEDUNITS}WinApi.{$endif}Windows.LoadLibrary(ws);
   FreeMem(ws);
 end;
 
