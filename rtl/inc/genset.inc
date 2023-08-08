@@ -120,14 +120,35 @@ procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc
   adds the range [l..h] to the set orgset
 }
 procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compilerproc;
-  type
-    tbsetarray = bitpacked array[0..high(sizeint)-1] of 0..1;
   var
-    i : ptrint;
+    bp : pbyte;
+    nbits,partbits,partbytes : sizeint;
   begin
-    move(orgset,dest,size);
-    for i:=l to h do
-       tbsetarray(dest)[i]:=1;
+    nbits:=h-l+1;
+    if nbits<=0 then
+      exit;
+    if @orgset<>@dest then
+      move(orgset,dest,size);
+    bp:=pbyte(@dest)+l shr 3;
+    partbits:=-l and 7;
+    if partbits<>0 then { Head. }
+      if partbits>=nbits then
+        begin
+          bp^:=bp^ or {$ifdef endian_little} (1 shl nbits-1) shl 8 shr partbits {$else} (1 shl nbits-1) shl partbits shr nbits {$endif};
+          exit;
+        end
+      else
+        begin
+          bp^:=bp^ or {$ifdef endian_little} byte($FF00 shr partbits) {$else} (1 shl partbits-1) {$endif};
+          inc(bp);
+          nbits:=nbits-partbits;
+        end;
+    partbytes:=nbits shr 3;
+    FillChar(bp^,partbytes,$FF); { Full bytes. }
+    bp:=bp+partbytes;
+    nbits:=nbits and 7;
+    if nbits<>0 then { Tail. }
+      bp^:=bp^ or {$ifdef endian_little} (1 shl nbits-1) {$else} byte($FF00 shr nbits) {$endif};
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_RANGE}
 
