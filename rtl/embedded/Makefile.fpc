@@ -75,7 +75,7 @@ SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
 DOSDIR=.
 
 ifeq ($(ARCH),aarch64)
-CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
+CPU_UNITS=$(RASPI3UNIT) $(MMIOUNIT) $(MAILBOXUNIT) $(RASPIUARTUNIT) $(GPIOUNIT)
 CPU_UNITS_DEFINED=1
 endif
 
@@ -182,7 +182,7 @@ endif
 endif
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=multiboot
+CPU_UNITS=$(MULTIBOOTUNIT)
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
@@ -190,11 +190,11 @@ endif
 endif
 
 ifeq ($(ARCH),x86_64)
-# CPU_UNITS=multiboot
+# CPU_UNITS=$(MULTIBOOTUNIT)
 endif
 
 ifeq ($(ARCH),m68k)
-# CPU_UNITS=multiboot
+# CPU_UNITS=$(MULTIBOOTUNIT)
 endif
 
 ifeq ($(ARCH),mipsel)
@@ -285,7 +285,7 @@ CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
         $(COMPILER) $(CONSOLEIO_OPT) $<
 
-EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
+EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
 	$(COMPILER) $(CONSOLEIO_OPT) -Fi. $<
 
 HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
@@ -294,9 +294,8 @@ HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
         $(COMPILER) $(HEAPMGR_OPT) $<
 
-EmbeddedApi.HeapMGR$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
+EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
 	$(COMPILER) $(HEAPMGR_OPT) -Fi. $<
-
 
 #
 # Unit specific rules
@@ -313,7 +312,8 @@ endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
-	$(COMPILER) -g $<
+       $(COMPILER) -g $<
+
 
 # AVR specific units
 
@@ -322,6 +322,18 @@ intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
+
+# i386 specific units
+
+
+MULTIBOOT_DEPS = $(ARCH)/multiboot.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+        $(MULTIBOOT_DEPS_OS) $(MULTIBOOT_DEPS_CPU)
+
+multiboot$(PPUEXT) : $(MULTIBOOT_DEPS)
+        $(COMPILER) $(MULTIBOOT_OPT) $<
+
+EmbeddedApi.multiboot$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.multiboot.pp $(MULTIBOOT_DEPS)
+	$(COMPILER) $(MULTIBOOT_OPT) -Fi. -Fi$(ARCH) $<
 
 # ARM specific units
 
@@ -334,20 +346,20 @@ RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 raspi2$(PPUEXT) : $(RASPI2_DEPS)
         $(COMPILER) $(RASPI2_OPT) $<
 
-EmbeddedApi.Raspi2$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
+EmbeddedApi.Raspi2$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
 	$(COMPILER) $(RASPI2_OPT) -Fi. -Fi$(ARCH) $<
 
 # AARCH64 specific units
 
 # gpio unit
 #
-GPIO_DEPS = $(ARCH)/xxx.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+GPIO_DEPS = $(ARCH)/gpio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
         $(GPIO_DEPS_OS) $(GPIO_DEPS_CPU)
 
-xxx$(PPUEXT) : $(GPIO_DEPS)
+gpio$(PPUEXT) : $(GPIO_DEPS)
         $(COMPILER) $(GPIO_OPT) $<
 
-EmbeddedApi.gpio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
+EmbeddedApi.gpio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
 	$(COMPILER) $(GPIO_OPT) -Fi. -Fi$(ARCH) $<
 
 #mmio$(PPUEXT): $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -358,7 +370,7 @@ MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 mmio$(PPUEXT) : $(MMIO_DEPS)
         $(COMPILER) $(MMIO_OPT) $<
 
-EmbeddedApi.Mmio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Mmio.pp $(MMIO_DEPS)
+EmbeddedApi.mmio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mmio.pp $(MMIO_DEPS)
 	$(COMPILER) $(MMIO_OPT) -Fi. -Fi$(ARCH) $<
 
 #mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -370,7 +382,7 @@ MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(MMIOU
 mailbox$(PPUEXT) : $(MAILBOX_DEPS)
         $(COMPILER) $(MAILBOX_OPT) $<
 
-EmbeddedApi.mailbox$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
+EmbeddedApi.mailbox$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
 	$(COMPILER) $(MAILBOX_OPT) -Fi. -Fi$(ARCH) $<
 
 #raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -383,7 +395,7 @@ RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 raspiuart$(PPUEXT) : $(RASPIUART_DEPS)
         $(COMPILER) $(RASPIUART_OPT) $<
 
-EmbeddedApi.raspiuart$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
+EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
 	$(COMPILER) $(RASPIUART_OPT) -Fi. -Fi$(ARCH) $<
 
 #raspi3$(PPUEXT): $(ARCH)/raspi3.pp $(CONSOLEIOUNIT)$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -396,10 +408,7 @@ RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 raspi3$(PPUEXT) : $(RASPI3_DEPS)
         $(COMPILER) $(RASPI3_OPT) $<
 
-EmbeddedApi.raspi3$(PPUEXT) : $(NSDIR)/embedded/i$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
+EmbeddedApi.raspi3$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
 	$(COMPILER) $(RASPI3_OPT) -Fi. -Fi$(ARCH) $<
-
-
-
 
 
