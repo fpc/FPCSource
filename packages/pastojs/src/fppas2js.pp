@@ -484,10 +484,6 @@ uses
   Pascal.Tree, Pascal.Scanner, Pascal.ResolveEval, Pascal.Resolver;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  {$ifdef pas2js}
-  {$else}
-  AVL_Tree,
-  {$endif}
   Classes, SysUtils, math, contnrs,
   jsbase, jstree, jswriter,
   PasTree, PScanner, PasResolveEval, PasResolver;
