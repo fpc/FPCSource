@@ -461,17 +461,17 @@ ESPIDF_40400UNIT=System.Espidf_40400
 EXEUNIT=OS2Api.exe
 EXEINFOUNIT=System.Exeinfo
 EXTPASUNIT=extpas
-FE310G000UNIT=EmbeddedApi.Fe310g000
-FE310G002UNIT=EmbeddedApi.Fe310g002
+FE310G000UNIT=EmbeddedApi.fe310g000
+FE310G002UNIT=EmbeddedApi.fe310g002
 FGLUNIT=System.FGL
 FPCMEMDLLUNIT=System.FPCMemDLL
 FPCYLIXUNIT=fpcylix
 FPWIDESTRINGUNIT=System.FPWideString
 FREEBSDUNIT=FreeBSDApi.FreeBSD
-GD32VF103XXUNIT=EmbeddedApi.Gd32vf103xx
+GD32VF103XXUNIT=EmbeddedApi.gd32vf103xx
 GETOPTSUNIT=System.GetOpts
 GO32UNIT=DOSApi.GO32
-GPIOUNIT=EmbeddedApi.Gpio
+GPIOUNIT=EmbeddedApi.gpio
 HEAPMGRUNIT=EmbeddedApi.HeapMGR
 HEAPTRCUNIT=heaptrc
 INITCUNIT=System.InitC
@@ -483,40 +483,40 @@ LIBCUNIT=NetwareLibCApi.Libc
 LINEINFOUNIT=System.LineInfo
 LINUXUNIT=LinuxApi
 LINUXVCSUNIT=LinuxApi.Vcs
-LM3FURYUNIT=EmbeddedApi.Lm3fury
-LM3TEMPESTUNIT=EmbeddedApi.Lm3tempest
-LM4F120UNIT=EmbeddedApi.Lm4f120
+LM3FURYUNIT=EmbeddedApi.lm3fury
+LM3TEMPESTUNIT=EmbeddedApi.lm3tempest
+LM4F120UNIT=EmbeddedApi.lm4f120
 LNFODWRFUNIT=System.LineInfo.Dwarf
 LNFOGDBUNIT=System.LineInfo.Gdb
-LPC11XXUNIT=EmbeddedApi.Lpc11xx
-LPC122XUNIT=EmbeddedApi.Lpc122x
-LPC13XXUNIT=EmbeddedApi.Lpc13xx
-LPC1768UNIT=EmbeddedApi.Lpc1768
-LPC21X4UNIT=EmbeddedApi.Lpc21x4
-LPC8XXUNIT=EmbeddedApi.Lpc8xx
+LPC11XXUNIT=EmbeddedApi.lpc11xx
+LPC122XUNIT=EmbeddedApi.lpc122x
+LPC13XXUNIT=EmbeddedApi.lpc13xx
+LPC1768UNIT=EmbeddedApi.lpc1768
+LPC21X4UNIT=EmbeddedApi.lpc21x4
+LPC8XXUNIT=EmbeddedApi.lpc8xx
 LSTRINGSUNIT=System.LStrings
 MACOSUNIT=MacOSApi.MacOS
 MACOSTPUNIT=MacOSApi.MacOSTP
 MACUTILSUNIT=MacOSApi.MacUtils
-MAILBOXUNIT=EmbeddedApi.Mailbox
+MAILBOXUNIT=EmbeddedApi.mailbox
 MATHUNIT=System.Math
 MESSAGESUNIT=WinApi.Messages
-MK20D5UNIT=EmbeddedApi.Mk20d5
-MK20D7UNIT=EmbeddedApi.Mk20d7
-MK22F51212UNIT=EmbeddedApi.Mk22f51212
-MK64F12UNIT=EmbeddedApi.Mk64f12
-MMIOUNIT=EmbeddedApi.Mmio
+MK20D5UNIT=EmbeddedApi.mk20d5
+MK20D7UNIT=EmbeddedApi.mk20d7
+MK22F51212UNIT=EmbeddedApi.mk22f51212
+MK64F12UNIT=EmbeddedApi.mk64f12
+MMIOUNIT=EmbeddedApi.mmio
 MMXUNIT=System.CPU.MMX
 MONCALLSUNIT=OS2Api.moncalls
 MOUCALLSUNIT=OS2Api.moucalls
 MSMOUSEUNIT=DOSApi.MSMouse
-MULTIBOOTUNIT=EmbeddedApi.Multiboot
+MULTIBOOTUNIT=EmbeddedApi.multiboot
 NDKUNIT=NTApi.NDK
 NDKUTILSUNIT=NTApi.NDKUtils
 NETWAREUNIT=NetwareApi.NetWare
 NEWEXEUNIT=OS2Api.newexe
-NRF51UNIT=EmbeddedApi.Nrf51
-NRF52UNIT=EmbeddedApi.Nrf52
+NRF51UNIT=EmbeddedApi.nrf51
+NRF52UNIT=EmbeddedApi.nrf52
 NWCALLSUNIT=NetWareApi.Nwcalls
 NWNITUNIT=NetWareApi.Nwnit
 NWPREUNIT=NetWareApi.Nwpre
@@ -542,13 +542,13 @@ PMWSOCKUNIT=OS2Api.pmwsock
 PORTSUNIT=System.Ports
 POSIXUNIT=QNXApi.Posix
 PROFILEUNIT=DOSApi.Profile
-RASPI2UNIT=EmbeddedApi.Raspi2
-RASPI3UNIT=EmbeddedApi.Raspi3
-RASPIUARTUNIT=EmbeddedApi.Raspiuart
+RASPI2UNIT=EmbeddedApi.raspi2
+RASPI3UNIT=EmbeddedApi.raspi3
+RASPIUARTUNIT=EmbeddedApi.raspiuart
 RTLCONSTSUNIT=System.RtlConsts
-SAM3X8EUNIT=EmbeddedApi.Sam3x8e
-SAMD51P19AUNIT=EmbeddedApi.Samd51p19a
-SC32442BUNIT=EmbeddedApi .Sc32442b
+SAM3X8EUNIT=EmbeddedApi.sam3x8e
+SAMD51P19AUNIT=EmbeddedApi.samd51p19a
+SC32442BUNIT=EmbeddedApi .sc32442b
 SFPU128UNIT=System.SoftFpu128
 SFPUX80UNIT=System.SoftFpuX80
 SHAREMEMUNIT=WinApi.ShareMem
@@ -556,25 +556,25 @@ SIGNALSUNIT=WinApi.Signals
 SO32DLLUNIT=OS2Api.so32dll
 SOFTFPUUNIT=System.SoftFPU
 SORTBASEUNIT=System.SortBase
-STM32F0XXUNIT=EmbeddedApi.Stm32f0xx
-STM32F103XEUNIT=EmbeddedApi.Stm32f103xe
-STM32F10X_CLUNIT=EmbeddedApi.Stm32f10x_cl
-STM32F10X_CONNUNIT=EmbeddedApi.Stm32f10x_conn
-STM32F10X_HDUNIT=EmbeddedApi.Stm32f10x_hd
-STM32F10X_LDUNIT=EmbeddedApi.Stm32f10x_ld
-STM32F10X_MDUNIT=EmbeddedApi.Stm32f10x_md
-STM32F10X_XLUNIT=EmbeddedApi.Stm32f10x_xl
-STM32F401XEUNIT=EmbeddedApi.Stm32f401xe
-STM32F401XXUNIT=EmbeddedApi.Stm32f401xx
-STM32F407XXUNIT=EmbeddedApi.Stm32f407xx
-STM32F411XEUNIT=EmbeddedApi.Stm32f411xe
-STM32F429UNIT=EmbeddedApi.Stm32f429
-STM32F429XXUNIT=EmbeddedApi.Stm32f429xx
-STM32F446XXUNIT=EmbeddedApi.Stm32f446xx
-STM32F745UNIT=EmbeddedApi.Stm32f745
-STM32F746UNIT=EmbeddedApi.Stm32f746
-STM32F756UNIT=EmbeddedApi.Stm32f756
-STM32G071XXUNIT=EmbeddedApi.Stm32g071xx
+STM32F0XXUNIT=EmbeddedApi.stm32f0xx
+STM32F103XEUNIT=EmbeddedApi.stm32f103xe
+STM32F10X_CLUNIT=EmbeddedApi.stm32f10x_cl
+STM32F10X_CONNUNIT=EmbeddedApi.stm32f10x_conn
+STM32F10X_HDUNIT=EmbeddedApi.stm32f10x_hd
+STM32F10X_LDUNIT=EmbeddedApi.stm32f10x_ld
+STM32F10X_MDUNIT=EmbeddedApi.stm32f10x_md
+STM32F10X_XLUNIT=EmbeddedApi.stm32f10x_xl
+STM32F401XEUNIT=EmbeddedApi.stm32f401xe
+STM32F401XXUNIT=EmbeddedApi.stm32f401xx
+STM32F407XXUNIT=EmbeddedApi.stm32f407xx
+STM32F411XEUNIT=EmbeddedApi.stm32f411xe
+STM32F429UNIT=EmbeddedApi.stm32f429
+STM32F429XXUNIT=EmbeddedApi.stm32f429xx
+STM32F446XXUNIT=EmbeddedApi.stm32f446xx
+STM32F745UNIT=EmbeddedApi.stm32f745
+STM32F746UNIT=EmbeddedApi.stm32f746
+STM32F756UNIT=EmbeddedApi.stm32f756
+STM32G071XXUNIT=EmbeddedApi.stm32g071xx
 STRINGSUNIT=System.Strings
 SYMBIANUNIT=SymbianApi.Symbian
 SYSALLUNIT=PalmApi.Sysall
@@ -610,7 +610,7 @@ WINPROCSUNIT=WinApi.WinProcs
 WINSYSUTUNIT=WinApi.WinSysUt
 WINTYPESUNIT=WinApi.WinTypes
 X86UNIT=System.X86
-XMC4500UNIT=EmbeddedApi.Xmc4500
+XMC4500UNIT=EmbeddedApi.xmc4500
 EXEINFOUNIT=System.ExeInfo
 ERRORSUNIT=UnixApi.Errors
 else
@@ -897,7 +897,7 @@ CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
 SYSUTILS_DEPS_OS=$(HEAPMGRUNIT)$(PPUEXT)
 DOSDIR=.
 ifeq ($(ARCH),aarch64)
-CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
+CPU_UNITS=$(RASPI3UNIT) $(MMIOUNIT) $(MAILBOXUNIT) $(RASPIUARTUNIT) $(GPIOUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(ARCH),arm)
@@ -1001,7 +1001,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=multiboot
+CPU_UNITS=$(MULTIBOOTUNIT)
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
@@ -2636,23 +2636,23 @@ SOFTFPU_DEPS=$(INC)/softfpu.pp \
 	     $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	     $(SOFTFPU_DEPS_OS) $(SOFTFPU_DEPS_CPU)
 softfpu$(PPUEXT) : $(SOFTFPU_DEPS) 
-	$(COMPILER) $(SOFTFPU_OPT) $<
+	$(COMPILER) -Sg $(SOFTFPU_OPT) $<
 System.SoftFPU$(PPUEXT) : $(NSINC)/System.SoftFPU.pp $(SOFTFPU_DEPS) 
-	$(COMPILER) $(SOFTFPU_OPT) $<
+	$(COMPILER) -Sg $(SOFTFPU_OPT) $<
 SFPUX80_DEPS=$(INC)/sfpux80.pp $(INC)/softfpu.pp \
 	     $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	     $(SFPUX80_DEPS_OS) $(SFPUX80_DEPS_CPU) 
 sfpux80$(PPUEXT) : $(SFPUX80_DEPS)
-	$(COMPILER) $(SFPUX80_OPT) $<
+	$(COMPILER) -Sg $(SFPUX80_OPT) $<
 System.SoftFpuX80$(PPUEXT) : $(NSINC)/System.SoftFpuX80.pp  $(SFPUX80_DEPS)
-	$(COMPILER) $(SFPUX80_OPT) $<
+	$(COMPILER) -Sg $(SFPUX80_OPT) $<
 SFPU128_DEPS=$(INC)/sfpu128.pp $(INC)/softfpu.pp \
 	     $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	     $(SFPU128_DEPS_OS) $(SFPU128_DEPS_CPU)
 sfpu128$(PPUEXT) : $(SFPU128_DEPS)
-	$(COMPILER) $(SFPUX128_OPT) $<
+	$(COMPILER) -Sg $(SFPUX128_OPT) $<
 System.SoftFpu128$(PPUEXT) : $(NSINC)/System.SoftFpu128.pp $(SFPU128_DEPS)
-	$(COMPILER) $(SFPUX128_OPT) $<
+	$(COMPILER) -Sg $(SFPUX128_OPT) $<
 UFLOATX80_DEPS=$(INC)/ufloatx80.pp \
 	       $(SFPUX80UNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	       $(UFLOATX80_DEPS_OS) $(UFLOATX80_DEPS_CPU)
@@ -3023,10 +3023,13 @@ BLOCKRTL_DEPS=$(INC)/blockrtl.pp \
 	      $(BLOCKRTL_DEPS_OS) $(BLOCKRTL_DEPS_CPU)
 blockrtl$(PPUEXT) : $(BLOCKRTL_DEPS)
 	$(COMPILER) $(BLOCKRTL_OPT) $<
+ifndef WININCDIR
+  WININCDIR = $(WINDIR)/wininc
+endif
 WINDOWS_DEPS=windows.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	     $(WINDOWS_DEPS_OS) $(WINDOWS_DEPS_CPU)
 windows$(PPUEXT): $(WINDOWS_DEPS)
-	$(COMPILER) $(WINDOWS_OPT) $<
+	$(COMPILER) -Fi$(WININC) $(WINDOWS_OPT) $<
 WinApi.Windows$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Windows.pp $(WINDOWS_DEPS)
 	$(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDOWS_OPT) $<
 WINDIRS_DEPS=$(WINDIRSDIR)/windirs.pp $(WINDOWSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
@@ -3035,6 +3038,18 @@ windirs$(PPUEXT): $(WINDIRS_DEPS)
 	$(COMPILER) $(WINDIRS_OPT) $<
 WinApi.WinDirs$(PPUEXT): $(NSWINDOWSDIR)/WinApi.WinDirs.pp $(WINDIRS_DEPS)
 	$(COMPILER) -Fi$(WININC) -Fi$(WINDIR) $(WINDIRS_OPT) $<
+ifndef WINMESSAGESDIR
+  WINMESSAGESDIR = $(WINDIR)
+endif
+ifndef WINMESSAGESINCDIR
+  WINMESSAGESINCDIR = $(WINDIR)/wininc
+endif
+MESSAGES_DEPS = $(WINMESSAGESDIR)/messages.pp $(WINMESSAGESINCDIR)/messages.inc $(WINDOWSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+		$(MESSAGES_DEPS_OS) $(MESSAGES_DEPS_CPU)
+messages$(PPUEXT): $(MESSAGES_DEPS)
+	$(COMPILER) -Fi$(WINMESSAGESINCDIR) $<
+WinApi.Messages$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Messages.pp $(MESSAGES_DEPS)
+	$(COMPILER) -Fi$(WINMESSAGESINCDIR) -Fi$(WINMMESSAGESDIR) $<
 SYSCTL_DEPS=$(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
 	    $(SYSCTL_DEPS_OS) $(SYSCTL_DEPS_CPU)
 sysctl$(PPUEXT) : $(SYSCTL_DEPS)
@@ -3186,13 +3201,13 @@ CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(CONSOLEIO_DEPS_OS) $(CONSOLEIO_DEPS_CPU)
 consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
 	$(COMPILER) $(CONSOLEIO_OPT) $<
-EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
+EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
 	$(COMPILER) $(CONSOLEIO_OPT) -Fi. $<
 HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(HEAPMGR_DEPS_OS) $(HEAPMGR_DEPS_CPU)
 heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
 	$(COMPILER) $(HEAPMGR_OPT) $<
-EmbeddedApi.HeapMGR$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
+EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
 	$(COMPILER) $(HEAPMGR_OPT) -Fi. $<
 define CPU_UNITS_RULE
 ifeq ($(ARCH),avr)
@@ -3203,46 +3218,52 @@ endif
 endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
-	$(COMPILER) -g $<
+       $(COMPILER) -g $<
 intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
+MULTIBOOT_DEPS = $(ARCH)/multiboot.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+	$(MULTIBOOT_DEPS_OS) $(MULTIBOOT_DEPS_CPU)
+multiboot$(PPUEXT) : $(MULTIBOOT_DEPS)
+	$(COMPILER) $(MULTIBOOT_OPT) $<
+EmbeddedApi.multiboot$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.multiboot.pp $(MULTIBOOT_DEPS)
+	$(COMPILER) $(MULTIBOOT_OPT) -Fi. -Fi$(ARCH) $<
 RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(RASPI2_DEPS_OS) $(RASPI2_DEPS_CPU)
 raspi2$(PPUEXT) : $(RASPI2_DEPS)
 	$(COMPILER) $(RASPI2_OPT) $<
-EmbeddedApi.Raspi2$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
+EmbeddedApi.Raspi2$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_DEPS)
 	$(COMPILER) $(RASPI2_OPT) -Fi. -Fi$(ARCH) $<
-GPIO_DEPS = $(ARCH)/xxx.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+GPIO_DEPS = $(ARCH)/gpio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(GPIO_DEPS_OS) $(GPIO_DEPS_CPU)
-xxx$(PPUEXT) : $(GPIO_DEPS)
+gpio$(PPUEXT) : $(GPIO_DEPS)
 	$(COMPILER) $(GPIO_OPT) $<
-EmbeddedApi.gpio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
+EmbeddedApi.gpio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
 	$(COMPILER) $(GPIO_OPT) -Fi. -Fi$(ARCH) $<
 MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(MMIO_DEPS_OS) $(MMIO_DEPS_CPU)
 mmio$(PPUEXT) : $(MMIO_DEPS)
 	$(COMPILER) $(MMIO_OPT) $<
-EmbeddedApi.Mmio$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.Mmio.pp $(MMIO_DEPS)
+EmbeddedApi.mmio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mmio.pp $(MMIO_DEPS)
 	$(COMPILER) $(MMIO_OPT) -Fi. -Fi$(ARCH) $<
 MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
 	$(MAILBOX_DEPS_OS) $(MAILBOX_DEPS_CPU)
 mailbox$(PPUEXT) : $(MAILBOX_DEPS)
 	$(COMPILER) $(MAILBOX_OPT) $<
-EmbeddedApi.mailbox$(PPUEXT) : $(NSDIR)/embedded/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
+EmbeddedApi.mailbox$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mailbox.pp $(MAILBOX_DEPS)
 	$(COMPILER) $(MAILBOX_OPT) -Fi. -Fi$(ARCH) $<
 RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
 	$(RASPIUART_DEPS_OS) $(RASPIUART_DEPS_CPU)
 raspiuart$(PPUEXT) : $(RASPIUART_DEPS)
 	$(COMPILER) $(RASPIUART_OPT) $<
-EmbeddedApi.raspiuart$(PPUEXT) : $(NSDIR)/embedded/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
+EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
 	$(COMPILER) $(RASPIUART_OPT) -Fi. -Fi$(ARCH) $<
 RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
 	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
 	$(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)
 raspi3$(PPUEXT) : $(RASPI3_DEPS)
 	$(COMPILER) $(RASPI3_OPT) $<
-EmbeddedApi.raspi3$(PPUEXT) : $(NSDIR)/embedded/i$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
+EmbeddedApi.raspi3$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspi3.pp $(RASPI3_DEPS)
 	$(COMPILER) $(RASPI3_OPT) -Fi. -Fi$(ARCH) $<
