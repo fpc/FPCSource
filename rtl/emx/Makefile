@@ -889,7 +889,6 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 SYSTEMUNITEXT=pas
 DOSUNITEXT=pas
 PORTSUNITEXT=pas

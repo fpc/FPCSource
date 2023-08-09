@@ -1050,7 +1050,6 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 ifeq ($(CPU_OS_TARGET),arm-freertos)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas heapmgr consoleio  $(CPU_SPECIFIC_COMMON_UNITS) $(STRINGSUNIT) $(SORTBASEUNIT) $(DOSUNIT) $(CTYPESUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(SYSCONSTUNIT) $(CHARACTERUNIT)
 endif

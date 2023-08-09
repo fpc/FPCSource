@@ -895,7 +895,6 @@ override FPCOPT+=-Ur
 endif
 override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 SYSTEMUNIT=system
 BASEUNIXDIR=.
 ifeq ($(CPU_OS_TARGET),i386-haiku)

@@ -887,10 +887,6 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
 endif

@@ -898,10 +898,6 @@ ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
 ifeq ($(CPU_OS_TARGET),i386-openbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar objpas macpas iso7185 extpas strings syscall baseunix $(LINUXUNIT) unixtype unixutil unix ctypes bsd $(CPU_UNITS) dos rtlconsts sysutils sortbase fgl classes typinfo math charset cpall character getopts heaptrc lineinfo lnfodwrf errors types sysctl sysconst fpintres dynlibs cwstring cmem dl termio cthreads unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif

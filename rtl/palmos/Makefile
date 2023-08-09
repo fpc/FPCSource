@@ -882,7 +882,6 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 ifeq ($(CPU_OS_TARGET),m68k-palmos)
 override TARGET_UNITS+=$(SYSTEMUNIT) si_prc uuchar objpas iso7185 strings ctypes charset cpall sysconst systraps pilot
 endif
