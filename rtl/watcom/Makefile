@@ -886,7 +886,6 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
 endif

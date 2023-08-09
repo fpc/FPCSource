@@ -886,7 +886,6 @@ SYSINIT_UNITS=
 ifeq ($(ARCH),arm)
 CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
 endif
-GRAPHDIR=$(INC)/graph
 FPC_SYSTEM_OPT=@rtl.cfg
 ifeq ($(CPU_OS_TARGET),jvm-java)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas jdk15

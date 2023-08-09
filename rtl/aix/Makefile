@@ -892,10 +892,6 @@ override FPCOPT+=-Ur
 endif
 override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas macpas heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring fpintres $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
