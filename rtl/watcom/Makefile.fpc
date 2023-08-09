@@ -68,7 +68,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 # Insert exception handler in system unit
 ifdef EXCEPTIONS_IN_SYSTEM
