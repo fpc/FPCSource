@@ -1,0 +1,4 @@
+list_all:
+	$(foreach v,                                        \
+      $(.VARIABLES), \
+      $(info $(v) = $($(v))))
