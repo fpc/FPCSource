@@ -80,28 +80,32 @@ endif
 
 ifeq ($(ARCH),arm)
 ifeq ($(SUBARCH),armv7m)
-CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 sam3x8e xmc4500 cortexm3 cortexm4 # thumb2_bare
+CPU_UNITS=$(LM3FURYUNIT) $(LM3TEMPESTUNIT) $(STM32F10X_LDUNIT) $(STM32F10X_MDUNIT) $(STM32F10X_HDUNIT) \
+	$(STM32F10X_XLUNIT) $(STM32F10X_CONNUNIT) $(STM32F10X_CLUNIT) $(LPC13XXUNIT) $(LPC1768UNIT) \
+	$(SAM3X8EUNIT) $(XMC4500UNIT) $(CORTEXM3UNIT) $(CORTEXM4UNIT) # thumb2_bare
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7em)
-CPU_UNITS=lm4f120 xmc4500 mk20d5 mk20d7 mk22f51212 mk64f12 stm32f401xx stm32f407xx stm32f411xe stm32f429xx stm32f446xx stm32f745 stm32f746 stm32f756 nrf52 cortexm3 cortexm4 cortexm7 \
-samd51p19a # thumb2_bare
+CPU_UNITS=$(LM4F120UNIT) $(XMC4500UNIT) $(MK20D5UNIT) $(MK20D7UNIT) $(MK22F51212UNIT) $(MK64F12UNIT) \
+	  $(STM32F401XXUNIT) $(STM32F407XXUNIT) $(STM32F411XEUNIT) $(STM32F429XXUNIT) $(STM32F446XXUNIT) \
+	  $(STM32F745UNIT) $(STM32F746UNIT) $(STM32F756UNIT) $(NRF52UNIT) $(CORTEXM3UNIT) $(CORTEXM4UNIT) $(CORTEXM7UNIT) \
+	  $(SAMD51P19AUNIT) # thumb2_bare
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4t)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS=$(LPC21X4UNIT) $(AT91SAM7X256UNIT) $(SC32442BUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4)
-CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS=$(LPC21X4UNIT) $(AT91SAM7X256UNIT) $(SC32442BUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv6m)
-CPU_UNITS=lpc8xx lpc11xx lpc122x stm32f0xx nrf51 cortexm0
+CPU_UNITS=$(LPC8XXUNIT) $(LPC11XXUNIT) $(LPC122XUNIT) $(STM32F0XXUNIT) $(NRF51UNIT) $(CORTEXM0UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7a)
-CPU_UNITS=allwinner_a20 raspi2
+CPU_UNITS=$(ALLWINNER_A20UNIT) $(RASPI2UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -215,7 +219,7 @@ endif
 ifeq ($(ARCH),riscv32)
 ifeq ($(SUBARCH),rv32imac)
 override FPCOPT+=-Cprv32imac
-CPU_UNITS=fe310g000 fe310g002 gd32vf103xx
+CPU_UNITS=$(FE310G000UNIT) $(FE310G002UNIT) $(GD32VF103XXUNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),rv32i)
@@ -238,7 +242,7 @@ endif
 
 ifeq ($(ARCH),xtensa)
 ifeq ($(SUBARCH),lx106)
-CPU_UNITS=esp8266
+CPU_UNITS=$(ESP8266UNIT)
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -314,11 +318,17 @@ $(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
 endif
 else
 $(eval UNIT_REG_NAME=$(subst EmbeddedApi.,,$(1)))
+$(eval UNIT_REG_NAME=$(subst ARMApi.,,$(UNIT_REG_NAME)))
 ifeq ($(ARCH),avr)
 # No dotted rules for AVR cpu yet
 $(1)$(PPUEXT):  $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 else
+# mipsel is also not yet in namespaced
+ifeq ($(ARCH),mipsel)
+$(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
+else
 $(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 endif
 endif
 endef
