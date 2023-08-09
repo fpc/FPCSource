@@ -54,7 +54,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
 
 [rules]

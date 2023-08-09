@@ -69,7 +69,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 SYSTEMUNITEXT=pas
 DOSUNITEXT=pas

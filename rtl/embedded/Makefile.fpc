@@ -253,7 +253,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 [rules]
 # .NOTPARALLEL:

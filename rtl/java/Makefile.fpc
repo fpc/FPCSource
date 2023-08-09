@@ -43,7 +43,6 @@ CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
 endif
 
 # Paths
-GRAPHDIR=$(INC)/graph
 
 FPC_SYSTEM_OPT=@rtl.cfg
 

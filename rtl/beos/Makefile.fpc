@@ -74,7 +74,6 @@ override FPCOPT+= -dHASUNIX -n -dFPC_USE_LIBC -Si
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 [rules]
 .NOTPARALLEL:

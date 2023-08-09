@@ -94,17 +94,6 @@ override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-
-# Use new graph unit ?
-# NEWGRAPH=YES
-# Use LibGGI ?
-# Use
-#
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
-
 
 [rules]
 # Get the system independent include file names.
