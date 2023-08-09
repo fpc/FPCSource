@@ -886,9 +886,6 @@ endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
-ifeq ($(ARCH),i8086)
-override FPCOPT+=@rtl.cfg
-endif
 CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) \
@@ -1006,6 +1003,10 @@ CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
+endif
+ifeq ($(ARCH),i8086)
+override FPCOPT+=@rtl.cfg
+CPU_SPECIFIC_COMMON_UNITS=
 endif
 ifeq ($(ARCH),x86_64)
 endif
