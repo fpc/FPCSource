@@ -306,18 +306,32 @@ EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
 #
 
 define CPU_UNITS_RULE
+ifndef FPC_DOTTEDUNITS
 ifeq ($(ARCH),avr)
 $(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 else
 $(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
 endif
+else
+$(eval UNIT_REG_NAME=$(subst EmbeddedApi.,,$(1)))
+ifeq ($(ARCH),avr)
+# No dotted rules for AVR cpu yet
+$(1)$(PPUEXT):  $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+else
+$(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT)
+endif
+endif
 endef
-
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 
+ifndef FPC_DOTTEDUNITS
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g $<
-
+else
+$(addsuffix $(PPUEXT),$(CPU_UNITS)):
+	$(COMPILER) -g -Fi$(OSDIR) -Fi$(OSDIR)/$(ARCH) $<
+endif
+	
 
 # AVR specific units
 
@@ -406,7 +420,8 @@ EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(R
 #	$(COMPILER) $(ARCH)/raspi3.pp
 
 RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
-	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
+	$(CONSOLEIOUNIT)$(PPUEXT) $(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) \
+	$(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
         $(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)
 
 raspi3$(PPUEXT) : $(RASPI3_DEPS)

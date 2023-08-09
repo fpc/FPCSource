@@ -3211,15 +3211,29 @@ heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
 EmbeddedApi.HeapMGR$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.HeapMGR.pp $(HEAPMGR_DEPS)
 	$(COMPILER) $(HEAPMGR_OPT) -Fi. $<
 define CPU_UNITS_RULE
+ifndef FPC_DOTTEDUNITS
 ifeq ($(ARCH),avr)
 $(1)$(PPUEXT): $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 else
 $(1)$(PPUEXT): $(ARCH)/$(1).pp $(SYSTEMUNIT)$(PPUEXT)
 endif
+else
+$(eval UNIT_REG_NAME=$(subst EmbeddedApi.,,$(1)))
+ifeq ($(ARCH),avr)
+$(1)$(PPUEXT):  $(ARCH)/$(1).pp intrinsics$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+else
+$(1)$(PPUEXT): $(NSOSDIR)/$(ARCH)/$(1).pp $(ARCH)/$(UNIT_REG_NAME).pp $(SYSTEMUNIT)$(PPUEXT)
+endif
+endif
 endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
+ifndef FPC_DOTTEDUNITS
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) -g $<
+else
+$(addsuffix $(PPUEXT),$(CPU_UNITS)):
+	$(COMPILER) -g -Fi$(OSDIR) -Fi$(OSDIR)/$(ARCH) $<
+endif
 intrinsics$(PPUEXT): $(PROCINC)/intrinsics.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -3262,7 +3276,8 @@ raspiuart$(PPUEXT) : $(RASPIUART_DEPS)
 EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(RASPIUART_DEPS)
 	$(COMPILER) $(RASPIUART_OPT) -Fi. -Fi$(ARCH) $<
 RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
-	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
+	$(CONSOLEIOUNIT)$(PPUEXT) $(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) \
+	$(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
 	$(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)
 raspi3$(PPUEXT) : $(RASPI3_DEPS)
 	$(COMPILER) $(RASPI3_OPT) $<
