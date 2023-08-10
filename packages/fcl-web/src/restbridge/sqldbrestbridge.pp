@@ -1008,9 +1008,6 @@ begin
 end;
 
 function TSQLDBRestDispatcher.CreateMetadataParameterResource: TSQLDBRestResource;
-Var
-  O : TRestFieldOption;
-  S : String;
 
 begin
   Result:=TSQLDBRestResource.Create(Nil);
@@ -1575,10 +1572,7 @@ procedure TSQLDBRestDispatcher.ResourceParamsToDataset(R: TSQLDBRestResource;
   D: TDataset);
 Var
   P : TSQLDBRestParam;
-  O : TRestFieldOption;
-  I : Integer;
   FName,FType,fDefault : TField;
-  FOptions : Array[TRestFieldOption] of TField;
 
 begin
   FName:=D.FieldByName('name');
@@ -1631,10 +1625,9 @@ end;
 
 function TSQLDBRestDispatcher.CreateMetadataParameterDataset(IO: TRestIO;
   const aResourceName: String; AOwner: TComponent): TDataset;
+  
 Var
-  BD :  TRestBufDataset;
-  O : TRestFieldOption;
-  SO : String;
+  BD :  TRestBufDataset;  
   R : TSQLDBRestResource;
 
 begin
