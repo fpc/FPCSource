@@ -198,6 +198,12 @@ override FPCOPT+=@rtl.cfg
 CPU_SPECIFIC_COMMON_UNITS=
 endif
 
+ifeq ($(ARCH),z80)
+# Always include rtl.cfg config file for z80
+override FPCOPT+=@rtl.cfg
+CPU_SPECIFIC_COMMON_UNITS=
+endif
+
 ifeq ($(ARCH),x86_64)
 # CPU_UNITS=$(MULTIBOOTUNIT)
 endif

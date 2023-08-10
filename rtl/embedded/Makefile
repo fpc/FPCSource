@@ -1013,6 +1013,10 @@ ifeq ($(ARCH),i8086)
 override FPCOPT+=@rtl.cfg
 CPU_SPECIFIC_COMMON_UNITS=
 endif
+ifeq ($(ARCH),z80)
+override FPCOPT+=@rtl.cfg
+CPU_SPECIFIC_COMMON_UNITS=
+endif
 ifeq ($(ARCH),x86_64)
 endif
 ifeq ($(ARCH),m68k)
