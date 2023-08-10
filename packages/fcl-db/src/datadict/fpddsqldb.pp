@@ -260,7 +260,7 @@ end;
 
 class function TSQLDBDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
-  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes];
+  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes, ecRowsAffected];
 end;
 
 end.
