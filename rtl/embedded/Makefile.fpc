@@ -251,7 +251,7 @@ endif
 endif
 
 ifeq ($(ARCH),wasm32)
-CPU_SPECIFIC_COMMON_UNITS=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
+CPU_SPECIFIC_COMMON_UNITS:=$(filter-out $(LINEINFOUNIT), $(CPU_SPECIFIC_COMMON_UNITS))
 # lineinfo
 endif
 
