@@ -891,7 +891,7 @@ SYSINIT_UNITS=
 LOADERS=prt0 dllprt0 cprt0 gprt0
 ifeq ($(ARCH),i386)
 override LOADERS=
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT) $(MMXUNIT)
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 ifeq ($(ARCH),x86_64)
