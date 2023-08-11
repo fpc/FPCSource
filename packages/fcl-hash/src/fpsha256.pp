@@ -344,22 +344,17 @@ end;
 
 class procedure TSHA256.Stream(aStream: TStream; out aDigest: TSHA256Digest);
 
-const
-  BUFFER_SIZE = 64*1024;
-
 var
   aLen : LongInt;
-  Buffer: TBytes;
+  Buffer: array[0 .. 64*1024 - 1] of Byte;
   SHA256: TSHA256;
 
 begin
-  Buffer:=Nil;
   SHA256.Init;
-  SetLength(Buffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(Buffer, BUFFER_SIZE);
-     if aLen <> 0 then
-       SHA256.Update(PByte(Buffer),aLen);
+     aLen:=aStream.Read(Buffer, Length(Buffer));
+     if aLen>0 then
+       SHA256.Update(PByte(Buffer),aLen); 
   until aLen=0;
   SHA256.Final;
   aDigest:=SHA256.Digest;
