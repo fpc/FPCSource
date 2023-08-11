@@ -517,22 +517,17 @@ end;
 
 class procedure TSHA512.Stream(aStream: TStream; out aDigest: TSHA512Digest);
 
-const
-  BUFFER_SIZE = 64*1024;
-
 var
   aLen : LongInt;
-  lBuffer: TBytes;
+  lBuffer: array[0 .. 64*1024 - 1] of Byte;
   SHA512: TSHA512;
 
 begin
-  lBuffer:=Nil;
   SHA512.Init;
-  SetLength(lBuffer,BUFFER_SIZE);
   repeat
-     aLen:=aStream.Read(lBuffer, BUFFER_SIZE);
-     if aLen <> 0 then
-       SHA512.Update(PByte(lBuffer),aLen);
+     aLen:=aStream.Read(lBuffer, Length(lBuffer));
+     if aLen>0 then
+       SHA512.Update(PByte(lBuffer),aLen); 
   until aLen=0;
   SHA512.Final;
   aDigest:=SHA512.Digest;
