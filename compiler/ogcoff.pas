@@ -699,7 +699,7 @@ implementation
             v.entry:=SwapEndian(v.entry);
             v.text_start:=SwapEndian(v.text_start);
 {$ifndef cpu64bitaddr}
-            v.data_start:SwapEndian(v.data_start);
+            v.data_start:=SwapEndian(v.data_start);
 {$endif cpu64bitaddr}
             v.ImageBase:=SwapEndian(v.ImageBase);
             v.SectionAlignment:=SwapEndian(v.SectionAlignment);
