@@ -566,8 +566,8 @@ implementation
 
        { This is defined in rtl/win/sysos.inc source }
        tlsdirectory=packed record
-         data_start, data_end : PUInt;
-         index_pointer, callbacks_pointer : PUInt;
+         data_start, data_end : globtype.PUInt;
+         index_pointer, callbacks_pointer : globtype.PUInt;
          zero_fill_size : dword;
          flags : dword;
        end;
