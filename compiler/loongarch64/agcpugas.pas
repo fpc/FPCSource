@@ -54,10 +54,9 @@ unit agcpugas;
 
     uses
        cutils,globals,verbose,
-       cgbase,
+       cgbase,rgbase,
        itcpugas,cpuinfo,
        aasmcpu;
-
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
@@ -143,13 +142,16 @@ unit agcpugas;
     end;
 
 
-    function getopstr(asminfo: pasminfo; const o:toper) : string;
+    function getopstr(asminfo: pasminfo; const o:toper;use_std_regname : boolean) : string;
     var
       hs : string;
     begin
       case o.typ of
         top_reg:
-          getopstr:=gas_regname(o.reg);
+          if use_std_regname then
+            getopstr:=std_regname(o.reg)
+          else
+            getopstr:=gas_regname(o.reg);
         top_const:
           getopstr:=tostr(o.val);
         top_ref:
@@ -159,11 +161,11 @@ unit agcpugas;
       end;
     end;
 
-
     Procedure TLoongArch64InstrWriter.WriteInstruction(hp : tai);
     var op: TAsmOp;
         s: string;
-        i: byte;
+	i : byte;
+	use_std_regname_index : byte;
         sep: string[3];
     begin
       s:=#9+gas_op2str[taicpu(hp).opcode];
@@ -171,12 +173,19 @@ unit agcpugas;
         s:=s+cond2str[taicpu(hp).condition];
 
       curop:=taicpu(hp).opcode;
+      if curop=A_MOVFCSR2GR then
+        use_std_regname_index:=1
+      else if curop=A_MOVGR2FCSR then
+        use_std_regname_index:=0
+      else
+        use_std_regname_index:=255;
+
       if taicpu(hp).ops<>0 then
         begin
           sep:=#9;
           for i:=0 to taicpu(hp).ops-1 do
             begin
-               s:=s+sep+getopstr(owner.asminfo,taicpu(hp).oper[i]^);
+               s:=s+sep+getopstr(owner.asminfo,taicpu(hp).oper[i]^,use_std_regname_index=i);
                sep:=',';
             end;
         end;
