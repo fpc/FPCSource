@@ -439,9 +439,9 @@ begin
   target_opt:=' -b elf64-sparc';
   emulation_opt:=' -m elf64_sparc';
 {$endif}
-{$ifdef arm}       target_opt='';{$endif} {unknown :( }
-{$ifdef aarch64}   target_opt='';{$endif} {unknown :( }
-{$ifdef m68k}      target_opt='';{$endif} {unknown :( }
+{$ifdef arm}       target_opt:='';{$endif} {unknown :( }
+{$ifdef aarch64}   target_opt:='';{$endif} {unknown :( }
+{$ifdef m68k}      target_opt:='';{$endif} {unknown :( }
 {$ifdef mips}
   {$ifdef mipsel}
   platformopt:=' -EL';
@@ -450,13 +450,13 @@ begin
   {$endif}
 {$endif}
 {$ifdef riscv32}
-  target_opt=' -m elf32lriscv';
+  target_opt:=' -m elf32lriscv';
 {$endif}
 {$ifdef riscv64}
-  target_opt=' -m elf64lriscv';
+  target_opt:=' -m elf64lriscv';
 {$endif}
 {$ifdef loongarch64}
-  target_opt='';
+  target_opt:='';
 {$endif}
 
 {$ifdef powerpc64}
@@ -465,7 +465,7 @@ begin
     begin
       target_opt:=' -b elf64-powerpcle';
       emulation_opt:=' -m elf64lppc';
-    end;
+    end
   else
     begin
       target_opt:=' -b elf64-powerpc';
@@ -481,7 +481,7 @@ begin
   else
     begin
       target_opt:=' -b elf32-xtensa-be';
-      emluation_opt:=' -m elf32xtensa';
+      emulation_opt:=' -m elf32xtensa';
     end;
   if target_info.abi=abi_xtensa_call0 then
     platformopt:=platformopt+' --abi-call0'
