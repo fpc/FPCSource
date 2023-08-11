@@ -358,9 +358,8 @@ begin
   SetLength(Buffer,BUFFER_SIZE);
   repeat
      aLen:=aStream.Read(Buffer, BUFFER_SIZE);
-     if aLen = 0 then
-       Break;
-     SHA256.Update(PByte(Buffer),aLen);
+     if aLen <> 0 then
+       SHA256.Update(PByte(Buffer),aLen);
   until aLen=0;
   SHA256.Final;
   aDigest:=SHA256.Digest;

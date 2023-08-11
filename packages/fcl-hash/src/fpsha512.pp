@@ -531,9 +531,8 @@ begin
   SetLength(lBuffer,BUFFER_SIZE);
   repeat
      aLen:=aStream.Read(lBuffer, BUFFER_SIZE);
-     if aLen = 0 then
-       Break;
-     SHA512.Update(PByte(lBuffer),aLen);
+     if aLen <> 0 then
+       SHA512.Update(PByte(lBuffer),aLen);
   until aLen=0;
   SHA512.Final;
   aDigest:=SHA512.Digest;
