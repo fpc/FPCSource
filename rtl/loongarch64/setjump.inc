@@ -18,7 +18,7 @@ function fpc_setjmp(var S : jmp_buf) : longint;[Public, alias : 'FPC_SETJMP'];co
   asm
     st.d $ra, $a0, 0
     st.d $sp, $a0, 8
-    st.d $x, $a0, 16
+    st.d $r21, $a0, 16
     st.d $fp, $a0, 24
     st.d $s0, $a0, 32
     st.d $s1, $a0, 40
@@ -47,7 +47,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);[Public, alias : 'FPC_LON
   asm
     ld.d $ra, $a0, 0
     ld.d $sp, $a0, 8
-    ld.d $x, $a0, 16
+    ld.d $r21, $a0, 16
     ld.d $fp, $a0, 24
     ld.d $s0, $a0, 32
     ld.d $s1, $a0, 40
