@@ -2536,6 +2536,6 @@ procedure ObjectTextToResource(Input, Output: TStream);
 
 function LineStart(Buffer, BufPos: PAnsiChar): PAnsiChar;
 procedure BinToHex(BinValue, HexValue: PAnsiChar; BinBufSize: Integer); deprecated 'use procedures from unit StrUtils';
-function HexToBin(HexValue, BinValue: PAnsiChar; BinBufSize: Integer): Integer;
+function HexToBin(HexValue, BinValue: PAnsiChar; BinBufSize: Integer): Integer; deprecated 'use procedures from unit StrUtils';
 function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PAnsiChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 Function IfThen(AValue: Boolean; const ATrue: TStringList; const AFalse: TStringList = nil): TStringList; overload;
