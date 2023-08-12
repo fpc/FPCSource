@@ -338,6 +338,7 @@ topsize2memsize: array[topsize] of integer =
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function reg2opsize(r:Tregister):topsize;
+    function subreg2opsize(sr : tsubregister):topsize;
     function reg_cgsize(const reg: tregister): tcgsize;
     function is_calljmp(o:tasmop):boolean;
     function is_calljmpuncondret(o:tasmop):boolean;
@@ -521,15 +522,21 @@ implementation
         end;
 
 
-    function reg2opsize(r:Tregister):topsize;
+    function subreg2opsize(sr : tsubregister):topsize;
       const
-        subreg2opsize : array[tsubregister] of topsize =
+        _subreg2opsize : array[tsubregister] of topsize =
           (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+      begin
+        result:=_subreg2opsize[sr];
+      end;
+
+
+    function reg2opsize(r:Tregister):topsize;
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
           R_INTREGISTER :
-            reg2opsize:=subreg2opsize[getsubreg(r)];
+            reg2opsize:=subreg2opsize(getsubreg(r));
           R_FPUREGISTER :
             reg2opsize:=S_FL;
           R_MMXREGISTER,
