@@ -5,6 +5,16 @@
   private
     const
       DefaultCapacity = 64;
+    type
+      TCharEnumerator = record
+      private
+        FCurrentPosition: PSBChar;
+        FEndPosition: PSBChar;
+        Function GetCurrent: SBChar; inline;
+      public
+        Function MoveNext: Boolean; inline;
+        property Current: SBChar read GetCurrent;
+      end;
   private
     Function  GetCapacity: Integer;
     Procedure SetCapacity(AValue: Integer);
@@ -70,6 +80,8 @@
     Procedure CopyTo(SourceIndex: Integer; Var Destination: TSBCharArray; DestinationIndex: Integer; Count: Integer);
     Function EnsureCapacity(aCapacity: Integer): Integer;
     Function Equals(StringBuilder: TGenericStringBuilder): Boolean; reintroduce;
+
+    Function GetEnumerator: TCharEnumerator; inline;
 
     Function Insert(Index: Integer; const AValue: Boolean): TGenericStringBuilder;
     Function Insert(Index: Integer; const AValue: Byte): TGenericStringBuilder;
