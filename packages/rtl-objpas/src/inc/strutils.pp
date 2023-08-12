@@ -247,7 +247,14 @@ procedure BinToHex(BinValue: PAnsiChar; HexValue: PAnsiChar; BinBufSize: Integer
 procedure BinToHex(BinValue: PAnsiChar; HexValue: PWideChar; BinBufSize: Integer); overload;
 procedure BinToHex(const BinValue; HexValue: PAnsiChar; BinBufSize: Integer); overload;
 procedure BinToHex(BinValue: Pointer; HexValue: PAnsiChar; BinBufSize: Integer); overload;
-function HexToBin(HexValue, BinValue: PAnsiChar; BinBufSize: Integer): Integer;
+function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PWideChar; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer; overload;
+function HexToBin(const HexText: TBytes; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer; overload;
+function HexToBin(HexText: PWideChar; BinBuffer: Pointer; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer; overload;
+function HexToBin(HexText: PWideChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer; overload;
+function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer; overload;
+function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer; overload;
 
 const
   DigitChars = ['0'..'9'];
@@ -3362,38 +3369,156 @@ begin
 end;
 
 
-function HexToBin(HexValue, BinValue: PAnsiChar; BinBufSize: Integer): Integer;
-// more complex, have to accept more than bintohex
-// A..F    1000001
-// a..f    1100001
-// 0..9     110000
-
-var i,j,h,l : integer;
-
+function HexToBin(const HexText: PWideChar; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer;
+var
+  i : Integer;
+  PText : PWideChar;
+  PBinBuf : PAnsiChar;
 begin
-  i:=binbufsize;
+  PText:=HexText+HexTextOffset;
+  PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
+  i:=Count;
+  Result:=HexToBin(PText, PBinBuf, i);
+end;
+
+function HexToBin(const HexText: TBytes; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer;
+var
+  i : Integer;
+  PText : PAnsiChar;
+  PBinBuf : PAnsiChar;
+begin
+  PText:=PAnsiChar(HexText)+HexTextOffset;
+  PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
+  i:=Count;
+  Result:=HexToBin(PText, PBinBuf, i);
+end;
+
+function HexToBin(HexText: PWideChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(const HexText: PWideChar; var BinBuffer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(HexText: PAnsiChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
+
+const
+  LookUpTable1 : array ['0' .. '9'] of UInt8 = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+  LookUpTable2 : array ['a' .. 'f'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  LookUpTable3 : array ['A' .. 'F'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  
+var
+  i : integer;
+  num1,num2 : UInt8;
+  res : UInt8;
+  
+begin
+  i:=BinBufSize;
   while (i>0) do
     begin
-    if hexvalue^ IN ['A'..'F','a'..'f'] then
-      h:=((ord(hexvalue^)+9) and 15)
-    else if hexvalue^ IN ['0'..'9'] then
-      h:=((ord(hexvalue^)) and 15)
-    else
-      break;
-    inc(hexvalue);
-    if hexvalue^ IN ['A'..'F','a'..'f'] then
-      l:=(ord(hexvalue^)+9) and 15
-    else if hexvalue^ IN ['0'..'9'] then
-      l:=(ord(hexvalue^)) and 15
-    else
-      break;
-    j := l + (h shl 4);
-    inc(hexvalue);
-    binvalue^:=chr(j);
-    inc(binvalue);
+    // get value of first character (1-byte)
+    case HexText^ of
+      '0'..'9':
+        num1:=LookUpTable1[HexText^];
+      'a'..'f':
+        num1:=LookUpTable2[HexText^];
+      'A'..'F':
+        num1:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    inc(HexText);
+
+    // get value of second character (1-byte)
+    case HexText^ of
+      '0'..'9':
+        num2:=LookUpTable1[HexText^];
+      'a'..'f':
+        num2:=LookUpTable2[HexText^];
+      'A'..'F':
+        num2:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    // map two byte values into one byte
+    res:=num2+(num1 shl 4);
+    BinBuffer^:=AnsiChar(res);
+    inc(BinBuffer);
+
+    inc(HexText);
     dec(i);
     end;
-  result:=binbufsize-i;
+  Result:=BinBufSize-i;
+end;
+
+function HexToBin(HexText: PWideChar; BinBuffer: PAnsiChar; BinBufSize: Integer): Integer;
+const
+  LookUpTable1 : array ['0' .. '9'] of UInt8 = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+  LookUpTable2 : array ['a' .. 'f'] of UInt8 = (10, 11, 12, 13, 14, 15);
+  LookUpTable3 : array ['A' .. 'F'] of UInt8 = (10, 11, 12, 13, 14, 15);
+var
+  i : integer;
+  num1,num2 : UInt8;
+  res : UInt8;
+begin
+  i:=BinBufSize;
+  while (i>0) do
+  begin
+    // 2-byte chars could use lower bits for another character
+    if (HexText^ > #255) then break;
+    // get value of first character (2-byte)
+    case HexText^ of
+      '0'..'9':
+        num1:=LookUpTable1[HexText^];
+      'a'..'f':
+        num1:=LookUpTable2[HexText^];
+      'A'..'F':
+        num1:=LookUpTable3[HexText^];
+      else
+        break;
+     end;
+
+    inc(HexText);
+
+    // 2-byte chars could use lower bits for another character
+    if (HexText^ > #255) then break;
+    // get value of second character (2-byte)
+    case HexText^ of
+      '0'..'9':
+        num2:=LookUpTable1[HexText^];
+      'a'..'f':
+        num2:=LookUpTable2[HexText^];
+      'A'..'F':
+        num2:=LookUpTable3[HexText^];
+      else
+        break;
+    end;
+
+    // map four byte values into one byte
+    res:=num2+(num1 shl 4);
+    BinBuffer^:=AnsiChar(res);
+    inc(BinBuffer);
+
+    inc(HexText);
+    dec(i);
+  end;
+
+  Result:=BinBufSize-i;
+end;
+
+function HexToBin(HexText: PAnsiChar; var BinBuffer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
+end;
+
+function HexToBin(const HexText: PAnsiChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
+begin
+  Result:=HexToBin(HexText, PAnsiChar(BinBuffer), BinBufSize);
 end;
 
 function PosSetEx(const c: TSysCharSet; const s: ansistring; count: Integer): SizeInt;
