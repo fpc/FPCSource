@@ -11696,9 +11696,6 @@ unit aoptx86;
 
 
     function TX86AsmOptimizer.OptPass2Jcc(var p : tai) : boolean;
-      const
-        subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
       var
         hp1,hp2: tai;
         carryadd_opcode : TAsmOp;
@@ -12352,7 +12349,7 @@ unit aoptx86;
                                           below) }
                                         if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                           begin
-                                            hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize[R_SUBWHOLE], taicpu(hp1).oper[0]^.val, ConstRegs[X]);
+                                            hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize(R_SUBWHOLE), taicpu(hp1).oper[0]^.val, ConstRegs[X]);
                                             taicpu(hp_new).fileinfo := taicpu(hp_prev).fileinfo;
 
                                             asml.InsertBefore(hp_new, hp_flagalloc);
@@ -12389,7 +12386,7 @@ unit aoptx86;
                               for c := 0 to x - 1 do
                                 if Assigned(ConstMovs[c]) then
                                   begin
-                                    taicpu(ConstMovs[c]).opsize := subreg2opsize[ConstWriteSizes[Word(ConstRegs[c])]];
+                                    taicpu(ConstMovs[c]).opsize := subreg2opsize(ConstWriteSizes[Word(ConstRegs[c])]);
                                     setsubreg(taicpu(ConstMovs[c]).oper[1]^.reg, ConstWriteSizes[Word(ConstRegs[c])]);
                                   end;
 
@@ -12631,7 +12628,7 @@ unit aoptx86;
                                                 below) }
                                               if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                                 begin
-                                                  hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize[R_SUBWHOLE], taicpu(hp1).oper[0]^.val, ConstRegs[X]);
+                                                  hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize(R_SUBWHOLE), taicpu(hp1).oper[0]^.val, ConstRegs[X]);
                                                   asml.InsertBefore(hp_new, hp_flagalloc);
                                                   if Assigned(hp_prev2) then
                                                     TrySwapMovOp(hp_prev2, hp_new);
@@ -12720,7 +12717,7 @@ unit aoptx86;
                                                 below) }
                                               if not TmpUsedRegs[R_INTREGISTER].IsUsed(ConstRegs[x]) then
                                                 begin
-                                                  hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize[R_SUBWHOLE], taicpu(hp1).oper[0]^.val, ConstRegs[X]);
+                                                  hp_new := taicpu.op_const_reg(A_MOV, subreg2opsize(R_SUBWHOLE), taicpu(hp1).oper[0]^.val, ConstRegs[X]);
                                                   asml.InsertBefore(hp_new, hp_flagalloc);
                                                   if Assigned(hp_prev2) then
                                                     TrySwapMovOp(hp_prev2, hp_new);
@@ -12758,7 +12755,7 @@ unit aoptx86;
                               for x := 0 to c - 1 do
                                 if Assigned(ConstMovs[x]) then
                                   begin
-                                    taicpu(ConstMovs[x]).opsize := subreg2opsize[ConstWriteSizes[Word(ConstRegs[x])]];
+                                    taicpu(ConstMovs[x]).opsize := subreg2opsize(ConstWriteSizes[Word(ConstRegs[x])]);
                                     setsubreg(taicpu(ConstMovs[x]).oper[1]^.reg, ConstWriteSizes[Word(ConstRegs[x])]);
                                   end;
 
