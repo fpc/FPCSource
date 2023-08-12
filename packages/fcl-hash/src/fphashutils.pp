@@ -236,6 +236,7 @@ end;
 
 function StringToHex(const s: ansistring): ansistring;
 begin
+  Result:='';
   if s='' then exit;
   BytesToHexStr(Result,@s[1],length(s));
 end;
