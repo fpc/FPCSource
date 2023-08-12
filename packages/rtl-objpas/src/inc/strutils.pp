@@ -126,12 +126,12 @@ type
 
 Function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String; Options: TStringSearchOptions): PAnsiChar;
 Function SearchBuf(Buf: PAnsiChar; BufLen: SizeInt; SelStart, SelLength: SizeInt; SearchString: String): PAnsiChar;inline; // ; Options: TStringSearchOptions = [soDown]
-Function PosEx(const SubStr, S: Ansistring; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: Ansistring): SizeInt;inline; // Offset: Cardinal = 1
-Function PosEx(c:AnsiChar; const S: AnsiString; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: UnicodeString; Offset: SizeUint): SizeInt;
-Function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeUint): SizeInt;
-Function PosEx(const SubStr, S: UnicodeString): Sizeint;inline; // Offset: Cardinal = 1
+Function PosEx(const SubStr, S: Ansistring; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: Ansistring): SizeInt;inline;
+Function PosEx(c:AnsiChar; const S: AnsiString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: UnicodeString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeInt): SizeInt;inline;
+Function PosEx(const SubStr, S: UnicodeString): Sizeint;inline;
 function StringsReplace(const S: Ansistring; OldPattern, NewPattern: array of Ansistring;  Flags: TReplaceFlags): string;
 
 { ---------------------------------------------------------------------
@@ -190,10 +190,10 @@ function DelSpace1(const S: string): string;
 function Tab2Space(const S: string; Numb: Byte): string;
 function NPos(const C: string; S: string; N: Integer): SizeInt;
 
-Function RPosEx(C:AnsiChar;const S : AnsiString;offs:cardinal):SizeInt; overload;
-Function RPosEx(C:Unicodechar;const S : UnicodeString;offs:cardinal):SizeInt; overload;
-Function RPosEx(Const Substr : AnsiString; Const Source : AnsiString;offs:cardinal) : SizeInt; overload;
-Function RPosEx(Const Substr : UnicodeString; Const Source : UnicodeString;offs:cardinal) : SizeInt; overload;
+Function RPosEx(C:AnsiChar;const S : AnsiString;offs:SizeInt):SizeInt; overload;
+Function RPosEx(C:Unicodechar;const S : UnicodeString;offs:SizeInt):SizeInt; overload;
+Function RPosEx(Const Substr : AnsiString; Const Source : AnsiString;offs:SizeInt) : SizeInt; overload;
+Function RPosEx(Const Substr : UnicodeString; Const Source : UnicodeString;offs:SizeInt) : SizeInt; overload;
 Function RPos(c:AnsiChar;const S : AnsiString):SizeInt; overload;
 Function RPos(c:Unicodechar;const S : UnicodeString):SizeInt; overload;
 Function RPos(Const Substr : AnsiString; Const Source : AnsiString) : SizeInt; overload;
@@ -1681,105 +1681,34 @@ begin
   Result:=SearchBuf(Buf,BufLen,SelStart,SelLength,SearchString,[soDown]);
 end;
 
-function PosEx(const SubStr, S: AnsiString; Offset: SizeUint): SizeInt;
-
-var
-  i,MaxLen, SubLen : SizeInt;
-  SubFirst: AnsiChar;
-  pc : PAnsiChar;
+function PosEx(const SubStr, S: AnsiString; Offset: SizeInt): SizeInt;
 begin
-  PosEx:=0;
-  SubLen := Length(SubStr);
-  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
-   begin
-    MaxLen := Length(S)- SubLen;
-    SubFirst := SubStr[1];
-    i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
-    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
-    begin
-      pc := @S[i+SizeInt(Offset)];
-      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
-      if (CompareByte(Substr[1],pc^,SubLen) = 0) then
-      begin
-        PosEx := i + SizeInt(Offset);
-        Exit;
-      end;
-      //point Offset to next AnsiChar in S
-      Offset := sizeuint(i) + Offset + 1;
-      i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
-    end;
-  end;
+  Result := Pos(SubStr, S, Offset);
 end;
 
-function PosEx(c: AnsiChar; const S: Ansistring; Offset: SizeUint): SizeInt;
-
-var
-  p,Len : SizeInt;
-
+function PosEx(c: AnsiChar; const S: Ansistring; Offset: SizeInt): SizeInt;
 begin
-  Len := length(S);
-  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
-  Len := length(S);
-  p := indexbyte(S[Offset],Len-offset+1,Byte(c));
-  if (p < 0) then
-    PosEx := 0
-  else
-    PosEx := p + sizeint(Offset);
+  Result := Pos(c, S, Offset);
 end; 
 
-function PosEx(const SubStr, S: Ansistring): SizeInt; // Offset: Cardinal = 1
+function PosEx(const SubStr, S: Ansistring): SizeInt;
 begin
-  posex:=posex(substr,s,1);
+  Result := Pos(SubStr, S);
 end;
 
-function PosEx(const SubStr, S: UnicodeString; Offset: SizeUint): SizeInt;
-
-var
-  i,MaxLen, SubLen : SizeInt;
-  SubFirst: WideChar;
-  pc : pwidechar;
+function PosEx(const SubStr, S: UnicodeString; Offset: SizeInt): SizeInt;
 begin
-  PosEx:=0;
-  SubLen := Length(SubStr);
-  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
-   begin
-    MaxLen := Length(S)- SubLen;
-    SubFirst := SubStr[1];
-    i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
-    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
-    begin
-      pc := @S[i+SizeInt(Offset)];
-      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
-      if (CompareWord(Substr[1],pc^,SubLen) = 0) then
-      begin
-        PosEx := i + SizeInt(Offset);
-        Exit;
-      end;
-      //point Offset to next AnsiChar in S
-      Offset := sizeuint(i) + Offset + 1;
-      i := indexword(S[Offset],Length(S) - Offset + 1, Word(SubFirst));
-    end;
-  end;
+  Result := Pos(SubStr, S, Offset);
 end;
 
-function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeUint): SizeInt;
-var
-  Len,p : SizeInt;
-
+function PosEx(c: WideChar; const S: UnicodeString; Offset: SizeInt): SizeInt;
 begin
-  Len := length(S);
-  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
-  Len := length(S);
-  p := indexword(S[Offset],Len-offset+1,Word(c));
-  if (p < 0) then
-    PosEx := 0
-  else
-    PosEx := p + sizeint(Offset);
+  Result := Pos(c, S, Offset);
 end;
 
-function PosEx(const SubStr, S: UnicodeString): Sizeint; // Offset: Cardinal = 1
+function PosEx(const SubStr, S: UnicodeString): Sizeint;
 begin
-  PosEx:=PosEx(SubStr,S,1);
+  Result := Pos(SubStr, S);
 end;
 
 
@@ -3128,9 +3057,9 @@ begin
     end;
 end;
 
-function RPosEx(C: AnsiChar; const S: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(C: AnsiChar; const S: AnsiString; offs: SizeInt): SizeInt;
 
-var I   : SizeUInt;
+var I   : SizeInt;
     p,p2: PAnsiChar;
 
 Begin
@@ -3181,7 +3110,7 @@ begin
      while pc>=pc2 do
       begin
         if (c=pc^) and
-           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,Length(SubStr))=0) then
+           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,llen)=0) then
          begin
            rPos:=PAnsiChar(pc-llen+1)-PAnsiChar(@source[1])+1;
            exit;
@@ -3191,7 +3120,7 @@ begin
    end;
 end;
 
-function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: SizeInt): SizeInt;
 var
   MaxLen,llen : SizeInt;
   c : AnsiChar;
@@ -3200,7 +3129,7 @@ begin
   rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
-  if SizeInt(offs)<maxlen then maxlen:=offs;
+  if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
 //     i:=maxlen;
@@ -3210,7 +3139,7 @@ begin
      while pc>=pc2 do
       begin
         if (c=pc^) and
-           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,Length(SubStr))=0) then
+           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,llen)=0) then
          begin
            rPosex:=PAnsiChar(pc-llen+1)-PAnsiChar(@source[1])+1;
            exit;
@@ -3220,9 +3149,9 @@ begin
    end;
 end;
 
-function RPosEx(C: unicodechar; const S: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(C: unicodechar; const S: UnicodeString; offs: SizeInt): SizeInt;
 
-var I   : SizeUInt;
+var I   : SizeInt;
     p,p2: PUnicodeChar;
 
 Begin
@@ -3272,7 +3201,7 @@ begin
      while pc>=pc2 do
       begin
         if (c=pc^) and
-           (CompareWord(Substr[1],punicodechar(pc-llen+1)^,Length(SubStr))=0) then
+           (CompareWord(Substr[1],punicodechar(pc-llen+1)^,llen)=0) then
          begin
            rPos:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
            exit;
@@ -3282,7 +3211,7 @@ begin
    end;
 end;
 
-function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: cardinal): SizeInt;
+function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: SizeInt): SizeInt;
 var
   MaxLen,llen : SizeInt;
   c : unicodechar;
@@ -3291,7 +3220,7 @@ begin
   rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
-  if SizeInt(offs)<maxlen then maxlen:=offs;
+  if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
      pc:=@source[maxlen];
@@ -3300,7 +3229,7 @@ begin
      while pc>=pc2 do
       begin
         if (c=pc^) and
-           (Compareword(Substr[1],punicodechar(pc-llen+1)^,Length(SubStr))=0) then
+           (Compareword(Substr[1],punicodechar(pc-llen+1)^,llen)=0) then
          begin
            rPosex:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
            exit;
