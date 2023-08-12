@@ -37,6 +37,27 @@ begin
   Create(aValue,DefaultCapacity);
 end;
 
+{ Enumerator }
+
+function TGenericStringBuilder.TCharEnumerator.GetCurrent: SBChar;
+begin
+  Result := FCurrentPosition^;
+  Inc(FCurrentPosition);
+end;
+
+function TGenericStringBuilder.TCharEnumerator.MoveNext: Boolean;
+begin
+  Result := FCurrentPosition < FEndPosition;
+end;
+
+function TGenericStringBuilder.GetEnumerator: TCharEnumerator;
+var
+  StartPosition: PSBChar;
+begin
+  StartPosition := @FData[0];
+  Result.FCurrentPosition := StartPosition;
+  Result.FEndPosition := StartPosition + Length;
+end;
 
 { Property getter/setter }
 
