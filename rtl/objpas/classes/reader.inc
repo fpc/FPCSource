@@ -1821,7 +1821,11 @@ var
                 and PersistenClass.InheritsFrom(TComponent) then
               exit(TComponentClass(PersistenClass));
           end;
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
           FieldInfo := PFieldInfo(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+          FieldInfo := PFieldInfo(align(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name), sizeof(SizeUInt)));
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         end;
       end;
       // Try again with the parent class type
