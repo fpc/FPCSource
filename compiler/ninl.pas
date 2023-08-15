@@ -138,7 +138,7 @@ implementation
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
       cpuinfo,cpubase,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
       cgbase,procinfo;
 
@@ -445,6 +445,13 @@ implementation
               not (def.typ in [arraydef,recorddef,variantdef,objectdef,procvardef]) or
               ((def.typ=objectdef) and not is_object(def)) then
             internalerror(201202101);
+
+          if df_generic in current_procinfo.procdef.defoptions then
+            begin
+              result:=cpointerconstnode.create(0,def);
+              exit;
+            end;
+
           { extra '$' prefix because on darwin the result of makemangledname
             is prefixed by '_' and hence adding a '$' at the start of the
             prefix passed to makemangledname doesn't help (the whole point of
@@ -462,20 +469,20 @@ implementation
           if assigned(current_procinfo) then
             begin
               { the default sym is always part of the current procedure/function }
-              srsymtable:=current_procinfo.procdef.localst;
+              srsymtable:=current_module.localsymtable;
               srsym:=tsym(srsymtable.findwithhash(hashedid));
               if not assigned(srsym) then
                 begin
                   { no valid default variable found, so create it }
-                  srsym:=clocalvarsym.create(defaultname,vs_const,def,[]);
+                  srsym:=cstaticvarsym.create(defaultname,vs_const,def,[]);
                   srsymtable.insertsym(srsym);
+                  cnodeutils.insertbssdata(tstaticvarsym(srsym));
+
                   { mark the staticvarsym as typedconst }
                   include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
                   include(tabstractvarsym(srsym).varoptions,vo_is_default_var);
                   { The variable has a value assigned }
                   tabstractvarsym(srsym).varstate:=vs_initialised;
-                  { the variable can't be placed in a register }
-                  tabstractvarsym(srsym).varregable:=vr_none;
                 end;
               result:=cloadnode.create(srsym,srsymtable);
             end
