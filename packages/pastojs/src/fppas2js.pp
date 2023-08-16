@@ -26680,6 +26680,7 @@ begin
                 Result:=Call;
                 Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
                 Call:=CreateIntfRef(Call,AContext,El);
+                Result:=Call;
                 end;
               citCorba:
                 begin
