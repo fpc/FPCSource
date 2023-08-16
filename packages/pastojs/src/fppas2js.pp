@@ -26677,9 +26677,9 @@ begin
                 // COM:  $ir.ref(id,rtl.queryIntfT(Expr,IntfType))
                 Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfQueryIntfT)]);
                 Call.AddArg(Result);
+                Result:=Call;
                 Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
                 Call:=CreateIntfRef(Call,AContext,El);
-                Result:=Call;
                 end;
               citCorba:
                 begin
