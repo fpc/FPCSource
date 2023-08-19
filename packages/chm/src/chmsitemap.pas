@@ -58,7 +58,9 @@ type
                              siteattr_EXWINDOW_STYLES,
                              siteattr_FONT,
                              siteattr_IMAGELIST,
-                             siteattr_IMAGETYPE
+                             siteattr_IMAGETYPE,
+                             siteattr_BACKGROUND,
+                             siteattr_FOREGROUND
                             );
 
   { TChmSiteMapSubItem }
@@ -251,7 +253,9 @@ const sitemapkws : array[TChmSiteMapItemAttrName] of string = (
                     'EXWINDOW STYLES',
                     'FONT',
                     'IMAGELIST',
-                    'IMAGETYPE');
+                    'IMAGETYPE',
+                    'BACKGROUND',
+                    'FOREGROUND');
 
 function indexitemcompare(Item1, Item2: Pointer): Integer;
 begin
@@ -397,6 +401,8 @@ begin
                    siteattr_FONT            : Font:=TagAttributeValue;
                    siteattr_IMAGELIST       : ImageList:=TagAttributeValue;
                    siteattr_IMAGETYPE       : UseFolderImages:=uppercase(TagAttributeValue)='FOLDER';
+                   siteattr_BACKGROUND      : BackgroundColor:=strtointdef(trim(TagAttributeValue),longint(-1));
+                   siteattr_FOREGROUND      : ForegroundColor:=strtointdef(trim(TagAttributeValue),0)
                    end;
              end;
               // writeln('0:',flevel,' ' ,aactualtag,' ',tagname,' ' ,tagattributename, ' ' ,tagattributevalue);
