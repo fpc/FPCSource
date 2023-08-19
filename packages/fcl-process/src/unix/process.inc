@@ -210,7 +210,7 @@ begin
       end
     else
       begin
-      If (PA='') then
+      If (PA<>'') then
         Cmd:=PA
       else
         Cmd:=PC;
