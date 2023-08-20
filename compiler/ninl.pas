@@ -475,14 +475,15 @@ implementation
                 begin
                   { no valid default variable found, so create it }
                   srsym:=cstaticvarsym.create(defaultname,vs_const,def,[]);
-                  srsymtable.insertsym(srsym);
-                  cnodeutils.insertbssdata(tstaticvarsym(srsym));
-
                   { mark the staticvarsym as typedconst }
                   include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
                   include(tabstractvarsym(srsym).varoptions,vo_is_default_var);
                   { The variable has a value assigned }
                   tabstractvarsym(srsym).varstate:=vs_initialised;
+
+                  srsymtable.insertsym(srsym);
+                  cnodeutils.insertbssdata(tstaticvarsym(srsym));
+
                 end;
               result:=cloadnode.create(srsym,srsymtable);
             end
