@@ -717,6 +717,7 @@ begin
   DoOnClose;
   if FSocketInitialized then
     FHandler.Close; // Ignore the result
+  FSocketInitialized:=False;
   FreeAndNil(FHandler);
   CloseSocket(Handle);
   FClosed:=True;
