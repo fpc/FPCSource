@@ -243,7 +243,6 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
   var
     phdr : pphdr;
     phnum : dword;
-    i   : integer;
     tls : pointer;
     auxp : ppointer;
     found : boolean;
@@ -269,7 +268,7 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
       end;
     found:=false;
     size:=0;
-    for i:=1 to phnum do
+    while phnum>0 do
       begin
         case phdr^.p_type of
           PT_TLS:
@@ -289,6 +288,7 @@ procedure InitTLS; [public,alias:'FPC_INITTLS'];
             exit;
         end;
         inc(phdr);
+        dec(phnum);
       end;
     if found then
       begin
