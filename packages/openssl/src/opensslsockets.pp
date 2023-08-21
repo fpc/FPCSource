@@ -305,6 +305,7 @@ function TOpenSSLSocketHandler.Send(Const Buffer; Count: Integer): Integer;
 var
   e: integer;
 begin
+  FLastError:=0;
   FSSLLastError := 0;
   FSSLLastErrorString:='';
   repeat
@@ -314,7 +315,11 @@ begin
   if (E=SSL_ERROR_ZERO_RETURN) then
     Result:=0
   else if (e<>0) then
+    begin
     FSSLLastError:=e;
+    if e=SSL_ERROR_SYSCALL then
+      FLastError:=socketerror;
+    end;
 end;
 
 function TOpenSSLSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
@@ -322,6 +327,7 @@ function TOpenSSLSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
 var
   e: integer;
 begin
+  FLastError:=0;
   FSSLLastError:=0;
   FSSLLastErrorString:= '';
   repeat
@@ -333,7 +339,11 @@ begin
   if (E=SSL_ERROR_ZERO_RETURN) then
     Result:=0
   else if (e<>0) then
+    begin
     FSSLLastError:=e;
+    if e=SSL_ERROR_SYSCALL then
+      FLastError:=socketerror;
+    end;
 end;
 
 function TOpenSSLSocketHandler.BytesAvailable: Integer;
