@@ -609,6 +609,7 @@ const
   These are commented out in Windows NT to avoid conflicts with errno.h.
   Use the WSA constants instead. }
 
+  EINTR              =  WSAEINTR;
   EWOULDBLOCK        =  WSAEWOULDBLOCK;
   EINPROGRESS        =  WSAEINPROGRESS;
   EALREADY           =  WSAEALREADY;
