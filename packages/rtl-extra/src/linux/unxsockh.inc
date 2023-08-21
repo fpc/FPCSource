@@ -448,3 +448,43 @@ const
   { rfc2661  }
      UDP_ENCAP_L2TPINUDP = 3;
 
+{ Unix Sockets errors redefined as regular Berkeley error constants. }
+
+  EINTR              =  ESysEINTR;
+  EWOULDBLOCK        =  ESysEWOULDBLOCK;
+  EINPROGRESS        =  ESysEINPROGRESS;
+  EALREADY           =  ESysEALREADY;
+  ENOTSOCK           =  ESysENOTSOCK;
+  EDESTADDRREQ       =  ESysEDESTADDRREQ;
+  EMSGSIZE           =  ESysEMSGSIZE;
+  EPROTOTYPE         =  ESysEPROTOTYPE;
+  ENOPROTOOPT        =  ESysENOPROTOOPT;
+  EPROTONOSUPPORT    =  ESysEPROTONOSUPPORT;
+  ESOCKTNOSUPPORT    =  ESysESOCKTNOSUPPORT;
+  EOPNOTSUPP         =  ESysEOPNOTSUPP;
+  EPFNOSUPPORT       =  ESysEPFNOSUPPORT;
+  EAFNOSUPPORT       =  ESysEAFNOSUPPORT;
+  EADDRINUSE         =  ESysEADDRINUSE;
+  EADDRNOTAVAIL      =  ESysEADDRNOTAVAIL;
+  ENETDOWN           =  ESysENETDOWN;
+  ENETUNREACH        =  ESysENETUNREACH;
+  ENETRESET          =  ESysENETRESET;
+  ECONNABORTED       =  ESysECONNABORTED;
+  ECONNRESET         =  ESysECONNRESET;
+  ENOBUFS            =  ESysENOBUFS;
+  EISCONN            =  ESysEISCONN;
+  ENOTCONN           =  ESysENOTCONN;
+  ESHUTDOWN          =  ESysESHUTDOWN;
+  ETOOMANYREFS       =  ESysETOOMANYREFS;
+  ETIMEDOUT          =  ESysETIMEDOUT;
+  ECONNREFUSED       =  ESysECONNREFUSED;
+  ELOOP              =  ESysELOOP;
+  ENAMETOOLONG       =  ESysENAMETOOLONG;
+  EHOSTDOWN          =  ESysEHOSTDOWN;
+  EHOSTUNREACH       =  ESysEHOSTUNREACH;
+  ENOTEMPTY          =  ESysENOTEMPTY;
+  EUSERS             =  ESysEUSERS;
+  EDQUOT             =  ESysEDQUOT;
+  ESTALE             =  ESysESTALE;
+  EREMOTE            =  ESysEREMOTE;
+
