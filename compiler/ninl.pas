@@ -446,12 +446,6 @@ implementation
               ((def.typ=objectdef) and not is_object(def)) then
             internalerror(201202101);
 
-          if df_generic in current_procinfo.procdef.defoptions then
-            begin
-              result:=cpointerconstnode.create(0,def);
-              exit;
-            end;
-
           { extra '$' prefix because on darwin the result of makemangledname
             is prefixed by '_' and hence adding a '$' at the start of the
             prefix passed to makemangledname doesn't help (the whole point of
@@ -511,7 +505,16 @@ implementation
           pointerdef:
             result:=cpointerconstnode.create(0,def);
           procvardef:
-            if tprocvardef(def).size<>sizeof(pint) then
+            if df_generic in current_procinfo.procdef.defoptions then
+              begin
+                { don't allow as a default parameter value }
+                if block_type<>bt_const then
+                  result:=cpointerconstnode.create(0,def)
+                else
+                  result:=cerrornode.create;
+                exit;
+              end
+            else if tprocvardef(def).size<>sizeof(pint) then
               result:=getdefaultvarsym(def)
             else
               result:=cpointerconstnode.create(0,def);
