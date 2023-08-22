@@ -2282,6 +2282,10 @@ unit aoptx86;
                       begin
                         DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVA*2(V)MOVA* 1',p);
                         taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+
+                        TransferUsedRegs(TmpUsedRegs);
+                        AllocRegBetween(taicpu(hp1).oper[1]^.reg, p, hp1, TmpUsedRegs);
+
                         RemoveInstruction(hp1);
                         result:=true;
                         exit;
@@ -2315,7 +2319,7 @@ unit aoptx86;
                       vmovs* reg2,<op>
                       dealloc reg2
                       =>
-                      vmovs* reg1,reg3 }
+                      vmovs* reg1,<op> }
                     TransferUsedRegs(TmpUsedRegs);
                     UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
@@ -2323,6 +2327,10 @@ unit aoptx86;
                         DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVS*2(V)MOVS* 1',p);
                         taicpu(p).opcode:=taicpu(hp1).opcode;
                         taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+
+                        TransferUsedRegs(TmpUsedRegs);
+                        AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, TmpUsedRegs);
+
                         RemoveInstruction(hp1);
                         result:=true;
                         exit;
