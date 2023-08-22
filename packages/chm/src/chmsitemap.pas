@@ -615,10 +615,10 @@ begin
       if WindowName <> '' then WriteParam('WindowName', WindowName);
       if ImageList <> '' then WriteParam('ImageList', ImageList);
       if ImageWidth > 0 then WriteParam('Image Width', IntToStr(ImageWidth));
-      if BackgroundColor <> 0 then WriteParam('Background', hexStr(BackgroundColor, 4));
-      if ForegroundColor <> 0 then WriteParam('Foreground', hexStr(ForegroundColor, 4));
-      if ExWindowStyles <> 0 then WriteParam('ExWindow Styles', hexStr(ExWindowStyles, 4));
-      if WindowStyles <> 0 then WriteParam('Window Styles', hexStr(WindowStyles, 4));
+      if BackgroundColor <> 0 then WriteParam('Background', '0x'+hexStr(BackgroundColor, 8));
+      if ForegroundColor <> 0 then WriteParam('Foreground', '0x'+hexStr(ForegroundColor, 8));
+      if ExWindowStyles <> 0 then WriteParam('ExWindow Styles', '0x'+hexStr(ExWindowStyles, 8));
+      if WindowStyles <> 0 then WriteParam('Window Styles', '0x'+hexStr(WindowStyles, 8));
       if UseFolderImages then WriteParam('ImageType', 'Folder');
     end;
     // both TOC and Index have font
