@@ -2254,12 +2254,22 @@ unit aoptx86;
                 exit;
               end;
 
-            if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
+            if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
+              (hp1.typ = ait_instruction) and
+              (
+                { Under -O2 and below, the instructions are always adjacent }
+                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                (taicpu(hp1).ops <= 1) or
+                not RegInOp(taicpu(p).oper[0]^.reg, taicpu(hp1).oper[1]^) or
+                { If reg1 = reg3, reg1 must not be modified in between }
+                not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)
+              ) then
               begin
                 if MatchInstruction(hp1,[taicpu(p).opcode],[S_NO]) and
                   MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
                   begin
                     { vmova* reg1,reg2
+                      ...
                       vmova* reg2,reg3
                       dealloc reg2
                       =>
@@ -2267,6 +2277,7 @@ unit aoptx86;
                     TransferUsedRegs(TmpUsedRegs);
                     UpdateUsedRegs(TmpUsedRegs, tai(p.next));
                     if MatchOpType(taicpu(hp1),top_reg,top_reg) and
+                      not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1) and
                       not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
                       begin
                         DebugMsg(SPeepholeOptimization + '(V)MOVA*(V)MOVA*2(V)MOVA* 1',p);
@@ -2277,6 +2288,7 @@ unit aoptx86;
                       end;
                     { special case:
                       vmova* reg1,<op>
+                      ...
                       vmova* <op>,reg1
                       =>
                       vmova* reg1,<op> }
@@ -2299,6 +2311,7 @@ unit aoptx86;
                   MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
                   begin
                     { vmova* reg1,reg2
+                      ...
                       vmovs* reg2,<op>
                       dealloc reg2
                       =>
@@ -2315,9 +2328,7 @@ unit aoptx86;
                         exit;
                       end
                   end;
-              end;
-          if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
-            begin
+
               if MatchInstruction(hp1,[A_VFMADDPD,
                                               A_VFMADD132PD,
                                               A_VFMADD132PS,
