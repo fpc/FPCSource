@@ -1220,6 +1220,7 @@ begin
     Result:=2
   else
     begin
+      { the last string is the unit name, so start at -1 }
       PS:=@GetTypeData(enum1)^.NameList;
       Result:=-1;
       While (PByte(PS)^<>0) do
