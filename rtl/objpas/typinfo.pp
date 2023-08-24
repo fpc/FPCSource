@@ -1212,29 +1212,21 @@ begin
    end;
 end;
 
-
 function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
 var
   PS: PShortString;
-  PT: PTypeData;
-  Count: SizeInt;
 begin
-  PT:=GetTypeData(enum1);
   if enum1^.Kind=tkBool then
     Result:=2
   else
     begin
-      Count:=0;
-      Result:=0;
-
-      PS:=@PT^.NameList;
+      PS:=@GetTypeData(enum1)^.NameList;
+      Result:=-1;
       While (PByte(PS)^<>0) do
         begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-          Inc(Count);
+          Inc(Result);
         end;
-      { the last string is the unit name }
-      Result := Count - 1;
     end;
 end;
 
