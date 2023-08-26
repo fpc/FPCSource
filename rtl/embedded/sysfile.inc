@@ -24,6 +24,8 @@
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
+  if assigned (@rtl_do_close) then
+    rtl_do_close(handle);
 end;
 
 
