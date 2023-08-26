@@ -330,8 +330,9 @@ unit cpupara;
          stack_offset := cur_stack_offset;
          maxfpureg := RS_F17;
          if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
-          MaxIntReg := RS_X15 else
-          MaxIntReg := RS_X17;
+           MaxIntReg := RS_X15 
+         else
+           MaxIntReg := RS_X17;
 
           for i:=0 to paras.count-1 do
             begin
