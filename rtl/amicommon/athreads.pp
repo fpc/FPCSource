@@ -820,7 +820,7 @@ var p:pintrtlevent;
 begin
   p:=pintrtlevent(aevent);
   ObtainSemaphore(@p^.Sem);
-  while not p^.isset do 
+  while not p^.isset do
     begin
       ReleaseSemaphore(@p^.Sem);
       DOSDelay(1);
