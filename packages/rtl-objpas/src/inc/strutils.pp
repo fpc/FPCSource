@@ -194,10 +194,10 @@ Function RPosEx(C:AnsiChar;const S : AnsiString;offs:SizeInt):SizeInt; overload;
 Function RPosEx(C:Unicodechar;const S : UnicodeString;offs:SizeInt):SizeInt; overload;
 Function RPosEx(Const Substr : AnsiString; Const Source : AnsiString;offs:SizeInt) : SizeInt; overload;
 Function RPosEx(Const Substr : UnicodeString; Const Source : UnicodeString;offs:SizeInt) : SizeInt; overload;
-Function RPos(c:AnsiChar;const S : AnsiString):SizeInt; overload;
-Function RPos(c:Unicodechar;const S : UnicodeString):SizeInt; overload;
-Function RPos(Const Substr : AnsiString; Const Source : AnsiString) : SizeInt; overload;
-Function RPos(Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt; overload;
+Function RPos(c:AnsiChar;const S : AnsiString):SizeInt; overload; inline;
+Function RPos(c:Unicodechar;const S : UnicodeString):SizeInt; overload; inline;
+Function RPos(Const Substr : AnsiString; Const Source : AnsiString) : SizeInt; overload; inline;
+Function RPos(Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt; overload; inline;
 
 function AddChar(C: AnsiChar; const S: string; N: Integer): string;
 function AddCharR(C: AnsiChar; const S: string; N: Integer): string;
@@ -3059,12 +3059,10 @@ end;
 
 function RPosEx(C: AnsiChar; const S: AnsiString; offs: SizeInt): SizeInt;
 
-var I   : SizeInt;
-    p,p2: PAnsiChar;
+var p,p2: PAnsiChar;
 
 Begin
- I:=Length(S);
- If (I<>0) and (offs<=i) Then
+ If (offs>0) and (offs<=Length(S)) Then
    begin
      p:=@s[offs];
      p2:=@s[1];
@@ -3077,47 +3075,13 @@ End;
 
 function RPos(c: AnsiChar; const S: AnsiString): SizeInt;
 
-var I   : SizeInt;
-    p,p2: PAnsiChar;
-
 Begin
- I:=Length(S);
- If I<>0 Then
-   begin
-     p:=@s[i];
-     p2:=@s[1];
-     while (p2<=p) and (p^<>c) do dec(p);
-     i:=p-p2+1;
-   end;
-  RPos:=i;
+ Result:=RPosEx(c,S,Length(S)); { Length(S) must be used because character version returns 0 on offs > length. }
 End;
 
 function RPos(const Substr: AnsiString; const Source: AnsiString): SizeInt;
-var
-  MaxLen,llen : SizeInt;
-  c : AnsiChar;
-  pc,pc2 : PAnsiChar;
 begin
-  rPos:=0;
-  llen:=Length(SubStr);
-  maxlen:=length(source);
-  if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
-   begin
- //    i:=maxlen;
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,llen)=0) then
-         begin
-           rPos:=PAnsiChar(pc-llen+1)-PAnsiChar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
-   end;
+  Result:=RPosEx(Substr,Source,High(Result)); { High(Result) is possible because string version clamps offs > length to offs = length. }
 end;
 
 function RPosEx(const Substr: AnsiString; const Source: AnsiString; offs: SizeInt): SizeInt;
@@ -3126,42 +3090,38 @@ var
   c : AnsiChar;
   pc,pc2 : PAnsiChar;
 begin
-  rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
   if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
-//     i:=maxlen;
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareChar(Substr[1],PAnsiChar(pc-llen+1)^,llen)=0) then
-         begin
-           rPosex:=PAnsiChar(pc-llen+1)-PAnsiChar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
+     pc:=@source[maxlen-llen+1];
+     pc2:=@source[1];
+     c:=substr[1];
+     repeat
+       if (c=pc^) and
+          (CompareChar(Substr[1],pc^,llen)=0) then
+        begin
+          rPosex:=pc-pc2+1;
+          exit;
+        end;
+       dec(pc);
+     until pc<pc2;
    end;
+  rPosex:=0;
 end;
 
 function RPosEx(C: unicodechar; const S: UnicodeString; offs: SizeInt): SizeInt;
 
-var I   : SizeInt;
-    p,p2: PUnicodeChar;
+var p,p2: PUnicodeChar;
 
 Begin
- I:=Length(S);
- If (I<>0) and (offs<=i) Then
+ If (offs>0) and (offs<=Length(S)) Then
    begin
      p:=@s[offs];
      p2:=@s[1];
      while (p2<=p) and (p^<>c) do dec(p);
-     RPosEx:=(p-p2)+1;
+     RPosEx:=SizeUint(pointer(p)-pointer(p2)) div sizeof(unicodechar)+1; { p-p2+1 but avoids signed division... }
    end
   else
     RPosEX:=0;
@@ -3169,46 +3129,13 @@ End;
 
 function RPos(c: Unicodechar; const S: UnicodeString): SizeInt;
 
-var I   : SizeInt;
-    p,p2: pUnicodeChar;
-
 Begin
- I:=Length(S);
- If I<>0 Then
-   begin
-     p:=@s[i];
-     p2:=@s[1];
-     while (p2<=p) and (p^<>c) do dec(p);
-     i:=p-p2+1;
-   end;
-  RPos:=i;
+ Result:=RPosEx(c,S,Length(S)); { Length(S) must be used because character version returns 0 on offs > length. }
 End;
 
 function RPos(const Substr: UnicodeString; const Source: UnicodeString): SizeInt;
-var
-  MaxLen,llen : SizeInt;
-  c : Unicodechar;
-  pc,pc2 : PUnicodechar;
 begin
-  rPos:=0;
-  llen:=Length(SubStr);
-  maxlen:=length(source);
-  if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
-   begin
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (CompareWord(Substr[1],punicodechar(pc-llen+1)^,llen)=0) then
-         begin
-           rPos:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
-   end;
+  Result:=RPosEx(Substr,Source,High(Result)); { High(Result) is possible because string version clamps offs > length to offs = length. }
 end;
 
 function RPosEx(const Substr: UnicodeString; const Source: UnicodeString; offs: SizeInt): SizeInt;
@@ -3217,26 +3144,25 @@ var
   c : unicodechar;
   pc,pc2 : punicodechar;
 begin
-  rPosex:=0;
   llen:=Length(SubStr);
   maxlen:=length(source);
   if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
    begin
-     pc:=@source[maxlen];
-     pc2:=@source[llen-1];
-     c:=substr[llen];
-     while pc>=pc2 do
-      begin
-        if (c=pc^) and
-           (Compareword(Substr[1],punicodechar(pc-llen+1)^,llen)=0) then
-         begin
-           rPosex:=punicodechar(pc-llen+1)-punicodechar(@source[1])+1;
-           exit;
-         end;
-        dec(pc);
-      end;
+     pc:=@source[maxlen-llen+1];
+     pc2:=@source[1];
+     c:=substr[1];
+     repeat
+       if (c=pc^) and
+          (Compareword(Substr[1],pc^,llen)=0) then
+        begin
+          rPosex:=SizeUint(pointer(pc)-pointer(pc2)) div sizeof(unicodechar)+1; { pc-pc2+1 but avoids signed division... }
+          exit;
+        end;
+       dec(pc);
+     until pc<pc2;
    end;
+  rPosex:=0;
 end;
 
 procedure BinToHex(BinValue: PAnsiChar; HexValue: PAnsiChar; BinBufSize: Integer);
