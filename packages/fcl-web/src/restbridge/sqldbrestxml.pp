@@ -77,6 +77,7 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension: String; override;
     procedure InitStreaming; override;
   end;
 
@@ -100,6 +101,12 @@ class function TXMLInputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
 end;
+
+Class Function TXMLOutputStreamer.FileExtension: String;
+begin
+  Result:='.xml';  
+end;
+
 
 function TXMLInputStreamer.SelectObject(aIndex: Integer): Boolean;
 

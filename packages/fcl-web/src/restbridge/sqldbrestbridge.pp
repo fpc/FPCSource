@@ -310,6 +310,8 @@ Type
     function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
     procedure HandleCORSRequest(aConnection: TSQLDBConnectionDef; IO: TRestIO); virtual;
     procedure HandleResourceRequest(aConnection : TSQLDBConnectionDef; IO: TRestIO); virtual;
+    procedure HandleCorsResponseHeaders(IO: TRestIO); virtual;
+    procedure HandleOtherResponseHeaders(IO: TRestIO); virtual;
     procedure DoHandleRequest(IO: TRestIO); virtual;
   Public
     Class Procedure SetIOClass (aClass: TRestIOClass);
@@ -1937,6 +1939,41 @@ begin
     end;
 end;
 
+
+procedure TSQLDBRestDispatcher.HandleCorsResponseHeaders(IO : TRestIO);
+
+begin
+  if (rdoHandleCORS in DispatchOptions) then
+    begin
+    IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
+    IO.Response.SetCustomHeader('Access-Control-Allow-Credentials',BoolToStr(CORSAllowCredentials,'true','false'));
+    end;
+end;
+
+procedure TSQLDBRestDispatcher.HandleOtherResponseHeaders(IO : TRestIO);
+
+Var
+  Qn,CD : String;
+  HaveHeader : Boolean;
+
+begin
+  QN:=IO.RestStrings.AttachmentParam;
+  With IO.Request.QueryFields do
+    begin
+    HaveHeader:=(IndexOfName(QN)<>-1);
+    Cd:=values[QN];
+    end;
+  if (CD<>'') or HaveHeader then
+    begin
+    If CD='' then
+      begin
+      CD:=IO.ResourceName;
+      CD:=CD+IO.RESTOutput.FileExtension;
+      end;
+    IO.Response.SetCustomHeader('Content-Disposition',Format('attachment; filename="%s"',[CD]));
+    end;
+end;
+
 procedure TSQLDBRestDispatcher.HandleResourceRequest(aConnection : TSQLDBConnectionDef; IO : TRestIO);
 
 Var
@@ -1964,15 +2001,12 @@ begin
         Conn.LogEvents:=LogSQLOptions;
         Conn.OnLog:=@IO.DoSQLLog;
         end;
-      if (rdoHandleCORS in DispatchOptions) then
-        begin
-        IO.Response.SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(IO.Request));
-        IO.Response.SetCustomHeader('Access-Control-Allow-Credentials',BoolToStr(CORSAllowCredentials,'true','false'));
-        end;
+      HandleCorsResponseHeaders(IO);
       if not AuthenticateRequest(IO,True) then
         exit;
       if Not CheckResourceAccess(IO) then
         exit;
+      HandleOtherResponseHeaders(IO);
       DoHandleEvent(True,IO);
       H:=CreateDBHandler(IO);
       if IsSpecialResource(IO.Resource) then
