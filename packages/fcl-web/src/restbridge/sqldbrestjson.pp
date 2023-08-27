@@ -67,6 +67,7 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension : String; override;
     procedure InitStreaming; override;
   end;
 
@@ -248,6 +249,11 @@ end;
 Class function TJSONOutputStreamer.GetContentType: String;
 begin
   Result:='application/json';
+end;
+
+Class Function TJSONOutputStreamer.FileExtension : String; 
+begin
+  Result:='.json';
 end;
 
 procedure TJSONOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);

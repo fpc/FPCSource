@@ -85,7 +85,9 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class function FileExtension : string; override;
     function RequireMetadata : Boolean; override;
+   
     procedure InitStreaming; override;
     Property DataName : UTF8String Read FDataName Write FDataName;
     Property RowName : UTF8String Read FRowName Write FRowName;
@@ -358,6 +360,13 @@ class function TADOOutputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
 end;
+
+Class function TADOOutputStreamer.FileExtension : string; 
+
+begin
+  Result:='.xml';
+end;
+
 
 function TADOOutputStreamer.RequireMetadata: Boolean;
 begin

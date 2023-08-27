@@ -83,7 +83,8 @@ Type
                          rpXMLDocumentRoot,
                          rpConnectionResourceName,
                          rpParametersResourceName,
-                         rpParametersRoutePart
+                         rpParametersRoutePart,
+                         rpAttachment
                          );
   TRestStringProperties = Set of TRestStringProperty;
 
@@ -144,6 +145,7 @@ Type
     Property CustomViewSQLParam : UTF8string Index ord(rpCustomViewSQLParam) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property XMLDocumentRoot : UTF8string Index ord(rpXMLDocumentRoot) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
     Property ConnectionResourceName : UTF8string Index ord(rpConnectionResourceName) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
+    Property AttachmentParam : UTF8String Index ord(rpAttachment) Read GetRestPropName Write SetRestPropName Stored IsRestStringStored;
   end;
 
   TRestStatus = (rsError,                   // Internal logic/unexpected error (500)
@@ -263,6 +265,7 @@ Type
   Public
     Class Procedure RegisterStreamer(Const aName : String);
     Class Procedure UnRegisterStreamer(Const aName : String);
+    Class Function FileExtension : String; virtual;
     function RequireMetadata : Boolean; virtual;
     Function FieldToString(aFieldType : TRestFieldType; F : TField) : UTF8string; virtual;
     function FieldToBase64(F: TField): UTF8String; virtual;
@@ -476,7 +479,8 @@ Const
     'datapacket',      { rpXMLDocumentRoot}
     '_connection',     { rpConnectionResourceName }
     '_parameters',     { rpParametersResourceName }
-    'parameters'       { rpParametersRoutePart }
+    'parameters',      { rpParametersRoutePart }
+    'att'              { rpAttachment }
   );
   DefaultStatuses : Array[TRestStatus] of Word = (
     500, { rsError }
@@ -919,9 +923,14 @@ begin
   TStreamerFactory.Instance.RegisterStreamer(rstOutput,aName,Self)
 end;
 
-class procedure TRestOutPutStreamer.UnRegisterStreamer(const aName: String);
+class procedure TRestOutputStreamer.UnRegisterStreamer(const aName: String);
 begin
   TStreamerFactory.Instance.UnRegisterStreamer(rstOutput,aName)
+end;
+
+class function TRestOutputStreamer.FileExtension: String;
+begin
+  Result:='';
 end;
 
 function TRestOutputStreamer.RequireMetadata: Boolean;

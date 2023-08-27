@@ -81,6 +81,7 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension : String; override;
     procedure InitStreaming; override;
   end;
 
@@ -352,6 +353,11 @@ end;
 class function TCDSOutputStreamer.GetContentType: String;
 begin
   Result:='text/xml';
+end;
+
+class function TCDSOutputStreamer.FileExtension: String;
+begin
+  Result:='xml';
 end;
 
 procedure TCDSOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);

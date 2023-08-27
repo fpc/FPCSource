@@ -65,6 +65,7 @@ Type
   Public
     Destructor Destroy; override;
     Class Function GetContentType: String; override;
+    Class Function FileExtension : String; override;
     procedure InitStreaming; override;
   end;
 
@@ -186,6 +187,11 @@ end;
 Class function TCSVOutputStreamer.GetContentType: String;
 begin
   Result:='text/csv';
+end;
+
+Class Function TCSVOutputStreamer.FileExtension : String; 
+begin
+  Result:='.csv';
 end;
 
 procedure TCSVOutputStreamer.CreateErrorContent(aCode: Integer; const aMessage: String);
