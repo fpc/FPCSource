@@ -48,6 +48,8 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('blowfish.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('blowfish2.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('bufstream.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('cachecls.pp');
