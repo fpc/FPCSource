@@ -14,7 +14,7 @@
 {
   Blowfish II 128-bit block 2005 by Alexander Pukall
   Original C code can be found on
-  Based on http://pccipher.free.fr/blowfish2/blowfish2.txt
+  http://pccipher.free.fr/blowfish2/blowfish2.txt
 }
 
 {$ifdef fpc}
