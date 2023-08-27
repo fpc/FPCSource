@@ -471,7 +471,7 @@ begin
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
-    if not validDate then 
+    if not validDate then
       begin
         InternalFindClose(Rslt.FindHandle);
         exit;
@@ -538,7 +538,7 @@ var
  attr: word;
 begin
  Assign(F,FileName);
- dos.GetFAttr(F,attr);
+ {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetFAttr(F,attr);
  if DosError <> 0 then
     FileGetAttr := -1
  else
@@ -551,7 +551,7 @@ var
  F: file;
 begin
  Assign(F, FileName);
- Dos.SetFAttr(F, Attr and $ffff);
+ {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.SetFAttr(F, Attr and $ffff);
  FileSetAttr := DosError;
 end;
 
@@ -759,9 +759,9 @@ var
  dayOfWeek: word;
  Sec100: Word;
 begin
-  dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, Sec100);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, Sec100);
   SystemTime.Millisecond := Sec100 * 10;
-  dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
+  {$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
 end;
 
 
@@ -856,21 +856,21 @@ begin
     if StrOfpaths = '' then StrOfPaths := GetPathString;
     Result:=StrOfPaths;
   end else
-    Result:=Dos.Getenv(shortstring(EnvVar));
+    Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.Getenv(shortstring(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
 
 begin
   // Result:=FPCCountEnvVar(EnvP);
-  Result:=Dos.envCount;
+  Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.envCount;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
-  Result:=Dos.EnvStr(Index);
+  Result:={$IFDEF FPC_DOTTEDUNITS}TP.{$ENDIF}Dos.EnvStr(Index);
 end;
 
 function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
