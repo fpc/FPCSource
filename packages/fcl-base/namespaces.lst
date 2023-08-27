@@ -39,6 +39,7 @@ src/streamcoll.pp=namespaced/Fcl.Streams.Collection.pp
 src/inifiles.pp=namespaced/System.IniFiles.pp
 src/custapp.pp=namespaced/Fcl.CustApp.pp
 src/blowfish.pp=namespaced/System.Hash.Blowfish.pp
+src/blowfish2.pp=namespaced/System.Hash.Blowfish2.pp
 src/nullstream.pp=namespaced/Fcl.Streams.Null.pp
 src/syncobjs.pp=namespaced/System.SyncObjs.pp
 src/avl_tree.pp=namespaced/Fcl.AVLTree.pp
