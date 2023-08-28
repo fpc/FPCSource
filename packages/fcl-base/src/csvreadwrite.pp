@@ -205,7 +205,7 @@ const
   WhitespaceChars = [HTAB, SPACE];
   LineEndingChars = [CR, LF];
 
-Procedure AppendStr(Var Dest : RawByteString; Src : RawByteString); inline;
+Procedure AppendStr(Var Dest : RawByteString; const Src : RawByteString); inline;
 
 begin
   Dest:=Dest+Src;
