@@ -74,7 +74,7 @@ Type
     function GetPosition: Int64; override;
     procedure InvalidSeek; override;
   Public
-    Constructor Create(AKey : UTF8String; Dest: TStream); overload; virtual;
+    Constructor Create(const AKey : UTF8String; Dest: TStream); overload; virtual;
     Constructor Create(AKey : TBytes; Dest: TStream); overload; virtual;
     Destructor Destroy; override;
   end;
@@ -91,7 +91,7 @@ Type
   private
     FSourcePos0: Int64;
   public
-    Constructor Create(AKey : UTF8String; Dest: TStream); overload; virtual;
+    Constructor Create(const AKey : UTF8String; Dest: TStream); overload; virtual;
     Constructor Create(AKey : TBytes; Dest: TStream); overload; virtual;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
@@ -1022,7 +1022,7 @@ begin
   raise EBlowFish2Error.Create(SNoSeekAllowed);
 end;
 
-constructor TBlowFish2Stream.Create(AKey: UTF8String; Dest: TStream);
+constructor TBlowFish2Stream.Create(const AKey: UTF8String; Dest: TStream);
 
 begin
   inherited Create(Dest);
@@ -1127,7 +1127,7 @@ begin
   FSourcePos0 := Source.Position;
 end;
 
-Constructor TBlowFish2DeCryptStream.Create(AKey : UTF8String; Dest: TStream); overload;
+Constructor TBlowFish2DeCryptStream.Create(const AKey : UTF8String; Dest: TStream); overload;
 
 begin
   inherited Create(AKey, Dest);
