@@ -107,7 +107,7 @@ ResourceString
 
 Const
   N = 64;
-  MaxKeyLen = 128;
+  MaxKeyLen = 528;
   ORIG_P : TBlowFishPArray = (
         
 QWord($243F6A8885A308D3),QWord($13198A2E03707344),QWord($A4093822299F31D0),
