@@ -485,126 +485,102 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
 
 procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;count : SizeInt;pti : pointer);compilerproc;
   var
-    newhigh : tdynarrayindex;
-    size : sizeint;
-    realp,
-    newp : pdynarray;
-    ti : pointer;
-    elesize : sizeint;
-    eletype,eletypemngd : pointer;
+    newlen : tdynarrayindex;
+    elesize,dataofs : sizeint;
+    oldp,newp,realp : pdynarray;
+    ti,eletypemngd : pointer;
   begin
-    if not assigned(data) or
-        (count=0) then
+    if count=0 then
       exit;
 
-    if assigned(p) then
-      realp:=pdynarray(p-sizeof(tdynarray))
-    else
-      realp:=nil;
-    newp:=realp;
-
-    { cap insert index }
-    if assigned(p) then
+    oldp:=p;
+    if assigned(oldp) then
       begin
-        if source<0 then
-          source:=0
-        else if source>realp^.high+1 then
-          source:=realp^.high+1;
+        dec(oldp);
+        { cap insert index }
+        newlen:=oldp^.high+1;
+        if SizeUint(source)>SizeUint(newlen) then { Checks for not (0 <= source <= len), using the fact than 'newlen' is never negative. }
+          if source<0 then
+            source:=0
+          else
+            source:=newlen;
+        newlen:=newlen+count;
       end
     else
-      source:=0;
+      begin
+        source:=0;
+        newlen:=count;
+      end;
 
     { skip kind and name }
-{$ifdef VER3_0}
-     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
-{$else VER3_0}
-     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
-{$endif VER3_0}
+    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
 
     elesize:=pdynarraytypedata(ti)^.elSize;
-    eletype:=pdynarraytypedata(ti)^.elType2^;
     { only set if type needs initialization }
-    if assigned(pdynarraytypedata(ti)^.elType) then
-      eletypemngd:=pdynarraytypedata(ti)^.elType^
-    else
-      eletypemngd:=nil;
+    eletypemngd:=pdynarraytypedata(ti)^.elType;
+    if assigned(eletypemngd) then
+      eletypemngd:=PPointer(eletypemngd)^;
 
-    { determine new memory size }
-    if assigned(p) then
-      newhigh:=realp^.high+count
-    else
-      newhigh:=count-1;
-    size:=elesize*(newhigh+1)+sizeof(tdynarray);
-
-    if assigned(p) then
+    if not assigned(oldp) or (oldp^.refcount<>1) then
       begin
-        if realp^.refcount<>1 then
-          begin
-            { make an unique copy }
-            getmem(newp,size);
-            fillchar(newp^,sizeof(tdynarray),0);
+        newp:=getmem(elesize*newlen+sizeof(tdynarray));
 
-            { copy leading elements }
-            if source>0 then
-              move(p^,(pointer(newp)+sizeof(tdynarray))^,source*elesize);
-            { insert new elements }
-            move(data^,(pointer(newp)+sizeof(tdynarray)+source*elesize)^,count*elesize);
-            { copy trailing elements }
-            if realp^.high-source+1>0 then
-              move((p+source*elesize)^,(pointer(newp)+sizeof(tdynarray)+(source+count)*elesize)^,(realp^.high-source+1)*elesize);
+        { copy leading elements. No-op when not Assigned(oldp) because in this case source = 0. }
+        move(oldp[1],newp[1],source*elesize);
+        { insert new elements }
+        move(data^,(pointer(newp+1)+source*elesize)^,count*elesize);
+        { copy trailing elements. This time must be careful with not Assigned(oldp). }
+        if assigned(oldp) then
+          move((pointer(oldp+1)+source*elesize)^,(pointer(newp+1)+(source+count)*elesize)^,(oldp^.high-source+1)*elesize);
 
-            { increment ref. count of managed members }
-            if assigned(eletypemngd) then
-              int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,newhigh+1);
+        { increment ref. count of managed members }
+        if assigned(eletypemngd) then
+          int_AddRefArray(newp+1,eletypemngd,newlen);
 
-            { a declock(ref. count) isn't enough here }
-            { it could be that the in MT environments  }
-            { in the mean time the refcount was       }
-            { decremented                             }
+        { a declock(ref. count) isn't enough here }
+        { it could be that the in MT environments }
+        { in the mean time the refcount was       }
+        { decremented                             }
 
-            { it is, because it doesn't really matter }
-            { if the array is now removed             }
-            fpc_dynarray_clear(p,pti);
-          end
-        else
-          begin
-            { resize the array }
-            reallocmem(realp,size);
-
-            { p might no longer be correct }
-            p:=pointer(realp)+sizeof(tdynarray);
-
-            { move the trailing part after the inserted data }
-            if source<=realp^.high then
-              move((p+source*elesize)^,(p+(source+count)*elesize)^,(realp^.high-source+1)*elesize);
-
-            { move the inserted data to the destination }
-            move(data^,(p+source*elesize)^,count*elesize);
-
-            { increase reference counts of inserted elements }
-            if assigned(eletypemngd) then
-              int_AddRefArray(p+source*elesize,eletypemngd,count);
-
-            newp:=realp;
-          end;
+        { it is, because it doesn't really matter }
+        { if the array is now removed             }
+        fpc_dynarray_clear(p,pti);
       end
     else
       begin
-        { allocate new array }
-        getmem(newp,size);
-        fillchar(newp^,sizeof(tdynarray),0);
+        { dataofs >= 0 means that 'data' points into the source array with byte offset 'dataofs' from the header.
+          dataofs < 0 means that 'data' does not point into the array. }
+        dataofs:=-1;
+        if (data>=oldp) and (data<=pointer(oldp+1)+oldp^.high*elesize) then
+          dataofs:=data-pointer(oldp);
 
-        { insert data }
-        move(data^,(pointer(newp)+sizeof(tdynarray))^,count*elesize);
+        { resize the array }
+        realp:=oldp; { 'realp' as a 'var'-parameter avoids taking 'oldp' address. }
+        newp:=reallocmem(realp,elesize*newlen+sizeof(tdynarray));
+
+        { Fixup overlapping 'data'. }
+        if dataofs>=0 then
+          begin
+            data:=pointer(newp)+dataofs;
+            { If 'data' points into the trailing part, account for it being moved by 'count'. }
+            if data>=pointer(newp+1)+source*elesize then
+              data:=data+count*elesize;
+          end;
+
+        { move the trailing part after the inserted data }
+        move((pointer(newp+1)+source*elesize)^,(pointer(newp+1)+(source+count)*elesize)^,(newp^.high-source+1)*elesize);
+
+        { move the inserted data to the destination }
+        move(data^,(pointer(newp+1)+source*elesize)^,count*elesize);
 
         { increase reference counts of inserted elements }
         if assigned(eletypemngd) then
-          int_AddRefArray(pointer(newp)+sizeof(tdynarray),eletypemngd,count);
+          int_AddRefArray(pointer(newp+1)+source*elesize,eletypemngd,count);
       end;
 
-    p:=pointer(newp)+sizeof(tdynarray);
     newp^.refcount:=1;
-    newp^.high:=newhigh;
+    newp^.high:=newlen-1;
+    p:=newp+1;
   end;
 
 
