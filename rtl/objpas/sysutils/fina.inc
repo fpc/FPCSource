@@ -499,13 +499,9 @@ end;
 
 function ExcludeLeadingPathDelimiter(Const Path: PathStr): PathStr;
 
-Var
-  L : Integer;
-
 begin
   Result:=Path;
-  L:=Length(Result);
-  If (L>0) and CharInSet(Result[1],AllowDirectorySeparators) then
+  If (Length(Result)>0) and CharInSet(Result[1],AllowDirectorySeparators) then
     Delete(Result,1,1);
 end;
 
