@@ -1049,8 +1049,6 @@ begin
         DoCookies(S);
       end
   Until (S='') or Terminated;
-  If Assigned(FOnHeaders) and not Terminated then
-    FOnHeaders(Self);
 end;
 
 function TFPCustomHTTPClient.CheckResponseCode(ACode: Integer;
@@ -1325,6 +1323,8 @@ begin
   FContentLength:=0;
   SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
+  If Assigned(FOnHeaders) and not Terminated then
+    FOnHeaders(Self);
   Result := FResponseStatusCode > 0;
   if not Result then
     Exit;
