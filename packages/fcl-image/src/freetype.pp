@@ -554,20 +554,14 @@ begin
 end;
 
 procedure TFontManager.MakeTransformation (angle:real; out Transformation:FT_Matrix);
-var ScaledAngle,asin,acos : Real;
+var asin,acos : Real;
 begin
-  ScaledAngle :=Angle*$10000;
   with Transformation do
     begin
-    sincos(ScaledAngle,asin,acos);
-    yx:=round(asin);
-    xx:=round(acos);
-    xy:=-yx; yy:=xx;
-{   xx := round( cos(angle)*$10000);
-    xy := round(-sin(angle)*$10000);
-    yx := round( sin(angle)*$10000);
-    yy := round( cos(angle)*$10000);
-}
+      sincos(Angle,asin,acos);
+      yx:=round(asin)*$10000;
+      xx:=round(acos)*$10000;
+      xy:=-yx; yy:=xx;
     end;
 end;
 
