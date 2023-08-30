@@ -249,6 +249,8 @@ interface
           function  readval64:int64;
           function  readcomment(include_special_char: boolean = false):string;
           function  readquotedstring:string;
+          function  readlongcomment(include_special_char: boolean = false):RawByteString;
+          function  readlongquotedstring:RawByteString;
           function  readstate:char;
           function  readoptionalstate(fallback:char):char;
           function  readstatedefault:char;
@@ -4840,6 +4842,126 @@ type
             until false;
           end;
         result[0]:=chr(i);
+      end;
+
+
+    function tscannerfile.readlongcomment(include_special_char: boolean):RawByteString;
+      var
+        i : longint;
+
+        procedure addchar(char: AnsiChar = #0);
+        begin
+          Inc(i);
+          if Length(readlongcomment)>=i then
+            SetLength(readlongcomment, Length(readlongcomment)+256);
+          if char<>#0 then
+            readlongcomment[i]:=char
+          else
+            readlongcomment[i]:=c;
+        end;
+      begin
+        i:=0;
+        SetLength(readlongcomment, 256);
+        repeat
+          case c of
+            '{' :
+              begin
+                if (include_special_char) then
+                  addchar;
+
+                if current_commentstyle=comment_tp then
+                  inc_comment_level;
+              end;
+            '}' :
+              begin
+                if (include_special_char) then
+                  addchar;
+
+                if current_commentstyle=comment_tp then
+                  begin
+                    readchar;
+                    dec_comment_level;
+
+
+                    if comment_level=0 then
+                      break
+                    else
+                      continue;
+                  end;
+              end;
+            '*' :
+              begin
+                if current_commentstyle=comment_oldtp then
+                  begin
+                    readchar;
+                    if c=')' then
+                      begin
+                        readchar;
+                        dec_comment_level;
+                        break;
+                      end
+                    else
+                    { Add both characters !!}
+                      begin
+                        addchar('*');
+                        addchar;
+                      end;
+                  end
+                else
+                { Not old TP comment, so add...}
+                  addchar('*');
+              end;
+            #10,#13 :
+              linebreak;
+            #26 :
+              end_of_file;
+            else
+              addchar;
+          end;
+          readchar;
+        until false;
+        SetLength(readlongcomment, i);
+        SetCodePage(readlongcomment, current_settings.sourcecodepage, False);
+      end;
+
+
+    function tscannerfile.readlongquotedstring:RawByteString;
+      var
+        i : longint;
+        msgwritten : boolean;
+
+        procedure addchar;
+        begin
+          Inc(i);
+          if Length(readlongquotedstring)>=i then
+            SetLength(readlongquotedstring, Length(readlongquotedstring)+256);
+          readlongquotedstring[i]:=c;
+        end;
+      begin
+        i:=0;
+        Setlength(readlongquotedstring, 256);
+        msgwritten:=false;
+        if (c='''') then
+          begin
+            repeat
+              readchar;
+              case c of
+                #26 :
+                  end_of_file;
+                #10,#13 :
+                  Message(scan_f_string_exceeds_line);
+                '''' :
+                  begin
+                    readchar;
+                    if c<>'''' then
+                     break;
+                  end;
+              end;
+              addchar;
+            until false;
+          end;
+        SetLength(readlongquotedstring, i);
+        SetCodePage(readlongquotedstring, current_settings.sourcecodepage, False);
       end;
 
 

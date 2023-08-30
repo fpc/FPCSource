@@ -143,7 +143,7 @@ unit scandir;
     procedure do_message(w:integer);
       begin
         current_scanner.skipspace;
-        Message1(w,current_scanner.readcomment);
+        Message1(w,current_scanner.readlongcomment);
       end;
 
 
@@ -934,6 +934,7 @@ unit scandir;
     procedure dir_message;
       var
         hs : string;
+        s  : AnsiString;
         w  : longint;
       begin
         w:=0;
@@ -969,10 +970,10 @@ unit scandir;
           begin
             current_scanner.skipspace;
             if c='''' then
-              hs:=current_scanner.readquotedstring
+              s:=current_scanner.readlongquotedstring
             else
-              hs:=current_scanner.readcomment;
-            Message1(w,hs);
+              s:=current_scanner.readlongcomment;
+            Message1(w,s);
           end
         else
           current_scanner.readcomment;
