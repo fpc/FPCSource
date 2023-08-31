@@ -559,8 +559,8 @@ begin
   with Transformation do
     begin
       sincos(Angle,asin,acos);
-      yx:=round(asin)*$10000;
-      xx:=round(acos)*$10000;
+      yx:=round(asin*$10000);
+      xx:=round(acos*$10000);
       xy:=-yx; yy:=xx;
     end;
 end;
