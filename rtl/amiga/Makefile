@@ -2872,6 +2872,6 @@ ifdef FPC_DOTTEDUNITS
 BUILDRTL_OPT:=$(BUILDRTL_OPT) -Fu$(NSINC) -Fu$(NSOSDIR) -dFPC_DOTTEDUNITS 
 endif
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) $(BUILDRTL_OPT) buildrtl
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) $(BUILDRTL_OPT) buildrtl
 $(RESUNIT)$(PPUEXT) : $(INC)/$(RESUNIT).pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/$(RESUNIT).pp
