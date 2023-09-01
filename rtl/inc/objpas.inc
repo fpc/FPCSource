@@ -529,6 +529,8 @@ end;
         end;
 
       type
+         {$PUSH}
+         {$PACKRECORDS NORMAL}
          tmethodnamerec = packed record
             name : pshortstring;
             addr : codepointer;
@@ -538,6 +540,7 @@ end;
            count : dword;
            entries : packed array[0..0] of tmethodnamerec;
          end;
+         {$POP}
 
          pmethodnametable =  ^tmethodnametable;
 
@@ -598,6 +601,8 @@ end;
          {The following is copied to the typinfo unit. If it is changed here, change it there as well ! }
 
         type
+           {$PUSH}
+           {$PACKRECORDS NORMAL}
            PFieldInfo = ^TFieldInfo;
            TFieldInfo =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -621,6 +626,7 @@ end;
                Elements have variant size! force at least proper alignment }
              Fields: array[0..0] of TFieldInfo
            end;
+           {$POP}
 
         var
            ovmt: PVmt;
