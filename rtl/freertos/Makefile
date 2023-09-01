@@ -892,6 +892,8 @@ endif
 CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
+DOSDIR=.
+DOS_DEPS_OS=objpas$(PPUEXT)
 ifeq ($(ARCH),arm)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
