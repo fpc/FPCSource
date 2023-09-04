@@ -92,7 +92,7 @@ const
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
 
-{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) }
+{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) and DEFINED(CPUX86_HAS_BSWAP) }
 // Use assembler version if we have a suitable CPU as well
 // Define SHA1PASCAL to force use of original reference code
 {$i sha1i386.inc}
