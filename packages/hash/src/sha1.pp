@@ -20,7 +20,7 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit sha1;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode objfpc}{$h+}
+{$mode objfpc}{$h+}{$macro+}
 
 interface
 
@@ -55,23 +55,6 @@ uses System.SysUtils,System.SysConst;
 {$ELSE FPC_DOTTEDUNITS}
 uses sysutils,sysconst;
 {$ENDIF FPC_DOTTEDUNITS}
-
-// inverts the bytes of (Count div 4) cardinals from source to target.
-procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
-var
-  S: PByte;
-  T: PCardinal;
-  I: PtrUInt;
-begin
-  S := Source;
-  T := Dest;
-  for I := 1 to (Count div 4) do
-  begin
-    T^ := S[3] or (S[2] shl 8) or (S[1] shl 16) or (S[0] shl 24);
-    inc(S,4);
-    inc(T);
-  end;
-end;
 
 procedure SHA1Init(out ctx: TSHA1Context);
 begin
@@ -114,62 +97,68 @@ const
 // Use original version if asked for, or when we have no optimized assembler version
 procedure SHA1Transform(var ctx: TSHA1Context; Buf: Pointer);
 var
-  A, B, C, D, E, T: Cardinal;
+  A, B, C, D, E, Blkv: Cardinal;
   Data: array[0..15] of Cardinal;
-  i: Integer;
 begin
   A := ctx.State[0];
   B := ctx.State[1];
   C := ctx.State[2];
   D := ctx.State[3];
   E := ctx.State[4];
-  Invert(Buf, @Data, 64);
 {$push}
 {$r-,q-}
-  i := 0;
-  repeat
-    T := (B and C) or (not B and D) + K20 + E;
-    E := D;
-    D := C;
-    C := rordword(B, 2);
-    B := A;
-    A := T + roldword(A, 5) + Data[i and 15];
-    Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
-    Inc(i);
-  until i > 19;
 
-  repeat
-    T := (B xor C xor D) + K40 + E;
-    E := D;
-    D := C;
-    C := rordword(B, 2);
-    B := A;
-    A := T + roldword(A, 5) + Data[i and 15];
-    Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
-    Inc(i);
-  until i > 39;
+// I is round index (0..79).
+{$define Sha1Round :=
 
-  repeat
-    T := (B and C) or (B and D) or (C and D) + K60 + E;
-    E := D;
-    D := C;
-    C := rordword(B, 2);
-    B := A;
-    A := T + roldword(A, 5) + Data[i and 15];
-    Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
-    Inc(i);
-  until i > 59;
+// (V, W, X, Y, Z) map to (A, B, C, D, E) rotated right by I mod 5.
+{$if I mod 5 = 0}     {$define V := A} {$define W := B} {$define X := C} {$define Y := D} {$define Z := E}
+{$elseif I mod 5 = 1} {$define V := E} {$define W := A} {$define X := B} {$define Y := C} {$define Z := D}
+{$elseif I mod 5 = 2} {$define V := D} {$define W := E} {$define X := A} {$define Y := B} {$define Z := C}
+{$elseif I mod 5 = 3} {$define V := C} {$define W := D} {$define X := E} {$define Y := A} {$define Z := B}
+{$else}               {$define V := B} {$define W := C} {$define X := D} {$define Y := E} {$define Z := A}
+{$endif}
 
-  repeat
-    T := (B xor C xor D) + K80 + E;
-    E := D;
-    D := C;
-    C := rordword(B, 2);
-    B := A;
-    A := T + roldword(A, 5) + Data[i and 15];
-    Data[i and 15] := roldword(Data[i and 15] xor Data[(i+2) and 15] xor Data[(i+8) and 15] xor Data[(i+13) and 15], 1);
-    Inc(i);
-  until i > 79;
+{$if I < 16}
+  Blkv := BEtoN(Unaligned(PCardinal(Buf)[I]));
+{$else}
+  Blkv := RolDWord(Data[(I + 13) and 15] xor Data[(I + 8) and 15] xor Data[(I + 2) and 15] xor Data[I and 15], 1);
+{$endif}
+
+  Z := Z + Blkv; // Handling Blkv first gives a chance to free its register for the following complex expressions added to Z as well.
+{$if I < 77} // for rounds 77 .. 79 this is a dead store
+  Data[I and 15] := Blkv;
+{$endif}
+  Z := Z + RolDWord(V, 5) +
+{$if I < 20}     ((W and (X xor Y)) xor Y) + K20
+{$elseif I < 40} (W xor X xor Y) + K40
+{$elseif I < 60} (((W or X) and Y) or (W and X)) + K60
+{$else}          (W xor X xor Y) + K80
+{$endif};
+  W := RorDWord(W, 2);
+
+  {$undef V} {$undef W} {$undef X} {$undef Y} {$undef Z}
+
+  {$undef I}}
+
+{$define I := 0} Sha1Round {$define I := 1} Sha1Round {$define I := 2} Sha1Round {$define I := 3} Sha1Round {$define I := 4} Sha1Round
+{$define I := 5} Sha1Round {$define I := 6} Sha1Round {$define I := 7} Sha1Round {$define I := 8} Sha1Round {$define I := 9} Sha1Round
+{$define I := 10} Sha1Round {$define I := 11} Sha1Round {$define I := 12} Sha1Round {$define I := 13} Sha1Round {$define I := 14} Sha1Round
+{$define I := 15} Sha1Round {$define I := 16} Sha1Round {$define I := 17} Sha1Round {$define I := 18} Sha1Round {$define I := 19} Sha1Round
+{$define I := 20} Sha1Round {$define I := 21} Sha1Round {$define I := 22} Sha1Round {$define I := 23} Sha1Round {$define I := 24} Sha1Round
+{$define I := 25} Sha1Round {$define I := 26} Sha1Round {$define I := 27} Sha1Round {$define I := 28} Sha1Round {$define I := 29} Sha1Round
+{$define I := 30} Sha1Round {$define I := 31} Sha1Round {$define I := 32} Sha1Round {$define I := 33} Sha1Round {$define I := 34} Sha1Round
+{$define I := 35} Sha1Round {$define I := 36} Sha1Round {$define I := 37} Sha1Round {$define I := 38} Sha1Round {$define I := 39} Sha1Round
+{$define I := 40} Sha1Round {$define I := 41} Sha1Round {$define I := 42} Sha1Round {$define I := 43} Sha1Round {$define I := 44} Sha1Round
+{$define I := 45} Sha1Round {$define I := 46} Sha1Round {$define I := 47} Sha1Round {$define I := 48} Sha1Round {$define I := 49} Sha1Round
+{$define I := 50} Sha1Round {$define I := 51} Sha1Round {$define I := 52} Sha1Round {$define I := 53} Sha1Round {$define I := 54} Sha1Round
+{$define I := 55} Sha1Round {$define I := 56} Sha1Round {$define I := 57} Sha1Round {$define I := 58} Sha1Round {$define I := 59} Sha1Round
+{$define I := 60} Sha1Round {$define I := 61} Sha1Round {$define I := 62} Sha1Round {$define I := 63} Sha1Round {$define I := 64} Sha1Round
+{$define I := 65} Sha1Round {$define I := 66} Sha1Round {$define I := 67} Sha1Round {$define I := 68} Sha1Round {$define I := 69} Sha1Round
+{$define I := 70} Sha1Round {$define I := 71} Sha1Round {$define I := 72} Sha1Round {$define I := 73} Sha1Round {$define I := 74} Sha1Round
+{$define I := 75} Sha1Round {$define I := 76} Sha1Round {$define I := 77} Sha1Round {$define I := 78} Sha1Round {$define I := 79} Sha1Round
+
+{$undef Sha1Round}
 
   Inc(ctx.State[0], A);
   Inc(ctx.State[1], B);
@@ -240,7 +229,7 @@ const
 procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
 var
   Length: QWord;
-  Pads: Cardinal;
+  Pads, I: SizeUint;
 begin
   // 1. Compute length of the whole stream in bits
   Length := 8 * (ctx.Length + ctx.BufCnt);
@@ -257,7 +246,8 @@ begin
   SHA1Update(ctx, Length, 8);
 
   // 4. Invert state to digest
-  Invert(@ctx.State, @Digest, 20);
+  for I := 0 to High(ctx.State) do
+    Unaligned(PUint32(PByte(Digest))[I]) := NtoBE(ctx.State[I]);
   FillChar(ctx, sizeof(TSHA1Context), 0);
 end;
 
