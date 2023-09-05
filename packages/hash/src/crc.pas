@@ -95,6 +95,9 @@ implementation
  * CRC32
  ******************************************************************************)
 
+const
+  Poly32Rev = uint32($EDB88320); { 0,1,2,4,5,7,8,10,11,12,16,22,23,26 }
+
 {$IFDEF DYNAMIC_CRC_TABLE}
 
 {local}
@@ -134,25 +137,14 @@ procedure make_crc32_table;
 var
  c    : cardinal;
  n,k  : integer;
- poly : cardinal; { polynomial exclusive-or pattern }
-
-const
- { terms of polynomial defining this crc (except x^32): }
- p: array [0..13] of Byte = (0,1,2,4,5,7,8,10,11,12,16,22,23,26);
-
 begin
-  { make exclusive-or pattern from polynomial ($EDB88320) }
-  poly := longint(0);
-  for n := 0 to (sizeof(p) div sizeof(Byte))-1 do
-    poly := poly or (longint(1) shl (31 - p[n]));
-
   for n := 0 to 255 do
   begin
     c := cardinal(n);
     for k := 0 to 7 do
     begin
       if (c and 1) <> 0 then
-        c := poly xor (c shr 1)
+        c := (c shr 1) xor Poly32Rev
       else
         c := (c shr 1);
     end;
@@ -249,25 +241,14 @@ begin
 {$ENDIF}
 
   crc := crc xor $FFFFFFFF;
-  while (len >= 8) do
+  while (len >= 4) do
   begin
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    dec(len, 8);
+    crc := crc32_table[(crc xor buf[0]) and $ff] xor (crc shr 8);
+    crc := crc32_table[(crc xor buf[1]) and $ff] xor (crc shr 8);
+    crc := crc32_table[(crc xor buf[2]) and $ff] xor (crc shr 8);
+    crc := crc32_table[(crc xor buf[3]) and $ff] xor (crc shr 8);
+    inc(buf, 4);
+    dec(len, 4);
   end;
 
   while (len > 0) do
@@ -421,25 +402,14 @@ begin
     make_crc64_table;
 {$ENDIF}
 
-  while (len >= 8) do
+  while (len >= 4) do
   begin
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc64_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    dec(len, 8);
+    crc := crc64_table[(crc xor buf[0]) and $ff] xor (crc shr 8);
+    crc := crc64_table[(crc xor buf[1]) and $ff] xor (crc shr 8);
+    crc := crc64_table[(crc xor buf[2]) and $ff] xor (crc shr 8);
+    crc := crc64_table[(crc xor buf[3]) and $ff] xor (crc shr 8);
+    inc(buf, 4);
+    dec(len, 4);
   end;
 
   while (len > 0) do
@@ -532,7 +502,7 @@ begin
     part := i;
     for j := 0 to 7 do
     begin
-      if part and $1 <> 0 then
+      if part.lo and $1 <> 0 then
         part := (part shr 1) xor POLY128REV
       else
         part := part shr 1;
@@ -826,6 +796,9 @@ begin
 end;
 
 function crc128(crc: u128; buf: Pbyte; len: cardinal): u128;
+var
+  crclo, crchi: uint64;
+  b: pu128;
 begin
   if (buf = nil) then
     exit(INITIALCRC128);
@@ -834,36 +807,21 @@ begin
   if crc128_table_empty then
     make_crc128_table;
 {$ENDIF}
-
-  while (len >= 8) do
-  begin
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
-    inc(buf);
-    dec(len, 8);
-  end;
+  crclo := crc.lo;
+  crchi := crc.hi;
 
   while (len > 0) do
   begin
-    crc := crc128_table[(crc xor buf^) and $ff] xor (crc shr 8);
+    { crc := crc128_table[(crc.lo xor buf^) and $ff] xor (crc shr 8), inlined. }
+    b := @crc128_table[(crclo xor buf^) and $ff];
+    crclo := crclo shr 8 or uint64(crchi shl 56) xor b^.lo;
+    crchi := crchi shr 8 xor b^.hi;
     inc(buf);
     dec(len);
   end;
 
-  result := crc;
+  result.lo := crclo;
+  result.hi := crchi;
 end;
 
 end.
