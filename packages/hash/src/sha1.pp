@@ -89,11 +89,27 @@ const
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
 
-{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) and DEFINED(CPUX86_HAS_BSWAP) }
 // Use assembler version if we have a suitable CPU as well
 // Define SHA1PASCAL to force use of original reference code
-{$i sha1i386.inc}
-{$ELSE}
+{$ifndef SHA1PASCAL}
+  {$if defined(CPU386)}
+    {$if defined(CPUX86_HAS_BSWAP)}
+      {$i sha1i386.inc}
+      {$define SHA1ASM}
+    {$endif CPUX86_HAS_BSWAP}
+  {$else if defined(CPUX64)}
+    {$IFDEF MSWINDOWS}
+      // Microsoft Windows uses a different calling convention to the System V ABI
+      {$i sha1x64_win.inc}
+      {$define SHA1ASM}
+    {$ELSE}
+      {$i sha1x64_sysv.inc}
+      {$define SHA1ASM}
+    {$ENDIF MSWINDOWS}
+  {$endif}
+{$endif not SHA1PASCAL}
+
+{$if not defined(SHA1ASM)}
 // Use original version if asked for, or when we have no optimized assembler version
 procedure SHA1Transform(var ctx: TSHA1Context; Buf: Pointer);
 var
@@ -162,7 +178,7 @@ begin
 {$pop}
   Inc(ctx.Length,64);
 end;
-{$ENDIF}
+{$endif not defined(SHA1ASM)}
 
 procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
 var
