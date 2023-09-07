@@ -134,7 +134,7 @@ begin
   if BinValueBytes[0] <> 154 then halt(10);
   if BinValueBytes[1] <> 188 then halt(10);
   if BinValueBytes[2] <> 222 then halt(10);
-  if BinValueBytes[4] <> 0 then halt(10);
+  if BinValueBytes[3] <> 0 then halt(10);
 
   SetLength(BinValueBytes, HexInLen);
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
@@ -144,7 +144,7 @@ begin
   if BinValueBytes[0] <> 154 then halt(11);
   if BinValueBytes[1] <> 188 then halt(11);
   if BinValueBytes[2] <> 222 then halt(11);
-  if BinValueBytes[4] <> 0 then halt(11);
+  if BinValueBytes[3] <> 0 then halt(11);
 
   SetLength(BinValueBytes, HexInLen);
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
@@ -154,7 +154,7 @@ begin
   if BinValueBytes[0] <> 154 then halt(12);
   if BinValueBytes[1] <> 188 then halt(12);
   if BinValueBytes[2] <> 222 then halt(12);
-  if BinValueBytes[4] <> 0 then halt(12);
+  if BinValueBytes[3] <> 0 then halt(12);
 
   {* test complex offset methods *}
   // ansistring
