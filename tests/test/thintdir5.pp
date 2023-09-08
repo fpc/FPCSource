@@ -1,6 +1,6 @@
 { %FAIL }
 
-program thintdir4a;
+program thintdir5;
 
 {$mode objfpc}
 {$warn 5043 error}
