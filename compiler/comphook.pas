@@ -310,8 +310,11 @@ begin
         MsgTypeStr:=errorstr;
       if (status.verbosity and Level)=V_Fatal then
         MsgTypeStr:=fatalstr;
-      if (status.verbosity and Level)=V_Used then
+      if (status.verbosity and V_Parallel)=V_Parallel then
+        MsgTypeStr:=MsgTypeStr+'('+inputfilename+'/'+status.currentmodule+')'
+      else if (status.verbosity and Level)=V_Used then
         MsgTypeStr:=PadSpace('('+status.currentmodule+')',10);
+
     end
   else
     begin
