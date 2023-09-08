@@ -207,7 +207,105 @@ Implementation
            end;
         end;
 
+      procedure Consume_Index;
 
+        procedure Check_Scaling;
+          begin
+            { check for scaling ... }
+            case actasmtoken of
+              AS_RPAREN:
+                Begin
+                  Consume_RParen;
+                  exit;
+                end;
+              AS_COMMA:
+                Begin
+                  Consume(AS_COMMA);
+                  Consume_Scale;
+                  Consume_RParen;
+                end;
+            else
+              Begin
+                Message(asmr_e_invalid_reference_syntax);
+                RecoverConsume(false);
+              end;
+            end; { end case }
+          end;
+
+        var
+          tmp : tx86operand;
+          expr : string;
+        begin
+          if actasmtoken=AS_REGISTER then
+           Begin
+             oper.opr.ref.index:=actasmregister;
+             Consume(AS_REGISTER);
+             Check_Scaling;
+           end
+          else if actasmtoken=AS_ID then
+            begin
+              expr:=actasmpattern;
+              Consume(AS_ID);
+              tmp:=Tx86Operand.create;
+              if not tmp.SetupVar(expr,false) then
+                begin
+                  { look for special symbols ... }
+                  if expr= '__HIGH' then
+                    begin
+                      consume(AS_LPAREN);
+                      if not tmp.setupvar('high'+actasmpattern,false) then
+                        Message1(sym_e_unknown_id,'high'+actasmpattern);
+                      consume(AS_ID);
+                      consume(AS_RPAREN);
+                    end
+                  else
+                    if expr = '__SELF' then
+                      tmp.SetupSelf
+                  else
+                    begin
+                      message1(sym_e_unknown_id,expr);
+                      RecoverConsume(false);
+                      tmp.free;
+                      Exit;
+                    end;
+                end;
+              { convert OPR_LOCAL register para into a reference base }
+              if (tmp.opr.typ=OPR_LOCAL) and
+                 AsmRegisterPara(tmp.opr.localsym) then
+                begin
+                  tmp.InitRefConvertLocal;
+                  if (tmp.opr.ref.index<>NR_NO) or
+                      (tmp.opr.ref.offset<>0) or
+                      (tmp.opr.ref.scalefactor<>0) or
+                      (tmp.opr.ref.segment<>NR_NO) or
+                      (tmp.opr.ref.base=NR_NO) then
+                    begin
+                      message(asmr_e_invalid_reference_syntax);
+                      RecoverConsume(false);
+                      tmp.free;
+                      Exit;
+                    end;
+                  oper.opr.ref.index:=tmp.opr.ref.base;
+                  tmp.free;
+                  Check_Scaling;
+                end
+              else
+                begin
+                  message(asmr_e_invalid_reference_syntax);
+                  RecoverConsume(false);
+                  tmp.free;
+                  Exit;
+                end;
+            end
+          else
+           Begin
+             Message(asmr_e_invalid_reference_syntax);
+             RecoverConsume(false);
+           end;
+        end;
+
+      var
+        expr : string;
       begin
         oper.InitRef;
         Consume(AS_LPAREN);
@@ -244,7 +342,7 @@ Implementation
                 oper.opr.ref.refaddr:=addr_pic_no_got;
 {$endif x86_64}
               Consume(AS_REGISTER);
-              { can either be a register or a right parenthesis }
+              { can either be a register, an identifier or a right parenthesis }
               { (reg)        }
               if actasmtoken=AS_RPAREN then
                Begin
@@ -253,36 +351,53 @@ Implementation
                end;
               { (reg,reg ..  }
               Consume(AS_COMMA);
-              if actasmtoken=AS_REGISTER then
-               Begin
-                 oper.opr.ref.index:=actasmregister;
-                 Consume(AS_REGISTER);
-                 { check for scaling ... }
-                 case actasmtoken of
-                   AS_RPAREN:
-                     Begin
-                       Consume_RParen;
-                       exit;
-                     end;
-                   AS_COMMA:
-                     Begin
-                       Consume(AS_COMMA);
-                       Consume_Scale;
-                       Consume_RParen;
-                     end;
-                 else
-                   Begin
-                     Message(asmr_e_invalid_reference_syntax);
-                     RecoverConsume(false);
-                   end;
-                 end; { end case }
-               end
-              else
-               Begin
-                 Message(asmr_e_invalid_reference_syntax);
-                 RecoverConsume(false);
-               end;
+              Consume_Index;
             end; {end case }
+          AS_ID: { identifier (parameter, variable, ...), but only those that might be in a register }
+            begin
+              expr:=actasmpattern;
+              Consume(AS_ID);
+              if not oper.SetupVar(expr,false) then
+                begin
+                  { look for special symbols ... }
+                  if expr= '__HIGH' then
+                    begin
+                      consume(AS_LPAREN);
+                      if not oper.setupvar('high'+actasmpattern,false) then
+                        Message1(sym_e_unknown_id,'high'+actasmpattern);
+                      consume(AS_ID);
+                      consume(AS_RPAREN);
+                    end
+                  else
+                    if expr = '__SELF' then
+                      oper.SetupSelf
+                  else
+                    begin
+                      message1(sym_e_unknown_id,expr);
+                      RecoverConsume(false);
+                      Exit;
+                    end;
+                end;
+              { convert OPR_LOCAL register para into a reference base }
+              if (oper.opr.typ=OPR_LOCAL) and
+                 AsmRegisterPara(oper.opr.localsym) then
+                oper.InitRefConvertLocal
+              else
+                begin
+                  message(asmr_e_invalid_reference_syntax);
+                  RecoverConsume(false);
+                  Exit;
+                end;
+              { can either be a register, an identifier or a right parenthesis }
+              { (reg)        }
+              if actasmtoken=AS_RPAREN then
+                begin
+                  Consume_RParen;
+                  exit;
+                end;
+              Consume(AS_COMMA);
+              Consume_Index;
+            end;
           AS_COMMA: { (, ...  can either be scaling, or index }
             Begin
               Consume(AS_COMMA);
