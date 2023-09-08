@@ -400,6 +400,8 @@ implementation
                    else
                      stoptions:=[];
                    single_type(arrayelementdef,stoptions);
+                   if assigned(arrayelementdef.typesym) then
+                     check_hints(arrayelementdef.typesym,arrayelementdef.typesym.symoptions,arrayelementdef.typesym.deprecatedmsg);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -468,6 +470,9 @@ implementation
            end
           else
            hdef:=cformaltype;
+
+          if assigned(hdef.typesym) then
+            check_hints(hdef.typesym,hdef.typesym.symoptions,hdef.typesym.deprecatedmsg);
 
           { File types are only allowed for var and out parameters }
           if (hdef.typ=filedef) and
@@ -1406,6 +1411,9 @@ implementation
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
+
+            if assigned(pd.returndef.typesym) then
+              check_hints(pd.returndef.typesym,pd.returndef.typesym.symoptions,pd.returndef.typesym.deprecatedmsg);
 
             if pd.is_generic or pd.is_specialization then
               symtablestack.pop(pd.parast);
