@@ -21,7 +21,7 @@ const
 
 function IntToStr128(v: u128): RawByteString;
 begin
-  result := 'todo';
+  result := '$'+hexstr(v.hi,16)+hexstr(v.lo,16);
 end;
 
 
@@ -36,7 +36,10 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',crc,',expected=',result,')');
+    begin
+      writeln('failed (got=',crc,',expected=',result,')');
+      halt(1);
+    end;
 end;
 
 procedure perform_crc64(const name, testcase: RawByteString; result: qword);
@@ -50,7 +53,10 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',crc,',expected=',result,')');
+    begin
+      writeln('failed (got=',crc,',expected=',result,')');
+      halt(1);
+    end;
 end;
 
 procedure perform_crc128(const name, testcase: RawByteString; result: u128);
@@ -64,7 +70,10 @@ begin
   if crc=result then
     writeln('passed')
   else
-    writeln('failed (got=',IntToStr128(crc),',expected=',IntToStr128(result),')');
+    begin
+      writeln('failed (got=',IntToStr128(crc),',expected=',IntToStr128(result),')');
+      halt(1);
+    end;
 end;
 
 
