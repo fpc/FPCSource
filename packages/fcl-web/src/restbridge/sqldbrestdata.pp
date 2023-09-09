@@ -112,6 +112,9 @@ Type
     procedure SetParamFromData(P: TParam; F: TSQLDBRestField; D: TJSONData); virtual;
     function GetDataForParam(P: TParam; F: TSQLDBRestField; Sources : TVariableSources = AllVariableSources): TJSONData; virtual;
     Function GetString(aString : TRestStringProperty) : UTF8String;
+    class function DefaultGetString(aConfig: TRestStringsConfig; aString: TRestStringProperty): UTF8String;
+    class procedure DefaultParamFromStringAndType(P: TParam; S: UTF8String; aDataType: TFieldType; aStrings: TRestStringsConfig);
+      virtual;
     Property IO : TRestIO Read FRestIO;
     Property Strings : TRestStringsConfig Read FStrings;
     Property QueryClass : TSQLQueryClass Read FQueryClass;
@@ -166,10 +169,62 @@ end;
 
 function TSQLDBRestDBHandler.GetString(aString: TRestStringProperty): UTF8String;
 begin
-  if Assigned(FStrings) then
-    Result:=FStrings.GetRestString(aString)
+  DefaultGetString(FStrings, aString);
+end;
+
+class function TSQLDBRestDBHandler.DefaultGetString(aConfig : TRestStringsConfig; aString: TRestStringProperty): UTF8String;
+begin
+  if Assigned(aConfig) then
+    Result:=aConfig.GetRestString(aString)
   else
     Result:=TRestStringsConfig.GetDefaultString(aString);
+end;
+
+class procedure TSQLDBRestDBHandler.DefaultParamFromStringAndType(P: TParam; S: UTF8String; aDataType: TFieldType; aStrings : TRestStringsConfig);
+
+var
+  F : Double;
+  C : Integer;
+
+begin
+  Case aDataType of
+
+    ftFmtMemo,
+    ftFixedChar,
+    ftFixedWideChar,
+    ftWideMemo,
+    ftMemo,
+    ftString : P.AsString:=S;
+
+    ftSmallint : P.AsSmallInt:=StrToInt(S);
+    ftInteger : P.AsInteger:=StrToInt(S);
+    ftWord : P.AsWord:=StrToInt(S);
+    ftLargeint : P.AsLargeInt:=StrToInt64(S);
+    ftWideString : P.AsUnicodeString:=UTF8Decode(S);
+    ftBoolean : P.AsBoolean:=StrToBool(S);
+    ftFloat,
+    ftCurrency,
+    ftFMTBcd,
+    ftBCD :
+      begin
+      Val(S,F,C);
+      if C=0 then
+        P.AsFloat:=F
+      else
+        Raise EConvertError.Create('Invalid float value : '+S);
+      end;
+    ftDate : P.AsDateTime:=ScanDateTime(DefaultGetString(aStrings, rpDateFormat),S);
+    ftTime : P.AsDateTime:=ScanDateTime(DefaultGetString(aStrings, rpDateFormat),S);
+    ftTimeStamp,
+    ftDateTime : P.AsDateTime:=ScanDateTime(DefaultGetString(aStrings, rpDateTimeFormat),S);
+    ftVariant : P.Value:=S;
+    ftBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftVarBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftBlob : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
+    ftGUID : P.AsString:=S;
+  else
+    Raise EConvertError.CreateFmt('Unsupported data type: %s',[GetEnumName(TypeInfo(TFieldType),Ord(aDataType))]);
+  end;
 end;
 
 
@@ -404,7 +459,7 @@ begin
     if (vs<>vsNone) then
       Result:=TJSONString.Create(S)
     else if (vsContent in Sources) then
-      Result:=IO.RESTInput.GetContentField(N);
+      Result:=IO.GetContentField(N);
     end;
   If (Result=Nil) then
     begin
@@ -415,7 +470,7 @@ begin
     if (vs<>vsNone) then
       Result:=TJSONString.Create(S)
     else if (vsContent in Sources) then
-      Result:=IO.RESTInput.GetContentField(N)
+      Result:=IO.GetContentField(N)
     else if vsParam in Sources then
       begin
       RP:=FResource.Parameters.Find(N);
@@ -427,49 +482,8 @@ end;
 
 procedure TSQLDBRestDBHandler.SetParamFromStringAndType(P : TParam; S : UTF8String; aDataType: TFieldType);
 
-var
-  F : Double;
-  C : Integer;
-
 begin
-  Case aDataType of
-
-    ftFmtMemo,
-    ftFixedChar,
-    ftFixedWideChar,
-    ftWideMemo,
-    ftMemo,
-    ftString : P.AsString:=S;
-
-    ftSmallint : P.AsSmallInt:=StrToInt(S);
-    ftInteger : P.AsInteger:=StrToInt(S);
-    ftWord : P.AsWord:=StrToInt(S);
-    ftLargeint : P.AsLargeInt:=StrToInt64(S);
-    ftWideString : P.AsUnicodeString:=UTF8Decode(S);
-    ftBoolean : P.AsBoolean:=StrToBool(S);
-    ftFloat,
-    ftCurrency,
-    ftFMTBcd,
-    ftBCD :
-      begin
-      Val(S,F,C);
-      if C=0 then
-        P.AsFloat:=F
-      else
-        Raise EConvertError.Create('Invalid float value : '+S);
-      end;
-    ftDate : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),S);
-    ftTime : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),S);
-    ftTimeStamp,
-    ftDateTime : P.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),S);
-    ftVariant : P.Value:=S;
-    ftBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
-    ftVarBytes : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
-    ftBlob : P.AsBytes:=TENcoding.UTF8.GetAnsiBytes(S);
-    ftGUID : P.AsString:=S;
-  else
-    Raise EConvertError.CreateFmt('Unsupported data type: %s',[GetEnumName(TypeInfo(TFieldType),Ord(aDataType))]);
-  end;
+  DefaultParamFromStringAndType(P,S,aDataType,FStrings);
 end;
 
 procedure TSQLDBRestDBHandler.SetParamFromData(P: TParam; F: TSQLDBRestField;
@@ -880,7 +894,7 @@ begin
         if (RF.GeneratorName<>'')  then // Only when doing POST
           D:=TJSONInt64Number.Create(GetGeneratorValue(RF.GeneratorName))
         else
-          D:=IO.RESTInput.GetContentField(RF.PublicName);
+          D:=IO.GetContentField(RF.PublicName);
         end
       else if IO.GetVariable(FData.Name,V,[vsContent,vsQuery])<>vsNone then
         D:=TJSONString.Create(V);
@@ -944,7 +958,7 @@ begin
         if (F.GeneratorName<>'') and (Old=Nil) then // Only when doing POST
           D:=TJSONInt64Number.Create(GetGeneratorValue(F.GeneratorName))
         else
-          D:=IO.RESTInput.GetContentField(F.PublicName);
+          D:=IO.GetContentField(F.PublicName);
         end
       else if IO.GetVariable(P.Name,V,[vsContent,vsQuery])<>vsNone then
         D:=TJSONString.Create(V);
