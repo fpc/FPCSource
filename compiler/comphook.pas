@@ -311,7 +311,14 @@ begin
       if (status.verbosity and Level)=V_Fatal then
         MsgTypeStr:=fatalstr;
       if (status.verbosity and V_Parallel)=V_Parallel then
-        MsgTypeStr:=MsgTypeStr+'('+inputfilename+'/'+status.currentmodule+')'
+        begin
+          if (inputfilename<>'') and (status.currentmodule<>'') then
+            MsgTypeStr:=MsgTypeStr+'('+inputfilename+'/'+status.currentmodule+')'
+          else if (status.currentmodule<>'') then
+            MsgTypeStr:=MsgTypeStr+'('+status.currentmodule+')'
+          else if (inputfilename<>'') then
+            MsgTypeStr:=MsgTypeStr+'('+inputfilename+')';
+        end
       else if (status.verbosity and Level)=V_Used then
         MsgTypeStr:=PadSpace('('+status.currentmodule+')',10);
 

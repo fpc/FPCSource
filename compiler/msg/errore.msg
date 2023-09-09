@@ -4361,18 +4361,33 @@ W*2Twasi_The WebAssembly System Interface (WASI)
 **2Ur_Generate release unit files (never automatically recompiled)
 **2Us_Compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_0 : Show nothing (except errors) p : Write tree.log with parse tree
-**2*_a : Show everything              q : Show message numbers
-**2*_b : Write file names messages    r : Rhide/GCC compatibility mode
-**2*_    with full path               s : Show time stamps
-**2*_c : Show conditionals            t : Show tried/used files
-**2*_d : Show debug info              u : Show unit info
-**2*_e : Show errors (default)        v : Write fpcdebug.txt with
-**2*_h : Show hints                       lots of debugging info
-**2*_i : Show general info            w : Show warnings
-**2*_l : Show linenumbers             x : Show info about invoked tools
+**2*_0 : Show nothing (except errors)
+**2*_a : Show everything
+**2*_b : Write file names messages with full path
+**2*_c : Show conditionals
+**2*_d : Show debug info
+**2*_e : Show errors (default)
+#**2*_f : Not used yet
+#**2*_g : Not used yet
+**2*_h : Show hints
+**2*_i : Show general info
+**2*_j : Always add main source (useful when run in parallel make)
+#**2*_k : Not used yet
+**2*_l : Show linenumbers
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
-**2*_n : Show notes                   z : Write output to stderr
+**2*_n : Show notes
+#**2*_o : Not used yet
+**2*_p : Write tree.log with parse tree
+**2*_q : Show message numbers
+**2*_r : Rhide/GCC compatibility mode
+**2*_s : Show time stamps
+**2*_t : Show tried/used files
+**2*_u : Show unit info
+**2*_v : Write fpcdebug.txt with lots of debugging info
+**2*_w : Show warnings
+**2*_x : Show info about invoked tools
+#**2*_y : Not used yet
+**2*_z : Write output to stderr
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
 3*2WA_Specify native type application (Windows)

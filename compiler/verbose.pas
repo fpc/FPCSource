@@ -327,6 +327,10 @@ implementation
                          status.verbosity:=status.verbosity and (not V_Info)
                        else
                          status.verbosity:=status.verbosity or V_Info;
+                 'J' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Parallel)
+                       else
+                         status.verbosity:=status.verbosity or V_Parallel;
                  'L' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Status)
                        else
