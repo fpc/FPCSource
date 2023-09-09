@@ -124,6 +124,33 @@ interface
        nroftrashvalues = 4;
        trashintvalues: array[0..nroftrashvalues-1] of int64 = ($5555555555555555,$AAAAAAAAAAAAAAAA,$EFEFEFEFEFEFEFEF,0);
 
+{ Verbosity constants }
+Const
+  { Levels }
+  V_None         = $0;
+  V_Fatal        = $1;
+  V_Error        = $2;
+  V_Normal       = $4; { doesn't show a text like Error: }
+  V_Warning      = $8;
+  V_Note         = $10;
+  V_Hint         = $20;
+  V_LineInfoMask = $fff;
+  { From here by default no line info }
+  V_Info         = $1000;
+  V_Status       = $2000;
+  V_Used         = $4000;
+  V_Tried        = $8000;
+  V_Conditional  = $10000;
+  V_Debug        = $20000;
+  V_Executable   = $40000;
+  V_TimeStamps   = $80000;
+  V_Parallel     = $100000;
+  V_LevelMask    = $fffffff;
+  V_All          = V_LevelMask;
+  V_Default      = V_Fatal + V_Error + V_Normal;
+  { Flags }
+  V_LineInfo     = $10000000;
+
 
     type
        { this is written to ppus during token recording for generics,
