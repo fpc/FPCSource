@@ -155,6 +155,8 @@ implementation
       cpuinfo,
       ppu;
 
+const
+    swap_relation: array [ltn..unequaln] of Tnodetype=(gtn, gten, ltn, lten, equaln, unequaln);
 
 {*****************************************************************************
                                 TADDNODE
@@ -480,37 +482,70 @@ implementation
           result:=true;
         end;
 
-      function IsLengthZero(n1,n2 : tnode) : Boolean;
-        begin
-          result:=is_inlinefunction(n1,in_length_x) and is_constintvalue(n2,0) and not(is_shortstring(tinlinenode(n1).left.resultdef));
-        end;
 
-
-      function TransformLengthZero(n1,n2 : tnode) : tnode;
+      function TryHandleLengthZero(L,R : tnode; op : tnodetype; var resn : tnode) : boolean;
         var
-          len : Tconstexprint;
-          lentype : tdef;
+          swapn : tnode;
         begin
-          if is_dynamic_array(tinlinenode(n1).left.resultdef) then
-            len:=-1
-          else
-            len:=0;
-          if is_widestring(tinlinenode(n1).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
-            lentype:=u32inttype
-          else
-            lentype:=sizesinttype;
-          result:=caddnode.create_internal(orn,
-            caddnode.create_internal(equaln,ctypeconvnode.create_internal(tinlinenode(n1).left.getcopy,voidpointertype),
-                cpointerconstnode.create(0,voidpointertype)),
-              caddnode.create_internal(equaln,
-                ctypeconvnode.create_internal(
-                  cderefnode.create(
-                    caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(n1).left.getcopy,voidpointertype),
-                      cordconstnode.create(lentype.size,lentype,false))
-                  ),lentype
-                ),
-              cordconstnode.create(len,lentype,false))
-            );
+          result:=false;
+          { Attempt to handle Length(S) = 0, <> 0, > 0, < 0, >= 0, <= 0. }
+          if not (op in [equaln,unequaln,ltn,lten,gtn,gten]) then
+            exit;
+          if not is_inlinefunction(L,in_length_x) then
+            if is_inlinefunction(R,in_length_x) then
+              begin
+                op:=swap_relation[op];
+                swapn:=L;
+                L:=R;
+                R:=swapn;
+              end
+            else
+              exit;
+          if not is_constintvalue(R,0) or is_shortstring(tinlinenode(L).left.resultdef) then
+            exit;
+
+          { Length = 0, <> 0, > 0, <= 0 are reduced to Length = 0. }
+          if op in [equaln,unequaln,gtn,lten] then
+            begin
+              { “pointer(L.left) = nil”. Steal L.left instead of getcopy, zero a bit later. }
+              resn:=caddnode.create_internal(equaln,ctypeconvnode.create_internal(tinlinenode(L).left,voidpointertype),
+                 cpointerconstnode.create(0,voidpointertype));
+
+              { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
+              if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
+                { Expand to “(pointer(L.left) = nil) or (PUint32(L.left)[-1] = 0)”. }
+                resn:=caddnode.create_internal(orn,
+                    resn,
+                    caddnode.create_internal(equaln,
+                      ctypeconvnode.create_internal(
+                        cderefnode.create(
+                          caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype),
+                            cordconstnode.create(sizeof(uint32),ptruinttype,false))
+                        ),u32inttype
+                      ),
+                    cordconstnode.create(0,u32inttype,false))
+                  );
+              tinlinenode(L).left:=nil; { Was stolen inside resn, and no longer of interest. }
+
+              { resn now checks for Length = 0. For Length <> 0, invert. }
+              if op in [unequaln,gtn] then
+                resn:=cnotnode.create(resn);
+              exit(true);
+            end;
+
+          { Warn on Length < 0 and Length >= 0. }
+          if not (tnf_pass1_done in L.transientflags) then { ...Only once. }
+            if op=gten then
+              Message(type_w_comparison_always_true)
+            else
+              Message(type_w_comparison_always_false);
+
+          { Length < 0 is always false, Length >= 0 is always true. }
+          if not might_have_sideeffects(tinlinenode(L).left) then { Could somehow remove the check but keep the F() even in Length(F()) >= 0... }
+            begin
+              resn:=cordconstnode.create(ord(op=gten),resultdef,true);
+              exit(true);
+            end;
         end;
 
 
@@ -1733,8 +1768,8 @@ implementation
                     end;
                   end
 {$ifndef jvm}
-                else if (nodetype=equaln) and MatchAndTransformNodesCommutative(left,right,@IsLengthZero,@TransformLengthZero,Result) then
-                   exit
+                else if TryHandleLengthZero(left,right,nodetype,Result) then
+                  exit
 {$endif jvm}
                    ;
               end;
@@ -3404,8 +3439,6 @@ implementation
 
 
     function taddnode.first_addstring: tnode;
-      const
-        swap_relation: array [ltn..unequaln] of Tnodetype=(gtn, gten, ltn, lten, equaln, unequaln);
       var
         p: tnode;
         newstatement : tstatementnode;
