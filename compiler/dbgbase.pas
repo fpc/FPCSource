@@ -103,6 +103,7 @@ implementation
 
     uses
       cutils,
+      globals,
       verbose,
       cgbase;
 

@@ -41,6 +41,7 @@ implementation
 
 uses
   Compiler,Comphook,
+  globals,
   sysutils,
 {$ifndef NODEBUG}
   FPDebug,
