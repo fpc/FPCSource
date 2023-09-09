@@ -74,6 +74,7 @@ Type
     Procedure AddToFreeList(aData : TJSONData);
     // The result of this function will be freed.
     function DoGetInputData(const aName: UTF8string): TJSONData; virtual; abstract;
+    Procedure DoSetInputData(aName: UTF8string; aValue: TJSONData); virtual; abstract;
     Function GetConnection : TSQLConnection; virtual; abstract;
     Function GetTransaction : TSQLTransaction; virtual; abstract;
     Function GetUpdateData : TDataset; virtual; abstract;
@@ -83,6 +84,8 @@ Type
     Function GetVariable(Const aName : UTF8String; aSources : TVariableSources; Out aValue : UTF8String) : Boolean; virtual; abstract;
     // Get data from input data. Do not free the result !
     Function GetInputData(aName : UTF8string) : TJSONData;
+    // Set data from input data. Do not free the result !
+    Procedure SetInputData(aName : UTF8string; aValue : TJSONData);
     // This will be set when calling.
     Property UserID : UTF8String Read FUserID Write FUserID;
     // You can attach data to this if you want to. It will be kept for the duration of the request.
@@ -94,6 +97,9 @@ Type
     Property Transaction : TSQLTransaction Read GetTransaction;
     // Updated data after PUT/POST/PATCH
     Property UpdatedData : TDataset Read GetUpdateData;
+    // Property access to input data. You can set this as well in before update handlers.
+    // The value you set will be set
+    Property InputData[aName : UTF8String] : TJSONData Read GetInputData Write SetInputData;
   end;
 
   { ESQLDBRest }
@@ -588,6 +594,11 @@ begin
   // Don't burden the user with freeing this.
   if Assigned(Result) then
     AddToFreeList(Result);
+end;
+
+procedure TBaseRestContext.SetInputData(aName: UTF8string; aValue: TJSONData);
+begin
+  DoSetInputData(aName,aValue);
 end;
 
 { TSQLDBRestCustomBusinessProcessor }
