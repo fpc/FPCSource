@@ -169,7 +169,7 @@ end;
 
 function TSQLDBRestDBHandler.GetString(aString: TRestStringProperty): UTF8String;
 begin
-  DefaultGetString(FStrings, aString);
+  Result:=DefaultGetString(FStrings, aString);
 end;
 
 class function TSQLDBRestDBHandler.DefaultGetString(aConfig : TRestStringsConfig; aString: TRestStringProperty): UTF8String;
@@ -790,7 +790,7 @@ begin
     Q.UsePrimaryKeyAsKey:=False;
     FillParams(roGet,Q.Params,WhereFilterList);
     if Not SpecialResource then
-      IO.Resource.CheckParams(IO.RestContext,roPost,Q.Params);
+      IO.Resource.CheckParams(IO.RestContext,roGet,Q.Params);
     Result:=Q;
   except
     Q.Free;

@@ -121,7 +121,9 @@ Var
   D : TJSONData;
 
 begin
-  D:=(FJSON as TJSONObject).Find(aName);
+  D:=Nil;
+  if Assigned(FJSON) then
+    D:=(FJSON as TJSONObject).Find(aName);
   if D<>nil then
     Result:=D.Clone
   else
