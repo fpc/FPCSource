@@ -144,12 +144,12 @@ Const
   V_Debug        = $20000;
   V_Executable   = $40000;
   V_TimeStamps   = $80000;
-  V_Parallel     = $100000;
-  V_LevelMask    = $fffffff;
+  V_LevelMask    = $ffffff;
   V_All          = V_LevelMask;
   V_Default      = V_Fatal + V_Error + V_Normal;
   { Flags }
   V_LineInfo     = $10000000;
+  V_Parallel     = $20000000;
 
 
     type
