@@ -311,7 +311,7 @@ unit cpupara;
 
            This is not required for iOS, where the result is zero/sign extended.
          }
-         if (target_info.abi<>abi_aarch64_darwin) and
+         if (target_info.system<>system_aarch64_ios) and
             (side=callerside) and (result.location^.loc = LOC_REGISTER) and
             (result.def.size<8) and is_ordinal(result.def) then
            begin
