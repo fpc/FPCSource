@@ -300,6 +300,19 @@ end;
 
 {$ifndef FPC_HAS_ANSISTR_CONCAT_MULTI}
 {$define FPC_HAS_ANSISTR_CONCAT_MULTI}
+procedure AnsiStr_Concat_multi_complex(var DestS:RawByteString;const sarr:array of RawByteString;cp:TSystemCodePage);
+var
+  i : ObjpasInt;
+  U : UnicodeString;
+begin
+  U:='';
+  for i:=0 to high(sarr) do
+    if (Length(sarr[i])<>0) then
+      U:=U+UnicodeString(sarr[i]);
+  DestS:='';
+  widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,cp,Length(U));
+end;
+
 procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
   lowstart,
@@ -309,16 +322,9 @@ Var
   Size,NewLen,
   OldDestLen  : SizeInt;
   destcopy    : pointer;
-  U           : UnicodeString;
   DestCP,
   tmpCP       : TSystemCodePage;
-  sameCP      : Boolean;
 begin
-  if high(sarr)=0 then
-    begin
-      DestS:='';
-      exit;
-    end;
 {$ifdef FPC_HAS_CPSTRING}
   DestCP:=cp;
   if DestCp=CP_NONE then
@@ -337,7 +343,6 @@ begin
       exit;
     end;
   DestCP:=TranslatePlaceholderCP(DestCP);
-  sameCP:=true;
   tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
   for i:=lowstart+1 to high(sarr) do
     begin
@@ -346,20 +351,9 @@ begin
       if (length(sarr[i])<>0) and
          (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
         begin
-          sameCP:=false;
-          break;
+          AnsiStr_Concat_multi_complex(DestS,sarr,DestCP);
+          exit;
         end;
-    end;
-  if not sameCP then
-    begin
-      U:='';
-      for i:=lowstart to high(sarr) do
-        if (Length(sarr[i])<>0) then
-          U:=U+UnicodeString(sarr[i]);
-
-      DestS:='';
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(U)),DestS,DestCP,Length(U));
-      exit;
     end;
 {$ifdef FPC_HAS_CPSTRING}
   { if the result is rawbytestring and all strings have the same code page,
@@ -367,6 +361,20 @@ begin
   if cp=CP_NONE then
     DestCP:=tmpCP;
 {$endif FPC_HAS_CPSTRING}
+  { Calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=lowstart to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  { In the case of the only nonempty string, either return it directly (if SetCodePage has nothing to do) or skip 1 allocation. }
+  if NewLen=length(sarr[lowstart]) then
+    begin
+      DestS:=sarr[lowstart];
+      { SetCodePage does the conversion (or at least uniquifying) if DestCP is not exactly the code page stored in the string header. Avoid if possible. }
+      if DestCP<>tmpCP then
+        SetCodePage(DestS,DestCP,True);
+      exit;
+    end;
   destcopy:=nil;
   nonemptystart:=lowstart;
   { Check for another reuse, then we can't use
@@ -394,11 +402,6 @@ begin
   if lowstart=nonemptystart then
     DestS:='';
   OldDestLen:=length(DestS);
-  { Calculate size of the result so we can do
-    a single call to SetLength() }
-  NewLen:=0;
-  for i:=nonemptystart to high(sarr) do
-    inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
   { Concat all strings, except the string we already
     copied in DestS }
@@ -406,12 +409,9 @@ begin
   for i:=lowstart to high(sarr) do
     begin
       p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(ansistring(p));
-          Move(p^,pc^,Size+1);
-          inc(pc,size);
-        end;
+      Size:=length(ansistring(p));
+      Move(p^,pc^,Size);
+      inc(pc,size);
     end;
   SetCodePage(DestS,tmpCP,False);
   SetCodePage(DestS,DestCP,True);

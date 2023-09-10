@@ -501,20 +501,35 @@ end;
 {$define FPC_HAS_UNICODESTR_CONCAT_MULTI}
 procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
 Var
-  i           : Longint;
+  i           : SizeInt;
   p,pc        : pointer;
   Size,NewLen : SizeInt;
-  lowstart    : longint;
+  lowstart,nonemptystart : SizeInt;
   destcopy    : pointer;
   OldDestLen  : SizeInt;
 begin
-  if high(sarr)=0 then
+  lowstart:=low(sarr);
+  { skip empty strings }
+  while (lowstart<=high(sarr)) and (sarr[lowstart]='') do
+    inc(lowstart);
+  if lowstart>high(sarr) then
     begin
-      DestS:='';
+      DestS:=''; { All source strings empty }
+      exit;
+    end;
+  { Calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=lowstart to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  { In the case of the only nonempty string, return it directly. }
+  if NewLen=length(sarr[lowstart]) then
+    begin
+      DestS:=sarr[lowstart];
       exit;
     end;
   destcopy:=nil;
-  lowstart:=low(sarr);
+  nonemptystart:=lowstart;
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
     inc(lowstart);
   { Check for another reuse, then we can't use
@@ -530,20 +545,15 @@ begin
             this optimization is disabled for WINLIKEUNICODESTRING }
           destcopy:=pointer(dests);
           fpc_UnicodeStr_Incr_Ref(destcopy);
-          lowstart:=low(sarr);
+          lowstart:=nonemptystart;
           break;
         end;
     end;
   { Start with empty DestS if we start with concatting
     the first array element }
-  if lowstart=low(sarr) then
+  if lowstart=nonemptystart then
     DestS:='';
   OldDestLen:=length(DestS);
-  { Calculate size of the result so we can do
-    a single call to SetLength() }
-  NewLen:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
   { Concat all strings, except the string we already
     copied in DestS }
@@ -551,12 +561,9 @@ begin
   for i:=lowstart to high(sarr) do
     begin
       p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(unicodestring(p));
-          Move(p^,pc^,(Size+1)*sizeof(UnicodeChar));
-          inc(pc,size*sizeof(UnicodeChar));
-        end;
+      Size:=length(unicodestring(p));
+      Move(p^,pc^,Size*sizeof(UnicodeChar));
+      inc(pc,size*sizeof(UnicodeChar));
     end;
   fpc_UnicodeStr_Decr_Ref(destcopy);
 end;
