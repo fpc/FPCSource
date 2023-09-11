@@ -5,10 +5,10 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc uuchar objpas iso7185 strings charset cpall \
+units=system si_prc uuchar objpas $(ISO7185UNIT) strings charset cpall \
       getopts exeinfo heaptrc
 #uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
-#      math $(MACPASUNIT) iso7185 extpas rtlconsts typinfo cpu types \
+#      math $(MACPASUNIT) $(ISO7185UNIT) extpas rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \
 #      charset cpall ctypes \
@@ -93,10 +93,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(INC)/genstr.inc $(INC)/genstrs.inc \
                    system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
-	$(EXECPPAS)
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 	$(EXECPPAS)
 
 extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

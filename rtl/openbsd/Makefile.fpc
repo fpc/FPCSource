@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar objpas $(MACPASUNIT) iso7185 extpas strings syscall baseunix \
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) extpas strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils sortbase fgl classes typinfo math \
@@ -238,13 +238,6 @@ cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUE
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
 character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
-
-#
-# ISO-Pascal Model
-#
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 
 #
 # Extended Pascal Model

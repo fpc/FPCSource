@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 #loaders=prt0
-units=$(SYSTEMUNIT) heaptrc uuchar objpas $(MACPASUNIT) iso7185 extpas buildrtl cpall
+units=$(SYSTEMUNIT) heaptrc uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) extpas buildrtl cpall
 implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) $(SYSUTILSUNIT) \
                $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
                $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \
@@ -99,9 +99,6 @@ uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 
 extpas$(PPUEXT) : $(INC)/extpas.pp buildrtl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
