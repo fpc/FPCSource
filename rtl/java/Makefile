@@ -894,7 +894,7 @@ CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
 endif
 FPC_SYSTEM_OPT=@rtl.cfg
 ifeq ($(CPU_OS_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas jdk15
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar $(OBJPASUNIT) jdk15
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),jvm-java)
@@ -2819,4 +2819,4 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas
+jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) jdk15.inc jdk15.pas

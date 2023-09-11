@@ -895,7 +895,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_UNITS+=system uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings go32 dpmiexcp initc ports profile dxetype dxeload emu387 dos cmem sortbase sysutils classes math typinfo cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl msmouse charset cpall character fpwidestring unicodedata types sysconst rtlconst softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=system uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings go32 dpmiexcp initc ports profile dxetype dxeload emu387 dos cmem sortbase sysutils classes math typinfo cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl msmouse charset cpall character fpwidestring unicodedata types sysconst rtlconst softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
@@ -2855,9 +2855,6 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
 	$(EXECPPAS)
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-	$(EXECPPAS)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   system$(PPUEXT)
@@ -2893,29 +2890,29 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	$(COMPILER) dos.pp
 	$(EXECPPAS)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
+		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT) sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) \
 		   sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp $(OBJPASUNIT)$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 	$(EXECPPAS)
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 	$(EXECPPAS)
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
@@ -2948,7 +2945,7 @@ matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
 	$(EXECPPAS)
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
