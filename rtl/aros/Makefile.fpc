@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) heaptrc uuchar objpas $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
-implicitunits=$(SYSINITUNITS) athreads fpintres $(DOSUNIT) \
+implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) \
       $(CTYPESUNIT)  $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(TYPESUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
       $(CHARSETUNIT) $(GETOPTSUNIT)  \

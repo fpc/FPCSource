@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=$(SYSTEMUNIT) uuchar $(FPINTRESUNIT) ctypes objpas macpas $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(CPU_UNITS)  heaptrc $(LINEINFOUNIT) \
       $(WINDOWSUNIT) $(MESSAGESUNIT) $(DYNLIBSUNIT) \
       $(DOSUNIT) \

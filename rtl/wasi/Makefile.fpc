@@ -40,7 +40,7 @@ PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 SYSINIT_UNITS=si_prc si_dll
-RESUNIT=fpintres
+RESUNIT=$(FPINTRESUNIT)
 # Paths
 OBJPASDIR=$(RTL)/objpas
 # Insert exception handler in system unit
