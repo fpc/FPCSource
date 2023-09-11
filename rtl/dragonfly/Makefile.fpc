@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) extpas \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       strings syscall sysctl baseunix unixutil character \
       unix rtlconsts initc cmem  \
       dl termio \
@@ -201,13 +201,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
 character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/character.pas
-
-#
-# Extended Pascal Model
-#
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units

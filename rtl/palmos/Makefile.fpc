@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) si_prc uuchar objpas $(ISO7185UNIT) strings \
        charset cpall \
        sysconst \
        systraps pilot
-#units=$(SYSTEMUNIT) uuchar ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) extpas strings \
+#units=$(SYSTEMUNIT) uuchar ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings \
 #      lnfodwrf lineinfo heaptrc \
 #      windows messages dynlibs \
 #      dos objects \
@@ -119,9 +119,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-#extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) $(INC)/extpas.pp
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
