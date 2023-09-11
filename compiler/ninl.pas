@@ -492,9 +492,11 @@ implementation
           internalerror(2012032102);
 
         def:=ttypenode(left).typedef;
-        if df_generic in current_procinfo.procdef.defoptions then
+        if assigned(current_procinfo) and
+           (df_generic in current_procinfo.procdef.defoptions) then
           begin
-            { don't allow as a default parameter value }
+            { don't allow as a default parameter value, because it may not be valid
+              when specialising }
             if block_type<>bt_const then
               result:=cpointerconstnode.create(0,def)
             else
