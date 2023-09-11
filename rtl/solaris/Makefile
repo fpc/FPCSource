@@ -601,6 +601,7 @@ UNIXUNIT=UnixApi.Unix
 UNIXCPUNIT=UnixApi.CP
 UNIXTYPEUNIT=UnixApi.Types
 UNIXUTILUNIT=UnixApi.Utils
+UUCHARUNIT=uuchar
 VIOCALLSUNIT=OS2Api.viocalls
 WASIAPIUNIT=WASIApi.WASIApi
 WASIUTILUNIT=WASIApi.WASIUtil
@@ -848,6 +849,7 @@ UNIXUNIT=unix
 UNIXCPUNIT=unixcp
 UNIXTYPEUNIT=unixtype
 UNIXUTILUNIT=unixutil
+UUCHARUNIT=uuchar
 VIOCALLSUNIT=viocalls
 WASIAPIUNIT=wasiapi
 WASIUTILUNIT=wasiutil
@@ -899,13 +901,13 @@ endif
 override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc lineinfo lnfodwrf baseunix unixutil unixcp termio unix initc cmem sysutils typinfo math sortbase fgl classes charset cpall getopts errors dl dynlibs types sysconst character rtlconsts cthreads dos fpwidestring cwstring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),i386-solaris)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -2853,8 +2855,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-	$(COMPILER) $(INC)/uuchar.pp
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
