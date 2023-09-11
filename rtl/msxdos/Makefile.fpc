@@ -5,9 +5,9 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc uuchar $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall \
+units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall \
       getopts exeinfo heaptrc
-#uuchar $(OBJPASUNIT) strings dos heaptrc lnfodwrf sysconst sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) strings dos heaptrc lnfodwrf sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \

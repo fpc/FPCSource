@@ -8,7 +8,7 @@ main=rtl
 [target]
 # $(MACPASUNIT) and $(ISO7185UNIT) units rely on sysutils unit, not yet handled here
 # $(EXTPASUNIT) unit relies on dos unit, not yet handled
-units=$(SYSTEMUNIT) $(ISO7185UNIT) $(EXTPASUNIT) uuchar $(OBJPASUNIT) $(MACPASUNIT) \
+units=$(SYSTEMUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) \
       $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(RTLCONSTSUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(FGLUNIT) $(CPU_UNITS) \
       $(DOSUNIT) $(TYPEINFOUNIT) $(TYPESUNIT) $(SORTBASEUNIT) $(CLASSESUNIT) buildrtl
