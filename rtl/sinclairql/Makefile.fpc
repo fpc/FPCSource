@@ -80,9 +80,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) qdos.inc qdosh.inc qdosfuncs.inc sms.inc
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
 
-#heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-#        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
-
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

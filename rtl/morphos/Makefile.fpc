@@ -91,9 +91,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
-
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
