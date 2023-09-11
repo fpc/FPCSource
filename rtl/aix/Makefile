@@ -899,10 +899,10 @@ endif
 override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas $(MACPASUNIT) heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas $(MACPASUNIT) heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) heaptrc baseunix unixutil termio unix initc cmem lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -2250,7 +2250,7 @@ MACPAS_DEPS=$(INC)/macpas.pp \
 	    $(MACPAS_DEPS_OS)  $(MACPAS_DEPS_CPU)
 macpas$(PPUEXT) : $(MACPAS_DEPS)
 	$(COMPILER) $(MACPAS_OPT) $<
-ISO7185_DEPS= $(INC)/$(ISO7185UNIT).pp \
+ISO7185_DEPS= $(INC)/iso7185.pp \
 	      $(SYSTEMUNIT)$(PPUEXT) \
 	      $(ISO7185_DEPS_OS) $(ISO7185_DEPS_CPU)
 iso7185$(PPUEXT) : $(ISO7185_DEPS)
@@ -2904,10 +2904,6 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/iso7185.pp
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/extpas.pp
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/errors.pp
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

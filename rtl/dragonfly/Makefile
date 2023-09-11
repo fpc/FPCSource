@@ -897,7 +897,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas $(MACPASUNIT) iso7185 extpas strings syscall sysctl baseunix unixutil character unix rtlconsts initc cmem  dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd console  sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl baseunix unixutil character unix rtlconsts initc cmem  dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd console  sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -2263,7 +2263,7 @@ MACPAS_DEPS=$(INC)/macpas.pp \
 	    $(MACPAS_DEPS_OS)  $(MACPAS_DEPS_CPU)
 macpas$(PPUEXT) : $(MACPAS_DEPS)
 	$(COMPILER) $(MACPAS_OPT) $<
-ISO7185_DEPS= $(INC)/$(ISO7185UNIT).pp \
+ISO7185_DEPS= $(INC)/iso7185.pp \
 	      $(SYSTEMUNIT)$(PPUEXT) \
 	      $(ISO7185_DEPS_OS) $(ISO7185_DEPS_CPU)
 iso7185$(PPUEXT) : $(ISO7185_DEPS)
@@ -2900,10 +2900,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/iso7185.pp
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
-	$(COMPILER) $(INC)/extpas.pp $(REDIR)
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
 ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
