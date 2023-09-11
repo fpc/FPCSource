@@ -2893,8 +2893,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
-fpintres$(PPUEXT): $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
