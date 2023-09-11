@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil unixcp \
       termio unix initc cmem \
@@ -48,7 +48,7 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(COMMON)
 [lib]
 libname=libfprtl.so
 libversion=2.0.0
-libunits=$(SYSTEMUNIT) objpas strings \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos \
       sysutils typinfo math \
@@ -145,7 +145,7 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
 
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixcp.pp
 
 #
@@ -165,7 +165,7 @@ dos$(PPUEXT) : strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.i
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
@@ -173,26 +173,26 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp $(OBJPASUNIT)$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 
 #
@@ -200,10 +200,10 @@ character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT)
 #
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) objpas$(PPUEXT)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 endif
 
@@ -222,7 +222,7 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) s
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
 
-charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
+charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
@@ -257,7 +257,7 @@ cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUE
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
 
-fpcylix$(PPUEXT) :  fpcylix.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT)
+fpcylix$(PPUEXT) :  fpcylix.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) fpcylix.pp
 
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)

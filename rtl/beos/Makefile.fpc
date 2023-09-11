@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system uuchar $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+units=system uuchar $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(ERRORSUNIT) $(DOSUNIT) $(DLUNIT) $(CTHREADSUNIIT) \ 
       $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
       $(TYPESUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(TYPINFOUNIT)  $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT) $(MATHUNIT) \
@@ -44,7 +44,7 @@ targetdir=.
 [lib]
 libname=libfprtl.so
 libversion=2.0.0
-libunits=$(SYSTEMUNIT) objpas strings \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos crt  \
       sysutils typinfo math \

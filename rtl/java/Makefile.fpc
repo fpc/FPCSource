@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar objpas jdk15
+units=$(SYSTEMUNIT) uuchar $(OBJPASUNIT) jdk15
 
 [require]
 nortl=y
@@ -81,5 +81,5 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas
+jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) jdk15.inc jdk15.pas
 

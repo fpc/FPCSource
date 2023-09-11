@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=$(SYSTEMUNIT)  \
-      uuchar $(CTYPESUNIT) $(STRINGSUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
+      uuchar $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       heaptrc $(LNFODWRFUNIT) \
       $(CPUUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT)  \

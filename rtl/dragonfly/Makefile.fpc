@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
-units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       strings syscall sysctl baseunix unixutil character \
       unix rtlconsts initc cmem  \
       dl termio \
@@ -48,7 +48,7 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(COMMON)
 [lib]
 libname=libfprtl.so
 libversion=2.0.0
-libunits=$(SYSTEMUNIT) objpas strings \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos  \
       sysutils typinfo math \
@@ -153,7 +153,7 @@ bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $
 
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
+unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixcp.pp
         
 #
@@ -169,7 +169,7 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
@@ -179,23 +179,23 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp $(OBJPASUNIT)$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconsts$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 # let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 #
@@ -241,7 +241,7 @@ sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) s
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 

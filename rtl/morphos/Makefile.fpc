@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 #loaders=prt0
-units=$(SYSTEMUNIT) heaptrc uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl cpall
+units=$(SYSTEMUNIT) heaptrc uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl cpall
 implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) $(SYSUTILSUNIT) \
                $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
                $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \
@@ -97,9 +97,9 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/uuchar.pp
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 

@@ -12,7 +12,7 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas $(ISO7185UNIT) $(EXTPASUNIT) $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
+units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
 # $(MACPASUNIT) $(ISO7185UNIT) strings
        $(STRINGSUNIT) \
        $(SORTBASEUNIT) \
@@ -304,7 +304,7 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(CONSOLEIO_DEPS_OS) $(CONSOLEIO_DEPS_CPU)
 
 consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
@@ -313,7 +313,7 @@ consoleio$(PPUEXT) : $(CONSOLEIO_DEPS)
 EmbeddedApi.ConsoleIO$(PPUEXT) : $(NSOSDIR)/EmbeddedApi.ConsoleIO.pp $(CONSOLEIO_DEPS)
 	$(COMPILER) $(CONSOLEIO_OPT) -Fi. $<
 
-HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+HEAPMGR_DEPS= heapmgr.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(HEAPMGR_DEPS_OS) $(HEAPMGR_DEPS_CPU)
 
 heapmgr$(PPUEXT) : $(HEAPMGR_DEPS)
@@ -371,7 +371,7 @@ avrsim$(PPUEXT): $(ARCH)/avrsim.pp $(HEAPMGRUNIT)$(PPUEXT) $(CONSOLEIOUNIT)$(PPU
 # i386 specific units
 
 
-MULTIBOOT_DEPS = $(ARCH)/multiboot.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+MULTIBOOT_DEPS = $(ARCH)/multiboot.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(MULTIBOOT_DEPS_OS) $(MULTIBOOT_DEPS_CPU)
 
 multiboot$(PPUEXT) : $(MULTIBOOT_DEPS)
@@ -385,7 +385,7 @@ EmbeddedApi.multiboot$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.multiboot.pp $(M
 #raspi2$(PPUEXT): $(ARCH)/raspi2.pp $(CONSOLEIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #	$(COMPILER) $(ARCH)/raspi2.pp
 
-RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+RASPI2_DEPS = $(ARCH)/raspi2.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(RASPI2_DEPS_OS) $(RASPI2_DEPS_CPU)
 
 raspi2$(PPUEXT) : $(RASPI2_DEPS)
@@ -398,7 +398,7 @@ EmbeddedApi.Raspi2$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.Raspi2.pp $(RASPI2_
 
 # gpio unit
 #
-GPIO_DEPS = $(ARCH)/gpio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+GPIO_DEPS = $(ARCH)/gpio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(GPIO_DEPS_OS) $(GPIO_DEPS_CPU)
 
 gpio$(PPUEXT) : $(GPIO_DEPS)
@@ -409,7 +409,7 @@ EmbeddedApi.gpio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.gpio.pp $(GPIO_DEPS)
 
 #mmio$(PPUEXT): $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT)
 #	$(COMPILER) $(ARCH)/mailbox.pp
-MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+MMIO_DEPS = $(ARCH)/mmio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
         $(MMIO_DEPS_OS) $(MMIO_DEPS_CPU)
 
 mmio$(PPUEXT) : $(MMIO_DEPS)
@@ -421,7 +421,7 @@ EmbeddedApi.mmio$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mmio.pp $(MMIO_DEPS)
 #mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #	$(COMPILER) $(ARCH)/mailbox.pp
 
-MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
+MAILBOX_DEPS = $(ARCH)/mailbox.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
         $(MAILBOX_DEPS_OS) $(MAILBOX_DEPS_CPU)
 
 mailbox$(PPUEXT) : $(MAILBOX_DEPS)
@@ -433,7 +433,7 @@ EmbeddedApi.mailbox$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.mailbox.pp $(MAILB
 #raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #	$(COMPILER) $(ARCH)/raspiuart.pp
 
-RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+RASPIUART_DEPS = $(ARCH)/raspiuart.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 	$(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) $(MMIOUNIT)$(PPUEXT) \
         $(RASPIUART_DEPS_OS) $(RASPIUART_DEPS_CPU)
 
@@ -446,7 +446,7 @@ EmbeddedApi.raspiuart$(PPUEXT) : $(NSOSDIR)/$(ARCH)/EmbeddedApi.raspiuart.pp $(R
 #raspi3$(PPUEXT): $(ARCH)/raspi3.pp $(CONSOLEIOUNIT)$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #	$(COMPILER) $(ARCH)/raspi3.pp
 
-RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) \
+RASPI3_DEPS = $(ARCH)/raspi3.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 	$(CONSOLEIOUNIT)$(PPUEXT) $(MAILBOXUNIT)$(PPUEXT) $(GPIOUNIT)$(PPUEXT) \
 	$(MMIOUNIT)$(PPUEXT) $(RASPIUARTUNIT)$(PPUEXT)  \
         $(RASPI3_DEPS_OS) $(RASPI3_DEPS_CPU)

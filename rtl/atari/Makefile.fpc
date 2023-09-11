@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) fpextres uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLUNIT)
+units=$(SYSTEMUNIT) fpextres uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLUNIT)
 implicitunits=si_prc $(DOSUNIT) $(SYSUTILSUNIT) \
       $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(SORTBASEUNIT)  $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(FPWIDESTRINGUNIT) \
@@ -76,6 +76,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
