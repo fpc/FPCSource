@@ -9,7 +9,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos cmem sortbase \
       sysutils classes math typinfo \
-      cpu mmx getopts heaptrc lineinfo lnfodwrf ctypes fgl \
+      cpu mmx getopts $(HEAPTRCUNIT) lineinfo lnfodwrf ctypes fgl \
       msmouse charset cpall \
       character fpwidestring unicodedata \
       types sysconst rtlconst \

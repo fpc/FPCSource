@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) heaptrc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
+units=$(SYSTEMUNIT) $(HEAPTRCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
 implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) \
       $(CTYPESUNIT)  $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(TYPESUNIT) \
       $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) \
@@ -98,6 +98,6 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 #
 
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(HEAPTRCUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

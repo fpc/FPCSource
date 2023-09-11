@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=$(SYSTEMUNIT)  \
       $(UUCHARUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
-      heaptrc $(LNFODWRFUNIT) \
+      $(HEAPTRCUNIT) $(LNFODWRFUNIT) \
       $(CPUUNIT) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT)  \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \

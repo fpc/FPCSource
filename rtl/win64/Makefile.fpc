@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(WINDOWSUNIT) $(SYSUTILSUNIT) buildrtl $(CHARSETUNIT) $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
-implicitunits=sysinit $(EXTPASUNIT) heaptrc $(FPINTRESUNIT) \
+implicitunits=sysinit $(EXTPASUNIT) $(HEAPTRCUNIT) $(FPINTRESUNIT) \
       $(CTYPESUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) $(MESSAGESUNIT) \
       $(CMEMUNIT) $(DYNLIBSUNIT) \
