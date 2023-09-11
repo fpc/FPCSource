@@ -90,10 +90,6 @@ uuchar$(PPUEXT): system$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
 	$(EXECPPAS)
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-	$(EXECPPAS)
-
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(INC)/genstr.inc $(INC)/genstrs.inc \
