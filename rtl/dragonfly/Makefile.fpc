@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       unix rtlconsts initc cmem  \
       dl termio \
       sysutils math typinfo types sortbase classes fgl dynlibs \
-      $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo \
+      $(CPU_UNITS) charset cpall getopts $(HEAPTRCUNIT) lnfodwrf lineinfo \
       errors bsd \
       console  \
       sysconst cthreads dos cwstring \
@@ -52,7 +52,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos  \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts heaptrc \
+      $(CPU_UNITS) getopts $(HEAPTRCUNIT) \
       errors dynlibs
 
 [prerules]

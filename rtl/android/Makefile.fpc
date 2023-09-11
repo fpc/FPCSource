@@ -9,7 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
-      $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
+      $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
       types  sysconst cthreads sortbase classes fgl  \

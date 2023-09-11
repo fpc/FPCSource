@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes strings $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
-      heaptrc \
+      $(HEAPTRCUNIT) \
       baseunix unixutil \
       termio unix initc cmem \
       lnfogdb \
@@ -52,7 +52,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos crt   \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts heaptrc \
+      $(CPU_UNITS) getopts $(HEAPTRCUNIT) \
       errors sockets
 
 [prerules]

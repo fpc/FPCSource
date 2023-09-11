@@ -9,7 +9,7 @@ main=rtl
 loaders=cprt0 crti crtn
 units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects strings \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc lineinfo posix
+      cpu mmx getopts $(HEAPTRCUNIT) lineinfo posix
 rsts=math typinfo
 
 [require]
