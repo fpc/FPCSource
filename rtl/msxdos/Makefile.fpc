@@ -159,13 +159,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(EXECPPAS)
 
 #
-# Mac Pascal Model
-#
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-	$(EXECPPAS)
-
-#
 # Other system-independent RTL Units
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
