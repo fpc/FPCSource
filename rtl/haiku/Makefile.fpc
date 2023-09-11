@@ -9,7 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 rsts=$(MATHUNIT) $(TYPINFOUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT)
 units=$(SYSTEMUNIT) $(FPINTRESUNIT) $(SYSINIT_UNITS) \
-      uuchar $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(UNIXUTILUNIT) \
+      uuchar $(UNIXTYPEUNIT) $(CTYPESUNIT) $(BASEUNIXUNIT) $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(UNIXUTILUNIT) \
       heaptrc $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(TERMIOUNIT) $(UNIXUNIT) $(INITCUNIT) $(CMEMUNIT) $(CPU_UNITS) \
       $(SYSUTILSUNIT) $(TYPINFOUNIT) $(MATHUNIT)   \
@@ -45,7 +45,7 @@ targetdir=.
 [lib]
 libname=libfprtl.so
 libversion=2.0.0
-libunits=$(SYSTEMUNIT) objpas strings \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
       unix  \
       dos \
       sysutils typinfo math \
@@ -73,7 +73,7 @@ CPU_UNITS=cpu
 endif
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)
-CPU_DEP_CPUS=$(SYSUTILSUNIT)$(PPUEXT) objpas$(PPUEXT)
+CPU_DEP_CPUS=$(SYSUTILSUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 endif
 
 # Use new feature from 1.0.5 version

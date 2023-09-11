@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(RESUNIT) heaptrc uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
+units=$(SYSTEMUNIT) $(RESUNIT) heaptrc uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
 implicitunits=$(SYSINITUNITS) $(EXEUNITS) athreads $(DOSUNIT) $(SYSUTILSUNIT) $(SYSCONSTUNIT) \
       $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(SORTBASEUNIT)  $(FGLUNIT) $(CLASSESUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(FPWIDESTRINGUNIT) \
@@ -102,7 +102,7 @@ endif
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(CPU_TARGET) -Fu$(PROCINC) -Fu$(AMIINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) $(BUILDRTL_OPT) buildrtl
 
 $(RESUNIT)$(PPUEXT) : $(INC)/$(RESUNIT).pp $(SYSTEMUNIT)$(PPUEXT)

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) $(WINDOWSUNIT) $(SYSUTILSUNIT) buildrtl $(CHARSETUNIT) $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
+units=system uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(WINDOWSUNIT) $(SYSUTILSUNIT) buildrtl $(CHARSETUNIT) $(CPALLUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)
 implicitunits=sysinit $(EXTPASUNIT) heaptrc $(FPINTRESUNIT) \
       $(CTYPESUNIT) $(STRINGSUNIT) \
       $(DOSUNIT) $(MESSAGESUNIT) \
@@ -123,7 +123,7 @@ endif
 # Unit specific rules
 #
 
-BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) $(WINDOWSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
+BUILDRTL_DEPS=buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(WINDOWSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
               $(BUILDRTL_DEPS_OS) $(BUILDRTL_DEPS_CPU)
 
 buildrtl$(PPUEXT) : $(BUILDRTL_DEPS)
