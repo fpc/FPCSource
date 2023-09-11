@@ -6,9 +6,9 @@
 main=rtl
 
 [target]
-# macpas and iso7185 units rely on sysutils unit, not yet handled here
+# $(MACPASUNIT) and iso7185 units rely on sysutils unit, not yet handled here
 # extpas unit relies on dos unit, not yet handled
-units=$(SYSTEMUNIT) iso7185 extpas uuchar objpas macpas \
+units=$(SYSTEMUNIT) iso7185 extpas uuchar objpas $(MACPASUNIT) \
       $(SYSCONSTUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(RTLCONSTSUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(FGLUNIT) $(CPU_UNITS) \
       $(DOSUNIT) $(TYPEINFOUNIT) $(TYPESUNIT) $(SORTBASEUNIT) $(CLASSESUNIT) buildrtl
@@ -82,6 +82,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System Units (System, Objpas, Strings)
 #
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) # macpas$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) # $(MACPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(INC) -I$(SYMBIANINC) -I$(UIQINC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 

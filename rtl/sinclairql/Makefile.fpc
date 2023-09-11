@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) uuchar objpas iso7185 buildrtl cpall
-# extpas macpas
+# extpas $(MACPASUNIT)
 implicitunits=si_prc \
       ctypes rtlconsts strings \
       sortbase charset fpwidestring \

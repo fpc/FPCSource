@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) fpextres uuchar objpas macpas iso7185 buildrtl $(CPALLUNIT)
+units=$(SYSTEMUNIT) fpextres uuchar objpas $(MACPASUNIT) iso7185 buildrtl $(CPALLUNIT)
 implicitunits=si_prc $(DOSUNIT) $(SYSUTILSUNIT) \
       $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(MATHUNIT) $(TYPESUNIT) \
       $(TYPINFOUNIT) $(SORTBASEUNIT)  $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(FPWIDESTRINGUNIT) \

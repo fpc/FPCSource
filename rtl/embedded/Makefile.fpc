@@ -13,7 +13,7 @@ loaders=$(LOADERS)
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
 units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 extpas $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
-# macpas iso7185 strings
+# $(MACPASUNIT) iso7185 strings
        $(STRINGSUNIT) \
        $(SORTBASEUNIT) \
        $(DOSUNIT) \
@@ -223,7 +223,7 @@ endif
 endif
 
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),rv32ec)
 override FPCOPT+=-Cprv32ec
 CPU_UNITS=CH32VxBootstrap

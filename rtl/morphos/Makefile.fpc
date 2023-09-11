@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 #loaders=prt0
-units=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas buildrtl cpall
+units=$(SYSTEMUNIT) heaptrc uuchar objpas $(MACPASUNIT) iso7185 extpas buildrtl cpall
 implicitunits=$(SYSINITUNITS) athreads $(FPINTRESUNIT) $(DOSUNIT) $(SYSUTILSUNIT) \
                $(CTYPESUNIT) $(STRINGSUNIT) $(RTLCONSTSUNIT) $(SYSCONSTUNIT) $(MATHUNIT) $(TYPESUNIT) \
                $(TYPINFOUNIT) $(SORTBASEUNIT) $(FGLUNIT) $(CLASSESUNIT) $(CHARSETUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) \

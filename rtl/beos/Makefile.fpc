@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system uuchar $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) objpas macpas iso7185 extpas $(STRINGSUNIT) \
+units=system uuchar $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) objpas $(MACPASUNIT) iso7185 extpas $(STRINGSUNIT) \
       $(ERRORSUNIT) $(DOSUNIT) $(DLUNIT) $(CTHREADSUNIIT) \ 
       $(SYSCONSTUNIT) $(SYSUTILSUNIT) \
       $(TYPESUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(TYPINFOUNIT)  $(SORTBASEUNIT) $(CLASSESUNIT) $(FGLUNIT) $(MATHUNIT) \
