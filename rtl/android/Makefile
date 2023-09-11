@@ -902,22 +902,22 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil $(FPINTRESUNIT) $(HEAPTRCUNIT) lineinfo lnfodwrf termio unix linux initc cmem linuxvcs sysutils typinfo math charset cpall character getopts errors dl dynlibs types  sysconst cthreads sortbase classes fgl  rtlconsts dos cwstring fpcylix unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),i386-android)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -3060,8 +3060,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -Sg $(INC)/heaptrc.pp
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
