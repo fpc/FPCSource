@@ -12,7 +12,7 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas $(ISO7185UNIT) $(EXTPASUNIT) heapmgr consoleio  $(CPU_SPECIFIC_COMMON_UNITS) \
+units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) objpas $(ISO7185UNIT) $(EXTPASUNIT) heapmgr consoleio  $(CPU_SPECIFIC_COMMON_UNITS) \
 # $(MACPASUNIT) $(ISO7185UNIT) strings
        $(STRINGSUNIT) \
        $(SORTBASEUNIT) \

@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall baseunix \
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils sortbase fgl classes typinfo math \
