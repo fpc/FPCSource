@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas macpas \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas $(MACPASUNIT) \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil unixcp \
       termio unix initc cmem \

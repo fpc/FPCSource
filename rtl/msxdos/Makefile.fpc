@@ -8,7 +8,7 @@ main=rtl
 units=system si_prc uuchar objpas iso7185 strings charset cpall \
       getopts exeinfo heaptrc
 #uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
-#      math macpas iso7185 extpas rtlconsts typinfo cpu types \
+#      math $(MACPASUNIT) iso7185 extpas rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \
 #      charset cpall ctypes \

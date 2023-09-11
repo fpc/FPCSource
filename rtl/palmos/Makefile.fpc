@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) si_prc uuchar objpas iso7185 strings \
        charset cpall \
        sysconst \
        systraps pilot
-#units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
+#units=$(SYSTEMUNIT) uuchar ctypes objpas $(MACPASUNIT) iso7185 extpas strings \
 #      lnfodwrf lineinfo heaptrc \
 #      windows messages dynlibs \
 #      dos objects \

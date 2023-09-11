@@ -8,7 +8,7 @@ main=rtl
 # disabled units: serial
 [target]
 loaders=
-units=$(SYSTEMUNIT) sysinit uuchar $(UNIXTYPEUNIT) $(CTYPESUNIT) objpas macpas $(ISO7185UNIT) extpas \
+units=$(SYSTEMUNIT) sysinit uuchar $(UNIXTYPEUNIT) $(CTYPESUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) extpas \
       $(STRINGSUNIT) $(SYSCTLUNIT) $(BASEUNIXUNIT) $(UNIXUTILUNIT) \
       $(UNIXUNIT) $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) $(CPU_UNITS) \
       $(DOSUNIT) $(DLUNIT) $(BLOCKRTLUNIT) \
