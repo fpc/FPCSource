@@ -182,10 +182,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
 	$(EXECPPAS)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-	$(COMPILER) -Sg $(INC)/heaptrc.pp
-	$(EXECPPAS)
-
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
 	$(EXECPPAS)

@@ -153,10 +153,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
 	$(EXECPPAS)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
-	$(EXECPPAS)
-
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
