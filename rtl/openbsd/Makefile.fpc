@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc uuchar objpas macpas iso7185 extpas s
       charset cpall character getopts heaptrc lineinfo lnfodwrf \
       errors \
       types sysctl sysconst \
-      fpintres dynlibs cwstring cmem dl termio \
+      $(FPINTRESUNIT) dynlibs cwstring cmem dl termio \
       cthreads unixcp fpwidestring \
       softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 

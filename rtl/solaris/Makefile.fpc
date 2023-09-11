@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 extpas macpas 
       types sysconst character \
       rtlconsts cthreads \
       dos fpwidestring \
-      cwstring fpintres $(CPU_UNITS) \
+      cwstring $(FPINTRESUNIT) $(CPU_UNITS) \
       softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 
 implicitunits=exeinfo \
