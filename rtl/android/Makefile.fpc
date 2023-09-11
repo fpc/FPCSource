@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      uuchar unixtype ctypes baseunix strings objpas $(MACPASUNIT) $(ISO7185UNIT) extpas syscall unixutil \
+      uuchar unixtype ctypes baseunix strings objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
       $(FPINTRESUNIT) heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
@@ -253,9 +253,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas $(ISO7185UNIT) extpas $(MACPASUNIT) \
+units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       heaptrc \
       baseunix unixutil \
       termio unix initc cmem \
@@ -228,9 +228,6 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
 
 #
 # Other system-dependent RTL Units

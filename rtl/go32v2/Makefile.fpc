@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0 exceptn fpu
-units=system uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) extpas strings \
+units=system uuchar objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos cmem sortbase \
       sysutils classes math typinfo \
@@ -93,10 +93,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
 	$(EXECPPAS)
-
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/extpas.pp
-        $(EXECPPAS)
 
 #
 # System Dependent Units
