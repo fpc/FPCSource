@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) uuchar objpas iso7185 buildrtl cpall
+units=$(SYSTEMUNIT) uuchar objpas $(ISO7185UNIT) buildrtl cpall
 # extpas $(MACPASUNIT)
 implicitunits=si_prc \
       ctypes rtlconsts strings \
@@ -88,9 +88,6 @@ uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 
 extpas$(PPUEXT) : $(INC)/extpas.pp buildrtl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp

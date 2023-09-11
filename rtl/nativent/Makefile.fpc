@@ -7,8 +7,8 @@ main=rtl
 
 [target]
 loaders=
-#units=system objpas $(MACPASUNIT) iso7185 extpas buildrtl lineinfo lnfodwrf
-units=system uuchar objpas iso7185 extpas cpall buildrtl
+#units=system objpas $(MACPASUNIT) $(ISO7185UNIT) extpas buildrtl lineinfo lnfodwrf
+units=system uuchar objpas $(ISO7185UNIT) extpas cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
@@ -115,9 +115,6 @@ uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-
-iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 
 extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
