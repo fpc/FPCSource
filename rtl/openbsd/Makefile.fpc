@@ -155,9 +155,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp
 
-fpintres$(PPUEXT): $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
 #
 # System Dependent Units
 #
