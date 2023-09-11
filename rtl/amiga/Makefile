@@ -895,7 +895,7 @@ RESUNIT=fpextres
 endif
 ifeq ($(ARCH),powerpc)
 override LOADERS=
-RESUNIT=fpintres
+RESUNIT=$(FPINTRESUNIT)
 SYSINITUNITS=si_prc
 EXEUNITS=lineinfo exeinfo
 endif
