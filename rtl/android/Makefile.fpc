@@ -223,13 +223,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 #
-# Mac Pascal Model
-#
-
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
-#
 # Other $(SYSTEMUNIT)-independent RTL Units
 #
 
