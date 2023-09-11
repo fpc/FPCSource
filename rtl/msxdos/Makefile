@@ -894,7 +894,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),z80-msxdos)
-override TARGET_UNITS+=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall getopts exeinfo heaptrc
+override TARGET_UNITS+=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall getopts exeinfo $(HEAPTRCUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),z80-msxdos)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
@@ -2865,9 +2865,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(EXECPPAS)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-	$(COMPILER) -Sg $(INC)/heaptrc.pp
 	$(EXECPPAS)
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
