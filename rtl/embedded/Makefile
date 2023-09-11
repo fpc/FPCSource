@@ -1037,7 +1037,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),rv32ec)
 override FPCOPT+=-Cprv32ec
 CPU_UNITS=CH32VxBootstrap

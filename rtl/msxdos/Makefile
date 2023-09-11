@@ -2870,9 +2870,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/macpas.pp $(REDIR)
-	$(EXECPPAS)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
