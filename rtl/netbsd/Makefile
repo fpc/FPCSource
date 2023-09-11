@@ -601,6 +601,7 @@ UNIXUNIT=UnixApi.Unix
 UNIXCPUNIT=UnixApi.CP
 UNIXTYPEUNIT=UnixApi.Types
 UNIXUTILUNIT=UnixApi.Utils
+UUCHARUNIT=uuchar
 VIOCALLSUNIT=OS2Api.viocalls
 WASIAPIUNIT=WASIApi.WASIApi
 WASIUTILUNIT=WASIApi.WASIUtil
@@ -848,6 +849,7 @@ UNIXUNIT=unix
 UNIXCPUNIT=unixcp
 UNIXTYPEUNIT=unixtype
 UNIXUTILUNIT=unixutil
+UUCHARUNIT=uuchar
 VIOCALLSUNIT=viocalls
 WASIAPIUNIT=wasiapi
 WASIUTILUNIT=wasiutil
@@ -900,22 +902,22 @@ ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
 endif
 ifeq ($(CPU_OS_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),arm-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings syscall sysctl  baseunix unixutil character unix rtlconsts initc cmem dl termio sysutils math typinfo types sortbase classes fgl dynlibs $(CPU_UNITS) charset cpall getopts heaptrc lnfodwrf lineinfo errors bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) unixcp fpwidestring softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 endif
 ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -2950,8 +2952,6 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
-uuchar$(PPUEXT):  $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
