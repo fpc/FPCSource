@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       $(HEAPTRCUNIT) \
       baseunix unixutil \
       termio unix initc$(CMEMUNIT)\
-      lnfogdb \
+      $(LNFOGDBUNIT) \
       sysutils typinfo math sortbase fgl classes \
       charset cpall character unixcp getopts \
       errors \
@@ -205,9 +205,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-
-lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/lnfogdb.pp
 
 charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
