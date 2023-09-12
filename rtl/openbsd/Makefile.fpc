@@ -19,7 +19,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       types sysctl sysconst \
       $(FPINTRESUNIT) dynlibs cwstring cmem dl termio \
       cthreads unixcp fpwidestring \
-      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+      $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
 rsts=math typinfo classes sysconst
 implicitunits=exeinfo \
