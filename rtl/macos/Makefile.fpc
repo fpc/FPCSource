@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(STRINGSUNIT)  $(MACPASUNIT) $(OBJPASUNIT) $(
       $(MATHUNIT) $(UFLOAT128UNIT) $(UFLOATX80UNIT)  $(SFPU128UNIT) $(SFPUX80UNIT) $(SOFTFPUUNIT)   
 #      exec  \
 #      printer \
-#      lineinfo lnfodwrf
+#      $(LINEINFOUNIT) lnfodwrf
 rsts=$(MATHUNIT) $(SYSCONSTUNIT)
 # implicitunits=exeinfo
 implicitunits=$(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \

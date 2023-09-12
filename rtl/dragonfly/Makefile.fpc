@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       unix rtlconsts initc cmem  \
       dl termio \
       sysutils math typinfo types sortbase classes fgl dynlibs \
-      $(CPU_UNITS) charset cpall getopts $(HEAPTRCUNIT) lnfodwrf lineinfo \
+      $(CPU_UNITS) charset cpall getopts $(HEAPTRCUNIT) lnfodwrf $(LINEINFOUNIT) \
       errors bsd \
       console  \
       sysconst cthreads dos cwstring \
@@ -212,7 +212,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) $(LINEINFOUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
