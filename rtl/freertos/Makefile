@@ -450,7 +450,7 @@ DXETYPEUNIT=DOSApi.Dxetype
 DYNLIBSUNIT=System.DynLibs
 EMU387UNIT=DOSApi.EMU387
 EMXUNIT=DOSApi.EMX
-ERRORSUNIT=System.Errors
+ERRORSUNIT=UnixApi.Errors
 ESP32UNIT=System.Esp32
 ESP8266UNIT=System.Esp8266
 ESP8266RTOS_30300UNIT=System.Esp8266rtos_30300
@@ -615,8 +615,6 @@ WINSYSUTUNIT=WinApi.WinSysUt
 WINTYPESUNIT=WinApi.WinTypes
 X86UNIT=System.X86
 XMC4500UNIT=EmbeddedApi.xmc4500
-EXEINFOUNIT=System.ExeInfo
-ERRORSUNIT=UnixApi.Errors
 else
 AIOUNIT=aio
 ALLWINNER_A20UNIT=allwinner_a20
@@ -903,7 +901,7 @@ CPU_SPECIFIC_COMMON_UNITS=
 DOSDIR=.
 DOS_DEPS_OS=objpas$(PPUEXT)
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=stm32f103xe cortexm3 cortexm4 # thumb2_bare
 CPU_UNITS_DEFINED=1
@@ -1003,7 +1001,7 @@ endif
 endif
 endif
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 CPU_UNITS=multiboot
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1011,13 +1009,13 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),x86_64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 endif
 ifeq ($(ARCH),m68k)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math
 endif
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 ifeq ($(SUBARCH),pic32mx)
 CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 CPU_UNITS_DEFINED=1
@@ -1027,7 +1025,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 ifeq ($(SUBARCH),rv32imc)
 override FPCOPT+=-Cprv32imc
 CPU_UNITS=esp32c3 esp32c3idf_50000
@@ -1038,7 +1036,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 CPU_UNITS=
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1046,7 +1044,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),xtensa)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts lineinfo
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
 ifeq ($(SUBARCH),lx6)
 CPU_UNITS=esp32 espidf_40100 espidf_40200 espidf_40400
 CPU_UNITS_DEFINED=1
@@ -2513,6 +2511,7 @@ ufloat128$(PPUEXT) : $(UFLOAT128_DEPS)
 System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
 STRINGS_DEPS=$(INC)/strings.pp $(INC)/stringsi.inc $(PROCINC)/stringss.inc $(PROCINC)/strings.inc \
+	     $(INC)/genstr.inc $(INC)/genstrs.inc $(INC)/cgenstr.inc \
 	     $(SYSTEMUNIT)$(PPUEXT)  \
 	     $(STRINGS_DEPS_OS)
 strings$(PPUEXT) : $(STRINGS_DEPS)
