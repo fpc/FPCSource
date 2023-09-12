@@ -44,7 +44,7 @@ targetdir=.
 [lib]
 libname=libfprtl.so
 libversion=2.0.0
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos crt  \
       sysutils typinfo math \

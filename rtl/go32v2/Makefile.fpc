@@ -5,7 +5,7 @@
 main=rtl
 [target]
 loaders=prt0 exceptn fpu
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) strings \
+units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos cmem sortbase \
       sysutils classes math typinfo \
@@ -78,12 +78,6 @@ prt0$(OEXT) : v2prt0.as
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-		   system$(PPUEXT)
-	$(COMPILER) $(INC)/strings.pp
 	$(EXECPPAS)
 
 #

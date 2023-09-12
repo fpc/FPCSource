@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=cprt0 crti crtn
-units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects strings \
+units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
       sysutils typinfo math \
       cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=math typinfo
@@ -89,11 +89,6 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   system$(PPUEXT)
-
 
 #
 # TP7 Compatible RTL Units
