@@ -153,10 +153,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
 	$(EXECPPAS)
 
-exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(INC)/exeinfo.pp
-	$(EXECPPAS)
-
 charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
 	$(EXECPPAS)
