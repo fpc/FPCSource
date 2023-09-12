@@ -5,9 +5,9 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall \
+units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) charset cpall \
       getopts $(EXEINFOUNIT) $(HEAPTRCUNIT)
-#$(UUCHARUNIT) $(OBJPASUNIT) strings dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \
@@ -78,13 +78,6 @@ endif
 #
 system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
-	$(EXECPPAS)
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(INC)/genstr.inc $(INC)/genstrs.inc \
-                   system$(PPUEXT)
-	$(COMPILER) $(INC)/strings.pp
 	$(EXECPPAS)
 
 #

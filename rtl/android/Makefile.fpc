@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      $(UUCHARUNIT) unixtype ctypes baseunix strings $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
+      $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
@@ -42,7 +42,7 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(ARCH) $(COMMON) $(LINUXINC)
 targetdir=.
 
 [shared]
-libunits=$(SYSTEMUNIT) $(OBJPASUNIT) strings dos \
+libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
       unix baseunix unixtype unixutil \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
@@ -132,11 +132,6 @@ dllprt0$(OEXT) : dllprt0.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
-
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/strings.pp
 
 #
 # $(SYSTEMUNIT) Dependent Units

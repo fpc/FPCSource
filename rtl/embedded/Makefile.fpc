@@ -13,7 +13,7 @@ loaders=$(LOADERS)
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
 units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(HEAPMGRUNIT) $(CONSOLEIOUNIT) $(CPU_SPECIFIC_COMMON_UNITS) \
-# $(MACPASUNIT) $(ISO7185UNIT) strings
+# $(MACPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT)
        $(STRINGSUNIT) \
        $(SORTBASEUNIT) \
        $(DOSUNIT) \
@@ -300,7 +300,7 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
 
 #
-# Base Units (System, strings, os-dependent-base-unit)
+# Base Units (System, $(STRINGSUNIT), os-dependent-base-unit)
 #
 
 CONSOLEIO_DEPS= consoleio.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
