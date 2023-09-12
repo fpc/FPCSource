@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-#units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) lnfodwrf
+#units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
