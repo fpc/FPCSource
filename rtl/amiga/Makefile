@@ -451,7 +451,7 @@ DXETYPEUNIT=DOSApi.Dxetype
 DYNLIBSUNIT=System.DynLibs
 EMU387UNIT=DOSApi.EMU387
 EMXUNIT=DOSApi.EMX
-ERRORSUNIT=System.Errors
+ERRORSUNIT=UnixApi.Errors
 ESP32UNIT=System.Esp32
 ESP8266UNIT=System.Esp8266
 ESP8266RTOS_30300UNIT=System.Esp8266rtos_30300
@@ -616,8 +616,6 @@ WINSYSUTUNIT=WinApi.WinSysUt
 WINTYPESUNIT=WinApi.WinTypes
 X86UNIT=System.X86
 XMC4500UNIT=EmbeddedApi.xmc4500
-EXEINFOUNIT=System.ExeInfo
-ERRORSUNIT=UnixApi.Errors
 else
 AIOUNIT=aio
 ALLWINNER_A20UNIT=allwinner_a20
@@ -901,7 +899,7 @@ ifeq ($(ARCH),powerpc)
 override LOADERS=
 RESUNIT=$(FPINTRESUNIT)
 SYSINITUNITS=si_prc
-EXEUNITS=lineinfo exeinfo
+EXEUNITS=$(LINEINFOUNIT) $(EXEINFOUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),m68k-amiga)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(RESUNIT) $(HEAPTRCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(CPALLUNIT)
@@ -2347,6 +2345,7 @@ ufloat128$(PPUEXT) : $(UFLOAT128_DEPS)
 System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 	$(COMPILER) $(UFLOAT128_OPT) $<
 STRINGS_DEPS=$(INC)/strings.pp $(INC)/stringsi.inc $(PROCINC)/stringss.inc $(PROCINC)/strings.inc \
+	     $(INC)/genstr.inc $(INC)/genstrs.inc $(INC)/cgenstr.inc \
 	     $(SYSTEMUNIT)$(PPUEXT)  \
 	     $(STRINGS_DEPS_OS)
 strings$(PPUEXT) : $(STRINGS_DEPS)
