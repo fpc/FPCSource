@@ -7,7 +7,7 @@ main=rtl
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) strings charset cpall \
       getopts exeinfo $(HEAPTRCUNIT)
-#$(UUCHARUNIT) $(OBJPASUNIT) strings dos $(HEAPTRCUNIT) lnfodwrf sysconst sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) strings dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \
@@ -151,10 +151,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
 
 exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)

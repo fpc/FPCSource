@@ -9,7 +9,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos cmem sortbase \
       sysutils classes math typinfo \
-      cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) lnfodwrf ctypes fgl \
+      cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes fgl \
       msmouse charset cpall \
       character fpwidestring unicodedata \
       types sysconst rtlconst \
@@ -180,10 +180,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-	$(EXECPPAS)
-
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)

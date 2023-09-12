@@ -70,7 +70,7 @@ EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
 CPALL_DEPS_OS=buildrtl$(PPUEXT)
 # exeinfo unit is inside buildrtl
 # so add a dependency on buildrtl
-# for $(LINEINFOUNIT) and lnfodwrf units
+# for $(LINEINFOUNIT) and $(LNFODWRFUNIT) units
 # which depend on exeinfo
 LINEINFO_DEPS_OS=buildrtl$(PPUEXT)
 LNFODWRF_DEPS_OS=buildrtl$(PPUEXT)
