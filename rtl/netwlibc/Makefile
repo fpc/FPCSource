@@ -891,7 +891,7 @@ CREATESMART=1
 OBJPASDIR=$(RTL)/objpas
 override BINUTILSPREFIX=$(CPU_TARGET)-netware-
 ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) nwsnut libc dos sysconst initc sysutils types typinfo sortbase fgl classes cpu mmx getopts charset cpall rtlconsts math dynlibs cmem ctypes $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) nwsnut libc dos sysconst initc sysutils types typinfo sortbase fgl classes cpu mmx getopts charset cpall rtlconsts math dynlibs$(CMEMUNIT)ctypes $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 endif
 ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 override TARGET_IMPLICITUNITS+=$(EXEINFOUNIT) cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
@@ -2888,7 +2888,6 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
