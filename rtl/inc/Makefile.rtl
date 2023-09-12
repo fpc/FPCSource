@@ -800,6 +800,7 @@ System.UFloat128$(PPUEXT) : $(NSINC)/System.UFloat128.pp $(UFLOAT128_DEPS)
 #
 
 STRINGS_DEPS=$(INC)/strings.pp $(INC)/stringsi.inc $(PROCINC)/stringss.inc $(PROCINC)/strings.inc \
+	     $(INC)/genstr.inc $(INC)/genstrs.inc $(INC)/cgenstr.inc \
              $(SYSTEMUNIT)$(PPUEXT)  \
              $(STRINGS_DEPS_OS)
 
