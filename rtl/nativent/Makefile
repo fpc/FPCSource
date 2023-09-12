@@ -901,7 +901,7 @@ ifeq ($(CPU_OS_TARGET),i386-nativent)
 override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) cpall buildrtl
 endif
 ifeq ($(CPU_OS_TARGET),i386-nativent)
-override TARGET_IMPLICITUNITS+=ndk ndkutils ddk ctypes strings dos rtlconsts sysconst sysutils math types typinfo fgl classes $(CPU_UNITS) charset getopts softfpu sfpux80 ufloatx80 sfpu128 ufloat128 cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+override TARGET_IMPLICITUNITS+=ndk ndkutils ddk ctypes strings dos rtlconsts sysconst sysutils math types typinfo fgl classes $(CPU_UNITS) charset getopts $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 endif
 ifeq ($(CPU_OS_TARGET),i386-nativent)
 override TARGET_RSTS+=math typinfo classes sysconst
