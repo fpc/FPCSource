@@ -12,7 +12,7 @@ fpcpackage=y
 loaders=prt0 cprt0 gprt0 dllprt0
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       $(STRINGSUNIT) syscall sysctl baseunix unixutil character \
-      unix rtlconsts initc cmem  \
+      unix rtlconsts initc$(CMEMUNIT) \
       dl termio \
       sysutils math typinfo types sortbase classes fgl dynlibs \
       $(CPU_UNITS) charset cpall getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
@@ -221,8 +221,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
 

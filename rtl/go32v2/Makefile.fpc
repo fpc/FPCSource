@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos cmem sortbase \
+      dos$(CMEMUNIT)sortbase \
       sysutils classes math typinfo \
       cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes fgl \
       msmouse charset cpall \
@@ -204,10 +204,6 @@ msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/callspec.pp
-	$(EXECPPAS)
-
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/cmem.pp
 	$(EXECPPAS)
 
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
