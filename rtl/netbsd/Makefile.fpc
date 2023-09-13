@@ -45,7 +45,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos \
       sysutils typinfo math \
-      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) \
+      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) 
 
 [prerules]
@@ -78,7 +78,7 @@ ifeq ($(ARCH),x86_64)
 CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 endif
 
 
@@ -191,9 +191,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
-	$(COMPILER) $<
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(E
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos sysconst \
       initc sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
-      cpu mmx $(GETOPTSUNIT) \
+      cpu $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
       rtlconsts math \
       dynlibs $(CMEMUNIT) ctypes \
@@ -176,8 +176,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 

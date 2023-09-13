@@ -9,7 +9,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 \
       dos $(CMEMUNIT) $(SORTBASEUNIT) \
       sysutils classes math typinfo \
-      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
+      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
       msmouse $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
       types sysconst rtlconst \
@@ -153,10 +153,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT)
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
-	$(EXECPPAS)
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(PROCINC)/mmx.pp
 	$(EXECPPAS)
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)

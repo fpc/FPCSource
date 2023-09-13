@@ -45,7 +45,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos  \
       sysutils typinfo math \
-      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) \
+      cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT)
 
 [prerules]
@@ -84,7 +84,7 @@ ifeq ($(ARCH),x86_64)
 CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 endif
 
 # Paths
@@ -224,9 +224,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 endif
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

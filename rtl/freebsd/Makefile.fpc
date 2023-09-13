@@ -66,7 +66,7 @@ SYSTEMUNIT=system
 loaders+=gprt0
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 ASTARGET=--32
 endif
 
@@ -199,9 +199,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 endif
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 #
 # Other system-dependent RTL Units
