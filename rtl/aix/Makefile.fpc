@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       termio unix initc $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
       sysutils typinfo math $(SORTBASEUNIT) $(FGLUNIT) classes \
-      $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) unixcp $(GETOPTSUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
       # ipc 
       dl dynlibs \
@@ -131,9 +131,6 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
-
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixcp.pp
 
 #
 # TP7 Compatible RTL Units
