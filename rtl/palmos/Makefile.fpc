@@ -9,7 +9,7 @@ main=rtl
 loaders= prt0
 units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
        ctypes \
-       charset cpall \
+       $(CHARSETUNIT) cpall \
        sysconst \
        systraps pilot
 #units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
 #      strutils convutils math dateutils \
 #      varutils variants \
 #      matrix ucomplex \
-#      charset cpall getopts winsock sockets
+#      $(CHARSETUNIT) cpall getopts winsock sockets
 # initc $(CMEMUNIT) signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \

@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       baseunix unixutil unixcp \
       termio unix initc $(CMEMUNIT) \
       sysutils typinfo math sortbase fgl classes \
-      charset cpall getopts \
+      $(CHARSETUNIT) cpall getopts \
       errors \
       dl dynlibs \
       types sysconst character \
@@ -204,9 +204,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-
-charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas

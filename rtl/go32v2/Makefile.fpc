@@ -10,7 +10,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       dos $(CMEMUNIT) sortbase \
       sysutils classes math typinfo \
       cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes fgl \
-      msmouse charset cpall \
+      msmouse $(CHARSETUNIT) cpall \
       character fpwidestring unicodedata \
       types sysconst rtlconst \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -174,10 +174,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-	$(EXECPPAS)
-
-charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
 	$(EXECPPAS)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)

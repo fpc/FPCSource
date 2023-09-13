@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
       sysutils math typinfo types sortbase classes fgl dynlibs \
-      $(CPU_UNITS) charset cpall getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
+      $(CPU_UNITS) $(CHARSETUNIT) cpall getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       errors bsd \
       sysconst cthreads dos cwstring \
       $(FPINTRESUNIT) unixcp fpwidestring \
@@ -219,9 +219,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)

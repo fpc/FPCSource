@@ -5,13 +5,13 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) charset cpall \
+units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) cpall \
       getopts $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      getopts sortbase fgl classes \
 #      msmouse ports  \
-#      charset cpall ctypes \
+#      $(CHARSETUNIT) cpall ctypes \
 #      fpwidestring character unicodedata
 #     $(CMEMUNIT)
 #      initc profile dxetype dxeload emu387 \
@@ -144,10 +144,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-
-charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
 	$(EXECPPAS)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
