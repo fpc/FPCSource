@@ -12,7 +12,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse ports  \
 #      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
-#      fpwidestring $(CHARACTERUNIT) unicodedata
+#      fpwidestring $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx \

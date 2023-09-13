@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLU
 implicitunits=si_prc \
       ctypes rtlconsts $(STRINGSUNIT) \
       $(SORTBASEUNIT) $(CHARSETUNIT) fpwidestring \
-      $(CP_UNITS) unicodedata
+      $(CP_UNITS) $(UNICODEDATAUNIT)
 
 rsts=math rtlconsts typinfo classes sysconst
 
