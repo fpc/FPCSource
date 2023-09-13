@@ -183,10 +183,6 @@ msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 	$(COMPILER) msmouse.pp
 	$(EXECPPAS)
 
-callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/callspec.pp
-	$(EXECPPAS)
-
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
 	$(EXECPPAS)

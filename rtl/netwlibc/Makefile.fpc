@@ -190,8 +190,6 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 # Other system-dependent RTL Units
 #
 
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #

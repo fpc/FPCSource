@@ -219,9 +219,6 @@ endif
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(PROCINC)/mmx.pp
 
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/callspec.pp
-
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/cthreads.pp
 
