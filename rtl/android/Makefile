@@ -893,7 +893,7 @@ ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
 CPU_UNITS=cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS+=mmx
+CPU_UNITS+=$(MMXUNIT)
 endif
 SYSTEMUNIT=system
 ifdef RELEASE
@@ -3046,8 +3046,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 endif
 	$(COMPILER) $(PROCINC)/cpu.pp
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(PROCINC)/mmx.pp
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cthreads.pp
 cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT)

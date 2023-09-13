@@ -893,7 +893,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx $(LINEINFOUNIT)
+CPU_UNITS=cpu $(MMXUNIT) $(LINEINFOUNIT)
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=cpu

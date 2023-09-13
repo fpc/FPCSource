@@ -2818,9 +2818,6 @@ endif
 system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc registers.inc
 	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
-ports$(PPUEXT) : ports.pp system$(PPUEXT)
-	$(COMPILER) ports.pp
-	$(EXECPPAS)
 dos$(PPUEXT) : dos.pp registers.inc \
 	       $(INC)/dosh.inc $(INC)/dos.inc $(INC)/fexpand.inc \
 	       strings$(PPUEXT) system$(PPUEXT)
