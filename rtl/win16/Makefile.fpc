@@ -8,7 +8,7 @@ loaders=prt0s prt0m prt0c prt0l prt0h
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
       wintypes winprocs win31 ports dynlibs sortbase \
       sysconst rtlconsts sysutils math types typinfo fgl \
-      classes charset cpu getopts cpall \
+      classes $(CHARSETUNIT) cpu getopts cpall \
       unicodedata character ctypes
 implicitunits=\
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -173,10 +173,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-
-charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
 	$(EXECPPAS)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
