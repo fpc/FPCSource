@@ -9,7 +9,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASU
       wintypes winprocs win31 ports dynlibs $(SORTBASEUNIT) \
       sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) \
       classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
-      unicodedata $(CHARACTERUNIT) ctypes
+      $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
 implicitunits=$(CP_UNITS)
 
 [require]

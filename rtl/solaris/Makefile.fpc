@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       cwstring $(FPINTRESUNIT) $(CPU_UNITS) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
-implicitunits=$(EXEINFOUNIT) $(CP_UNITS) unicodedata
+implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 rsts=math typinfo classes sysconst rtlconst
 

@@ -11,7 +11,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       sysutils classes math typinfo \
       cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
       msmouse $(CHARSETUNIT) $(CPALLUNIT) \
-      $(CHARACTERUNIT) fpwidestring unicodedata \
+      $(CHARACTERUNIT) fpwidestring $(UNICODEDATAUNIT) \
       types sysconst rtlconst \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 rsts=math typinfo classes sysconst

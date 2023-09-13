@@ -22,7 +22,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       dos \
       cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
-implicitunits=$(CP_UNITS) unicodedata
+implicitunits=$(CP_UNITS) $(UNICODEDATAUNIT)
 
 rsts=math typinfo classes sysconst rtlconst 
 
