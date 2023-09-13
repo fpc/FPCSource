@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       linuxvcs sysutils typinfo math $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) dl dynlibs \
       types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
-      rtlconsts dos cwstring fpcylix unixcp fpwidestring \
+      rtlconsts dos cwstring fpcylix $(UNIXCPUNIT) fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 rsts=math  typinfo  sysconst rtlconsts
@@ -160,9 +160,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPA
 
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
-
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixcp.pp
 
 #
 # TP7 Compatible RTL Units

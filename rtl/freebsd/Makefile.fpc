@@ -19,7 +19,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(ERRORSUNIT) bsd freebsd \
       console  \
       sysconst cthreads dos cwstring \
-      $(FPINTRESUNIT) unixcp fpwidestring \
+      $(FPINTRESUNIT) $(UNIXCPUNIT) fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
@@ -147,9 +147,6 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
 
 linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
-
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixcp.pp
 
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

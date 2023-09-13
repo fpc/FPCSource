@@ -9,7 +9,7 @@ main=rtl
 loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
-      baseunix unixutil unixcp \
+      baseunix unixutil $(UNIXCPUNIT) \
       termio unix initc $(CMEMUNIT) \
       sysutils typinfo math $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
@@ -130,9 +130,6 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
-
-unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) baseunix$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/unixcp.pp
 
 #
 # TP7 Compatible RTL Units
