@@ -19,7 +19,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(ERRORSUNIT) bsd \
       console  \
       sysconst cthreads dos cwstring \
-      $(FPINTRESUNIT) $(UNIXCPUNIT) fpwidestring \
+      $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 

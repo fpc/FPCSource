@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLU
 # $(EXTPASUNIT) $(MACPASUNIT)
 implicitunits=si_prc \
       ctypes rtlconsts $(STRINGSUNIT) \
-      $(SORTBASEUNIT) $(CHARSETUNIT) fpwidestring \
+      $(SORTBASEUNIT) $(CHARSETUNIT) $(FPWIDESTRINGUNIT) \
       $(CP_UNITS) $(UNICODEDATAUNIT)
 
 rsts=math rtlconsts typinfo classes sysconst
