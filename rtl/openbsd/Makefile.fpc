@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       charset cpall character getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       errors \
       types sysctl sysconst \
-      $(FPINTRESUNIT) dynlibs cwstring$(CMEMUNIT)dl termio \
+      $(FPINTRESUNIT) dynlibs cwstring $(CMEMUNIT) dl termio \
       cthreads unixcp fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 

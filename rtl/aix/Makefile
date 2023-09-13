@@ -899,10 +899,10 @@ endif
 override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) $(HEAPTRCUNIT) baseunix unixutil termio unix initc$(CMEMUNIT)lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) $(HEAPTRCUNIT) baseunix unixutil termio unix initc $(CMEMUNIT) $(LNFOGDBUNIT) sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) $(HEAPTRCUNIT) baseunix unixutil termio unix initc$(CMEMUNIT)lnfogdb sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) $(HEAPTRCUNIT) baseunix unixutil termio unix initc $(CMEMUNIT) $(LNFOGDBUNIT) sysutils typinfo math sortbase fgl classes charset cpall character unixcp getopts errors dl dynlibs types sysconst rtlconsts cthreads dos cwstring fpwidestring $(FPINTRESUNIT) $(CPU_UNITS) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
 override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u unicodedata
@@ -2889,8 +2889,6 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
-lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/lnfogdb.pp
 charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)

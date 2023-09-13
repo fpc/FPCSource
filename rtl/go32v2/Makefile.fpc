@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos$(CMEMUNIT)sortbase \
+      dos $(CMEMUNIT) sortbase \
       sysutils classes math typinfo \
       cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes fgl \
       msmouse charset cpall \
