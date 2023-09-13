@@ -872,12 +872,13 @@ OPT:=$(OPT) -dFPC_DOTTEDUNITS
 BASEINCLUDE=$(INC) $(PROCINC)
 BASESOURCE=$(INC) $(PROCINC) $($(COMMONUNIT))
 endif
-CPUNITSBASE=$(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
+CP_UNITS_BASE=$(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UNIT) $(CP1255UNIT) $(CP1256UNIT) $(CP1257UNIT) $(CP1258UNIT) \
       $(CP437UNIT) $(CP646UNIT) $(CP737UNIT) $(CP775UNIT) $(CP850UNIT) $(CP852UNIT) $(CP855UNIT) $(CP856UNIT) $(CP857UNIT) $(CP860UNIT) $(CP861UNIT) $(CP862UNIT) \
       $(CP863UNIT) $(CP864UNIT) $(CP865UNIT) $(CP866UNIT) $(CP869UNIT) $(CP874UNIT) $(CP3021UNIT) $(CP8859_1UNIT) $(CP8859_2UNIT) $(CP8859_3UNIT) $(CP8859_4UNIT) \
       $(CP8859_5UNIT) $(CP8859_6UNIT) $(CP8859_7UNIT) $(CP8859_8UNIT) $(CP8859_9UNIT) $(CP8859_10UNIT) $(CP8859_11UNIT) \
       $(CP8859_13UNIT) $(CP8859_14UNIT) $(CP8859_15UNIT) $(CP8859_16UNIT) $(CPKOI8_RUNIT) $(CPKOI8_UUNIT)
-CPUNITS=$(addprefix $(NS_CPUNITS),$(CPUNITSBASE))
+CP_UNITS=$(addprefix $(NS_CPUNITS),$(CP_UNITS_BASE))
+CP_UNITS_SRC=$(addsuffix .pas,$(addprefix charmaps/,$(CP_UNITS)))
 RTL=..
 INC=../inc
 COMMON=$(RTL)/common
@@ -892,10 +893,10 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 ports dynlibs sortbase sysconst rtlconsts sysutils math types typinfo fgl classes charset cpu getopts cpall unicodedata character ctypes
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 ports dynlibs $(SORTBASEUNIT) sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_IMPLICITUNITS+=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
+override TARGET_IMPLICITUNITS+=$(CP_UNITS)
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_LOADERS+=prt0s prt0m prt0c prt0l prt0h
@@ -2535,7 +2536,7 @@ unicodedata$(PPUEXT) : $(UNICODEDATA_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
 System.CodePages.unicodedata$(PPUEXT) : $(NSINC)/System.CodePages.unicodedata.pas $(UNICODEDATA_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(UNICODEDATA_OPT) $<
-CPALL_DEPS=$(RTL)/charmaps/cpall.pas \
+CPALL_DEPS=$(RTL)/charmaps/cpall.pas $(CP_UNITS_SRC) \
 	  system$(PPUEXT) $(CHARSETUNIT)$(PPUEXT) \
 	  $(CPALL_DEPS_OS) $(CPALL_DEPS_CPU)
 cpall$(PPUEXT): $(CPALL_DEPS)  
@@ -2887,12 +2888,9 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-		   types$(PPUEXT) fgl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
+		   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 		   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-	$(EXECPPAS)
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
@@ -2912,17 +2910,6 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc $(OBJPA
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
-getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-charset$(PPUEXT) : $(INC)/charset.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/charset.pp
-	$(EXECPPAS)
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-	$(EXECPPAS)
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/character.pas
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp $(REDIR)
 	$(EXECPPAS)
