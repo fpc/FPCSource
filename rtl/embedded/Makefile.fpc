@@ -223,7 +223,7 @@ endif
 endif
 
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts getopts $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),rv32ec)
 override FPCOPT+=-Cprv32ec
 CPU_UNITS=CH32VxBootstrap

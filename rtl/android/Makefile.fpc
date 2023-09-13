@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix linux initc $(CMEMUNIT) \
       linuxvcs sysutils typinfo math $(CHARSETUNIT) $(CPALLUNIT) character \
-      getopts errors dl dynlibs \
+      $(GETOPTSUNIT) errors dl dynlibs \
       types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
       rtlconsts dos cwstring fpcylix unixcp fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -45,7 +45,7 @@ targetdir=.
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
       unix baseunix unixtype unixutil \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts \
+      $(CPU_UNITS) $(GETOPTSUNIT) \
       errors sockets \
       $(SORTBASEUNIT) classes $(FGLUNIT) sysconst rtlconsts \
 
@@ -221,13 +221,6 @@ endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(PROCINC)/mmx.pp
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/getopts.pp
-
-#
-# Other $(SYSTEMUNIT)-dependent RTL Units
-#
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/errors.pp

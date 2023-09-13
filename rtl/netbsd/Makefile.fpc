@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
       sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
-      $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
+      $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       errors bsd \
       sysconst cthreads dos cwstring \
       $(FPINTRESUNIT) unixcp fpwidestring \
@@ -51,7 +51,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos \
       sysutils typinfo math \
-      cpu mmx getopts $(HEAPTRCUNIT) \
+      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       errors 
 
 [prerules]
@@ -213,9 +213,6 @@ endif
 	$(COMPILER) $<
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

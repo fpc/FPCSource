@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
       sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
-      $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
+      $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       errors bsd \
       console  \
       sysconst cthreads dos cwstring \
@@ -52,7 +52,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos  \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts $(HEAPTRCUNIT) \
+      $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       errors dynlibs
 
 [prerules]
@@ -202,8 +202,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

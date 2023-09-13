@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       baseunix unixutil unixcp \
       termio unix initc $(CMEMUNIT) \
       sysutils typinfo math $(SORTBASEUNIT) $(FGLUNIT) classes \
-      $(CHARSETUNIT) $(CPALLUNIT) getopts \
+      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       errors \
       dl dynlibs \
       types sysconst character \
@@ -52,7 +52,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts $(HEAPTRCUNIT) \
+      $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       errors
 
 [prerules]
@@ -198,9 +198,6 @@ endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/mmx.pp
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/getopts.pp
 
 #
 # Other system-dependent RTL Units

@@ -6,10 +6,10 @@ main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
-      getopts $(EXEINFOUNIT) $(HEAPTRCUNIT)
+      $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
-#      getopts $(SORTBASEUNIT) $(FGLUNIT) classes \
+#      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse ports  \
 #      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
 #      fpwidestring character unicodedata
@@ -136,10 +136,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUE
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
-	$(EXECPPAS)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/getopts.pp $(REDIR)
 	$(EXECPPAS)
 
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
