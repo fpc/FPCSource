@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo math \
-      $(CHARSETUNIT) $(CPALLUNIT) character $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       errors \
       types sysctl sysconst \
       $(FPINTRESUNIT) dynlibs cwstring $(CMEMUNIT) dl termio \
@@ -220,10 +220,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPA
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
         $(COMPILER) $<
-
-# let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Other system-independent RTL Units

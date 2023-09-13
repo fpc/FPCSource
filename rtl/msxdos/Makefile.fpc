@@ -12,7 +12,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse ports  \
 #      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
-#      fpwidestring character unicodedata
+#      fpwidestring $(CHARACTERUNIT) unicodedata
 #     $(CMEMUNIT)
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx \
@@ -137,9 +137,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUE
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
-
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Other system-dependent RTL Units

@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0 dllprt0
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
-      $(STRINGSUNIT) syscall sysctl  baseunix unixutil character \
+      $(STRINGSUNIT) syscall sysctl  baseunix unixutil $(CHARACTERUNIT) \
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
       sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
@@ -196,10 +196,6 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-# let it depend on buildcollations to prevent simultaneous building of unicodedata
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) 
-        $(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Other system-independent RTL Units
