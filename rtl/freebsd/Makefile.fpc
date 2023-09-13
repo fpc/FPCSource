@@ -52,6 +52,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/freebsd/$(CPU_TARGET)
@@ -65,12 +66,12 @@ SYSTEMUNIT=system
 loaders+=gprt0
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=x86 $(PORTSUNIT) cpu mmx
 ASTARGET=--32
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=x86 $(PORTSUNIT) cpu
 ASTARGET=--64
 endif
 
@@ -192,9 +193,6 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT
 #
 
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)

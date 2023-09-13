@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
-      go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
+      go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 \
       dos $(CMEMUNIT) $(SORTBASEUNIT) \
       sysutils classes math typinfo \
       cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
@@ -105,10 +105,6 @@ dxeload$(PPUEXT) : dxeload.pp dxetype$(PPUEXT) system$(PPUEXT)
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
 	$(COMPILER) emu387.pp
-	$(EXECPPAS)
-
-ports$(PPUEXT) : ports.pp system$(PPUEXT)
-	$(COMPILER) ports.pp
 	$(EXECPPAS)
 
 #
