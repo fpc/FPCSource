@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       baseunix unixutil \
       termio unix initc $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
-      sysutils typinfo math sortbase fgl classes \
+      sysutils typinfo math $(SORTBASEUNIT) fgl classes \
       $(CHARSETUNIT) cpall character unixcp getopts \
       errors \
       # ipc 

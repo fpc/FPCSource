@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos sysconst \
-      initc sysutils types typinfo sortbase fgl classes \
+      initc sysutils types typinfo $(SORTBASEUNIT) fgl classes \
       cpu mmx getopts \
       $(CHARSETUNIT) cpall \
       rtlconsts math \
