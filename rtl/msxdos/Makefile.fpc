@@ -111,10 +111,6 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-	$(EXECPPAS)
-
 math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 	$(EXECPPAS)
@@ -144,10 +140,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
-	$(EXECPPAS)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 	$(EXECPPAS)
 
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)

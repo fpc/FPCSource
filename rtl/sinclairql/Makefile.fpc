@@ -86,5 +86,3 @@ buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 #fpextres$(PPUEXT) : $(INC)/fpextres.pp $(SYSTEMUNIT)$(PPUEXT)
 #        $(COMPILER) -Sg $(INC)/fpextres.pp
 
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas

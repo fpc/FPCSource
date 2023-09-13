@@ -161,9 +161,6 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    tthread.inc fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp $(OBJPASUNIT)$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
-
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
@@ -188,9 +185,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
-
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 

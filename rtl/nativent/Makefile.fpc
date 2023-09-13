@@ -113,5 +113,3 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
-cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
