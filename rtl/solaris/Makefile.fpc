@@ -63,7 +63,7 @@ SYSTEMUNIT=system
 
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS=cpu $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),x86_64)
@@ -182,9 +182,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 endif
-
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(PROCINC)/mmx.pp
 
 #
 # Other system-dependent RTL Units

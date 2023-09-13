@@ -15,7 +15,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
 #      initc profile dxetype dxeload emu387 \
-#      cpu mmx \
+#      cpu $(MMXUNIT) \
 #      vesamode \
 # rsts=math typinfo classes dateutil sysconst
 implicitunits= $(CP_UNITS)
