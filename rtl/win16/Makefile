@@ -893,7 +893,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 ports dynlibs $(SORTBASEUNIT) sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) dynlibs $(SORTBASEUNIT) sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_IMPLICITUNITS+=$(CP_UNITS)
@@ -2870,9 +2870,6 @@ winprocs$(PPUEXT) : winprocs.pp winprocsh.inc winprocs.inc system$(PPUEXT) $(OBJ
 	$(EXECPPAS)
 win31$(PPUEXT) : win31.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
 	$(COMPILER) win31.pp
-	$(EXECPPAS)
-ports$(PPUEXT) : ports.pp system$(PPUEXT)
-	$(COMPILER) ports.pp
 	$(EXECPPAS)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas

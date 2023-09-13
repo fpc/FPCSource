@@ -888,7 +888,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 SYSTEMUNIT=system
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS=cpu $(MMXUNIT)
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=cpu
@@ -2895,8 +2895,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 endif
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(PROCINC)/mmx.pp
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas
 termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

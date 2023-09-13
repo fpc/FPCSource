@@ -888,7 +888,7 @@ SYSINITUNITS=si_c si_dllc
 UNITPREFIX=rtl
 ifeq ($(ARCH),i386)
 LOADERS=cprt0 dllcprt0
-CPU_UNITS=cpu mmx
+CPU_UNITS=cpu $(MMXUNIT)
 endif
 ifeq ($(ARCH),x86_64)
 LOADERS=

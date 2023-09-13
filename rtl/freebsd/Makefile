@@ -880,6 +880,7 @@ CP_UNITS=$(addprefix $(NS_CPUNITS),$(CP_UNITS_BASE))
 CP_UNITS_SRC=$(addsuffix .pas,$(addprefix $(RTL)/charmaps/,$(CP_UNITS)))
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/freebsd/$(CPU_TARGET)
@@ -891,11 +892,11 @@ CPU_UNITS=
 SYSTEMUNIT=system
 loaders+=gprt0
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 ASTARGET=--32
 endif
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 ASTARGET=--64
 endif
 ifdef RELEASE
@@ -2938,10 +2939,6 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SY
 	$(COMPILER) $(OBJPASDIR)/types.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $<
@@ -2949,8 +2946,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 endif
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp baseunix$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $<
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)

@@ -888,10 +888,10 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 CPU_UNITS=
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS=cpu $(MMXUNIT)
 endif
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 cpu
+CPU_UNITS=$(X86UNIT) cpu
 endif
 DLLS=fpcmemdll
 OBJPASDIR=$(RTL)/objpas

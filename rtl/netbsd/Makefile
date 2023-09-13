@@ -880,6 +880,7 @@ CP_UNITS=$(addprefix $(NS_CPUNITS),$(CP_UNITS_BASE))
 CP_UNITS_SRC=$(addsuffix .pas,$(addprefix $(RTL)/charmaps/,$(CP_UNITS)))
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
@@ -895,10 +896,10 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),i386-netbsd)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall sysctl  baseunix unixutil $(CHARACTERUNIT) unix rtlconsts initc $(CMEMUNIT) dl termio sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) $(ERRORSUNIT) bsd sysconst cthreads dos cwstring $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -2968,10 +2969,6 @@ dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
 	$(COMPILER) $<
-x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
@@ -2995,8 +2992,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
-	$(COMPILER) $<
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

@@ -891,7 +891,7 @@ RTLCONSTSUNIT=rtlconst
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS=cpu $(MMXUNIT)
 endif
 ifeq ($(ARCH),arm)
 CPU_UNITS=cpu

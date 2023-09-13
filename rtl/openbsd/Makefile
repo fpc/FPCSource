@@ -880,6 +880,7 @@ CP_UNITS=$(addprefix $(NS_CPUNITS),$(CP_UNITS_BASE))
 CP_UNITS_SRC=$(addsuffix .pas,$(addprefix $(RTL)/charmaps/,$(CP_UNITS)))
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
@@ -899,10 +900,10 @@ CPU_UNITS=
 SYSINIT_UNITS=si_prc si_c si_dll si_g
 LOADERS=prt0
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu $(MMXUNIT)
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),i386-openbsd)
@@ -2930,10 +2931,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPA
 	$(COMPILER) $<
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $<
-x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $<
@@ -2941,8 +2938,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 endif
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
