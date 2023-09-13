@@ -65,7 +65,7 @@ const
   { If you add a gdb.fpc file in a given directory }
   { GDB will read it; this allows you to add       }
   { special tests in specific directories   PM     }
-  FpcGDBIniName = 'gdb.fpc';
+  FpcGDBIniName  : string = 'gdb.fpc';
   GDBIniTempName : string = 'gdb4fpc.ini';
 
 
@@ -86,11 +86,27 @@ var
 {$ifdef linux}
    argv0 : pchar;
 {$endif}
-   Dir,Name,Ext : ShortString;
+   Dir,Name,Ext,PIDSuffix,Param : ShortString;
    GDBError,GDBExitCode,i : longint;
+   PidSpecificNamesRequired : Boolean;
 
 begin
-
+  PIDSuffix:='';
+  PidSpecificNamesRequired:=False;
+  { Check if -vj or -vJ is used, this is for parallel make,
+    so use PID specific file names in that case  }
+  for i:=1 to Paramcount do
+    begin
+      Param:=Paramstr(i);
+      if (Copy(Param,1,2)='-v') and ((pos('j',Param)>0) or (pos('J',Param)>0)) then
+        PidSpecificNamesRequired:=True;
+    end;
+  if PidSpecificNamesRequired then
+    begin
+      system.str(GetProcessId,PIDSuffix);
+      FPCGDBIniName:=FPCGDBIniName+PIDSuffix;
+      GDBIniTempName:=GDBIniTempName+PIDSuffix;
+    end;
   fsplit(paramstr(0),Dir,Name,Ext);
 {$ifdef linux}
   argv0:=argv[0];
@@ -152,10 +168,11 @@ begin
   { this will not work correctly if there are " or '' inside the command line :( }
   for i:=1 to Paramcount do
     begin
-      if pos(' ',Paramstr(i))>0 then
-        Write(fpcgdbini,' "'+ParamStr(i)+'"')
+      Param:=Paramstr(i);
+      if pos(' ',Param)>0 then
+        Write(fpcgdbini,' "'+Param+'"')
       else
-        Write(fpcgdbini,' '+ParamStr(i));
+        Write(fpcgdbini,' '+Param);
     end;
   Writeln(fpcgdbini);
   Writeln(fpcgdbini,'b SYSTEM_EXIT');
