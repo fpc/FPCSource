@@ -538,7 +538,7 @@ CP_UNITS_BASE=$(CP1250UNIT) $(CP1251UNIT) $(CP1252UNIT) $(CP1253UNIT) $(CP1254UN
       $(CP8859_13UNIT) $(CP8859_14UNIT) $(CP8859_15UNIT) $(CP8859_16UNIT) $(CPKOI8_RUNIT) $(CPKOI8_UUNIT)
 
 CP_UNITS=$(addprefix $(NS_CPUNITS),$(CP_UNITS_BASE))
-CP_UNITS_SRC=$(addsuffix .pas,$(addprefix charmaps/,$(CP_UNITS)))
+CP_UNITS_SRC=$(addsuffix .pas,$(addprefix $(RTL)/charmaps/,$(CP_UNITS)))
 
 [install]
 fpcpackage=y
