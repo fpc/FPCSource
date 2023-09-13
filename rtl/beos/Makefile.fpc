@@ -48,7 +48,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos crt  \
       sysutils typinfo math \
-      $(CPU_UNITS) getopts $(HEAPTRCUNIT) \
+      $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       errors dynlibs
 
 

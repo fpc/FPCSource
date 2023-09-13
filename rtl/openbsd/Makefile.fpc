@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo math \
-      $(CHARSETUNIT) $(CPALLUNIT) character getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
+      $(CHARSETUNIT) $(CPALLUNIT) character $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       errors \
       types sysctl sysconst \
       $(FPINTRESUNIT) dynlibs cwstring $(CMEMUNIT) dl termio \
@@ -51,7 +51,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos  \
       sysutils typinfo math \
-      cpu mmx getopts $(HEAPTRCUNIT) \
+      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       errors
 
 [prerules]
@@ -244,9 +244,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

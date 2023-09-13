@@ -9,7 +9,7 @@ main=rtl
 loaders=cprt0 crti crtn
 units=system $(UUCHARUNIT) dos $(OBJPASUNIT) objects $(STRINGSUNIT) \
       sysutils typinfo math \
-      cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
+      cpu mmx $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) posix
 rsts=math typinfo
 
 [require]
@@ -119,8 +119,6 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
-
-getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
 #
 # Other system-dependent RTL Units
