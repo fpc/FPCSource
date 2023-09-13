@@ -75,10 +75,10 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 $(PORTSUNIT) cpu
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 $(PORTSUNIT) cpu mmx
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) cpu mmx
 endif
 
 
@@ -144,9 +144,6 @@ dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 #
