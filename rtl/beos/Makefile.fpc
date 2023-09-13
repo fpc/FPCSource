@@ -49,7 +49,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       dos crt  \
       sysutils typinfo math \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      errors dynlibs
+      $(ERRORSUNIT) dynlibs
 
 
 [prerules]
