@@ -10,7 +10,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
-#      msmouse ports  \
+#      msmouse $(PORTSUNIT)  \
 #      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
 #      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
@@ -79,9 +79,6 @@ system$(PPUEXT) : system.pp $(SYSDEPS) $(INC)/tnyheaph.inc $(INC)/tinyheap.inc r
 # System Dependent Units
 #
 
-ports$(PPUEXT) : ports.pp system$(PPUEXT)
-	$(COMPILER) ports.pp
-	$(EXECPPAS)
 #
 # TP7 Compatible RTL Units
 #

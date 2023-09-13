@@ -51,6 +51,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
@@ -74,10 +75,10 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=x86 $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=x86 $(PORTSUNIT) cpu mmx
 endif
 
 
@@ -146,9 +147,6 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPA
 	$(COMPILER) $<
 
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 #

@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
-      wintypes winprocs win31 ports dynlibs $(SORTBASEUNIT) \
+      wintypes winprocs win31 $(PORTSUNIT) dynlibs $(SORTBASEUNIT) \
       sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) \
       classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
       $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
@@ -101,10 +101,6 @@ win31$(PPUEXT) : win31.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEX
 #
 # system Dependent Units
 #
-
-ports$(PPUEXT) : ports.pp system$(PPUEXT)
-	$(COMPILER) ports.pp
-	$(EXECPPAS)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas

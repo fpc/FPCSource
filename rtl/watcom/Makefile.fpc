@@ -20,7 +20,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(IS
 rsts=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-# dpmiexcp initc ports profile dxeload emu387 \
+# dpmiexcp initc $(PORTSUNIT) profile dxeload emu387 \
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 

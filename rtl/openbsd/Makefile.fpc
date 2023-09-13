@@ -51,6 +51,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+PORTSDIR=$(RTL)/unix
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
@@ -80,10 +81,10 @@ SYSINIT_UNITS=si_prc si_c si_dll si_g
 LOADERS=prt0
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports cpu
+CPU_UNITS=x86 $(PORTSUNIT) cpu
 endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=x86 $(PORTSUNIT) cpu mmx
 endif
 
 # Paths
@@ -217,9 +218,6 @@ cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUE
 #
 
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)
