@@ -9,8 +9,8 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos $(CMEMUNIT) $(SORTBASEUNIT) \
       sysutils classes math typinfo \
-      cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes fgl \
-      msmouse $(CHARSETUNIT) cpall \
+      cpu mmx getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
+      msmouse $(CHARSETUNIT) $(CPALLUNIT) \
       character fpwidestring unicodedata \
       types sysconst rtlconst \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -133,7 +133,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
 		   sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 

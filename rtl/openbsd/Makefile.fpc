@@ -13,8 +13,8 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
-      sysutils $(SORTBASEUNIT) fgl classes typinfo math \
-      $(CHARSETUNIT) cpall character getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
+      sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo math \
+      $(CHARSETUNIT) $(CPALLUNIT) character getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       errors \
       types sysctl sysconst \
       $(FPINTRESUNIT) dynlibs cwstring $(CMEMUNIT) dl termio \
@@ -194,7 +194,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp

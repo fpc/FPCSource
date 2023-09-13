@@ -10,9 +10,9 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix linux initc $(CMEMUNIT) \
-      linuxvcs sysutils typinfo math $(CHARSETUNIT) cpall character \
+      linuxvcs sysutils typinfo math $(CHARSETUNIT) $(CPALLUNIT) character \
       getopts errors dl dynlibs \
-      types  sysconst cthreads $(SORTBASEUNIT) classes fgl  \
+      types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
       rtlconsts dos cwstring fpcylix unixcp fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) \
@@ -47,7 +47,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets \
-      $(SORTBASEUNIT) classes fgl sysconst rtlconsts \
+      $(SORTBASEUNIT) classes $(FGLUNIT) sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -187,7 +187,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)

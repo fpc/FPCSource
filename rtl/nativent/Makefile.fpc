@@ -8,14 +8,14 @@ main=rtl
 [target]
 loaders=
 #units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
-units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) cpall buildrtl
+units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
 #      initc $(CMEMUNIT) dynlibs signals \
       dos \
       rtlconsts sysconst sysutils math types \
-      typinfo fgl classes \
+      typinfo $(FGLUNIT) classes \
       $(CPU_UNITS) $(CHARSETUNIT) getopts \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT) \
 #      sockets printer \

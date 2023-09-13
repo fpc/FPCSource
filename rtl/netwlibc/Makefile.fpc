@@ -10,9 +10,9 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos sysconst \
-      initc sysutils types typinfo $(SORTBASEUNIT) fgl classes \
+      initc sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
       cpu mmx getopts \
-      $(CHARSETUNIT) cpall \
+      $(CHARSETUNIT) $(CPALLUNIT) \
       rtlconsts math \
       dynlibs $(CMEMUNIT) ctypes \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -158,7 +158,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
                    sysconst$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
-                   tthread.inc fgl$(PPUEXT)
+                   tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
