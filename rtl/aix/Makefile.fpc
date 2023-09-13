@@ -12,8 +12,8 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       baseunix unixutil \
       termio unix initc $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
-      sysutils typinfo math $(SORTBASEUNIT) fgl classes \
-      $(CHARSETUNIT) cpall character unixcp getopts \
+      sysutils typinfo math $(SORTBASEUNIT) $(FGLUNIT) classes \
+      $(CHARSETUNIT) $(CPALLUNIT) character unixcp getopts \
       errors \
       # ipc 
       dl dynlibs \
@@ -161,7 +161,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) \
-		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
+		   $(SYSTEMUNIT)$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

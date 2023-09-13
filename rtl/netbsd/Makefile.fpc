@@ -14,8 +14,8 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(STRINGSUNIT) syscall sysctl  baseunix unixutil character \
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
-      sysutils math typinfo types $(SORTBASEUNIT) classes fgl dynlibs \
-      $(CPU_UNITS) $(CHARSETUNIT) cpall getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
+      sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
+      $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       errors bsd \
       sysconst cthreads dos cwstring \
       $(FPINTRESUNIT) unixcp fpwidestring \
@@ -184,7 +184,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
                    sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 

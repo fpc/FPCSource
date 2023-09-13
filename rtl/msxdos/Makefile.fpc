@@ -5,13 +5,13 @@
 main=rtl
 [target]
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) cpall \
+units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       getopts $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
-#      getopts $(SORTBASEUNIT) fgl classes \
+#      getopts $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse ports  \
-#      $(CHARSETUNIT) cpall ctypes \
+#      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
 #      fpwidestring character unicodedata
 #     $(CMEMUNIT)
 #      initc profile dxetype dxeload emu387 \
@@ -106,7 +106,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-                   types$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT) \
+                   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) sortbase$(PPUEXT) \
                    $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)

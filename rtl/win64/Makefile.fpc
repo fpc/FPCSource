@@ -65,7 +65,7 @@ UNITPREFIX=rtl
 SYSTEMUNIT=system
 EXEINFO_DEPS_OS=$(WINDOWSUNIT)$(PPUEXT)
 # buildrtl contains charset
-# so let's state that cpall depends on buildrtl
+# so let's state that $(CPALLUNIT) depends on buildrtl
 # to avoid charset being compiled twice
 CPALL_DEPS_OS=buildrtl$(PPUEXT)
 # exeinfo unit is inside buildrtl
