@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix linux initc $(CMEMUNIT) \
       linuxvcs sysutils typinfo math $(CHARSETUNIT) cpall character \
       getopts errors dl dynlibs \
-      types  sysconst cthreads sortbase classes fgl  \
+      types  sysconst cthreads $(SORTBASEUNIT) classes fgl  \
       rtlconsts dos cwstring fpcylix unixcp fpwidestring \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) \
@@ -47,7 +47,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets \
-      sortbase classes fgl sysconst rtlconsts \
+      $(SORTBASEUNIT) classes fgl sysconst rtlconsts \
 
 [prerules]
 RTL=..

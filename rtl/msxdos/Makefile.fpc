@@ -9,7 +9,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
       getopts $(EXEINFOUNIT) $(HEAPTRCUNIT)
 #$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
 #      math $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
-#      getopts sortbase fgl classes \
+#      getopts $(SORTBASEUNIT) fgl classes \
 #      msmouse ports  \
 #      $(CHARSETUNIT) cpall ctypes \
 #      fpwidestring character unicodedata

@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       baseunix unixutil unixcp \
       termio unix initc $(CMEMUNIT) \
-      sysutils typinfo math sortbase fgl classes \
+      sysutils typinfo math $(SORTBASEUNIT) fgl classes \
       $(CHARSETUNIT) cpall getopts \
       errors \
       dl dynlibs \

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(STRINGSUNIT) syscall sysctl  baseunix unixutil character \
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
-      sysutils math typinfo types sortbase classes fgl dynlibs \
+      sysutils math typinfo types $(SORTBASEUNIT) classes fgl dynlibs \
       $(CPU_UNITS) $(CHARSETUNIT) cpall getopts $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       errors bsd \
       sysconst cthreads dos cwstring \

@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
-      wintypes winprocs win31 ports dynlibs sortbase \
+      wintypes winprocs win31 ports dynlibs $(SORTBASEUNIT) \
       sysconst rtlconsts sysutils math types typinfo fgl \
       classes $(CHARSETUNIT) cpu getopts cpall \
       unicodedata character ctypes

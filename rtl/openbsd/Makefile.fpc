@@ -13,7 +13,7 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
-      sysutils sortbase fgl classes typinfo math \
+      sysutils $(SORTBASEUNIT) fgl classes typinfo math \
       $(CHARSETUNIT) cpall character getopts $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       errors \
       types sysctl sysconst \
