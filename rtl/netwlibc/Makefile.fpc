@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(E
       cpu mmx getopts \
       charset cpall \
       rtlconsts math \
-      dynlibs$(CMEMUNIT)ctypes \
+      dynlibs $(CMEMUNIT) ctypes \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
 rsts=math typinfo classes sysconst rtlconsts system

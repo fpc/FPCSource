@@ -10,7 +10,7 @@ loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       baseunix unixutil unixcp \
-      termio unix initc$(CMEMUNIT)\
+      termio unix initc $(CMEMUNIT) \
       sysutils typinfo math sortbase fgl classes \
       charset cpall getopts \
       errors \
