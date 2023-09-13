@@ -252,10 +252,6 @@ initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # Other system-dependent RTL Units
 #
 
-
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp baseunix$(PPUEXT)
         $(COMPILER) $<
 
