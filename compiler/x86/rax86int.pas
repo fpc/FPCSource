@@ -1713,7 +1713,7 @@ Unit Rax86int;
         BuildConstSymbolExpression([],l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
-        BuildConstExpression:=l;
+        BuildConstExpression:=aint(l);
       end;
 
 
@@ -1731,7 +1731,7 @@ Unit Rax86int;
         BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
-        BuildRefConstExpression:=l;
+        BuildRefConstExpression:=aint(l);
       end;
 
 
