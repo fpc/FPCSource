@@ -239,7 +239,7 @@ implementation
       if (target_info.system in systems_fpnestedstruct) and
          (p.nodetype=loadn) and
          (tloadnode(p).symtableentry.typ=localvarsym) and
-         (tloadnode(p).symtableentry.visibility=vis_hidden) then
+         tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
         begin
           p.free;
           result:=cnothingnode.create;
@@ -288,7 +288,7 @@ implementation
       if (target_info.system in systems_fpnestedstruct) and
          (p.nodetype=loadn) and
          (tloadnode(p).symtableentry.typ=localvarsym) and
-         (tloadnode(p).symtableentry.visibility=vis_hidden) then
+         tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
         begin
           p.free;
           result:=cnothingnode.create;
