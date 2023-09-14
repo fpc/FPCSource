@@ -9,8 +9,8 @@ main=rtl
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
-      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix linux initc $(CMEMUNIT) \
-      linuxvcs sysutils typinfo math $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
+      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix $(LINUXUNIT) initc $(CMEMUNIT) \
+      $(LINUXVCSUNIT) sysutils typinfo math $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) dl dynlibs \
       types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
       rtlconsts dos cwstring fpcylix $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
@@ -22,7 +22,7 @@ rsts=math  typinfo  sysconst rtlconsts
 nortl=y
 
 [clean]
-units=syslinux linux
+units=syslinux $(LINUXUNIT)
 
 [install]
 fpcpackage=y
@@ -221,10 +221,4 @@ fpcylix$(PPUEXT) : $(LINUXINC)/fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dy
 
 termio$(PPUEXT) : $(LINUXINC)/termio.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(LINUXINC)/termio.pp
-
-linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) unixtype$(PPUEXT)
-        $(COMPILER) $(LINUXINC)/linux.pp
-
-linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
-        $(COMPILER) $(LINUXINC)/linuxvcs.pp
 
