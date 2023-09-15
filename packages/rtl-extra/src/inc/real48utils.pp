@@ -69,7 +69,10 @@ begin
 
   { copy exponent }
   { correct exponent: }
-  rrec.E := drec.E - 1023 + 129;
+  if drec.E<>0 then  
+    rrec.E := drec.E - 1023 + 129
+  else
+    rrec.E:=0;         // signed zero exception.  Note E=2047=inf.
 
   { set sign }
   rrec.S := drec.S;
