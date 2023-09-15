@@ -93,5 +93,5 @@ begin
   if res<>0 then
     HandleErrorAddrFrame(res,
       pointer(uContext^.uc_mcontext.pc),
-      pointer(uContext^.uc_mcontext.regs[3]));
+      pointer(uContext^.uc_mcontext.regs[22]));
 end;
