@@ -1,3 +1,16 @@
+{
+  This file is part of the Free Component Library.
+  Copyright (c) 2023 by the Free Pascal team.
+
+  RSA routines.
+
+  See the file COPYING.FPC, included in this distribution,
+  for details about the copyright.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fprsa;
 {$ENDIF FPC_DOTTEDUNITS}
