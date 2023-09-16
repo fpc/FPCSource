@@ -229,7 +229,7 @@ begin
     begin
       Move(PBuf^, Buffer[Index], Size);
       Inc(Self.Index, Size);
-      Size := 0;
+      Break;
     end;
   end;
 end;
