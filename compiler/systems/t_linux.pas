@@ -288,7 +288,7 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
 {$endif xtensa}
 
 {$ifdef loongarch64}
-  const defdynlinker='/usr/lib64/ld-linux-loongarch-lp64d.so.1';
+  const defdynlinker='/lib64/ld-linux-loongarch-lp64d.so.1';
 {$endif loongarch64}
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
