@@ -2535,7 +2535,7 @@ Const
      TDRIVERINFO3 = DRIVER_INFO_3;
      PDRIVERINFO3 = ^DRIVER_INFO_3;
 
-     EDITSTREAM = record
+     EDITSTREAM = packed record
           dwCookie : DWORD_PTR;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
