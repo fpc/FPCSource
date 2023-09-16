@@ -34,7 +34,7 @@ begin
     T:=P.Targets.AddUnit('src/md5.pp');
     T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
     T:=P.Targets.AddUnit('src/sha1.pp');
-    T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes-[darwin]);
+    T.Dependencies.AddInclude('src/sha1i386.inc', [i386], AllOSes);
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
