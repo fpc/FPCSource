@@ -138,6 +138,8 @@ interface
             is not cleared); the entries are copies and thus must be freed by the
             caller }
           procedure get_managementoperator_offset_list(mop:tmanagementoperator;list:tfplist);
+          { add all subfields from a fieldvar for composition }
+          procedure add_composition_references(fieldvs:tfieldvarsym);
         protected
           { size in bytes including padding }
           _datasize      : asizeint;
@@ -1796,6 +1798,48 @@ implementation
             New(entrycopy);
             entrycopy^:=entry^;
             list.add(entrycopy);
+          end;
+      end;
+
+    procedure tabstractrecordsymtable.add_composition_references(fieldvs:tfieldvarsym);
+      var
+        ard : tabstractrecorddef;
+        recst : tabstractrecordsymtable;
+        i : longint;
+        sym : tsym;
+        refsym : tsymrefsym;
+        hashedid : thashedidstring;
+        collision_sym : pointer;
+      begin
+        ard:=tabstractrecorddef(fieldvs.vardef);
+        recst:=tabstractrecordsymtable(ard.symtable);
+
+        for i:=0 to recst.symlist.count-1 do
+          begin
+            sym:=tsym(recst.symlist[i]);
+           { composition should only be used for directly addressible symbols }
+           { so all invisible symbols will be ignored }
+            if not (sym.visibility in [vis_public,vis_published]) or
+               (length(sym.RealName)=0) or (sym.RealName[1]='$') then
+              continue;
+            { It seems sensible to only restrict to actual accesses to the referenced object }
+            { i.e. fields, methods, constants and properties }
+            if not (sym.typ in [fieldvarsym,procsym,constsym,propertysym,symrefsym]) then
+              continue;
+            { check for collisions with self defined symbols }
+            hashedid.Id:=upper(sym.Name);
+            collision_sym:=symlist.FindWithHash(hashedid.Id,hashedid.Hash);
+            if assigned(collision_sym) then
+              begin
+                if (fieldvs.visibility=vis_hidden) then
+                  Message1(sym_e_duplicate_id,tsym(sym).realname)
+                else { if it's a named field, disambiguation is possible through that field }
+                  Message1(sym_w_duplicate_id,tsym(sym).realname);
+                continue;
+              end;
+            refsym:=tsymrefsym.create(sym,fieldvs);
+            refsym.visibility:=fieldvs.compositevisibility;
+            insertsym(refsym,false);
           end;
       end;
 

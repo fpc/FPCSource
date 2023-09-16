@@ -2511,7 +2511,8 @@ const
          'm_multiline_strings',    { multi-line strings denoted with '`' are enabled and valid }
          'm_statement_expressions', { enables expressions using statements like if, case, try }
          'm_reordered_operators',  { reordered operators, e.g. "a is not b", "a not in b" }
-         'm_type_inquiry'          { the compile time operator "type of <operand>" }
+         'm_type_inquiry',         { the compile time operator "type of <operand>" }
+         'm_record_composition'    { enables record composition }
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =

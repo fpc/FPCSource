@@ -225,6 +225,8 @@ interface
           { offset in record/object, for bitpacked fields the offset is
             given in bit, else in bytes }
           fieldoffset   : asizeint;
+          compositefield : boolean;
+          compositevisibility : tvisibility;
 {$ifdef llvm}
           { the llvm version of the record does not support variants,   }
           { so the llvm equivalent field may not be at the exact same   }
@@ -469,6 +471,14 @@ interface
           class function find_by_number(l:longint):tsyssym;
        end;
        tsyssymclass = class of tsyssym;
+
+       { used in composition to reference a symbol from a child element }
+       tsymrefsym = class(tstoredsym)
+         fieldvs : tfieldvarsym;
+         ref : tsym;
+         constructor create(const s : tsym;f : tfieldvarsym);virtual;
+       end;
+       tsymrefsymclass = class of tsymrefsym;
 
     const
        maxmacrolen=16*1024;
@@ -3188,6 +3198,18 @@ implementation
       begin
         str(l,s);
         result:=tsyssym(syssym_list.find(s));
+      end;
+
+
+{****************************************************************************
+                                TSYMREFSYM
+****************************************************************************}
+
+    constructor tsymrefsym.create(const s : tsym;f : tfieldvarsym);
+      begin
+         inherited create(symrefsym,s.name);
+         ref:=s;
+         fieldvs:=f;
       end;
 
 {*****************************************************************************

@@ -1743,6 +1743,12 @@ implementation
                           p1:=csubscriptnode.create(sym,p1);
                         end;
                    end;
+                 symrefsym:
+                   begin
+                     do_member_read(structh,getaddr,tsymrefsym(sym).fieldvs,p1,again,callflags,spezcontext);
+                     structh:=tabstractrecorddef(tsymrefsym(sym).fieldvs.vardef);
+                     do_member_read(structh,getaddr,tsymrefsym(sym).ref,p1,again,callflags,spezcontext);
+                   end;
                  propertysym:
                    begin
                       if isclassref and not (sp_static in sym.symoptions) then
