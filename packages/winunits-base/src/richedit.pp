@@ -19,7 +19,7 @@ uses Messages, Windows;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF FPC}
-{$PACKRECORDS C}
+{$PACKRECORDS 4} // MS header contains pshpack4 under ifdef win32
 {$ENDIF}
 
 Const
@@ -700,7 +700,7 @@ Const
 
      EDITSTREAMCALLBACK = function (dwCookie:DWORD_PTR; pbBuff:LPBYTE; cb:LONG; var pcb:LONG):DWORD;
 
-     _editstream = record
+     _editstream = packed record
           dwCookie : DWORD_PTR;
           dwError : DWORD;
           pfnCallback : EDITSTREAMCALLBACK;
