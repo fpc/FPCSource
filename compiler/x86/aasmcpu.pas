@@ -659,6 +659,8 @@ interface
     function get_ref_address_size(const ref:treference):byte;
     function get_default_segment_of_ref(const ref:treference):tregister;
     procedure optimize_ref(var ref:treference; inlineasm: boolean);
+    { returns true if opcode can be used with one memory operand without size }
+    function NoMemorySizeRequired(opcode : TAsmOp) : Boolean;
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
@@ -5580,6 +5582,32 @@ implementation
         end;
       end;
     end;
+
+
+    function NoMemorySizeRequired(opcode : TAsmOp) : Boolean;
+      var
+        i : LongInt;
+        insentry  : PInsEntry;
+      begin
+        result:=false;
+        i:=instabcache^[opcode];
+        if i=-1 then
+         begin
+           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+           exit;
+         end;
+        insentry:=@instab[i];
+        while (insentry^.opcode=opcode) do
+         begin
+           if (insentry^.ops=1) and (insentry^.optypes[0]=OT_MEMORY) then
+             begin
+               result:=true;
+               exit;
+             end;
+           inc(insentry);
+         end;
+      end;
+
 
     procedure InitAsm;
       begin
