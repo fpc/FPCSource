@@ -296,6 +296,8 @@ const
 
     NUMCOLS     = 7;
 
+    VM_INQUIRE  = -1;
+
 {* Values returned by VgetMonitor() *}
     MON_MONO        = 0;
     MON_COLOR       = 1;
@@ -303,7 +305,6 @@ const
     MON_TV          = 3;
 
 {* VsetSync flags - 0=internal, 1=external *}
-
     VID_CLOCK   = 1;
     VID_VSYNC   = 2;
     VID_HSYNC   = 4;
