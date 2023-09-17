@@ -2252,7 +2252,13 @@ implementation
            begin
              fieldvs:=tfieldvarsym(cf[i]);
              { Only composition with records objects and classes are allowed }
-             if not (fieldvs.vardef.typ in [recorddef,objectdef]) then
+             if not (
+               (fieldvs.vardef.typ in [recorddef,objectdef]) or (
+                 { also allow for generic params that are resolved later }
+                 (fieldvs.vardef.typ=undefineddef) and
+                 (sp_generic_para in fieldvs.vardef.typesym.symoptions)
+               )
+             ) then
                begin
                  Message(sym_e_type_must_be_rec_or_object_or_class);
                  continue;
@@ -2269,7 +2275,14 @@ implementation
                  if ErrorCount>0 then
                    continue;
                end;
-             recst.add_composition_references(fieldvs);
+             { Composition of generic parameters will be deferred to when the
+               type is specialized. Then this same function will be called
+               again and the type is resolved }
+             if not (
+               (fieldvs.vardef.typ=undefineddef) and
+               (sp_generic_para in fieldvs.vardef.typesym.symoptions)
+             ) then
+               recst.add_composition_references(fieldvs);
            end;
          { free the lists }
          cf.free;
