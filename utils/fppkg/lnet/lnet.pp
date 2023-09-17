@@ -749,7 +749,8 @@ end;
 
 function TLSocket.DoSend(const aData; const aSize: Integer): Integer;
 var
-  AddressLength: Longint = SizeOf(FPeerAddress);
+  AddressLength: Longint = SizeOf(FPeerAddress.IPv4);
+  
 begin
   if FSocketType = SOCK_STREAM then
     Result := Sockets.fpSend(FHandle, @aData, aSize, LMSG)
@@ -759,7 +760,7 @@ end;
 
 function TLSocket.DoGet(out aData; const aSize: Integer): Integer;
 var
-  AddressLength: Longint = SizeOf(FPeerAddress);
+  AddressLength: Longint = SizeOf(FPeerAddress.IPv4);
 begin
   if FSocketType = SOCK_STREAM then
     Result := sockets.fpRecv(FHandle, @aData, aSize, LMSG)
