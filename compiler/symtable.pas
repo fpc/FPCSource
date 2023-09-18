@@ -1960,6 +1960,14 @@ implementation
         for i:=0 to unionst.SymList.Count-1 do
           begin
             sym:=TSym(unionst.SymList[i]);
+            if sym.typ=symrefsym then
+              begin
+                { with record composition union branches can now contain
+                  symrefsyms. These don't need to be aligned, so just add
+                  them to record symtable and go on to next }
+                insertsym(sym);
+                Continue;
+              end;
             if not is_normal_fieldvarsym(sym) then
               internalerror(200601272);
             if tfieldvarsym(sym).fieldoffset=0 then
