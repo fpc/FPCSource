@@ -220,7 +220,7 @@ begin
 end;
 
 {$ifdef IOpossix}
-// mostly stolen from syslinux
+// mostly stolen from linux system unit
 procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
