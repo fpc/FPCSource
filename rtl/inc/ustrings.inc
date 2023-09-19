@@ -454,8 +454,8 @@ Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name '
 {$define FPC_HAS_UNICODESTR_CONCAT}
 procedure fpc_UnicodeStr_Concat (var DestS:Unicodestring;const S1,S2 : UnicodeString); compilerproc;
 Var
-  Size,Location : SizeInt;
-  same : boolean;
+  S1Len,S2Len : SizeInt;
+  OldDestP,NewDestP,RealDestP,Src : Pointer;
 begin
   { only assign if s1 or s2 is empty }
   if Length(S1)=0 then
@@ -468,31 +468,32 @@ begin
       DestS:=s1;
       exit;
     end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  { Use Pointer() typecasts to prevent extra conversion code }
-  if Pointer(DestS)=Pointer(S1) then
+  S1Len:=PUnicodeRec(Pointer(S1)-UnicodeFirstOff)^.Len;
+  S2Len:=PUnicodeRec(Pointer(S2)-UnicodeFirstOff)^.Len;
+  OldDestP:=Pointer(DestS);
+  { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+  if Assigned(OldDestP) and (PUnicodeRec(OldDestP-UnicodeFirstOff)^.Ref=1) then
     begin
-      same:=Pointer(S1)=Pointer(S2);
-      SetLength(DestS,Size+Location);
-      if same then
-        Move(Pointer(DestS)^,(Pointer(DestS)+Location*sizeof(UnicodeChar))^,(Size)*sizeof(UnicodeChar))
-      else
-        Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(UnicodeChar))^,(Size+1)*sizeof(UnicodeChar));
-    end
-  else if Pointer(DestS)=Pointer(S2) then
-    begin
-      SetLength(DestS,Size+Location);
-      Move(Pointer(DestS)^,(Pointer(DestS)+Location*sizeof(UnicodeChar))^,(Size+1)*sizeof(UnicodeChar));
-      Move(Pointer(S1)^,Pointer(DestS)^,Location*sizeof(UnicodeChar));
+      RealDestP:=OldDestP-UnicodeFirstOff;
+      NewDestP:=ReallocMem(RealDestP,UnicodeFirstOff+sizeof(UnicodeChar)+(S1Len+S2Len)*sizeof(UnicodeChar))+UnicodeFirstOff;
+      { Copy S2 first, as in the case of OldDestP = Pointer(S2) it must be copied first and in other cases the order does not matter. }
+      Src:=Pointer(S2);
+      if Src=OldDestP then
+        Src:=NewDestP;
+      Move(Src^,PUnicodeChar(NewDestP)[S1Len],S2Len*sizeof(UnicodeChar));
+      if OldDestP<>Pointer(S1) then { Not an append, need to copy S1? }
+          Move(Pointer(S1)^,NewDestP^,S1Len*sizeof(UnicodeChar));
     end
   else
     begin
-      DestS:='';
-      SetLength(DestS,Size+Location);
-      Move(Pointer(S1)^,Pointer(DestS)^,Location*sizeof(UnicodeChar));
-      Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(UnicodeChar))^,(Size+1)*sizeof(UnicodeChar));
+      NewDestP:=NewUnicodeString(S1Len+S2Len);
+      Move(Pointer(S1)^,NewDestP^,S1Len*sizeof(UnicodeChar));
+      Move(Pointer(S2)^,PUnicodeChar(NewDestP)[S1Len],S2Len*sizeof(UnicodeChar));
+      fpc_unicodestr_decr_ref(Pointer(DestS));
     end;
+  PUnicodeChar(NewDestP)[S1Len+S2Len]:=#0;
+  PUnicodeRec(NewDestP-UnicodeFirstOff)^.Len:=S1Len+S2Len;
+  Pointer(DestS):=NewDestP;
 end;
 {$endif FPC_HAS_UNICODESTR_CONCAT}
 
@@ -501,12 +502,8 @@ end;
 {$define FPC_HAS_UNICODESTR_CONCAT_MULTI}
 procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
 Var
-  i           : SizeInt;
-  p,pc        : pointer;
-  Size,NewLen : SizeInt;
-  lowstart,nonemptystart : SizeInt;
-  destcopy    : pointer;
-  OldDestLen  : SizeInt;
+  lowstart,i,Size,NewLen : SizeInt;
+  p,pc,OldDestP,NewDestP,RealDestP : pointer;
 begin
   lowstart:=low(sarr);
   { skip empty strings }
@@ -523,49 +520,46 @@ begin
   for i:=lowstart to high(sarr) do
     inc(NewLen,length(sarr[i]));
   { In the case of the only nonempty string, return it directly. }
-  if NewLen=length(sarr[lowstart]) then
+  if NewLen=PUnicodeRec(Pointer(sarr[lowstart])-UnicodeFirstOff)^.Len then
     begin
       DestS:=sarr[lowstart];
       exit;
     end;
-  destcopy:=nil;
-  nonemptystart:=lowstart;
-  if Pointer(DestS)=Pointer(sarr[lowstart]) then
-    inc(lowstart);
-  { Check for another reuse, then we can't use
-    the append optimization }
-  for i:=lowstart to high(sarr) do
+  OldDestP:=Pointer(DestS);
+  { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+  if Assigned(OldDestP) and (PUnicodeRec(OldDestP-UnicodeFirstOff)^.Ref=1) then
     begin
-      if Pointer(DestS)=Pointer(sarr[i]) then
-        begin
-          { if DestS is used somewhere in the middle of the expression,
-            we need to make sure the original string still exists after
-            we empty/modify DestS.
-            This trick only works with reference counted strings. Therefor
-            this optimization is disabled for WINLIKEUNICODESTRING }
-          destcopy:=pointer(dests);
-          fpc_UnicodeStr_Incr_Ref(destcopy);
-          lowstart:=nonemptystart;
-          break;
-        end;
-    end;
-  { Start with empty DestS if we start with concatting
-    the first array element }
-  if lowstart=nonemptystart then
-    DestS:='';
-  OldDestLen:=length(DestS);
-  SetLength(DestS,NewLen);
-  { Concat all strings, except the string we already
-    copied in DestS }
-  pc:=Pointer(DestS)+OldDestLen*sizeof(UnicodeChar);
-  for i:=lowstart to high(sarr) do
+      RealDestP:=OldDestP-UnicodeFirstOff;
+      NewDestP:=ReallocMem(RealDestP,UnicodeFirstOff+sizeof(UnicodeChar)+NewLen*sizeof(UnicodeChar))+UnicodeFirstOff;
+      { First string can be skipped if appending. }
+      if OldDestP=Pointer(sarr[lowstart]) then
+        inc(lowstart);
+    end
+  else
     begin
-      p:=pointer(sarr[i]);
-      Size:=length(unicodestring(p));
-      Move(p^,pc^,Size*sizeof(UnicodeChar));
-      inc(pc,size*sizeof(UnicodeChar));
+      { Create new string. }
+      OldDestP:=nil; { This case is distinguished as "not assigned(olddestp)". Also prevents "if p=olddestp" in the loop below shared with the ReallocMem branch. }
+      NewDestP:=NewUnicodeString(NewLen);
     end;
-  fpc_UnicodeStr_Decr_Ref(destcopy);
+  { Copy strings from last to the first, so that possible occurences of DestS could read from the beginning of the reallocated DestS. }
+  pc:=NewDestP+NewLen*sizeof(UnicodeChar);
+  for i:=high(sarr) downto lowstart do
+    begin
+      p:=Pointer(sarr[i]);
+      if not Assigned(p) then
+        continue;
+      if p=OldDestP then
+        { DestS occured among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
+        p:=NewDestP;
+      Size:=PUnicodeRec(p-UnicodeFirstOff)^.Len*sizeof(UnicodeChar);
+      dec(pc,size);
+      Move(p^,pc^,Size);
+    end;
+  if not assigned(OldDestP) then
+    fpc_UnicodeStr_Decr_Ref(Pointer(DestS));
+  PUnicodeChar(NewDestP)[NewLen]:=#0;
+  PUnicodeRec(NewDestP-UnicodeFirstOff)^.Len:=NewLen; { Careful, loop above relies on the old Len in the NewDestP header. }
+  Pointer(DestS):=NewDestP;
 end;
 {$endif FPC_HAS_UNICODESTR_CONCAT_MULTI}
 
