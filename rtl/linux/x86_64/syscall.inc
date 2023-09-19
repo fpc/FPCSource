@@ -230,7 +230,7 @@ asm
 end;
 
 
-{No debugging for syslinux include !}
+{No debugging for system include !}
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}

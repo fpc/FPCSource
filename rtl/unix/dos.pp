@@ -822,7 +822,7 @@ var
   p      : PPAnsiChar;
 Begin
   envcnt:=0;
-  p:=envp;      {defined in syslinux}
+  p:=envp;      {defined in system unit}
   while (p^<>nil) do
    begin
      inc(envcnt);
@@ -841,7 +841,7 @@ Begin
     envstr:=''
   else
     begin
-      p:=envp;      {defined in syslinux}
+      p:=envp;      {defined in system unit}
       i:=1;
       while (i<Index) and (p^<>nil) do
         begin
