@@ -948,28 +948,34 @@ const
   AT_HDR_COUNT = 5;{ AT_PHNUM }
   AT_HDR_SIZE = 4; { AT_PHENT }
   AT_HDR_Addr = 3; { AT_PHDR }
+  AT_HDR_PageSize = 6; {AT_PAGESZ }
   AT_EXE_FN = 31;  {AT_EXECFN }
-
+  max_elf_attempt = 256; { limit the number of pages checked for ELF prefix }
 var
   pc : PPAnsiChar;
   pat_hdr : P_AT_HDR;
-  i, phdr_count : ptrint;
+  i, phdr_count, elf_attempt : ptrint;
   phdr_size : ptruint;
   phdr :  ^telfproghdr;
-  found_addr : ptruint;
+  found_addr, pagesize : ptruint;
+  pelf : pchar;
+  is_elf_start : boolean;
   SavedExitProc : pointer;
 begin
   filename:=ParamStr(0);
   SavedExitProc:=ExitProc;
   ExitProc:=@LocalError;
+  pc:=envp;
+  elf_attempt:=0;
+  phdr_count:=-1;
+  phdr_size:=0;
+  phdr:=nil;
+  pagesize:=ptruint(-1);
+  found_addr:=ptruint(-1);
+  pelf:=pchar(-1);
+  { Try, avoided in order to remove exception installation }
   if SetJmp(LocalJmpBuf)=0 then
   begin
-  { Try, avoided in order to remove exception installation }
-    pc:=envp;
-    phdr_count:=-1;
-    phdr_size:=0;
-    phdr:=nil;
-    found_addr:=ptruint(-1);
     while (assigned(pc^)) do
       inc (pointer(pc), sizeof(ptruint));
     inc(pointer(pc), sizeof(ptruint));
@@ -984,48 +990,73 @@ begin
           phdr_size:=pat_hdr^.value;
         if pat_hdr^.typ = AT_HDR_Addr then
           phdr := pointer(pat_hdr^.value);
+        if pat_hdr^.typ = AT_HDR_PageSize then
+          pagesize := ptruint(pat_hdr^.value);
         if pat_hdr^.typ = AT_EXE_FN then
           filename:=strpas(pansichar(pat_hdr^.value));
         inc (pointer(pat_hdr),sizeof(AT_HDR));
       end;
-    if (phdr_count>0) and (phdr_size = sizeof (telfproghdr))
-       and  assigned(phdr) then
+    if (phdr_count>0) and (phdr_size = sizeof (telfproghdr)) and  assigned(phdr) then
       begin
         for i:=0 to phdr_count -1 do
           begin
-            if (phdr^.p_type = 1 {PT_LOAD}) and (ptruint(phdr^.p_vaddr) < found_addr) then
-              found_addr:=phdr^.p_vaddr;
+            if (phdr^.p_type = 1 {PT_LOAD}) and (ptruint(phdr^.p_vaddr) < ptruint(addr))
+               and ((found_addr=ptruint(-1)) or (found_addr<ptruint(phdr^.p_vaddr))) then
+              begin
+                found_addr:=phdr^.p_vaddr;
+                if pagesize=ptruint(-1) then
+                  pagesize:=phdr^.p_align;
+                if phdr^.p_offset < found_addr then
+                  dec(found_addr,phdr^.p_offset);
+              end;
             inc(pointer(phdr), phdr_size);
           end;
-      {$ifdef DEBUG_LINEINFO}
-      end
+      end;
+
+    if ((found_addr=ptruint(-1)) or (found_addr < ptruint(phdr))) and (ptruint(phdr)<ptruint(addr)) then
+      found_addr:=ptruint(phdr);
+    { Set pagesize to a default small value }
+    if (pagesize=ptruint(-1)) then
+      pagesize:=$100;
+    pelf := pchar(found_addr and ptruint(not (pagesize-1)));
+    is_elf_start:=false;
+    repeat
+      if (pelf[0]=#127) and (pelf[1]='E') and
+         (pelf[2]='L') and (pelf[3]='F') then
+        is_elf_start:=true
+      else
+        pelf:=pchar(ptruint(pelf) - pagesize);
+      inc(elf_attempt);
+    until is_elf_start or (elf_attempt > max_elf_attempt);
+    if is_elf_start then
+      found_addr:=ptruint(pelf);
+    if found_addr<>ptruint(-1) then
+      begin
+        {$ifdef DEBUG_LINEINFO}
+        Writeln(stderr,'Found memory base addr = $',hexstr(found_addr,2 * sizeof(ptruint)));
+        {$endif}
+        BaseAddr:=pointer(found_addr);
+     end
+    {$ifdef DEBUG_LINEINFO}
     else
       begin
+        writeln(stderr,'Error parsing stack');
         if (phdr_count=-1) then
            writeln(stderr,'AUX entry AT_PHNUM not found');
         if (phdr_size=0) then
            writeln(stderr,'AUX entry AT_PHENT not found');
         if (phdr=nil) then
            writeln(stderr,'AUX entry AT_PHDR not found');
-      {$endif DEBUG_LINEINFO}
       end;
-
-     if found_addr<>ptruint(-1) then
-       begin
-          {$ifdef DEBUG_LINEINFO}
-          Writeln(stderr,'Found addr = $',hexstr(found_addr,2 * sizeof(ptruint)));
-          {$endif}
-          BaseAddr:=pointer(found_addr);
-       end
-  {$ifdef DEBUG_LINEINFO}
-     else
-    writeln(stderr,'Error parsing stack');
-  {$endif DEBUG_LINEINFO}
+    {$endif DEBUG_LINEINFO}
   end
   else
   begin
   {$ifdef DEBUG_LINEINFO}
-    writeln(stderr,'Exception parsing stack');
+    writeln(stderr,'Exception generated while trying to find program base addr');
+    writeln(stderr,'elf_attempt=',elf_attempt);
+    writeln(stderr,'Found memory base addr = $',hexstr(found_addr,2 * sizeof(ptruint)));
+    writeln(stderr,'pelf addr = $',hexstr(ptruint(pelf),2 * sizeof(ptruint)));
   {$endif DEBUG_LINEINFO}
   end;
   ExitProc:=SavedExitProc;
