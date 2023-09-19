@@ -22,7 +22,7 @@ rsts=math  typinfo  sysconst rtlconsts
 nortl=y
 
 [clean]
-units=syslinux $(LINUXUNIT)
+units=$(LINUXUNIT)
 
 [install]
 fpcpackage=y
