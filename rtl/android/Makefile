@@ -976,22 +976,22 @@ ifeq ($(CPU_OS_TARGET),aarch64-android)
 override TARGET_RSTS+=math  typinfo  sysconst rtlconsts
 endif
 ifeq ($(CPU_OS_TARGET),i386-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),arm-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),jvm-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-android)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-android)

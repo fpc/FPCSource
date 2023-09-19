@@ -1176,58 +1176,58 @@ ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override TARGET_RSTS+=math typinfo sysconst rtlconsts
 endif
 ifeq ($(CPU_OS_TARGET),i386-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),m68k-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),sparc-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),arm-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),armeb-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),mips-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),mips64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),mips64el-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),sparc64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),riscv32-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),riscv64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),xtensa-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),loongarch64-linux)
-override CLEAN_UNITS+=syslinux $(LINUXUNIT)
+override CLEAN_UNITS+=$(LINUXUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-linux)
