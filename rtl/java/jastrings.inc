@@ -300,6 +300,91 @@ end;
 {$endif FPC_HAS_ANSISTR_CONCAT_COMPLEX}
 
 
+{$ifndef FPC_HAS_ANSISTR_CONCAT}
+{$define FPC_HAS_ANSISTR_CONCAT}
+procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
+Var
+  S1Len, S2Len: SizeInt;
+  same : boolean;
+  S1CP, S2CP, DestCP: TSystemCodePage;
+begin
+{$ifdef FPC_HAS_CPSTRING}
+  DestCP:=cp;
+  if DestCp=CP_NONE then
+    DestCP:=DefaultSystemCodePage;
+{$else FPC_HAS_CPSTRING}
+  DestCP:=StringCodePage(DestS);
+{$endif FPC_HAS_CPSTRING}
+  DestCP:=TranslatePlaceholderCP(DestCP);
+  { if codepages are different then concat using unicodestring,
+    but avoid conversions if either addend is empty (StringCodePage will return
+    DefaultSystemCodePage in that case, which may differ from other addend/dest) }
+  if Length(S1)=0 then
+    S1CP:=DestCP
+  else
+    S1CP:=StringCodePage(S1);
+  S1CP:=TranslatePlaceholderCP(S1CP);
+  if Length(S2)=0 then
+    S2CP:=DestCP
+  else
+    S2CP:=StringCodePage(S2);
+  S2CP:=TranslatePlaceholderCP(S2CP);
+{$ifdef FPC_HAS_CPSTRING}
+  { if the result is rawbytestring and both strings have the same code page,
+    keep that code page or keep the code page if the other string is empty }
+  if cp=CP_NONE then
+    begin
+     if (S1CP=S2CP) or (Length(S2)=0) then
+       DestCP:=S1CP
+     else if Length(S1)=0 then
+       DestCP:=S2CP;
+    end;
+{$endif FPC_HAS_CPSTRING}
+  if ((S1CP<>DestCP) and (Length(s1)>0)) or ((S2CP<>DestCP) and (Length(s2)>0)) then
+    begin
+      ansistr_concat_complex(DestS,S1,S2,DestCP);
+      exit;
+    end;
+  { only assign if s1 or s2 is empty }
+  if (Length(S1)=0) then
+    begin
+      DestS:=s2;
+      exit;
+    end;
+  if (Length(S2)=0) then
+    begin
+      DestS:=s1;
+      exit;
+    end;
+  S1Len:=Length(S1);
+  S2Len:=length(S2);
+  { Use Pointer() typecasts to prevent extra conversion code }
+  if Pointer(DestS)=Pointer(S1) then
+    begin
+      same:=Pointer(S1)=Pointer(S2);
+      SetLength(DestS,S1Len+S2Len);
+      if same then
+        fpc_pchar_ansistr_intern_charmove(PAnsiChar(DestS),0,DestS,S1Len,S2Len)
+      else
+        fpc_pchar_ansistr_intern_charmove(PAnsiChar(S2),0,DestS,S1Len,S2Len+1)
+    end
+  else if Pointer(DestS)=Pointer(S2) then
+    begin
+      SetLength(DestS,S1Len+S2Len);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(DestS),0,DestS,S1Len,S2Len+1);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S1),0,DestS,0,S1Len);
+    end
+  else
+    begin
+      SetLength(DestS,S1Len+S2Len);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S1),0,DestS,0,S1Len);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S2),0,DestS,S1Len,S2Len+1);
+    end;
+  SetCodePage(DestS,DestCP,false);
+end;
+{$endif FPC_HAS_ANSISTR_CONCAT}
+
+
 {$define FPC_HAS_ANSISTR_TO_ANSISTR}
 Function fpc_AnsiStr_To_AnsiStr (const S : RawByteString;cp : TSystemCodePage): RawByteString; compilerproc;
 {

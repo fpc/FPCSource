@@ -218,8 +218,8 @@ end;
 procedure fpc_AnsiStr_Concat (var DestS:RawByteString;const S1,S2 : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
   S1Len, S2Len: SizeInt;
-  same : boolean;
   S1CP, S2CP, DestCP: TSystemCodePage;
+  OldDestP, NewDestP, RealDestP, Src : Pointer;
 begin
 {$ifdef FPC_HAS_CPSTRING}
   DestCP:=cp;
@@ -232,28 +232,25 @@ begin
   { if codepages are different then concat using unicodestring,
     but avoid conversions if either addend is empty (StringCodePage will return
     DefaultSystemCodePage in that case, which may differ from other addend/dest) }
-  if Length(S1)=0 then
-    S1CP:=DestCP
-  else
-    S1CP:=StringCodePage(S1);
-  S1CP:=TranslatePlaceholderCP(S1CP);
-  if Length(S2)=0 then
-    S2CP:=DestCP
-  else
-    S2CP:=StringCodePage(S2);
-  S2CP:=TranslatePlaceholderCP(S2CP);
+  S1CP:=DestCP;
+  if Length(S1)<>0 then
+    S1CP:=TranslatePlaceholderCP(StringCodePage(S1));
+  S2CP:=S1CP; { So if S2 is empty, S2CP = S1CP. }
+  if Length(S2)<>0 then
+    S2CP:=TranslatePlaceholderCP(StringCodePage(S2));
 {$ifdef FPC_HAS_CPSTRING}
   { if the result is rawbytestring and both strings have the same code page,
     keep that code page or keep the code page if the other string is empty }
   if cp=CP_NONE then
-    begin
-     if (S1CP=S2CP) or (Length(S2)=0) then
-       DestCP:=S1CP
-     else if Length(S1)=0 then
+   if S1CP=S2CP then { Includes the case of empty S2. }
+     DestCP:=S1CP
+   else if Length(S1)=0 then
+     begin
        DestCP:=S2CP;
-    end;
+       S1CP:=S2CP;
+     end;
 {$endif FPC_HAS_CPSTRING}
-  if ((S1CP<>DestCP) and (Length(s1)>0)) or ((S2CP<>DestCP) and (Length(s2)>0)) then
+  if (S1CP<>DestCP) or (S2CP<>DestCP) then
     begin
       ansistr_concat_complex(DestS,S1,S2,DestCP);
       exit;
@@ -269,31 +266,33 @@ begin
       DestS:=s1;
       exit;
     end;
-  S1Len:=Length(S1);
-  S2Len:=length(S2);
-  { Use Pointer() typecasts to prevent extra conversion code }
-  if Pointer(DestS)=Pointer(S1) then
+  S1Len:=PAnsiRec(Pointer(S1)-AnsiFirstOff)^.Len;
+  S2Len:=PAnsiRec(Pointer(S2)-AnsiFirstOff)^.Len;
+  OldDestP:=Pointer(DestS);
+  { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+  if Assigned(OldDestP) and (PAnsiRec(OldDestP-AnsiFirstOff)^.Ref=1) then
     begin
-      same:=Pointer(S1)=Pointer(S2);
-      SetLength(DestS,S1Len+S2Len);
-      if same then
-        fpc_pchar_ansistr_intern_charmove(PAnsiChar(DestS),0,DestS,S1Len,S2Len)
-      else
-        fpc_pchar_ansistr_intern_charmove(PAnsiChar(S2),0,DestS,S1Len,S2Len+1)
-    end
-  else if Pointer(DestS)=Pointer(S2) then
-    begin
-      SetLength(DestS,S1Len+S2Len);
-      fpc_pchar_ansistr_intern_charmove(PAnsiChar(DestS),0,DestS,S1Len,S2Len+1);
-      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S1),0,DestS,0,S1Len);
+      RealDestP:=OldDestP-AnsiFirstOff;
+      NewDestP:=ReallocMem(RealDestP,AnsiFirstOff+1+S1Len+S2Len)+AnsiFirstOff;
+      { Copy S2 first, as in the case of OldDestP = Pointer(S2) it must be copied first and in other cases the order does not matter. }
+      Src:=Pointer(S2);
+      if Src=OldDestP then
+        Src:=NewDestP;
+      Move(Src^,PAnsiChar(NewDestP)[S1Len],S2Len);
+      if OldDestP<>Pointer(S1) then { Not an append, need to copy S1? }
+        Move(Pointer(S1)^,NewDestP^,S1Len);
     end
   else
     begin
-      SetLength(DestS,S1Len+S2Len);
-      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S1),0,DestS,0,S1Len);
-      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S2),0,DestS,S1Len,S2Len+1);
+      NewDestP:=NewAnsiString(S1Len+S2Len);
+      Move(Pointer(S1)^,NewDestP^,S1Len);
+      Move(Pointer(S2)^,PAnsiChar(NewDestP)[S1Len],S2Len);
+      fpc_ansistr_decr_ref(Pointer(DestS));
     end;
-  SetCodePage(DestS,DestCP,false);
+  PAnsiChar(NewDestP)[S1Len+S2Len]:=#0;
+  PAnsiRec(NewDestP-AnsiFirstOff)^.CodePage:=DestCP;
+  PAnsiRec(NewDestP-AnsiFirstOff)^.Len:=S1Len+S2Len;
+  Pointer(DestS):=NewDestP;
 end;
 {$endif FPC_HAS_ANSISTR_CONCAT}
 
@@ -315,15 +314,9 @@ end;
 
 procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 Var
-  lowstart,
-  nonemptystart,
-  i           : ObjpasInt;
-  p,pc        : pointer;
-  Size,NewLen,
-  OldDestLen  : SizeInt;
-  destcopy    : pointer;
-  DestCP,
-  tmpCP       : TSystemCodePage;
+  lowstart,i,Size,NewLen : SizeInt;
+  p,pc,olddestp,newdestp,realdestp : pointer;
+  DestCP,tmpCP : TSystemCodePage;
 begin
 {$ifdef FPC_HAS_CPSTRING}
   DestCP:=cp;
@@ -367,55 +360,50 @@ begin
   for i:=lowstart to high(sarr) do
     inc(NewLen,length(sarr[i]));
   { In the case of the only nonempty string, either return it directly (if SetCodePage has nothing to do) or skip 1 allocation. }
-  if NewLen=length(sarr[lowstart]) then
+  if NewLen=PAnsiRec(Pointer(sarr[lowstart])-AnsiFirstOff)^.Len then
+    DestS:=sarr[lowstart]
+  else
     begin
-      DestS:=sarr[lowstart];
-      { SetCodePage does the conversion (or at least uniquifying) if DestCP is not exactly the code page stored in the string header. Avoid if possible. }
-      if DestCP<>tmpCP then
-        SetCodePage(DestS,DestCP,True);
-      exit;
-    end;
-  destcopy:=nil;
-  nonemptystart:=lowstart;
-  { Check for another reuse, then we can't use
-    the append optimization }
-  if Length(DestS)<>0 then
-    begin
-      if Pointer(DestS)=Pointer(sarr[lowstart]) then
-        inc(lowstart);
-      for i:=lowstart to high(sarr) do
+      olddestp:=pointer(dests);
+      { Reallocate when possible; in the hope this will reuse the chunk more often than do a redundant copy. }
+      if assigned(olddestp) and (PAnsiRec(olddestp-AnsiFirstOff)^.Ref=1) then
         begin
-          if Pointer(DestS)=Pointer(sarr[i]) then
-            begin
-              { if DestS is used somewhere in the middle of the expression,
-                we need to make sure the original string still exists after
-                we empty/modify DestS                                       }
-              destcopy:=pointer(dests);
-              fpc_AnsiStr_Incr_Ref(destcopy);
-              lowstart:=nonemptystart;
-              break;
-            end;
+          realdestp:=olddestp-AnsiFirstOff;
+          newdestp:=ReallocMem(realdestp,AnsiFirstOff+1+NewLen)+AnsiFirstOff;
+          { First string can be skipped if appending. }
+          if olddestp=pointer(sarr[lowstart]) then
+            inc(lowstart);
+        end
+      else
+        begin
+          { Create new string. }
+          olddestp:=nil; { This case is distinguished as "not assigned(olddestp)". Also prevents "if p=olddestp" in the loop below shared with the ReallocMem branch. }
+          newdestp:=NewAnsiString(NewLen);
         end;
+      { Copy strings from last to the first, so that possible occurences of DestS could read from the beginning of the reallocated DestS. }
+      pc:=newdestp+NewLen;
+      for i:=high(sarr) downto lowstart do
+        begin
+          p:=pointer(sarr[i]);
+          if not assigned(p) then
+            continue;
+          if p=olddestp then
+            { DestS occured among pieces in the ReallocMem case! Use the new pointer. Its header still conveniently contains old DestS length. }
+            p:=newdestp;
+          Size:=PAnsiRec(p-AnsiFirstOff)^.Len;
+          dec(pc,size);
+          Move(p^,pc^,Size);
+        end;
+      if not assigned(olddestp) then
+        fpc_AnsiStr_Decr_Ref(pointer(DestS));
+      PAnsiChar(newdestp)[NewLen]:=#0;
+      PAnsiRec(newdestp-AnsiFirstOff)^.CodePage:=tmpCP;
+      PAnsiRec(newdestp-AnsiFirstOff)^.Len:=NewLen; { Careful, loop above relies on the old Len in the newdestp header. }
+      Pointer(DestS):=newdestp;
     end;
-  { Start with empty DestS if we start with concatting
-    the first (non-empty) array element }
-  if lowstart=nonemptystart then
-    DestS:='';
-  OldDestLen:=length(DestS);
-  SetLength(DestS,NewLen);
-  { Concat all strings, except the string we already
-    copied in DestS }
-  pc:=Pointer(DestS)+OldDestLen;
-  for i:=lowstart to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      Size:=length(ansistring(p));
-      Move(p^,pc^,Size);
-      inc(pc,size);
-    end;
-  SetCodePage(DestS,tmpCP,False);
-  SetCodePage(DestS,DestCP,True);
-  fpc_AnsiStr_Decr_Ref(destcopy);
+  { SetCodePage does the conversion (or at least uniquifying) if DestCP is not exactly the code page stored in the string header. Avoid if possible. }
+  if DestCP<>tmpCP then
+    SetCodePage(DestS,DestCP,True);
 end;
 {$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
 
