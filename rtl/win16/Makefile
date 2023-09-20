@@ -896,7 +896,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) sysconst rtlconsts sysutils $(MATHUNIT) types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_IMPLICITUNITS+=$(CP_UNITS)
@@ -2181,7 +2181,11 @@ ifndef DYNLIBSINCDIR
 DYNLIBSINCDIR=$(OSDIR)
 endif
 ifndef INITCDIR
+ifdef UNIXINC
+INITCDIR=$(UNIXINC)
+else
 INITCDIR=$(OSDIR)
+endif
 endif
 ifndef DOSDIR
 DOSDIR=$(OSDIR)
@@ -2210,6 +2214,9 @@ NSBSDDIR=$(NSDIR)/bsd
 endif
 ifndef TERMIODIR
 TERMIODIR=$(OSDIR)
+endif
+ifndef PTHREADINCDIR
+PTHREADINCDIR=$(OSDIR)
 endif
 ifndef NSWINDOWSDIR
 NSWINDOWSDIR=$(NSDIR)/windows
@@ -2359,8 +2366,11 @@ unixcp$(PPUEXT) : $(UNIXCP_DEPS)
 	$(COMPILER) $(UNIXCP_OPT) $(UNIXINC)/unixcp.pp
 UnixApi.CP$(PPUEXT) : $(NSINC)/UnixApi.CP.pp $(UNIXCP_DEPS)
 	$(COMPILER) $(UNIXCP_OPT) $<
+ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
+  LINUX_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
+endif
 LINUX_DEPS=$(OSDIR)/linux.pp \
-	   $(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+	   $(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(LINUX_DEPS_OS) $(LINUX_DEPS_CPU)
 linux$(PPUEXT): $(LINUX_DEPS)
 	$(COMPILER) $<
@@ -2404,8 +2414,11 @@ msmouse$(PPUEXT) : $(MSMOUSE_DEPS)
 DOSApi.MSMouse$(PPUEXT) : $(NSOSDIR)/DOSApi.MSMouse.pp $(MSMOUSE_DEPS)
 	$(COMPILER) $(MSMOUSE_OPTS) $<
 SYSUTILS_UNIX_DEPS=$(UNIXUNIT)$(PPUEXT) $(ERRORSUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
-		   $(SYSCALLUNIT)$(PPUEXT) $(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
+		   $(BASEUNIXUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
 		   $(UNIXUTILUNIT)$(PPUEXT)  $(INITCUNIT)$(PPUEXT)
+ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
+  SYSUTILS_UNIX_DEPS+= $(SYSCALLUNIT)$(PPUEXT)
+endif
 SYSUTILS_DEPS=$(SYSUTILSDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/$(SYSUTILSUNIT)/*.inc) \
 	      $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
 	      $(SYSUTILS_DEPS_OS) $(SYSUTILS_DEPS_CPU)
@@ -2467,13 +2480,13 @@ sysconst$(PPUEXT) : $(SYSCONST_DEPS)
 System.SysConst$(PPUEXT) :  $(NSINC)/System.SysConst.pp $(SYSCONST_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(SYSCONST_OPT) $<
 ifdef FPC_DOTTEDUNITS
-RTLCONSTS_DEPS=$(OBJPASDIR)/rtlconsts.pp \
+RTLCONSTS_DEPS=$(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc \
 	      objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	      $(RTLCONSTS_DEPS_OS) $(RTLCONSTS_DEPS_CPU)
 System.RtlConsts$(PPUEXT) : $(NSINC)/System.RtlConsts.pp $(RTLCONSTS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR) $(RTLCONSTS_OPT) $<
 else
-RTLCONSTS_DEPS=$(OBJPASDIR)/$(RTLCONSTSUNIT).pp \
+RTLCONSTS_DEPS=$(OBJPASDIR)/$(RTLCONSTSUNIT).pp $(OBJPASDIR)/rtlconst.inc \
 	      objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	      $(RTLCONSTS_DEPS_OS) $(RTLCONSTS_DEPS_CPU)
 $(RTLCONSTSUNIT)$(PPUEXT) : $(RTLCONSTS_DEPS)
@@ -2496,8 +2509,11 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
+  X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
+endif
 X86_DEPS = $(UNIXINC)/x86.pp \
-	  $(BASEUNIXUNIT)$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+	  $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	  $(X86_DEPS_OS) $(X86_DEPS_CPU)
 x86$(PPUEXT) : $(X86_DEPS)
 	$(COMPILER) $(X86_OPT)  $<
@@ -2629,8 +2645,11 @@ unixutil$(PPUEXT) : $(UNIXUTIL_DEPS)
 	$(COMPILER) $(UNIXUTIL_OPT) $<
 UnixApi.Utils$(PPUEXT) : $(NSINC)/UnixApi.Utils.pp $(UNIXUTIL_DEPS) 
 	$(COMPILER) $(UNIXUTIL_OPT) $<
+ifndef PTYPESINCDIR
+  PTYPESINCDIR=$(OSDIR)
+endif
 UNIXTYPE_DEPS=$(UNIXINC)/unixtype.pp \
-	      $(SYSTEMUNIT)$(PPUEXT) $(OSDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
+	      $(SYSTEMUNIT)$(PPUEXT) $(PTYPESINCDIR)/ptypes.inc $(UNIXINC)/ctypes.inc \
 	      $(UNIXTYPE_DEPS_OS) $(UNIXTYPE_DEPS_CPU)
 unixtype$(PPUEXT) : $(UNIXTYPE_DEPS)
 	$(COMPILER) $(UNIXTYPE_OPT) $(UNIXINC)/unixtype.pp
@@ -2650,7 +2669,7 @@ errors$(PPUEXT) : $(ERRORS_DEPS)
 	$(COMPILER) $(ERRORS_OPT) $<
 UnixApi.Errors$(PPUEXT) : $(NSINC)/UnixApi.Errors.pp $(ERRORS_DEPS)
 	$(COMPILER) $(ERRORS_OPT) $<
-CTHREADS_DEPS=$(UNIXINC)/cthreads.pp \
+CTHREADS_DEPS=$(UNIXINC)/cthreads.pp $(PTHREADINCDIR)/pthread.inc \
 	      $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
 	      $(BASEUNIXUNIT)$(PPUEXT) $(INITCUNIT)$(PPUEXT) $(DLUNIT)$(PPUEXT) \
 	      $(CTHREADS_DEPS_OS) $(CTHREADS_DEPS_CPU)
@@ -2667,6 +2686,11 @@ cwstring$(PPUEXT) : $(CWSTRING_DEPS)
 	$(COMPILER) $(CWSTRING_OPT) $<
 UnixApi.CWString$(PPUEXT) : $(NSINC)/UnixApi.CWString.pp $(CWSTRING_DEPS)
 	$(COMPILER) $(CWSTRING_OPT) $<
+ifneq ($(UNIXINC),)
+ifneq ($(OS_TARGET),macosclassic)
+  CTYPES_DEPS_OS+=$(UNIXTYPEUNIT)$(PPUEXT)
+endif
+endif
 CTYPES_DEPS=$(INC)/ctypes.pp \
 	    $(SYSTEMUNIT)$(PPUEXT) \
 	    $(CTYPES_DEPS_OS) $(CTYPES_DEPS_CPU)
@@ -2716,6 +2740,9 @@ messages$(PPUEXT): $(MESSAGES_DEPS)
 	$(COMPILER) -Fi$(WINMESSAGESINCDIR) $<
 WinApi.Messages$(PPUEXT): $(NSWINDOWSDIR)/WinApi.Messages.pp $(MESSAGES_DEPS)
 	$(COMPILER) -Fi$(WINMESSAGESINCDIR) -Fi$(WINMMESSAGESDIR) $<
+ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
+  SYSCTL_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
+endif
 SYSCTL_DEPS=$(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) \
 	    $(SYSCTL_DEPS_OS) $(SYSCTL_DEPS_CPU)
 sysctl$(PPUEXT) : $(SYSCTL_DEPS)
@@ -2895,31 +2922,22 @@ dos$(PPUEXT) : dos.pp registers.inc \
 	$(COMPILER) dos.pp
 	$(EXECPPAS)
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) \
+		    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) \
 		    wintypes$(PPUEXT) winprocs$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
 		   types$(PPUEXT) $(FGLUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) \
 		   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(MATHUNIT)$(PPUEXT) wintypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-	$(EXECPPAS)
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
-	$(EXECPPAS)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
-	$(EXECPPAS)
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
-	$(COMPILER) $(INC)/ctypes.pp $(REDIR)
 	$(EXECPPAS)
