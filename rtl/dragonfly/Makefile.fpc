@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0 gprt0 dllprt0
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
-      $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) \
+      $(STRINGSUNIT) $(SYSCALLUNIT) sysctl baseunix unixutil $(CHARACTERUNIT) \
       unix rtlconsts $(INITCUNIT) $(CMEMUNIT) \
       $(DLUNIT) $(TERMIOUNIT) \
       sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
@@ -62,6 +62,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
+SYSCALL_DEPS_OS=sysnr.inc $(BSDPROCINC)/syscallh.inc
 
 SYSTEMUNIT=system
 loaders+=gprt0
@@ -139,7 +140,7 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/fi
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-bsd$(PPUEXT) : $(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+bsd$(PPUEXT) : $(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) unix$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
@@ -187,7 +188,7 @@ endif
 # Other system-dependent RTL Units
 #
 
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
