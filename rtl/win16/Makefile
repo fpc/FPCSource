@@ -896,7 +896,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) dynlibs $(SORTBASEUNIT) sysconst rtlconsts sysutils math types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos wintypes winprocs win31 $(PORTSUNIT) dynlibs $(SORTBASEUNIT) sysconst rtlconsts sysutils $(MATHUNIT) types typinfo $(FGLUNIT) classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 override TARGET_IMPLICITUNITS+=$(CP_UNITS)
@@ -2364,7 +2364,7 @@ linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
 LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
 	     $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
 	     objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
@@ -2421,7 +2421,7 @@ character$(PPUEXT): $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) $<
 System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) -Fi$(OBJPASDIR) $<
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
 	   objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 math$(PPUEXT): $(MATH_DEPS)
@@ -2892,13 +2892,10 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   winprocs$(PPUEXT) wintypes$(PPUEXT) sortbase$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
-math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/math.pp
-	$(EXECPPAS)
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) wintypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(MATHUNIT)$(PPUEXT) wintypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)

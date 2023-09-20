@@ -915,7 +915,7 @@ ifeq ($(CPU_OS_TARGET),i386-win32)
 override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(CPU_OS_TARGET),i386-win32)
-override TARGET_RSTS+=math typinfo classes sysconst
+override TARGET_RSTS+=$(MATHUNIT) typinfo classes sysconst
 endif
 override INSTALL_BUILDUNIT=buildrtl
 override INSTALL_FPCPACKAGE=y y
@@ -2378,7 +2378,7 @@ linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
 LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
 	     $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
 	     objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
@@ -2435,7 +2435,7 @@ character$(PPUEXT): $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) $<
 System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) -Fi$(OBJPASDIR) $<
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
 	   objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 math$(PPUEXT): $(MATH_DEPS)

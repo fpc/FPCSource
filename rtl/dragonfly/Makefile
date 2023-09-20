@@ -901,7 +901,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) unix rtlconsts initc $(CMEMUNIT) dl termio sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) $(ERRORSUNIT) bsd console  sysconst cthreads dos cwstring $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+override TARGET_UNITS+=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) unix rtlconsts initc $(CMEMUNIT) dl termio sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) $(ERRORSUNIT) bsd console  sysconst cthreads dos cwstring $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_IMPLICITUNITS+=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
@@ -910,7 +910,7 @@ ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_LOADERS+=prt0 cprt0 gprt0 dllprt0
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_RSTS+=math typinfo classes sysconst
+override TARGET_RSTS+=$(MATHUNIT) typinfo classes sysconst
 endif
 override INSTALL_FPCPACKAGE=y y y
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
@@ -2372,7 +2372,7 @@ linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
 LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
 	     $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
 	     objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
@@ -2429,7 +2429,7 @@ character$(PPUEXT): $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) $<
 System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) -Fi$(OBJPASDIR) $<
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
 	   objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 math$(PPUEXT): $(MATH_DEPS)
@@ -2887,9 +2887,7 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 	$(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/math.pp
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
