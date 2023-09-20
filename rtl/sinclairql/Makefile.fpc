@@ -14,7 +14,7 @@ implicitunits=si_prc \
       $(SORTBASEUNIT) $(CHARSETUNIT) $(FPWIDESTRINGUNIT) \
       $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=math rtlconsts typinfo classes sysconst
+rsts=$(MATHUNIT) rtlconsts typinfo classes sysconst
 
 [require]
 nortl=y

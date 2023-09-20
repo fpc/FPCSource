@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) $(FPINTRESUNIT) $(SYSINIT_UNITS) \
 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=math typinfo sysconst rtlconsts
+rsts=$(MATHUNIT) typinfo sysconst rtlconsts
 
 [require]
 nortl=y

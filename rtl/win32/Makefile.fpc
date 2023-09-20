@@ -22,7 +22,7 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof initc $(EXTPASUNIT) $(HEAPTRCUN
 
 # shared=$(DLLS)
 
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 
 [require]
 nortl=y

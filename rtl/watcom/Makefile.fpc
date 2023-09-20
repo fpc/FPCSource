@@ -24,7 +24,7 @@ implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 
 [require]
 nortl=y

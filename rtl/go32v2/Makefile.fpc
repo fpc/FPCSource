@@ -8,13 +8,13 @@ loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 \
       dos $(CMEMUNIT) $(SORTBASEUNIT) \
-      sysutils classes math typinfo \
+      sysutils classes $(MATHUNIT) typinfo \
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
       msmouse $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
       types sysconst rtlconst \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 [require]
 nortl=y
@@ -128,15 +128,11 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/math.pp
-	$(EXECPPAS)
-
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 
@@ -159,7 +155,7 @@ matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
 	$(EXECPPAS)
 
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp $(MATHUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
 	$(EXECPPAS)
 

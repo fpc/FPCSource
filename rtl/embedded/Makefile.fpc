@@ -22,7 +22,7 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EX
        $(SYSCONSTUNIT)
 #implicitunits=exeinfo $(CP_UNITS)
 
-#rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
+#rsts=$(MATHUNIT) rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
 nortl=y
@@ -218,7 +218,7 @@ endif
 endif
 
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),rv32ec)
 override FPCOPT+=-Cprv32ec
 CPU_UNITS=CH32VxBootstrap

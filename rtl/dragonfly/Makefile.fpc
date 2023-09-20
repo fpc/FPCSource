@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) \
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
-      sysutils math typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
+      sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) bsd \
       console  \
@@ -23,7 +23,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 
 [require]
 nortl=y
@@ -45,7 +45,7 @@ libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos  \
-      sysutils typinfo math \
+      sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) dynlibs
 
@@ -167,10 +167,7 @@ classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/math.pp
-
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
