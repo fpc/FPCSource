@@ -205,9 +205,6 @@ gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
 
-fpcylix$(PPUEXT) :  fpcylix.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) fpcylix.pp
-
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/dl.pp
 
