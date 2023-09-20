@@ -198,5 +198,3 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
-console$(PPUEXT) : baseunix$(PPUEXT) $(TERMIOUNIT)$(PPUEXT)
-
