@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
        systraps pilot
 #units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
-#      windows messages dynlibs \
+#      windows messages $(DYNLIBSUNIT) \
 #      dos objects \
 #      rtlconsts sysconst sysutils \
 #      typinfo types $(FGLUNIT) classes fmtbcd \

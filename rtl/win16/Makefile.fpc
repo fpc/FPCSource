@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) dos \
-      wintypes winprocs win31 $(PORTSUNIT) dynlibs $(SORTBASEUNIT) \
+      wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
       sysconst rtlconsts sysutils $(MATHUNIT) types typinfo $(FGLUNIT) \
       classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
       $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
@@ -97,13 +97,6 @@ winprocs$(PPUEXT) : winprocs.pp winprocsh.inc winprocs.inc system$(PPUEXT) $(OBJ
 win31$(PPUEXT) : win31.pp system$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) wintypes$(PPUEXT)
 	$(COMPILER) win31.pp
 	$(EXECPPAS)
-
-#
-# system Dependent Units
-#
-
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas dynlibs.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(INC)/dynlibs.pas
 
 #
 # TP7 Compatible RTL Units

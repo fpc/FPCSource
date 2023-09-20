@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(ERRORSUNIT) \
       types sysctl sysconst \
-      $(FPINTRESUNIT) dynlibs cwstring $(CMEMUNIT) dl termio \
+      $(FPINTRESUNIT) $(DYNLIBSUNIT) cwstring $(CMEMUNIT) dl termio \
       cthreads $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
@@ -58,6 +58,8 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
+DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
+DYNLIBSINCDIR=$(UNIXINC)
 
 SYSTEMUNIT=system
 LINUXUNIT=
@@ -201,10 +203,7 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dl$(PPUEXT) : $(UNIXINC)/dl.pp ctypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #

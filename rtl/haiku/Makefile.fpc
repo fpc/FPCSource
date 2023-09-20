@@ -44,7 +44,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       dos \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT) dynlibs
+      $(ERRORSUNIT) $(DYNLIBSUNIT)
 
 
 [prerules]

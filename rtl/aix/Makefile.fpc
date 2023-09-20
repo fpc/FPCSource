@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
       # ipc 
-      dl dynlibs \
+      dl $(DYNLIBSUNIT) \
       types sysconst \
       rtlconsts cthreads \
       dos \
@@ -59,6 +59,8 @@ OSPROCINC=$(RTL)/aix/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 CPU_UNITS=
+DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
+DYNLIBSINCDIR=$(UNIXINC)
 
 SYSTEMUNIT=system
 
@@ -185,16 +187,13 @@ endif
 # Other system-dependent RTL Units
 #
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/dynlibs.pas
-
 termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) termio.pp
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp sysutils$(PPUEXT) baseunix$(PPUEXT) unixtype$(PPUEXT) unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cthreads.pp
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
 
 gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)

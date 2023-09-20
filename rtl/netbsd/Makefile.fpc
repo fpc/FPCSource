@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(STRINGSUNIT) syscall sysctl  baseunix unixutil $(CHARACTERUNIT) \
       unix rtlconsts initc $(CMEMUNIT) \
       dl termio \
-      sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) dynlibs \
+      sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) bsd \
       sysconst cthreads dos cwstring \
@@ -59,6 +59,8 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/netbsd/$(CPU_TARGET)
+DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
+DYNLIBSINCDIR=$(UNIXINC)
 
 SYSTEMUNIT=system
 LINUXUNIT=
@@ -143,9 +145,6 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) sysctl$(PPUEXT) $(INC)/textr
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-	$(COMPILER) $<
-
 #
 # TP7 Compatible RTL Units
 #
@@ -215,7 +214,7 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) $(MATHUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
-cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

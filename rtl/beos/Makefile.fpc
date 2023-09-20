@@ -44,7 +44,7 @@ libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       dos crt  \
       sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
-      $(ERRORSUNIT) dynlibs
+      $(ERRORSUNIT) $(DYNLIBSUNIT)
 
 
 [prerules]
@@ -58,6 +58,8 @@ BASEUNIXDIR=.
 ifndef FPC_DOTTEDUNITS
 RTLCONSTSUNIT=rtlconst
 endif
+DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
+DYNLIBSINCDIR=$(UNIXINC)
 # Use new feature from 1.0.5 version
 # that generates release PPU files
 # which will not be recompiled
