@@ -602,6 +602,10 @@ ifndef NSBSDDIR
 NSBSDDIR=$(NSDIR)/bsd
 endif
 
+ifndef TERMIODIR
+TERMIODIR=$(OSDIR)
+endif
+
 ifndef NSWINDOWSDIR
 NSWINDOWSDIR=$(NSDIR)/windows
 endif
@@ -914,7 +918,8 @@ fpcylix$(PPUEXT) : $(FPCYLIX_DEPS)
 #
 # Termio
 #
-TERMIO_DEPS=$(OSDIR)/termio.pp $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+TERMIO_DEPS=$(TERMIODIR)/termio.pp $(UNIXINC)/ttyname.inc $(TERMIODIR)/termios.inc \
+	    $(TERMIODIR)/termiosproc.inc $(BASEUNIXUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
             $(TERMIO_DEPS_OS) $(TERMIO_DEPS_CPU)
 
 termio$(PPUEXT) : $(TERMIO_DEPS)
