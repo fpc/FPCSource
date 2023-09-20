@@ -111,7 +111,8 @@ asm
     sub    $4, %esi
     ja     .L4x_Loop
 
-    popl   (%ecx) { Write precalculated tail. }
+    pop    %ebx
+    mov    %ebx, (%ecx) { Write precalculated tail. }
     pop    %esi
     pop    %ebx
     ret    $4
@@ -152,7 +153,8 @@ asm
     sub    $4, %esi
     ja     .L4x_Loop
 
-    popl   (%ecx) { Write precalculated tail. }
+    pop    %ebx
+    mov    %ebx, (%ecx) { Write precalculated tail. }
     pop    %esi
     pop    %ebx
     ret    $4
