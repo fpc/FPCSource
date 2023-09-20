@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) initc $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASU
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(ERRORSUNIT) \
       types sysctl sysconst \
-      $(FPINTRESUNIT) $(DYNLIBSUNIT) cwstring $(CMEMUNIT) dl termio \
+      $(FPINTRESUNIT) $(DYNLIBSUNIT) cwstring $(CMEMUNIT) $(DLUNIT) termio \
       cthreads $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
@@ -198,9 +198,6 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEX
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-dl$(PPUEXT) : $(UNIXINC)/dl.pp ctypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
