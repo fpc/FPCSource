@@ -121,8 +121,6 @@ nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 
-#dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
-
 initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 

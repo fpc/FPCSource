@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
       $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix $(LINUXUNIT) initc $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
-      $(GETOPTSUNIT) $(ERRORSUNIT) dl dynlibs \
+      $(GETOPTSUNIT) $(ERRORSUNIT) dl $(DYNLIBSUNIT) \
       types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
       rtlconsts dos cwstring $(FPCYLIXUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -51,6 +51,8 @@ PROCINC=$(RTL)/$(ARCH)
 UNIXINC=$(RTL)/unix
 OSPROCINC=$(RTL)/linux/$(CPU_TARGET)
 LINUXINC=$(RTL)/linux
+DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
+DYNLIBSINCDIR=$(UNIXINC)
 
 UNITPREFIX=rtl
 
@@ -155,9 +157,6 @@ baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/pty
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) dlandroid.inc
         $(COMPILER) $(UNIXINC)/dl.pp
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/dynlibs.pas
-
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
 
@@ -207,7 +206,7 @@ endif
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/cthreads.pp
 
-cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT)
+cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
         $(COMPILER) cwstring.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
