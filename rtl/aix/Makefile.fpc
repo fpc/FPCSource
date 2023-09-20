@@ -10,7 +10,7 @@ loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) \
       baseunix unixutil \
-      termio unix initc $(CMEMUNIT) \
+      $(TERMIOUNIT) unix initc $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
       sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
@@ -62,6 +62,7 @@ CPU_UNITS=
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 DL_DEPS_OS=$(DLUNIT)aix.inc
+TERMIO_DEPS_OS=$(UNIXTYPEUNIT)$(PPUEXT) $(CTYPESUNIT)$(PPUEXT)
 
 SYSTEMUNIT=system
 
@@ -188,9 +189,6 @@ endif
 # Other system-dependent RTL Units
 #
 
-termio$(PPUEXT) : termio.pp unixtype$(PPUEXT) baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) termio.pp
-
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp sysutils$(PPUEXT) baseunix$(PPUEXT) unixtype$(PPUEXT) unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cthreads.pp
 
@@ -205,6 +203,6 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
 
-console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
+console$(PPUEXT) : baseunix$(PPUEXT) $(TERMIOUNIT)$(PPUEXT)
         $(COMPILER) $<
 

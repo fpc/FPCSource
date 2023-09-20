@@ -9,7 +9,7 @@ main=rtl
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
       $(UUCHARUNIT) unixtype ctypes baseunix $(STRINGSUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) syscall unixutil \
-      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) termio unix $(LINUXUNIT) initc $(CMEMUNIT) \
+      $(FPINTRESUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) $(TERMIOUNIT) unix $(LINUXUNIT) initc $(CMEMUNIT) \
       $(LINUXVCSUNIT) sysutils typinfo $(MATHUNIT) $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) \
       $(GETOPTSUNIT) $(ERRORSUNIT) $(DLUNIT) $(DYNLIBSUNIT) \
       types  sysconst cthreads $(SORTBASEUNIT) classes $(FGLUNIT)  \
@@ -54,6 +54,7 @@ LINUXINC=$(RTL)/linux
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 DL_DEPS_OS=dlandroid.inc
+TERMIODIR=$(LINUXINC)
 
 UNITPREFIX=rtl
 
@@ -209,7 +210,4 @@ cwstring$(PPUEXT) : cwstring.pp $(SYSTEMUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp
-
-termio$(PPUEXT) : $(LINUXINC)/termio.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
-        $(COMPILER) $(LINUXINC)/termio.pp
 
