@@ -22,7 +22,7 @@ units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
 #      varutils variants \
 #      matrix ucomplex \
 #      $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) winsock sockets
-# initc $(CMEMUNIT) signals \
+# $(INITCUNIT) $(CMEMUNIT) signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \

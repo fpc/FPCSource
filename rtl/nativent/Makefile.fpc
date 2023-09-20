@@ -12,7 +12,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNI
 implicitunits=ndk ndkutils ddk \
       ctypes $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
-#      initc $(CMEMUNIT) $(DYNLIBSUNIT) signals \
+#      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
       dos \
       rtlconsts sysconst sysutils $(MATHUNIT) types \
       typinfo $(FGLUNIT) classes \

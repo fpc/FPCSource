@@ -567,7 +567,11 @@ DYNLIBSINCDIR=$(OSDIR)
 endif
 
 ifndef INITCDIR
+ifdef UNIXINC
+INITCDIR=$(UNIXINC)
+else
 INITCDIR=$(OSDIR)
+endif
 endif
 
 ifndef DOSDIR

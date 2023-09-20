@@ -14,7 +14,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
 #      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
-#      initc profile dxetype dxeload emu387 \
+#      $(INITCUNIT) profile dxetype dxeload emu387 \
 #      cpu $(MMXUNIT) \
 #      vesamode \
 # rsts=$(MATHUNIT) typinfo classes dateutil sysconst

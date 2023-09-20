@@ -20,7 +20,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(IS
 rsts=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
-# dpmiexcp initc $(PORTSUNIT) profile dxeload emu387 \
+# dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxeload emu387 \
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 
@@ -109,8 +109,6 @@ watcom$(PPUEXT) : watcom.pp system$(PPUEXT)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
         $(COMPILER) -Sg dpmiexcp.pp
-
-initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) watcom$(PPUEXT)
 
