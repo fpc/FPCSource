@@ -23,7 +23,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(FPINTRESUNIT) ctypes objpas $(MACPASUNIT) $(
 #    video mouse keyboard \
 #    winsysut
 
-# rsts=math varutils typinfo variants classes dateutils sysconst
+# rsts=$(MATHUNIT) varutils typinfo variants classes dateutils sysconst
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 # fake dll

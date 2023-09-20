@@ -18,7 +18,7 @@ units=system $(UUCHARUNIT) $(BASEUNIXUNIT) $(UNIXTYPEUNIT) $(CTYPESUNIT) $(OBJPA
       $(DYNLIBSUNIT) $(CWSTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU218UNIT)  $(UFLOAT128UNIT)
 #      beos
-rsts=math typinfo sysconst rtlconsts 
+rsts=$(MATHUNIT) typinfo sysconst rtlconsts 
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
 
 [require]
@@ -42,7 +42,7 @@ libversion=2.0.0
 libunits=$(SYSTEMUNIT) $(OBJPASUNIT) $(STRINGSUNIT) \
       unix  \
       dos crt  \
-      sysutils typinfo math \
+      sysutils typinfo $(MATHUNIT) \
       $(CPU_UNITS) $(GETOPTSUNIT) $(HEAPTRCUNIT) \
       $(ERRORSUNIT) dynlibs
 

@@ -20,7 +20,7 @@ implicitunits=sysinit $(EXTPASUNIT) $(HEAPTRCUNIT) $(FPINTRESUNIT) \
       $(CP_UNITS) $(UNICODEDATAUNIT) \
       $(CPU_UNITS)
 
-rsts=math typinfo classes sysconst
+rsts=$(MATHUNIT) typinfo classes sysconst
 
 programs=
 

@@ -1008,7 +1008,7 @@ System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 #
 # Math
 #
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
            objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
            $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 

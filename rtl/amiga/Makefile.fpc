@@ -15,7 +15,7 @@ implicitunits=$(SYSINITUNITS) $(EXEUNITS) athreads $(DOSUNIT) $(SYSUTILSUNIT) $(
       $(UFLOAT128UNIT)  $(UFLOATX80UNIT) $(SFPU128UNIT) $(SFPUX80UNIT) $(SOFTFPUUNIT) 
 
 
-rsts=math rtlconsts typinfo classes sysconst
+rsts=$(MATHUNIT) rtlconsts typinfo classes sysconst
 
 [require]
 nortl=y
