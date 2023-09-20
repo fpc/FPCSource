@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(SYSCALLUNIT) baseunix \
-      $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
+      $(LINUXUNIT) unixtype unixutil unix ctypes $(BSDUNIT) \
       $(CPU_UNITS) dos rtlconsts \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo $(MATHUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
@@ -58,6 +58,8 @@ BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
+
+BSD_DEPS_OS=$(SYSCALLUNIT)$(PPUEXT)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
 SYSCALL_DEPS_OS=baseunix$(PPUEXT) unixtype$(PPUEXT) sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
@@ -215,9 +217,6 @@ else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 endif
-
-bsd$(PPUEXT) : $(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) unix$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 #
 # Other system-dependent RTL Units
