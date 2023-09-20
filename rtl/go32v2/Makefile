@@ -899,7 +899,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 dos $(CMEMUNIT) $(SORTBASEUNIT) sysutils classes math typinfo cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) msmouse $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) types sysconst rtlconst $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
+override TARGET_UNITS+=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 dos $(CMEMUNIT) $(SORTBASEUNIT) sysutils classes $(MATHUNIT) typinfo cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) msmouse $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) types sysconst rtlconst $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_IMPLICITUNITS+=$(EXEINFOUNIT) $(CP_UNITS)
@@ -908,7 +908,7 @@ ifeq ($(CPU_OS_TARGET),i386-go32v2)
 override TARGET_LOADERS+=prt0 exceptn fpu
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_RSTS+=math typinfo classes sysconst
+override TARGET_RSTS+=$(MATHUNIT) typinfo classes sysconst
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
@@ -2370,7 +2370,7 @@ linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
 LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
 	     $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
 	     objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
@@ -2427,7 +2427,7 @@ character$(PPUEXT): $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) $<
 System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) -Fi$(OBJPASDIR) $<
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
 	   objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 math$(PPUEXT): $(MATH_DEPS)
@@ -2891,13 +2891,10 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
 		   sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
-math$(PPUEXT): $(OBJPASDIR)/math.pp $(OBJPASUNIT)$(PPUEXT) sysutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/math.pp
-	$(EXECPPAS)
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
-types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) math$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
@@ -2912,7 +2909,7 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/matrix.pp
 	$(EXECPPAS)
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp $(MATHUNIT)$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/ucomplex.pp
 	$(EXECPPAS)
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)

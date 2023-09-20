@@ -905,7 +905,7 @@ CPU_SPECIFIC_COMMON_UNITS=
 DOSDIR=.
 DOS_DEPS_OS=objpas$(PPUEXT)
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=stm32f103xe cortexm3 cortexm4 # thumb2_bare
 CPU_UNITS_DEFINED=1
@@ -1005,7 +1005,7 @@ endif
 endif
 endif
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 CPU_UNITS=multiboot
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1013,13 +1013,13 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),x86_64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 endif
 ifeq ($(ARCH),m68k)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT)
 endif
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),pic32mx)
 CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 CPU_UNITS_DEFINED=1
@@ -1029,7 +1029,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv32)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),rv32imc)
 override FPCOPT+=-Cprv32imc
 CPU_UNITS=esp32c3 esp32c3idf_50000
@@ -1040,7 +1040,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),riscv64)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 CPU_UNITS=
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
@@ -1048,7 +1048,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),xtensa)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
+CPU_SPECIFIC_COMMON_UNITS=sysutils $(MATHUNIT) classes $(FGLUNIT) $(MACPASUNIT) typinfo types rtlconsts $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),lx6)
 CPU_UNITS=esp32 espidf_40100 espidf_40200 espidf_40400
 CPU_UNITS_DEFINED=1
@@ -2561,7 +2561,7 @@ linuxvcs$(PPUEXT): $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
 LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
 	$(COMPILER) $(LINUXVCS_OPT) $<
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
 	     $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
 	     objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	     $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
@@ -2618,7 +2618,7 @@ character$(PPUEXT): $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) $<
 System.Character$(PPUEXT): $(NSINC)/System.Character.pas $(CHARACTER_DEPS)
 	$(COMPILER) $(CHARACTER_OPT) -Fi$(OBJPASDIR) $<
-MATH_DEPS= $(OBJPASDIR)/math.pp \
+MATH_DEPS= $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc \
 	   objpas$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 	   $(MATH_DEPS_OS) $(MATH_DEPS_CPU)
 math$(PPUEXT): $(MATH_DEPS)
