@@ -838,6 +838,12 @@ DYNLIBS_DEPS=$(INC)/dynlibs.pas $(DYNLIBSINCDIR)/dynlibs.inc \
              objpas$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) $(SYSUTILSUNIT)$(PPUEXT) \
              $(DYNLIBS_DEPS_OS) $(DYNLIBS_DEPS_CPU)
 
+ifdef DYNLIBSINCDIR
+  ifndef DYNLIBS_OPT
+    DYNLIBS_OPT=-Fi$(DYNLIBSINCDIR)
+  endif
+endif
+
 dynlibs$(PPUEXT) : $(DYNLIBS_DEPS)
 	$(COMPILER) $(DYNLIBS_OPT) $<
 
