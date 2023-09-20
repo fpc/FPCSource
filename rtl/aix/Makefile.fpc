@@ -10,7 +10,7 @@ loaders=
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(MACPASUNIT) \
       $(HEAPTRCUNIT) \
       baseunix unixutil \
-      $(TERMIOUNIT) unix initc $(CMEMUNIT) \
+      $(TERMIOUNIT) unix $(INITCUNIT) $(CMEMUNIT) \
       $(LNFOGDBUNIT) \
       sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
@@ -199,7 +199,4 @@ gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
-
-initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(UNIXINC)/initc.pp
 

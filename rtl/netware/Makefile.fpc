@@ -47,6 +47,7 @@ RTLCONSTSUNIT=rtlconst
 endif
 DOS_DEPS_OS=$(STRINGSUNIT)$(PPUEXT)
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
+INITC_DEPS_OS=$(OSDIR)/nwsys.inc
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -120,9 +121,6 @@ copyimpfiles:
 nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
-
-initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
 
 #
 # Other system-dependent RTL Units

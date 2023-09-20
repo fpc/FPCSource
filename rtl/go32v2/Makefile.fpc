@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0 exceptn fpu
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
-      go32 dpmiexcp initc $(PORTSUNIT) profile dxetype dxeload emu387 \
+      go32 dpmiexcp $(INITCUNIT) $(PORTSUNIT) profile dxetype dxeload emu387 \
       dos $(CMEMUNIT) $(SORTBASEUNIT) \
       sysutils classes $(MATHUNIT) typinfo \
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
@@ -33,6 +33,8 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
+
 # Use new feature from 1.0.5 version
 # that generates release PPU files
 # which will not be recompiled
@@ -84,10 +86,6 @@ go32$(PPUEXT) : go32.pp system$(PPUEXT)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) system$(PPUEXT)
 	$(COMPILER) -Sg dpmiexcp.pp
-	$(EXECPPAS)
-
-initc$(PPUEXT) : initc.pp system$(PPUEXT)
-	$(COMPILER) initc.pp
 	$(EXECPPAS)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)

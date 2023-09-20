@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
       $(LINEINFOUNIT) $(LNFODWRFUNIT)  $(HEAPTRCUNIT) \
       nwsnut libc dos sysconst \
-      initc sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
+      $(INITCUNIT) sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
       cpu $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
       rtlconsts $(MATHUNIT) \
@@ -130,9 +130,6 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) netware.pp
 
 nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
 
 #
 # TP7 Compatible RTL Units
