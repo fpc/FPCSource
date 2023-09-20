@@ -13,7 +13,7 @@ loaders=prt0 cprt0 gprt0 dllprt0
 units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) \
       $(STRINGSUNIT) syscall sysctl baseunix unixutil $(CHARACTERUNIT) \
       unix rtlconsts initc $(CMEMUNIT) \
-      dl termio \
+      $(DLUNIT) termio \
       sysutils $(MATHUNIT) typinfo types $(SORTBASEUNIT) classes $(FGLUNIT) $(DYNLIBSUNIT) \
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) bsd freebsd \
@@ -207,9 +207,6 @@ sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) s
         $(COMPILER) $<
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-dl$(PPUEXT) : $(UNIXINC)/dl.pp ctypes$(PPUEXT) $(OBJPASUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

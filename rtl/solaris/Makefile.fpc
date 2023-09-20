@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       sysutils typinfo $(MATHUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
       $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
-      dl $(DYNLIBSUNIT) \
+      $(DLUNIT) $(DYNLIBSUNIT) \
       types sysconst $(CHARACTERUNIT) \
       rtlconsts cthreads \
       dos $(FPWIDESTRINGUNIT) \
@@ -197,9 +197,6 @@ cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUE
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
-
-dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/dl.pp
 
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 

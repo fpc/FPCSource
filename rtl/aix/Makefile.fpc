@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(UNIXCPUNIT) $(GETOPTSUNIT) \
       $(ERRORSUNIT) \
       # ipc 
-      dl $(DYNLIBSUNIT) \
+      $(DLUNIT) $(DYNLIBSUNIT) \
       types sysconst \
       rtlconsts cthreads \
       dos \
@@ -61,6 +61,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
+DL_DEPS_OS=$(DLUNIT)aix.inc
 
 SYSTEMUNIT=system
 
@@ -200,9 +201,6 @@ gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) $(INC)/ctypes.pp
-
-dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/dl.pp
 
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
