@@ -927,6 +927,19 @@ termio$(PPUEXT) : $(TERMIO_DEPS)
 
 UnixApi.TermIO$(PPUEXT) : $(NSINC)/UnixApi.TermIO.pp $(TERMIO_DEPS)
         $(COMPILER) $(TERMIO_OPT) $<
+
+#
+# Console (dragonfly and freebsd, unused source in darwin directory)
+#
+CONSOLE_DEPS= console.pp $(BASEUNIXUNIT)$(PPUEXT) $(TERMIOUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+            $(CONSOLE_DEPS_OS) $(CONSOLE_DEPS_CPU)
+
+console$(PPUEXT) : $(CONSOLE_DEPS)
+        $(COMPILER) $(CONSOLE_OPT) $<
+
+System.Console$(PPUEXT) : $(NSOSDIR)/System.Console.pp $(CONSOLE_DEPS)
+        $(COMPILER) $(CONSOLE_OPT) $<
+
 #
 # TP7 Compatible RTL Units
 #
