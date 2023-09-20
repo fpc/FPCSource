@@ -894,9 +894,9 @@ LinuxApi.Vcs$(PPUEXT): $(NSOSDIR)/LinuxApi.Vcs.pp $(LINUXVCS_DEPS)
         $(COMPILER) $(LINUXVCS_OPT) $<
 
 #
-# fpcylix
+# fpcylix, linux specific, and probably obsolete
 #
-FPCYLIX_DEPS=fpcylix.pp \
+FPCYLIX_DEPS=../linux/fpcylix.pp \
              $(CTHREADSUNIT)$(PPUEXT) $(CWSTRINGUNIT)$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT) \
              objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
              $(FPCYLIX_DEPS_OS)  $(FPCYLIX_DEPS_CPU)
