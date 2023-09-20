@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=$(LOADERS)
-units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) syscall baseunix \
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) $(SYSCALLUNIT) baseunix \
       $(LINUXUNIT) unixtype unixutil unix ctypes bsd \
       $(CPU_UNITS) dos rtlconsts \
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo $(MATHUNIT) \
@@ -60,6 +60,7 @@ UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/openbsd/$(CPU_TARGET)
 DYNLIBS_DEPS_OS=$(DLUNIT)$(PPUEXT)
 DYNLIBSINCDIR=$(UNIXINC)
+SYSCALL_DEPS_OS=baseunix$(PPUEXT) unixtype$(PPUEXT) sysnr.inc setsysnr.inc $(BSDPROCINC)/syscallh.inc
 
 SYSTEMUNIT=system
 LINUXUNIT=
@@ -215,19 +216,16 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 endif
 
-bsd$(PPUEXT) : $(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+bsd$(PPUEXT) : $(BSDINC)/bsd.pas $(INITCUNIT)$(PPUEXT) unix$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
 # Other system-dependent RTL Units
 #
 
-syscall$(PPUEXT) : $(UNIXINC)/syscall.pp baseunix$(PPUEXT)
-        $(COMPILER) $<
-
 # sysctl needs to also compile baseunix and syscall units, which
 # are respectively located in ../
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT) unixtype$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) unixtype$(PPUEXT)
 	$(COMPILER) -Fu$(UNIXINC) -Fu$(BSDINC) $(BSDINC)/sysctl.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
