@@ -1960,7 +1960,7 @@ begin
   case aValue.VType of
     vtInteger: Result:=aValue.VInteger;
     vtBoolean: Result:=aValue.VBoolean;
-    vtWideChar: TValue.Make(@aValue.VChar,System.TypeInfo(WideChar),Result);
+    vtWideChar: TValue.Make(@aValue.VWideChar,System.TypeInfo(WideChar),Result);
     vtInt64: Result:=aValue.VInt64^;
     vtQWord: Result:=aValue.VQWord^;
     vtChar: TValue.Make(@aValue.VChar,System.TypeInfo(AnsiChar),Result);
