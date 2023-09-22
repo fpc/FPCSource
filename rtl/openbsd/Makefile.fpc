@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(INITCUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(
       sysutils $(SORTBASEUNIT) $(FGLUNIT) classes typinfo $(MATHUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) $(CHARACTERUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) \
       $(ERRORSUNIT) \
-      types sysctl sysconst \
+      types $(SYSCTL) sysconst \
       $(FPINTRESUNIT) $(DYNLIBSUNIT) cwstring $(CMEMUNIT) $(DLUNIT) $(TERMIOUNIT) \
       cthreads $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -221,11 +221,6 @@ endif
 #
 # Other system-dependent RTL Units
 #
-
-# sysctl needs to also compile baseunix and syscall units, which
-# are respectively located in ../
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) $(SYSCALLUNIT)$(PPUEXT) unixtype$(PPUEXT)
-	$(COMPILER) -Fu$(UNIXINC) -Fu$(BSDINC) $(BSDINC)/sysctl.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
