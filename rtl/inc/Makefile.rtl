@@ -1094,14 +1094,14 @@ System.SysConst$(PPUEXT) :  $(NSINC)/System.SysConst.pp $(SYSCONST_DEPS)
 # Thus we need to use the variable here
 #
 ifdef FPC_DOTTEDUNITS
-RTLCONSTS_DEPS=$(OBJPASDIR)/rtlconsts.pp \
+RTLCONSTS_DEPS=$(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc \
               objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
               $(RTLCONSTS_DEPS_OS) $(RTLCONSTS_DEPS_CPU)
 
 System.RtlConsts$(PPUEXT) : $(NSINC)/System.RtlConsts.pp $(RTLCONSTS_DEPS)
         $(COMPILER) -Fi$(OBJPASDIR) $(RTLCONSTS_OPT) $<
 else
-RTLCONSTS_DEPS=$(OBJPASDIR)/$(RTLCONSTSUNIT).pp \
+RTLCONSTS_DEPS=$(OBJPASDIR)/$(RTLCONSTSUNIT).pp $(OBJPASDIR)/rtlconst.inc \
               objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
               $(RTLCONSTS_DEPS_OS) $(RTLCONSTS_DEPS_CPU)
 
