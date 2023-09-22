@@ -11,7 +11,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(RTLCONSTSUNIT) typinfo cpu types \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse $(PORTSUNIT)  \
-#      $(CHARSETUNIT) $(CPALLUNIT) ctypes \
+#      $(CHARSETUNIT) $(CPALLUNIT) $(CTYPESUNIT) \
 #      $(FPWIDESTRINGUNIT) $(CHARACTERUNIT) $(UNICODEDATAUNIT)
 #     $(CMEMUNIT)
 #      $(INITCUNIT) profile dxetype dxeload emu387 \
@@ -123,10 +123,6 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 #
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
         $(COMPILER) msmouse.pp $(REDIR)
-	$(EXECPPAS)
-
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
 	$(EXECPPAS)
 
 si_prc$(PPUEXT) : system$(PPUEXT)

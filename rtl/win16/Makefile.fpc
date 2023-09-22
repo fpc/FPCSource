@@ -9,7 +9,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASU
       wintypes winprocs win31 $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
       $(SYSCONSTUNIT) $(RTLCONSTSUNIT) sysutils $(MATHUNIT) types typinfo $(FGLUNIT) \
       classes $(CHARSETUNIT) cpu $(GETOPTSUNIT) $(CPALLUNIT) \
-      $(UNICODEDATAUNIT) $(CHARACTERUNIT) ctypes
+      $(UNICODEDATAUNIT) $(CHARACTERUNIT) $(CTYPESUNIT)
 implicitunits=$(CP_UNITS)
 
 [require]
@@ -138,9 +138,3 @@ cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 	$(EXECPPAS)
 
-#
-# Other system-dependent RTL Units
-#
-ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
-	$(EXECPPAS)
