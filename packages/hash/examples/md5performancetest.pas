@@ -15,6 +15,7 @@ var
   StartTime: TDateTime;
   EndTime: TDateTime;
   i: integer;
+  TimeTaken: string;
   s,ss: RawByteString;
 begin
   writeln('MD5 of a million "a" symbols');
@@ -27,6 +28,7 @@ begin
     ss := LowerCase(MDPrint(MDString(s, MD_VERSION_5)));
   EndTime:=now;
   writeln('Performance test finished. Elapsed time:');
-  writeln(TimeToStr(EndTime-StartTime));
+  DateTimeToString(TimeTaken, 'S.ZZ', EndTime-StartTime);
+  WriteLn('Average time taken = ', TimeTaken, ' ms');
 end.
 
