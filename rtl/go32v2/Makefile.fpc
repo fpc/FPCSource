@@ -12,7 +12,7 @@ units=system $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUN
       cpu $(MMXUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LINEINFOUNIT) $(LNFODWRFUNIT) ctypes $(FGLUNIT) \
       msmouse $(CHARSETUNIT) $(CPALLUNIT) \
       $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(UNICODEDATAUNIT) \
-      types $(SYSCONSTUNIT) rtlconst \
+      types $(SYSCONSTUNIT) $(RTLCONSTSUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
@@ -33,6 +33,10 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+ifndef FPC_DOTTEDUNITS
+RTLCONSTSUNIT=rtlconst
+endif
+
 INITC_DEPS_OS=$(DPMIEXCPUNIT)$(PPUEXT)
 
 # Use new feature from 1.0.5 version
@@ -122,20 +126,16 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) types$(PPUEXT) $(FGLUNIT)$(PPUEXT) \
 		   sortbase$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) rtlconst$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
-	$(EXECPPAS)
-
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 	$(EXECPPAS)
 
 #

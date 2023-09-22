@@ -13,11 +13,11 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(E
       $(INITCUNIT) sysutils types typinfo $(SORTBASEUNIT) $(FGLUNIT) classes \
       cpu $(MMXUNIT) $(GETOPTSUNIT) \
       $(CHARSETUNIT) $(CPALLUNIT) \
-      rtlconsts $(MATHUNIT) \
+      $(RTLCONSTSUNIT) $(MATHUNIT) \
       $(DYNLIBSUNIT) $(CMEMUNIT) ctypes \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 
-rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT) rtlconsts system
+rsts=$(MATHUNIT) typinfo classes $(SYSCONSTUNIT) $(RTLCONSTSUNIT) system
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS)
 
 [require]
@@ -146,7 +146,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
                    $(SYSCONSTUNIT)$(PPUEXT) types$(PPUEXT) sortbase$(PPUEXT) \
                    tthread.inc $(FGLUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
@@ -156,9 +156,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp $(OBJPASUNIT)$(PPUEXT)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 #
 # Other system-independent RTL Units
