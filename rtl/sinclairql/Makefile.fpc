@@ -10,11 +10,11 @@ loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) buildrtl $(CPALLUNIT)
 # $(EXTPASUNIT) $(MACPASUNIT)
 implicitunits=si_prc \
-      ctypes rtlconsts $(STRINGSUNIT) \
+      ctypes $(RTLCONSTSUNIT) $(STRINGSUNIT) \
       $(SORTBASEUNIT) $(CHARSETUNIT) $(FPWIDESTRINGUNIT) \
       $(CP_UNITS) $(UNICODEDATAUNIT)
 
-rsts=$(MATHUNIT) rtlconsts typinfo classes $(SYSCONSTUNIT)
+rsts=$(MATHUNIT) $(RTLCONSTSUNIT) typinfo classes $(SYSCONSTUNIT)
 
 [require]
 nortl=y
