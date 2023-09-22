@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(OBJPASUNIT) $(MACPASUNIT) $(
       $(CPU_UNITS) $(CHARSETUNIT) $(CPALLUNIT) $(GETOPTSUNIT) $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(LINEINFOUNIT) \
       $(ERRORSUNIT) $(BSDUNIT) freebsd \
       $(CONSOLEUNIT) \
-      $(SYSCONSTUNIT) cthreads dos cwstring \
+      $(SYSCONSTUNIT) $(CTHREADSUNIT) dos cwstring \
       $(FPINTRESUNIT) $(UNIXCPUNIT) $(FPWIDESTRINGUNIT) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
 implicitunits=$(EXEINFOUNIT) $(CP_UNITS) $(UNICODEDATAUNIT)
@@ -196,9 +196,6 @@ endif
 #
 # Other system-dependent RTL Units
 #
-
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

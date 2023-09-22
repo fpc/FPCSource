@@ -18,7 +18,7 @@ units=$(SYSTEMUNIT) $(UUCHARUNIT) unixtype ctypes $(STRINGSUNIT) $(OBJPASUNIT) $
       # ipc 
       $(DLUNIT) $(DYNLIBSUNIT) \
       types $(SYSCONSTUNIT) \
-      $(RTLCONSTSUNIT) cthreads \
+      $(RTLCONSTSUNIT) $(CTHREADSUNIT) \
       dos \
       cwstring $(FPWIDESTRINGUNIT) $(FPINTRESUNIT) $(CPU_UNITS) \
       $(SOFTFPUUNIT) $(SFPUX80UNIT) $(UFLOATX80UNIT) $(SFPU128UNIT) $(UFLOAT128UNIT)
@@ -181,9 +181,6 @@ endif
 #
 # Other system-dependent RTL Units
 #
-
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp sysutils$(PPUEXT) baseunix$(PPUEXT) unixtype$(PPUEXT) unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(UNIXINC)/cthreads.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) $(DYNLIBSUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/cwstring.pp
