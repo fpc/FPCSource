@@ -7,7 +7,7 @@ main=rtl
 #loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(CHARSETUNIT) $(CPALLUNIT) \
       $(GETOPTSUNIT) $(EXEINFOUNIT) $(HEAPTRCUNIT)
-#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) sysconst sysutils \
+#$(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) dos $(HEAPTRCUNIT) $(LNFODWRFUNIT) $(SYSCONSTUNIT) sysutils \
 #      $(MATHUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) rtlconsts typinfo cpu types \
 #      $(GETOPTSUNIT) $(SORTBASEUNIT) $(FGLUNIT) classes \
 #      msmouse $(PORTSUNIT)  \
@@ -17,7 +17,7 @@ units=system si_prc $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(STRINGSUNIT) $(
 #      $(INITCUNIT) profile dxetype dxeload emu387 \
 #      cpu $(MMXUNIT) \
 #      vesamode \
-# rsts=$(MATHUNIT) typinfo classes dateutil sysconst
+# rsts=$(MATHUNIT) typinfo classes dateutil $(SYSCONSTUNIT)
 implicitunits= $(CP_UNITS)
 
 [require]
@@ -92,7 +92,7 @@ dos$(PPUEXT) : dos.pp registers.inc \
 # Delphi Compatible Units
 #
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+                    $(OBJPASUNIT)$(PPUEXT) dos$(PPUEXT) $(SYSCONSTUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 
@@ -113,10 +113,6 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp $(OBJPASUNIT)$(PPUEXT) $(MATHUNIT)$(PPUEX
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
-	$(EXECPPAS)
-
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp $(OBJPASUNIT)$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 	$(EXECPPAS)
 
 #
