@@ -1,4 +1,4 @@
-unit tests.value;
+unit tests.rtti.value;
 
 {$mode ObjFPC}{$H+}
 

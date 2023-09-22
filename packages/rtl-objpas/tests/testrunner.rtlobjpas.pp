@@ -33,7 +33,7 @@ uses
 {$ifdef testimpl}
   tests.rtti.impl,
 {$endif}
-  tests.rtti, tests.value, tests.rtti.types;
+  tests.rtti, tests.rtti.value, tests.rtti.types;
 
 var
   Application: TTestRunner;
