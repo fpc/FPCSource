@@ -93,7 +93,8 @@ unit cgcpu;
         procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean); override;
 
       protected
-        function fixref(list: TAsmList; var ref: treference; mode : tfixref): boolean;
+        function fixref(list: TAsmList; var ref: treference; mode : tfixref;out tmpreg : tregister): boolean;
+        procedure ungetregister(r : tregister;list :TAsmList);
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
       end;
 
@@ -326,6 +327,7 @@ implementation
         href: treference;
         op: TAsmOp;
         hlist: TAsmList;
+        tmpreg : tregister;
       const
         st_ops: array[boolean,OS_8..OS_INT] of TAsmOp = (
           (A_ST_B,A_ST_H,A_ST_W,A_ST_D),
@@ -343,18 +345,21 @@ implementation
         if stptr_ops[tosize]<>A_NONE then
           begin
             href:=ref;
-            if fixref(hlist,href,fr_big) then
+            if fixref(hlist,href,fr_big,tmpreg) then
               begin
                 list.concatList(hlist);
                 hlist.free;
                 list.concat(taicpu.op_reg_ref(stptr_ops[tosize],reg,href));
                 exit;
-              end;
+              end
+            else
+              if (tmpreg<>NR_NO) then
+                ungetregister(tmpreg,hlist);
           end;
         hlist.Clear;
         hlist.free;
         href:=ref;
-        op:=st_ops[fixref(list,href,fr_reg),tosize];
+        op:=st_ops[fixref(list,href,fr_reg,tmpreg),tosize];
         list.concat(taicpu.op_reg_ref(op,reg,href));
       end;
 
@@ -367,6 +372,7 @@ implementation
         have_done: boolean;
         hlist: TAsmList;
         samesign: boolean;
+        tmpreg : tregister;
       const
         ld_ops: array[boolean,boolean,OS_8..OS_INT] of TAsmOp = (
           ((A_LD_B,A_LD_H,A_LD_W,A_LD_D),
@@ -375,6 +381,7 @@ implementation
            (A_LDX_BU,A_LDX_HU,A_LDX_WU,A_LDX_D))
         );
       begin
+        tmpreg:=NR_NO;
         if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
           internalerror(2022111938);
         if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
@@ -388,7 +395,7 @@ implementation
         if (fromsize=OS_S32) then
           begin
             href:=ref;
-            if fixref(hlist,href,fr_big) then
+            if fixref(hlist,href,fr_big,tmpreg) then
               begin
                 hlist.concat(taicpu.op_reg_ref(A_LDPTR_W,reg,href));
                 have_done:=true;
@@ -397,7 +404,7 @@ implementation
         else if (fromsize=OS_S64) or (fromsize=OS_64) then
           begin
             href:=ref;
-            if fixref(hlist,href,fr_big) then
+            if fixref(hlist,href,fr_big,tmpreg) then
               begin
                 hlist.concat(taicpu.op_reg_ref(A_LDPTR_D,reg,href));
                 have_done:=true;
@@ -406,9 +413,11 @@ implementation
 
         if not(have_done) then
           begin
+            if (tmpreg<>NR_NO) then
+              ungetregister(tmpreg,hlist);
             hlist.Clear;
             href:=ref;
-            op:=ld_ops[fixref(list,href,fr_reg),fromsize=usizef,usizef];
+            op:=ld_ops[fixref(list,href,fr_reg,tmpreg),fromsize=usizef,usizef];
             list.concat(taicpu.op_reg_ref(op,reg,href));
           end
         else
@@ -489,9 +498,10 @@ implementation
       var
         href: treference;
         l: TAsmLabel;
+        tmpreg : tregister;
       begin
         href:=ref;
-        fixref(list,href,fr_normal);
+        fixref(list,href,fr_normal,tmpreg);
         { Fixref, so simplely work here. }
         if href.offset=0 then
           a_load_reg_reg(list,OS_ADDR,OS_ADDR,href.base,r)
@@ -804,6 +814,7 @@ implementation
       var
         op: TAsmOp;
         href: treference;
+        tmpreg : tregister;
       const
         fld_ops: array[boolean,boolean] of TAsmOp = (
           (A_FLD_D, A_FLD_S),
@@ -811,7 +822,7 @@ implementation
         );
       begin
         href:=ref;
-        op:=fld_ops[fixref(list,href,fr_reg),fromsize=OS_F32];
+        op:=fld_ops[fixref(list,href,fr_reg,tmpreg),fromsize=OS_F32];
         list.concat(taicpu.op_reg_ref(op,reg,href));
         if fromsize<>tosize then
           a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
@@ -822,6 +833,7 @@ implementation
         op: TAsmOp;
         tmpfreg: TRegister;
         href: treference;
+        tmpreg : tregister;
         fst_ops: array[boolean,boolean] of TAsmOp = (
           (A_FST_D, A_FST_S),
           (A_FSTX_D, A_FSTX_S)
@@ -835,7 +847,7 @@ implementation
           end;
 
         href:=ref;
-        op:=fst_ops[fixref(list,href,fr_reg),tosize=OS_F32];
+        op:=fst_ops[fixref(list,href,fr_reg,tmpreg),tosize=OS_F32];
         list.concat(taicpu.op_reg_ref(op,reg,href));
       end;
 
@@ -1440,11 +1452,51 @@ implementation
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);
     end;
 
-    function tcgloongarch64.fixref(list: TAsmList; var ref: treference; mode : tfixref): boolean;
+
+    procedure tcgloongarch64.ungetregister(r : tregister;list : TAsmList);
       var
-        tmpreg: TRegister;
+        supreg : tsuperregister;
+        rt : tregistertype;
+        live : tai;
+      function is_in_list(t : tai;hlist : TAsmList) : boolean;
+        var
+          current : tai;
+        begin
+          result:=false;
+          if not assigned(t) then
+            exit;
+          current:=tai(hlist.first);
+          while assigned(current) do
+            begin
+              if (current=t) then
+                begin
+                  result:=true;
+                  exit;
+                end
+              else
+                current:=tai(current.next);
+            end;
+        end;
+
+      begin
+        if not assigned(list) then
+          exit;
+        supreg:=getsupreg(r);
+        rt:=getregtype(r);
+        if assigned(rg[rt]) then
+          begin
+            if is_in_list(rg[rt].live_start[supreg],list) then
+              rg[rt].live_start[supreg]:=nil;
+            if is_in_list(rg[rt].live_end[supreg],list) then
+              rg[rt].live_end[supreg]:=nil;
+          end;
+      end;
+
+    function tcgloongarch64.fixref(list: TAsmList; var ref: treference; mode : tfixref; out tmpreg : tregister): boolean;
+      var
         href: treference;
       begin
+        tmpreg:=NR_NO;
         if ref.refaddr=addr_reg_12i then
           begin
             result:=mode=fr_normal;
