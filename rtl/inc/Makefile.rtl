@@ -610,6 +610,10 @@ ifndef TERMIODIR
 TERMIODIR=$(OSDIR)
 endif
 
+ifndef PTHREADINCDIR
+PTHREADINCDIR=$(OSDIR)
+endif
+
 ifndef NSWINDOWSDIR
 NSWINDOWSDIR=$(NSDIR)/windows
 endif
@@ -1444,7 +1448,7 @@ UnixApi.Errors$(PPUEXT) : $(NSINC)/UnixApi.Errors.pp $(ERRORS_DEPS)
 # CThreads
 #
 
-CTHREADS_DEPS=$(UNIXINC)/cthreads.pp \
+CTHREADS_DEPS=$(UNIXINC)/cthreads.pp $(PTHREADINCDIR)/pthread.inc \
               $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) $(UNIXTYPEUNIT)$(PPUEXT) $(UNIXUNIT)$(PPUEXT) \
               $(BASEUNIXUNIT)$(PPUEXT) $(INITCUNIT)$(PPUEXT) $(DLUNIT)$(PPUEXT) \
               $(CTHREADS_DEPS_OS) $(CTHREADS_DEPS_CPU)
