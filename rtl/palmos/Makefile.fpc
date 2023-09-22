@@ -8,11 +8,11 @@ main=rtl
 [target]
 loaders= prt0
 units=$(SYSTEMUNIT) si_prc $(UUCHARUNIT) objpas $(ISO7185UNIT) $(STRINGSUNIT) \
-       ctypes \
+       $(CTYPESUNIT) \
        $(CHARSETUNIT) $(CPALLUNIT) \
        $(SYSCONSTUNIT) \
        systraps pilot
-#units=$(SYSTEMUNIT) $(UUCHARUNIT) ctypes objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
+#units=$(SYSTEMUNIT) $(UUCHARUNIT) $(CTYPESUNIT) objpas $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(STRINGSUNIT) \
 #      $(LNFODWRFUNIT) $(LINEINFOUNIT) $(HEAPTRCUNIT) \
 #      windows messages $(DYNLIBSUNIT) \
 #      dos objects \

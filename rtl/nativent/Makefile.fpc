@@ -10,7 +10,7 @@ loaders=
 #units=system $(OBJPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) buildrtl $(LINEINFOUNIT) $(LNFODWRFUNIT)
 units=system $(UUCHARUNIT) $(OBJPASUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(CPALLUNIT) buildrtl
 implicitunits=ndk ndkutils ddk \
-      ctypes $(STRINGSUNIT) \
+      $(CTYPESUNIT) $(STRINGSUNIT) \
 #      $(HEAPTRCUNIT)
 #      $(INITCUNIT) $(CMEMUNIT) $(DYNLIBSUNIT) signals \
       dos \
